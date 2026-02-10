@@ -1,0 +1,1 @@
+- dont ever burn tokens on documentstion writing unless specifically asked to - nebver produce md files or any form of docuemntation, summary or anbalysis unless explicitly directed to do so
