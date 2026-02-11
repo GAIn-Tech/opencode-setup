@@ -40,7 +40,47 @@ pc.addCheck('customRule', (opts) => ({
   passed: true,
   message: 'Custom check passed',
 }));
+
+// Alias for addCheck
+pc.registerGate('policyGuard', (opts) => ({
+  passed: true,
+  message: 'Policy gate passed',
+}));
 ```
+
+## API
+
+### Package Exports
+
+```js
+const { Proofcheck } = require('opencode-proofcheck');
+```
+
+`Proofcheck` now extends Node's `EventEmitter` for gate/evidence hooks.
+
+### Methods
+
+- `addCheck(name, fn)` - register custom check plugin
+- `registerGate(name, fn)` - alias of `addCheck()`
+- `removeCheck(name)` - remove check plugin
+- `verify()` - run all checks and collect results
+- `gateDeployment(branch?)` - render gate summary + status
+- `exitCode()` - return `0` or `1` for scripts
+- `registerHook(hookName, fn)` - register hook callback
+- `unregisterHook(hookName, fn)` - unregister hook callback
+
+### Extension Hooks
+
+Use either `pc.registerHook(name, fn)` or `pc.on(name, fn)`.
+
+| Hook | When it fires | Payload |
+|------|---------------|---------|
+| `onGateRegistered` | Check/gate added | `{ gate, fn }` |
+| `onGateRemoved` | Check/gate removed | `{ gate }` |
+| `verifyStarted` | Verification cycle starts | `{ cwd, check_count }` |
+| `onEvidenceCaptured` | A gate emits pass/fail/skip/crash result | `{ gate, result }` |
+| `verifyCompleted` | Verification cycle ends | `{ allPassed, results }` |
+| `hook:error` | Hook callback throws | `{ hook, payload, error }` |
 
 ## Checks
 

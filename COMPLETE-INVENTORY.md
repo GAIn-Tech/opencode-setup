@@ -1,11 +1,11 @@
 # Complete OpenCode System Inventory
 
-**Last Updated:** February 2025  
-**Total System Components:** 38 (10 custom packages + 13 external plugins + 9 MCPs + 8 agents + 46 skills)
+**Last Updated:** February 11, 2026  
+**Total System Components:** 41 (13 custom packages + 13 external plugins + 9 MCPs + 8 agents + 46 skills)
 
 ---
 
-## 🔧 Custom Packages (10)
+## 🔧 Custom Packages (13)
 
 All installed globally via `npm install -g` and located in `~/packages/`
 
@@ -15,12 +15,15 @@ All installed globally via `npm install -g` and located in `~/packages/`
 | **opencode-eval-harness** | 0.1.0 | Benchmarker with 10 test cases | ✅ Active |
 | **opencode-fallback-doctor** | 1.0.0 | Validates 16-model fallback chain | ✅ Active |
 | **opencode-goraphdb-bridge** | 1.0.0 | REST wrapper over goraphdb HTTP API | ✅ Active |
-| **opencode-learning-engine** | 1.0.0 | Anti-pattern catalog + orchestration advisor | ✅ Active |
+| **opencode-learning-engine** | 1.0.0 | Anti-pattern catalog + orchestration advisor (with SkillRL hooks) | ✅ Active |
 | **opencode-memory-graph** | 2.1.0 | Graph activation + retroactive backfill | ✅ Active |
 | **opencode-model-router-x** | 0.1.0 | Policy-based model selection | ✅ Active |
 | **opencode-plugin-healthd** | 1.0.0 | Daemon health checker (5min intervals) | ✅ Active |
-| **opencode-proofcheck** | 1.0.0 | Deployment gate (git clean + tests) | ✅ Active |
+| **opencode-proofcheck** | 1.0.0 | Deployment gate (with Showboat evidence hooks) | ✅ Active |
 | **opencode-runbooks** | 2.0.0 | Auto-remediation for 7+ error patterns | ✅ Active |
+| **opencode-skill-rl-manager** | 1.0.0 | Hierarchical skill orchestration via SkillRL principles | ✅ Active |
+| **opencode-showboat-wrapper** | 1.0.0 | High-impact evidence capture with Playwright assertions | ✅ Active |
+| **opencode-integration-layer** | 1.0.0 | Wires SkillRL + Showboat into existing packages | ✅ Active |
 
 ---
 

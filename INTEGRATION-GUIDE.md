@@ -464,6 +464,151 @@ const chain = await runbooks.getRemediationChain('ECONNREFUSED', bridge);
 
 ---
 
+### 11. **opencode-skill-rl-manager** (Hierarchical Skill Orchestration)
+
+**What it does:** Implements SkillRL principles for intelligent skill selection using hierarchical skill banks (Universal + Task-Specific) with recursive evolution from failures.
+
+**Integration:**
+```js
+const { SkillRLManager } = require('opencode-skill-rl-manager');
+const skillRL = new SkillRLManager();
+
+// Select skills for a task
+const skills = skillRL.selectSkills({
+  task: 'implement authentication system',
+  complexity: 'high',
+  files_involved: ['src/auth.js']
+});
+
+console.log('Selected skills:', skills.map(s => s.name));
+// Output: ['verification-before-completion', 'test-driven-development', 'incremental-implementation']
+
+// Learn from failure
+skillRL.evolutionEngine.learnFromFailure({
+  task_context: taskContext,
+  error_description: 'Race condition in auth logic',
+  timestamp: new Date().toISOString()
+});
+```
+
+**Configuration:** Skill bank evolves automatically based on failures recorded via the `onFailureDistilled` hook in OrchestrationAdvisor.
+
+**Activation:** Automatically active when integrated via IntegrationLayer (see below).
+
+---
+
+### 12. **opencode-showboat-wrapper** (Evidence Capture)
+
+**What it does:** Orchestrates high-impact evidence capture using showboat markdown documents with Playwright assertions as the default verification method.
+
+**Integration:**
+```js
+const { ShowboatWrapper } = require('opencode-showboat-wrapper');
+const showboat = new ShowboatWrapper({ 
+  outputDir: '.sisyphus/evidence' 
+});
+
+// Check if task is high-impact
+if (showboat.isHighImpact({ task: 'Deploy auth', filesModified: 15 })) {
+  // Generate evidence document
+  const evidence = showboat.captureEvidence({
+    task: 'Deploy authentication system',
+    filesModified: 15,
+    assertions: [
+      { type: 'text', selector: '#login', expected: 'Sign in' },
+      { type: 'element', selector: '#oauth-callback', exists: true }
+    ],
+    outcome: 'PASS',
+    verification: { timestamp: new Date().toISOString() }
+  });
+  
+  console.log('Evidence:', evidence.path);
+}
+```
+
+**Configuration:** High-impact threshold defined in constructor:
+```js
+{
+  filesModified: 10,  // Trigger if ≥10 files changed
+  complexity: 'high',  // Trigger if complexity is 'high'
+  keywords: ['deploy', 'migration', 'integration', 'refactor', 'architecture']
+}
+```
+
+**Activation:** Automatically active when integrated via IntegrationLayer (see below).
+
+---
+
+### 13. **opencode-integration-layer** (SkillRL + Showboat Wiring)
+
+**What it does:** Wires SkillRL and Showboat into existing packages (OrchestrationAdvisor, Proofcheck) via extension hooks.
+
+**Full Workflow Integration:**
+```js
+const { IntegrationLayer } = require('opencode-integration-layer');
+const { SkillRLManager } = require('opencode-skill-rl-manager');
+const { ShowboatWrapper } = require('opencode-showboat-wrapper');
+const { OrchestrationAdvisor } = require('opencode-learning-engine');
+const { Proofcheck } = require('opencode-proofcheck');
+
+// Setup components
+const skillRL = new SkillRLManager();
+const showboat = new ShowboatWrapper({ outputDir: '.sisyphus/evidence' });
+const integration = new IntegrationLayer({ 
+  skillRLManager: skillRL,
+  showboatWrapper: showboat 
+});
+
+// Create integrated OrchestrationAdvisor
+const advisor = integration.createIntegratedAdvisor(
+  OrchestrationAdvisor,
+  antiPatternCatalog,
+  positivePatternTracker
+);
+
+// Create integrated Proofcheck
+const proofcheck = integration.createIntegratedProofcheck(Proofcheck);
+
+// Use integrated workflow
+const taskContext = {
+  task: 'Deploy production authentication',
+  complexity: 'high',
+  filesModified: 15
+};
+
+integration.setTaskContext(taskContext);
+
+// Get advice (augmented by SkillRL)
+const advice = advisor.advise(taskContext);
+console.log('SkillRL skills:', advice.skillrl_skills);
+
+// Run verification (evidence captured if high-impact)
+await proofcheck.verify();
+```
+
+**Hook Points:**
+- **OrchestrationAdvisor.onBeforeAdviceReturn**: SkillRL augments advice with skill selection
+- **OrchestrationAdvisor.onFailureDistilled**: SkillRL evolves from failures
+- **Proofcheck.onVerificationComplete**: Showboat captures evidence
+
+**Configuration:** No additional config needed. Hooks are wired automatically when using `createIntegratedAdvisor()` and `createIntegratedProofcheck()`.
+
+**Activation:** Manual integration in agent startup code. See `integration-tests/skillrl-showboat-e2e.test.js` for full example.
+
+**Evidence as Handoff Artifact:**
+```bash
+# Evidence documents are machine-executable
+showboat verify .sisyphus/evidence/evidence-*.md
+
+# Use as handoff between machines
+scp .sisyphus/evidence/latest.md remote:/handoff/
+ssh remote "showboat verify /handoff/latest.md"
+```
+
+**Architecture Reference:** See `docs/architecture/integration-map.md` for complete API surface and extension hooks.
+
+---
+
 ## 🔍 Troubleshooting Integration
 
 See `TROUBLESHOOTING.md` for common issues and fixes for each component.

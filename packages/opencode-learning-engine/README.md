@@ -60,6 +60,25 @@ console.log(JSON.stringify(engine.getReport(), null, 2));
 
 ## API
 
+### Package Exports
+
+```js
+const {
+  LearningEngine,
+  AntiPatternCatalog,
+  PositivePatternTracker,
+  PatternExtractor,
+  OrchestrationAdvisor,
+  ANTI_PATTERN_TYPES,
+  POSITIVE_PATTERN_TYPES,
+  SEVERITY_WEIGHTS,
+  AGENT_CAPABILITIES,
+  SKILL_AFFINITY,
+} = require('opencode-learning-engine');
+```
+
+`LearningEngine` now extends Node's `EventEmitter` for integration hooks.
+
 ### `LearningEngine`
 
 Main entry point. Wraps all components.
@@ -74,6 +93,21 @@ Main entry point. Wraps all components.
 | `addPositivePattern({type, description, success_rate, context})` | Manually add positive pattern |
 | `getReport()` | Comprehensive insights report |
 | `save()` / `load()` | Persist/restore state |
+| `registerHook(hookName, fn)` | Register extension callback |
+| `unregisterHook(hookName, fn)` | Remove extension callback |
+
+### Extension Hooks
+
+Use either `engine.registerHook(name, fn)` or `engine.on(name, fn)`.
+
+| Hook | When it fires | Payload |
+|------|---------------|---------|
+| `preOrchestrate` | Before `advise()` calls advisor | `{ task_context }` |
+| `adviceGenerated` | After advisor response is produced | `{ task_context, advice }` |
+| `patternStored` | Anti/positive pattern added (ingestion/manual) | `{ type, pattern, session_id? }` |
+| `outcomeRecorded` | After `learnFromOutcome()` processes result | `{ advice_id, outcome, result }` |
+| `onFailureDistill` | Failure-related pattern distilled | `{ advice_id?, outcome?, distilled_failure? }` |
+| `hook:error` | Hook callback throws | `{ hook, payload, error }` |
 
 ### Anti-Pattern Types
 

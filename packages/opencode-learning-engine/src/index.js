@@ -16,14 +16,16 @@ const { AntiPatternCatalog, VALID_TYPES: ANTI_PATTERN_TYPES, SEVERITY_WEIGHTS } 
 const { PositivePatternTracker, VALID_TYPES: POSITIVE_PATTERN_TYPES } = require('./positive-patterns');
 const { PatternExtractor } = require('./pattern-extractor');
 const { OrchestrationAdvisor, AGENT_CAPABILITIES, SKILL_AFFINITY } = require('./orchestration-advisor');
+const EventEmitter = require('events');
 
-class LearningEngine {
+class LearningEngine extends EventEmitter {
   /**
    * @param {Object} [options]
    * @param {boolean} [options.autoLoad=true] - Load persisted data on construction
    * @param {boolean} [options.autoSave=true] - Auto-save after mutations
    */
   constructor(options = {}) {
+    super();
     const { autoLoad = true, autoSave = true } = options;
 
     this.antiPatterns = new AntiPatternCatalog();
@@ -33,9 +35,69 @@ class LearningEngine {
 
     this.autoSave = autoSave;
     this.sessionLog = []; // Track which sessions have been ingested
+    this.hooks = {};
+
+    if (options.hooks && typeof options.hooks === 'object') {
+      for (const [hookName, handlers] of Object.entries(options.hooks)) {
+        if (Array.isArray(handlers)) {
+          for (const handler of handlers) {
+            this.registerHook(hookName, handler);
+          }
+        } else {
+          this.registerHook(hookName, handlers);
+        }
+      }
+    }
 
     if (autoLoad) {
       this.load();
+    }
+  }
+
+  /**
+   * Register extension hook handler.
+   * @param {string} hookName
+   * @param {(payload: any) => void} fn
+   */
+  registerHook(hookName, fn) {
+    if (typeof fn !== 'function') {
+      throw new TypeError(`Hook "${hookName}" must be a function`);
+    }
+    if (!this.hooks[hookName]) {
+      this.hooks[hookName] = [];
+    }
+    this.hooks[hookName].push(fn);
+  }
+
+  /**
+   * Unregister extension hook handler.
+   * @param {string} hookName
+   * @param {(payload: any) => void} fn
+   */
+  unregisterHook(hookName, fn) {
+    if (!this.hooks[hookName]) return;
+    this.hooks[hookName] = this.hooks[hookName].filter((handler) => handler !== fn);
+    if (this.hooks[hookName].length === 0) {
+      delete this.hooks[hookName];
+    }
+  }
+
+  /**
+   * Emit EventEmitter event and registered hook callbacks.
+   * @param {string} hookName
+   * @param {any} payload
+   */
+  _emitHook(hookName, payload) {
+    this.emit(hookName, payload);
+
+    if (!this.hooks[hookName]) return;
+
+    for (const fn of this.hooks[hookName]) {
+      try {
+        fn(payload);
+      } catch (err) {
+        this.emit('hook:error', { hook: hookName, payload, error: err });
+      }
     }
   }
 
@@ -61,11 +123,13 @@ class LearningEngine {
     // Store extracted anti-patterns (HEAVILY weighted)
     for (const ap of result.anti_patterns) {
       this.antiPatterns.addAntiPattern(ap);
+      this._emitHook('patternStored', { type: 'anti', pattern: ap, session_id: sessionId });
     }
 
     // Store extracted positive patterns
     for (const pp of result.positive_patterns) {
       this.positivePatterns.addPositivePattern(pp);
+      this._emitHook('patternStored', { type: 'positive', pattern: pp, session_id: sessionId });
     }
 
     this.sessionLog.push({
@@ -100,15 +164,18 @@ class LearningEngine {
     for (const session of fullResult.sessions) {
       for (const ap of session.anti_patterns) {
         this.antiPatterns.addAntiPattern(ap);
+        this._emitHook('patternStored', { type: 'anti', pattern: ap, session_id: session.session_id });
       }
       for (const pp of session.positive_patterns) {
         this.positivePatterns.addPositivePattern(pp);
+        this._emitHook('patternStored', { type: 'positive', pattern: pp, session_id: session.session_id });
       }
     }
 
     // Cross-session anti-patterns (repeated_mistake)
     for (const csap of fullResult.cross_session_anti_patterns) {
       this.antiPatterns.addAntiPattern(csap);
+      this._emitHook('onFailureDistill', { distilled_pattern: csap, source: 'cross-session' });
     }
 
     this.sessionLog.push({
@@ -141,7 +208,10 @@ class LearningEngine {
    * @returns {Object} Advice with warnings, suggestions, routing, risk_score
    */
   advise(taskContext) {
-    return this.advisor.advise(taskContext);
+    this._emitHook('preOrchestrate', { task_context: taskContext });
+    const advice = this.advisor.advise(taskContext);
+    this._emitHook('adviceGenerated', { task_context: taskContext, advice });
+    return advice;
   }
 
   /**
@@ -151,6 +221,18 @@ class LearningEngine {
    */
   learnFromOutcome(adviceId, outcome) {
     const result = this.advisor.learnFromOutcome(adviceId, outcome);
+    this._emitHook('outcomeRecorded', { advice_id: adviceId, outcome, result });
+    if (outcome && outcome.success === false) {
+      this._emitHook('onFailureDistill', {
+        advice_id: adviceId,
+        outcome,
+        distilled_failure: {
+          failure_reason: outcome.failure_reason || outcome.description || 'unknown failure',
+          tokens_used: outcome.tokens_used,
+          time_taken_ms: outcome.time_taken_ms,
+        },
+      });
+    }
     if (this.autoSave) {
       this.save();
     }
@@ -165,6 +247,7 @@ class LearningEngine {
    */
   addAntiPattern(pattern) {
     const result = this.antiPatterns.addAntiPattern(pattern);
+    this._emitHook('patternStored', { type: 'anti', pattern: result });
     if (this.autoSave) this.save();
     return result;
   }
@@ -175,6 +258,7 @@ class LearningEngine {
    */
   addPositivePattern(pattern) {
     const result = this.positivePatterns.addPositivePattern(pattern);
+    this._emitHook('patternStored', { type: 'positive', pattern: result });
     if (this.autoSave) this.save();
     return result;
   }
