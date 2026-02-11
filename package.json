@@ -1,0 +1,13 @@
+{
+  "name": "opencode-setup",
+  "version": "1.0.0",
+  "description": "OpenCode custom plugins and configuration",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "link-all": "for dir in packages/*/; do cd \"$dir\" && bun link && cd ../..; done",
+    "install-to-opencode": "bun install && npm run link-all"
+  }
+}

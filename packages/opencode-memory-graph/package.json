@@ -1,0 +1,29 @@
+{
+  "name": "@jackoatmon/opencode-memory-graph",
+  "version": "0.1.0",
+  "description": "Session-to-error graph builder from OpenCode runtime logs",
+  "main": "src/index.js",
+  "bin": {
+    "opencode-memory-graph": "src/cli.js"
+  },
+  "scripts": {
+    "test": "node -e \"const { MemoryGraph } = require('./src/index'); console.log('OK');\""
+  },
+  "keywords": [
+    "opencode",
+    "memory",
+    "graph",
+    "error-tracking",
+    "session-analysis",
+    "log-parser"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "files": [
+    "src/",
+    "README.md"
+  ]
+}

@@ -1,0 +1,134 @@
+[
+  {
+    "id": "arithmetic-basic",
+    "prompt": "Calculate 2 + 2 and return only the numeric result.",
+    "expected_result_shape": {
+      "type": "exact",
+      "value": "4",
+      "match": "contains"
+    },
+    "complexity_tier": 1,
+    "category": "math",
+    "max_tokens": 32
+  },
+  {
+    "id": "js-closure-explain",
+    "prompt": "Explain what a closure is in JavaScript in 2-3 sentences.",
+    "expected_result_shape": {
+      "type": "keywords",
+      "value": ["function", "scope", "variable"],
+      "match": "all_present"
+    },
+    "complexity_tier": 2,
+    "category": "concept-explanation",
+    "max_tokens": 256
+  },
+  {
+    "id": "string-reverse",
+    "prompt": "Write a JavaScript function called reverseString that takes a string and returns it reversed.",
+    "expected_result_shape": {
+      "type": "code",
+      "value": {
+        "language": "javascript",
+        "must_contain": ["function", "reverse", "return"],
+        "must_not_contain": ["import", "require"]
+      },
+      "match": "code_check"
+    },
+    "complexity_tier": 2,
+    "category": "code-generation",
+    "max_tokens": 256
+  },
+  {
+    "id": "bug-detection",
+    "prompt": "Find the bug in this code:\n\nfunction sum(arr) {\n  let total = 0;\n  for (let i = 0; i <= arr.length; i++) {\n    total += arr[i];\n  }\n  return total;\n}\n\nExplain the bug and provide the fix.",
+    "expected_result_shape": {
+      "type": "keywords",
+      "value": ["<=", "<", "off-by-one", "undefined", "length"],
+      "match": "any_present"
+    },
+    "complexity_tier": 2,
+    "category": "debugging",
+    "max_tokens": 512
+  },
+  {
+    "id": "json-parse",
+    "prompt": "Given the JSON string '{\"name\": \"Alice\", \"age\": 30}', write JavaScript to parse it and return the name field.",
+    "expected_result_shape": {
+      "type": "code",
+      "value": {
+        "language": "javascript",
+        "must_contain": ["JSON.parse", "name"],
+        "must_not_contain": []
+      },
+      "match": "code_check"
+    },
+    "complexity_tier": 1,
+    "category": "code-generation",
+    "max_tokens": 128
+  },
+  {
+    "id": "regex-email",
+    "prompt": "Write a regular expression that validates a basic email address format (user@domain.tld).",
+    "expected_result_shape": {
+      "type": "keywords",
+      "value": ["@", "\\."],
+      "match": "all_present"
+    },
+    "complexity_tier": 3,
+    "category": "code-generation",
+    "max_tokens": 256
+  },
+  {
+    "id": "sql-select",
+    "prompt": "Write a SQL query to select all users from a 'users' table where age is greater than 25, ordered by name ascending.",
+    "expected_result_shape": {
+      "type": "keywords",
+      "value": ["SELECT", "FROM", "users", "WHERE", "age", ">", "ORDER BY", "name"],
+      "match": "all_present"
+    },
+    "complexity_tier": 2,
+    "category": "code-generation",
+    "max_tokens": 128
+  },
+  {
+    "id": "time-complexity",
+    "prompt": "What is the time complexity of binary search? Answer with Big-O notation and a one-sentence explanation.",
+    "expected_result_shape": {
+      "type": "keywords",
+      "value": ["O(log n)", "halv"],
+      "match": "any_present"
+    },
+    "complexity_tier": 1,
+    "category": "concept-explanation",
+    "max_tokens": 128
+  },
+  {
+    "id": "refactor-extract",
+    "prompt": "Refactor this code by extracting the repeated logic into a helper function:\n\nconst area1 = Math.PI * r1 * r1;\nconst area2 = Math.PI * r2 * r2;\nconst area3 = Math.PI * r3 * r3;",
+    "expected_result_shape": {
+      "type": "code",
+      "value": {
+        "language": "javascript",
+        "must_contain": ["function", "Math.PI", "return"],
+        "must_not_contain": []
+      },
+      "match": "code_check"
+    },
+    "complexity_tier": 2,
+    "category": "refactoring",
+    "max_tokens": 256
+  },
+  {
+    "id": "api-design",
+    "prompt": "Design a REST API endpoint for creating a new user. Provide the HTTP method, URL path, request body shape, and expected response with status code.",
+    "expected_result_shape": {
+      "type": "keywords",
+      "value": ["POST", "/user", "name", "email", "201", "id"],
+      "match": "any_present"
+    },
+    "complexity_tier": 3,
+    "category": "system-design",
+    "max_tokens": 512
+  }
+]

@@ -1,0 +1,28 @@
+{
+  "name": "@jackoatmon/opencode-fallback-doctor",
+  "version": "0.1.0",
+  "description": "Validates fallback model chains for OpenCode — checks syntax, model existence, ordering, and duplicates.",
+  "main": "src/index.js",
+  "bin": {
+    "fallback-doctor": "src/cli.js"
+  },
+  "scripts": {
+    "test": "node -e \"const {FallbackDoctor} = require('./src/index'); const d = new FallbackDoctor(); console.log(d.report()); console.log('PASS');\""
+  },
+  "keywords": [
+    "opencode",
+    "fallback",
+    "model-chain",
+    "validator",
+    "diagnostics"
+  ],
+  "author": "OpenCode Ops",
+  "license": "MIT",
+  "files": [
+    "src/",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

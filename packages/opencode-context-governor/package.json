@@ -1,0 +1,21 @@
+{
+  "name": "@jackoatmon/opencode-context-governor",
+  "version": "0.1.0",
+  "description": "Active token budget controller for OpenCode sessions. Tracks per-model, per-session token consumption with configurable warn/error thresholds.",
+  "main": "src/index.js",
+  "keywords": [
+    "opencode",
+    "token-budget",
+    "context-window",
+    "llm",
+    "session-management"
+  ],
+  "author": "OpenCode",
+  "license": "MIT",
+  "files": [
+    "src/"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

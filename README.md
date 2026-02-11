@@ -40,10 +40,29 @@ opencode-setup/
 
 ## Quick Start
 
-1. **Install OpenCode**: `npm install -g opencode` or follow https://opencode.ai/docs
-2. **Clone this repo**: `git clone https://github.com/GAIn-Tech/opencode-setup.git`
-3. **Copy configs**: Follow `setup-instructions.md`
-4. **Authenticate accounts**: `opencode` → antigravity plugin handles OAuth
+### Automated Setup (Recommended)
+
+```bash
+# 1. Clone this repo
+git clone https://github.com/GAIn-Tech/opencode-setup.git
+cd opencode-setup
+
+# 2. Run the setup script (installs and links all custom plugins)
+./setup.sh
+
+# 3. Start OpenCode
+opencode
+```
+
+### Manual Setup
+
+1. **Install OpenCode**: `npm install -g opencode-ai`
+2. **Install Bun**: `npm install -g bun`
+3. **Clone this repo**: `git clone https://github.com/GAIn-Tech/opencode-setup.git`
+4. **Run setup script**: `cd opencode-setup && ./setup.sh`
+5. **Authenticate accounts**: `opencode` → antigravity plugin handles OAuth
+
+See [INSTALL.md](INSTALL.md) for detailed installation instructions.
 
 ## Current Stack
 

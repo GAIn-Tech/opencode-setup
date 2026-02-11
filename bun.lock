@@ -1,0 +1,73 @@
+{
+  "lockfileVersion": 1,
+  "configVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "opencode-setup",
+    },
+    "packages/opencode-context-governor": {
+      "name": "@jackoatmon/opencode-context-governor",
+      "version": "0.1.0",
+    },
+    "packages/opencode-eval-harness": {
+      "name": "@jackoatmon/opencode-eval-harness",
+      "version": "0.1.0",
+      "bin": {
+        "opencode-eval": "bin/cli.js",
+      },
+    },
+    "packages/opencode-fallback-doctor": {
+      "name": "@jackoatmon/opencode-fallback-doctor",
+      "version": "0.1.0",
+      "bin": {
+        "fallback-doctor": "src/cli.js",
+      },
+    },
+    "packages/opencode-memory-graph": {
+      "name": "@jackoatmon/opencode-memory-graph",
+      "version": "0.1.0",
+      "bin": {
+        "opencode-memory-graph": "src/cli.js",
+      },
+    },
+    "packages/opencode-model-router-x": {
+      "name": "@jackoatmon/opencode-model-router-x",
+      "version": "0.1.0",
+    },
+    "packages/opencode-plugin-healthd": {
+      "name": "@jackoatmon/opencode-plugin-healthd",
+      "version": "0.1.0",
+      "bin": {
+        "opencode-healthd": "src/daemon.js",
+      },
+    },
+    "packages/opencode-proofcheck": {
+      "name": "@jackoatmon/opencode-proofcheck",
+      "version": "0.1.0",
+      "bin": {
+        "proofcheck": "src/cli.js",
+      },
+    },
+    "packages/opencode-runbooks": {
+      "name": "@jackoatmon/opencode-runbooks",
+      "version": "0.1.0",
+    },
+  },
+  "packages": {
+    "@jackoatmon/opencode-context-governor": ["@jackoatmon/opencode-context-governor@workspace:packages/opencode-context-governor"],
+
+    "@jackoatmon/opencode-eval-harness": ["@jackoatmon/opencode-eval-harness@workspace:packages/opencode-eval-harness"],
+
+    "@jackoatmon/opencode-fallback-doctor": ["@jackoatmon/opencode-fallback-doctor@workspace:packages/opencode-fallback-doctor"],
+
+    "@jackoatmon/opencode-memory-graph": ["@jackoatmon/opencode-memory-graph@workspace:packages/opencode-memory-graph"],
+
+    "@jackoatmon/opencode-model-router-x": ["@jackoatmon/opencode-model-router-x@workspace:packages/opencode-model-router-x"],
+
+    "@jackoatmon/opencode-plugin-healthd": ["@jackoatmon/opencode-plugin-healthd@workspace:packages/opencode-plugin-healthd"],
+
+    "@jackoatmon/opencode-proofcheck": ["@jackoatmon/opencode-proofcheck@workspace:packages/opencode-proofcheck"],
+
+    "@jackoatmon/opencode-runbooks": ["@jackoatmon/opencode-runbooks@workspace:packages/opencode-runbooks"],
+  }
+}

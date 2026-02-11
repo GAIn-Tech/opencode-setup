@@ -1,0 +1,103 @@
+{
+  "version": "0.1.0",
+  "description": "Policy-based routing rules for OpenCode model selection",
+
+  "models": {
+    "anthropic/claude-opus-4-6": {
+      "provider": "anthropic",
+      "tier": "flagship",
+      "base_weight": 0.6,
+      "cost_per_1k_tokens": 0.075,
+      "max_context": 200000,
+      "strengths": ["deep-reasoning", "complex-code", "architecture", "debugging"],
+      "default_success_rate": 0.92
+    },
+    "anthropic/claude-sonnet-4-5": {
+      "provider": "anthropic",
+      "tier": "balanced",
+      "base_weight": 0.6,
+      "cost_per_1k_tokens": 0.015,
+      "max_context": 200000,
+      "strengths": ["general-code", "refactoring", "review", "fast-iteration"],
+      "default_success_rate": 0.88
+    },
+    "anthropic/claude-haiku-4-5": {
+      "provider": "anthropic",
+      "tier": "speed",
+      "base_weight": 0.6,
+      "cost_per_1k_tokens": 0.005,
+      "max_context": 200000,
+      "strengths": ["simple-tasks", "formatting", "linting", "quick-answers"],
+      "default_success_rate": 0.82
+    },
+    "gpt-5": {
+      "provider": "openai",
+      "tier": "flagship",
+      "base_weight": 0.4,
+      "cost_per_1k_tokens": 0.060,
+      "max_context": 128000,
+      "strengths": ["general-reasoning", "code-generation", "math"],
+      "default_success_rate": 0.88
+    },
+    "gemini-2.5-pro": {
+      "provider": "google",
+      "tier": "flagship",
+      "base_weight": 0.4,
+      "cost_per_1k_tokens": 0.035,
+      "max_context": 1000000,
+      "strengths": ["long-context", "multimodal", "code-generation"],
+      "default_success_rate": 0.85
+    },
+    "kimi-k2.5": {
+      "provider": "moonshot",
+      "tier": "balanced",
+      "base_weight": 0.4,
+      "cost_per_1k_tokens": 0.012,
+      "max_context": 128000,
+      "strengths": ["general-code", "translation", "summarization"],
+      "default_success_rate": 0.80
+    }
+  },
+
+  "cost_tiers": {
+    "mechanical":  { "max_budget": 0.02, "preferred_tier": "speed",     "description": "Formatting, linting, trivial fixes" },
+    "trivial":     { "max_budget": 0.05, "preferred_tier": "speed",     "description": "Simple renames, small edits" },
+    "low":         { "max_budget": 0.10, "preferred_tier": "balanced",  "description": "Standard code changes, tests" },
+    "medium":      { "max_budget": 0.25, "preferred_tier": "balanced",  "description": "Feature implementation, refactoring" },
+    "high":        { "max_budget": 0.50, "preferred_tier": "flagship",  "description": "Complex features, architecture" },
+    "critical":    { "max_budget": 1.00, "preferred_tier": "flagship",  "description": "Critical bugs, security fixes" },
+    "emergency":   { "max_budget": 2.00, "preferred_tier": "flagship",  "description": "Production incidents, urgent fixes" }
+  },
+
+  "complexity_routing": {
+    "simple": {
+      "description": "Mechanical tasks, formatting, linting",
+      "cost_tier": "mechanical",
+      "model_preference": ["anthropic/claude-haiku-4-5", "kimi-k2.5", "anthropic/claude-sonnet-4-5"]
+    },
+    "moderate": {
+      "description": "Standard code tasks, tests, small features",
+      "cost_tier": "low",
+      "model_preference": ["anthropic/claude-sonnet-4-5", "kimi-k2.5", "gemini-2.5-pro"]
+    },
+    "high": {
+      "description": "Complex features, multi-file refactors",
+      "cost_tier": "high",
+      "model_preference": ["anthropic/claude-opus-4-6", "gpt-5", "gemini-2.5-pro"]
+    },
+    "critical": {
+      "description": "Architecture decisions, security, production issues",
+      "cost_tier": "critical",
+      "model_preference": ["anthropic/claude-opus-4-6", "gpt-5", "anthropic/claude-sonnet-4-5"]
+    }
+  },
+
+  "tuning": {
+    "min_samples_for_tuning": 5,
+    "decay_factor": 0.95,
+    "success_rate_floor": 0.3,
+    "success_rate_ceiling": 0.99,
+    "latency_penalty_threshold_ms": 30000,
+    "latency_penalty_factor": 0.1
+  }
+}
