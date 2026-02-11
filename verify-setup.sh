@@ -28,6 +28,18 @@ else
 fi
 echo ""
 
+# Check local git hooks
+echo "Checking local git hooks..."
+hooks_path=$(git config --get core.hooksPath || true)
+if [ "$hooks_path" = ".githooks" ] && [ -x .githooks/commit-msg ] && [ -x .githooks/pre-push ]; then
+  echo "  ✓ core.hooksPath=.githooks with commit-msg and pre-push hooks"
+else
+  echo "  ✗ Governance git hooks missing"
+  echo "    Run: bash scripts/install-git-hooks.sh"
+  exit 1
+fi
+echo ""
+
 # Check OpenCode config
 echo "Checking OpenCode configuration..."
 if [ -f ~/.config/opencode/opencode.json ]; then

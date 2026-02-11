@@ -8,6 +8,12 @@
   ],
   "scripts": {
     "link-all": "for dir in packages/*/; do cd \"$dir\" && bun link && cd ../..; done",
-    "install-to-opencode": "bun install && npm run link-all"
+    "install-to-opencode": "bun install && npm run link-all",
+    "hooks:install": "bash scripts/install-git-hooks.sh",
+    "gate:learning": "node scripts/learning-gate.mjs --staged",
+    "gate:commits": "node scripts/commit-governance.mjs",
+    "gate:pr": "node scripts/pr-governance.mjs",
+    "state:deploy": "node scripts/deployment-state.mjs",
+    "governance:check": "node scripts/learning-gate.mjs --staged && node scripts/deployment-state.mjs check-flow"
   }
 }

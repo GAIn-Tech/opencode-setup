@@ -1,0 +1,27 @@
+{
+  "id": "governance-infrastructure-merge",
+  "date": "2026-02-11",
+  "type": "governance-bootstrap",
+  "description": "Add governance system and orchestrate bridge infrastructure",
+  "affected_paths": [
+    "scripts/learning-gate.mjs",
+    "scripts/commit-governance.mjs",
+    "scripts/pr-governance.mjs",
+    "scripts/deployment-state.mjs",
+    "scripts/install-git-hooks.sh",
+    ".githooks/",
+    ".github/workflows/",
+    "opencode-config/",
+    "orchestrate-bridge/",
+    "package.json",
+    "setup.sh"
+  ],
+  "validation": {
+    "syntax": "pass",
+    "tests": "pass",
+    "lint": "pass",
+    "docs": "pass"
+  },
+  "risk_level": "low",
+  "reviewed_by": "claude"
+}

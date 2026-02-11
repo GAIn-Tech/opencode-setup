@@ -37,6 +37,14 @@ cd ..
 echo "✓ All plugins linked"
 echo ""
 
+# Install local git hooks for governance
+if [ -d .git ]; then
+  echo "Installing local git hooks..."
+  bash scripts/install-git-hooks.sh
+  echo "✓ Git hooks installed"
+  echo ""
+fi
+
 # Backup existing config if it exists
 if [ -f ~/.config/opencode/opencode.json ]; then
   echo "Backing up existing opencode.json..."
