@@ -2,11 +2,11 @@
 
 All MCP servers are defined in `~/.config/opencode/opencode.json` under the `"mcp"` key. They connect automatically when OpenCode starts.
 
-## Active MCP Servers (8)
+## Active MCP Servers (9)
 
 ### 1. tavily
 - **Type**: local
-- **Command**: `npx -y tavily-mcp@latest`
+- **Command**: `npx -y tavily-mcp@0.2.16`
 - **Purpose**: Web search, content extraction, website crawling, deep research
 - **Requires**: `TAVILY_API_KEY` environment variable
 - **Tools**: `tavily_search`, `tavily_extract`, `tavily_crawl`, `tavily_map`, `tavily_research`
@@ -15,7 +15,7 @@ All MCP servers are defined in `~/.config/opencode/opencode.json` under the `"mc
 - **Type**: remote
 - **URL**: `https://mcp.supermemory.ai/mcp`
 - **Purpose**: Persistent cross-session memory, user profile, knowledge base
-- **Requires**: Bearer token in config headers
+- **Requires**: `SUPERMEMORY_TOKEN` env var via `Bearer {env:SUPERMEMORY_TOKEN}`
 - **Tools**: `memory` (save/forget), `recall` (search), `listProjects`, `whoAmI`
 
 ### 3. context7
@@ -27,7 +27,7 @@ All MCP servers are defined in `~/.config/opencode/opencode.json` under the `"mc
 
 ### 4. playwright
 - **Type**: local
-- **Command**: `npx @playwright/mcp@latest`
+- **Command**: `npx @playwright/mcp@0.0.64`
 - **Purpose**: Browser automation, screenshots, form filling, testing
 - **Requires**: Nothing (auto-installs browser)
 - **Tools**: `browser_navigate`, `browser_snapshot`, `browser_click`, `browser_type`, `browser_take_screenshot`, `browser_evaluate`, `browser_fill_form`, and more
@@ -55,10 +55,17 @@ All MCP servers are defined in `~/.config/opencode/opencode.json` under the `"mc
 
 ### 8. github
 - **Type**: local
-- **Command**: `npx -y @modelcontextprotocol/server-github`
+- **Command**: `npx -y @modelcontextprotocol/server-github@2025.4.8`
 - **Purpose**: GitHub API — issues, PRs, repos, code search, file contents
 - **Requires**: `GITHUB_TOKEN` environment variable
 - **Tools**: `create_repository`, `search_repositories`, `create_issue`, `create_pull_request`, `get_file_contents`, `push_files`, `list_commits`, `search_code`, and more
+
+### 9. distill
+- **Type**: local
+- **Command**: `npx -y distill-mcp@0.8.1`
+- **Purpose**: AST-aware context compression and token reduction
+- **Requires**: Nothing
+- **Tools**: provider-specific distill tools
 
 ## Configuration Format
 
@@ -69,7 +76,7 @@ MCP servers are defined in `opencode.json`:
   "mcp": {
     "server-name": {
       "type": "local",
-      "command": ["npx", "-y", "package-name@latest"],
+      "command": ["npx", "-y", "package-name@x.y.z"],
       "environment": {
         "API_KEY": "{env:ENV_VAR_NAME}"
       },
@@ -79,7 +86,7 @@ MCP servers are defined in `opencode.json`:
       "type": "remote",
       "url": "https://example.com/mcp",
       "headers": {
-        "Authorization": "Bearer TOKEN"
+        "Authorization": "Bearer {env:SERVICE_TOKEN}"
       },
       "enabled": true
     }
@@ -101,7 +108,7 @@ MCP servers are defined in `opencode.json`:
 ## Troubleshooting
 
 ### Server not connecting
-1. Test the server directly: `npx -y tavily-mcp@latest`
+1. Test the server directly: `npx -y tavily-mcp@0.2.16`
 2. Check environment variables are set: `echo $GITHUB_TOKEN`
 3. Restart OpenCode
 

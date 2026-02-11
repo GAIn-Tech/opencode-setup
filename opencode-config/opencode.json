@@ -2,18 +2,18 @@
   "$schema": "https://opencode.ai/config.json",
   "model": "google/antigravity-gemini-3-pro",
   "plugin": [
-    "oh-my-opencode@latest",
-    "opencode-antigravity-auth@latest",
-    "opencode-supermemory@latest",
-    "@tarquinen/opencode-dcp@latest",
-    "cc-safety-net@latest",
-    "@azumag/opencode-rate-limit-fallback@latest",
-    "@mohak34/opencode-notifier@latest",
-    "opencode-plugin-langfuse@latest",
-    "opencode-plugin-preload-skills@latest",
-    "@symbioticsec/opencode-security-plugin@latest",
-    "opencode-token-monitor@latest",
-    "envsitter-guard@latest"
+    "oh-my-opencode@3.4.0",
+    "opencode-antigravity-auth@1.4.6",
+    "opencode-supermemory@2.0.1",
+    "@tarquinen/opencode-dcp@2.1.1",
+    "cc-safety-net@0.7.1",
+    "@azumag/opencode-rate-limit-fallback@1.66.0",
+    "@mohak34/opencode-notifier@0.1.18",
+    "opencode-plugin-langfuse@0.1.8",
+    "opencode-plugin-preload-skills@1.8.0",
+    "@symbioticsec/opencode-security-plugin@0.0.1-beta.1",
+    "opencode-token-monitor@0.5.0",
+    "envsitter-guard@0.0.4"
   ],
   "provider": {
     "google": {
@@ -78,7 +78,7 @@
   "mcp": {
     "tavily": {
       "type": "local",
-      "command": ["npx", "-y", "tavily-mcp@latest"],
+      "command": ["npx", "-y", "tavily-mcp@0.2.16"],
       "environment": {
         "TAVILY_API_KEY": "{env:TAVILY_API_KEY}"
       },
@@ -88,7 +88,7 @@
       "type": "remote",
       "url": "https://mcp.supermemory.ai/mcp",
       "headers": {
-        "Authorization": "Bearer YOUR_SUPERMEMORY_TOKEN_HERE"
+        "Authorization": "Bearer {env:SUPERMEMORY_TOKEN}"
       },
       "enabled": true
     },
@@ -99,8 +99,8 @@
     },
     "playwright": {
       "type": "local",
-      "command": ["npx", "@playwright/mcp@latest"],
-      "enabled": true
+      "command": ["npx", "@playwright/mcp@0.0.64"],
+      "enabled": false
     },
     "sequentialthinking": {
       "type": "local",
@@ -119,15 +119,15 @@
     },
     "github": {
       "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+      "command": ["npx", "-y", "@modelcontextprotocol/server-github@2025.4.8"],
       "environment": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "{env:GITHUB_TOKEN}"
       },
-      "enabled": true
+      "enabled": false
     },
     "distill": {
       "type": "local",
-      "command": ["npx", "-y", "distill-mcp@latest"],
+      "command": ["npx", "-y", "distill-mcp@0.8.1"],
       "enabled": true
     }
   },
@@ -146,21 +146,5 @@
     "question": "allow",
     "todowrite": "allow",
     "todoread": "allow"
-  },
-  "tools": {
-    "read": true,
-    "write": true,
-    "edit": true,
-    "bash": true,
-    "grep": true,
-    "glob": true,
-    "list": true,
-    "webfetch": true,
-    "skill": true,
-    "patch": true,
-    "task": true,
-    "question": true,
-    "todowrite": true,
-    "todoread": true
   }
 }

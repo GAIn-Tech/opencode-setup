@@ -99,7 +99,7 @@ task(category="deep", load_skills=["systematic-debugging", "test-driven-developm
 └── .opencode.yaml             # Project-specific overrides
 ```
 
-## Plugins (8)
+## Plugins (12)
 
 | Plugin | Purpose |
 |--------|---------|
@@ -111,8 +111,12 @@ task(category="deep", load_skills=["systematic-debugging", "test-driven-developm
 | @azumag/opencode-rate-limit-fallback | Auto model fallback on rate limit |
 | @mohak34/opencode-notifier | OS notifications |
 | opencode-plugin-langfuse | LLM tracing & cost tracking |
+| opencode-plugin-preload-skills | Contextual skill loading |
+| @symbioticsec/opencode-security-plugin | Security guardrails and scanning |
+| opencode-token-monitor | Token and spend analytics |
+| envsitter-guard | Blocks reading env/secret files |
 
-## MCP Servers (8)
+## MCP Servers (9)
 
 | Server | Type | Purpose |
 |--------|------|---------|
@@ -124,6 +128,7 @@ task(category="deep", load_skills=["systematic-debugging", "test-driven-developm
 | websearch | local | Web search (backup) |
 | grep | local | GitHub code search |
 | github | local | GitHub API |
+| distill | local | AST-aware context compression |
 
 ## Common Issues
 
@@ -135,7 +140,8 @@ opencode  # Reinstalls automatically
 
 ### MCP Server Issues
 ```bash
-npx -y tavily-mcp@latest  # Test individual server
+npx -y tavily-mcp@0.2.16  # Test individual server
+npx -y distill-mcp@0.8.1  # Test distill MCP
 pip install uv             # Needed for grep MCP
 echo $GITHUB_TOKEN         # Verify env vars set
 ```

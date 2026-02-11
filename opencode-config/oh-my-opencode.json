@@ -38,9 +38,6 @@
     }
   },
   "mcp": {
-    "exa": {
-      "enabled": true
-    },
     "context7": {
       "enabled": true
     },
@@ -53,7 +50,7 @@
   },
   "hooks": {
     "onStart": [
-      "echo 'oh-my-opencode loaded with 8 agents and 4 MCPs + Antigravity account rotation'"
+      "echo 'oh-my-opencode loaded with 8 agents and 3 MCP toggles + Antigravity account rotation'"
     ]
   }
 }

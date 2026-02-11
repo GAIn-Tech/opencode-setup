@@ -49,18 +49,18 @@ delegation:
   complexity_mapping:
     mechanical:      # Simple, repetitive tasks (typos, renames, single-line fixes)
       category: quick
-      models: [kimi-k2.5-free]
-      max_cost_per_task: 0.00
-
-    trivial:         # Lightweight tasks (file lookups, grep, simple edits)
-      category: quick
       models: [gemini-2.5-flash]
       max_cost_per_task: 0.01
 
-    routine:         # Standard development work (feature impl, bug fixes)
-      category: unspecified-low
+    trivial:         # Lightweight tasks (file lookups, grep, simple edits)
+      category: quick
       models: [antigravity-gemini-3-flash]
       max_cost_per_task: 0.05
+
+    routine:         # Standard development work (feature impl, bug fixes)
+      category: unspecified-low
+      models: [claude-sonnet-4-5]
+      max_cost_per_task: 0.20
 
     complex:         # Multi-step reasoning (refactors, multi-file changes)
       category: unspecified-high

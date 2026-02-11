@@ -64,14 +64,18 @@ Plugins are npm packages defined in `opencode.json` under `"plugin"`. They auto-
 ```json
 {
   "plugin": [
-    "oh-my-opencode@latest",
-    "opencode-antigravity-auth@latest",
-    "opencode-supermemory@latest",
-    "@tarquinen/opencode-dcp@latest",
-    "cc-safety-net@latest",
-    "@azumag/opencode-rate-limit-fallback@latest",
-    "@mohak34/opencode-notifier@latest",
-    "opencode-plugin-langfuse@latest"
+    "oh-my-opencode@3.4.0",
+    "opencode-antigravity-auth@1.4.6",
+    "opencode-supermemory@2.0.1",
+    "@tarquinen/opencode-dcp@2.1.1",
+    "cc-safety-net@0.7.1",
+    "@azumag/opencode-rate-limit-fallback@1.66.0",
+    "@mohak34/opencode-notifier@0.1.18",
+    "opencode-plugin-langfuse@0.1.8",
+    "opencode-plugin-preload-skills@1.8.0",
+    "@symbioticsec/opencode-security-plugin@0.0.1-beta.1",
+    "opencode-token-monitor@0.5.0",
+    "envsitter-guard@0.0.4"
   ]
 }
 ```
@@ -92,12 +96,13 @@ MCP servers are also defined in `opencode.json` under `"mcp"`. They connect auto
 | websearch | local | Nothing |
 | grep | local | `uvx` (install via `pip install uv`) |
 | github | local | `GITHUB_TOKEN` env var |
+| distill | local | Nothing |
 
 ### Supermemory Setup
 
 1. Create account at https://supermemory.ai
 2. Get your API bearer token
-3. Update `opencode.json` → `mcp.supermemory.headers.Authorization`
+3. Export `SUPERMEMORY_TOKEN` and keep config as `Bearer {env:SUPERMEMORY_TOKEN}`
 
 ## Step 6: Authenticate Antigravity Accounts
 

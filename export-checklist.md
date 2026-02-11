@@ -41,7 +41,7 @@ Use this checklist when setting up OpenCode on a new machine.
 - [ ] Verify accounts: `cat ~/.config/opencode/antigravity-accounts.json`
 - [ ] **DO NOT** copy `antigravity-accounts.json` from another machine
 
-## Verify Plugins Load (8 total)
+## Verify Plugins Load (12 total)
 
 - [ ] oh-my-opencode — check startup message
 - [ ] opencode-antigravity-auth — check OAuth prompt
@@ -51,8 +51,12 @@ Use this checklist when setting up OpenCode on a new machine.
 - [ ] @azumag/opencode-rate-limit-fallback — check fallback config
 - [ ] @mohak34/opencode-notifier — check OS notification on completion
 - [ ] opencode-plugin-langfuse — check tracing active
+- [ ] opencode-plugin-preload-skills — check dynamic skill loading
+- [ ] @symbioticsec/opencode-security-plugin — check security scan hooks
+- [ ] opencode-token-monitor — check token/spend tracking output
+- [ ] envsitter-guard — check .env read blocking
 
-## Verify MCP Servers Connect (8 total)
+## Verify MCP Servers Connect (9 total)
 
 - [ ] tavily — web search tools available
 - [ ] supermemory — memory/recall tools available
@@ -62,6 +66,11 @@ Use this checklist when setting up OpenCode on a new machine.
 - [ ] websearch — search tool available
 - [ ] grep — grep_query tool available
 - [ ] github — GitHub tools available
+- [ ] distill — context compression tools available
+
+## Run Automated Health Check
+
+- [ ] Run: `bash scripts/health-check.sh`
 
 ## Test Run
 
