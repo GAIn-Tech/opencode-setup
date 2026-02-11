@@ -3,6 +3,8 @@
 const path = require('path');
 const { parseLog, parseLogs, buildGraphWithBridge } = require('./graph-builder');
 const { toJSON, toDOT, toCSV, writeExport } = require('./exporter');
+const { GraphActivator } = require('./activator');
+const { BackfillEngine } = require('./backfill');
 
 // Lazy-load bridge to avoid hard dependency during testing
 let GoraphdbBridge;
@@ -27,10 +29,17 @@ class MemoryGraph {
   constructor(bridgeConfig = {}) {
     /** @type {GoraphdbBridge | null} */
     this._bridge = GoraphdbBridge ? new GoraphdbBridge(bridgeConfig) : null;
-    /** @type {{ nodes: object[], edges: object[], meta: object } | null} */
+    /** @type {{ nodes: object[], edges: object[] , meta: object } | null} */
     this._graph = null;
     /** @type {object[]} */
     this._entries = [];
+
+    // Activation system — OFF by default
+    this._backfillEngine = new BackfillEngine({ bridge: this._bridge });
+    this._activator = new GraphActivator({
+      backfillEngine: this._backfillEngine,
+      bridge: this._bridge,
+    });
   }
 
   // ─── Core API ───────────────────────────────────────────────────────────
@@ -51,7 +60,10 @@ class MemoryGraph {
       this._entries = parseLogs(source);
     }
 
-    this._graph = await buildGraphWithBridge(this._entries, this._bridge);
+    // When active: persist to goraphdb via bridge
+    // When inactive: in-memory only (bridge=null), existing behavior preserved
+    const effectiveBridge = this._activator.isActive() ? this._bridge : null;
+    this._graph = await buildGraphWithBridge(this._entries, effectiveBridge);
     return this._graph;
   }
 
@@ -241,6 +253,60 @@ class MemoryGraph {
     return content;
   }
 
+  // ─── Activation API ─────────────────────────────────────────────────────
+
+  /**
+   * Activate graph-memory collection. OFF by default.
+   * When activated: auto-backfills from historical OpenCode session logs
+   * and enables goraphdb persistence for future buildGraph() calls.
+   *
+   * @param {object} [opts]
+   * @param {string} [opts.logsDir]      Override logs directory for backfill.
+   * @param {boolean} [opts.skipBackfill] Skip automatic backfill on activation.
+   * @returns {Promise<{ activated: boolean, backfill: object|null }>}
+   */
+  async activate(opts = {}) {
+    return this._activator.activate(opts);
+  }
+
+  /**
+   * Deactivate graph-memory collection.
+   * Data persists in goraphdb — only stops future collection.
+   * buildGraph() still works in-memory when inactive.
+   *
+   * @returns {{ deactivated: boolean }}
+   */
+  deactivate() {
+    return this._activator.deactivate();
+  }
+
+  /**
+   * Check whether graph-memory collection is currently active.
+   * @returns {boolean}
+   */
+  isActive() {
+    return this._activator.isActive();
+  }
+
+  /**
+   * Run retroactive backfill from historical OpenCode session logs.
+   * Can be called independently of activate() for manual backfill.
+   *
+   * @param {string} [logsDir]  Override default logs directory.
+   * @returns {Promise<{ sessions_processed: number, errors_found: number, edges_created: number, tools_detected: number, entries: object[] }>}
+   */
+  async backfill(logsDir) {
+    return this._backfillEngine.backfillFromLogs(logsDir);
+  }
+
+  /**
+   * Get activation status with metadata.
+   * @returns {{ active: boolean, sessions_tracked: number, last_backfill: string|null }}
+   */
+  activationStatus() {
+    return this._activator.status();
+  }
+
   // ─── Internals ──────────────────────────────────────────────────────────
 
   /** @private */
@@ -251,4 +317,14 @@ class MemoryGraph {
   }
 }
 
-module.exports = { MemoryGraph, parseLog, parseLogs, buildGraphWithBridge, toJSON, toDOT, toCSV };
+module.exports = {
+  MemoryGraph,
+  GraphActivator,
+  BackfillEngine,
+  parseLog,
+  parseLogs,
+  buildGraphWithBridge,
+  toJSON,
+  toDOT,
+  toCSV,
+};

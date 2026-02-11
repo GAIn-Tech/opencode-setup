@@ -1,0 +1,88 @@
+{
+  "version": "1.0.0",
+  "anti_patterns": [
+    {
+      "type": "shotgun_debug",
+      "description": "Multiple random edits to fix a single issue without understanding the root cause",
+      "severity": "high",
+      "detection": "3+ edits to same file in a session with errors between edits",
+      "remedy": "Use systematic-debugging skill. Read error fully. Binary search for root cause."
+    },
+    {
+      "type": "repeated_mistake",
+      "description": "Same error type appearing across 2+ sessions",
+      "severity": "critical",
+      "detection": "Cross-session error_type matching",
+      "remedy": "Create permanent fix: checklist, automated test, or lint rule."
+    },
+    {
+      "type": "inefficient_solution",
+      "description": "Excessive token usage for simple code changes",
+      "severity": "medium",
+      "detection": ">500 tokens per line changed",
+      "remedy": "Check for existing patterns/libraries. Plan before coding. Use targeted tools."
+    },
+    {
+      "type": "wrong_tool",
+      "description": "Using grep+read loops when LSP or AST tools would be more effective",
+      "severity": "medium",
+      "detection": "Multiple grep+read cycles in sequence",
+      "remedy": "Use lsp_goto_definition, lsp_find_references, or ast_grep_search."
+    },
+    {
+      "type": "type_suppression",
+      "description": "Silencing type/lint errors instead of fixing root cause",
+      "severity": "high",
+      "detection": "@ts-ignore, `any`, eslint-disable, # type: ignore in edits",
+      "remedy": "Fix the actual type error. Suppression creates hidden bugs."
+    },
+    {
+      "type": "failed_debug",
+      "description": "Debug attempt that did not resolve the issue",
+      "severity": "medium",
+      "detection": "Same error appearing 3+ times in a session after edit attempts",
+      "remedy": "Change approach entirely. Consider asking for help or reading docs."
+    },
+    {
+      "type": "broken_state",
+      "description": "Working in a state where build/tests are failing",
+      "severity": "high",
+      "detection": "3+ consecutive build/test failures",
+      "remedy": "Fix build FIRST. Never layer changes on a broken foundation."
+    }
+  ],
+  "positive_patterns": [
+    {
+      "type": "efficient_debug",
+      "description": "Fixed issue in a single attempt: read → edit → verify",
+      "success_indicators": ["single edit", "passing tests after", "no error repetition"]
+    },
+    {
+      "type": "creative_solution",
+      "description": "Used advanced tools (AST-grep, LSP) for structural code manipulation",
+      "success_indicators": ["ast_grep usage", "lsp usage", "clean result"]
+    },
+    {
+      "type": "good_delegation",
+      "description": "Effectively delegated work to sub-agents or parallel tasks",
+      "success_indicators": ["agent usage", "parallel execution", "successful completion"]
+    },
+    {
+      "type": "clean_refactor",
+      "description": "Refactored code cleanly with verification",
+      "success_indicators": ["tests pass before and after", "no new errors", "improved structure"]
+    },
+    {
+      "type": "fast_resolution",
+      "description": "Resolved task in few messages with high efficiency",
+      "success_indicators": ["<=5 messages", "no errors", "task complete"]
+    }
+  ],
+  "metadata": {
+    "created": "2026-02-11",
+    "author": "opencode-learning-engine",
+    "purpose": "Base catalog of known patterns for bootstrapping the learning engine",
+    "weighting_philosophy": "Anti-patterns are HEAVILY weighted (3-5x) over positive patterns. Avoiding failure > repeating success.",
+    "feeds_into": "oh-my-opencode agent selection and orchestration"
+  }
+}

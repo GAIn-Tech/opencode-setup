@@ -1,0 +1,31 @@
+{
+  "name": "opencode-learning-engine",
+  "version": "1.0.0",
+  "description": "Learns from opencode sessions to improve orchestration — heavily weighted toward anti-pattern detection and avoidance",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node -e \"const { LearningEngine } = require('./src/index'); const e = new LearningEngine({ autoLoad: false }); console.log('OK: LearningEngine loads'); e.addAntiPattern({ type: 'shotgun_debug', description: 'test', severity: 'high', context: {} }); console.log('OK: addAntiPattern works'); e.addPositivePattern({ type: 'efficient_debug', description: 'test', success_rate: 1.0, context: {} }); console.log('OK: addPositivePattern works'); const advice = e.advise({ task_type: 'debug', attempt_number: 5 }); console.log('OK: advise works, warnings:', advice.warnings.length); const report = e.getReport(); console.log('OK: getReport works, anti-patterns:', report.anti_patterns.total); console.log('All tests passed');\"",
+    "report": "node -e \"const { LearningEngine } = require('./src/index'); const e = new LearningEngine(); console.log(JSON.stringify(e.getReport(), null, 2));\"",
+    "ingest": "node -e \"const { LearningEngine } = require('./src/index'); const e = new LearningEngine(); const r = e.ingestAllSessions(); console.log('Ingested', r.sessions_analyzed, 'sessions.', 'Anti-patterns:', r.total_anti, 'Positive:', r.total_positive, 'Cross-session:', r.cross_session);\""
+  },
+  "keywords": [
+    "opencode",
+    "learning",
+    "anti-patterns",
+    "orchestration",
+    "session-analysis",
+    "pattern-detection",
+    "agent-routing"
+  ],
+  "author": "jack",
+  "license": "MIT",
+  "preferGlobal": true,
+  "files": [
+    "src/",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
