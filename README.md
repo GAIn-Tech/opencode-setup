@@ -24,7 +24,11 @@ opencode-setup/
 │   ├── rate-limit-fallback/     (auto model fallback on rate limit)
 │   ├── notifier/                (OS notifications)
 │   ├── langfuse/                (LLM observability & tracing)
-│   └── compound-engineering/    (AI dev tools & workflows)
+│   ├── compound-engineering/    (AI dev tools & workflows)
+│   ├── preload-skills/          (contextual skill loading)
+│   ├── security-plugin/         (security guardrails & vuln scanning)
+│   ├── token-monitor/           (token usage analytics)
+│   └── envsitter-guard/         (secrets protection)
 ├── project-templates/
 │   └── project-config.yaml
 ├── setup-instructions.md
@@ -43,7 +47,7 @@ opencode-setup/
 
 ## Current Stack
 
-### Plugins (8)
+### Plugins (12)
 | Plugin | Purpose |
 |--------|---------|
 | `oh-my-opencode@latest` | Multi-agent orchestration (8 named agents, 46 skills, 22 commands) |
@@ -54,8 +58,12 @@ opencode-setup/
 | `@azumag/opencode-rate-limit-fallback@latest` | Auto-switches models on rate limit |
 | `@mohak34/opencode-notifier@latest` | OS notifications for task completion/errors |
 | `opencode-plugin-langfuse@latest` | LLM tracing, prompt versioning, cost tracking |
+| `opencode-plugin-preload-skills@latest` | Contextual skill loading — only loads relevant skills per task |
+| `@symbioticsec/opencode-security-plugin@latest` | Security guardrails & vulnerability scanning |
+| `opencode-token-monitor@latest` | Token usage analytics & cost breakdown |
+| `envsitter-guard@latest` | Prevents reading .env files — secrets protection |
 
-### MCP Servers (8)
+### MCP Servers (9)
 | Server | Type | Purpose |
 |--------|------|---------|
 | `tavily` | local | Web search, extraction, crawling, research |
@@ -66,6 +74,7 @@ opencode-setup/
 | `websearch` | local | Web search (backup) |
 | `grep` | local | Code search across GitHub repos |
 | `github` | local | GitHub API (issues, PRs, repos) |
+| `distill` | local | AST-based intelligent context compression (50-70% token savings) |
 
 ### Models (7 defined + default)
 | Model | Provider | Use Case |

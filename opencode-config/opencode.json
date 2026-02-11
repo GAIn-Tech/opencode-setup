@@ -9,7 +9,11 @@
     "cc-safety-net@latest",
     "@azumag/opencode-rate-limit-fallback@latest",
     "@mohak34/opencode-notifier@latest",
-    "opencode-plugin-langfuse@latest"
+    "opencode-plugin-langfuse@latest",
+    "opencode-plugin-preload-skills@latest",
+    "@symbioticsec/opencode-security-plugin@latest",
+    "opencode-token-monitor@latest",
+    "envsitter-guard@latest"
   ],
   "provider": {
     "google": {
@@ -119,6 +123,11 @@
       "environment": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "{env:GITHUB_TOKEN}"
       },
+      "enabled": true
+    },
+    "distill": {
+      "type": "local",
+      "command": ["npx", "-y", "distill-mcp@latest"],
       "enabled": true
     }
   },
