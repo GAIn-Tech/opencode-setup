@@ -1,7 +1,7 @@
 {
-  "name": "@jackoatmon/opencode-memory-graph",
-  "version": "0.1.0",
-  "description": "Session-to-error graph builder from OpenCode runtime logs",
+  "name": "opencode-memory-graph",
+  "version": "2.0.0",
+  "description": "Session-to-error graph builder from OpenCode runtime logs with goraphdb persistence",
   "main": "src/index.js",
   "bin": {
     "opencode-memory-graph": "src/cli.js"
@@ -15,12 +15,17 @@
     "graph",
     "error-tracking",
     "session-analysis",
-    "log-parser"
+    "log-parser",
+    "goraphdb",
+    "neo4j"
   ],
   "author": "",
   "license": "MIT",
   "engines": {
     "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "opencode-goraphdb-bridge": "^1.0.0"
   },
   "files": [
     "src/",

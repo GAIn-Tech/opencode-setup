@@ -1,6 +1,6 @@
 {
-  "name": "@jackoatmon/opencode-runbooks",
-  "version": "0.1.0",
+  "name": "opencode-runbooks",
+  "version": "1.0.0",
   "description": "Pluginized auto-remediation based on error signatures for OpenCode",
   "main": "src/index.js",
   "scripts": {

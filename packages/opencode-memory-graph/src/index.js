@@ -1,21 +1,32 @@
 'use strict';
 
 const path = require('path');
-const { parseLog, parseLogs, buildGraph } = require('./graph-builder');
+const { parseLog, parseLogs, buildGraphWithBridge } = require('./graph-builder');
 const { toJSON, toDOT, toCSV, writeExport } = require('./exporter');
 
+// Lazy-load bridge to avoid hard dependency during testing
+let GoraphdbBridge;
+try {
+  GoraphdbBridge = require('opencode-goraphdb-bridge').GoraphdbBridge;
+} catch (e) {
+  // Bridge not available; will use fallback
+  GoraphdbBridge = null;
+}
+
 /**
- * MemoryGraph — session-to-error graph builder from OpenCode logs.
+ * MemoryGraph — session-to-error graph builder from OpenCode logs with goraphdb persistence.
  *
  * Usage:
  *   const mg = new MemoryGraph();
- *   mg.buildGraph('~/.opencode/logs/');
- *   mg.getErrorFrequency();               // Map<error_type, count>
+ *   await mg.buildGraph('~/.opencode/logs/');
+ *   mg.getErrorFrequency();               // Array of {error_type, count, first_seen, last_seen}
  *   mg.getSessionPath('ses_abc123');       // ordered error sequence
  *   mg.export('dot', './graph.dot');       // write Graphviz file
  */
 class MemoryGraph {
-  constructor() {
+  constructor(bridgeConfig = {}) {
+    /** @type {GoraphdbBridge | null} */
+    this._bridge = GoraphdbBridge ? new GoraphdbBridge(bridgeConfig) : null;
     /** @type {{ nodes: object[], edges: object[], meta: object } | null} */
     this._graph = null;
     /** @type {object[]} */
@@ -26,19 +37,39 @@ class MemoryGraph {
 
   /**
    * Build the session→error graph from log file(s), directory, or raw array.
+   * Automatically syncs data to goraphdb backend if available.
    *
    * @param {string|string[]|object[]} source
    *   - string / string[]  → file path(s) or directory (parsed via parseLog/parseLogs)
    *   - object[]           → already-parsed entries [{session_id, timestamp, error_type, message}]
-   * @returns {{ nodes: object[], edges: object[], meta: object }}
+   * @returns {Promise<{ nodes: object[], edges: object[], meta: object }>}
    */
-  buildGraph(source) {
+  async buildGraph(source) {
     if (Array.isArray(source) && source.length > 0 && typeof source[0] === 'object') {
       this._entries = source;
     } else {
       this._entries = parseLogs(source);
     }
 
+    this._graph = await buildGraphWithBridge(this._entries, this._bridge);
+    return this._graph;
+  }
+
+  /**
+   * Synchronously build graph (fallback for backward compatibility).
+   * Note: Does not sync to goraphdb. Use async buildGraph() for full functionality.
+   *
+   * @param {string|string[]|object[]} source
+   * @returns {{ nodes: object[], edges: object[], meta: object }}
+   */
+  buildGraphSync(source) {
+    if (Array.isArray(source) && source.length > 0 && typeof source[0] === 'object') {
+      this._entries = source;
+    } else {
+      this._entries = parseLogs(source);
+    }
+
+    const { buildGraph } = require('./graph-builder');
     this._graph = buildGraph(this._entries);
     return this._graph;
   }
@@ -56,10 +87,15 @@ class MemoryGraph {
 
   /**
    * Get error frequency map, sorted descending by count.
-   * @returns {{ error_type: string, count: number, first_seen: string, last_seen: string }[]}
+   * Queries goraphdb backend via Cypher if available, otherwise uses in-memory graph.
+   * @returns {Promise<{ error_type: string, count: number, first_seen: string, last_seen: string }[]>}
    */
-  getErrorFrequency() {
+  async getErrorFrequency() {
     this._ensureBuilt();
+    if (this._bridge) {
+      return this._bridge.queryErrorFrequency();
+    }
+    // Fallback: use in-memory graph
     return this._graph.nodes
       .filter((n) => n.type === 'error')
       .map((n) => ({
@@ -73,14 +109,17 @@ class MemoryGraph {
 
   /**
    * Get the sequence of errors encountered in a specific session, ordered by timestamp.
+   * Queries goraphdb backend via Cypher if available, otherwise uses in-memory entries.
    *
    * @param {string} sessionId
-   * @returns {{ error_type: string, timestamp: string, message: string }[]}
+   * @returns {Promise<{ error_type: string, timestamp: string, message: string }[]>}
    */
-  getSessionPath(sessionId) {
+  async getSessionPath(sessionId) {
     this._ensureBuilt();
-
-    // Pull from raw entries for ordering fidelity
+    if (this._bridge) {
+      return this._bridge.querySessionPath(sessionId);
+    }
+    // Fallback: use in-memory entries
     return this._entries
       .filter((e) => e.session_id === sessionId)
       .sort((a, b) => (a.timestamp || '').localeCompare(b.timestamp || ''))
@@ -93,29 +132,44 @@ class MemoryGraph {
 
   /**
    * List all session IDs in the graph.
-   * @returns {string[]}
+   * Queries goraphdb backend via Cypher if available, otherwise uses in-memory graph.
+   * @returns {Promise<string[]>}
    */
-  getSessions() {
+  async getSessions() {
     this._ensureBuilt();
+    if (this._bridge) {
+      return this._bridge.querySessions();
+    }
+    // Fallback: use in-memory graph
     return this._graph.nodes.filter((n) => n.type === 'session').map((n) => n.id);
   }
 
   /**
    * List all error types in the graph.
-   * @returns {string[]}
+   * Queries goraphdb backend via Cypher if available, otherwise uses in-memory graph.
+   * @returns {Promise<string[]>}
    */
-  getErrorTypes() {
+  async getErrorTypes() {
     this._ensureBuilt();
+    if (this._bridge) {
+      return this._bridge.queryErrorTypes();
+    }
+    // Fallback: use in-memory graph
     return this._graph.nodes.filter((n) => n.type === 'error').map((n) => n.id);
   }
 
   /**
    * Get edges for a specific session (which errors it hit and how often).
+   * Queries goraphdb backend via Cypher if available, otherwise uses in-memory graph.
    * @param {string} sessionId
-   * @returns {{ error_type: string, weight: number, first_seen: string, last_seen: string }[]}
+   * @returns {Promise<{ error_type: string, weight: number, first_seen: string, last_seen: string }[]>}
    */
-  getSessionErrors(sessionId) {
+  async getSessionErrors(sessionId) {
     this._ensureBuilt();
+    if (this._bridge) {
+      return this._bridge.querySessionErrors(sessionId);
+    }
+    // Fallback: use in-memory graph
     return this._graph.edges
       .filter((e) => e.from === sessionId)
       .map((e) => ({
@@ -129,11 +183,16 @@ class MemoryGraph {
 
   /**
    * Get sessions that encountered a specific error type.
+   * Queries goraphdb backend via Cypher if available, otherwise uses in-memory graph.
    * @param {string} errorType
-   * @returns {{ session_id: string, weight: number }[]}
+   * @returns {Promise<{ session_id: string, weight: number }[]>}
    */
-  getErrorSessions(errorType) {
+  async getErrorSessions(errorType) {
     this._ensureBuilt();
+    if (this._bridge) {
+      return this._bridge.queryErrorSessions(errorType);
+    }
+    // Fallback: use in-memory graph
     return this._graph.edges
       .filter((e) => e.to === errorType)
       .map((e) => ({ session_id: e.from, weight: e.weight }))
@@ -144,25 +203,32 @@ class MemoryGraph {
 
   /**
    * Export the graph to a file or return as string.
+   * Fetches data from goraphdb backend if available, otherwise uses in-memory graph.
    *
    * @param {'json'|'dot'|'csv'} format
    * @param {string} [outputPath]  If omitted, returns the string content.
    * @param {object} [opts]        Format-specific options passed to exporter.
-   * @returns {string}             The exported content (also written to file if outputPath given).
+   * @returns {Promise<string>}    The exported content (also written to file if outputPath given).
    */
-  export(format, outputPath, opts = {}) {
+  async export(format, outputPath, opts = {}) {
     this._ensureBuilt();
+
+    // Fetch fresh graph data from goraphdb or use in-memory
+    let graph = this._graph;
+    if (this._bridge) {
+      graph = await this._bridge.exportGraph();
+    }
 
     let content;
     switch (format) {
       case 'json':
-        content = toJSON(this._graph, opts);
+        content = toJSON(graph, opts);
         break;
       case 'dot':
-        content = toDOT(this._graph, opts);
+        content = toDOT(graph, opts);
         break;
       case 'csv':
-        content = toCSV(this._graph, opts);
+        content = toCSV(graph, opts);
         break;
       default:
         throw new Error(`Unsupported export format: "${format}". Use "json", "dot", or "csv".`);
@@ -185,4 +251,4 @@ class MemoryGraph {
   }
 }
 
-module.exports = { MemoryGraph, parseLog, parseLogs, buildGraph, toJSON, toDOT, toCSV };
+module.exports = { MemoryGraph, parseLog, parseLogs, buildGraphWithBridge, toJSON, toDOT, toCSV };
