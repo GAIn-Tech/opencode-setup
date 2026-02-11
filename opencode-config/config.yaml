@@ -49,12 +49,12 @@ delegation:
   complexity_mapping:
     mechanical:      # Simple, repetitive tasks (typos, renames, single-line fixes)
       category: quick
-      models: [gemini-2.5-flash]
-      max_cost_per_task: 0.01
+      models: [haiku]
+      max_cost_per_task: 0.02
 
     trivial:         # Lightweight tasks (file lookups, grep, simple edits)
       category: quick
-      models: [antigravity-gemini-3-flash]
+      models: [haiku]
       max_cost_per_task: 0.05
 
     routine:         # Standard development work (feature impl, bug fixes)

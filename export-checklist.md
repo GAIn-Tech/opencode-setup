@@ -55,6 +55,8 @@ Use this checklist when setting up OpenCode on a new machine.
 - [ ] @symbioticsec/opencode-security-plugin — check security scan hooks
 - [ ] opencode-token-monitor — check token/spend tracking output
 - [ ] envsitter-guard — check .env read blocking
+- [ ] rate-limit-fallback config exists at `~/.config/opencode/rate-limit-fallback.json`
+- [ ] fallback list includes Anthropic + `haiku` before Gemini backups
 
 ## Verify MCP Servers Connect (9 total)
 

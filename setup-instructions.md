@@ -120,6 +120,32 @@ Key `antigravity.json` settings:
 - `switch_on_first_rate_limit`: `true` — immediate switch on rate limit
 - `soft_quota_threshold_percent`: `90` — switch before hitting hard limit
 
+## Step 6b: Configure Rate-Limit Fallback Models (Required)
+
+`@azumag/opencode-rate-limit-fallback` requires explicit model configuration.
+
+Create `~/.config/opencode/rate-limit-fallback.json` (or copy `opencode-config/rate-limit-fallback.json`) so fallback works when providers are rate-limited.
+
+Recommended order is Anthropic-first with Haiku included, then OpenAI, then Google/Antigravity and Kimi backups:
+
+```json
+{
+  "fallbackModels": [
+    { "providerID": "anthropic", "modelID": "claude-opus-4-6-thinking" },
+    { "providerID": "anthropic", "modelID": "claude-opus-4-6" },
+    { "providerID": "anthropic", "modelID": "claude-sonnet-4-5-thinking" },
+    { "providerID": "anthropic", "modelID": "claude-sonnet-4-5" },
+    { "providerID": "anthropic", "modelID": "haiku" },
+    { "providerID": "openai", "modelID": "gpt-5" },
+    { "providerID": "openai", "modelID": "gpt-5-mini" },
+    { "providerID": "google", "modelID": "antigravity-gemini-3-pro" },
+    { "providerID": "google", "modelID": "antigravity-gemini-3-flash" },
+    { "providerID": "moonshot", "modelID": "kimi-k2.5-free" },
+    { "providerID": "google", "modelID": "gemini-2.5-flash" }
+  ]
+}
+```
+
 ## Step 7: Verify Installation
 
 ```bash
@@ -130,7 +156,7 @@ opencode
 opencode run "ping" --model=google/antigravity-gemini-3-pro
 
 # Check startup logs for:
-#   - "oh-my-opencode loaded with 8 agents and 4 MCPs + Antigravity account rotation"
+#   - "oh-my-opencode loaded with 8 agents and 3 MCP toggles + Antigravity account rotation"
 #   - MCP server connection confirmations
 #   - Plugin load confirmations
 ```
@@ -156,7 +182,7 @@ rm -rf ~/.config/opencode/node_modules
 ### MCP Server Issues
 ```bash
 # Test individual server
-npx -y tavily-mcp@latest  # Should start without errors
+npx -y tavily-mcp@0.2.16  # Should start without errors
 
 # Check if uvx installed (needed for grep)
 pip install uv
