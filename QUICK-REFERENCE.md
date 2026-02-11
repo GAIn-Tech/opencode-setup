@@ -113,8 +113,9 @@ task(category="deep", load_skills=["systematic-debugging", "test-driven-developm
 | opencode-plugin-langfuse | LLM tracing & cost tracking |
 | opencode-plugin-preload-skills | Contextual skill loading |
 | @symbioticsec/opencode-security-plugin | Security guardrails and scanning |
-| opencode-token-monitor | Token and spend analytics |
 | envsitter-guard | Blocks reading env/secret files |
+| opencode-antigravity-quota | Antigravity quota visibility |
+| opencode-pty | Interactive/background process control |
 
 ## MCP Servers (9)
 

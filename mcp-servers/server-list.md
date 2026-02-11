@@ -15,7 +15,7 @@ All MCP servers are defined in `~/.config/opencode/opencode.json` under the `"mc
 - **Type**: remote
 - **URL**: `https://mcp.supermemory.ai/mcp`
 - **Purpose**: Persistent cross-session memory, user profile, knowledge base
-- **Requires**: `SUPERMEMORY_TOKEN` env var via `Bearer {env:SUPERMEMORY_TOKEN}`
+- **Requires**: `SUPERMEMORY_API_KEY` env var via `Bearer {env:SUPERMEMORY_API_KEY}`
 - **Tools**: `memory` (save/forget), `recall` (search), `listProjects`, `whoAmI`
 
 ### 3. context7
@@ -34,14 +34,14 @@ All MCP servers are defined in `~/.config/opencode/opencode.json` under the `"mc
 
 ### 5. sequentialthinking
 - **Type**: local
-- **Command**: `npx -y @modelcontextprotocol/server-sequentialthinking`
+- **Command**: `npx -y @modelcontextprotocol/server-sequential-thinking`
 - **Purpose**: Enhanced step-by-step reasoning for complex problems
 - **Requires**: Nothing
 - **Tools**: `sequential_thinking`
 
 ### 6. websearch
 - **Type**: local
-- **Command**: `npx -y @mrkrsl/web-search-mcp`
+- **Command**: `npx -y @ignidor/web-search-mcp`
 - **Purpose**: Web search (backup/alternative to Tavily)
 - **Requires**: Nothing
 - **Tools**: `google_search`

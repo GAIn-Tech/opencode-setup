@@ -64,18 +64,19 @@ Plugins are npm packages defined in `opencode.json` under `"plugin"`. They auto-
 ```json
 {
   "plugin": [
-    "oh-my-opencode@3.4.0",
+    "oh-my-opencode@3.5.2",
     "opencode-antigravity-auth@1.4.6",
     "opencode-supermemory@2.0.1",
     "@tarquinen/opencode-dcp@2.1.1",
     "cc-safety-net@0.7.1",
-    "@azumag/opencode-rate-limit-fallback@1.66.0",
+    "@azumag/opencode-rate-limit-fallback@1.67.0",
     "@mohak34/opencode-notifier@0.1.18",
     "opencode-plugin-langfuse@0.1.8",
     "opencode-plugin-preload-skills@1.8.0",
-    "@symbioticsec/opencode-security-plugin@0.0.1-beta.1",
-    "opencode-token-monitor@0.5.0",
-    "envsitter-guard@0.0.4"
+    "@symbioticsec/opencode-security-plugin@0.0.1-beta.9",
+    "envsitter-guard@0.0.4",
+    "opencode-antigravity-quota@0.1.6",
+    "opencode-pty@0.2.1"
   ]
 }
 ```
@@ -102,7 +103,7 @@ MCP servers are also defined in `opencode.json` under `"mcp"`. They connect auto
 
 1. Create account at https://supermemory.ai
 2. Get your API bearer token
-3. Export `SUPERMEMORY_TOKEN` and keep config as `Bearer {env:SUPERMEMORY_TOKEN}`
+3. Export `SUPERMEMORY_API_KEY` and keep config as `Bearer {env:SUPERMEMORY_API_KEY}`
 
 ## Step 6: Authenticate Antigravity Accounts
 
@@ -135,7 +136,7 @@ Recommended order is Anthropic-first with Haiku included, then OpenAI, then Goog
     { "providerID": "anthropic", "modelID": "claude-opus-4-6" },
     { "providerID": "anthropic", "modelID": "claude-sonnet-4-5-thinking" },
     { "providerID": "anthropic", "modelID": "claude-sonnet-4-5" },
-    { "providerID": "anthropic", "modelID": "haiku" },
+    { "providerID": "anthropic", "modelID": "claude-haiku-4-5" },
     { "providerID": "openai", "modelID": "gpt-5" },
     { "providerID": "openai", "modelID": "gpt-5-mini" },
     { "providerID": "google", "modelID": "antigravity-gemini-3-pro" },

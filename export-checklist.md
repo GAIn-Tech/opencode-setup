@@ -53,8 +53,9 @@ Use this checklist when setting up OpenCode on a new machine.
 - [ ] opencode-plugin-langfuse — check tracing active
 - [ ] opencode-plugin-preload-skills — check dynamic skill loading
 - [ ] @symbioticsec/opencode-security-plugin — check security scan hooks
-- [ ] opencode-token-monitor — check token/spend tracking output
 - [ ] envsitter-guard — check .env read blocking
+- [ ] opencode-antigravity-quota — quota command responds
+- [ ] opencode-pty — PTY tools respond
 - [ ] rate-limit-fallback config exists at `~/.config/opencode/rate-limit-fallback.json`
 - [ ] fallback list includes Anthropic + `haiku` before Gemini backups
 

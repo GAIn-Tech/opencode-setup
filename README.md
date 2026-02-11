@@ -60,8 +60,9 @@ opencode-setup/
 | `opencode-plugin-langfuse@latest` | LLM tracing, prompt versioning, cost tracking |
 | `opencode-plugin-preload-skills@latest` | Contextual skill loading — only loads relevant skills per task |
 | `@symbioticsec/opencode-security-plugin@latest` | Security guardrails & vulnerability scanning |
-| `opencode-token-monitor@latest` | Token usage analytics & cost breakdown |
 | `envsitter-guard@latest` | Prevents reading .env files — secrets protection |
+| `opencode-antigravity-quota@latest` | Antigravity quota visibility |
+| `opencode-pty@latest` | Interactive/background process control |
 
 ### MCP Servers (9)
 | Server | Type | Purpose |

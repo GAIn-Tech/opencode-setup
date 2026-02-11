@@ -49,12 +49,12 @@ delegation:
   complexity_mapping:
     mechanical:      # Simple, repetitive tasks (typos, renames, single-line fixes)
       category: quick
-      models: [haiku]
+      models: [claude-haiku-4-5]
       max_cost_per_task: 0.02
 
     trivial:         # Lightweight tasks (file lookups, grep, simple edits)
       category: quick
-      models: [haiku]
+      models: [claude-haiku-4-5]
       max_cost_per_task: 0.05
 
     routine:         # Standard development work (feature impl, bug fixes)

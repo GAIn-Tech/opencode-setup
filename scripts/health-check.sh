@@ -19,7 +19,8 @@ npm list -g --depth=0 \
   opencode-plugin-langfuse \
   opencode-plugin-preload-skills \
   @symbioticsec/opencode-security-plugin \
-  opencode-token-monitor \
+  opencode-antigravity-quota \
+  opencode-pty \
   envsitter-guard >/dev/null
 echo "  OK: core plugins installed"
 
@@ -39,7 +40,7 @@ fi
 
 echo "[5/6] Critical env vars"
 missing=0
-for key in TAVILY_API_KEY SUPERMEMORY_TOKEN GITHUB_TOKEN; do
+for key in TAVILY_API_KEY SUPERMEMORY_API_KEY GITHUB_TOKEN; do
   if [ -z "${!key:-}" ]; then
     echo "  WARN: $key is not set"
     missing=1
@@ -57,3 +58,16 @@ else
 fi
 
 echo "== Health check complete =="
+
+echo "[7/7] Ops kit checks"
+if python "$(dirname "$0")/opencode_ops_kit.py" fallback-doctor >/dev/null 2>&1; then
+  echo "  OK: fallback-doctor passed"
+else
+  echo "  WARN: fallback-doctor reported issues"
+fi
+
+if python "$(dirname "$0")/opencode_ops_kit.py" plugin-health --config "$HOME/.config/opencode/opencode.json" >/dev/null 2>&1; then
+  echo "  OK: plugin-health passed"
+else
+  echo "  WARN: plugin-health reported issues"
+fi
