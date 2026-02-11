@@ -39,6 +39,9 @@ cp opencode-config/oh-my-opencode.json ~/.config/opencode/oh-my-opencode.json
 # Compound engineering (skills, commands)
 cp opencode-config/compound-engineering.json ~/.config/opencode/compound-engineering.json
 
+# Supermemory relevance-focused memory behavior
+cp opencode-config/supermemory.json ~/.config/opencode/supermemory.json
+
 # Global config (delegation standards, rules, profiles)
 cp opencode-config/config.yaml ~/.opencode/config.yaml
 ```
@@ -90,7 +93,7 @@ MCP servers are also defined in `opencode.json` under `"mcp"`. They connect auto
 | Server | Type | Requires |
 |--------|------|----------|
 | tavily | local | `TAVILY_API_KEY` env var |
-| supermemory | remote | Bearer token in config |
+| supermemory | remote | `SUPERMEMORY_API_KEY` env var |
 | context7 | remote | Nothing (public) |
 | playwright | local | Nothing |
 | sequentialthinking | local | Nothing |

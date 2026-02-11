@@ -1,0 +1,23 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "apiKey": "{env:SUPERMEMORY_API_KEY}",
+  "autoIndex": true,
+  "contextInjection": true,
+  "injectProfile": false,
+  "similarityThreshold": 0.8,
+  "maxMemories": 8,
+  "keywordPatterns": [
+    "error",
+    "root cause",
+    "fix",
+    "workaround",
+    "decision",
+    "architecture",
+    "tradeoff",
+    "regression",
+    "test",
+    "security",
+    "performance"
+  ],
+  "compactionThreshold": 0.85
+}
