@@ -1,220 +1,182 @@
-# System Prompts and Instructions
+# System Prompts and Configuration Hierarchy
 
-This document describes where system prompts and instructions are defined in the OpenCode setup.
+How system prompts, instructions, and configuration cascade in the OpenCode setup.
 
-## Global Instructions
+## Configuration Hierarchy (highest to lowest precedence)
 
-### ~/.claude/CLAUDE.md
-Location of global instructions that apply to ALL Claude sessions.
-
-**Current content:**
-```markdown
-- dont ever burn tokens on documentstion writing unless specifically asked to - nebver produce md files or any form of docuemntation, summary or anbalysis unless explicitly directed to do so
+```
+1. Hook injections          → Runtime context via <system-reminder> tags
+2. Skill prompts            → Activated when skill is invoked (SKILL.md)
+3. Agent prompts            → Subagent-specific instructions (agents/*.md)
+4. Project .opencode.yaml   → Project-specific rules and overrides
+5. oh-my-opencode.json      → Agent model overrides, MCP toggles
+6. opencode.json            → Main config (models, plugins, MCPs)
+7. config.yaml              → Global rules, delegation standards
+8. global-rules/*.mdc       → Always-on rules (delegation, coordination, dev standards)
 ```
 
-**Purpose**: Short, persistent instructions that modify Claude's behavior globally.
+## Global Configuration
 
-## Project-Level Instructions
-
-### <project>/CLAUDE.md
-Location of project-specific instructions.
-
-**Example (SPARC Development Environment):**
-- See: `project-templates/work-CLAUDE.md`
-- Contains project methodology, agent lists, MCP tool categories
-- Defines execution flow and coordination protocols
-
-**Purpose**: Guide Claude's behavior for specific project context.
-
-## Plugin System Prompts
-
-### oh-my-claudecode
-
-**Main instruction file:**
-- `plugins/oh-my-claudecode/CLAUDE.md`
-- 531 lines of orchestration instructions
-- Defines delegation-first philosophy
-- Execution modes (autopilot, ralph, ultrawork, etc.)
-- Agent selection and model routing
+### ~/.opencode/config.yaml
+Global rules and delegation standards applied to ALL sessions.
 
 **Key sections:**
-1. Core Protocol (delegation rules)
-2. User Experience (autopilot, magic keywords)
-3. Complete Reference (skills, agents, modes)
-4. Shared Documentation (tiers, hierarchy, verification)
-5. Internal Protocols (planning, parallelization, persistence)
-6. Announcements
-7. Setup
+- `delegation.complexity_mapping` — 7-tier model routing (free → thinking)
+- `global_rules.always_apply` — model-delegation-standards, coordination-protocol, development-standards
+- `profiles` — Pre-configured settings for web_app, ml_system, api_service, cli_tool, library
 
-**Architecture documentation:**
-- `plugins/oh-my-claudecode/AGENTS.md`
-- Project structure, file relationships
-- Agent summary (32 agents)
-- Skill system (37 skills)
-- Hook system (31 hooks)
+### ~/.opencode/global-rules/*.mdc
+Rule files automatically injected into every session:
+- `model-delegation-standards.mdc` — Which model for which complexity
+- `coordination-protocol.mdc` — Multi-agent communication format
+- `development-standards.mdc` — Code quality gates, testing, git conventions
 
-### Agent Prompts
+## Main Config
 
-**Location**: `~/.claude/plugins/marketplaces/omc/agents/`
+### ~/.config/opencode/opencode.json
+The primary configuration file containing:
 
-Each agent has its own markdown prompt file:
-- `architect.md`, `architect-low.md`, `architect-medium.md`
-- `executor.md`, `executor-low.md`, `executor-high.md`
-- `designer.md`, `researcher.md`, `explore.md`
-- etc. (32 total agent files)
+- **`model`** — Default model (`google/antigravity-gemini-3-pro`)
+- **`plugin`** — Array of 8 npm plugin packages
+- **`provider.google`** — npm package (`@ai-sdk/google`) + 7 model definitions with context limits, modalities, and thinking variants
+- **`mcp`** — 8 MCP server definitions (type, command, environment, enabled)
+- **`command`** — 9 workflow commands (brainstorm, plan, work, review, compound, etc.)
+- **`permission`** — All tools allowed (read, write, edit, bash, task, etc.)
+- **`tools`** — All tools enabled
 
-**Template system:**
-- `agents/templates/base-agent.md` - Base template
-- `agents/templates/tier-instructions.md` - Tier-specific instructions
+### ~/.config/opencode/antigravity.json
+Multi-account rotation configuration:
+- `account_selection_strategy`: `"hybrid"`
+- `quota_fallback`: `true`
+- `switch_on_first_rate_limit`: `true`
+- `soft_quota_threshold_percent`: `90`
 
-### Skill Prompts
+### ~/.config/opencode/oh-my-opencode.json
+Agent orchestration and model overrides:
+- 8 named agents with model assignments
+- Pro models: atlas, metis, momus, oracle, sisyphus
+- Flash models: hephaestus, librarian, prometheus
+- 4 MCP server toggles (exa, context7, grep, websearch)
 
-**Location**: `~/.claude/plugins/marketplaces/omc/skills/*/SKILL.md`
+### ~/.config/opencode/compound-engineering.json
+Skills, commands, and categories:
+- 14 skills definitions
+- 22 command definitions
+- 6 task categories
 
-Each skill directory contains:
-- `SKILL.md` - Skill prompt and instructions
-- Supporting files
+## Agent Prompts
 
-**Examples:**
-- `skills/autopilot/SKILL.md`
-- `skills/ralph/SKILL.md`
-- `skills/ultrawork/SKILL.md`
-- `skills/frontend-ui-ux/SKILL.md`
-- `skills/git-master/SKILL.md`
-- etc. (37 skills total)
+**Location**: `~/.config/opencode/agents/*.md` (29 files)
 
-### Command Definitions
+Each agent has a dedicated markdown prompt file defining its role, capabilities, and constraints:
 
-**Location**: `~/.claude/plugins/marketplaces/omc/commands/*.md`
+### Review Agents
+- `dhh-rails-reviewer.md` — Rails code review in DHH style
+- `kieran-python-reviewer.md` — Python code review
+- `kieran-rails-reviewer.md` — Rails code review
+- `kieran-typescript-reviewer.md` — TypeScript code review
+- `julik-frontend-races-reviewer.md` — Frontend race condition detection
+- `code-simplicity-reviewer.md` — Complexity reduction
+- `agent-native-reviewer.md` — Agent architecture review
+- `design-implementation-reviewer.md` — Design pattern review
 
-Slash command definitions that mirror skills:
-- `autopilot.md`
-- `ralph.md`
-- `ultrawork.md`
-- etc. (31 command files)
+### Security & Performance
+- `security-sentinel.md` — Security vulnerability detection
+- `performance-oracle.md` — Performance optimization
 
-## Plugin-Specific Instructions
+### Research & Learning
+- `best-practices-researcher.md` — Industry best practices
+- `framework-docs-researcher.md` — Framework documentation
+- `learnings-researcher.md` — Pattern extraction from sessions
+- `repo-research-analyst.md` — Repository analysis
+- `pattern-recognition-agent.md` — Cross-session pattern detection
 
-### compound-engineering
-- Focus on AI-powered development tools
-- 28 agents for code review, research, design
-- Context7 MCP integration for documentation
+### Data & Architecture
+- `data-integrity-guardian.md` — Data validation
+- `data-migration-expert.md` — Migration planning
+- `schema-drift-detector.md` — Schema change detection
+- `architecture-strategist.md` — System architecture
 
-### superpowers
-- Core skills library
-- TDD, debugging, collaboration patterns
-- Proven techniques and workflows
+## Skill Prompts
 
-### elements-of-style
-- Writing guidance
-- Based on William Strunk Jr.'s work
-- Grammar, composition, clarity
+**Location**: `~/.config/opencode/skills/*/SKILL.md` (46 files)
 
-### superpowers-chrome
-- Browser automation via DevTools Protocol
-- 17 CLI commands
-- Single `use_browser` MCP tool
+Each skill directory contains a `SKILL.md` defining specialized workflows:
 
-### claude-mem
-- Persistent memory system
-- Cross-session context preservation
-- Memory search and retrieval
+### Core Workflow Skills
+- `brainstorming/` — Feature exploration before planning
+- `writing-plans/` — Implementation plan creation
+- `executing-plans/` — Plan execution with checkpoints
+- `test-driven-development/` — TDD workflow
+- `systematic-debugging/` — Structured debugging
+- `verification-before-completion/` — Evidence-based completion checks
 
-## Hook System
+### Agent Coordination Skills
+- `dispatching-parallel-agents/` — Parallel task dispatch
+- `orchestrating-swarms/` — Multi-agent swarm coordination
+- `subagent-driven-development/` — Implementation via subagents
+- `task-orchestrator/` — Dynamic workflow selection
 
-**Location**: `~/.claude/plugins/marketplaces/omc/src/hooks/`
+### Development Skills
+- `git-master/` — Git operations (commits, rebase, history)
+- `git-worktree/` — Isolated parallel development
+- `finishing-a-development-branch/` — Branch completion workflow
+- `requesting-code-review/` — Pre-merge review
+- `receiving-code-review/` — Review feedback handling
+- `resolve_pr_parallel/` — Parallel PR comment resolution
 
-Hooks inject context via `<system-reminder>` tags at specific events:
-- `SessionStart` - Priority context, mode restoration
-- `UserPromptSubmit` - Magic keyword detection
-- `PreToolUse:{Tool}` - Guidance, warnings
-- `PostToolUse:{Tool}` - Delegation audit
-- `Stop` - Continuation prompts
-- `SubagentStart/Stop` - Agent tracking
+### Specialized Skills
+- `frontend-ui-ux/` — UI/UX design and implementation
+- `frontend-design/` — Production-grade frontend interfaces
+- `dhh-rails-style/` — Ruby/Rails in 37signals style
+- `andrew-kane-gem-writer/` — Ruby gem authoring
+- `dspy-ruby/` — LLM application development
+- `gemini-imagegen/` — Image generation via Gemini API
+- `agent-native-architecture/` — Agent-first app design
+- `create-agent-skills/` — Skill authoring guidance
 
-**Key hooks:**
-- `autopilot/` - Autonomous execution
-- `ralph/` - Persistence mode
-- `ultrawork/` - Parallel execution
-- `learner/` - Skill extraction
-- `recovery/` - Error recovery
-- `rules-injector/` - Rule file injection
-- `think-mode/` - Enhanced reasoning
+### Utility Skills
+- `compound-docs/` — Solution documentation
+- `document-review/` — Document refinement
+- `every-style-editor/` — Copy editing
+- `rclone/` — Cloud storage management
+- `playwright/` — Browser automation
+- `dev-browser/` — Persistent browser state
+- `agent-browser/` — Vercel agent-browser CLI
 
-## Prompt Hierarchy
+## Workflow Commands
 
-From most specific to most general:
+**Location**: Defined in `opencode.json` → `command` section (9 commands)
 
-1. **Hook injections** - Runtime context via system reminders
-2. **Skill prompts** - Activated when skill is invoked
-3. **Agent prompts** - Subagent-specific instructions
-4. **Project CLAUDE.md** - Project-specific rules
-5. **Plugin CLAUDE.md** - Plugin orchestration rules
-6. **Global CLAUDE.md** - Universal instructions
-7. **Base system prompt** - Claude's core instructions (built-in)
-
-## Template System
-
-### Rule Templates
-
-**Location**: `~/.claude/plugins/marketplaces/omc/templates/rules/`
-
-Optional rule files that can be injected:
-- `coding-style.md` - Code style conventions
-- `testing.md` - Testing standards
-- `security.md` - Security requirements
-- `performance.md` - Performance guidelines
-- `git-workflow.md` - Git conventions
-
-**Usage**: Create in project root to auto-inject during sessions.
+| Command | Purpose |
+|---------|---------|
+| `workflows:brainstorm` | Explore requirements through collaborative dialogue |
+| `workflows:plan` | Transform feature descriptions into structured plans |
+| `workflows:deepen-plan` | Enhance plans with parallel research agents |
+| `workflows:work` | Execute work plans with quality gates |
+| `workflows:review` | Multi-agent code review with worktrees |
+| `workflows:compound` | Document solved problems for knowledge compounding |
+| `workflows:resolve-todos` | Parallel TODO resolution |
+| `workflows:feature-video` | Record feature walkthrough videos |
+| `workflows:test-browser` | Browser tests on PR-affected pages |
 
 ## Customization Guide
 
 ### To modify global behavior:
-1. Edit `~/.claude/CLAUDE.md`
-2. Keep it short and directive
+Edit `~/.opencode/config.yaml` — delegation tiers, rules, profiles
 
-### To modify project behavior:
-1. Create/edit `<project>/CLAUDE.md`
-2. Define project-specific patterns and requirements
-
-### To modify oh-my-claudecode:
-1. Edit `~/.claude/plugins/marketplaces/omc/docs/CLAUDE.md`
-2. Changes affect all projects using OMC
+### To add global rules:
+Create `.mdc` files in `~/.opencode/global-rules/`
 
 ### To modify agent behavior:
-1. Edit `~/.claude/plugins/marketplaces/omc/agents/<agent-name>.md`
-2. Affects that specific agent across all invocations
+Edit `~/.config/opencode/agents/<agent-name>.md`
+
+### To modify model routing:
+Edit `~/.config/opencode/oh-my-opencode.json` → `agents` section
 
 ### To create custom skills:
-1. Create new directory: `~/.claude/plugins/marketplaces/omc/skills/<skill-name>/`
-2. Add `SKILL.md` with skill prompt
-3. Create matching command file: `commands/<skill-name>.md`
-4. Register in skills index
+1. Create `~/.config/opencode/skills/<skill-name>/SKILL.md`
+2. Skill auto-registers via oh-my-opencode
 
-## Best Practices
-
-1. **Keep global prompts minimal** - Only universal rules
-2. **Use project CLAUDE.md for context** - Project-specific patterns
-3. **Leverage skills for behaviors** - Reusable workflows
-4. **Use hooks for automation** - Event-driven enhancements
-5. **Document agent responsibilities** - Clear delegation patterns
-
-## Version Control
-
-**What to commit:**
-- ✅ Project CLAUDE.md
-- ✅ Custom rule templates
-- ✅ Project-specific skills
-
-**What NOT to commit:**
-- ❌ Global ~/.claude/CLAUDE.md (machine-specific)
-- ❌ Plugin source (managed by Claude CLI)
-- ❌ .credentials.json (machine-specific OAuth)
-
-## Resources
-
-- **oh-my-claudecode docs**: https://github.com/Yeachan-Heo/oh-my-claudecode
-- **Agent templates**: `omc/agents/templates/`
-- **Skill examples**: `omc/skills/`
-- **Hook system**: `omc/src/hooks/`
+### To add workflow commands:
+Add to `opencode.json` → `command` section with description and template

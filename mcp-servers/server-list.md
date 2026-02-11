@@ -1,188 +1,109 @@
 # MCP Servers Configuration
 
-This document lists all MCP servers configured in the OpenCode setup.
+All MCP servers are defined in `~/.config/opencode/opencode.json` under the `"mcp"` key. They connect automatically when OpenCode starts.
 
-## Active MCP Servers
+## Active MCP Servers (8)
 
-### 1. sequential-thinking
-- **Command**: `npx -y @modelcontextprotocol/server-sequential-thinking`
-- **Status**: ✅ Connected
-- **Purpose**: Enhanced reasoning and step-by-step thinking
-- **Package**: `@modelcontextprotocol/server-sequential-thinking`
+### 1. tavily
+- **Type**: local
+- **Command**: `npx -y tavily-mcp@latest`
+- **Purpose**: Web search, content extraction, website crawling, deep research
+- **Requires**: `TAVILY_API_KEY` environment variable
+- **Tools**: `tavily_search`, `tavily_extract`, `tavily_crawl`, `tavily_map`, `tavily_research`
 
-### 2. filesystem
-- **Command**: `npx -y @modelcontextprotocol/server-filesystem ~/work`
-- **Status**: ✅ Connected
-- **Purpose**: File system access for the work directory
-- **Package**: `@modelcontextprotocol/server-filesystem`
-- **Configured Path**: `~/work` (adjust as needed)
+### 2. supermemory
+- **Type**: remote
+- **URL**: `https://mcp.supermemory.ai/mcp`
+- **Purpose**: Persistent cross-session memory, user profile, knowledge base
+- **Requires**: Bearer token in config headers
+- **Tools**: `memory` (save/forget), `recall` (search), `listProjects`, `whoAmI`
 
-### 3. claude-flow
-- **Command**: `npx claude-flow@alpha mcp start`
-- **Status**: ✅ Connected
-- **Purpose**: SPARC methodology, agent orchestration, swarm coordination
-- **Package**: `claude-flow@alpha`
-- **Features**:
-  - Swarm initialization and coordination
-  - Agent spawning and management
-  - Task orchestration
-  - Memory management
-  - Neural patterns
-  - Performance tracking
-  - GitHub integration
-
-### 4. ruv-swarm
-- **Command**: `npx ruv-swarm@latest mcp start`
-- **Status**: ✅ Connected
-- **Purpose**: Enhanced swarm coordination and distributed agents
-- **Package**: `ruv-swarm@latest`
-
-### 5. github (Optional)
-- **Command**: `https://api.githubcopilot.com/mcp/` (HTTP)
-- **Status**: ❌ Not Connected (requires GitHub Copilot subscription)
-- **Purpose**: GitHub repository integration
-- **Requirements**: GitHub Copilot subscription
-
-### 6. postgres (Optional)
-- **Command**: `npx -y @modelcontextprotocol/server-postgres`
-- **Status**: ❌ Not Connected (requires database configuration)
-- **Purpose**: PostgreSQL database access
-- **Requirements**: Database connection string
-
-## Plugin-Provided MCP Servers
-
-These MCP servers are automatically configured when their respective plugins are installed:
-
-### 7. plugin:superpowers-chrome:chrome
-- **Command**: `node <plugin-path>/mcp/dist/index.js`
-- **Status**: ✅ Connected
-- **Purpose**: Chrome browser automation via DevTools Protocol
-- **Plugin**: superpowers-chrome@superpowers-marketplace
-
-### 8. plugin:compound-engineering:context7
-- **Command**: `https://mcp.context7.com/mcp` (HTTP)
-- **Status**: ✅ Connected
+### 3. context7
+- **Type**: remote
+- **URL**: `https://mcp.context7.com/mcp`
 - **Purpose**: Up-to-date library documentation and code examples
-- **Plugin**: compound-engineering@every-marketplace
+- **Requires**: Nothing (public)
+- **Tools**: `resolve-library-id`, `query-docs`
 
-### 9. plugin:claude-mem:mcp-search
-- **Command**: `<plugin-path>/scripts/mcp-server.cjs`
-- **Status**: ✅ Connected
-- **Purpose**: Persistent memory and context search
-- **Plugin**: claude-mem@thedotmack
+### 4. playwright
+- **Type**: local
+- **Command**: `npx @playwright/mcp@latest`
+- **Purpose**: Browser automation, screenshots, form filling, testing
+- **Requires**: Nothing (auto-installs browser)
+- **Tools**: `browser_navigate`, `browser_snapshot`, `browser_click`, `browser_type`, `browser_take_screenshot`, `browser_evaluate`, `browser_fill_form`, and more
 
-### 10. plugin:oh-my-claudecode:t
-- **Command**: `node <plugin-path>/bridge/mcp-server.cjs`
-- **Status**: ✅ Connected
-- **Purpose**: oh-my-claudecode MCP bridge for tools and features
-- **Plugin**: oh-my-claudecode@omc
+### 5. sequentialthinking
+- **Type**: local
+- **Command**: `npx -y @modelcontextprotocol/server-sequentialthinking`
+- **Purpose**: Enhanced step-by-step reasoning for complex problems
+- **Requires**: Nothing
+- **Tools**: `sequential_thinking`
 
-## MCP Server Tools
+### 6. websearch
+- **Type**: local
+- **Command**: `npx -y @mrkrsl/web-search-mcp`
+- **Purpose**: Web search (backup/alternative to Tavily)
+- **Requires**: Nothing
+- **Tools**: `google_search`
 
-### sequential-thinking Tools
-- `create_artifact`
-- `sequential_thinking`
+### 7. grep
+- **Type**: local
+- **Command**: `uvx grep-mcp`
+- **Purpose**: Search code patterns across GitHub repositories
+- **Requires**: `uv`/`uvx` installed (`pip install uv`)
+- **Tools**: `grep_query`
 
-### filesystem Tools
-- `read_file`
-- `write_file`
-- `list_directory`
-- `create_directory`
-- `move_file`
-- `search_files`
-- `get_file_info`
+### 8. github
+- **Type**: local
+- **Command**: `npx -y @modelcontextprotocol/server-github`
+- **Purpose**: GitHub API — issues, PRs, repos, code search, file contents
+- **Requires**: `GITHUB_TOKEN` environment variable
+- **Tools**: `create_repository`, `search_repositories`, `create_issue`, `create_pull_request`, `get_file_contents`, `push_files`, `list_commits`, `search_code`, and more
 
-### claude-flow Tools
-- `swarm_init`
-- `agent_spawn`
-- `task_orchestrate`
-- `swarm_status`
-- `agent_list`
-- `agent_metrics`
-- `task_status`
-- `task_results`
-- `memory_usage`
-- `neural_status`
-- `neural_train`
-- `neural_patterns`
-- `github_swarm`
-- `repo_analyze`
-- `pr_enhance`
-- `issue_triage`
-- `code_review`
-- `benchmark_run`
-- `features_detect`
-- `swarm_monitor`
+## Configuration Format
 
-### ruv-swarm Tools
-- Additional swarm coordination tools (varies by version)
+MCP servers are defined in `opencode.json`:
 
-### context7 Tools
-- `resolve-library-id`
-- `query-docs`
-
-### superpowers-chrome Tools
-- `use_browser` (single unified tool for all browser operations)
-
-### claude-mem Tools
-- `search_memory`
-- `store_memory`
-- `retrieve_context`
-
-### oh-my-claudecode Tools
-- Various LSP, AST, and custom tools
-- See oh-my-claudecode documentation for complete list
-
-## Installation Commands
-
-```bash
-# Install all core MCP servers
-bash mcp-servers/mcp-setup-commands.sh
-
-# Or install individually
-claude mcp add sequential-thinking npx -y @modelcontextprotocol/server-sequential-thinking
-claude mcp add filesystem npx -y @modelcontextprotocol/server-filesystem ~/work
-claude mcp add claude-flow npx claude-flow@alpha mcp start
-claude mcp add ruv-swarm npx ruv-swarm@latest mcp start
-
-# Verify installation
-claude mcp list
+```json
+{
+  "mcp": {
+    "server-name": {
+      "type": "local",
+      "command": ["npx", "-y", "package-name@latest"],
+      "environment": {
+        "API_KEY": "{env:ENV_VAR_NAME}"
+      },
+      "enabled": true
+    },
+    "remote-server": {
+      "type": "remote",
+      "url": "https://example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer TOKEN"
+      },
+      "enabled": true
+    }
+  }
+}
 ```
+
+## Prerequisites
+
+| Dependency | Required For | Install |
+|------------|-------------|---------|
+| Node.js v18+ | All local MCP servers | https://nodejs.org |
+| npx | All npm-based servers | Comes with Node.js |
+| uv/uvx | grep MCP server | `pip install uv` |
+| GITHUB_TOKEN | github MCP server | GitHub Settings → Developer Settings → PAT |
+| TAVILY_API_KEY | tavily MCP server | https://tavily.com |
+| Supermemory token | supermemory MCP server | https://supermemory.ai |
 
 ## Troubleshooting
 
-### Server Not Connected
+### Server not connecting
+1. Test the server directly: `npx -y tavily-mcp@latest`
+2. Check environment variables are set: `echo $GITHUB_TOKEN`
+3. Restart OpenCode
 
-1. **Check if npx package is accessible**:
-   ```bash
-   npx -y @modelcontextprotocol/server-sequential-thinking --help
-   ```
-
-2. **Check debug logs**:
-   ```bash
-   cat ~/.claude/debug/*.txt | grep -A 5 "server-name"
-   ```
-
-3. **Restart Claude**:
-   ```bash
-   # Exit current Claude session and restart
-   claude
-   ```
-
-### Update MCP Servers
-
-```bash
-# Remove and re-add to update
-claude mcp remove sequential-thinking
-claude mcp add sequential-thinking npx -y @modelcontextprotocol/server-sequential-thinking
-
-# Verify
-claude mcp list
-```
-
-## Notes
-
-- MCP servers using `npx` will automatically download and run the latest version
-- Plugin-provided MCP servers are managed by their respective plugins
-- HTTP-based MCP servers (github, context7) require network connectivity
-- The filesystem server path can be adjusted to any directory you need access to
+### Adding new MCP servers
+Add to `opencode.json` → `mcp` section, then restart OpenCode.

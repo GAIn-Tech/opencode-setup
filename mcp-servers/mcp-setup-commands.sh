@@ -1,56 +1,59 @@
 #!/bin/bash
 
-# MCP Server Setup Script for OpenCode
-# This script installs all MCP servers used in the OpenCode setup
+# MCP Server Reference for OpenCode
+# NOTE: MCP servers are configured in opencode.json, not installed via CLI
+# This file documents the servers and their requirements for reference
 
-echo "🚀 Setting up MCP servers for OpenCode..."
+echo "=========================================="
+echo " OpenCode MCP Server Reference"
+echo "=========================================="
+echo ""
+echo "MCP servers are defined in ~/.config/opencode/opencode.json"
+echo "They connect automatically when OpenCode starts."
+echo ""
+echo "Current servers (8):"
+echo ""
+echo "  1. tavily (local)"
+echo "     Command: npx -y tavily-mcp@latest"
+echo "     Requires: TAVILY_API_KEY environment variable"
+echo ""
+echo "  2. supermemory (remote)"
+echo "     URL: https://mcp.supermemory.ai/mcp"
+echo "     Requires: Bearer token in config"
+echo ""
+echo "  3. context7 (remote)"
+echo "     URL: https://mcp.context7.com/mcp"
+echo "     Requires: Nothing (public)"
+echo ""
+echo "  4. playwright (local)"
+echo "     Command: npx @playwright/mcp@latest"
+echo "     Requires: Nothing"
+echo ""
+echo "  5. sequentialthinking (local)"
+echo "     Command: npx -y @modelcontextprotocol/server-sequentialthinking"
+echo "     Requires: Nothing"
+echo ""
+echo "  6. websearch (local)"
+echo "     Command: npx -y @mrkrsl/web-search-mcp"
+echo "     Requires: Nothing"
+echo ""
+echo "  7. grep (local)"
+echo "     Command: uvx grep-mcp"
+echo "     Requires: uv/uvx (pip install uv)"
+echo ""
+echo "  8. github (local)"
+echo "     Command: npx -y @modelcontextprotocol/server-github"
+echo "     Requires: GITHUB_TOKEN environment variable"
+echo ""
+echo "=========================================="
+echo " Prerequisites Check"
+echo "=========================================="
 echo ""
 
-# Core MCP Servers
-echo "📦 Installing core MCP servers..."
-
-# Sequential Thinking Server
-echo "  - Adding sequential-thinking..."
-claude mcp add sequential-thinking npx -y @modelcontextprotocol/server-sequential-thinking
-
-# Filesystem Server
-echo "  - Adding filesystem..."
-claude mcp add filesystem npx -y @modelcontextprotocol/server-filesystem ~/work
-
-# Claude Flow (SPARC methodology support)
-echo "  - Adding claude-flow..."
-claude mcp add claude-flow npx claude-flow@alpha mcp start
-
-# Ruv Swarm (Enhanced coordination)
-echo "  - Adding ruv-swarm..."
-claude mcp add ruv-swarm npx ruv-swarm@latest mcp start
-
+# Check prerequisites
+command -v node >/dev/null 2>&1 && echo "  [OK] Node.js $(node --version)" || echo "  [MISSING] Node.js — install from https://nodejs.org"
+command -v npx >/dev/null 2>&1 && echo "  [OK] npx available" || echo "  [MISSING] npx — comes with Node.js"
+command -v uvx >/dev/null 2>&1 && echo "  [OK] uvx available" || echo "  [MISSING] uvx — run: pip install uv"
+[ -n "$GITHUB_TOKEN" ] && echo "  [OK] GITHUB_TOKEN set" || echo "  [MISSING] GITHUB_TOKEN — set in shell profile"
+[ -n "$TAVILY_API_KEY" ] && echo "  [OK] TAVILY_API_KEY set" || echo "  [MISSING] TAVILY_API_KEY — get from https://tavily.com"
 echo ""
-echo "✅ Core MCP servers installed!"
-echo ""
-
-# Optional MCP Servers
-echo "📦 Optional MCP servers (may require additional configuration):"
-echo ""
-echo "  GitHub Integration (requires GitHub Copilot):"
-echo "    claude mcp add github https://api.githubcopilot.com/mcp/"
-echo ""
-echo "  PostgreSQL Server (requires database connection string):"
-echo "    claude mcp add postgres npx -y @modelcontextprotocol/server-postgres"
-echo ""
-echo "  Flow-Nexus (cloud features, requires registration):"
-echo "    npx flow-nexus@latest register"
-echo "    npx flow-nexus@latest login"
-echo "    claude mcp add flow-nexus npx flow-nexus@latest mcp start"
-echo ""
-
-# Verify installation
-echo "🔍 Verifying MCP server installation..."
-echo ""
-claude mcp list
-
-echo ""
-echo "✨ MCP server setup complete!"
-echo ""
-echo "Note: Plugin-provided MCP servers (chrome, context7, mcp-search) will be"
-echo "      automatically configured when you install their respective plugins."

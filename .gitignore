@@ -1,12 +1,8 @@
-# OpenCode Setup - Git Ignore
-
-# DO NOT commit credentials
-.credentials.json
+# DO NOT commit credentials or account data
 *credentials*.json
-
-# Local environment
-.env
-.env.local
+*accounts*.json
+*.env
+.env.*
 
 # OS files
 .DS_Store
@@ -25,7 +21,7 @@ desktop.ini
 debug/
 logs/
 
-# Node modules (if any)
+# Node modules
 node_modules/
 
 # Temporary files
@@ -33,15 +29,8 @@ tmp/
 temp/
 *.tmp
 
-# User-specific settings (these vary by machine)
-# Note: We DO include settings.json and settings.local.json as templates
-# Users should customize them after copying
-
-# Plugin cache (managed by Claude CLI)
-cache/
-
 # State files (session-specific)
-.omc/state/
+.omc/
 state/
 
 # Database files
@@ -52,4 +41,7 @@ state/
 # Backup files
 *.bak
 *.backup
-*~
+
+# OpenCode runtime files
+.opencode/
+bun.lockb

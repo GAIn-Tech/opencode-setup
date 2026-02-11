@@ -1,0 +1,157 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "google/antigravity-gemini-3-pro",
+  "plugin": [
+    "oh-my-opencode@latest",
+    "opencode-antigravity-auth@latest",
+    "opencode-supermemory@latest",
+    "@tarquinen/opencode-dcp@latest",
+    "cc-safety-net@latest",
+    "@azumag/opencode-rate-limit-fallback@latest",
+    "@mohak34/opencode-notifier@latest",
+    "opencode-plugin-langfuse@latest"
+  ],
+  "provider": {
+    "google": {
+      "npm": "@ai-sdk/google",
+      "models": {
+        "antigravity-gemini-3-pro": {
+          "name": "Gemini 3 Pro (Antigravity)",
+          "limit": { "context": 1048576, "output": 65535 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "variants": {
+            "low": { "thinkingLevel": "low" },
+            "high": { "thinkingLevel": "high" }
+          }
+        },
+        "antigravity-gemini-3-flash": {
+          "name": "Gemini 3 Flash (Antigravity)",
+          "limit": { "context": 1048576, "output": 65536 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "variants": {
+            "minimal": { "thinkingLevel": "minimal" },
+            "low": { "thinkingLevel": "low" },
+            "medium": { "thinkingLevel": "medium" },
+            "high": { "thinkingLevel": "high" }
+          }
+        },
+        "antigravity-claude-sonnet-4-5": {
+          "name": "Claude Sonnet 4.5 (Antigravity)",
+          "limit": { "context": 200000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "antigravity-claude-sonnet-4-5-thinking": {
+          "name": "Claude Sonnet 4.5 Thinking (Antigravity)",
+          "limit": { "context": 200000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "variants": {
+            "low": { "thinkingConfig": { "thinkingBudget": 8192 } },
+            "max": { "thinkingConfig": { "thinkingBudget": 32768 } }
+          }
+        },
+        "antigravity-claude-opus-4-6-thinking": {
+          "name": "Claude Opus 4.6 Thinking (Antigravity)",
+          "limit": { "context": 200000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "variants": {
+            "low": { "thinkingConfig": { "thinkingBudget": 8192 } },
+            "max": { "thinkingConfig": { "thinkingBudget": 32768 } }
+          }
+        },
+        "gemini-2.5-flash": {
+          "name": "Gemini 2.5 Flash (Gemini CLI)",
+          "limit": { "context": 1000000, "output": 65535 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "gemini-2.5-pro": {
+          "name": "Gemini 2.5 Pro (Gemini CLI)",
+          "limit": { "context": 1000000, "output": 65535 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        }
+      }
+    }
+  },
+  "mcp": {
+    "tavily": {
+      "type": "local",
+      "command": ["npx", "-y", "tavily-mcp@latest"],
+      "environment": {
+        "TAVILY_API_KEY": "{env:TAVILY_API_KEY}"
+      },
+      "enabled": true
+    },
+    "supermemory": {
+      "type": "remote",
+      "url": "https://mcp.supermemory.ai/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_SUPERMEMORY_TOKEN_HERE"
+      },
+      "enabled": true
+    },
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "enabled": true
+    },
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "@playwright/mcp@latest"],
+      "enabled": true
+    },
+    "sequentialthinking": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-sequentialthinking"],
+      "enabled": true
+    },
+    "websearch": {
+      "type": "local",
+      "command": ["npx", "-y", "@mrkrsl/web-search-mcp"],
+      "enabled": true
+    },
+    "grep": {
+      "type": "local",
+      "command": ["uvx", "grep-mcp"],
+      "enabled": true
+    },
+    "github": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-github"],
+      "environment": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "{env:GITHUB_TOKEN}"
+      },
+      "enabled": true
+    }
+  },
+  "permission": {
+    "read": "allow",
+    "write": "allow",
+    "edit": "allow",
+    "bash": "allow",
+    "grep": "allow",
+    "glob": "allow",
+    "list": "allow",
+    "webfetch": "allow",
+    "skill": "allow",
+    "patch": "allow",
+    "task": "allow",
+    "question": "allow",
+    "todowrite": "allow",
+    "todoread": "allow"
+  },
+  "tools": {
+    "read": true,
+    "write": true,
+    "edit": true,
+    "bash": true,
+    "grep": true,
+    "glob": true,
+    "list": true,
+    "webfetch": true,
+    "skill": true,
+    "patch": true,
+    "task": true,
+    "question": true,
+    "todowrite": true,
+    "todoread": true
+  }
+}

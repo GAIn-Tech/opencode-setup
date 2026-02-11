@@ -1,97 +1,103 @@
 # OpenCode Complete Setup Guide
 
-This directory contains all configuration files, plugins, skills, and system prompts needed to reproduce your OpenCode setup on another machine.
+Configuration files, plugins, MCP servers, and system prompts to reproduce the full OpenCode setup on any machine.
 
 ## Directory Structure
 
 ```
 opencode-setup/
-├── README.md (this file)
-├── claude-config/
-│   ├── settings.json
-│   ├── settings.local.json
-│   └── global-CLAUDE.md
+├── README.md                    (this file)
+├── opencode-config/
+│   ├── opencode.json            (main config — models, plugins, MCPs, permissions)
+│   ├── antigravity.json         (multi-account rotation config)
+│   ├── oh-my-opencode.json      (agent orchestration & model overrides)
+│   ├── compound-engineering.json (skills, commands, categories)
+│   └── config.yaml              (global rules, delegation standards, profiles)
 ├── mcp-servers/
-│   ├── mcp-setup-commands.sh
-│   └── server-list.md
+│   ├── server-list.md
+│   └── mcp-reference.sh
 ├── plugins/
-│   ├── oh-my-claudecode/
-│   │   ├── plugin.json
-│   │   ├── CLAUDE.md
-│   │   ├── AGENTS.md
-│   │   └── skills-list.md
-│   ├── compound-engineering/
-│   │   └── plugin.json
-│   ├── superpowers/
-│   │   └── plugin.json
-│   ├── elements-of-style/
-│   │   └── plugin.json
-│   ├── superpowers-chrome/
-│   │   └── plugin.json
-│   └── claude-mem/
-│       └── plugin.json
+│   ├── oh-my-opencode/          (multi-agent orchestration)
+│   ├── antigravity-auth/        (Google account rotation)
+│   ├── opencode-dcp/            (dynamic context pruning)
+│   ├── safety-net/              (destructive command blocking)
+│   ├── rate-limit-fallback/     (auto model fallback on rate limit)
+│   ├── notifier/                (OS notifications)
+│   ├── langfuse/                (LLM observability & tracing)
+│   └── compound-engineering/    (AI dev tools & workflows)
 ├── project-templates/
-│   └── work-CLAUDE.md
-└── setup-instructions.md
+│   └── project-config.yaml
+├── setup-instructions.md
+├── system-prompts.md
+├── QUICK-REFERENCE.md
+├── agents-list.md
+└── export-checklist.md
 ```
 
 ## Quick Start
 
-1. **Install Claude Code CLI**: Follow https://docs.anthropic.com/en/docs/build-with-claude/computer-use#getting-started
-2. **Run setup script**: `bash mcp-servers/mcp-setup-commands.sh`
-3. **Install plugins**: Follow instructions in `setup-instructions.md`
-4. **Copy configuration**: See `setup-instructions.md` for file placement
+1. **Install OpenCode**: `npm install -g opencode` or follow https://opencode.ai/docs
+2. **Clone this repo**: `git clone https://github.com/GAIn-Tech/opencode-setup.git`
+3. **Copy configs**: Follow `setup-instructions.md`
+4. **Authenticate accounts**: `opencode` → antigravity plugin handles OAuth
 
-## Version Information
+## Current Stack
 
-- **Claude Code CLI**: v2.0.28
-- **oh-my-claudecode**: v3.10.3
-- **superpowers**: v4.1.1
-- **compound-engineering**: v2.28.0
-- **elements-of-style**: v1.0.0
-- **superpowers-chrome**: v1.3.0
-- **claude-mem**: v9.0.12
+### Plugins (8)
+| Plugin | Purpose |
+|--------|---------|
+| `oh-my-opencode@latest` | Multi-agent orchestration (8 named agents, 46 skills, 22 commands) |
+| `opencode-antigravity-auth@latest` | Google account rotation (3 accounts, hybrid strategy) |
+| `opencode-supermemory@latest` | Persistent cross-session memory |
+| `@tarquinen/opencode-dcp@latest` | Dynamic context pruning — reduces token usage |
+| `cc-safety-net@latest` | Blocks destructive git/filesystem commands |
+| `@azumag/opencode-rate-limit-fallback@latest` | Auto-switches models on rate limit |
+| `@mohak34/opencode-notifier@latest` | OS notifications for task completion/errors |
+| `opencode-plugin-langfuse@latest` | LLM tracing, prompt versioning, cost tracking |
 
-## Key Features
+### MCP Servers (8)
+| Server | Type | Purpose |
+|--------|------|---------|
+| `tavily` | local | Web search, extraction, crawling, research |
+| `supermemory` | remote | Persistent memory across sessions |
+| `context7` | remote | Up-to-date library documentation |
+| `playwright` | local | Browser automation & testing |
+| `sequentialthinking` | local | Enhanced step-by-step reasoning |
+| `websearch` | local | Web search (backup) |
+| `grep` | local | Code search across GitHub repos |
+| `github` | local | GitHub API (issues, PRs, repos) |
 
-### Enabled Plugins
-- ✅ superpowers (core skills library)
-- ✅ elements-of-style (writing guidance)
-- ✅ superpowers-chrome (browser automation)
-- ✅ compound-engineering (AI development tools)
-- ✅ claude-mem (persistent memory)
-- ✅ oh-my-claudecode (multi-agent orchestration)
-
-### MCP Servers
-- sequential-thinking
-- filesystem
-- claude-flow
-- ruv-swarm
-- github (configured but not connected)
-- postgres (configured but not connected)
-- context7 (via compound-engineering)
-- chrome (via superpowers-chrome)
-- mcp-search (via claude-mem)
-- oh-my-claudecode MCP bridge
+### Models (7 defined + default)
+| Model | Provider | Use Case |
+|-------|----------|----------|
+| `kimi-k2.5-free` | Moonshot | Default / free-tier mechanical tasks |
+| `gemini-2.5-flash` | Google | Trivial tasks, fast lookups |
+| `antigravity-gemini-3-flash` | Antigravity | Routine dev work, exploration, research |
+| `claude-sonnet-4-5` | Anthropic | Complex reasoning, multi-file refactors |
+| `claude-sonnet-4-5-thinking` | Anthropic | Deep analysis, debugging, optimization |
+| `claude-opus-4-6` | Anthropic | Architectural decisions, system design |
+| `claude-opus-4-6-thinking` | Anthropic | Critical/high-stakes, security audits |
 
 ### Execution Modes
-- **Autopilot**: Full autonomous execution
 - **Ralph Loop**: Persistence until completion
-- **Ultrawork**: Maximum parallel execution
-- **Ecomode**: Token-efficient parallel execution
-- **Ultrapilot**: Parallel autopilot
-- **Swarm**: N coordinated agents
+- **Ultrawork Loop**: Maximum parallel execution
+- **Background tasks**: Async subagent dispatch
+- **Swarm**: Coordinated multi-agent execution
 - **Pipeline**: Sequential agent chaining
+
+## Key File Locations
+
+| File | Location | Purpose |
+|------|----------|---------|
+| `opencode.json` | `~/.config/opencode/` | Main config (models, plugins, MCPs) |
+| `antigravity.json` | `~/.config/opencode/` | Account rotation settings |
+| `oh-my-opencode.json` | `~/.config/opencode/` | Agent model overrides |
+| `compound-engineering.json` | `~/.config/opencode/` | Skills, commands, categories |
+| `config.yaml` | `~/.opencode/` | Global rules & delegation standards |
+| `global-rules/*.mdc` | `~/.opencode/` | Model delegation, coordination, dev standards |
+| `agents/*.md` | `~/.config/opencode/` | 29 specialized agent definitions |
+| `skills/*/SKILL.md` | `~/.config/opencode/` | 46 skill definitions |
 
 ## Setup on New Machine
 
 See `setup-instructions.md` for detailed step-by-step instructions.
-
-## Environment Variables
-
-Your setup uses:
-- `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`
-
-## Permissions
-
-See `claude-config/settings.local.json` for approved bash commands and web fetch domains.

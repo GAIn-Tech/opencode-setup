@@ -1,0 +1,233 @@
+# OpenCode Global Configuration
+# This file defines default behaviors and standards for all OpenCode projects
+# Location: ~/.opencode/config.yaml
+
+# ============================================================================
+# CORE SETTINGS
+# ============================================================================
+
+default_model_tier: quick
+
+escalation:
+  enabled: true
+  max_retries_per_tier: 2
+  escalation_threshold: failure
+
+cost_tracking:
+  enabled: true
+  daily_budget_usd: 10.00
+  alert_at_percent: 80
+
+# ============================================================================
+# GLOBAL RULES (Applied to ALL projects)
+# ============================================================================
+
+global_rules:
+  always_apply:
+    - model-delegation-standards
+    - coordination-protocol
+    - development-standards
+
+  conditional:
+    python:
+      patterns: ["**/*.py"]
+      rules: [python-standards, import-organization]
+    javascript:
+      patterns: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
+      rules: [javascript-standards, npm-best-practices]
+    documentation:
+      patterns: ["**/*.md", "**/*.rst"]
+      rules: [documentation-style, link-checking]
+
+# ============================================================================
+# DELEGATION STANDARDS — 7-TIER MODEL DISTRIBUTION
+# ============================================================================
+# Wide distribution: free → lightweight → mid → heavy → thinking
+# Every model in the config gets used for maximum cost efficiency
+
+delegation:
+  complexity_mapping:
+    mechanical:      # Simple, repetitive tasks (typos, renames, single-line fixes)
+      category: quick
+      models: [kimi-k2.5-free]
+      max_cost_per_task: 0.00
+
+    trivial:         # Lightweight tasks (file lookups, grep, simple edits)
+      category: quick
+      models: [gemini-2.5-flash]
+      max_cost_per_task: 0.01
+
+    routine:         # Standard development work (feature impl, bug fixes)
+      category: unspecified-low
+      models: [antigravity-gemini-3-flash]
+      max_cost_per_task: 0.05
+
+    complex:         # Multi-step reasoning (refactors, multi-file changes)
+      category: unspecified-high
+      models: [claude-sonnet-4-5]
+      max_cost_per_task: 0.20
+
+    advanced:        # Deep analysis (debugging, performance optimization)
+      category: deep
+      models: [claude-sonnet-4-5-thinking]
+      max_cost_per_task: 0.50
+
+    architectural:   # Design decisions, novel problems, system design
+      category: deep
+      models: [claude-opus-4-6]
+      max_cost_per_task: 1.00
+
+    critical:        # High-stakes, security audits, complex architecture
+      category: ultrabrain
+      models: [claude-opus-4-6-thinking]
+      max_cost_per_task: 2.00
+
+  batching:
+    enabled: true
+    batch_similar_tasks: true
+    max_batch_size: 5
+    min_batch_similarity: 0.7
+
+  parallel:
+    enabled: true
+    max_concurrent_tasks: 3
+    parallel_threshold: 2
+
+# ============================================================================
+# COORDINATION PROTOCOLS
+# ============================================================================
+
+coordination:
+  agent_communication:
+    format: structured
+    required_sections:
+      - task_id
+      - dependencies
+      - deliverables
+      - completion_criteria
+
+  handoffs:
+    required_checklist:
+      - tests_passing
+      - documentation_updated
+      - no_regressions
+      - code_reviewed
+
+  context_management:
+    preserve_across_sessions: true
+    context_files:
+      - AGENTS.md
+      - CONTEXT_MANAGEMENT.md
+
+# ============================================================================
+# DEVELOPMENT STANDARDS
+# ============================================================================
+
+development:
+  quality_gates:
+    pre_commit:
+      - linting
+      - type_checking
+      - tests
+      - documentation_sync
+
+  testing:
+    minimum_coverage: 70
+    required_test_types:
+      - unit
+      - integration
+    test_naming: test_{scenario}_{expected_result}
+
+  documentation:
+    required_for:
+      - public_apis
+      - complex_algorithms
+      - architectural_decisions
+      - configuration_options
+    format: markdown
+    adr_location: docs/adr/
+
+  git:
+    commit_message_format: |
+      <type>: <subject>
+
+      <body>
+
+      <footer>
+    types: [feat, fix, docs, refactor, test, chore, perf, security]
+    branch_naming: "{type}/{short-description}"
+    require_signed_commits: false
+
+# ============================================================================
+# PROJECT PROFILES
+# ============================================================================
+
+profiles:
+  web_app:
+    description: Full-stack web applications
+    extends: default
+    rules:
+      - frontend-performance
+      - api-design
+      - security-headers
+
+  ml_system:
+    description: Machine learning and data science
+    extends: default
+    rules:
+      - ml-pipeline-standards
+      - data-versioning
+      - experiment-tracking
+
+  api_service:
+    description: Backend API services
+    extends: default
+    rules:
+      - rest-api-standards
+      - openapi-spec
+      - rate-limiting
+
+  cli_tool:
+    description: Command-line tools
+    extends: default
+    rules:
+      - cli-ux-standards
+      - argument-parsing
+      - error-handling
+
+  library:
+    description: Reusable libraries/packages
+    extends: default
+    rules:
+      - semver-versioning
+      - backward-compatibility
+      - public-api-design
+
+# ============================================================================
+# CUSTOMIZATION
+# ============================================================================
+
+allow_project_overrides: true
+override_precedence: project  # project > global
+allow_user_extensions: true
+
+# ============================================================================
+# MONITORING & ANALYTICS
+# ============================================================================
+
+monitoring:
+  track_metrics:
+    - tasks_per_day
+    - cost_per_task
+    - model_tier_distribution
+    - escalation_rate
+    - success_rate_by_tier
+
+  reports:
+    daily_summary: true
+    weekly_analysis: true
+    cost_breakdown: true
+
+  alerts:
+    high_cost_threshold: 5.00
+    low_success_rate_threshold: 80

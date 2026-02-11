@@ -2,225 +2,182 @@
 
 ## Prerequisites
 
-1. **Windows with WSL** or **Linux/macOS**
+1. **Windows** (with Git Bash) or **Linux/macOS**
 2. **Node.js** v18+ and npm
 3. **Git**
+4. **bun** (optional, used by some plugins)
+5. **uv/uvx** (needed for grep MCP server)
 
-## Step 1: Install Claude Code CLI
+## Step 1: Install OpenCode CLI
 
 ```bash
-# Follow official installation guide
-# https://docs.anthropic.com/en/docs/build-with-claude/computer-use#getting-started
-
-# Or use npm (if available)
-npm install -g @anthropic-ai/claude-code-cli
+npm install -g opencode
 
 # Verify installation
-claude --version  # Should show 2.0.28 or later
+opencode --version
 ```
 
-## Step 2: Authenticate Claude
+## Step 2: Create Configuration Directories
 
 ```bash
-# Login to Claude
-claude auth login
-
-# This will open a browser for OAuth authentication
-# Complete the authentication flow
+mkdir -p ~/.config/opencode
+mkdir -p ~/.opencode/global-rules
 ```
 
 ## Step 3: Copy Configuration Files
 
-### Global Claude Configuration
-
 ```bash
-# Create .claude directory if it doesn't exist
-mkdir -p ~/.claude
+# Main OpenCode config (models, plugins, MCPs, permissions)
+cp opencode-config/opencode.json ~/.config/opencode/opencode.json
 
-# Copy settings files
-cp claude-config/settings.json ~/.claude/settings.json
-cp claude-config/settings.local.json ~/.claude/settings.local.json
-cp claude-config/global-CLAUDE.md ~/.claude/CLAUDE.md
+# Antigravity account rotation
+cp opencode-config/antigravity.json ~/.config/opencode/antigravity.json
+
+# oh-my-opencode agent overrides
+cp opencode-config/oh-my-opencode.json ~/.config/opencode/oh-my-opencode.json
+
+# Compound engineering (skills, commands)
+cp opencode-config/compound-engineering.json ~/.config/opencode/compound-engineering.json
+
+# Global config (delegation standards, rules, profiles)
+cp opencode-config/config.yaml ~/.opencode/config.yaml
 ```
 
-### Credentials (IMPORTANT)
+### API Keys & Environment Variables
 
-**DO NOT** copy the `.credentials.json` file from another machine. Each machine needs its own OAuth tokens.
-
-```bash
-# After running 'claude auth login', your credentials will be at:
-# ~/.claude/.credentials.json
-```
-
-## Step 4: Install MCP Servers
+Add to your `~/.bashrc`, `~/.zshrc`, or Windows environment:
 
 ```bash
-# Run the MCP setup script
-bash mcp-servers/mcp-setup-commands.sh
+# Required for GitHub MCP server
+export GITHUB_TOKEN="your-github-personal-access-token"
 
-# Or manually add each server:
-claude mcp add sequential-thinking npx -y @modelcontextprotocol/server-sequential-thinking
-claude mcp add filesystem npx -y @modelcontextprotocol/server-filesystem ~/work
-claude mcp add claude-flow npx claude-flow@alpha mcp start
-claude mcp add ruv-swarm npx ruv-swarm@latest mcp start
-
-# Optional (may require additional setup):
-# claude mcp add github https://api.githubcopilot.com/mcp/
-# claude mcp add postgres npx -y @modelcontextprotocol/server-postgres
-
-# Verify MCP servers
-claude mcp list
+# Required for Tavily search
+export TAVILY_API_KEY="your-tavily-api-key"
 ```
 
-## Step 5: Install Plugin Marketplaces
+**DO NOT** copy `antigravity-accounts.json` from another machine — each machine needs its own OAuth tokens.
 
-```bash
-# Install oh-my-claudecode marketplace
-claude plugin marketplace add omc https://github.com/Yeachan-Heo/oh-my-claudecode.git
+## Step 4: Plugins
 
-# Install superpowers marketplace
-claude plugin marketplace add superpowers-marketplace github:obra/superpowers-marketplace
-
-# Install compound-engineering marketplace
-claude plugin marketplace add every-marketplace https://github.com/EveryInc/compound-engineering-plugin.git
-
-# Install claude-mem marketplace
-claude plugin marketplace add thedotmack github:thedotmack/claude-mem
-```
-
-## Step 6: Install Plugins
-
-```bash
-# oh-my-claudecode (multi-agent orchestration)
-claude plugin install oh-my-claudecode@omc
-
-# superpowers (core skills)
-claude plugin install superpowers@superpowers-marketplace
-
-# elements-of-style (writing)
-claude plugin install elements-of-style@superpowers-marketplace
-
-# superpowers-chrome (browser automation)
-claude plugin install superpowers-chrome@superpowers-marketplace
-
-# compound-engineering (AI development tools)
-claude plugin install compound-engineering@every-marketplace
-
-# claude-mem (persistent memory)
-claude plugin install claude-mem@thedotmack
-
-# Verify plugins
-claude plugin list
-```
-
-## Step 7: Enable Plugins
-
-Edit `~/.claude/settings.json` and ensure `enabledPlugins` section contains:
+Plugins are npm packages defined in `opencode.json` under `"plugin"`. They auto-install when OpenCode starts:
 
 ```json
 {
-  "enabledPlugins": {
-    "superpowers@superpowers-marketplace": true,
-    "elements-of-style@superpowers-marketplace": true,
-    "superpowers-chrome@superpowers-marketplace": true,
-    "compound-engineering@every-marketplace": true,
-    "claude-mem@thedotmack": true,
-    "oh-my-claudecode@omc": true
-  }
+  "plugin": [
+    "oh-my-opencode@latest",
+    "opencode-antigravity-auth@latest",
+    "opencode-supermemory@latest",
+    "@tarquinen/opencode-dcp@latest",
+    "cc-safety-net@latest",
+    "@azumag/opencode-rate-limit-fallback@latest",
+    "@mohak34/opencode-notifier@latest",
+    "opencode-plugin-langfuse@latest"
+  ]
 }
+```
+
+No manual installation needed — just have them listed in `opencode.json`.
+
+## Step 5: MCP Servers
+
+MCP servers are also defined in `opencode.json` under `"mcp"`. They connect automatically on startup:
+
+| Server | Type | Requires |
+|--------|------|----------|
+| tavily | local | `TAVILY_API_KEY` env var |
+| supermemory | remote | Bearer token in config |
+| context7 | remote | Nothing (public) |
+| playwright | local | Nothing |
+| sequentialthinking | local | Nothing |
+| websearch | local | Nothing |
+| grep | local | `uvx` (install via `pip install uv`) |
+| github | local | `GITHUB_TOKEN` env var |
+
+### Supermemory Setup
+
+1. Create account at https://supermemory.ai
+2. Get your API bearer token
+3. Update `opencode.json` → `mcp.supermemory.headers.Authorization`
+
+## Step 6: Authenticate Antigravity Accounts
+
+```bash
+# Start OpenCode — antigravity plugin prompts for Google OAuth
+opencode
+
+# Follow the OAuth flow for each Google account you want to rotate
+# Accounts stored in ~/.config/opencode/antigravity-accounts.json
+```
+
+Key `antigravity.json` settings:
+- `account_selection_strategy`: `"hybrid"` — balances load across accounts
+- `quota_fallback`: `true` — **CRITICAL** — enables fallback when quota exhausted
+- `switch_on_first_rate_limit`: `true` — immediate switch on rate limit
+- `soft_quota_threshold_percent`: `90` — switch before hitting hard limit
+
+## Step 7: Verify Installation
+
+```bash
+# Start OpenCode
+opencode
+
+# Test with antigravity model
+opencode run "ping" --model=google/antigravity-gemini-3-pro
+
+# Check startup logs for:
+#   - "oh-my-opencode loaded with 8 agents and 4 MCPs + Antigravity account rotation"
+#   - MCP server connection confirmations
+#   - Plugin load confirmations
 ```
 
 ## Step 8: Project-Level Configuration
 
-For each project you work on:
+For each project:
 
 ```bash
-# Copy project CLAUDE.md template
-cp project-templates/work-CLAUDE.md ~/your-project/CLAUDE.md
-
-# Edit as needed for your project
-```
-
-## Step 9: Configure oh-my-claudecode
-
-```bash
-# Start Claude in any directory
-cd ~/your-project
-claude
-
-# In Claude chat, run setup:
-/oh-my-claudecode:omc-setup
-
-# Follow the interactive setup wizard
-```
-
-## Step 10: Verify Installation
-
-```bash
-# Start Claude
-claude
-
-# Test that everything is working:
-# - Type: "/oh-my-claudecode:help"
-# - Should see list of all OMC skills
-
-# Check MCP servers
-claude mcp list
-
-# All should show "✓ Connected"
+cp project-templates/project-config.yaml ~/your-project/.opencode.yaml
+# Customize for your project
 ```
 
 ## Troubleshooting
 
-### MCP Server Connection Issues
-
+### Plugin Issues
 ```bash
-# Check debug logs
-cat ~/.claude/debug/*.txt | grep ERROR
-
-# Restart Claude
-# Exit current session and restart
+# Clear and reinstall
+rm -rf ~/.config/opencode/node_modules
+# Restart OpenCode — plugins will reinstall
 ```
 
-### Plugin Installation Issues
-
+### MCP Server Issues
 ```bash
-# Clear plugin cache
-rm -rf ~/.claude/plugins/cache
+# Test individual server
+npx -y tavily-mcp@latest  # Should start without errors
 
-# Reinstall plugins
-claude plugin install [plugin-name]
+# Check if uvx installed (needed for grep)
+pip install uv
+
+# Verify GitHub token
+echo $GITHUB_TOKEN
 ```
 
-### oh-my-claudecode Issues
-
+### Antigravity Auth Issues
 ```bash
-# Run diagnostic
-/oh-my-claudecode:doctor
+# Check account status
+cat ~/.config/opencode/antigravity-accounts.json
 
-# Repair HUD if needed
-/oh-my-claudecode:hud setup
+# Re-authenticate: delete account entry, restart OpenCode
 ```
 
-## Environment Variables
+### Model Not Found
+Ensure model is defined in `opencode.json` → `provider.google.models` and referenced as `google/model-name`.
 
-Add to your `~/.bashrc` or `~/.zshrc`:
+## Resources
 
-```bash
-export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
-```
-
-## Additional Resources
-
-- **oh-my-claudecode**: https://github.com/Yeachan-Heo/oh-my-claudecode
-- **superpowers**: https://github.com/obra/superpowers
+- **OpenCode**: https://opencode.ai
+- **oh-my-opencode**: https://github.com/Yeachan-Heo/oh-my-opencode
+- **antigravity-auth**: https://github.com/NoeFabris/opencode-antigravity-auth
+- **supermemory**: https://supermemory.ai
 - **compound-engineering**: https://github.com/EveryInc/compound-engineering-plugin
-- **claude-mem**: https://github.com/thedotmack/claude-mem
-- **Claude Flow**: https://github.com/ruvnet/claude-flow
-
-## Notes
-
-- The `.credentials.json` file is machine-specific and should NOT be copied
-- MCP servers may need Node.js packages installed (handled automatically via npx)
-- Some plugins may require additional dependencies (browser automation, database access, etc.)
-- Always update to latest versions: `claude plugin update --all`
+- **Tavily**: https://tavily.com
+- **Context7**: https://context7.com
+- **Playwright MCP**: https://github.com/microsoft/playwright-mcp

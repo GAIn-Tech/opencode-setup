@@ -1,77 +1,33 @@
 # OpenCode Quick Reference
 
-## Installation One-Liner
+## Setup One-Liner
 
 ```bash
-# Install Claude Code CLI
-npm install -g @anthropic-ai/claude-code-cli
-
-# Authenticate
-claude auth login
-
-# Setup MCP servers
-bash mcp-servers/mcp-setup-commands.sh
-
-# Install plugin marketplaces
-claude plugin marketplace add omc https://github.com/Yeachan-Heo/oh-my-claudecode.git
-claude plugin marketplace add superpowers-marketplace github:obra/superpowers-marketplace
-claude plugin marketplace add every-marketplace https://github.com/EveryInc/compound-engineering-plugin.git
-claude plugin marketplace add thedotmack github:thedotmack/claude-mem
-
-# Install plugins
-claude plugin install oh-my-claudecode@omc
-claude plugin install superpowers@superpowers-marketplace
-claude plugin install elements-of-style@superpowers-marketplace
-claude plugin install superpowers-chrome@superpowers-marketplace
-claude plugin install compound-engineering@every-marketplace
-claude plugin install claude-mem@thedotmack
+npm install -g opencode
+git clone https://github.com/GAIn-Tech/opencode-setup.git
+cp opencode-setup/opencode-config/* ~/.config/opencode/
+cp opencode-setup/opencode-config/config.yaml ~/.opencode/config.yaml
+opencode  # Plugins auto-install, MCP servers auto-connect
 ```
 
-## Essential Commands
-
-### MCP Servers
-```bash
-claude mcp list              # List all MCP servers
-claude mcp add <name> <cmd>  # Add MCP server
-claude mcp remove <name>     # Remove MCP server
-```
-
-### Plugins
-```bash
-claude plugin list           # List installed plugins
-claude plugin install <name> # Install plugin
-claude plugin update --all   # Update all plugins
-claude plugin marketplace list # List marketplaces
-```
-
-### oh-my-claudecode Skills
+## Workflow Commands
 
 ```bash
-# In Claude chat, use slash commands:
-/oh-my-claudecode:help           # Show all skills
-/oh-my-claudecode:omc-setup      # Configure OMC
-/oh-my-claudecode:doctor         # Diagnose issues
-/oh-my-claudecode:hud setup      # Install status line
+# In OpenCode chat, use slash commands:
+/workflows:brainstorm        # Explore requirements before planning
+/workflows:plan              # Create structured implementation plan
+/workflows:deepen-plan       # Enhance plan with parallel research
+/workflows:work              # Execute plan with quality gates
+/workflows:review            # Multi-agent code review
+/workflows:compound          # Document solved problems
+/workflows:resolve-todos     # Parallel TODO resolution
+/workflows:test-browser      # Browser tests on PR-affected pages
+/workflows:feature-video     # Record feature walkthrough video
 
-# Magic keywords (no slash needed):
-autopilot: build a todo app      # Full autonomous execution
-ralph: refactor authentication   # Persistence mode
-ulw fix all type errors          # Maximum parallelism
-eco optimize performance         # Token-efficient mode
-plan the new API                 # Planning interview
+# Loop modes:
+/ralph-loop                  # Persistence until completion
+/ulw-loop                    # Maximum parallel execution
 ```
-
-## Execution Modes Quick Guide
-
-| Mode | Trigger | Best For |
-|------|---------|----------|
-| **autopilot** | "autopilot", "build me" | Full project from idea to tests |
-| **ralph** | "ralph", "don't stop" | Must complete tasks, no matter what |
-| **ultrawork** | "ulw", "ultrawork" | Fast parallel execution |
-| **ecomode** | "eco", "budget" | Save tokens, efficient execution |
-| **ultrapilot** | "ultrapilot" | Parallel autopilot (3-5x faster) |
-| **swarm** | "swarm N agents" | N coordinated agents |
-| **pipeline** | "pipeline" | Sequential agent chain |
 
 ## Agent Quick Reference
 
@@ -79,161 +35,142 @@ plan the new API                 # Planning interview
 
 | Need | Agent | Model |
 |------|-------|-------|
-| Fix code | executor / executor-low | sonnet / haiku |
-| Debug complex issue | architect | opus |
-| Search codebase | explore / explore-medium | haiku / sonnet |
-| UI/frontend | designer | sonnet |
-| Research library | researcher | sonnet |
-| Security review | security-reviewer | opus |
-| Code review | code-reviewer | opus |
-| Fix build errors | build-fixer | sonnet |
-| TDD workflow | tdd-guide | sonnet |
+| Orchestrate work | sisyphus | claude-opus-4-6 |
+| Architecture consultation | oracle | claude-opus-4-6 |
+| Execute tasks | atlas / hephaestus | sonnet-4-5 / gemini-flash |
+| Pre-planning analysis | metis | claude-sonnet-4-5 |
+| Plan review / QA | momus | claude-sonnet-4-5 |
+| Research (internal) | explore | gemini-flash (background) |
+| Research (external) | librarian | gemini-flash (background) |
+| Create plans | prometheus | gemini-flash |
 
-### Delegation Example
+### Delegation Examples
 
-```javascript
-Task(subagent_type="oh-my-claudecode:executor",
-     model="sonnet",
-     prompt="Add input validation to the login form...")
+```python
+# Background exploration (cheap, async)
+task(subagent_type="explore", run_in_background=True,
+     load_skills=[], description="Find auth patterns",
+     prompt="Find authentication middleware in src/...")
+
+# Quick fix with git skill
+task(category="quick", load_skills=["git-master"],
+     run_in_background=False, description="Fix typo",
+     prompt="Fix the typo in README.md line 5...")
+
+# Complex task with multiple skills
+task(category="deep", load_skills=["systematic-debugging", "test-driven-development"],
+     run_in_background=False, description="Debug race condition",
+     prompt="Debug the race condition in the WebSocket handler...")
 ```
+
+## Model Tiers
+
+| Complexity | Model | Cost Cap | Use Case |
+|------------|-------|----------|----------|
+| mechanical | `kimi-k2.5-free` | $0.00 | Typos, renames, single-line fixes |
+| trivial | `gemini-2.5-flash` | $0.01 | File lookups, grep, simple edits |
+| routine | `antigravity-gemini-3-flash` | $0.05 | Feature impl, bug fixes |
+| complex | `claude-sonnet-4-5` | $0.20 | Refactors, multi-file changes |
+| advanced | `claude-sonnet-4-5-thinking` | $0.50 | Debugging, perf optimization |
+| architectural | `claude-opus-4-6` | $1.00 | System design, novel problems |
+| critical | `claude-opus-4-6-thinking` | $2.00 | Security audits, high-stakes |
 
 ## File Organization
 
 ```
-~/.claude/
-├── CLAUDE.md              # Global instructions
-├── settings.json          # Main settings
-├── settings.local.json    # Permissions
-├── .credentials.json      # OAuth tokens (DO NOT COPY)
-└── plugins/
-    ├── config.json
-    ├── installed_plugins.json
-    ├── known_marketplaces.json
-    ├── cache/             # Plugin installations
-    └── marketplaces/      # Plugin sources
+~/.config/opencode/
+├── opencode.json              # Main config (models, plugins, MCPs)
+├── antigravity.json           # Account rotation settings
+├── antigravity-accounts.json  # OAuth tokens (DO NOT COPY)
+├── oh-my-opencode.json        # Agent model overrides
+├── compound-engineering.json  # Skills, commands, categories
+├── agents/*.md                # 29 specialized agent definitions
+├── skills/*/SKILL.md          # 46 skill definitions
+└── node_modules/              # Plugin installations (auto-managed)
+
+~/.opencode/
+├── config.yaml                # Global rules & delegation standards
+└── global-rules/
+    ├── model-delegation-standards.mdc
+    ├── coordination-protocol.mdc
+    └── development-standards.mdc
 
 <project>/
-└── CLAUDE.md              # Project instructions
+└── .opencode.yaml             # Project-specific overrides
 ```
 
-## MCP Servers
+## Plugins (8)
 
-| Server | Purpose | Command |
-|--------|---------|---------|
-| sequential-thinking | Enhanced reasoning | `npx -y @modelcontextprotocol/server-sequential-thinking` |
-| filesystem | File access | `npx -y @modelcontextprotocol/server-filesystem ~/work` |
-| claude-flow | SPARC/swarm | `npx claude-flow@alpha mcp start` |
-| ruv-swarm | Coordination | `npx ruv-swarm@latest mcp start` |
-| context7 | Documentation | (via compound-engineering plugin) |
-| chrome | Browser | (via superpowers-chrome plugin) |
-| mcp-search | Memory | (via claude-mem plugin) |
+| Plugin | Purpose |
+|--------|---------|
+| oh-my-opencode | Multi-agent orchestration (8 agents, 46 skills, 22 commands) |
+| opencode-antigravity-auth | Google account rotation (3 accounts) |
+| opencode-supermemory | Persistent cross-session memory |
+| @tarquinen/opencode-dcp | Dynamic context pruning (token savings) |
+| cc-safety-net | Blocks destructive commands |
+| @azumag/opencode-rate-limit-fallback | Auto model fallback on rate limit |
+| @mohak34/opencode-notifier | OS notifications |
+| opencode-plugin-langfuse | LLM tracing & cost tracking |
 
-## Common Issues & Solutions
+## MCP Servers (8)
 
-### MCP Server Not Connected
+| Server | Type | Purpose |
+|--------|------|---------|
+| tavily | local | Web search, research, crawling |
+| supermemory | remote | Persistent memory |
+| context7 | remote | Library documentation |
+| playwright | local | Browser automation |
+| sequentialthinking | local | Step-by-step reasoning |
+| websearch | local | Web search (backup) |
+| grep | local | GitHub code search |
+| github | local | GitHub API |
+
+## Common Issues
+
+### Plugin Issues
 ```bash
-# Check debug logs
-cat ~/.claude/debug/*.txt | grep ERROR
-
-# Remove and re-add
-claude mcp remove <server-name>
-claude mcp add <server-name> <command>
-
-# Restart Claude
+rm -rf ~/.config/opencode/node_modules  # Clear
+opencode  # Reinstalls automatically
 ```
 
-### Plugin Not Working
+### MCP Server Issues
 ```bash
-# Verify installation
-claude plugin list
-
-# Reinstall
-claude plugin uninstall <plugin-name>
-claude plugin install <plugin-name>
-
-# Clear cache
-rm -rf ~/.claude/plugins/cache/<plugin-name>
+npx -y tavily-mcp@latest  # Test individual server
+pip install uv             # Needed for grep MCP
+echo $GITHUB_TOKEN         # Verify env vars set
 ```
 
-### oh-my-claudecode Issues
+### Antigravity Auth Issues
 ```bash
-# Run diagnostics
-/oh-my-claudecode:doctor
-
-# Reconfigure
-/oh-my-claudecode:omc-setup
-
-# Check state files
-ls -la .omc/state/
+cat ~/.config/opencode/antigravity-accounts.json  # Check accounts
+# Delete account entry + restart to re-auth
 ```
 
-### Can't Stop Execution Mode
-```bash
-# Force cancel
-/oh-my-claudecode:cancel --force
-
-# Manually clear state
-rm -rf .omc/state/*.json
-```
-
-## Environment Variables
-
-```bash
-# Add to ~/.bashrc or ~/.zshrc
-export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
-
-# Optional: Set default execution mode
-# (or use /oh-my-claudecode:omc-setup)
-echo '{"defaultExecutionMode":"ultrawork"}' > ~/.claude/.omc-config.json
-```
+### Model Not Found
+Ensure model is defined in `opencode.json` → `provider.google.models` and referenced as `google/model-name`.
 
 ## Key Concepts
 
 ### Delegation-First
 - **Always delegate** substantive work to specialized agents
-- **Never code directly** - use executor agent
-- **Always verify** - use architect agent after completion
+- **Verify results** after every delegation
+- Use `session_id` for follow-ups (preserves full context)
 
-### Magic Keywords
-- Autopilot activates automatically on "build me", "I want a"
-- Ralph activates on "don't stop", "must complete"
-- Ultrawork activates on "ulw", "fast parallel"
-- Ecomode activates on "eco", "budget", "efficient"
+### Skill Loading
+- Subagents are STATELESS — pass skills via `load_skills=[...]`
+- User-installed skills get PRIORITY over built-in
+- Always evaluate ALL skills before delegating
 
-### Hooks
-- Automatic context injection via `<system-reminder>` tags
-- Can't be invoked directly - they fire on events
-- Control execution modes (autopilot, ralph, ultrawork)
-- Block premature stopping - use `/cancel` to exit cleanly
-
-### Session Continuity
-- Use `session_id` parameter when resuming subagent work
-- Preserves full context, saves tokens
-- Critical for follow-up tasks
-
-## Performance Tips
-
-1. **Use LOW tier agents** for simple tasks (Haiku models)
-2. **Parallel execution** for independent tasks
-3. **Background tasks** (`run_in_background: true`) for long operations
-4. **Ecomode** for token-efficient execution
-5. **Session continuity** to avoid redundant context loading
+### Background Tasks
+- `run_in_background=True` for explore/librarian agents
+- Collect results with `background_output(task_id="...")`
+- Cancel all before final answer: `background_cancel(all=True)`
 
 ## Resources
 
-- **Claude Code Docs**: https://docs.anthropic.com/claude/docs/claude-code
-- **oh-my-claudecode**: https://github.com/Yeachan-Heo/oh-my-claudecode
-- **superpowers**: https://github.com/obra/superpowers
-- **compound-engineering**: https://github.com/EveryInc/compound-engineering-plugin
-- **claude-mem**: https://github.com/thedotmack/claude-mem
-- **Claude Flow**: https://github.com/ruvnet/claude-flow
-
-## Version Info
-
-- Claude Code CLI: v2.0.28
-- oh-my-claudecode: v3.10.3
-- superpowers: v4.1.1
-- compound-engineering: v2.28.0
-- elements-of-style: v1.0.0
-- superpowers-chrome: v1.3.0
-- claude-mem: v9.0.12
+- **OpenCode**: https://opencode.ai
+- **oh-my-opencode**: https://github.com/Yeachan-Heo/oh-my-opencode
+- **antigravity-auth**: https://github.com/NoeFabris/opencode-antigravity-auth
+- **supermemory**: https://supermemory.ai
+- **Tavily**: https://tavily.com
+- **Context7**: https://context7.com

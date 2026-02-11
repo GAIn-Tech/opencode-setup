@@ -1,189 +1,126 @@
-# oh-my-claudecode Agents
+# OpenCode Agents
 
-Complete list of 32 specialized agents in oh-my-claudecode v3.10.3
+## oh-my-opencode Named Agents (8)
 
-## Base Agents (12)
+Core orchestration agents with model overrides via `oh-my-opencode.json`:
 
-### architect
-- **Model**: Opus
-- **Purpose**: Architecture, debugging, root cause analysis
-- **When to use**: Complex debugging, multi-system tradeoffs, architectural decisions
-- **Tiers**: architect-low (Haiku), architect-medium (Sonnet), architect (Opus)
+| Agent | Model | Role |
+|-------|-------|------|
+| **sisyphus** | claude-opus-4-6 | Main orchestrator — delegates, coordinates, verifies |
+| **oracle** | claude-opus-4-6 | Read-only consultant — architecture, debugging, tradeoffs |
+| **atlas** | claude-sonnet-4-5 | Task execution — implementation and code changes |
+| **metis** | claude-sonnet-4-5 | Pre-planning analysis — scope clarification, ambiguity detection |
+| **momus** | claude-sonnet-4-5 | Plan review & QA — catches gaps, ambiguities, missing context |
+| **hephaestus** | antigravity-gemini-3-flash | Builder/executor — focused task implementation |
+| **librarian** | antigravity-gemini-3-flash | Research — docs, OSS examples, web search, Context7 |
+| **prometheus** | antigravity-gemini-3-flash | Planning — strategic plans, interviews, brainstorming |
 
-### researcher
-- **Model**: Sonnet
-- **Purpose**: Documentation, external API research
-- **When to use**: Unfamiliar libraries, SDK documentation, external references
-- **Tiers**: researcher-low (Haiku), researcher (Sonnet)
+### Model Distribution Rationale
+- **Opus** (2 agents): sisyphus + oracle — top-tier orchestration and consultation via Anthropic primary sub
+- **Sonnet** (3 agents): atlas, metis, momus — complex reasoning, execution, review via Anthropic
+- **Flash** (3 agents): hephaestus, librarian, prometheus — high-throughput exploration/research via Antigravity Gemini
 
-### explore
-- **Model**: Haiku
-- **Purpose**: Fast codebase pattern search
-- **When to use**: Finding patterns, understanding code structure
-- **Tiers**: explore (Haiku), explore-medium (Sonnet), explore-high (Opus)
+## Specialized Agent Definitions (29)
 
-### executor
-- **Model**: Sonnet
-- **Purpose**: Focused task implementation
-- **When to use**: File changes, feature implementation
-- **Tiers**: executor-low (Haiku), executor (Sonnet), executor-high (Opus)
+Located in `~/.config/opencode/agents/*.md`, these are invoked by oh-my-opencode as subagents:
 
-### designer
-- **Model**: Sonnet
-- **Purpose**: UI/UX, component design
-- **When to use**: Frontend work, styling, component architecture
-- **Tiers**: designer-low (Haiku), designer (Sonnet), designer-high (Opus)
+### Code Review Agents (8)
+| Agent | Focus |
+|-------|-------|
+| `dhh-rails-reviewer` | Rails code in DHH/37signals style |
+| `kieran-python-reviewer` | Python code quality |
+| `kieran-rails-reviewer` | Rails conventions and patterns |
+| `kieran-typescript-reviewer` | TypeScript best practices |
+| `julik-frontend-races-reviewer` | Frontend race conditions and async bugs |
+| `code-simplicity-reviewer` | Complexity reduction, KISS principle |
+| `agent-native-reviewer` | Agent architecture patterns |
+| `design-implementation-reviewer` | Design pattern correctness |
 
-### writer
-- **Model**: Haiku
-- **Purpose**: Technical documentation
-- **When to use**: Documentation generation, writing tasks
+### Security & Performance (2)
+| Agent | Focus |
+|-------|-------|
+| `security-sentinel` | Vulnerability detection, OWASP compliance |
+| `performance-oracle` | Bottleneck identification, optimization strategies |
 
-### vision
-- **Model**: Sonnet
-- **Purpose**: Image/screenshot analysis
-- **When to use**: Visual analysis, design feedback
+### Research & Learning (5)
+| Agent | Focus |
+|-------|-------|
+| `best-practices-researcher` | Industry standards and patterns |
+| `framework-docs-researcher` | Framework-specific documentation |
+| `learnings-researcher` | Extract patterns from past sessions |
+| `repo-research-analyst` | Repository structure and pattern analysis |
+| `pattern-recognition-agent` | Cross-session pattern detection |
 
-### critic
-- **Model**: Opus
-- **Purpose**: Critical plan review
-- **When to use**: Planning validation, plan critique
+### Data & Architecture (4)
+| Agent | Focus |
+|-------|-------|
+| `data-integrity-guardian` | Data validation and consistency |
+| `data-migration-expert` | Migration planning and execution |
+| `schema-drift-detector` | Schema change detection and alerting |
+| `architecture-strategist` | System design and tradeoff analysis |
 
-### analyst
-- **Model**: Opus
-- **Purpose**: Pre-planning requirements analysis
-- **When to use**: Ambiguous requests, requirements clarification
+### Additional Specialized Agents (10)
+Various other agents for specific domains — see `~/.config/opencode/agents/` for the full set.
 
-### planner
-- **Model**: Opus
-- **Purpose**: Strategic planning with interviews
-- **When to use**: Broad requests, planning interviews
+## Delegation Model
 
-### qa-tester
-- **Model**: Sonnet
-- **Purpose**: Interactive CLI/service testing
-- **When to use**: Testing workflows, QA verification
-- **Tiers**: qa-tester (Sonnet), qa-tester-high (Opus)
+### Task Categories → Agent Selection
 
-### scientist
-- **Model**: Sonnet
-- **Purpose**: Data analysis, hypothesis testing
-- **When to use**: Data analysis, statistical work
-- **Tiers**: scientist-low (Haiku), scientist (Sonnet), scientist-high (Opus)
+| Category | Agent Type | Model Tier |
+|----------|-----------|------------|
+| `quick` | hephaestus | Gemini Flash (antigravity) |
+| `unspecified-low` | hephaestus / atlas | Flash / Sonnet |
+| `unspecified-high` | atlas / oracle | Sonnet / Opus |
+| `deep` | oracle | Opus |
+| `ultrabrain` | oracle | Opus (thinking variant) |
+| `visual-engineering` | atlas + frontend skills | Sonnet |
+| `writing` | prometheus | Gemini Flash (antigravity) |
 
-## Specialized Agents (4)
+### Delegation Complexity → Model Mapping
 
-### security-reviewer
-- **Model**: Opus
-- **Purpose**: Security vulnerability detection and audits
-- **When to use**: Security reviews, vulnerability scanning
-- **Tiers**: security-reviewer-low (Haiku), security-reviewer (Opus)
+From `config.yaml` — Anthropic for heavy lifting, Antigravity Gemini for routine, free for trivial:
 
-### build-fixer
-- **Model**: Sonnet
-- **Purpose**: Build/type error resolution (multi-language)
-- **When to use**: Compilation errors, type errors
-- **Tiers**: build-fixer-low (Haiku), build-fixer (Sonnet)
-
-### tdd-guide
-- **Model**: Sonnet
-- **Purpose**: Test-driven development workflow
-- **When to use**: TDD implementation, test-first development
-- **Tiers**: tdd-guide-low (Haiku), tdd-guide (Sonnet)
-
-### code-reviewer
-- **Model**: Opus
-- **Purpose**: Expert code review and quality assessment
-- **When to use**: Code review, quality checks
-- **Tiers**: code-reviewer-low (Haiku), code-reviewer (Opus)
-
-## Agent Tiers
-
-### LOW Tier (Haiku) - 9 agents
-Fast, cost-effective for simple tasks:
-- architect-low
-- executor-low
-- researcher-low
-- designer-low
-- scientist-low
-- security-reviewer-low
-- build-fixer-low
-- tdd-guide-low
-- code-reviewer-low
-
-### MEDIUM Tier (Sonnet) - 2 agents
-Balanced performance:
-- architect-medium
-- explore-medium
-
-### HIGH Tier (Opus) - 5 agents
-Maximum reasoning power:
-- executor-high
-- designer-high
-- explore-high
-- qa-tester-high
-- scientist-high
-
-## Model Selection Guide
-
-| Task Complexity | Model | When to Use |
-|-----------------|-------|-------------|
-| Simple lookup | Haiku | "What does this return?", "Find definition of X" |
-| Standard work | Sonnet | "Add error handling", "Implement feature" |
-| Complex reasoning | Opus | "Debug race condition", "Refactor architecture" |
+| Complexity | Model | Provider | Cost Cap |
+|------------|-------|----------|----------|
+| mechanical | `kimi-k2.5-free` | Moonshot (free) | $0.00 |
+| trivial | `gemini-2.5-flash` | Google | $0.01 |
+| routine | `antigravity-gemini-3-flash` | Antigravity | $0.05 |
+| complex | `claude-sonnet-4-5` | Anthropic | $0.20 |
+| advanced | `claude-sonnet-4-5-thinking` | Anthropic | $0.50 |
+| architectural | `claude-opus-4-6` | Anthropic | $1.00 |
+| critical | `claude-opus-4-6-thinking` | Anthropic | $2.00 |
 
 ## Agent Invocation
 
-Always use `oh-my-claudecode:` prefix:
+```python
+# Background exploration (cheap, fast)
+task(subagent_type="explore", run_in_background=True,
+     load_skills=[], description="Find auth patterns",
+     prompt="Find all authentication middleware in src/...")
 
+# Background research (external docs)
+task(subagent_type="librarian", run_in_background=True,
+     load_skills=[], description="JWT best practices",
+     prompt="Find OWASP JWT security guidelines...")
+
+# Synchronous implementation (with skills)
+task(category="quick", load_skills=["git-master"],
+     run_in_background=False, description="Fix type error",
+     prompt="Fix the type error in auth.ts line 42...")
+
+# Architecture consultation
+task(subagent_type="oracle", run_in_background=False,
+     load_skills=[], description="Review auth design",
+     prompt="Review the authentication flow for security...")
 ```
-Task(subagent_type="oh-my-claudecode:executor",
-     model="sonnet",
-     prompt="Edit src/file.ts to add validation...")
 
-Task(subagent_type="oh-my-claudecode:architect",
-     model="opus",
-     prompt="Review the authentication flow for security issues...")
-```
-
-## MCP Tools Available to Agents
+## Tools Available to All Agents
 
 ### LSP Tools
-- `lsp_hover` - Type info at position
-- `lsp_goto_definition` - Jump to definition
-- `lsp_find_references` - Find all usages
-- `lsp_document_symbols` - File outline
-- `lsp_workspace_symbols` - Cross-workspace search
-- `lsp_diagnostics` - File errors/warnings
-- `lsp_diagnostics_directory` - Project-wide checking
-- `lsp_prepare_rename` - Check rename validity
-- `lsp_rename` - Multi-file rename
-- `lsp_code_actions` - Available refactorings
-- `lsp_code_action_resolve` - Action details
-- `lsp_servers` - List available LSP servers
+`lsp_goto_definition`, `lsp_find_references`, `lsp_symbols`, `lsp_diagnostics`, `lsp_prepare_rename`, `lsp_rename`
 
 ### AST Tools
-- `ast_grep_search` - Structural code search
-- `ast_grep_replace` - AST-aware transformation
+`ast_grep_search`, `ast_grep_replace`
 
-### Other Tools
-- `python_repl` - Python code execution for data analysis
-- All standard Claude Code tools (Read, Write, Edit, Bash, etc.)
-
-## Agent Capabilities Matrix
-
-| Agent | LSP | AST | REPL | Browser | Git |
-|-------|-----|-----|------|---------|-----|
-| architect | ✅ | ✅ | ✅ | - | ✅ |
-| executor | ✅ | ✅ | - | - | ✅ |
-| researcher | - | - | - | ✅ | - |
-| designer | ✅ | ✅ | - | ✅ | - |
-| security-reviewer | ✅ | ✅ | - | - | - |
-| build-fixer | ✅ | ✅ | - | - | - |
-| code-reviewer | ✅ | ✅ | - | - | - |
-| scientist | - | - | ✅ | - | - |
-| qa-tester | ✅ | - | ✅ | ✅ | - |
-
-## Total: 32 Agents
-
-12 base agents + 16 tiered variants + 4 specialized agents = 32 total
+### Standard Tools
+Read, Write, Edit, Bash, Grep, Glob, WebFetch, Task, TodoWrite, Skill, Question
