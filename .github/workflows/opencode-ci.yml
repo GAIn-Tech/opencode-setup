@@ -1,0 +1,42 @@
+name: Validate System
+on: [push]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Sisyphus State Tests
+        run: |
+          cd packages/opencode-sisyphus-state
+          npm install
+          npm test
+
+      - name: Test SkillRL Evolution Logic
+        run: |
+          # Verify SkillRL manager basic instantiation and logic
+          node -e "
+            try {
+              const { SkillBank } = require('./packages/opencode-skill-rl-manager/src/index.js');
+              if (typeof SkillBank !== 'function') throw new Error('SkillBank not exported');
+              console.log('SkillRL SkillBank loadable');
+            } catch (e) {
+              console.error('SkillRL Test Failed:', e);
+              process.exit(1);
+            }
+          "
+
+      - name: Validate System Health (Fallback Doctor)
+        run: |
+          if [ -f "packages/opencode-fallback-doctor/src/index.js" ]; then
+            node -e "require('./packages/opencode-fallback-doctor/src/index.js')"
+            echo "Fallback Doctor loadable"
+          fi

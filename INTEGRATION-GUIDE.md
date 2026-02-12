@@ -609,6 +609,59 @@ ssh remote "showboat verify /handoff/latest.md"
 
 ---
 
+### 14. **opencode-sisyphus-state** (Durable Workflow Execution)
+
+**What it does:** Provides a resilient state machine for agent workflows with SQLite-backed event sourcing, checkpointing, and resume capability.
+
+**Integration:**
+```js
+const { WorkflowExecutor, WorkflowStore } = require('opencode-sisyphus-state');
+const { createGovernorHandler, createRouterHandler } = require('opencode-sisyphus-state/integrations');
+
+// Initialize store
+const store = new WorkflowStore('~/.opencode/sisyphus.db');
+
+// Configure handlers
+const handlers = {
+  'budget-check': createGovernorHandler(governor),
+  'model-select': createRouterHandler(router),
+  'generate-code': async (input) => { /* ... implementation ... */ }
+};
+
+// Create executor
+const executor = new WorkflowExecutor(store, handlers);
+
+// Define workflow
+const workflow = {
+  name: 'refactor-auth',
+  steps: [
+    { id: 'check', type: 'budget-check', input: { tokens: 1000 } },
+    { id: 'plan', type: 'generate-code', input: { task: 'plan' } }
+  ]
+};
+
+// Execute (durable)
+try {
+  await executor.execute(workflow, { initial: 'context' });
+} catch (err) {
+  // Can resume later using runId
+  console.log('Failed run:', err.runId);
+}
+
+// Resume
+await executor.resume(failedRunId);
+```
+
+**Features:**
+- **Event Sourcing:** Complete audit log of all steps.
+- **Idempotency:** Steps are checkpointed; completed steps are skipped on resume.
+- **Resilience:** Exponential backoff retries for failed steps.
+- **Parallel Execution:** `parallel-for` steps for concurrent tasks.
+
+**Activation:** Integrated into `sisyphus` agent loop.
+
+---
+
 ## 🔍 Troubleshooting Integration
 
 See `TROUBLESHOOTING.md` for common issues and fixes for each component.

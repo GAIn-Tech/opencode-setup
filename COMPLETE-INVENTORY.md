@@ -24,6 +24,7 @@ All installed globally via `npm install -g` and located in `~/packages/`
 | **opencode-skill-rl-manager** | 1.0.0 | Hierarchical skill orchestration via SkillRL principles | ✅ Active |
 | **opencode-showboat-wrapper** | 1.0.0 | High-impact evidence capture with Playwright assertions | ✅ Active |
 | **opencode-integration-layer** | 1.0.0 | Wires SkillRL + Showboat into existing packages | ✅ Active |
+| **opencode-sisyphus-state** | 1.0.0 | Durable workflow execution with SQLite event sourcing | ✅ Active |
 
 ---
 
