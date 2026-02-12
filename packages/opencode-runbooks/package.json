@@ -1,0 +1,22 @@
+{
+  "name": "opencode-runbooks",
+  "version": "1.0.0",
+  "description": "Pluginized auto-remediation based on error signatures for OpenCode",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node -e \"const { Runbooks } = require('./src/index'); const rb = new Runbooks(); console.log('Match test:', rb.matchError('MCP command unavailable')); console.log('Remedy test:', rb.getRemedy('MCP_NOT_FOUND')); console.log('All patterns:', rb.listPatterns().length, 'loaded'); console.log('PASS');\""
+  },
+  "keywords": [
+    "opencode",
+    "runbooks",
+    "auto-remediation",
+    "error-handling",
+    "mcp"
+  ],
+  "author": "OpenCode",
+  "license": "MIT",
+  "preferGlobal": true,
+  "files": [
+    "src/"
+  ]
+}

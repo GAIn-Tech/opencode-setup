@@ -1,0 +1,30 @@
+{
+  "name": "@jackoatmon/opencode-plugin-healthd",
+  "version": "0.1.0",
+  "description": "Daemon-mode health checker for OpenCode plugins and MCPs",
+  "main": "src/index.js",
+  "bin": {
+    "opencode-healthd": "src/daemon.js"
+  },
+  "scripts": {
+    "start": "node src/daemon.js &",
+    "stop": "node -e \"const fs=require('fs'),p=require('path');try{const pid=fs.readFileSync(p.join(require('os').homedir(),'.opencode','healthd.pid'),'utf8').trim();process.kill(Number(pid),'SIGTERM');fs.unlinkSync(p.join(require('os').homedir(),'.opencode','healthd.pid'));console.log('healthd stopped (pid '+pid+')')}catch(e){console.error('healthd not running or pid file missing')}\"",
+    "status": "node -e \"const fs=require('fs'),p=require('path');try{const pid=fs.readFileSync(p.join(require('os').homedir(),'.opencode','healthd.pid'),'utf8').trim();process.kill(Number(pid),0);console.log('healthd running (pid '+pid+')')}catch(e){console.log('healthd not running')}\""
+  },
+  "keywords": [
+    "opencode",
+    "health",
+    "daemon",
+    "plugin",
+    "mcp"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "files": [
+    "src/",
+    "README.md"
+  ],
+  "preferGlobal": true
+}

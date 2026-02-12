@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "governed_paths": [
+    "package.json",
+    ".github/",
+    ".githooks/",
+    "packages/",
+    "plugins/",
+    "mcp-servers/",
+    "opencode-config/",
+    "scripts/"
+  ],
+  "required_update_fields": [
+    "id",
+    "timestamp",
+    "summary",
+    "affected_paths",
+    "validation",
+    "risk_level"
+  ],
+  "required_validation_fields": [
+    "tests",
+    "lint",
+    "typecheck"
+  ],
+  "allowed_validation_status": [
+    "pass",
+    "fail",
+    "not-run"
+  ],
+  "allowed_risk_levels": [
+    "low",
+    "medium",
+    "high"
+  ],
+  "require_pass_for_risk": {
+    "low": [],
+    "medium": [
+      "tests"
+    ],
+    "high": [
+      "tests",
+      "lint",
+      "typecheck"
+    ]
+  }
+}

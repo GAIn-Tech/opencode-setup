@@ -1,0 +1,47 @@
+# DO NOT commit credentials or account data
+*credentials*.json
+*accounts*.json
+*.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+debug/
+logs/
+
+# Node modules
+node_modules/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# State files (session-specific)
+.omc/
+state/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.bak
+*.backup
+
+# OpenCode runtime files
+.opencode/
+bun.lockb

@@ -1,0 +1,95 @@
+{
+  "version": "1.0.0",
+  "patterns": {
+    "MCP_NOT_FOUND": {
+      "id": "MCP_NOT_FOUND",
+      "keywords": ["mcp", "command", "unavailable", "not found", "mcp server", "tool not available", "no such tool"],
+      "message": "MCP command unavailable or server not registered",
+      "severity": "high",
+      "remedy": "enableMCP",
+      "description": "An MCP tool/server was referenced but is not enabled or registered in the current session.",
+      "instructions": "Enable the MCP server in your opencode.json configuration under the 'mcpServers' key."
+    },
+    "RATE_LIMIT": {
+      "id": "RATE_LIMIT",
+      "keywords": ["rate limit", "rate_limit", "429", "too many requests", "throttled", "quota exceeded", "overloaded"],
+      "message": "API rate limited or quota exceeded",
+      "severity": "medium",
+      "remedy": "switchFallbackModel",
+      "description": "The current API provider returned a rate limit or quota error.",
+      "instructions": "Switch to a fallback model or wait for the rate limit window to reset."
+    },
+    "ENV_VAR_MISSING": {
+      "id": "ENV_VAR_MISSING",
+      "keywords": ["env", "environment variable", "not set", "undefined", "missing", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "required variable"],
+      "message": "Required environment variable not set",
+      "severity": "high",
+      "remedy": "promptEnvVar",
+      "description": "A required environment variable is missing from the current shell session.",
+      "instructions": "Set the missing environment variable using setx (Windows) or export (Unix)."
+    },
+    "PLUGIN_CONFLICT": {
+      "id": "PLUGIN_CONFLICT",
+      "keywords": ["duplicate", "plugin", "conflict", "already registered", "collision", "multiple instances"],
+      "message": "Duplicate or conflicting plugin detected",
+      "severity": "medium",
+      "remedy": "uninstallDuplicate",
+      "description": "Two plugins are providing the same functionality or namespace, causing a conflict.",
+      "instructions": "Uninstall the duplicate plugin via npm uninstall."
+    },
+    "MODEL_UNAVAILABLE": {
+      "id": "MODEL_UNAVAILABLE",
+      "keywords": ["model", "unavailable", "not responding", "timeout", "connection refused", "503", "service unavailable", "model not found"],
+      "message": "Model not responding or unavailable",
+      "severity": "high",
+      "remedy": "fallbackModelChain",
+      "description": "The requested LLM model is unreachable, timed out, or returned a service error.",
+      "instructions": "Switch to the next model in the fallback chain."
+    },
+    "TOKEN_BUDGET_EXCEEDED": {
+      "id": "TOKEN_BUDGET_EXCEEDED",
+      "keywords": ["token", "budget", "exceeded", "context length", "max tokens", "too long", "context window", "token limit"],
+      "message": "Session token budget or context window exceeded",
+      "severity": "medium",
+      "remedy": "suggestNewSession",
+      "description": "The current session has exhausted its token budget or exceeded the model's context window.",
+      "instructions": "Start a new session or use distillation to compress context."
+    },
+    "SUPERMEMORY_AUTH_FAIL": {
+      "id": "SUPERMEMORY_AUTH_FAIL",
+      "keywords": ["supermemory", "auth", "authentication", "api key", "invalid key", "unauthorized", "401", "SUPERMEMORY_API_KEY"],
+      "message": "Supermemory API key invalid or missing",
+      "severity": "high",
+      "remedy": "checkSupermemoryKey",
+      "description": "The Supermemory service rejected the API key or it is not configured.",
+      "instructions": "Verify SUPERMEMORY_API_KEY is set correctly in your environment."
+    },
+    "GIT_CONFLICT": {
+      "id": "GIT_CONFLICT",
+      "keywords": ["merge conflict", "conflict", "CONFLICT", "both modified", "unmerged", "rebase conflict"],
+      "message": "Git merge or rebase conflict detected",
+      "severity": "high",
+      "remedy": "resolveGitConflict",
+      "description": "A git operation resulted in merge conflicts that need manual resolution.",
+      "instructions": "Review conflicting files, resolve markers, stage changes, and continue the operation."
+    },
+    "PERMISSION_DENIED": {
+      "id": "PERMISSION_DENIED",
+      "keywords": ["permission denied", "EACCES", "access denied", "forbidden", "403", "not permitted", "EPERM"],
+      "message": "Permission denied on file or resource access",
+      "severity": "high",
+      "remedy": "fixPermissions",
+      "description": "A file system or API operation was rejected due to insufficient permissions.",
+      "instructions": "Check file ownership/permissions or verify API credentials have required scopes."
+    },
+    "PORT_IN_USE": {
+      "id": "PORT_IN_USE",
+      "keywords": ["EADDRINUSE", "port", "in use", "address already in use", "listen EADDRINUSE"],
+      "message": "Port already in use by another process",
+      "severity": "medium",
+      "remedy": "resolvePortConflict",
+      "description": "The requested network port is already bound by another process.",
+      "instructions": "Kill the process using the port or switch to an alternative port."
+    }
+  }
+}

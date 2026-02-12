@@ -1,0 +1,51 @@
+{
+  "models": {
+    "anthropic/claude-opus-4-6": {
+      "maxTokens": 180000,
+      "warnThreshold": 0.75,
+      "errorThreshold": 0.90,
+      "provider": "anthropic",
+      "displayName": "Claude Opus 4"
+    },
+    "anthropic/claude-sonnet-4-5": {
+      "maxTokens": 200000,
+      "warnThreshold": 0.75,
+      "errorThreshold": 0.90,
+      "provider": "anthropic",
+      "displayName": "Claude Sonnet 4.5"
+    },
+    "anthropic/claude-haiku-4-5": {
+      "maxTokens": 90000,
+      "warnThreshold": 0.75,
+      "errorThreshold": 0.90,
+      "provider": "anthropic",
+      "displayName": "Claude Haiku 4.5"
+    },
+    "gpt-5": {
+      "maxTokens": 100000,
+      "warnThreshold": 0.75,
+      "errorThreshold": 0.90,
+      "provider": "openai",
+      "displayName": "GPT-5"
+    },
+    "gpt-5-mini": {
+      "maxTokens": 100000,
+      "warnThreshold": 0.75,
+      "errorThreshold": 0.90,
+      "provider": "openai",
+      "displayName": "GPT-5 Mini"
+    },
+    "gemini-2.5-pro": {
+      "maxTokens": 1000000,
+      "warnThreshold": 0.75,
+      "errorThreshold": 0.90,
+      "provider": "google",
+      "displayName": "Gemini 2.5 Pro"
+    }
+  },
+  "defaults": {
+    "maxTokens": 100000,
+    "warnThreshold": 0.75,
+    "errorThreshold": 0.90
+  }
+}

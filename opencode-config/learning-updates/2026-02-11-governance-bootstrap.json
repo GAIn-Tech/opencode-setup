@@ -1,0 +1,27 @@
+{
+  "id": "learning-2026-02-11-governance-bootstrap",
+  "timestamp": "2026-02-11T13:45:00-05:00",
+  "summary": "Bootstrap governance controls for learning updates and deployment-state tracking.",
+  "affected_paths": [
+    "scripts/learning-gate.mjs",
+    "scripts/commit-governance.mjs",
+    "scripts/pr-governance.mjs",
+    "scripts/deployment-state.mjs",
+    "scripts/install-git-hooks.sh",
+    ".githooks/commit-msg",
+    ".githooks/pre-push",
+    "opencode-config/learning-update-policy.json",
+    "opencode-config/deployment-state.json",
+    "package.json",
+    "setup.sh",
+    "verify-setup.sh",
+    ".github/workflows/governance-gate.yml"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "pass"
+  },
+  "risk_level": "low",
+  "notes": "Initial governance controls; behavior is additive and non-breaking."
+}

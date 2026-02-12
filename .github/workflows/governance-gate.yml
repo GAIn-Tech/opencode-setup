@@ -1,0 +1,41 @@
+name: governance-gate
+
+on:
+  pull_request:
+    branches:
+      - "**"
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  learning-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run learning update gate
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+            node scripts/learning-gate.mjs --base "$BASE_SHA"
+            node scripts/commit-governance.mjs --base "$BASE_SHA" --head "${{ github.sha }}"
+            node scripts/pr-governance.mjs --base "$BASE_SHA" --head "${{ github.sha }}" --body "${{ github.event.pull_request.body }}"
+          else
+            node scripts/learning-gate.mjs --base "HEAD~1"
+            node scripts/commit-governance.mjs --base "HEAD~1" --head "HEAD"
+          fi
+
+      - name: Validate deployment state file
+        run: |
+          node scripts/deployment-state.mjs show
+          node scripts/deployment-state.mjs check-flow

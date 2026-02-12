@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "environments": {
+    "dev": {
+      "version": "0.0.0",
+      "sha": "unknown",
+      "updated_at": null,
+      "updated_by": null
+    },
+    "staging": {
+      "version": "0.0.0",
+      "sha": "unknown",
+      "updated_at": null,
+      "updated_by": null
+    },
+    "prod": {
+      "version": "0.0.0",
+      "sha": "unknown",
+      "updated_at": null,
+      "updated_by": null
+    }
+  },
+  "history": []
+}

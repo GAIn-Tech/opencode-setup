@@ -1,0 +1,21 @@
+{
+  "name": "opencode-showboat-wrapper",
+  "version": "1.0.0",
+  "description": "High-impact evidence capture orchestrator using showboat CLI",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "bun test"
+  },
+  "keywords": [
+    "showboat",
+    "evidence-capture",
+    "deterministic-verification",
+    "playwright",
+    "machine-handoff"
+  ],
+  "author": "OpenCode",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}

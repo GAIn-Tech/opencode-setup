@@ -1,0 +1,16 @@
+{
+  "name": "opencode-sisyphus-state",
+  "version": "1.0.0",
+  "description": "Durable execution state machine for Sisyphus agents",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  }
+}

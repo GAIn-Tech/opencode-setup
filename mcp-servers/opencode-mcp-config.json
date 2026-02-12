@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "opencode-memory-graph": {
+      "command": "node",
+      "args": ["C:/Users/jack/work/opencode-setup/packages/opencode-memory-graph/src/cli.js"],
+      "description": "Session-to-error graph builder from OpenCode runtime logs",
+      "enabled": true
+    },
+    "opencode-model-router-x": {
+      "command": "node",
+      "args": ["C:/Users/jack/work/opencode-setup/packages/opencode-model-router-x/src/index.js"],
+      "description": "Policy-based model router with outcome tuning",
+      "enabled": true
+    },
+    "opencode-context-governor": {
+      "command": "node",
+      "args": ["C:/Users/jack/work/opencode-setup/packages/opencode-context-governor/src/index.js"],
+      "description": "Token budget controller per model/session",
+      "enabled": true
+    },
+    "opencode-runbooks": {
+      "command": "node",
+      "args": ["C:/Users/jack/work/opencode-setup/packages/opencode-runbooks/src/index.js"],
+      "description": "Auto-remediation based on error signatures",
+      "enabled": true
+    }
+  }
+}

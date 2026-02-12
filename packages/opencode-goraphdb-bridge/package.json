@@ -1,0 +1,32 @@
+{
+  "name": "opencode-goraphdb-bridge",
+  "version": "0.1.0",
+  "description": "Unified MCP wrapper layer over goraphdb REST API for memory-graph, runbooks, and eval-harness",
+  "main": "src/index.js",
+  "bin": {
+    "goraphdb-bridge": "./bin/cli.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "cli": "node bin/cli.js",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "goraphdb",
+    "graph-database",
+    "mcp",
+    "opencode",
+    "cypher",
+    "memory-graph",
+    "runbooks",
+    "eval-harness"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^2.7.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

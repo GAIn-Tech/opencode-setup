@@ -1,0 +1,29 @@
+{
+  "name": "@jackoatmon/opencode-proofcheck",
+  "version": "0.1.0",
+  "description": "Pluginized deployment gate — verify before commit/push. Checks git status, tests, lint, and security.",
+  "main": "src/index.js",
+  "bin": {
+    "proofcheck": "src/cli.js"
+  },
+  "scripts": {
+    "verify": "node src/cli.js",
+    "test": "node --test src/__tests__/checks.test.js"
+  },
+  "keywords": [
+    "opencode",
+    "proofcheck",
+    "deployment-gate",
+    "pre-commit",
+    "pre-push",
+    "verification"
+  ],
+  "author": "opencode",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "src/"
+  ]
+}

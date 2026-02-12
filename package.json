@@ -1,0 +1,33 @@
+{
+  "name": "opencode-setup",
+  "version": "1.0.0",
+  "description": "OpenCode custom plugins and configuration",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "link-all": "for dir in packages/*/; do cd \"$dir\" && bun link && cd ../..; done",
+    "install-to-opencode": "bun install && npm run link-all",
+    "hooks:install": "bash scripts/install-git-hooks.sh",
+    "gate:learning": "node scripts/learning-gate.mjs --staged",
+    "gate:commits": "node scripts/commit-governance.mjs",
+    "gate:pr": "node scripts/pr-governance.mjs",
+    "state:deploy": "node scripts/deployment-state.mjs",
+    "governance:check": "node scripts/learning-gate.mjs --staged && node scripts/deployment-state.mjs check-flow"
+  },
+  "main": "index.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GAIn-Tech/opencode-setup.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/GAIn-Tech/opencode-setup/issues"
+  },
+  "homepage": "https://github.com/GAIn-Tech/opencode-setup#readme"
+}

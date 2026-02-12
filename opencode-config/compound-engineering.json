@@ -1,0 +1,83 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "name": "Compound Engineering Skills Registry",
+  "description": "Structured development workflow skills for systematic software engineering",
+  "version": "1.0.0",
+  "source": "https://github.com/obra/superpowers",
+  "scope": "global",
+  "available": true,
+  "skills": {
+    "enabled": [
+      "brainstorming",
+      "dispatching-parallel-agents",
+      "executing-plans",
+      "finishing-a-development-branch",
+      "receiving-code-review",
+      "requesting-code-review",
+      "subagent-driven-development",
+      "systematic-debugging",
+      "test-driven-development",
+      "using-git-worktrees",
+      "using-superpowers",
+      "verification-before-completion",
+      "writing-plans",
+      "writing-skills"
+    ],
+    "categories": {
+      "core-workflow": [
+        "brainstorming",
+        "writing-plans",
+        "executing-plans",
+        "requesting-code-review",
+        "verification-before-completion"
+      ],
+      "development": [
+        "test-driven-development",
+        "systematic-debugging",
+        "subagent-driven-development",
+        "using-git-worktrees"
+      ],
+      "completion": [
+        "finishing-a-development-branch",
+        "receiving-code-review",
+        "dispatching-parallel-agents"
+      ],
+      "meta": [
+        "using-superpowers",
+        "writing-skills"
+      ]
+    }
+  },
+  "commands": {
+    "count": 22,
+    "categories": {
+      "core": ["brainstorm", "plan", "work", "review", "compound"],
+      "workflows": ["lfg", "slfg"],
+      "enhancement": ["deepen", "planreview", "triage"],
+      "resolution": ["resolvetodo", "resolvepr", "reproduce"],
+      "testing": ["testbrowser", "xcodetest", "featurevideo"],
+      "development": ["createskill", "generatecmd", "changelog"],
+      "utility": ["research", "lint", "gitworktree"]
+    }
+  },
+  "integration": {
+    "plugin": {
+      "name": "superpowers",
+      "path": "~/.config/opencode/plugins/superpowers.js",
+      "source": "https://github.com/obra/superpowers",
+      "type": "skill-framework"
+    },
+    "skills_directory": "~/.config/opencode/skills/",
+    "commands_directory": "~/.config/opencode/commands/",
+    "slash_commands": true,
+    "task_loadable": true
+  },
+  "usage": {
+    "slash_command": "/<command-name>",
+    "task_loading": "load_skills=['skill-name']",
+    "example": {
+      "slash": "/plan 'Implement feature X'",
+      "task": "task(category='unspecified-high', load_skills=['writing-plans'], prompt='Create plan for feature X')"
+    }
+  }
+}

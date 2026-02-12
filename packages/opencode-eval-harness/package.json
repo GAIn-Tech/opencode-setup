@@ -1,0 +1,29 @@
+{
+  "name": "@jackoatmon/opencode-eval-harness",
+  "version": "0.1.0",
+  "description": "Evaluation harness and benchmarker for OpenCode-compatible AI models. Measures success rate, latency, and cost across standardized test suites.",
+  "main": "src/index.js",
+  "bin": {
+    "opencode-eval": "bin/cli.js"
+  },
+  "scripts": {
+    "test": "node --test src/*.test.js",
+    "bench": "node bin/cli.js"
+  },
+  "keywords": [
+    "opencode",
+    "eval",
+    "benchmark",
+    "llm",
+    "harness"
+  ],
+  "author": "",
+  "license": "MIT",
+  "files": [
+    "src/",
+    "bin/"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

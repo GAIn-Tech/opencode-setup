@@ -1,0 +1,21 @@
+{
+  "name": "opencode-skill-rl-manager",
+  "version": "1.0.0",
+  "description": "Hierarchical skill orchestration using SkillRL principles (arXiv:2602.08234)",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "bun test"
+  },
+  "keywords": [
+    "skillrl",
+    "skill-orchestration",
+    "hierarchical-learning",
+    "reinforcement-learning",
+    "agent-skills"
+  ],
+  "author": "OpenCode",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}

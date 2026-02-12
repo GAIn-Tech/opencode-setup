@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+npm run governance:check
+
+# Validate commit trailers for commits that are about to be pushed.
+# pre-push stdin format: <local ref> <local sha> <remote ref> <remote sha>
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [ -z "${local_sha:-}" ]; then
+    continue
+  fi
+
+  # Branch delete push
+  if [ "$local_sha" = "0000000000000000000000000000000000000000" ]; then
+    continue
+  fi
+
+  # New branch: commit-msg hook already enforced trailers at commit time.
+  if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+    continue
+  fi
+
+  node scripts/commit-governance.mjs --base "$remote_sha" --head "$local_sha"
+done

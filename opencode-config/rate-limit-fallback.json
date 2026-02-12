@@ -1,0 +1,41 @@
+{
+  "enabled": true,
+  "fallbackMode": "cycle",
+  "cooldownMs": 45000,
+  "fallbackModels": [
+    { "providerID": "anthropic", "modelID": "claude-opus-4-6-thinking" },
+    { "providerID": "anthropic", "modelID": "claude-opus-4-6" },
+    { "providerID": "anthropic", "modelID": "claude-sonnet-4-5-thinking" },
+    { "providerID": "anthropic", "modelID": "claude-sonnet-4-5" },
+    { "providerID": "anthropic", "modelID": "claude-haiku-4-5" },
+    { "providerID": "openai", "modelID": "gpt-5" },
+    { "providerID": "openai", "modelID": "gpt-5-mini" },
+    { "providerID": "openai", "modelID": "gpt-4.1" },
+    { "providerID": "google", "modelID": "antigravity-claude-opus-4-6-thinking" },
+    { "providerID": "google", "modelID": "antigravity-claude-sonnet-4-5-thinking" },
+    { "providerID": "google", "modelID": "antigravity-claude-sonnet-4-5" },
+    { "providerID": "google", "modelID": "antigravity-gemini-3-pro" },
+    { "providerID": "google", "modelID": "antigravity-gemini-3-flash" },
+    { "providerID": "google", "modelID": "gemini-2.5-pro" },
+    { "providerID": "moonshot", "modelID": "kimi-k2.5-free" },
+    { "providerID": "google", "modelID": "gemini-2.5-flash" }
+  ],
+  "retryPolicy": {
+    "maxRetries": 3,
+    "strategy": "exponential",
+    "baseDelayMs": 1200,
+    "maxDelayMs": 30000,
+    "jitterEnabled": true,
+    "jitterFactor": 0.1,
+    "timeoutMs": 60000
+  },
+  "circuitBreaker": {
+    "enabled": true,
+    "failureThreshold": 5,
+    "recoveryTimeoutMs": 60000,
+    "halfOpenMaxCalls": 1,
+    "successThreshold": 2
+  },
+  "enableSubagentFallback": true,
+  "maxSubagentDepth": 10
+}
