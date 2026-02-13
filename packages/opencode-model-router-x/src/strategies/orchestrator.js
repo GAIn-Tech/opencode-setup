@@ -36,15 +36,32 @@ class Orchestrator {
    */
   async selectModel(task, context = {}) {
     for (const strategy of this.#strategies) {
-      if (strategy.shouldApply(task, context)) {
-        const selection = await strategy.selectModel(task, context);
+      const strategyName = this.#getSafeStrategyName(strategy);
+      let shouldApply = false;
+
+      try {
+        shouldApply = Boolean(strategy.shouldApply(task, context));
+      } catch (error) {
+        console.error(`[Orchestrator] Strategy ${strategyName} shouldApply() failed:`, error?.message || error);
+        continue;
+      }
+
+      if (shouldApply) {
+        let selection = null;
+
+        try {
+          selection = await strategy.selectModel(task, context);
+        } catch (error) {
+          console.error(`[Orchestrator] Strategy ${strategyName} selectModel() failed:`, error?.message || error);
+          continue;
+        }
 
         if (selection) {
-          console.log(`[Orchestrator] Selected model from ${strategy.getName()}: ${selection.model_id}`);
+          console.log(`[Orchestrator] Selected model from ${strategyName}: ${selection.model_id}`);
 
           return {
             ...selection,
-            strategy: strategy.getName()
+            strategy: strategyName
           };
         }
       }
@@ -80,9 +97,17 @@ class Orchestrator {
    */
   getStrategyOrder() {
     return this.#strategies.map(s => ({
-      name: s.getName(),
+      name: this.#getSafeStrategyName(s),
       priority: s.getPriority()
     }));
+  }
+
+  #getSafeStrategyName(strategy) {
+    try {
+      return strategy.getName();
+    } catch {
+      return strategy?.constructor?.name || 'UnknownStrategy';
+    }
   }
 }
 

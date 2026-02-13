@@ -18,6 +18,11 @@ class GlobalModelContext {
    * @param {Object} modelSelection.meta - Additional metadata
    */
   setModelContext(sessionId, modelSelection) {
+    if (!sessionId) {
+      console.warn('[GlobalModelContext] Refusing to set model context without sessionId');
+      return;
+    }
+
     this.#modelContext.set(sessionId, {
       ...modelSelection,
       timestamp: Date.now()
@@ -28,7 +33,7 @@ class GlobalModelContext {
     // Trigger propagation callback if registered
     if (this.#propagationCallbacks.has(sessionId)) {
       const callback = this.#propagationCallbacks.get(sessionId);
-      callback(modelSelection);
+      this.#invokePropagationCallback(sessionId, callback, modelSelection);
     }
   }
 
@@ -97,7 +102,7 @@ class GlobalModelContext {
   broadcast(modelSelection) {
     let updated = 0;
 
-    for (const [sessionId] of this.#modelContext.entries()) {
+    for (const sessionId of [...this.#modelContext.keys()]) {
       this.setModelContext(sessionId, modelSelection);
       updated++;
     }
@@ -129,6 +134,14 @@ class GlobalModelContext {
 
     console.log(`[GlobalModelContext] No parent context to propagate for ${parentSessionId}`);
     return null;
+  }
+
+  #invokePropagationCallback(sessionId, callback, modelSelection) {
+    try {
+      callback(modelSelection);
+    } catch (error) {
+      console.error(`[GlobalModelContext] Callback failed for session ${sessionId}:`, error?.message || error);
+    }
   }
 }
 

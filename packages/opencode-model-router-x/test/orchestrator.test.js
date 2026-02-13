@@ -1,291 +1,84 @@
-/**
- * @jest-environment node
- */
+const { describe, test, expect } = require('bun:test');
 
-const { Orchestrator } = require('../src/strategies/orchestrator.js');
-const { ModelRouter } = require('../src/index.js');
-const { IntelligentRotator } = require('../src/key-rotator.js');
-const { KeyRotatorFactory } = require('../src/key-rotator-factory.js');
+const Orchestrator = require('../src/strategies/orchestrator.js');
 
-// Mock dependencies
-jest.mock('../src/key-rotator.js');
-jest.mock('../src/key-rotator-factory.js');
+function createStrategy({ name, priority, shouldApply = () => true, selectModel = async () => null }) {
+  return {
+    getName: () => name,
+    getPriority: () => priority,
+    shouldApply,
+    selectModel,
+  };
+}
 
 describe('Orchestrator', () => {
-  let orchestrator;
-  let mockFallbackLayer;
-  let mockProjectStart;
-  let mockManualOverride;
-  let mockStuckBug;
-  let mockPerspectiveSwitch;
-  let mockReversion;
+  test('sorts strategies by descending priority', () => {
+    const low = createStrategy({ name: 'low', priority: 10 });
+    const high = createStrategy({ name: 'high', priority: 200 });
+    const mid = createStrategy({ name: 'mid', priority: 50 });
+    const orchestrator = new Orchestrator([low, high, mid]);
 
-  beforeEach(() => {
-    // Reset mock context
-    const GlobalModelContext = {
-      sessionId: 'test-session',
-      globalOverride: null,
-      setOverride: jest.fn(),
-      clearOverride: jest.fn(),
-      resetSession: jest.fn()
-    };
+    expect(orchestrator.getStrategyOrder().map((entry) => entry.name)).toEqual(['high', 'mid', 'low']);
+  });
 
-    // Create strategy mocks
-    mockFallbackLayer = {
-      getPriority: () => 100,
-      select: jest.fn(() => ({ provider: 'groq', model: 'llama-3.1-70b', reasoning: null }))
-    };
-
-    mockProjectStart = {
-      getPriority: () => 200,
-      select: jest.fn(() => ({ provider: 'anthropic', model: 'claude-3.5-sonnet-20240620', reasoning: 'minimal' }))
-    };
-
-    mockManualOverride = {
-      getPriority: () => 300,
-      select: jest.fn(() => ({ provider: 'openai', model: 'gpt-4o', reasoning: null }))
-    };
-
-    mockStuckBug = {
-      getPriority: () => 250,
-      select: jest.fn(() => ({ provider: 'anthropic', model: 'claude-3.5-sonnet-20240620', reasoning: 'high' }))
-    };
-
-    mockPerspectiveSwitch = {
-      getPriority: () => 260,
-      select: jest.fn(() => ({ provider: 'google', model: 'gemini-2.0-flash-exp', reasoning: 'minimal' }))
-    };
-
-    mockReversion = {
-      getPriority: () => 270,
-      select: jest.fn(() => ({ provider: 'groq', model: 'llama-3.1-70b', reasoning: null }))
-    };
-
-    orchestrator = new Orchestrator({
-      strategies: [
-        mockFallbackLayer,
-        mockProjectStart,
-        mockManualOverride,
-        mockStuckBug,
-        mockPerspectiveSwitch,
-        mockReversion
-      ],
-      globalContext: GlobalModelContext
+  test('returns first applicable non-null selection', async () => {
+    const skipped = createStrategy({
+      name: 'skipped',
+      priority: 100,
+      shouldApply: () => false,
     });
-  });
+    const selected = createStrategy({
+      name: 'selected',
+      priority: 90,
+      selectModel: async () => ({ provider: 'openai', model_id: 'gpt-4o-mini' }),
+    });
+    const fallback = createStrategy({
+      name: 'fallback',
+      priority: 10,
+      selectModel: async () => ({ provider: 'groq', model_id: 'llama-3.1-70b' }),
+    });
 
-  test('should initialize with strategies in priority order', () => {
-    expect(orchestrator.strategies.length).toBe(6);
-    expect(orchestrator.strategies[0].getPriority()).toBe(300);
-    expect(orchestrator.strategies[5].getPriority()).toBe(100);
-  });
+    const orchestrator = new Orchestrator([fallback, selected, skipped]);
+    const result = await orchestrator.selectModel({ task_type: 'feature' }, {});
 
-  test('should execute strategies in priority order and return first successful selection', async () => {
-    const context = {
-      task: {
-        type: 'code_generation',
-        input: "function add(a, b) { return a + b; }",
-        signals: {
-          complexity: 'low',
-          budget: 'low',
-          timeConstraint: false
-        },
-        sessionId: 'test-session-123'
-      },
-      history: [],
-      state: {
-        isProjectStart: false,
-        stuckBug: null
-      },
-      timestamp: Date.now()
-    };
-
-    const result = orchestrator.orchestrate(context);
-
-    expect(result).toBeDefined();
     expect(result.provider).toBe('openai');
-    expect(result.model).toBe('gpt-4o');
+    expect(result.model_id).toBe('gpt-4o-mini');
+    expect(result.strategy).toBe('selected');
   });
 
-  test('should fall back to lower priority strategies when higher ones return null', async () => {
-    // Simulate higher priority strategies returning null
-    mockManualOverride.select.mockReturnValue(null);
-    mockStuckBug.select.mockReturnValue(null);
-    mockPerspectiveSwitch.select.mockReturnValue(null);
-    mockReversion.select.mockReturnValue(null);
-    mockProjectStart.select.mockReturnValue(null);
-
-    const context = {
-      task: {
-        type: 'code_generation',
-        input: "function add(a, b) { return a + b; }",
-        signals: {
-          complexity: 'low',
-          budget: 'low',
-          timeConstraint: false
-        },
-        sessionId: 'test-session-123'
+  test('continues when a strategy throws and still finds fallback selection', async () => {
+    const throwsInShouldApply = createStrategy({
+      name: 'throwsInShouldApply',
+      priority: 200,
+      shouldApply: () => {
+        throw new Error('broken shouldApply');
       },
-      history: [],
-      state: {
-        isProjectStart: false,
-        stuckBug: null
+    });
+    const throwsInSelect = createStrategy({
+      name: 'throwsInSelect',
+      priority: 150,
+      selectModel: async () => {
+        throw new Error('broken selectModel');
       },
-      timestamp: Date.now()
-    };
+    });
+    const fallback = createStrategy({
+      name: 'fallback',
+      priority: 10,
+      selectModel: async () => ({ provider: 'groq', model_id: 'llama-3.1-70b' }),
+    });
 
-    const result = orchestrator.orchestrate(context);
+    const orchestrator = new Orchestrator([throwsInShouldApply, throwsInSelect, fallback]);
+    const result = await orchestrator.selectModel({ task_type: 'fix' }, {});
 
-    expect(result).toBeDefined();
     expect(result.provider).toBe('groq');
-    expect(result).toEqual({
-      provider: 'groq',
-      model: 'llama-3.1-70b',
-      reasoning: null
-    });
+    expect(result.strategy).toBe('fallback');
   });
 
-  test('should handle context without task', async () => {
-    const context = {};
+  test('throws when no strategy returns a selection', async () => {
+    const noneA = createStrategy({ name: 'noneA', priority: 2, selectModel: async () => null });
+    const noneB = createStrategy({ name: 'noneB', priority: 1, selectModel: async () => null });
+    const orchestrator = new Orchestrator([noneA, noneB]);
 
-    const result = orchestrator.orchestrate(context);
-
-    expect(result).toBeDefined();
-  });
-});
-
-describe('ModelRouter with Orchestrator Integration', () => {
-  let router;
-  let orchestrator;
-  let mockRotators;
-
-  beforeEach(() => {
-    // Set up environment variables for testing
-    process.env.NVIDIA_API_KEYS = 'test-key-1,test-key-2';
-    process.env.GROQ_API_KEYS = 'test-key-3,test-key-4';
-    process.env.CEREBRAS_API_KEYS = 'test-key-5,test-key-6';
-    process.env.GOOGLE_API_KEY = 'test-key-7';
-    process.env.ANTHROPIC_API_KEY = 'test-key-8';
-    process.env.OPENAI_API_KEY = 'test-key-9';
-
-    // Mock rotators
-    mockRotators = {
-      nvidia: new IntelligentRotator('nvidia', ['test-key-1', 'test-key-2']),
-      groq: new IntelligentRotator('groq', ['test-key-3', 'test-key-4']),
-      cerebras: new IntelligentRotator('cerebras', ['test-key-5', 'test-key-6']),
-      antigravity: new IntelligentRotator('antigravity', ['test-key-7']),
-      anthropic: new IntelligentRotator('anthropic', ['test-key-8']),
-      openai: new IntelligentRotator('openai', ['test-key-9'])
-    };
-
-    KeyRotatorFactory.createFromEnv.mockReturnValue(mockRotators);
-
-    // Mock GlobalModelContext
-    const GlobalModelContext = function() {
-      this.sessionId = 'test-session-' + Math.random().toString(36).substring(7);
-      this.globalOverride = null;
-      this.setOverride = jest.fn();
-      this.clearOverride = jest.fn();
-      this.resetSession = jest.fn();
-      this.getProjectStartOverride = jest.fn();
-      this.checkForStuckBugs = jest.fn();
-    };
-
-    orchestrator = new Orchestrator({
-      globalContext: new GlobalModelContext()
-    });
-
-    router = new ModelRouter({
-      rotators: mockRotators,
-      orchestrator,
-      baseCosts: {
-        groq: { 'llama-3.1-70b': 0.0001 },
-        cerebras: { 'llama-3.1-70b': 0.0002 }
-      }
-    });
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test('should route using Orchestrator selection', async () => {
-    const context = {
-      task: {
-        type: 'code_generation',
-        input: "function add(a, b) { return a + b; }",
-        signals: {
-          complexity: 'low',
-          budget: 'low',
-          timeConstraint: false
-        },
-        sessionId: 'test-session-123'  
-      },
-      history: [],
-      state: {
-        isProjectStart: false,
-        stuckBug: null
-      },
-      timestamp: Date.now()
-    };
-
-    const selection = orchestrator.orchestrate(context);
-
-    const apiKey = router.getApiKeyForModel({
-      provider: selection.provider,
-      model: selection.model,
-      reasoning: selection.reasoning
-    });
-
-    expect(apiKey).toBeDefined();
-    expect(typeof apiKey).toBe('string');
-  });
-
-  test('should fallback to scoring when Orchestrator has no override', () => {
-    const result = router.route({
-      taskType: 'code_generation',
-      maxBudget: 0.01
-    });
-
-    expect(result).toBeDefined();
-    expect(result).toHaveProperty('provider');
-    expect(result).toHaveProperty('model');
-  });
-
-  test('should throw error when no model available', () => {
-    expect(() => {
-      router.route({
-        taskType: 'code_generation',
-        maxBudget: 0.0001 // Unrealistically low budget
-      });
-    }).toThrow('No model available for the given constraints');
-  });
-});
-
-describe('Strategy Priority', () => {
-  test('strategies should be executed in correct priority order', () => {
-    const executionOrder = [];
-    const mockStrategies = [
-      { getPriority: () => 100, select: jest.fn(() => null) },
-      { getPriority: () => 300, select: jest.fn(() => ({ provider: 'test', model: 'test' })) },
-      { getPriority: () => 200, select: jest.fn(() => ({ provider: 'test', model: 'test' })) }
-    ];
-
-    // Inject tracking into each strategy
-    mockStrategies.forEach((s, i) => {
-      const originalSelect = s.select;
-      s.select = (ctx) => {
-        executionOrder.push(s.getPriority());
-        return originalSelect(ctx);
-      };
-    });
-
-    const orchestrator = new Orchestrator({ strategies: mockStrategies });
-
-    // Execute orchestration
-    orchestrator.orchestrate({});
-
-    // Verify execution order is highest to lowest
-    expect(executionOrder).toEqual([300, 200, 100]);
+    await expect(orchestrator.selectModel({ task_type: 'plan' }, {})).rejects.toThrow('No applicable strategy found for task');
   });
 });
