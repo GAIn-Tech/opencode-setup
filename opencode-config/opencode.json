@@ -82,6 +82,36 @@
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
         }
       }
+    },
+    "nvidia": {
+      "npm": "@ai-sdk/openai",
+      "models": {
+        "llama-3.1-405b": {
+          "name": "Llama 3.1 405B (NVIDIA)",
+          "limit": { "context": 128000, "output": 4096 },
+          "modalities": { "input": ["text"], "output": ["text"] }
+        }
+      }
+    },
+    "groq": {
+      "npm": "@ai-sdk/openai",
+      "models": {
+        "llama-3.1-70b": {
+          "name": "Llama 3.1 70B (Groq)",
+          "limit": { "context": 128000, "output": 4096 },
+          "modalities": { "input": ["text"], "output": ["text"] }
+        }
+      }
+    },
+    "cerebras": {
+      "npm": "@ai-sdk/openai",
+      "models": {
+        "llama-3.1-70b": {
+          "name": "Llama 3.1 70B (Cerebras)",
+          "limit": { "context": 8192, "output": 4096 },
+          "modalities": { "input": ["text"], "output": ["text"] }
+        }
+      }
     }
   },
   "command": {
