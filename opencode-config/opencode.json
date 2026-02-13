@@ -79,7 +79,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "options": {
         "baseURL": "https://integrate.api.nvidia.com/v1",
-        "apiKey": "{env:NVIDIA_API_KEY}"
+        "apiKey": "{env:NVIDIA_API_KEYS}"
       },
       "models": {
         "llama-3.1-405b": {
@@ -93,7 +93,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "options": {
         "baseURL": "https://api.groq.com/openai/v1",
-        "apiKey": "{env:GROQ_API_KEY}"
+        "apiKey": "{env:GROQ_API_KEYS}"
       },
       "models": {
         "llama-3.1-70b": {
@@ -107,7 +107,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "options": {
         "baseURL": "https://api.cerebras.ai/v1",
-        "apiKey": "{env:CEREBRAS_API_KEY}"
+        "apiKey": "{env:CEREBRAS_API_KEYS}"
       },
       "models": {
         "llama-3.1-70b": {
