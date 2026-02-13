@@ -56,6 +56,42 @@
       "max_context": 128000,
       "strengths": ["general-code", "translation", "summarization"],
       "default_success_rate": 0.80
+    },
+    "nvidia/llama-3.1-405b": {
+      "provider": "nvidia",
+      "tier": "flagship",
+      "base_weight": 0.5,
+      "cost_per_1k_tokens": 0.0,
+      "max_context": 128000,
+      "strengths": ["complex-reasoning", "synthetic-data", "optimization"],
+      "default_success_rate": 0.90
+    },
+    "cerebras/llama-3.1-70b": {
+      "provider": "cerebras",
+      "tier": "speed",
+      "base_weight": 0.5,
+      "cost_per_1k_tokens": 0.0,
+      "max_context": 8192,
+      "strengths": ["extreme-speed", "simple-tasks", "extraction"],
+      "default_success_rate": 0.85
+    },
+    "sambanova/llama-3.1-405b": {
+      "provider": "sambanova",
+      "tier": "flagship",
+      "base_weight": 0.5,
+      "cost_per_1k_tokens": 0.0,
+      "max_context": 128000,
+      "strengths": ["complex-logic", "reasoning"],
+      "default_success_rate": 0.88
+    },
+    "groq/llama-3.1-70b": {
+      "provider": "groq",
+      "tier": "speed",
+      "base_weight": 0.5,
+      "cost_per_1k_tokens": 0.0,
+      "max_context": 128000,
+      "strengths": ["reliability", "low-latency", "tool-use"],
+      "default_success_rate": 0.88
     }
   },
 

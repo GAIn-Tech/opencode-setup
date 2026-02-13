@@ -1,7 +1,7 @@
 # Complete OpenCode System Inventory
 
-**Last Updated:** February 11, 2026  
-**Total System Components:** 41 (13 custom packages + 13 external plugins + 9 MCPs + 8 agents + 46 skills)
+**Last Updated:** February 12, 2026  
+**Total System Components:** 89 (13 custom packages + 13 external plugins + 9 MCPs + 8 agents + 46 skills)
 
 ---
 
@@ -24,7 +24,8 @@ All installed globally via `npm install -g` and located in `~/packages/`
 | **opencode-skill-rl-manager** | 1.0.0 | Hierarchical skill orchestration via SkillRL principles | ✅ Active |
 | **opencode-showboat-wrapper** | 1.0.0 | High-impact evidence capture with Playwright assertions | ✅ Active |
 | **opencode-integration-layer** | 1.0.0 | Wires SkillRL + Showboat into existing packages | ✅ Active |
-| **opencode-sisyphus-state** | 1.0.0 | Durable workflow execution with SQLite event sourcing | ✅ Active |
+| **opencode-sisyphus-state** | 1.0.0 | Durable workflow execution with SQLite event sourcing + crash-resume tests | ✅ Active |
+| **opencode-dashboard** | 1.0.0 | Read-only Web Dashboard for agent monitoring | ✅ Active |
 
 ---
 
@@ -119,7 +120,7 @@ All 46 skills from oh-my-opencode + custom skills. Use `/orchestrate <task>` to 
 
 | Category | Count |
 |----------|-------|
-| **Custom packages** | 10 |
+| **Custom packages** | 13 |
 | **External plugins** | 13 |
 | **Total plugins** | 21 |
 | **MCP servers** | 9 (6 enabled, 3 disabled) |

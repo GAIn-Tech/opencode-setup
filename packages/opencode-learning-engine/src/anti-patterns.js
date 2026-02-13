@@ -22,6 +22,7 @@ const VALID_TYPES = [
   'type_suppression',
   'shotgun_debug',
   'broken_state',
+  'quota_exhaustion_risk',
 ];
 
 // Severity weights — anti-patterns are HEAVILY weighted
@@ -382,6 +383,8 @@ class AntiPatternCatalog {
         'Similar task was solved inefficiently before. Look for existing patterns or libraries first.',
       broken_state:
         'Previous changes to this area left build broken. Run verification BEFORE and AFTER changes.',
+      quota_exhaustion_risk:
+        'Provider quota is near critical levels. Use quota-aware-routing and consider less expensive providers.',
     };
     return adviceMap[pattern.type] || 'Review past failures before proceeding.';
   }

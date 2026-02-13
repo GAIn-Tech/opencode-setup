@@ -1,5 +1,5 @@
 const { join } = require('path');
-const { existsSync, mkdirSync } = require('fs');
+const { existsSync, mkdirSync, readFileSync } = require('fs');
 const { v4: uuidv4 } = require('uuid');
 
 let Database;
@@ -69,7 +69,34 @@ class WorkflowStore {
 
       CREATE INDEX IF NOT EXISTS idx_audit_run ON audit_events(run_id);
       CREATE INDEX IF NOT EXISTS idx_steps_run ON workflow_steps(run_id);
+      PRAGMA user_version = 1;
     `);
+
+    // Run migrations
+    this.runMigrations();
+  }
+
+  runMigrations() {
+    // Get current schema version
+    let currentVersion;
+    try {
+      if (isBun) {
+        currentVersion = this.db.query('PRAGMA user_version').get()['user_version'];
+      } else {
+        currentVersion = this.db.pragma('user_version', { simple: true });
+      }
+    } catch (e) {
+      currentVersion = 0;
+    }
+
+    if (currentVersion < 2) {
+      const migrationPath = join(__dirname, 'schema', 'migrations', '002-api-usage.sql');
+      if (existsSync(migrationPath)) {
+        const migrationSql = readFileSync(migrationPath, 'utf8');
+        this.db.exec(migrationSql);
+        console.log('[WorkflowStore] Applied migration 002: API Usage Tracking');
+      }
+    }
   }
 
   createRun(name, input, id = null) {
@@ -87,6 +114,11 @@ class WorkflowStore {
     this.db.prepare('UPDATE workflow_runs SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
       .run(status, id);
     this.logEvent(id, `workflow_${status}`, {});
+  }
+
+  updateRunContext(id, context) {
+    this.db.prepare('UPDATE workflow_runs SET context = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+      .run(JSON.stringify(context), id);
   }
 
   upsertStep(runId, stepId, status, result = null, attempts = 0) {

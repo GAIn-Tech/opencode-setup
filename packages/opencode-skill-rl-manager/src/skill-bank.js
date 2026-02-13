@@ -179,6 +179,29 @@ class SkillBank {
   }
 
   /**
+   * Get performance metrics for a specific skill
+   * @param {string} skillName 
+   * @param {string} taskType 
+   * @returns {Object|null}
+   */
+  getSkillPerformance(skillName, taskType = null) {
+    let skill = this.generalSkills.get(skillName);
+
+    if (!skill && taskType && this.taskSpecificSkills.has(taskType)) {
+      skill = this.taskSpecificSkills.get(taskType).get(skillName);
+    }
+
+    if (!skill) return null;
+
+    return {
+      name: skill.name,
+      success_rate: skill.success_rate,
+      usage_count: skill.usage_count,
+      is_uncertain: skill.usage_count < 5 || skill.success_rate < 0.6
+    };
+  }
+
+  /**
    * Check if skill matches task context
    * Uses tags and application_context for fuzzy matching
    */

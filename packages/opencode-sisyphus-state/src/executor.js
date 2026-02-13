@@ -93,10 +93,33 @@ class WorkflowExecutor {
         
         const result = await handler(step, context);
         
-        this.store.db.transaction(() => {
+        const updateState = this.store.db.transaction(() => {
           this.store.upsertStep(runId, step.id, 'completed', result, attempts);
           this.store.logEvent(runId, 'step_completed', { stepId: step.id, result });
-        })();
+          
+          // Entourage effect: persist quota fallback telemetry to run context
+          if (result && result.fallbackApplied) {
+            const provider = result.provider || result.quotaFactors?.[0]?.provider;
+            this.store.logEvent(runId, 'quota_fallback', { 
+              stepId: step.id, 
+              provider,
+              reason: result.reason 
+            });
+            // Update context so subsequent steps (or resumes) are aware
+            const currentContext = this.store.getRunState(runId).context || {};
+            this.store.updateRunContext(runId, {
+              ...currentContext,
+              last_quota_fallback: {
+                step_id: step.id,
+                timestamp: new Date().toISOString(),
+                provider,
+                reason: result.reason
+              }
+            });
+          }
+        });
+        
+        updateState();
 
         Object.assign(context, result);
         return;

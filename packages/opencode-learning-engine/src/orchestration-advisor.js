@@ -54,9 +54,10 @@ const SKILL_AFFINITY = {
 };
 
 class OrchestrationAdvisor {
-  constructor(antiPatternCatalog, positivePatternTracker) {
+  constructor(antiPatternCatalog, positivePatternTracker, hooks = {}) {
     this.antiPatterns = antiPatternCatalog || new AntiPatternCatalog();
     this.positivePatterns = positivePatternTracker || new PositivePatternTracker();
+    this.hooks = hooks;
     this.outcomeLog = []; // Track advice → outcome for learning
   }
 
@@ -72,12 +73,15 @@ class OrchestrationAdvisor {
    * @param {string} [taskContext.tool] - Tool being considered
    * @param {string} [taskContext.action] - Action being considered
    * @param {string} [taskContext.complexity] - trivial, simple, moderate, complex, extreme
+   * @param {Object} [taskContext.quota_signal] - Current provider quota status
    * @returns {{
    *   warnings: Object[],   // STRONG — anti-pattern matches
    *   suggestions: Object[], // SOFT — positive pattern recommendations
    *   routing: { agent: string, skills: string[], confidence: number },
    *   risk_score: number,
    *   advice_id: string,
+   *   quota_risk: number,    // Additional signal for economic resilience
+   *   should_pause: boolean,
    * }}
    */
   advise(taskContext = {}) {
@@ -90,6 +94,18 @@ class OrchestrationAdvisor {
       strength: 'STRONG',
       action: 'BLOCK_OR_REVIEW', // Agent should pause and reconsider
     }));
+
+    // === Quota awareness: Economic risk ===
+    const quotaRisk = this._computeQuotaRisk(taskContext);
+    if (quotaRisk > 0.5) {
+      warnings.push({
+        type: 'quota_exhaustion_risk',
+        description: `High quota pressure detected (${Math.round(quotaRisk * 100)}%). Consider switching to a less-used provider.`,
+        severity: quotaRisk > 0.9 ? 'critical' : 'high',
+        strength: 'STRONG',
+        action: 'BLOCK_OR_REVIEW'
+      });
+    }
 
     // === SOFT: Positive pattern suggestions ===
     const recommendations = this.positivePatterns.getRecommendations(taskContext);
@@ -112,6 +128,7 @@ class OrchestrationAdvisor {
       warnings_count: warnings.length,
       suggestions_count: suggestions.length,
       routing,
+      quota_risk: quotaRisk,
       timestamp: new Date().toISOString(),
       outcome: null, // Filled in by learnFromOutcome
     });
@@ -121,14 +138,22 @@ class OrchestrationAdvisor {
       this.outcomeLog = this.outcomeLog.slice(-500);
     }
 
-    return {
+    const advice = {
       advice_id: adviceId,
       warnings,
       suggestions,
       routing,
-      risk_score: antiCheck.risk_score,
-      should_pause: antiCheck.risk_score > 15, // High risk → agent should pause
+      risk_score: Math.max(antiCheck.risk_score, quotaRisk * 100),
+      quota_risk: quotaRisk,
+      should_pause: antiCheck.risk_score > 15 || quotaRisk > 0.85, // High risk → agent should pause
     };
+
+    // Allow hooks to augment advice before returning
+    if (this.hooks && typeof this.hooks.onBeforeAdviceReturn === 'function') {
+      return this.hooks.onBeforeAdviceReturn(taskContext, advice);
+    }
+
+    return advice;
   }
 
   /**
@@ -142,6 +167,7 @@ class OrchestrationAdvisor {
    * @param {number} [outcome.tokens_used]
    * @param {number} [outcome.time_taken_ms]
    * @param {string} [outcome.failure_reason]
+   * @param {Object} [outcome.quota_signal]
    */
   learnFromOutcome(adviceId, outcome = {}) {
     const entry = this.outcomeLog.find((e) => e.advice_id === adviceId);
@@ -149,7 +175,10 @@ class OrchestrationAdvisor {
 
     entry.outcome = outcome;
 
-    const taskContext = entry.task_context;
+    const taskContext = {
+      ...entry.task_context,
+      quota_signal: outcome.quota_signal || entry.task_context.quota_signal
+    };
 
     if (outcome.success) {
       // Record positive pattern
@@ -164,6 +193,7 @@ class OrchestrationAdvisor {
           tokens_used: outcome.tokens_used,
           time_taken_ms: outcome.time_taken_ms,
           agent: entry.routing?.agent,
+          quota_risk: entry.quota_risk,
         },
       });
 
@@ -184,6 +214,7 @@ class OrchestrationAdvisor {
           time_taken_ms: outcome.time_taken_ms,
           agent: entry.routing?.agent,
           warnings_ignored: entry.warnings_count > 0,
+          quota_exhaustion: (taskContext.quota_signal?.percent_used >= 1.0),
         },
       });
 
@@ -240,6 +271,19 @@ class OrchestrationAdvisor {
 
   // ===== PRIVATE =====
 
+  _computeQuotaRisk(taskContext) {
+    const signal = taskContext.quota_signal;
+    if (!signal) return 0;
+    
+    const percentUsed = signal.percent_used ?? 0;
+    const fallbackApplied = signal.fallback_applied ?? false;
+    
+    // Fallback applied is a massive risk multiplier
+    if (fallbackApplied) return Math.max(percentUsed, 0.85);
+    
+    return percentUsed;
+  }
+
   _computeRouting(taskContext, warnings) {
     const taskType = taskContext.task_type || 'general';
     const complexity = taskContext.complexity || 'moderate';
@@ -288,6 +332,12 @@ class OrchestrationAdvisor {
     if (warnings.some((w) => w.type === 'shotgun_debug')) {
       skills.push('systematic-debugging');
     }
+    
+    // Economic resilience: suggest quota-aware-routing if risk is high
+    const quotaRisk = this._computeQuotaRisk(taskContext);
+    if (quotaRisk > 0.4) {
+      skills.push('quota-aware-routing');
+    }
 
     // Deduplicate
     const uniqueSkills = [...new Set(skills)];
@@ -296,6 +346,12 @@ class OrchestrationAdvisor {
     let confidence = 0.5; // Base
     confidence += Math.min(this.positivePatterns.patterns.length * 0.02, 0.3); // More data = more confident
     confidence -= Math.min(warnings.length * 0.1, 0.3); // Warnings reduce confidence
+    
+    // Factor in quota risk to confidence
+    if (quotaRisk > 0.7) {
+      confidence -= 0.15;
+    }
+    
     confidence = Math.max(0.1, Math.min(0.95, confidence));
 
     return {

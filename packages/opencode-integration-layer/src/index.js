@@ -8,8 +8,11 @@
  */
 class IntegrationLayer {
   constructor(config = {}) {
-    this.skillRL = config.skillRLManager || null;
-    this.showboat = config.showboatWrapper || null;
+    this.skillRL = config.skillRL || config.skillRLManager || null;
+    this.showboat = config.showboat || config.showboatWrapper || null;
+    this.quotaManager = config.quotaManager || null;
+    this.advisor = config.advisor || config.orchestrationAdvisor || null;
+    this.modelRouter = config.modelRouter || config.ModelRouter || null;
     this.currentTaskContext = null;
   }
 
@@ -18,6 +21,53 @@ class IntegrationLayer {
    */
   setTaskContext(taskContext) {
     this.currentTaskContext = taskContext;
+  }
+
+  /**
+   * Enrich task context with system-level signals (quota, session metadata)
+   */
+  enrichTaskContext(taskContext) {
+    if (!taskContext) return {};
+
+    // Inject quota and rotator signals if available
+    let maxPressure = { percentUsed: 0 };
+    
+    if (this.quotaManager) {
+      const statuses = this.quotaManager.getAllStatuses();
+      if (statuses.length > 0) {
+        maxPressure = statuses.reduce((max, s) => (s.percentUsed > max.percentUsed ? s : max), statuses[0]);
+      }
+    }
+
+    // Check rotator health for additional risk
+    let rotatorRisk = 0;
+    if (this.modelRouter && this.modelRouter.rotators) {
+      for (const [providerId, rotator] of Object.entries(this.modelRouter.rotators)) {
+        const status = rotator.getProviderStatus();
+        if (status.isExhausted) {
+          rotatorRisk = Math.max(rotatorRisk, 0.9);
+        } else if (status.healthyKeys < status.totalKeys) {
+          rotatorRisk = Math.max(rotatorRisk, 0.5);
+        }
+      }
+    }
+
+    const finalPercentUsed = Math.max(maxPressure.percentUsed || 0, rotatorRisk);
+
+    taskContext.quota_signal = {
+      provider_id: maxPressure.providerId || 'unknown',
+      percent_used: finalPercentUsed,
+      warning_threshold: maxPressure.warningThreshold || 0.75,
+      critical_threshold: maxPressure.criticalThreshold || 0.95,
+      fallback_applied: taskContext.quota_signal?.fallback_applied || false,
+      rotator_risk: rotatorRisk
+    };
+
+    // Add session/task IDs if missing
+    taskContext.task_id = taskContext.task_id || `task_${Date.now()}`;
+    taskContext.session_id = taskContext.session_id || this.currentSessionId || null;
+
+    return taskContext;
   }
 
   /**
@@ -57,10 +107,14 @@ class IntegrationLayer {
         this.skillRL.evolutionEngine.learnFromFailure({
           task_id: `task_${Date.now()}`,
           task_type: taskContext.task || 'unknown',
-          skills_used: [],
+          skills_used: Array.isArray(outcome?.skills_used) ? outcome.skills_used : [],
           error_message: antiPattern.description,
-          anti_pattern: antiPattern.type,
-          outcome_description: antiPattern.description
+          anti_pattern: {
+            type: antiPattern.type || 'task_failure',
+            context: antiPattern.description
+          },
+          outcome_description: antiPattern.description,
+          quota_signal: this._extractQuotaSignal(taskContext, outcome)
         });
 
         console.log(`[IntegrationLayer] Failure distilled into SkillRL: ${antiPattern.type}`);
@@ -166,6 +220,9 @@ class IntegrationLayer {
    * Full workflow: task → SkillRL selection → execution → showboat evidence
    */
   async executeTaskWithEvidence(taskContext, executeTaskFn) {
+    // Enrich context with system signals
+    this.enrichTaskContext(taskContext);
+
     // Set context for showboat
     this.setTaskContext(taskContext);
 
@@ -176,11 +233,33 @@ class IntegrationLayer {
       console.log(`[IntegrationLayer] SkillRL selected: ${skills.map(s => s.name).join(', ')}`);
     }
 
-    // Execute the task
-    const result = await executeTaskFn(taskContext, skills);
+    // Execute the task with adaptive options
+    const advice = this.advisor ? this.advisor.advise(taskContext) : null;
+    const adaptiveOptions = {
+      retries: (advice?.risk_score > 50 || advice?.quota_risk > 0.8) ? 1 : 3,
+      backoff: (advice?.quota_risk > 0.5) ? 3000 : 1000
+    };
 
-    // Capture evidence if high-impact
-    if (this.showboat && this.showboat.isHighImpact(taskContext)) {
+    const result = await executeTaskFn(taskContext, skills, adaptiveOptions);
+
+    // Update quota signal with fallback info from result if present
+    if (taskContext.quota_signal && result.fallbackApplied !== undefined) {
+      taskContext.quota_signal.fallback_applied = result.fallbackApplied;
+    }
+
+    // Capture evidence if high-impact, critical quota, high risk, or skill uncertainty
+    const isCriticalQuota = taskContext.quota_signal?.percent_used >= (taskContext.quota_signal?.critical_threshold || 0.95);
+    const isHighRisk = advice?.risk_score > 60;
+    
+    let isSkillUncertain = false;
+    if (this.skillRL && skills) {
+      isSkillUncertain = skills.some(s => {
+        const perf = this.skillRL.skillBank.getSkillPerformance(s.name, taskContext.task);
+        return perf?.is_uncertain;
+      });
+    }
+
+    if (this.showboat && (this.showboat.isHighImpact(taskContext) || isCriticalQuota || isHighRisk || isSkillUncertain)) {
       const evidenceData = {
         task: taskContext.task,
         filesModified: taskContext.filesModified,
@@ -188,7 +267,9 @@ class IntegrationLayer {
         outcome: result.success ? 'PASS' : 'FAIL',
         verification: {
           timestamp: new Date().toISOString(),
-          exitCode: result.exitCode || 0
+          exitCode: result.exitCode || 0,
+          risk_score: advice?.risk_score,
+          is_skill_uncertain: isSkillUncertain
         }
       };
 
@@ -198,16 +279,60 @@ class IntegrationLayer {
     // Learn from outcome if failure
     if (!result.success && this.skillRL && skills) {
       this.skillRL.evolutionEngine.learnFromFailure({
-        task_id: `task_${Date.now()}`,
+        task_id: taskContext.task_id,
+        run_id: taskContext.run_id,
+        step_id: taskContext.step_id,
         task_type: taskContext.task || 'unknown',
-        skills_used: skillSelection.map(s => s.name),
+        skills_used: skills.map(s => s.name),
         error_message: result.error || 'Unknown error',
-        anti_pattern: 'task_failure',
-        outcome_description: result.error || 'Task execution failed'
+        anti_pattern: {
+          type: 'task_failure',
+          context: result.error || 'Task execution failed'
+        },
+        outcome_description: result.error || 'Task execution failed',
+        quota_signal: this._extractQuotaSignal(taskContext, result)
+      });
+    } else if (result.success && this.skillRL && skills) {
+      this.skillRL.learnFromOutcome({
+        success: true,
+        task_id: taskContext.task_id,
+        run_id: taskContext.run_id,
+        step_id: taskContext.step_id,
+        task_type: taskContext.task || 'unknown',
+        skills_used: skills.map((s) => s.name),
+        positive_pattern: {
+          type: 'task_success',
+          context: result.message || 'Task execution succeeded'
+        },
+        quota_signal: this._extractQuotaSignal(taskContext, result)
       });
     }
 
     return result;
+  }
+
+  _extractQuotaSignal(taskContext, outcome) {
+    let signal = 
+      outcome?.quota_signal ||
+      outcome?.quotaSignal ||
+      taskContext?.quota_signal ||
+      taskContext?.quotaSignal ||
+      null;
+
+    if (outcome?.fallbackApplied) {
+      if (!signal) {
+        signal = {
+          fallback_applied: true,
+          percent_used: 1.0,
+          reason: outcome.reason
+        };
+      } else {
+        // Ensure fallback flag is propagated
+        signal.fallback_applied = true;
+      }
+    }
+
+    return signal;
   }
 }
 

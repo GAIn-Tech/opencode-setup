@@ -55,6 +55,7 @@ class PatternExtractor {
     antiPatterns.push(...this._detectBrokenState(messages, sessionId));
     antiPatterns.push(...this._detectFailedDebug(messages, sessionId));
     antiPatterns.push(...this._detectWrongTool(messages, sessionId));
+    antiPatterns.push(...this._detectQuotaPressure(messages, sessionId));
 
     positivePatterns.push(...this._detectEfficientDebug(messages, sessionId));
     positivePatterns.push(...this._detectCreativeSolution(messages, sessionId));
@@ -341,6 +342,42 @@ class PatternExtractor {
         });
         break; // One per session
       }
+    }
+
+    return patterns;
+  }
+
+  /**
+   * Quota pressure: Session shows high provider quota usage or fallbacks.
+   */
+  _detectQuotaPressure(messages, sessionId) {
+    const patterns = [];
+    let quotaAlerts = 0;
+    let fallbackCount = 0;
+
+    for (const msg of messages) {
+      const text = JSON.stringify(msg).toLowerCase();
+      // Check for quota warning messages (from quota-routing or usage-tracking)
+      if (text.includes('quota at') && (text.includes('warning') || text.includes('critical'))) {
+        quotaAlerts++;
+      }
+      // Check for fallback triggered
+      if (text.includes('using fallback') || text.includes('fallbackapplied":true')) {
+        fallbackCount++;
+      }
+    }
+
+    if (quotaAlerts >= 2 || fallbackCount >= 1) {
+      patterns.push({
+        type: 'quota_exhaustion_risk',
+        description: `Quota pressure detected in session: ${quotaAlerts} alerts and ${fallbackCount} fallbacks — task type might be economically inefficient`,
+        severity: quotaAlerts > 3 || fallbackCount > 2 ? 'high' : 'medium',
+        context: {
+          session_id: sessionId,
+          quota_alerts: quotaAlerts,
+          fallbacks: fallbackCount,
+        },
+      });
     }
 
     return patterns;

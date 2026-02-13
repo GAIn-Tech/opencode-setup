@@ -56,18 +56,19 @@ class SkillRLManager {
    * @returns {Object} Learning result
    */
   learnFromOutcome(outcome) {
+    console.log('[SkillRLManager] learnFromOutcome', { success: outcome.success, hasQuota: !!outcome.quota_signal });
+    let result;
     if (outcome.success) {
-      return this.evolutionEngine.learnFromSuccess(outcome);
+      result = this.evolutionEngine.learnFromSuccess(outcome);
     } else {
-      const result = this.evolutionEngine.learnFromFailure(outcome);
-      
-      // Auto-save after evolution
-      if (this.persistencePath) {
-        this._save();
-      }
-      
-      return result;
+      result = this.evolutionEngine.learnFromFailure(outcome);
     }
+    
+    if (this.persistencePath) {
+      this._save();
+    }
+    
+    return result;
   }
 
   /**

@@ -134,6 +134,87 @@ describe('SkillRL Manager - Hierarchical Selection', () => {
     );
   });
 
+  test('learns quota-aware-routing as secondary signal under quota pressure failure', () => {
+    const manager = new SkillRLManager();
+
+    const result = manager.learnFromOutcome({
+      success: false,
+      task_id: 'task-quota-failure',
+      task_type: 'feature',
+      skills_used: ['systematic-debugging'],
+      error_message: 'Provider quota near exhausted',
+      anti_pattern: {
+        type: 'task_failure',
+        context: 'Fallback triggered under quota pressure'
+      },
+      outcome_description: 'Task failed due to provider pressure',
+      quota_signal: {
+        provider_id: 'openai',
+        percent_used: 0.93,
+        warning_threshold: 0.75,
+        critical_threshold: 0.9,
+        fallback_applied: true
+      }
+    });
+
+    const allSkills = manager.skillBank.getAllSkills();
+    const quotaSkill = allSkills.taskSpecific.find(
+      (s) => s.name === 'quota-aware-routing' && s.task_type === 'feature'
+    );
+
+    assert(result.quota_signal !== null, 'Should preserve quota signal in learning result');
+    assert(quotaSkill !== undefined, 'Should create quota-aware-routing skill for task type');
+  });
+
+  test('reinforces quota-aware-routing on successful task under quota pressure', () => {
+    const manager = new SkillRLManager();
+
+    manager.learnFromOutcome({
+      success: false,
+      task_id: 'task-quota-seed',
+      task_type: 'feature',
+      skills_used: ['systematic-debugging'],
+      error_message: 'Seed quota-aware skill',
+      anti_pattern: {
+        type: 'task_failure',
+        context: 'Seed skill'
+      },
+      outcome_description: 'Seed quota-aware skill',
+      quota_signal: {
+        percent_used: 0.91,
+        fallback_applied: true
+      }
+    });
+
+    const before = manager.skillBank.getAllSkills().taskSpecific.find(
+      (s) => s.name === 'quota-aware-routing' && s.task_type === 'feature'
+    );
+
+    manager.learnFromOutcome({
+      success: true,
+      task_id: 'task-quota-success',
+      task_type: 'feature',
+      skills_used: ['systematic-debugging'],
+      positive_pattern: {
+        type: 'task_success',
+        context: 'Succeeded with fallback'
+      },
+      quota_signal: {
+        percent_used: 0.82,
+        warning_threshold: 0.75,
+        critical_threshold: 0.9,
+        fallback_applied: false
+      }
+    });
+
+    const after = manager.skillBank.getAllSkills().taskSpecific.find(
+      (s) => s.name === 'quota-aware-routing' && s.task_type === 'feature'
+    );
+
+    assert(before !== undefined && after !== undefined, 'Quota-aware skill should exist before/after reinforcement');
+    assert(after.success_rate >= before.success_rate, 'Quota-aware-routing should be reinforced on quota-pressure success');
+  });
+
   test('ranks skills by success rate', () => {
     const manager = new SkillRLManager();
     

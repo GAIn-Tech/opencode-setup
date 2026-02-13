@@ -398,6 +398,31 @@ const chain = await runbooks.getRemediationChain('ECONNREFUSED', bridge);
 
 ---
 
+### 15. **opencode-dashboard** (Agent Monitoring Dashboard)
+
+**What it does:** Read-only Next.js web dashboard for monitoring agent workflows, tree progress, and Showboat evidence.
+
+**Integration:**
+```bash
+# Start dashboard
+cd packages/opencode-dashboard
+npm install
+npm run dev
+# Dashboard available at http://localhost:3000
+```
+
+**Features:**
+- **Workflow Tree:** Hierarchical visualization of sisyphus steps.
+- **Evidence Viewer:** Integrated markdown renderer for Showboat proof.
+- **Process Isolation:** Runs as a separate process; zero impact on agent stability.
+- **Read-Only Safety:** Enforces `PRAGMA query_only = ON` for all SQLite reads.
+
+**Configuration:** `packages/opencode-dashboard/src/lib/data-sources/config.ts` (Auto-detects shared state locations).
+
+**Activation:** Run manually when visibility into complex multi-step tasks is required.
+
+---
+
 ## 🔌 External Plugin Integration
 
 ### Adding a New Plugin
@@ -615,21 +640,29 @@ ssh remote "showboat verify /handoff/latest.md"
 
 **Integration:**
 ```js
-const { WorkflowExecutor, WorkflowStore } = require('opencode-sisyphus-state');
-const { createGovernorHandler, createRouterHandler } = require('opencode-sisyphus-state/integrations');
+const {
+  WorkflowExecutor,
+  WorkflowStore,
+  createGovernorHandler,
+  createRouterHandler,
+  createSkillSelectionHandler,
+  createLearningHandler,
+  createShowboatHandler
+} = require('opencode-sisyphus-state');
 
 // Initialize store
 const store = new WorkflowStore('~/.opencode/sisyphus.db');
 
 // Configure handlers
-const handlers = {
-  'budget-check': createGovernorHandler(governor),
-  'model-select': createRouterHandler(router),
-  'generate-code': async (input) => { /* ... implementation ... */ }
-};
-
-// Create executor
-const executor = new WorkflowExecutor(store, handlers);
+const executor = new WorkflowExecutor(store);
+executor.registerHandler('budget-check', createGovernorHandler(governor));
+executor.registerHandler('model-select', createRouterHandler(router));
+executor.registerHandler('skill-select', createSkillSelectionHandler(skillManager));
+executor.registerHandler('learn-outcome', createLearningHandler(skillManager));
+executor.registerHandler('capture-evidence', createShowboatHandler(showboat));
+executor.registerHandler('generate-code', async (input) => {
+  return { generated: true, input };
+});
 
 // Define workflow
 const workflow = {
@@ -648,8 +681,8 @@ try {
   console.log('Failed run:', err.runId);
 }
 
-// Resume
-await executor.resume(failedRunId);
+// Resume (pass the same workflow definition)
+await executor.resume(failedRunId, workflow);
 ```
 
 **Features:**
@@ -657,6 +690,13 @@ await executor.resume(failedRunId);
 - **Idempotency:** Steps are checkpointed; completed steps are skipped on resume.
 - **Resilience:** Exponential backoff retries for failed steps.
 - **Parallel Execution:** `parallel-for` steps for concurrent tasks.
+
+**Verification:**
+```bash
+# Package test suite (includes durability crash-resume coverage)
+cd packages/opencode-sisyphus-state
+bun test
+```
 
 **Activation:** Integrated into `sisyphus` agent loop.
 
@@ -697,4 +737,3 @@ tail -f ~/.opencode/logs/system.log
 | **SKILL-DEVELOPMENT.md** | How to create custom skills |
 | **DEPLOYMENT.md** | Production deployment guide |
 | **FAQ.md** | Frequently asked questions |
-

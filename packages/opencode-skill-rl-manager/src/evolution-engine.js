@@ -35,6 +35,7 @@ class EvolutionEngine {
       anti_pattern,
       outcome_description
     } = failureContext;
+    const quotaSignal = this._extractQuotaSignal(failureContext);
 
     // Step 1: Record failure in history
     this.failureHistory.push({
@@ -42,20 +43,25 @@ class EvolutionEngine {
       task_type,
       skills_used,
       timestamp: Date.now(),
-      anti_pattern
+      anti_pattern,
+      quota_signal: quotaSignal
     });
 
     // Step 2: Distill root cause
     const rootCause = this._distillRootCause(failureContext);
 
     // Step 3: Update skill bank based on root cause
-    const evolution = this._evolveSkillBank(rootCause, failureContext);
+    const evolution = this._evolveSkillBank(rootCause, {
+      ...failureContext,
+      quota_signal: quotaSignal
+    });
 
     return {
       root_cause: rootCause,
       evolution,
       skills_updated: evolution.updated_skills,
-      skills_created: evolution.created_skills
+      skills_created: evolution.created_skills,
+      quota_signal: quotaSignal
     };
   }
 
@@ -68,6 +74,7 @@ class EvolutionEngine {
    */
   learnFromSuccess(successContext) {
     const { task_id, task_type, skills_used, positive_pattern } = successContext;
+    const quotaSignal = this._extractQuotaSignal(successContext);
 
     const reinforcements = [];
 
@@ -81,10 +88,111 @@ class EvolutionEngine {
       });
     }
 
+    this._applyQuotaSecondarySignal({
+      task_type,
+      skills_used,
+      quota_signal: quotaSignal,
+      success: true,
+      result: {
+        updated_skills: [],
+        created_skills: []
+      }
+    });
+
     return {
       reinforced_skills: reinforcements,
-      positive_pattern
+      positive_pattern,
+      quota_signal: quotaSignal
     };
+  }
+
+  _extractQuotaSignal(context = {}) {
+    const signal = context.quota_signal || context.quotaSignal || null;
+    if (!signal || typeof signal !== 'object') {
+      return null;
+    }
+
+    const percentUsed = Number(signal.percent_used ?? signal.percentUsed ?? 0);
+    const criticalThreshold = Number(signal.critical_threshold ?? signal.criticalThreshold ?? 0.9);
+    const warningThreshold = Number(signal.warning_threshold ?? signal.warningThreshold ?? 0.75);
+
+    return {
+      provider_id: signal.provider_id ?? signal.providerId ?? null,
+      percent_used: Number.isFinite(percentUsed) ? percentUsed : 0,
+      warning_threshold: Number.isFinite(warningThreshold) ? warningThreshold : 0.75,
+      critical_threshold: Number.isFinite(criticalThreshold) ? criticalThreshold : 0.9,
+      fallback_applied: Boolean(signal.fallback_applied ?? signal.fallbackApplied)
+    };
+  }
+
+  _isQuotaPressure(signal) {
+    if (!signal) {
+      return false;
+    }
+
+    return signal.fallback_applied || signal.percent_used >= signal.warning_threshold;
+  }
+
+  _upsertQuotaAwareSkill(taskType) {
+    const allSkills = this.skillBank.getAllSkills();
+    const existingTaskSpecific = allSkills.taskSpecific.find(
+      (s) => s.name === 'quota-aware-routing' && s.task_type === taskType
+    );
+
+    if (existingTaskSpecific) {
+      this.skillBank.addTaskSpecificSkill(taskType, {
+        name: 'quota-aware-routing',
+        success_rate: Math.min((existingTaskSpecific.success_rate || 0.5) + 0.03, 1.0)
+      });
+      return 'updated';
+    }
+
+    this.skillBank.addTaskSpecificSkill(taskType, {
+      name: 'quota-aware-routing',
+      principle: 'Treat quota pressure as a secondary signal while preserving primary success objectives',
+      application_context: 'When provider quota is near warning/critical thresholds or fallback is used',
+      success_rate: 0.6,
+      usage_count: 0,
+      tags: [taskType, 'quota', 'routing', 'secondary-signal']
+    });
+    return 'created';
+  }
+
+  _applyQuotaSecondarySignal({ task_type, skills_used, quota_signal, success, result }) {
+    console.log('[EvolutionEngine] _applyQuotaSecondarySignal', { task_type, success, hasSignal: !!quota_signal });
+    if (quota_signal) {
+      console.log('[EvolutionEngine] quota_signal:', JSON.stringify(quota_signal, null, 2));
+      console.log('[EvolutionEngine] _isQuotaPressure:', this._isQuotaPressure(quota_signal));
+    }
+    
+    if (!this._isQuotaPressure(quota_signal)) {
+      return;
+    }
+
+    const action = this._upsertQuotaAwareSkill(task_type || 'unknown');
+    const reason = success
+      ? 'Succeeded under quota pressure; reinforce quota-aware routing as secondary meta-signal'
+      : 'Failed under quota pressure; add quota-aware routing as secondary meta-signal';
+
+    if (action === 'created') {
+      result.created_skills.push({
+        name: 'quota-aware-routing',
+        task_type: task_type || 'unknown',
+        reason
+      });
+    } else {
+      result.updated_skills.push({
+        name: 'quota-aware-routing',
+        action: 'boosted',
+        reason
+      });
+    }
+
+    if (success && Array.isArray(skills_used)) {
+      skills_used.forEach((skillName) => {
+        this.skillBank.updateSuccessRate(skillName, true, task_type);
+      });
+    }
   }
 
   /**
@@ -151,7 +259,7 @@ class EvolutionEngine {
    * Either updates existing skill or creates new task-specific skill
    */
   _evolveSkillBank(rootCause, failureContext) {
-    const { task_type, skills_used } = failureContext;
+    const { task_type, skills_used, quota_signal } = failureContext;
     const { skill_needed, principle, cause } = rootCause;
 
     const result = {
@@ -219,6 +327,14 @@ class EvolutionEngine {
         reason: `Distilled from ${rootCause.anti_pattern_type} failure`
       });
     }
+
+    this._applyQuotaSecondarySignal({
+      task_type,
+      skills_used,
+      quota_signal,
+      success: false,
+      result
+    });
 
     return result;
   }
