@@ -9,6 +9,7 @@
 
 const { AntiPatternCatalog } = require('./anti-patterns');
 const { PositivePatternTracker } = require('./positive-patterns');
+const { createOrchestrationId, getQuotaSignal } = require('../../opencode-shared-orchestration/src/context-utils');
 
 // Agent routing knowledge
 const AGENT_CAPABILITIES = {
@@ -85,7 +86,7 @@ class OrchestrationAdvisor {
    * }}
    */
   advise(taskContext = {}) {
-    const adviceId = `adv_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const adviceId = createOrchestrationId('adv');
 
     // === STRONG: Anti-pattern warnings ===
     const antiCheck = this.antiPatterns.shouldWarn(taskContext);
@@ -272,11 +273,9 @@ class OrchestrationAdvisor {
   // ===== PRIVATE =====
 
   _computeQuotaRisk(taskContext) {
-    const signal = taskContext.quota_signal;
-    if (!signal) return 0;
-    
-    const percentUsed = signal.percent_used ?? 0;
-    const fallbackApplied = signal.fallback_applied ?? false;
+    const signal = getQuotaSignal(taskContext);
+    const percentUsed = signal.percent_used;
+    const fallbackApplied = signal.fallback_applied;
     
     // Fallback applied is a massive risk multiplier
     if (fallbackApplied) return Math.max(percentUsed, 0.85);
@@ -285,8 +284,9 @@ class OrchestrationAdvisor {
   }
 
   _computeRouting(taskContext, warnings) {
-    const taskType = taskContext.task_type || 'general';
-    const complexity = taskContext.complexity || 'moderate';
+    const taskType = this._normalizeTextValue(taskContext.task_type || 'general');
+    const description = this._normalizeTextValue(taskContext.description);
+    const complexity = this._normalizeTextValue(taskContext.complexity || 'moderate');
 
     // Find best agent
     let bestAgent = null;
@@ -294,8 +294,8 @@ class OrchestrationAdvisor {
 
     for (const [agent, caps] of Object.entries(AGENT_CAPABILITIES)) {
       let score = 0;
-      if (caps.task_types.includes(taskType)) score += 5;
-      if (caps.strengths.some((s) => (taskContext.description || '').toLowerCase().includes(s))) {
+      if (caps.task_types.some((type) => this._normalizeTextValue(type) === taskType)) score += 5;
+      if (caps.strengths.some((s) => description.includes(this._normalizeTextValue(s)))) {
         score += 2;
       }
       // Penalize if anti-patterns suggest this agent failed before
@@ -320,7 +320,8 @@ class OrchestrationAdvisor {
     // Find relevant skills
     const skills = [];
     for (const [type, skillList] of Object.entries(SKILL_AFFINITY)) {
-      if (taskType.includes(type) || (taskContext.description || '').toLowerCase().includes(type)) {
+      const normalizedType = this._normalizeTextValue(type);
+      if (taskType.includes(normalizedType) || description.includes(normalizedType)) {
         skills.push(...skillList);
       }
     }
@@ -359,6 +360,14 @@ class OrchestrationAdvisor {
       skills: uniqueSkills.slice(0, 5), // Max 5 skills
       confidence: Math.round(confidence * 100) / 100,
     };
+  }
+
+  _normalizeTextValue(value) {
+    if (typeof value !== 'string') {
+      return '';
+    }
+
+    return value.trim().toLowerCase();
   }
 
   _inferPositiveType(taskContext) {

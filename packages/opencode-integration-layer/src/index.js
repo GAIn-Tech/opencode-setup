@@ -6,6 +6,13 @@
  * - SkillRL → Learning Engine (failure distillation)
  * - Showboat → Proofcheck (evidence capture)
  */
+const {
+  createOrchestrationId,
+  pickSessionId,
+  normalizeQuotaSignal,
+  getQuotaSignal,
+} = require('../../opencode-shared-orchestration/src/context-utils');
+
 class IntegrationLayer {
   constructor(config = {}) {
     this.skillRL = config.skillRL || config.skillRLManager || null;
@@ -14,6 +21,7 @@ class IntegrationLayer {
     this.advisor = config.advisor || config.orchestrationAdvisor || null;
     this.modelRouter = config.modelRouter || config.ModelRouter || null;
     this.currentTaskContext = null;
+    this.currentSessionId = config.currentSessionId || config.sessionId || null;
   }
 
   /**
@@ -29,21 +37,36 @@ class IntegrationLayer {
   enrichTaskContext(taskContext) {
     if (!taskContext) return {};
 
+    const enriched = { ...taskContext };
+    const existingQuotaSignal = getQuotaSignal(enriched);
+
     // Inject quota and rotator signals if available
     let maxPressure = { percentUsed: 0 };
     
     if (this.quotaManager) {
       const statuses = this.quotaManager.getAllStatuses();
       if (statuses.length > 0) {
-        maxPressure = statuses.reduce((max, s) => (s.percentUsed > max.percentUsed ? s : max), statuses[0]);
+        maxPressure = statuses.reduce((max, status) => {
+          const statusPercent = this._readPercentUsed(status);
+          const maxPercent = this._readPercentUsed(max);
+          return statusPercent > maxPercent ? status : max;
+        }, statuses[0]);
       }
     }
 
     // Check rotator health for additional risk
     let rotatorRisk = 0;
     if (this.modelRouter && this.modelRouter.rotators) {
-      for (const [providerId, rotator] of Object.entries(this.modelRouter.rotators)) {
+      for (const [, rotator] of Object.entries(this.modelRouter.rotators)) {
+        if (!rotator || typeof rotator.getProviderStatus !== 'function') {
+          continue;
+        }
+
         const status = rotator.getProviderStatus();
+        if (!status) {
+          continue;
+        }
+
         if (status.isExhausted) {
           rotatorRisk = Math.max(rotatorRisk, 0.9);
         } else if (status.healthyKeys < status.totalKeys) {
@@ -52,22 +75,27 @@ class IntegrationLayer {
       }
     }
 
-    const finalPercentUsed = Math.max(maxPressure.percentUsed || 0, rotatorRisk);
+    const finalPercentUsed = Math.max(this._readPercentUsed(maxPressure), rotatorRisk);
+    const fallbackApplied = existingQuotaSignal.fallback_applied;
 
-    taskContext.quota_signal = {
-      provider_id: maxPressure.providerId || 'unknown',
+    const normalizedQuotaSignal = normalizeQuotaSignal({
+      provider_id: maxPressure.provider_id || maxPressure.providerId || 'unknown',
       percent_used: finalPercentUsed,
-      warning_threshold: maxPressure.warningThreshold || 0.75,
-      critical_threshold: maxPressure.criticalThreshold || 0.95,
-      fallback_applied: taskContext.quota_signal?.fallback_applied || false,
+      warning_threshold: maxPressure.warning_threshold || maxPressure.warningThreshold || 0.75,
+      critical_threshold: maxPressure.critical_threshold || maxPressure.criticalThreshold || 0.95,
+      fallback_applied: fallbackApplied,
       rotator_risk: rotatorRisk
-    };
+    });
+
+    enriched.quota_signal = normalizedQuotaSignal;
+    enriched.quotaSignal = normalizedQuotaSignal;
 
     // Add session/task IDs if missing
-    taskContext.task_id = taskContext.task_id || `task_${Date.now()}`;
-    taskContext.session_id = taskContext.session_id || this.currentSessionId || null;
+    enriched.task_id = enriched.task_id || createOrchestrationId('task');
+    enriched.session_id = pickSessionId(enriched, this.currentSessionId);
+    enriched.sessionId = enriched.session_id;
 
-    return taskContext;
+    return enriched;
   }
 
   /**
@@ -105,7 +133,7 @@ class IntegrationLayer {
 
         // Record failure in SkillRL for evolution
         this.skillRL.evolutionEngine.learnFromFailure({
-          task_id: `task_${Date.now()}`,
+          task_id: taskContext.task_id || createOrchestrationId('task'),
           task_type: taskContext.task || 'unknown',
           skills_used: Array.isArray(outcome?.skills_used) ? outcome.skills_used : [],
           error_message: antiPattern.description,
@@ -221,7 +249,7 @@ class IntegrationLayer {
    */
   async executeTaskWithEvidence(taskContext, executeTaskFn) {
     // Enrich context with system signals
-    this.enrichTaskContext(taskContext);
+    taskContext = this.enrichTaskContext(taskContext || {});
 
     // Set context for showboat
     this.setTaskContext(taskContext);
@@ -240,11 +268,27 @@ class IntegrationLayer {
       backoff: (advice?.quota_risk > 0.5) ? 3000 : 1000
     };
 
-    const result = await executeTaskFn(taskContext, skills, adaptiveOptions);
+    let result = null;
+    let executionError = null;
+
+    try {
+      result = await executeTaskFn(taskContext, skills, adaptiveOptions);
+    } catch (error) {
+      executionError = error;
+      result = {
+        success: false,
+        error: error?.message || String(error),
+        reason: error?.message || String(error)
+      };
+    }
 
     // Update quota signal with fallback info from result if present
-    if (taskContext.quota_signal && result.fallbackApplied !== undefined) {
-      taskContext.quota_signal.fallback_applied = result.fallbackApplied;
+    if (taskContext.quota_signal) {
+      const fallbackApplied = result?.fallbackApplied ?? result?.fallback_applied;
+      if (fallbackApplied !== undefined) {
+        taskContext.quota_signal.fallback_applied = fallbackApplied;
+        taskContext.quotaSignal = taskContext.quota_signal;
+      }
     }
 
     // Capture evidence if high-impact, critical quota, high risk, or skill uncertainty
@@ -308,31 +352,38 @@ class IntegrationLayer {
       });
     }
 
+    if (executionError) {
+      throw executionError;
+    }
+
     return result;
   }
 
+  _readPercentUsed(signal) {
+    if (!signal) {
+      return 0;
+    }
+
+    return signal.percentUsed ?? signal.percent_used ?? 0;
+  }
+
   _extractQuotaSignal(taskContext, outcome) {
-    let signal = 
+    const signal = normalizeQuotaSignal(
       outcome?.quota_signal ||
       outcome?.quotaSignal ||
       taskContext?.quota_signal ||
       taskContext?.quotaSignal ||
-      null;
+      {}
+    );
 
-    if (outcome?.fallbackApplied) {
-      if (!signal) {
-        signal = {
-          fallback_applied: true,
-          percent_used: 1.0,
-          reason: outcome.reason
-        };
-      } else {
-        // Ensure fallback flag is propagated
-        signal.fallback_applied = true;
-      }
+    if (outcome?.fallbackApplied === true) {
+      signal.fallback_applied = true;
+      signal.percent_used = Math.max(signal.percent_used, 1.0);
     }
 
-    return signal;
+    return signal.provider_id === 'unknown' && signal.percent_used === 0 && signal.rotator_risk === 0
+      ? null
+      : signal;
   }
 }
 

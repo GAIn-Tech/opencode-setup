@@ -130,4 +130,39 @@ describe('Entourage Synergy v2 (Full Cycle + Adaptive Behavior)', () => {
     expect(finalState.context.last_quota_fallback).toBeDefined();
     expect(finalState.context.last_quota_fallback.step_id).toBe('step-adaptive');
   });
+
+  it('records failure learning and evidence when task execution throws', async () => {
+    const beforeFailures = skillRL.evolutionEngine.getFailureStats().total_failures;
+
+    let thrown = null;
+    try {
+      await integration.executeTaskWithEvidence(
+        {
+          task: 'complex-task',
+          impact: 'high',
+          run_id: 'run-throw-1',
+          step_id: 'step-throw-1',
+          sessionId: 'session-throw-1',
+        },
+        async (taskContext) => {
+          expect(taskContext.task_id.startsWith('task_')).toBe(true);
+          expect(taskContext.session_id).toBe('session-throw-1');
+          expect(taskContext.sessionId).toBe('session-throw-1');
+          throw new Error('simulated crash');
+        }
+      );
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeDefined();
+    expect(thrown.message).toBe('simulated crash');
+
+    const afterFailures = skillRL.evolutionEngine.getFailureStats().total_failures;
+    expect(afterFailures).toBeGreaterThan(beforeFailures);
+
+    expect(showboatMock.captured.length).toBeGreaterThan(0);
+    const latestEvidence = showboatMock.captured[showboatMock.captured.length - 1];
+    expect(latestEvidence.outcome).toBe('FAIL');
+  });
 });
