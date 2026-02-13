@@ -1,38 +1,30 @@
 'use strict';
 
 const path = require('path');
-const policies = require('./policies.json');
 const { IntelligentRotator } = require('./key-rotator');
 const { KeyRotatorFactory } = require('./key-rotator-factory');
+const { policies } = require('./policies.json');
+const { Orchestrator } = require('./strategies/orchestrator');
 
-/**
- * ModelRouter — Policy-based model selection with live outcome tuning.
-...
-   constructor(options = {}) {
-    this.policies = options.policies || policies;
-    this.models = this.policies.models;
-    this.costTiers = this.policies.cost_tiers;
-    this.complexityRouting = this.policies.complexity_routing;
-    this.tuning = this.policies.tuning;
-
-    // Intelligent Rotators per provider
-    this.rotators = options.rotators || KeyRotatorFactory.createFromEnv(options.env || process.env);
-    
-    // Live outcome tracking per model
-...
-  getAllStats() {
-    return Object.keys(this.stats)
-      .map((modelId) => ({
-        model: modelId,
-        ...this.getModelStats(modelId),
-      }))
-      .sort((a, b) => b.success_rate - a.success_rate);
+class ModelRouter {
+  constructor(options = {}) {
+    this.policies = policies;
+    this.models = this._flattenModels(this.policies);
+    this.rotators = KeyRotatorFactory.createFromEnv(options.env || process.env);
+    this.stats = Object.fromEntries(
+      Object.keys(this.models).map((id) => [id, { calls: 0, successes: 0, failures: 0, total_latency_ms: 0 }])
+    );
+    this.tuning = options.tuning || {};
+    this.tuning.success_rate_floor = this.tuning.success_rate_floor ?? 0.50;
+    this.tuning.success_rate_ceiling = this.tuning.success_rate_ceiling ?? 0.99;
+    this.tuning.min_samples_for_tuning = this.tuning.min_samples_for_tuning ?? 5;
+    this.orchestrator = new Orchestrator({ ...this });
   }
 
   /**
    * Get an API key for a selected model.
-   * 
-   * @param {string} modelId 
+   *
+   * @param {string} modelId
    * @returns {object|null} { key: string, keyId: string, rotator: IntelligentRotator }
    */
   getApiKeyForModel(modelId) {
@@ -49,6 +41,66 @@ const { KeyRotatorFactory } = require('./key-rotator-factory');
       key: key.value,
       keyId: key.id,
       rotator
+    };
+  }
+
+  /**
+   * Route an incoming request to the best available model.
+   *
+   * @param {Object} ctx - Routing context with constraints.
+   * @param {string} [ctx.taskType] - Task category (e.g., 'code_generation', 'documentation').
+   * @param {string[]} [ctx.requiredTools] - Tools the model must support.
+   * @param {number} [ctx.maxBudget] - Maximum acceptable cost in USD.
+   * @param {number} [ctx.maxLatency] - Maximum acceptable latency in ms.
+   * @param {string[]} [ctx.requiredStrengths] - Strengths the model must have.
+   * @returns {Object} `{ model, key, score, reason, rotator }`
+   */
+  route(ctx = {}) {
+    // First, check if Orchestrator has a model selection override
+    const orchestration = this.orchestrator.orchestrate(ctx);
+    if (orchestration.override) {
+      const modelId = orchestration.modelId;
+      const model = this.models[modelId];
+      if (model) {
+        const rotator = this.rotators[model.provider];
+        const key = rotator ? rotator.getNextKey() : null;
+        return {
+          model,
+          keyId: key ? key.id : null,
+          modelId,
+          score: -1, // Orchestrator selections get priority, not scored
+          reason: `orchestrator: ${orchestration.reason}`,
+          rotator,
+          key,
+          orchestration, // Include orchestration metadata
+        };
+      }
+    }
+
+    // Fall back to existing scoring logic
+    const candidates = this._filterByConstraints(ctx);
+    const scored = candidates.map((modelId) => ({
+      modelId,
+      ...this._scoreModel(modelId, ctx),
+    }));
+    scored.sort((a, b) => b.score - a.score);
+
+    if (scored.length === 0) {
+      throw new Error('No model available for the given constraints');
+    }
+
+    const winner = scored[0];
+    const model = this.models[winner.modelId];
+    const rotator = this.rotators[model.provider];
+    const key = rotator ? rotator.getNextKey() : null;
+    return {
+      model,
+      keyId: key ? key.id : null,
+      modelId: winner.modelId,
+      score: winner.score,
+      reason: winner.reason,
+      rotator,
+      key,
     };
   }
 
