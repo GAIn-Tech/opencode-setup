@@ -78,8 +78,7 @@
     "nvidia": {
       "npm": "@ai-sdk/openai-compatible",
       "options": {
-        "baseURL": "https://integrate.api.nvidia.com/v1",
-        "apiKey": "{env:NVIDIA_API_KEYS}"
+        "baseURL": "https://integrate.api.nvidia.com/v1"
       },
       "models": {
         "llama-3.1-405b": {
@@ -92,8 +91,7 @@
     "groq": {
       "npm": "@ai-sdk/openai-compatible",
       "options": {
-        "baseURL": "https://api.groq.com/openai/v1",
-        "apiKey": "{env:GROQ_API_KEYS}"
+        "baseURL": "https://api.groq.com/openai/v1"
       },
       "models": {
         "llama-3.1-70b": {
@@ -106,8 +104,7 @@
     "cerebras": {
       "npm": "@ai-sdk/openai-compatible",
       "options": {
-        "baseURL": "https://api.cerebras.ai/v1",
-        "apiKey": "{env:CEREBRAS_API_KEYS}"
+        "baseURL": "https://api.cerebras.ai/v1"
       },
       "models": {
         "llama-3.1-70b": {
