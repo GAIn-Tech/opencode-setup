@@ -3,8 +3,8 @@
 const path = require('path');
 const { IntelligentRotator } = require('./key-rotator');
 const { KeyRotatorFactory } = require('./key-rotator-factory');
-const { policies } = require('./policies.json');
-const { Orchestrator } = require('./strategies/orchestrator');
+const policies = require('./policies.json');
+const Orchestrator = require('./strategies/orchestrator');
 
 class ModelRouter {
   constructor(options = {}) {
@@ -30,24 +30,38 @@ class ModelRouter {
       const ReversionManager = require('./strategies/reversion-manager.js');
       
       const globalContext = new GlobalModelContext();
+      const stuckBugDetector = new StuckBugDetector();
+      this.reversionManager = new ReversionManager();
       const strategies = [
-        new ManualOverrideController({ globalContext }),
-        new StuckBugDetector({ globalContext }),
-        new PerspectiveSwitchStrategy({ globalContext }),
-        new ReversionManager({ globalContext }),
-        new ProjectStartStrategy({ globalContext }),
-        new FallbackLayerStrategy({ router: this })
+        new ManualOverrideController(),
+        new PerspectiveSwitchStrategy(stuckBugDetector),
+        new ProjectStartStrategy(),
+        new FallbackLayerStrategy()
       ];
       
-      this.orchestrator = new Orchestrator({
-        strategies,
-        globalContext
-      });
+      this.globalContext = globalContext;
+      this.orchestrator = new Orchestrator(strategies);
     } catch (error) {
       console.error('[ModelRouter] Failed to initialize Orchestrator:', error);
       console.error('[ModelRouter] Falling back to legacy scoring system');
       this.orchestrator = null;
     }
+  }
+
+  /**
+   * Flatten the policies.models object into a lookup by model ID.
+   * @private
+   */
+  _flattenModels(policies) {
+    return Object.fromEntries(
+      Object.entries(policies.models || {}).map(([modelId, modelData]) => [
+        modelId,
+        {
+          id: modelId,
+          ...modelData
+        }
+      ])
+    );
   }
 
   /**
@@ -85,29 +99,24 @@ class ModelRouter {
    * @returns {Object} `{ model, key, score, reason, rotator }`
    */
   route(ctx = {}) {
-    // First, check if Orchestrator has a model selection override
-    const orchestration = this.orchestrator.orchestrate(ctx);
-    if (orchestration.override) {
-      const modelId = orchestration.modelId;
-      const model = this.models[modelId];
-      if (model) {
-        const rotator = this.rotators[model.provider];
-        const key = rotator ? rotator.getNextKey() : null;
+    if (ctx && typeof ctx.overrideModelId === 'string') {
+      const forcedModel = this.models[ctx.overrideModelId];
+      if (forcedModel) {
+        const forcedRotator = this.rotators[forcedModel.provider];
+        const forcedKey = forcedRotator ? forcedRotator.getNextKey() : null;
         return {
-          model,
-          keyId: key ? key.id : null,
-          modelId,
-          score: -1, // Orchestrator selections get priority, not scored
-          reason: `orchestrator: ${orchestration.reason}`,
-          rotator,
-          key,
-          orchestration, // Include orchestration metadata
+          model: forcedModel,
+          keyId: forcedKey ? forcedKey.id : null,
+          modelId: ctx.overrideModelId,
+          score: -1,
+          reason: 'override:modelId',
+          rotator: forcedRotator,
+          key: forcedKey,
         };
       }
     }
 
-    // Fall back to existing scoring logic
-    const candidates = this._filterByConstraints(ctx);
+    const candidates = this._filterByConstraints(ctx || {});
     const scored = candidates.map((modelId) => ({
       modelId,
       ...this._scoreModel(modelId, ctx),
@@ -133,36 +142,147 @@ class ModelRouter {
     };
   }
 
-  /**
-   * List all known models with their policy metadata.
-...
-    // 6. Strength match bonus
-    if (ctx.requiredStrengths.length > 0) {
-      const matched = ctx.requiredStrengths.filter((s) => model.strengths.includes(s));
-      const strengthBonus = (matched.length / ctx.requiredStrengths.length) * 0.10;
-      score += strengthBonus;
-      if (matched.length > 0) {
-        reasons.push(`strengths=${matched.join(',')}`);
+  async routeAsync(ctx = {}) {
+    if (this.orchestrator && typeof this.orchestrator.selectModel === 'function' && ctx.task) {
+      try {
+        const selection = await this.orchestrator.selectModel(ctx.task, ctx);
+        if (selection && selection.model_id && this.models[selection.model_id]) {
+          const model = this.models[selection.model_id];
+          const rotator = this.rotators[model.provider];
+          const key = rotator ? rotator.getNextKey() : null;
+          return {
+            model,
+            keyId: key ? key.id : null,
+            modelId: selection.model_id,
+            score: -1,
+            reason: `orchestrator:${selection.strategy || 'strategy'}`,
+            rotator,
+            key,
+            orchestration: selection,
+          };
+        }
+      } catch (error) {
+        console.error('[ModelRouter] Orchestration selectModel failed, falling back to route():', error?.message || error);
       }
     }
 
-    // 7. Rotator health check
+    return this.route(ctx);
+  }
+
+  /**
+   * List all known models with their policy metadata.
+   * @returns {Array<object>}
+   */
+  listModels() {
+    return Object.values(this.models);
+  }
+
+  /**
+   * Track call outcome for adaptive scoring and key health.
+   * @param {string} modelId
+   * @param {boolean} success
+   * @param {number|object} latencyOrError - Latency in ms or error object
+   */
+  recordResult(modelId, success, latencyOrError = 0) {
+    if (!this.stats[modelId]) return;
+    
+    const latencyMs = typeof latencyOrError === 'number' ? latencyOrError : 0;
+    const error = typeof latencyOrError === 'object' ? latencyOrError : null;
+
+    this.stats[modelId].calls += 1;
+    if (success) {
+      this.stats[modelId].successes += 1;
+    } else {
+      this.stats[modelId].failures += 1;
+      
+      // Update key health if we have error details
+      const model = this.models[modelId];
+      if (model && error) {
+        const rotator = this.rotators[model.provider];
+        const keyId = error.keyId || null; // Some clients might provide the keyId
+        if (rotator && keyId) {
+            rotator.recordFailure(keyId, error);
+        }
+      }
+    }
+    this.stats[modelId].total_latency_ms += Number.isFinite(latencyMs) ? latencyMs : 0;
+  }
+
+  /**
+   * Apply hard constraints before scoring.
+   * @private
+   */
+  _filterByConstraints(ctx = {}) {
+    const requiredTools = Array.isArray(ctx.requiredTools) ? ctx.requiredTools : [];
+
+    return Object.keys(this.models).filter((modelId) => {
+      const model = this.models[modelId];
+      if (!model) return false;
+
+      if (requiredTools.length > 0) {
+        const modelTools = Array.isArray(model.tools) ? model.tools : [];
+        const missingTool = requiredTools.some((t) => !modelTools.includes(t));
+        if (missingTool) return false;
+      }
+
+      if (ctx.maxLatency && model.default_latency_ms && model.default_latency_ms > ctx.maxLatency) {
+        return false;
+      }
+
+      return true;
+    });
+  }
+
+  /**
+   * Score model using policy + live signals.
+   * @private
+   */
+  _scoreModel(modelId, ctx = {}) {
+    const model = this.models[modelId];
+    if (!model) return { score: 0, reason: 'missing-model' };
+
+    let score = 0.50;
+    const reasons = [];
+
+    const successRate = this._getSuccessRate(modelId);
+    score += successRate * 0.30;
+    reasons.push(`success=${successRate.toFixed(2)}`);
+
+    const avgLatency = this._getAvgLatency(modelId);
+    const baselineLatency = model.default_latency_ms || avgLatency || 1000;
+    const latencyPenalty = Math.min(0.20, Math.max(0, avgLatency - baselineLatency) / 5000);
+    score -= latencyPenalty;
+    reasons.push(`latency=${Math.round(avgLatency || baselineLatency)}ms`);
+
+    if (ctx.taskType && Array.isArray(model.task_types)) {
+      if (model.task_types.includes(ctx.taskType)) {
+        score += 0.10;
+        reasons.push(`task=${ctx.taskType}`);
+      } else {
+        score -= 0.05;
+      }
+    }
+
+    if (Array.isArray(ctx.requiredStrengths) && ctx.requiredStrengths.length > 0) {
+      const modelStrengths = Array.isArray(model.strengths) ? model.strengths : [];
+      const matched = ctx.requiredStrengths.filter((s) => modelStrengths.includes(s));
+      score += (matched.length / ctx.requiredStrengths.length) * 0.10;
+      if (matched.length > 0) reasons.push(`strengths=${matched.join(',')}`);
+    }
+
     const rotator = this.rotators[model.provider];
-    if (rotator) {
+    if (rotator && typeof rotator.getProviderStatus === 'function') {
       const status = rotator.getProviderStatus();
-      if (status.isExhausted) {
-        score -= 0.50; // Heavy penalty if no keys are healthy
+      if (status?.isExhausted) {
+        score -= 0.50;
         reasons.push('rotator-exhausted');
-      } else if (status.healthyKeys < status.totalKeys) {
-        score -= 0.10; // Light penalty if some keys are dead
+      } else if (status && Number.isFinite(status.healthyKeys) && Number.isFinite(status.totalKeys) && status.healthyKeys < status.totalKeys) {
+        score -= 0.10;
         reasons.push(`rotator-pressure(${status.healthyKeys}/${status.totalKeys})`);
       }
     }
 
-    // 8. Cost check — if model is way too expensive for the budget, penalize
-
-    if (ctx.maxBudget) {
-      // Rough estimate: assume ~2k tokens per call
+    if (ctx.maxBudget && Number.isFinite(model.cost_per_1k_tokens)) {
       const estimatedCost = model.cost_per_1k_tokens * 2;
       if (estimatedCost > ctx.maxBudget) {
         score -= 0.15;

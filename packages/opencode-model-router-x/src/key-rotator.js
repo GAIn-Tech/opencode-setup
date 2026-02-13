@@ -125,19 +125,36 @@ class IntelligentRotator {
     }
 
     /**
-     * Record a failure (e.g. 429) for a specific key.
+     * Record a failure (e.g. 429 or platform-level error) for a specific key.
      * @param {string} keyId 
-     * @param {number} retryAfterMs 
+     * @param {number|object} errorOrRetryAfterMs - Retry time in ms or error object
      */
-    recordFailure(keyId, retryAfterMs = 0) {
+    recordFailure(keyId, errorOrRetryAfterMs = 0) {
         const key = this.keys.find(k => k.id === keyId);
         if (!key) return;
+
+        let retryAfterMs = typeof errorOrRetryAfterMs === 'number' ? errorOrRetryAfterMs : 0;
+        let isPlatformDegraded = false;
+
+        // Detect platform-level errors that should trigger cooldown
+        if (typeof errorOrRetryAfterMs === 'object' && errorOrRetryAfterMs !== null) {
+            const errorMessage = errorOrRetryAfterMs.message || '';
+            const errorDetail = errorOrRetryAfterMs.detail || '';
+            
+            if (errorMessage.includes('DEGRADED') || errorDetail.includes('DEGRADED') || 
+                errorMessage.includes('cannot be invoked') || errorDetail.includes('cannot be invoked')) {
+                isPlatformDegraded = true;
+                // Force a longer cooldown for platform issues (5 minutes)
+                retryAfterMs = Math.max(retryAfterMs, 300000);
+                console.warn(`[IntelligentRotator] Detected platform degradation for ${this.providerId} (${keyId}). Entering extended cooldown.`);
+            }
+        }
 
         key.failureCount++;
         key.resetAt = Date.now() + (retryAfterMs || this.options.cooldownMs);
         
-        if (key.failureCount >= this.options.maxFailures) {
-            key.status = 'dead';
+        if (key.failureCount >= this.options.maxFailures || isPlatformDegraded) {
+            key.status = isPlatformDegraded ? 'cooldown' : 'dead';
         } else {
             key.status = 'cooldown';
         }
