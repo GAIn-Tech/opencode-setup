@@ -5,6 +5,8 @@
  * Returns to original provider after perspective attempt.
  */
 
+const ModelSelectionStrategy = require('./model-selection-strategy');
+
 class PerspectiveSwitchStrategy extends ModelSelectionStrategy {
   #stuckBugDetector = null;
   #priorModel = null;

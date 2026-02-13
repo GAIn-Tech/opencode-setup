@@ -5,6 +5,8 @@
  * Sets semantic foundation for the project - early quality compounds.
  */
 
+const ModelSelectionStrategy = require('./model-selection-strategy');
+
 class ProjectStartStrategy extends ModelSelectionStrategy {
   #taskCount = 0;
   #active = true;

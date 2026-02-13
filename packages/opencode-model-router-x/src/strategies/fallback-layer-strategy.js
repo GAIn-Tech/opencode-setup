@@ -5,6 +5,8 @@
  * Each layer corresponds to a provider, with model selection based on task intent.
  */
 
+const ModelSelectionStrategy = require('./model-selection-strategy');
+
 class FallbackLayerStrategy extends ModelSelectionStrategy {
   /**
    * 6-layer provider structure

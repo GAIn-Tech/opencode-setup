@@ -5,6 +5,8 @@
  * Overrides all automatic strategy decisions.
  */
 
+const ModelSelectionStrategy = require('./model-selection-strategy');
+
 class ManualOverrideController extends ModelSelectionStrategy {
   #overrideModel = null;
   #overrideDuration = null;
