@@ -18,7 +18,36 @@ class ModelRouter {
     this.tuning.success_rate_floor = this.tuning.success_rate_floor ?? 0.50;
     this.tuning.success_rate_ceiling = this.tuning.success_rate_ceiling ?? 0.99;
     this.tuning.min_samples_for_tuning = this.tuning.min_samples_for_tuning ?? 5;
-    this.orchestrator = new Orchestrator({ ...this });
+    
+    // Initialize Orchestrator correctly with strategies and global context
+    try {
+      const GlobalModelContext = require('./strategies/global-model-context.js');
+      const FallbackLayerStrategy = require('./strategies/fallback-layer-strategy.js');
+      const ProjectStartStrategy = require('./strategies/project-start-strategy.js');
+      const ManualOverrideController = require('./strategies/manual-override-controller.js');
+      const StuckBugDetector = require('./strategies/stuck-bug-detector.js');
+      const PerspectiveSwitchStrategy = require('./strategies/perspective-switch-strategy.js');
+      const ReversionManager = require('./strategies/reversion-manager.js');
+      
+      const globalContext = new GlobalModelContext();
+      const strategies = [
+        new ManualOverrideController({ globalContext }),
+        new StuckBugDetector({ globalContext }),
+        new PerspectiveSwitchStrategy({ globalContext }),
+        new ReversionManager({ globalContext }),
+        new ProjectStartStrategy({ globalContext }),
+        new FallbackLayerStrategy({ router: this })
+      ];
+      
+      this.orchestrator = new Orchestrator({
+        strategies,
+        globalContext
+      });
+    } catch (error) {
+      console.error('[ModelRouter] Failed to initialize Orchestrator:', error);
+      console.error('[ModelRouter] Falling back to legacy scoring system');
+      this.orchestrator = null;
+    }
   }
 
   /**
