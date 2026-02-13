@@ -282,6 +282,15 @@ class IntegrationLayer {
       };
     }
 
+    // Record outcome in ModelRouter for adaptive routing and key rotation
+    if (this.modelRouter && result.modelId) {
+      this.modelRouter.recordResult(
+        result.modelId,
+        result.success,
+        executionError || (result.success ? (result.latencyMs || 0) : result)
+      );
+    }
+
     // Update quota signal with fallback info from result if present
     if (taskContext.quota_signal) {
       const fallbackApplied = result?.fallbackApplied ?? result?.fallback_applied;
