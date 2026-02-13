@@ -14,15 +14,7 @@
     "@symbioticsec/opencode-security-plugin@0.0.1-beta.9",
     "envsitter-guard@0.0.4",
     "opencode-antigravity-quota@0.1.6",
-    "opencode-pty@0.2.1",
-    "opencode-model-router-x@0.1.0",
-    "opencode-plugin-healthd@0.1.0",
-    "opencode-eval-harness@0.1.0",
-    "opencode-context-governor@0.1.0",
-    "opencode-runbooks@0.1.0",
-    "opencode-proofcheck@0.1.0",
-    "opencode-memory-graph@0.1.0",
-    "opencode-fallback-doctor@0.1.0"
+    "opencode-pty@0.2.1"
   ],
   "provider": {
     "google": {
@@ -85,6 +77,9 @@
     },
     "nvidia": {
       "npm": "@ai-sdk/openai",
+      "options": {
+        "apiKey": "{env:NVIDIA_API_KEYS}"
+      },
       "models": {
         "llama-3.1-405b": {
           "name": "Llama 3.1 405B (NVIDIA)",
@@ -95,6 +90,9 @@
     },
     "groq": {
       "npm": "@ai-sdk/openai",
+      "options": {
+        "apiKey": "{env:GROQ_API_KEYS}"
+      },
       "models": {
         "llama-3.1-70b": {
           "name": "Llama 3.1 70B (Groq)",
@@ -105,6 +103,9 @@
     },
     "cerebras": {
       "npm": "@ai-sdk/openai",
+      "options": {
+        "apiKey": "{env:CEREBRAS_API_KEYS}"
+      },
       "models": {
         "llama-3.1-70b": {
           "name": "Llama 3.1 70B (Cerebras)",
