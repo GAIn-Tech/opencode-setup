@@ -1,0 +1,194 @@
+{
+  "$schema": "tool-tiers-schema",
+  "version": "1.0.0",
+  "description": "Three-tier tool/skill loading manifest for dynamic context management. Tier 0 always loaded, Tier 1 loaded by task classification, Tier 2 on-demand via load_skill.",
+
+  "tier_0": {
+    "description": "Core tools loaded for EVERY prompt. ~7 tools, <500 tokens.",
+    "tools": [
+      "read", "edit", "write", "bash", "grep", "glob",
+      "todowrite", "distill", "prune"
+    ],
+    "skills": [],
+    "mcps": [],
+    "notes": "These are the minimum viable toolset. Never remove from context."
+  },
+
+  "tier_1": {
+    "description": "Task-classified tools loaded via regex pattern matching on the user prompt. ~2-8 additional tools per match.",
+    "categories": {
+      "frontend": {
+        "patterns": ["frontend|css|style|component|react|next\\.?js|tailwind|ui|ux|design|layout|responsive|animation|html|page\\.tsx|modal|button|form|dialog"],
+        "skills": ["frontend-ui-ux", "frontend-design", "playwright"],
+        "mcps": ["websearch"],
+        "tools": ["lsp_diagnostics", "lsp_symbols"],
+        "priority": 1
+      },
+      "git_operations": {
+        "patterns": ["commit|rebase|squash|merge|branch|cherry.?pick|git\\s|blame|bisect|pr\\s|pull.?request|push|stash|diff|log\\s.*commit"],
+        "skills": ["git-master"],
+        "mcps": [],
+        "tools": ["bash"],
+        "priority": 1
+      },
+      "debugging": {
+        "patterns": ["debug|error|crash|fix|bug|broken|fails|exception|stack.?trace|traceback|undefined|null.?ref|type.?error|segfault|panic"],
+        "skills": ["systematic-debugging"],
+        "mcps": [],
+        "tools": ["lsp_diagnostics", "lsp_goto_definition", "lsp_find_references"],
+        "priority": 1
+      },
+      "testing": {
+        "patterns": ["test|spec|jest|vitest|pytest|mocha|coverage|assert|expect|mock|stub|fixture|tdd"],
+        "skills": ["test-driven-development"],
+        "mcps": [],
+        "tools": ["bash", "grep"],
+        "priority": 2
+      },
+      "browser": {
+        "patterns": ["browser|screenshot|scrape|navigate|click|fill.?form|web.?page|playwright|selenium|puppeteer|e2e|end.?to.?end"],
+        "skills": ["playwright", "dev-browser"],
+        "mcps": ["playwright", "websearch"],
+        "tools": [],
+        "priority": 1
+      },
+      "documentation": {
+        "patterns": ["document|readme|docs|jsdoc|typedoc|changelog|api.?doc|write.?up|explain|describe"],
+        "skills": ["writing-plans"],
+        "mcps": ["context7"],
+        "tools": [],
+        "priority": 3
+      },
+      "architecture": {
+        "patterns": ["architect|design.?pattern|refactor|restructure|migrate|modular|decouple|abstract|interface|dependency.?inject|solid|dry"],
+        "skills": ["brainstorming", "writing-plans"],
+        "mcps": ["sequentialthinking"],
+        "tools": ["lsp_symbols", "lsp_find_references", "ast_grep_search"],
+        "priority": 2
+      },
+      "ruby_rails": {
+        "patterns": ["ruby|rails|gem|bundler|rake|rspec|erb|activerecord|migration|\\.rb$"],
+        "skills": ["dhh-rails-style", "andrew-kane-gem-writer"],
+        "mcps": ["context7"],
+        "tools": [],
+        "priority": 2
+      },
+      "ai_ml": {
+        "patterns": ["llm|prompt|token|embedding|vector|rag|fine.?tune|train|model|inference|agent|dspy|langchain|openai|anthropic|gemini"],
+        "skills": ["dspy-ruby", "agent-native-architecture"],
+        "mcps": ["context7", "sequentialthinking"],
+        "tools": [],
+        "priority": 2
+      },
+      "devops_deploy": {
+        "patterns": ["deploy|docker|kubernetes|k8s|ci.?cd|pipeline|terraform|aws|gcp|azure|nginx|ssl|cert|domain|dns|helm|ansible"],
+        "skills": [],
+        "mcps": ["websearch"],
+        "tools": ["bash"],
+        "priority": 2
+      },
+      "code_review": {
+        "patterns": ["review|feedback|pr.?comment|suggestion|approve|request.?changes|nit|lgtm"],
+        "skills": ["receiving-code-review", "requesting-code-review"],
+        "mcps": [],
+        "tools": ["lsp_diagnostics"],
+        "priority": 2
+      },
+      "search_research": {
+        "patterns": ["search|find|look.?up|research|how.?to|best.?practice|example|pattern|library|package|npm|crate|pip"],
+        "skills": [],
+        "mcps": ["context7", "websearch", "grep"],
+        "tools": ["grep", "glob", "ast_grep_search"],
+        "priority": 2
+      },
+      "skill_management": {
+        "patterns": ["skill|create.?skill|edit.?skill|skill\\.md|slash.?command|opencode.?skill"],
+        "skills": ["skill-creator", "create-agent-skills", "writing-skills"],
+        "mcps": [],
+        "tools": [],
+        "priority": 3
+      }
+    }
+  },
+
+  "tier_2": {
+    "description": "On-demand skills invocable via load_skill meta-tool. Listed in system prompt as available but not loaded until requested.",
+    "skills": {
+      "rclone": {
+        "description": "Upload/sync files to cloud storage (S3, R2, GCS, Dropbox)",
+        "trigger_hint": "upload, sync, cloud storage, S3, backup"
+      },
+      "gemini-imagegen": {
+        "description": "Generate/edit images via Gemini API",
+        "trigger_hint": "generate image, edit image, logo, sticker"
+      },
+      "compound-docs": {
+        "description": "Capture solved problems as categorized docs",
+        "trigger_hint": "document solution, capture pattern, knowledge base"
+      },
+      "every-style-editor": {
+        "description": "Review/edit copy for style guide compliance",
+        "trigger_hint": "style guide, copy editing, grammar review"
+      },
+      "orchestrating-swarms": {
+        "description": "Coordinate multi-agent swarms with TeammateTool",
+        "trigger_hint": "multi-agent, swarm, parallel agents, pipeline"
+      },
+      "git-worktree": {
+        "description": "Manage git worktrees for parallel development",
+        "trigger_hint": "worktree, parallel branch, isolated development"
+      },
+      "resolve_pr_parallel": {
+        "description": "Batch-resolve PR comments in parallel",
+        "trigger_hint": "resolve PR comments, batch fix, review feedback"
+      },
+      "file-todos": {
+        "description": "File-based todo tracking in todos/ directory",
+        "trigger_hint": "file todos, track tasks, todo files"
+      },
+      "document-review": {
+        "description": "Refine brainstorm/plan documents",
+        "trigger_hint": "review document, refine plan, improve brainstorm"
+      },
+      "agent-browser": {
+        "description": "Browser automation via Vercel agent-browser CLI",
+        "trigger_hint": "agent browser, vercel browser, alternative playwright"
+      },
+      "finishing-a-development-branch": {
+        "description": "Guide completion of dev work (merge/PR/cleanup)",
+        "trigger_hint": "finish branch, merge options, ship code"
+      },
+      "executing-plans": {
+        "description": "Execute implementation plans with review checkpoints",
+        "trigger_hint": "execute plan, follow plan, implementation steps"
+      },
+      "dispatching-parallel-agents": {
+        "description": "Dispatch 2+ independent tasks to parallel agents",
+        "trigger_hint": "parallel tasks, dispatch agents, concurrent work"
+      },
+      "subagent-driven-development": {
+        "description": "Execute plans with independent tasks via subagents",
+        "trigger_hint": "subagent development, delegated implementation"
+      },
+      "verification-before-completion": {
+        "description": "Verify work before claiming completion",
+        "trigger_hint": "verify, check work, before commit, evidence"
+      },
+      "task-orchestrator": {
+        "description": "Dynamic workflow selection across skills/tools/MCPs",
+        "trigger_hint": "orchestrate, workflow, multi-step, classify task"
+      }
+    }
+  },
+
+  "rl_overrides": {
+    "description": "Tier overrides learned from SkillRL. Managed by EvolutionEngine, not manually edited.",
+    "promotions": {},
+    "demotions": {},
+    "last_updated": null,
+    "min_sessions_for_promotion": 5,
+    "min_sessions_for_demotion": 50,
+    "promotion_threshold": 5,
+    "demotion_usage_rate_threshold": 0.05
+  }
+}
