@@ -3,95 +3,68 @@
   "description": "Policy-based routing rules for OpenCode model selection",
 
   "models": {
-    "anthropic/claude-opus-4-6": {
-      "provider": "anthropic",
-      "tier": "flagship",
-      "base_weight": 0.6,
-      "cost_per_1k_tokens": 0.075,
-      "max_context": 200000,
-      "strengths": ["deep-reasoning", "complex-code", "architecture", "debugging"],
-      "default_success_rate": 0.92
-    },
-    "anthropic/claude-sonnet-4-5": {
-      "provider": "anthropic",
-      "tier": "balanced",
-      "base_weight": 0.6,
-      "cost_per_1k_tokens": 0.015,
-      "max_context": 200000,
-      "strengths": ["general-code", "refactoring", "review", "fast-iteration"],
-      "default_success_rate": 0.88
-    },
-    "anthropic/claude-haiku-4-5": {
-      "provider": "anthropic",
-      "tier": "speed",
-      "base_weight": 0.6,
-      "cost_per_1k_tokens": 0.005,
-      "max_context": 200000,
-      "strengths": ["simple-tasks", "formatting", "linting", "quick-answers"],
-      "default_success_rate": 0.82
-    },
-    "gpt-5": {
+    "openai/moonshotai/kimi-k2.5": {
       "provider": "openai",
       "tier": "flagship",
-      "base_weight": 0.4,
-      "cost_per_1k_tokens": 0.060,
-      "max_context": 128000,
-      "strengths": ["general-reasoning", "code-generation", "math"],
-      "default_success_rate": 0.88
-    },
-    "gemini-2.5-pro": {
-      "provider": "google",
-      "tier": "flagship",
-      "base_weight": 0.4,
-      "cost_per_1k_tokens": 0.035,
-      "max_context": 1000000,
-      "strengths": ["long-context", "multimodal", "code-generation"],
-      "default_success_rate": 0.85
-    },
-    "kimi-k2.5": {
-      "provider": "moonshot",
-      "tier": "balanced",
-      "base_weight": 0.4,
+      "base_weight": 0.6,
       "cost_per_1k_tokens": 0.012,
-      "max_context": 128000,
-      "strengths": ["general-code", "translation", "summarization"],
-      "default_success_rate": 0.80
+      "max_context": 262144,
+      "strengths": ["orchestration", "deep-reasoning", "long-context", "architecture"],
+      "default_success_rate": 0.92
     },
-    "nvidia/llama-3.1-405b": {
-      "provider": "nvidia",
+    "openai/z-ai/glm4.7": {
+      "provider": "openai",
       "tier": "flagship",
-      "base_weight": 0.5,
-      "cost_per_1k_tokens": 0.0,
-      "max_context": 128000,
-      "strengths": ["complex-reasoning", "synthetic-data", "optimization"],
-      "default_success_rate": 0.90
+      "base_weight": 0.58,
+      "cost_per_1k_tokens": 0.014,
+      "max_context": 131072,
+      "strengths": ["code-generation", "debugging", "refactoring", "tool-use"],
+      "default_success_rate": 0.9
     },
-    "cerebras/llama-3.1-70b": {
-      "provider": "cerebras",
+    "openai/stepfun-ai/step-3.5-flash": {
+      "provider": "openai",
       "tier": "speed",
+      "base_weight": 0.54,
+      "cost_per_1k_tokens": 0.006,
+      "max_context": 262144,
+      "strengths": ["fast-iteration", "simple-tasks", "formatting", "summarization"],
+      "default_success_rate": 0.86
+    },
+    "openai/minimaxai/minimax-m2.1": {
+      "provider": "openai",
+      "tier": "balanced",
+      "base_weight": 0.55,
+      "cost_per_1k_tokens": 0.01,
+      "max_context": 204800,
+      "strengths": ["exploration", "alternative-perspective", "analysis", "planning"],
+      "default_success_rate": 0.87
+    },
+    "openai/nvidia/nemotron-3-nano-30b-a3b": {
+      "provider": "openai",
+      "tier": "balanced",
+      "base_weight": 0.53,
+      "cost_per_1k_tokens": 0.004,
+      "max_context": 1048576,
+      "strengths": ["long-context", "reasoning", "cost-efficiency", "fallback"],
+      "default_success_rate": 0.84
+    },
+    "openai/moonshotai/kimi-k2": {
+      "provider": "openai",
+      "tier": "balanced",
       "base_weight": 0.5,
-      "cost_per_1k_tokens": 0.0,
-      "max_context": 8192,
-      "strengths": ["extreme-speed", "simple-tasks", "extraction"],
+      "cost_per_1k_tokens": 0.009,
+      "max_context": 131072,
+      "strengths": ["general-code", "orchestration", "translation", "summarization"],
       "default_success_rate": 0.85
     },
-    "sambanova/llama-3.1-405b": {
-      "provider": "sambanova",
-      "tier": "flagship",
-      "base_weight": 0.5,
-      "cost_per_1k_tokens": 0.0,
-      "max_context": 128000,
-      "strengths": ["complex-logic", "reasoning"],
-      "default_success_rate": 0.88
-    },
-    "groq/llama-3.1-70b": {
-      "provider": "groq",
+    "openai/meta/llama-3.1-70b-instruct": {
+      "provider": "openai",
       "tier": "speed",
-      "base_weight": 0.5,
-      "cost_per_1k_tokens": 0.0,
+      "base_weight": 0.48,
+      "cost_per_1k_tokens": 0.003,
       "max_context": 128000,
-      "strengths": ["reliability", "low-latency", "tool-use"],
-      "default_success_rate": 0.88
+      "strengths": ["quick-answers", "simple-tasks", "extraction", "fallback"],
+      "default_success_rate": 0.82
     }
   },
 
@@ -109,22 +82,22 @@
     "simple": {
       "description": "Mechanical tasks, formatting, linting",
       "cost_tier": "mechanical",
-      "model_preference": ["anthropic/claude-haiku-4-5", "kimi-k2.5", "anthropic/claude-sonnet-4-5"]
+      "model_preference": ["openai/stepfun-ai/step-3.5-flash", "openai/meta/llama-3.1-70b-instruct", "openai/nvidia/nemotron-3-nano-30b-a3b"]
     },
     "moderate": {
       "description": "Standard code tasks, tests, small features",
       "cost_tier": "low",
-      "model_preference": ["anthropic/claude-sonnet-4-5", "kimi-k2.5", "gemini-2.5-pro"]
+      "model_preference": ["openai/z-ai/glm4.7", "openai/minimaxai/minimax-m2.1", "openai/moonshotai/kimi-k2"]
     },
     "high": {
       "description": "Complex features, multi-file refactors",
       "cost_tier": "high",
-      "model_preference": ["anthropic/claude-opus-4-6", "gpt-5", "gemini-2.5-pro"]
+      "model_preference": ["openai/moonshotai/kimi-k2.5", "openai/z-ai/glm4.7", "openai/minimaxai/minimax-m2.1"]
     },
     "critical": {
       "description": "Architecture decisions, security, production issues",
       "cost_tier": "critical",
-      "model_preference": ["anthropic/claude-opus-4-6", "gpt-5", "anthropic/claude-sonnet-4-5"]
+      "model_preference": ["openai/moonshotai/kimi-k2.5", "openai/z-ai/glm4.7", "openai/nvidia/nemotron-3-nano-30b-a3b"]
     }
   },
 
