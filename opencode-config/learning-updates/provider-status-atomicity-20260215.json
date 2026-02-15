@@ -1,0 +1,15 @@
+{
+  "id": "provider-status-atomicity-20260215",
+  "timestamp": "2026-02-15T20:15:00Z",
+  "summary": "Fixed provider-status.json write to use atomic temp-file pattern, preventing corruption on mid-write interruption.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/lib/provider-status-store.ts"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "pass",
+    "typecheck": "pass"
+  },
+  "risk_level": "low",
+  "notes": "Write renamed from tmp to target via fs.renameSync() which is atomic on modern filesystems."
+}
