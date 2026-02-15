@@ -47,3 +47,19 @@ state/
 # OpenCode runtime files
 .opencode/
 bun.lockb
+
+# Next.js build artifacts
+.next/
+out/
+next-env.d.ts
+
+# Build directories
+dist/
+build/
+
+# TypeScript incremental builds
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# npm lockfile (we use bun)
+package-lock.json
