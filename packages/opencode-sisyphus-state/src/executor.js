@@ -40,7 +40,7 @@ class WorkflowExecutor {
       return;
     }
 
-    // Parallel Execution Logic
+    // Parallel Execution Logic with concurrency limits to prevent OOM
     if (step.type === 'parallel-for') {
       const listPath = step.foreach.replace(/^\${|}$/g, '');
       const list = listPath.split('.').reduce((obj, key) => obj?.[key], context) || [];
@@ -52,17 +52,25 @@ class WorkflowExecutor {
       this.store.upsertStep(runId, step.id, 'running', null);
       this.store.logEvent(runId, 'step_started', { stepId: step.id, type: 'parallel-for', count: list.length });
 
+      // Concurrency limit to prevent memory exhaustion (default 5, configurable via step.concurrency)
+      const concurrencyLimit = step.concurrency ?? 5;
+
       try {
-        await Promise.all(list.map(async (item, index) => {
-          const childStep = {
-            ...step.substep,
-            id: `${step.id}:${index}`,
-            input: { ...step.input, item }
-          };
-          // Use isolated context for child step to prevent race conditions
-          const childContext = { ...context, item };
-          await this.executeStepWithCheckpoint(runId, childStep, childContext);
-        }));
+        // Process in batches with concurrency control
+        for (let i = 0; i < list.length; i += concurrencyLimit) {
+          const batch = list.slice(i, i + concurrencyLimit);
+          await Promise.all(batch.map(async (item, batchIndex) => {
+            const index = i + batchIndex;
+            const childStep = {
+              ...step.substep,
+              id: `${step.id}:${index}`,
+              input: { ...step.input, item }
+            };
+            // Use isolated context for child step to prevent race conditions
+            const childContext = { ...context, item };
+            await this.executeStepWithCheckpoint(runId, childStep, childContext);
+          }));
+        }
 
         this.store.upsertStep(runId, step.id, 'completed', { count: list.length });
         this.store.logEvent(runId, 'step_completed', { stepId: step.id });

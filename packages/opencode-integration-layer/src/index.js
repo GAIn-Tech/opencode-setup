@@ -6,12 +6,24 @@
  * - SkillRL → Learning Engine (failure distillation)
  * - Showboat → Proofcheck (evidence capture)
  */
-const {
-  createOrchestrationId,
-  pickSessionId,
-  normalizeQuotaSignal,
-  getQuotaSignal,
-} = require('../../opencode-shared-orchestration/src/context-utils');
+let contextUtils;
+try {
+  contextUtils = require('@jackoatmon/opencode-shared-orchestration/src/context-utils');
+} catch {
+  // Fallback for non-linked environments (development without bun link)
+  try {
+    contextUtils = require('../../opencode-shared-orchestration/src/context-utils');
+  } catch (e) {
+    console.warn('[IntegrationLayer] opencode-shared-orchestration not found. Context utilities unavailable.');
+    contextUtils = {
+      createOrchestrationId: () => `orch_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      pickSessionId: (...args) => args.find(Boolean) || null,
+      normalizeQuotaSignal: (s) => s || {},
+      getQuotaSignal: () => ({}),
+    };
+  }
+}
+const { createOrchestrationId, pickSessionId, normalizeQuotaSignal, getQuotaSignal } = contextUtils;
 
 class IntegrationLayer {
   constructor(config = {}) {
@@ -20,8 +32,48 @@ class IntegrationLayer {
     this.quotaManager = config.quotaManager || null;
     this.advisor = config.advisor || config.orchestrationAdvisor || null;
     this.modelRouter = config.modelRouter || config.ModelRouter || null;
+    this.preloadSkills = config.preloadSkills || null;
     this.currentTaskContext = null;
     this.currentSessionId = config.currentSessionId || config.sessionId || null;
+  }
+
+  /**
+   * Select tools for a task using the tiered preload system.
+   * Returns the tool selection result or null if preload-skills unavailable.
+   */
+  selectToolsForTask(taskContext) {
+    if (!this.preloadSkills) return null;
+    try {
+      return this.preloadSkills.selectTools(taskContext);
+    } catch (err) {
+      console.warn('[IntegrationLayer] preload-skills selectTools failed:', err.message);
+      return null;
+    }
+  }
+
+  /**
+   * Load an on-demand (Tier 2) skill mid-conversation.
+   */
+  loadOnDemandSkill(skillName, taskType) {
+    if (!this.preloadSkills) return null;
+    try {
+      return this.preloadSkills.loadOnDemand(skillName, taskType);
+    } catch (err) {
+      console.warn('[IntegrationLayer] on-demand skill load failed:', err.message);
+      return null;
+    }
+  }
+
+  /**
+   * Record tool usage after task execution for tier promotion/demotion feedback.
+   */
+  recordToolUsage(usedTools, taskType) {
+    if (!this.preloadSkills) return;
+    try {
+      this.preloadSkills.recordUsage(usedTools, taskType);
+    } catch (err) {
+      console.warn('[IntegrationLayer] recordToolUsage failed:', err.message);
+    }
   }
 
   /**

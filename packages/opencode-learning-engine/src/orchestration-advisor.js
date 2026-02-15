@@ -9,7 +9,25 @@
 
 const { AntiPatternCatalog } = require('./anti-patterns');
 const { PositivePatternTracker } = require('./positive-patterns');
-const { createOrchestrationId, getQuotaSignal } = require('../../opencode-shared-orchestration/src/context-utils');
+// Graceful fallback chain: scoped package → relative path → inline stubs
+let contextUtils;
+try {
+  contextUtils = require('@jackoatmon/opencode-shared-orchestration/src/context-utils');
+} catch {
+  try {
+    contextUtils = require('../../opencode-shared-orchestration/src/context-utils');
+  } catch {
+    console.warn('[OrchestrationAdvisor] opencode-shared-orchestration not found — using inline stubs.');
+    contextUtils = {
+      createOrchestrationId: (prefix = 'orch') => `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      getQuotaSignal: (ctx) => ({
+        percent_used: ctx?.quota_signal?.percent_used ?? 0,
+        fallback_applied: ctx?.quota_signal?.fallback_applied ?? false,
+      }),
+    };
+  }
+}
+const { createOrchestrationId, getQuotaSignal } = contextUtils;
 
 // Agent routing knowledge
 const AGENT_CAPABILITIES = {

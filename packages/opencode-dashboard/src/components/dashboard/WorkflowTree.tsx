@@ -9,7 +9,7 @@ interface Step {
   updated_at: string;
 }
 
-export const WorkflowTree: React.FC<{ steps: Step[] }> = ({ steps }) => {
+export const WorkflowTree: React.FC<{ steps?: Step[] }> = ({ steps = [] }) => {
   // Simple flat list for now, we can add tree hierarchy later based on step_id pattern
   return (
     <div className="space-y-2">

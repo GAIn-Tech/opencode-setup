@@ -9,7 +9,7 @@ interface AuditEvent {
   timestamp: string;
 }
 
-export const EvidenceViewer: React.FC<{ events: AuditEvent[] }> = ({ events }) => {
+export const EvidenceViewer: React.FC<{ events?: AuditEvent[] }> = ({ events = [] }) => {
   return (
     <div className="space-y-2">
       <h2 className="text-xl font-semibold mb-4 text-gray-800">Execution Timeline (Evidence)</h2>

@@ -4,6 +4,121 @@
 
 ---
 
+## 🔐 Environment Variables & API Keys
+
+OpenCode expects **provider API keys** to be passed in one of two ways:
+
+1. **`/connect` command** — Keys are stored in `~/.local/share/opencode/auth.json` (recommended for single-key use).
+2. **Environment variables** — For automation, CI, or multi-key rotation, set env vars and reference them in config.
+
+### Config schema (opencode.json)
+
+**Important:** `opencode.json` must be **strict JSON**. Do not use comments (`#` or `//`) — the OpenCode config parser does not accept them and will report "Config file ... is not valid JSON(C)". Use env substitution for secrets (see below).
+
+The official schema allows `apiKey` only under **`provider.<name>.options`**, not at the provider root. Use env substitution like this:
+
+```json
+"provider": {
+  "nvidia": {
+    "npm": "@ai-sdk/openai",
+    "options": {
+      "apiKey": "{env:NVIDIA_API_KEYS}"
+    },
+    "models": { ... }
+  },
+  "groq": {
+    "options": {
+      "apiKey": "{env:GROQ_API_KEYS}"
+    },
+    ...
+  },
+  "cerebras": {
+    "options": {
+      "apiKey": "{env:CEREBRAS_API_KEYS}"
+    },
+    ...
+  }
+}
+```
+
+- **Wrong:** `"provider": { "nvidia": { "apiKey": "..." } }` → causes *Unrecognized key: "apiKey"*.
+- **Right:** `"provider": { "nvidia": { "options": { "apiKey": "{env:NVIDIA_API_KEYS}" } } }`.
+
+### Env var names
+
+| Provider  | Env var (single key) | Env var (multi-key rotation) |
+|----------|------------------------|-------------------------------|
+| NVIDIA   | `NVIDIA_API_KEY`       | `NVIDIA_API_KEYS` (comma-separated) |
+| Groq     | `GROQ_API_KEY`         | `GROQ_API_KEYS` |
+| Cerebras | `CEREBRAS_API_KEY`     | `CEREBRAS_API_KEYS` |
+
+The **opencode-model-router-x** plugin reads `*_API_KEYS` (or `*_API_KEY`) from `process.env` for key rotation; OpenCode itself uses the value from config (after resolving `{env:...}`). Set the same vars so both paths work.
+
+### Config precedence
+
+Config is merged in this order (later overrides earlier): remote → `~/.config/opencode/opencode.json` → `OPENCODE_CONFIG` → project `opencode.json` → `OPENCODE_CONFIG_CONTENT`. Ensure API key env vars are set in the environment where `opencode` runs (e.g. shell profile or `.env`).
+
+---
+
+## 📁 Config Architecture: Repo Template vs Live Config
+
+This repo contains **two places** where OpenCode config files appear. They serve different purposes and both should exist.
+
+### Repo template: `opencode-config/`
+
+The `opencode-config/` directory in this git repo is the **shareable, secret-free template**. All API keys use `{env:...}` placeholders instead of hardcoded values. This is what you commit, push, and use to set up new machines.
+
+### Live runtime: `~/.config/opencode/`
+
+The `~/.config/opencode/` directory (on Windows: `%USERPROFILE%\.config\opencode\`) is the **live runtime config** that OpenCode actually reads. It is initially populated by copying from the repo template via `setup.sh` or `setup.ps1`. It also accumulates runtime artifacts that should never go into the repo.
+
+### Which files are shared vs exclusive
+
+| File | In repo template | In live config | Notes |
+|------|:---:|:---:|-------|
+| `opencode.json` | Yes | Yes | Main config (plugins, providers, commands, MCP, permissions) |
+| `antigravity.json` | Yes | Yes | Account rotation settings |
+| `oh-my-opencode.json` | Yes | Yes | Agent model overrides |
+| `compound-engineering.json` | Yes | Yes | Skills registry |
+| `supermemory.json` | Yes | Yes | Memory plugin config |
+| `rate-limit-fallback.json` | Yes | Yes | Fallback chain and retry policy |
+| `config.yaml` | Yes | -- | Goes to `~/.opencode/`, not `~/.config/opencode/` |
+| `learning-update-policy.json` | Yes | -- | Repo governance, not runtime config |
+| `deployment-state.json` | Yes | -- | Repo governance |
+| `learning-updates/*.json` | Yes | -- | Governance records |
+| `antigravity-accounts.json` | -- | Yes | OAuth tokens (sensitive, runtime-only) |
+| `package.json`, `bun.lock` | -- | Yes | Plugin install artifacts |
+| `skills/`, `commands/` | -- | Yes | Runtime-generated directories |
+
+### Keeping them in sync
+
+The 6 shared files above should stay in sync. When you edit config locally, sync back to the repo so future setups inherit the change. When you update the repo template, push to live so the running instance picks it up.
+
+**PowerShell** (after sourcing `set-env.ps1`):
+```powershell
+Sync-OpenCodeConfig            # check for drift (no changes)
+Sync-OpenCodeConfig -Push      # repo -> live  (use repo as source of truth)
+Sync-OpenCodeConfig -Pull      # live -> repo  (use live as source of truth)
+```
+
+**Bash / manual:**
+```bash
+# Check differences
+diff ~/.config/opencode/opencode.json ~/opencode-setup/opencode-config/opencode.json
+
+# Sync local -> template (recommended after local edits)
+cp ~/.config/opencode/*.json ~/opencode-setup/opencode-config/
+
+# Sync template -> local (after pulling repo updates)
+cp ~/opencode-setup/opencode-config/*.json ~/.config/opencode/
+```
+
+### Common pitfall
+
+Never put `#` or `//` comments in any `.json` config file. OpenCode uses strict JSON parsing and will report "Config file ... is not valid JSON(C)". Use `{env:VAR_NAME}` for secrets and keep actual keys in your `.env` file or shell profile.
+
+---
+
 ## 📦 Custom Packages Integration
 
 ### 1. **opencode-context-governor** (Token Budget Management)

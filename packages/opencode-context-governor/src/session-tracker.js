@@ -135,6 +135,44 @@ class SessionTracker {
   }
 
   /**
+   * Cleanup stale sessions older than TTL.
+   * 
+   * MEMORY OPTIMIZATION: Prevents unbounded session Map growth by removing
+   * inactive sessions after a configurable time-to-live period.
+   *
+   * @param {number} [ttlMs=24*60*60*1000]  Time-to-live in milliseconds (default 24 hours).
+   * @returns {number} Number of sessions removed.
+   */
+  cleanupStaleSessions(ttlMs = 24 * 60 * 60 * 1000) {
+    const now = Date.now();
+    const sessionIds = Array.from(this._sessions.keys());
+    let removed = 0;
+
+    for (const sessionId of sessionIds) {
+      // Extract timestamp from session ID (format: ses_XXXXXXXX where X is hex timestamp)
+      // If session ID doesn't match expected format, skip cleanup for that session
+      const match = sessionId.match(/^ses_([0-9a-f]+)/);
+      if (!match) continue;
+
+      try {
+        const sessionTimestamp = parseInt(match[1], 16);
+        if (isNaN(sessionTimestamp)) continue;
+
+        // If session is older than TTL, remove it
+        if (now - sessionTimestamp > ttlMs) {
+          this._sessions.delete(sessionId);
+          removed++;
+        }
+      } catch {
+        // Skip invalid session IDs
+        continue;
+      }
+    }
+
+    return removed;
+  }
+
+  /**
    * Reset token count for a specific session+model (or entire session).
    * @param {string} sessionId
    * @param {string} [model]  – if omitted, resets ALL models for this session

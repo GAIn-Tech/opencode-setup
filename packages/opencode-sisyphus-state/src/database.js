@@ -74,6 +74,37 @@ class WorkflowStore {
 
     // Run migrations
     this.runMigrations();
+
+    // Setup periodic WAL checkpoint to prevent unbounded growth (every 10 minutes)
+    this._setupWALCheckpoint();
+  }
+
+  /**
+   * Setup periodic WAL checkpoint to prevent unbounded WAL file growth.
+   * 
+   * MEMORY/DISK OPTIMIZATION: SQLite WAL mode can grow WAL files to GB+ sizes
+   * without periodic checkpoints. This truncates the WAL after syncing to main DB.
+   */
+  _setupWALCheckpoint() {
+    // Immediate checkpoint on init
+    this._checkpointWAL();
+
+    // Periodic checkpoint every 10 minutes
+    this._walCheckpointInterval = setInterval(() => {
+      this._checkpointWAL();
+    }, 10 * 60 * 1000); // 10 minutes
+  }
+
+  _checkpointWAL() {
+    try {
+      if (isBun) {
+        this.db.exec('PRAGMA wal_checkpoint(TRUNCATE)');
+      } else {
+        this.db.pragma('wal_checkpoint(TRUNCATE)');
+      }
+    } catch (e) {
+      console.error('[WorkflowStore] WAL checkpoint failed:', e.message);
+    }
   }
 
   runMigrations() {
@@ -155,6 +186,14 @@ class WorkflowStore {
   }
 
   close() {
+    // Clear WAL checkpoint interval before closing
+    if (this._walCheckpointInterval) {
+      clearInterval(this._walCheckpointInterval);
+    }
+    
+    // Final checkpoint before close
+    this._checkpointWAL();
+    
     this.db.close();
   }
 }

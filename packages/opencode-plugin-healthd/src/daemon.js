@@ -21,6 +21,42 @@ function ensureDir(dir) {
   }
 }
 
+// --- Log Rotation ---
+
+const MAX_LOG_SIZE_MB = 10;
+const MAX_LOG_FILES = 5;
+
+function rotateLogs() {
+  try {
+    if (!fs.existsSync(LOG_FILE)) return;
+
+    const stats = fs.statSync(LOG_FILE);
+    const sizeMB = stats.size / (1024 * 1024);
+
+    // Only rotate if exceeds max size
+    if (sizeMB < MAX_LOG_SIZE_MB) return;
+
+    // Rotate existing logs (healthd.log.4 -> healthd.log.5, healthd.log.3 -> healthd.log.4, etc.)
+    for (let i = MAX_LOG_FILES - 1; i >= 1; i--) {
+      const oldFile = `${LOG_FILE}.${i}`;
+      const newFile = `${LOG_FILE}.${i + 1}`;
+      
+      if (fs.existsSync(oldFile)) {
+        if (i === MAX_LOG_FILES - 1) {
+          fs.unlinkSync(oldFile); // Delete oldest
+        } else {
+          fs.renameSync(oldFile, newFile);
+        }
+      }
+    }
+
+    // Rotate current log to .1
+    fs.renameSync(LOG_FILE, `${LOG_FILE}.1`);
+  } catch (err) {
+    process.stderr.write(`[ERROR] Log rotation failed: ${err.message}\n`);
+  }
+}
+
 // --- Logging ---
 
 function log(level, message, data) {
@@ -36,8 +72,9 @@ function log(level, message, data) {
     process.stdout.write(line + '\n');
   }
 
-  // File output (append)
+  // File output (append) with rotation check
   try {
+    rotateLogs(); // Check and rotate before appending
     fs.appendFileSync(LOG_FILE, line + '\n', 'utf8');
   } catch (err) {
     process.stderr.write(`[${ts}] [ERROR] Failed to write log: ${err.message}\n`);

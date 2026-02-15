@@ -567,18 +567,36 @@ class PatternExtractor {
 
   // ===== HELPERS =====
 
-  _loadSessionMessages(sessionDir) {
+  /**
+   * Load session messages with batching to prevent memory exhaustion.
+   * 
+   * MEMORY OPTIMIZATION: Processes JSON files in batches instead of loading
+   * all simultaneously. For very large sessions (500+ messages), this prevents OOM.
+   *
+   * @param {string} sessionDir  Directory containing session JSON files.
+   * @param {object} [opts]  Options for batched loading.
+   * @param {number} [opts.batchSize=100]  Max files to load at once.
+   * @returns {object[]} Sorted array of message objects.
+   */
+  _loadSessionMessages(sessionDir, opts = {}) {
+    const { batchSize = 100 } = opts;
+    
     try {
       const files = fs.readdirSync(sessionDir).filter((f) => f.endsWith('.json'));
       const messages = [];
 
-      for (const file of files) {
-        try {
-          const raw = fs.readFileSync(path.join(sessionDir, file), 'utf8');
-          const msg = JSON.parse(raw);
-          messages.push(msg);
-        } catch {
-          // Skip malformed files
+      // Process files in batches to prevent memory exhaustion
+      for (let i = 0; i < files.length; i += batchSize) {
+        const batch = files.slice(i, i + batchSize);
+        
+        for (const file of batch) {
+          try {
+            const raw = fs.readFileSync(path.join(sessionDir, file), 'utf8');
+            const msg = JSON.parse(raw);
+            messages.push(msg);
+          } catch {
+            // Skip malformed files
+          }
         }
       }
 

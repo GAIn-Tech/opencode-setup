@@ -102,7 +102,23 @@ function parseLogs(sources) {
  * @param {GoraphdbBridge | null} bridge  Bridge instance for syncing to goraphdb (optional).
  * @returns {Promise<{ nodes: object[], edges: object[], meta: object }>}
  */
-async function buildGraphWithBridge(entries, bridge) {
+/**
+ * Build error knowledge graph from session entries with memory-safe Map limits.
+ * 
+ * MEMORY OPTIMIZATION: Limits Map growth with LRU eviction to prevent unbounded memory
+ * consumption when processing thousands of sessions. Old/inactive entries are evicted.
+ *
+ * @param {object[]} entries  Array of { session_id, timestamp, error_type, message }.
+ * @param {object | null} bridge  Bridge instance for syncing to goraphdb (optional).
+ * @param {object} [opts]  Options for graph building.
+ * @param {number} [opts.maxSessions=1000]  Max session nodes before LRU eviction.
+ * @param {number} [opts.maxErrors=500]  Max error type nodes before LRU eviction.
+ * @param {number} [opts.maxEdges=5000]  Max edges before LRU eviction.
+ * @returns {Promise<{ nodes: object[], edges: object[], meta: object }>}
+ */
+async function buildGraphWithBridge(entries, bridge, opts = {}) {
+  const { maxSessions = 1000, maxErrors = 500, maxEdges = 5000 } = opts;
+  
   if (!Array.isArray(entries) || entries.length === 0) {
     return { nodes: [], edges: [], meta: { sessions: 0, errors: 0, total_entries: 0 } };
   }
@@ -117,27 +133,46 @@ async function buildGraphWithBridge(entries, bridge) {
 
     const ts = timestamp || new Date().toISOString();
 
-    // Session node
+    // Session node (with LRU eviction)
     if (!sessionMap.has(session_id)) {
+      // Evict oldest session if at capacity (LRU = first entry in Map)
+      if (sessionMap.size >= maxSessions) {
+        const firstKey = sessionMap.keys().next().value;
+        sessionMap.delete(firstKey);
+      }
       sessionMap.set(session_id, { first_seen: ts, last_seen: ts, error_count: 0 });
     }
     const sess = sessionMap.get(session_id);
     sess.last_seen = ts > sess.last_seen ? ts : sess.last_seen;
     sess.first_seen = ts < sess.first_seen ? ts : sess.first_seen;
     sess.error_count += 1;
+    // Move to end for LRU (delete + re-set)
+    sessionMap.delete(session_id);
+    sessionMap.set(session_id, sess);
 
-    // Error node
+    // Error node (with LRU eviction)
     if (!errorMap.has(error_type)) {
+      if (errorMap.size >= maxErrors) {
+        const firstKey = errorMap.keys().next().value;
+        errorMap.delete(firstKey);
+      }
       errorMap.set(error_type, { count: 0, first_seen: ts, last_seen: ts });
     }
     const err = errorMap.get(error_type);
     err.count += 1;
     err.last_seen = ts > err.last_seen ? ts : err.last_seen;
     err.first_seen = ts < err.first_seen ? ts : err.first_seen;
+    // Move to end for LRU
+    errorMap.delete(error_type);
+    errorMap.set(error_type, err);
 
-    // Edge
+    // Edge (with LRU eviction)
     const edgeKey = `${session_id}::${error_type}`;
     if (!edgeMap.has(edgeKey)) {
+      if (edgeMap.size >= maxEdges) {
+        const firstKey = edgeMap.keys().next().value;
+        edgeMap.delete(firstKey);
+      }
       edgeMap.set(edgeKey, { weight: 0, first_seen: ts, last_seen: ts, messages: [] });
     }
     const edge = edgeMap.get(edgeKey);
@@ -147,6 +182,9 @@ async function buildGraphWithBridge(entries, bridge) {
     if (message && edge.messages.length < 5) {
       edge.messages.push(message);
     }
+    // Move to end for LRU
+    edgeMap.delete(edgeKey);
+    edgeMap.set(edgeKey, edge);
   }
 
   // Sync to goraphdb if bridge is available

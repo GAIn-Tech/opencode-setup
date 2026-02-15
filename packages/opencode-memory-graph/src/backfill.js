@@ -76,7 +76,20 @@ class BackfillEngine {
    * @param {string} [logsDir]  Override default logs directory.
    * @returns {Promise<{ sessions_processed: number, errors_found: number, edges_created: number, tools_detected: number, entries: object[] }>}
    */
-  async backfillFromLogs(logsDir) {
+  /**
+   * Backfill graph from OpenCode session logs directory.
+   * 
+   * MEMORY OPTIMIZATION: Processes sessions in batches and syncs to graph
+   * incrementally to prevent memory exhaustion on large log directories.
+   *
+   * @param {string} [logsDir]  Override default logs directory.
+   * @param {object} [opts]  Options for backfill processing.
+   * @param {number} [opts.batchSize=10]  Number of sessions to process per batch.
+   * @param {boolean} [opts.streamToGraph=true]  Sync entries to graph after each batch (frees memory).
+   * @returns {Promise<{ sessions_processed: number, errors_found: number, edges_created: number, tools_detected: number, entries: object[] }>}
+   */
+  async backfillFromLogs(logsDir, opts = {}) {
+    const { batchSize = 10, streamToGraph = true } = opts;
     const dir = logsDir || path.join(os.homedir(), '.opencode', 'messages');
 
     if (!fs.existsSync(dir)) {
@@ -88,27 +101,43 @@ class BackfillEngine {
       return fs.statSync(fullPath).isDirectory() && name.startsWith('ses_');
     });
 
-    const allEntries = [];
     const edgeKeys = new Set();
     let errorsFound = 0;
     let toolsDetected = 0;
+    
+    // Only accumulate entries if NOT streaming to graph (for backward compat)
+    const finalEntries = streamToGraph ? [] : [];
 
-    for (const sessionDir of sessionDirs) {
-      const sessionPath = path.join(dir, sessionDir);
-      const result = this._processSession(sessionPath, sessionDir);
-      allEntries.push(...result.entries);
-      errorsFound += result.errorsFound;
-      toolsDetected += result.toolsDetected;
+    // Process sessions in batches to prevent memory exhaustion
+    for (let i = 0; i < sessionDirs.length; i += batchSize) {
+      const batch = sessionDirs.slice(i, i + batchSize);
+      const batchEntries = [];
+
+      for (const sessionDir of batch) {
+        const sessionPath = path.join(dir, sessionDir);
+        const result = this._processSession(sessionPath, sessionDir);
+        batchEntries.push(...result.entries);
+        errorsFound += result.errorsFound;
+        toolsDetected += result.toolsDetected;
+      }
+
+      // Count unique edges from this batch
+      for (const entry of batchEntries) {
+        edgeKeys.add(`${entry.session_id}::${entry.error_type}`);
+      }
+
+      // Stream batch to goraphdb if bridge available (frees memory after each batch)
+      if (this._bridge && batchEntries.length > 0 && streamToGraph) {
+        await this._syncToGraph(batchEntries, edgeKeys);
+        // batchEntries will be GC'd after this iteration
+      } else if (!streamToGraph) {
+        finalEntries.push(...batchEntries);
+      }
     }
 
-    // Sync to goraphdb if bridge available
-    if (this._bridge && allEntries.length > 0) {
-      await this._syncToGraph(allEntries, edgeKeys);
-    }
-
-    // Count unique edges
-    for (const entry of allEntries) {
-      edgeKeys.add(`${entry.session_id}::${entry.error_type}`);
+    // If not streaming, sync all at once (legacy behavior)
+    if (this._bridge && finalEntries.length > 0 && !streamToGraph) {
+      await this._syncToGraph(finalEntries, edgeKeys);
     }
 
     return {
@@ -116,7 +145,7 @@ class BackfillEngine {
       errors_found: errorsFound,
       edges_created: edgeKeys.size,
       tools_detected: toolsDetected,
-      entries: allEntries,
+      entries: streamToGraph ? [] : finalEntries, // Empty array when streaming (already persisted)
     };
   }
 

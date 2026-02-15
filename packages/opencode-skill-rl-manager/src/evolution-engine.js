@@ -366,6 +366,58 @@ class EvolutionEngine {
   }
 
   /**
+   * Generate tier feedback based on failure/success patterns
+   * Used by PreloadSkillsPlugin to adjust tool tiers over time
+   * 
+   * @param {Object} usageStats - { skillName: { loads: N, taskTypes: Set, onDemand: N } }
+   * @returns {Object} { promotions: [{skill, taskType, reason}], demotions: [{skill, reason}] }
+   */
+  generateTierFeedback(usageStats = {}) {
+    const promotions = [];
+    const demotions = [];
+
+    for (const [skillName, stats] of Object.entries(usageStats)) {
+      // Promote: on-demand loaded 5+ times for a specific task type
+      if (stats.onDemandLoads >= 5 && stats.taskTypes) {
+        for (const taskType of (stats.taskTypes instanceof Set ? [...stats.taskTypes] : stats.taskTypes)) {
+          promotions.push({
+            skill: skillName,
+            taskType,
+            reason: `Loaded on-demand ${stats.onDemandLoads} times for ${taskType} tasks`
+          });
+        }
+      }
+
+      // Demote: loaded but rarely used (<5% usage rate over 50+ sessions)
+      if (stats.totalSessions >= 50 && stats.usageRate < 0.05) {
+        demotions.push({
+          skill: skillName,
+          reason: `Usage rate ${(stats.usageRate * 100).toFixed(1)}% over ${stats.totalSessions} sessions`
+        });
+      }
+    }
+
+    // Cross-reference with failure history: skills involved in repeated failures get demotion signal
+    const failureCounts = {};
+    for (const failure of this.failureHistory.slice(-100)) {
+      for (const skill of (failure.skills_used || [])) {
+        failureCounts[skill] = (failureCounts[skill] || 0) + 1;
+      }
+    }
+
+    for (const [skill, count] of Object.entries(failureCounts)) {
+      if (count >= 10 && !demotions.find(d => d.skill === skill)) {
+        demotions.push({
+          skill,
+          reason: `Involved in ${count} failures in last 100 tasks`
+        });
+      }
+    }
+
+    return { promotions, demotions };
+  }
+
+  /**
    * Export evolution history (for persistence)
    */
   export() {

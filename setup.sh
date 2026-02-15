@@ -40,7 +40,7 @@ echo ""
 # Install local git hooks for governance
 if [ -d .git ]; then
   echo "Installing local git hooks..."
-  bash scripts/install-git-hooks.sh
+  node scripts/install-git-hooks.mjs
   echo "✓ Git hooks installed"
   echo ""
 fi
@@ -59,12 +59,30 @@ mkdir -p ~/.config/opencode
 mkdir -p ~/.opencode
 
 if [ -d opencode-config ]; then
+  # Core configs → ~/.config/opencode/
   [ -f opencode-config/opencode.json ] && cp opencode-config/opencode.json ~/.config/opencode/opencode.json && echo "  ✓ opencode.json"
   [ -f opencode-config/antigravity.json ] && cp opencode-config/antigravity.json ~/.config/opencode/antigravity.json && echo "  ✓ antigravity.json"
   [ -f opencode-config/oh-my-opencode.json ] && cp opencode-config/oh-my-opencode.json ~/.config/opencode/oh-my-opencode.json && echo "  ✓ oh-my-opencode.json"
   [ -f opencode-config/compound-engineering.json ] && cp opencode-config/compound-engineering.json ~/.config/opencode/compound-engineering.json && echo "  ✓ compound-engineering.json"
+  [ -f opencode-config/rate-limit-fallback.json ] && cp opencode-config/rate-limit-fallback.json ~/.config/opencode/rate-limit-fallback.json && echo "  ✓ rate-limit-fallback.json"
+  [ -f opencode-config/deployment-state.json ] && cp opencode-config/deployment-state.json ~/.config/opencode/deployment-state.json && echo "  ✓ deployment-state.json"
+  [ -f opencode-config/learning-update-policy.json ] && cp opencode-config/learning-update-policy.json ~/.config/opencode/learning-update-policy.json && echo "  ✓ learning-update-policy.json"
+  [ -f opencode-config/supermemory.json ] && cp opencode-config/supermemory.json ~/.config/opencode/supermemory.json && echo "  ✓ supermemory.json"
+  [ -f opencode-config/tool-tiers.json ] && cp opencode-config/tool-tiers.json ~/.config/opencode/tool-tiers.json && echo "  ✓ tool-tiers.json"
+  # Learning updates directory
+  if [ -d opencode-config/learning-updates ]; then
+    mkdir -p ~/.config/opencode/learning-updates
+    cp -r opencode-config/learning-updates/* ~/.config/opencode/learning-updates/ 2>/dev/null && echo "  ✓ learning-updates/"
+  fi
+  # config.yaml → ~/.opencode/
   [ -f opencode-config/config.yaml ] && cp opencode-config/config.yaml ~/.opencode/config.yaml && echo "  ✓ config.yaml"
 fi
+echo ""
+
+# Generate local MCP artifacts from templates
+echo "Generating MCP config artifacts..."
+node scripts/generate-mcp-config.mjs
+echo "✓ MCP artifacts generated"
 echo ""
 
 # Summary

@@ -2,6 +2,89 @@
   "version": "0.1.0",
   "description": "Policy-based routing rules for OpenCode model selection",
 
+  "intentRouting": {
+    "simple_read": {
+      "layer_1": ["anthropic/claude-haiku-4-5"],
+      "layer_2": [],
+      "layer_3": [],
+      "layer_4": [],
+      "layer_5": [],
+      "layer_6": []
+    },
+    "format_transformation": {
+      "layer_1": ["anthropic/claude-haiku-4-5"],
+      "layer_2": [],
+      "layer_3": [],
+      "layer_4": [],
+      "layer_5": [],
+      "layer_6": []
+    },
+    "documentation": {
+      "layer_1": ["anthropic/claude-sonnet-4-5"],
+      "layer_2": [],
+      "layer_3": [],
+      "layer_4": [],
+      "layer_5": [],
+      "layer_6": []
+    },
+    "code_generation": {
+      "layer_1": ["anthropic/claude-sonnet-4-5"],
+      "layer_2": ["gpt-5"],
+      "layer_3": [],
+      "layer_4": [],
+      "layer_5": [],
+      "layer_6": []
+    },
+    "code_transformation": {
+      "layer_1": ["anthropic/claude-sonnet-4-5"],
+      "layer_2": [],
+      "layer_3": [],
+      "layer_4": [],
+      "layer_5": [],
+      "layer_6": []
+    },
+    "debugging": {
+      "layer_1": ["anthropic/claude-sonnet-4-5"],
+      "layer_2": ["anthropic/claude-opus-4-6"],
+      "layer_3": [],
+      "layer_4": [],
+      "layer_5": [],
+      "layer_6": []
+    },
+    "architecture": {
+      "layer_1": ["anthropic/claude-opus-4-6"],
+      "layer_2": ["gpt-5"],
+      "layer_3": [],
+      "layer_4": [],
+      "layer_5": [],
+      "layer_6": []
+    },
+    "large_context": {
+      "layer_1": ["gemini-2.5-pro"],
+      "layer_2": [],
+      "layer_3": [],
+      "layer_4": [],
+      "layer_5": [],
+      "layer_6": []
+    },
+    "multimodal": {
+      "layer_1": ["gpt-5", "gemini-2.5-pro"],
+      "layer_2": [],
+      "layer_3": [],
+      "layer_4": [],
+      "layer_5": [],
+      "layer_6": []
+    },
+    "orchestration": {
+      "layer_1": ["anthropic/claude-sonnet-4-5"],
+      "layer_2": [],
+      "layer_3": [],
+      "layer_4": [],
+      "layer_5": [],
+      "layer_6": []
+    }
+  },
+
   "models": {
     "anthropic/claude-opus-4-6": {
       "provider": "anthropic",

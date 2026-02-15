@@ -8,21 +8,22 @@
   "available": true,
   "skills": {
     "enabled": [
-      "brainstorming",
-      "dispatching-parallel-agents",
-      "executing-plans",
-      "finishing-a-development-branch",
-      "receiving-code-review",
-      "requesting-code-review",
-      "subagent-driven-development",
-      "systematic-debugging",
-      "test-driven-development",
-      "using-git-worktrees",
-      "using-superpowers",
-      "verification-before-completion",
-      "writing-plans",
-      "writing-skills"
-    ],
+       "brainstorming",
+       "dispatching-parallel-agents",
+       "executing-plans",
+       "finishing-a-development-branch",
+       "receiving-code-review",
+       "requesting-code-review",
+       "subagent-driven-development",
+       "systematic-debugging",
+       "task-orchestrator",
+       "test-driven-development",
+       "using-git-worktrees",
+       "using-superpowers",
+       "verification-before-completion",
+       "writing-plans",
+       "writing-skills"
+     ],
     "categories": {
       "core-workflow": [
         "brainstorming",
@@ -42,10 +43,11 @@
         "receiving-code-review",
         "dispatching-parallel-agents"
       ],
-      "meta": [
-        "using-superpowers",
-        "writing-skills"
-      ]
+       "meta": [
+         "task-orchestrator",
+         "using-superpowers",
+         "writing-skills"
+       ]
     }
   },
   "commands": {

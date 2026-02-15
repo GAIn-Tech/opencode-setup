@@ -1,28 +1,24 @@
+'use client';
+
+import { WorkflowTree } from '@/components/dashboard/WorkflowTree';
+import { EvidenceViewer } from '@/components/dashboard/EvidenceViewer';
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          OpenCode Dashboard&nbsp;
-          <code className="font-bold">v0.1.0</code>
-        </p>
-      </div>
+    <main className="min-h-screen bg-zinc-950 text-zinc-200">
+      <div className="p-6 max-w-7xl mx-auto">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-emerald-400 mb-2">Workflow Monitor</h1>
+          <p className="text-zinc-400">Monitor workflow runs and execution evidence</p>
+        </header>
 
-      <div className="relative flex place-items-center">
-        <h1 className="text-4xl font-bold">Workflow Monitor</h1>
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <div className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30">
-          <h2 className="mb-3 text-2xl font-semibold">
-            Status{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            System is active and monitoring.
-          </p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1">
+            <WorkflowTree />
+          </div>
+          <div className="lg:col-span-2">
+            <EvidenceViewer />
+          </div>
         </div>
       </div>
     </main>
