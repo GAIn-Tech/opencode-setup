@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-02-15T18:13:38.507Z",
+  "opencode_root": "{{OPENCODE_ROOT}}",
+  "mcp_servers": [
+    {
+      "name": "opencode-memory-graph",
+      "command": "node",
+      "enabled": true,
+      "type": "local"
+    },
+    {
+      "name": "opencode-model-router-x",
+      "command": "node",
+      "enabled": true,
+      "type": "local"
+    },
+    {
+      "name": "opencode-context-governor",
+      "command": "node",
+      "enabled": true,
+      "type": "local"
+    },
+    {
+      "name": "opencode-runbooks",
+      "command": "node",
+      "enabled": true,
+      "type": "local"
+    }
+  ]
+}
