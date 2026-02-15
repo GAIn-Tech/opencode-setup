@@ -1,0 +1,35 @@
+{
+  "id": "workspace-deps-fix-20260215",
+  "timestamp": "2026-02-15T08:00:00Z",
+  "summary": "Fixed workspace dependency version mismatch preventing bun install, made git hooks executable, updated CLI shebangs for cross-platform compatibility",
+  "affected_paths": [
+    "packages/opencode-memory-graph/package.json",
+    "bun.lock",
+    ".githooks/commit-msg",
+    ".githooks/pre-push",
+    "packages/opencode-eval-harness/bin/cli.js",
+    "packages/opencode-fallback-doctor/src/cli.js",
+    "packages/opencode-goraphdb-bridge/bin/cli.js",
+    "packages/opencode-memory-graph/src/cli.js",
+    "packages/opencode-plugin-healthd/src/daemon.js",
+    "packages/opencode-proofcheck/src/cli.js"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "details": {
+    "workspace_dependency_fix": "Changed opencode-goraphdb-bridge from ^1.0.0 to workspace:* in opencode-memory-graph package.json",
+    "actual_package_version": "0.1.0",
+    "bun_lock_updated": true,
+    "git_hooks_made_executable": true,
+    "known_issues": [
+      "mcp-servers/opencode-mcp-config.json contains hardcoded Windows paths (C:/Users/jack/work/...)",
+      "setup.sh does not merge the 4 custom MCP servers into opencode.json",
+      "Custom MCP servers not being installed on Linux systems",
+      "Needs OS detection and path conversion in setup.sh"
+    ]
+  }
+}

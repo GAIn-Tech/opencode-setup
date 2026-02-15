@@ -25,7 +25,7 @@
     "node": ">=14.0.0"
   },
   "dependencies": {
-    "opencode-goraphdb-bridge": "^1.0.0"
+    "opencode-goraphdb-bridge": "workspace:*"
   },
   "files": [
     "src/",
