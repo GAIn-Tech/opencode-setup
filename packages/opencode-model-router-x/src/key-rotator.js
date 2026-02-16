@@ -36,14 +36,54 @@ class IntelligentRotator {
         };
  
         this.currentIndex = 0;
+        this._lock = Promise.resolve();
+        this._inFlightKeys = new Set();
     }
 
     /**
      * Get the next available healthy key.
      * @returns {object|null} { id, value }
      */
-    getNextKey() {
-        return this._getNextKeyImpl();
+    async getNextKey() {
+        return this._acquireLock(() => this._getNextKeyImpl());
+    }
+
+    /**
+     * Acquire lock for concurrent access protection.
+     * @param {Function} callback
+     * @returns {Promise<any>}
+     */
+    async _acquireLock(callback) {
+        let release;
+        const acquirePromise = new Promise((resolve) => {
+            release = resolve;
+        });
+        
+        const previousLock = this._lock;
+        this._lock = acquirePromise;
+        
+        try {
+            await previousLock;
+            return await callback();
+        } finally {
+            release();
+        }
+    }
+
+    /**
+     * Mark a key as in-flight (being used for a request).
+     * @param {string} keyId
+     */
+    markInFlight(keyId) {
+        this._inFlightKeys.add(keyId);
+    }
+
+    /**
+     * Release a key from in-flight status.
+     * @param {string} keyId
+     */
+    releaseInFlight(keyId) {
+        this._inFlightKeys.delete(keyId);
     }
 
     /**
@@ -52,13 +92,19 @@ class IntelligentRotator {
      */
     _getNextKeyImpl() {
         const now = Date.now();
+        // Filter out keys that are in-flight (currently being used)
         const healthyKeys = this.keys.filter(k => 
-            k.status === 'healthy' && now > k.resetAt
+            k.status === 'healthy' && 
+            now > k.resetAt &&
+            !this._inFlightKeys.has(k.id)
         );
 
         if (healthyKeys.length === 0) {
             // Check if any keys are in cooldown but might be ready soon
-            const candidate = this.keys.sort((a, b) => a.resetAt - b.resetAt)[0];
+            // Also check if they're not in-flight
+            const candidate = this.keys
+                .filter(k => !this._inFlightKeys.has(k.id))
+                .sort((a, b) => a.resetAt - b.resetAt)[0];
             if (candidate && now > candidate.resetAt) {
                 candidate.status = 'healthy';
                 return candidate;
@@ -80,6 +126,8 @@ class IntelligentRotator {
             this.currentIndex = (this.currentIndex + 1) % healthyKeys.length;
         }
 
+        // Mark as in-flight immediately
+        this._inFlightKeys.add(selected.id);
         selected.lastUsed = now;
         return selected;
     }
@@ -148,8 +196,8 @@ class IntelligentRotator {
         }
 
         // Proactive throttling with stricter Cerebras TPM floor
-        const requestFloor = this.providerId === 'cerebras' ? 2 : 5;
-        const tokenFloor = this.providerId === 'cerebras' ? 5000 : 1000;
+        const requestFloor = this.providerId === 'cerebras' ? 3 : 5;
+        const tokenFloor = this.providerId === 'cerebras' ? 10000 : 1000;
         if (key.remainingRequests < requestFloor || key.remainingTokens < tokenFloor) {
             key.status = 'throttled';
         } else {
