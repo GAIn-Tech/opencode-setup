@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "anthropic/claude-opus-4-6",
+  "model": "openai/gpt-5.3-codex",
   "plugin": [
     "oh-my-opencode@3.5.2",
     "opencode-antigravity-auth@1.4.6",
@@ -20,30 +20,39 @@
     "google": {
       "npm": "@ai-sdk/google",
       "models": {
-        "antigravity-gemini-2.0-pro": {
-          "name": "Gemini 2.0 Pro (Antigravity)",
+        "antigravity-gemini-3-pro": {
+          "name": "Gemini 3 Pro (Antigravity) - CURRENT FRONTIER",
           "limit": { "context": 1048576, "output": 65535 },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "modalities": { "input": ["text", "image", "pdf", "video"], "output": ["text"] },
           "variants": {
             "low": { "thinkingLevel": "low" },
             "high": { "thinkingLevel": "high" }
-          }
+          },
+          "priority": "primary"
         },
-        "antigravity-gemini-2.0-flash": {
-          "name": "Gemini 2.0 Flash (Antigravity)",
+        "antigravity-gemini-3-flash": {
+          "name": "Gemini 3 Flash (Antigravity) - CURRENT FRONTIER",
           "limit": { "context": 1048576, "output": 65536 },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "modalities": { "input": ["text", "image", "pdf", "video"], "output": ["text"] },
           "variants": {
             "minimal": { "thinkingLevel": "minimal" },
             "low": { "thinkingLevel": "low" },
             "medium": { "thinkingLevel": "medium" },
             "high": { "thinkingLevel": "high" }
-          }
+          },
+          "priority": "primary"
+        },
+        "antigravity-gemini-3-flash-8b": {
+          "name": "Gemini 3 Flash 8B (Antigravity) - FAST",
+          "limit": { "context": 1048576, "output": 65536 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "priority": "secondary"
         },
         "antigravity-claude-sonnet-4-5": {
           "name": "Claude Sonnet 4.5 (Antigravity)",
           "limit": { "context": 200000, "output": 64000 },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "priority": "secondary"
         },
         "antigravity-claude-sonnet-4-5-thinking": {
           "name": "Claude Sonnet 4.5 Thinking (Antigravity)",
@@ -52,7 +61,8 @@
           "variants": {
             "low": { "thinkingConfig": { "thinkingBudget": 8192 } },
             "max": { "thinkingConfig": { "thinkingBudget": 32768 } }
-          }
+          },
+          "priority": "secondary"
         },
         "antigravity-claude-opus-4-6-thinking": {
           "name": "Claude Opus 4.6 Thinking (Antigravity)",
@@ -61,17 +71,18 @@
           "variants": {
             "low": { "thinkingConfig": { "thinkingBudget": 8192 } },
             "max": { "thinkingConfig": { "thinkingBudget": 32768 } }
-          }
+          },
+          "priority": "secondary"
         },
-        "gemini-2.0-flash": {
-          "name": "Gemini 2.0 Flash (Gemini CLI)",
+        "gemini-3-flash": {
+          "name": "Gemini 3 Flash (Gemini CLI)",
           "limit": { "context": 1000000, "output": 65535 },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+          "modalities": { "input": ["text", "image", "pdf", "video"], "output": ["text"] }
         },
-        "gemini-2.0-pro": {
-          "name": "Gemini 2.0 Pro (Gemini CLI)",
+        "gemini-3-pro": {
+          "name": "Gemini 3 Pro (Gemini CLI)",
           "limit": { "context": 1000000, "output": 65535 },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+          "modalities": { "input": ["text", "image", "pdf", "video"], "output": ["text"] }
         }
       }
     },
@@ -104,39 +115,24 @@
         "apiKey": "{env:OPENAI_API_KEY}"
       },
       "models": {
-        "gpt-4o": {
-          "name": "GPT-4o",
-          "limit": { "context": 128000, "output": 16384 },
-          "modalities": { "input": ["text", "image"], "output": ["text"] }
+        "gpt-5.3-codex": {
+          "name": "GPT-5.3 Codex (OpenAI) - CODING SPECIALIST",
+          "limit": { "context": 400000, "output": 100000 },
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
+          "priority": "primary",
+          "specialty": "coding"
         },
-        "gpt-4o-mini": {
-          "name": "GPT-4o Mini",
-          "limit": { "context": 128000, "output": 16384 },
-          "modalities": { "input": ["text", "image"], "output": ["text"] }
+        "gpt-5.2": {
+          "name": "GPT-5.2 (OpenAI)",
+          "limit": { "context": 400000, "output": 100000 },
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
+          "priority": "primary"
         },
-        "o1": {
-          "name": "o1",
-          "limit": { "context": 200000, "output": 100000 },
-          "modalities": { "input": ["text"], "output": ["text"] }
-        }
-      }
-    },
-    "deepseek": {
-      "npm": "@ai-sdk/openai-compatible",
-      "options": {
-        "baseURL": "https://api.deepseek.com/v1",
-        "apiKey": "{env:DEEPSEEK_API_KEY}"
-      },
-      "models": {
-        "deepseek-chat": {
-          "name": "DeepSeek Chat",
-          "limit": { "context": 65536, "output": 8192 },
-          "modalities": { "input": ["text"], "output": ["text"] }
-        },
-        "deepseek-coder": {
-          "name": "DeepSeek Coder",
-          "limit": { "context": 65536, "output": 8192 },
-          "modalities": { "input": ["text"], "output": ["text"] }
+        "gpt-5": {
+          "name": "GPT-5 (OpenAI)",
+          "limit": { "context": 400000, "output": 100000 },
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
+          "priority": "secondary"
         }
       }
     },
@@ -147,10 +143,17 @@
         "apiKey": "{env:NVIDIA_API_KEY}"
       },
       "models": {
-        "meta/llama-3.3-70b-instruct": {
-          "name": "Llama 3.3 70B (NVIDIA)",
-          "limit": { "context": 128000, "output": 4096 },
-          "modalities": { "input": ["text"], "output": ["text"] }
+        "meta/llama-4-scout-17b-16k-instruct": {
+          "name": "Llama 4 Scout 17B (NVIDIA) - FAST",
+          "limit": { "context": 128000, "output": 16384 },
+          "modalities": { "input": ["text"], "output": ["text"] },
+          "priority": "secondary"
+        },
+        "meta/llama-4-maverick-17b-128k-instruct": {
+          "name": "Llama 4 Maverick 17B (NVIDIA)",
+          "limit": { "context": 128000, "output": 16384 },
+          "modalities": { "input": ["text"], "output": ["text"] },
+          "priority": "secondary"
         }
       }
     },
@@ -161,10 +164,17 @@
         "apiKey": "{env:GROQ_API_KEY}"
       },
       "models": {
-        "llama-3.3-70b-versatile": {
-          "name": "Llama 3.3 70B (Groq)",
+        "llama-4-scout-17b-16k-instruct": {
+          "name": "Llama 4 Scout 17B (Groq) - FASTEST",
           "limit": { "context": 128000, "output": 32768 },
-          "modalities": { "input": ["text"], "output": ["text"] }
+          "modalities": { "input": ["text"], "output": ["text"] },
+          "priority": "fallback"
+        },
+        "llama-4-maverick-17b-128k-instruct": {
+          "name": "Llama 4 Maverick 17B (Groq)",
+          "limit": { "context": 128000, "output": 32768 },
+          "modalities": { "input": ["text"], "output": ["text"] },
+          "priority": "fallback"
         }
       }
     },
@@ -175,10 +185,38 @@
         "apiKey": "{env:CEREBRAS_API_KEY}"
       },
       "models": {
-        "llama-3.3-70b": {
-          "name": "Llama 3.3 70B (Cerebras)",
+        "llama-4-scout-17b-16k-instruct": {
+          "name": "Llama 4 Scout 17B (Cerebras) - FASTEST",
           "limit": { "context": 128000, "output": 8192 },
-          "modalities": { "input": ["text"], "output": ["text"] }
+          "modalities": { "input": ["text"], "output": ["text"] },
+          "priority": "fallback"
+        },
+        "llama-4-maverick-17b-128k-instruct": {
+          "name": "Llama 4 Maverick 17B (Cerebras)",
+          "limit": { "context": 128000, "output": 8192 },
+          "modalities": { "input": ["text"], "output": ["text"] },
+          "priority": "fallback"
+        }
+      }
+    },
+    "deepseek": {
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://api.deepseek.com",
+        "apiKey": "{env:DEEPSEEK_API_KEY}"
+      },
+      "models": {
+        "deepseek-chat": {
+          "name": "DeepSeek Chat (Fallback)",
+          "limit": { "context": 65536, "output": 8192 },
+          "modalities": { "input": ["text"], "output": ["text"] },
+          "priority": "fallback"
+        },
+        "deepseek-coder": {
+          "name": "DeepSeek Coder (Fallback)",
+          "limit": { "context": 65536, "output": 8192 },
+          "modalities": { "input": ["text"], "output": ["text"] },
+          "priority": "fallback"
         }
       }
     }
@@ -186,7 +224,7 @@
   "command": {
     "agent": {
       "description": "Display available agent personalities and their models",
-      "template": "# Agent Mode Selector\n\nDisplay available agent personalities and their associated models.\n\n## Available Agents\n\n| Agent | Model | Best For |\n|-------|-------|----------|\n| **atlas** | anthropic/claude-sonnet-4-5 | Architecture decisions, multi-system design |\n| **hephaestus** | google/antigravity-gemini-2.0-flash | Implementation, code generation |\n| **librarian** | google/antigravity-gemini-2.0-flash | Research, documentation lookup |\n| **metis** | anthropic/claude-sonnet-4-5 | Planning, pre-execution analysis |\n| **momus** | anthropic/claude-sonnet-4-5 | Review, quality assurance |\n| **oracle** | anthropic/claude-opus-4-6 | Complex debugging, hard problems |\n| **prometheus** | google/antigravity-gemini-2.0-flash | Forward-thinking, innovation |\n| **sisyphus** | anthropic/claude-opus-4-6 | Deep work, complex refactoring |\n\n## Usage\n\n**To invoke an agent, type @agentname at the start of your message:**\n\n```\n@oracle help me debug this complex error\n@hephaestus implement this feature\n@librarian find examples of this pattern\n@metis plan this implementation\n@momus review this code\n```\n\n**Note:** Agent selection is informational only. The model router dynamically selects the appropriate model based on task requirements."
+      "template": "# Agent Mode Selector\n\nDisplay available agent personalities and their associated models.\n\n## Available Agents\n\n| Agent | Model | Best For |\n|-------|-------|----------|\n| **atlas** | anthropic/claude-sonnet-4-5 | Architecture decisions, multi-system design |\n| **hephaestus** | openai/gpt-5.3-codex | Implementation, code generation (PRIORITY) |\n| **librarian** | google/gemini-3-flash | Research, documentation lookup |\n| **metis** | anthropic/claude-sonnet-4-5 | Planning, pre-execution analysis |\n| **momus** | anthropic/claude-sonnet-4-5 | Review, quality assurance |\n| **oracle** | anthropic/claude-opus-4-6 | Complex debugging, hard problems |\n| **prometheus** | google/gemini-3-pro | Forward-thinking, innovation |\n| **sisyphus** | anthropic/claude-opus-4-6 | Deep work, complex refactoring |\n\n## 2025-2026 Frontier Models\n\n| Provider | Model | Specialty |\n|----------|-------|-----------|\n| OpenAI | gpt-5.3-codex | Coding specialist (PRIMARY) |\n| OpenAI | gpt-5.2 | Reasoning |\n| OpenAI | gpt-5 | General |\n| Google | gemini-3-pro | Complex reasoning, long context |\n| Google | gemini-3-flash | Fast research, general |\n| Anthropic | claude-opus-4-6 | Deep analysis, hard problems |\n| Anthropic | claude-sonnet-4-5 | Balanced reasoning |\n| Groq/Cerebras | llama-4-maverick | Fast inference |\n| DeepSeek | deepseek-coder | Coding fallback |\n\n## Usage\n\n**To invoke an agent, type @agentname at the start of your message:**\n\n```\n@oracle help me debug this complex error\n@hephaestus implement this feature\n@librarian find examples of this pattern\n@metis plan this implementation\n@momus review this code\n```\n\n**Note:** Agent selection is informational only. The model router dynamically selects the appropriate model based on task requirements."
     },
     "workflows:deepen-plan": {
       "description": "Enhance a plan with parallel research agents for each section to add depth, best practices, and implementation details",
