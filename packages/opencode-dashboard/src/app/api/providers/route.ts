@@ -32,8 +32,15 @@ interface CachedHealth {
   expiresAt: number;
 }
 
+interface HealthCacheStats {
+  hits: number;
+  misses: number;
+  expired: number;
+}
+
 const HEALTH_CACHE = new Map<string, CachedHealth>();
 const HEALTH_CACHE_TTL_MS = 30_000;
+const HEALTH_CACHE_STATS: HealthCacheStats = { hits: 0, misses: 0, expired: 0 };
 
 function cacheTtlForStatus(status: ProviderHealth['status']): number {
   switch (status) {
@@ -50,11 +57,16 @@ function cacheTtlForStatus(status: ProviderHealth['status']): number {
 
 function getCachedHealth(provider: string): ProviderHealth | null {
   const cached = HEALTH_CACHE.get(provider);
-  if (!cached) return null;
-  if (Date.now() > cached.expiresAt) {
-    HEALTH_CACHE.delete(provider);
+  if (!cached) {
+    HEALTH_CACHE_STATS.misses += 1;
     return null;
   }
+  if (Date.now() > cached.expiresAt) {
+    HEALTH_CACHE.delete(provider);
+    HEALTH_CACHE_STATS.expired += 1;
+    return null;
+  }
+  HEALTH_CACHE_STATS.hits += 1;
   return cached.health;
 }
 
@@ -63,6 +75,18 @@ function setCachedHealth(provider: string, health: ProviderHealth): void {
     health,
     expiresAt: Date.now() + cacheTtlForStatus(health.status),
   });
+}
+
+function getCacheStats() {
+  return {
+    size: HEALTH_CACHE.size,
+    hits: HEALTH_CACHE_STATS.hits,
+    misses: HEALTH_CACHE_STATS.misses,
+    expired: HEALTH_CACHE_STATS.expired,
+    hitRate: HEALTH_CACHE_STATS.hits + HEALTH_CACHE_STATS.misses > 0
+      ? HEALTH_CACHE_STATS.hits / (HEALTH_CACHE_STATS.hits + HEALTH_CACHE_STATS.misses)
+      : 0,
+  };
 }
 
 // Read rate limits from file
@@ -300,7 +324,8 @@ export async function GET(request: NextRequest) {
       rateLimits: {
         provider: providerRate || null,
         models: modelRates
-      }
+      },
+      cache: getCacheStats(),
     });
   }
 
@@ -317,6 +342,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     providers: results,
     rateLimits,
+    cache: getCacheStats(),
     timestamp: new Date().toISOString()
   });
 }

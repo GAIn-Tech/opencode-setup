@@ -24,6 +24,13 @@ interface ProvidersData {
     providers: Record<string, RateLimitEntry>;
     models: Record<string, RateLimitEntry>;
   };
+  cache?: {
+    size: number;
+    hits: number;
+    misses: number;
+    expired: number;
+    hitRate: number;
+  };
   timestamp: string;
 }
 
@@ -206,6 +213,22 @@ export function ProviderHealth() {
           <div className="mt-1 text-lg font-semibold text-zinc-200">{Object.keys(data.rateLimits.models).length}</div>
         </div>
       </div>
+
+      {data.cache && (
+        <div className="rounded-lg border border-zinc-700 bg-zinc-800/40 p-3">
+          <div className="mb-2 text-xs uppercase tracking-wide text-zinc-500">Probe Cache</div>
+          <div className="grid grid-cols-2 gap-2 text-xs md:grid-cols-5">
+            <div><span className="text-zinc-500">Size:</span> <span className="text-zinc-200">{data.cache.size}</span></div>
+            <div><span className="text-zinc-500">Hits:</span> <span className="text-zinc-200">{data.cache.hits}</span></div>
+            <div><span className="text-zinc-500">Misses:</span> <span className="text-zinc-200">{data.cache.misses}</span></div>
+            <div><span className="text-zinc-500">Expired:</span> <span className="text-zinc-200">{data.cache.expired}</span></div>
+            <div>
+              <span className="text-zinc-500">Hit rate:</span>{' '}
+              <span className="text-zinc-200">{Math.round(data.cache.hitRate * 100)}%</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Provider Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
