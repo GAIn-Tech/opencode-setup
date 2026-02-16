@@ -148,13 +148,18 @@ function launchDashboard() {
   ensureOpencodeDir();
   
   const port = getConfigValue('dashboard.port', 3000);
-  const nodeEnv = getConfigValue('dashboard.nodeEnv', 'production');
+  let nodeEnv = getConfigValue('dashboard.nodeEnv', 'production');
+  const buildIdPath = path.join(DASHBOARD_DIR, '.next', 'BUILD_ID');
+  const hasProductionBuild = fs.existsSync(buildIdPath);
+  if (nodeEnv === 'production' && !hasProductionBuild) {
+    nodeEnv = 'development';
+  }
   
   // Use production build by default for performance
   // On Windows, use npm.cmd instead of npm
   const isWindows = process.platform === 'win32';
   const npmCmd = isWindows ? 'npm.cmd' : 'npm';
-  const command = nodeEnv === 'development' ? npmCmd : npmCmd;
+  const command = npmCmd;
   const args = nodeEnv === 'development' ? ['run', 'dev'] : ['start'];
   
   // Ensure log file exists before opening stream
@@ -162,27 +167,30 @@ function launchDashboard() {
     fs.writeFileSync(LOG_FILE, '', { mode: 0o644 });
   }
   
+  const outFd = fs.openSync(LOG_FILE, 'a');
+
   const child = spawn(command, args, {
     cwd: DASHBOARD_DIR,
     detached: true,
-    stdio: ['ignore', 'pipe', 'pipe'], // Use pipe instead of file stream
+    shell: isWindows,
+    stdio: ['ignore', outFd, outFd],
     env: {
       ...process.env,
       PORT: port.toString(),
       NODE_ENV: nodeEnv
     }
   });
-  
-  // Pipe output to log file after spawn
-  const logStream = fs.createWriteStream(LOG_FILE, { flags: 'a' });
-  child.stdout.pipe(logStream);
-  child.stderr.pipe(logStream);
+
+  fs.closeSync(outFd);
   
   child.unref();
   
   writeLock(child.pid, port);
   
-  logStream.write(`\n[${new Date().toISOString()}] Dashboard launched - PID: ${child.pid}, Port: ${port}\n`);
+  fs.appendFileSync(
+    LOG_FILE,
+    `\n[${new Date().toISOString()}] Dashboard launched - PID: ${child.pid}, Port: ${port}, NODE_ENV: ${nodeEnv}\n`
+  );
   
   return { pid: child.pid, port };
 }
