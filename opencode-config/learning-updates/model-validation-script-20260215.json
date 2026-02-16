@@ -1,0 +1,42 @@
+{
+  "id": "model-validation-script-20260215",
+  "timestamp": "2026-02-15T19:48:00-05:00",
+  "category": "tooling",
+  "summary": "Created validate-models.mjs script for automated model catalog validation",
+  "description": "Implemented comprehensive model validation script that checks all config files for obsolete model names, missing pricing data, and provider assignments. Supports --fix flag for automatic replacement. Validates 6 config files: policies.json, token-cost-calculator.js, fallback-layer-strategy.js, providers.js, route.ts, rate-limit-fallback.json.",
+  "changes": [
+    "Created scripts/validate-models.mjs with obsolete model detection",
+    "Auto-fixed 16 obsolete model references (gpt-5→gpt-4o, gemini-3→gemini-2.5, llama-3.1→llama-3.3)",
+    "Fixed JavaScript falsy check bug for 0.0 pricing (free tier models)",
+    "Validates pricing metadata, provider assignments, and model availability",
+    "Supports --fix flag for automatic correction",
+    "All model catalogs now pass validation (0 obsolete models remaining)"
+  ],
+  "affected_paths": [
+    "scripts/validate-models.mjs",
+    "packages/opencode-model-router-x/src/policies.json",
+    "packages/opencode-model-router-x/src/strategies/token-cost-calculator.js",
+    "packages/opencode-model-router-x/src/strategies/fallback-layer-strategy.js",
+    "packages/opencode-sisyphus-state/src/config/providers.js",
+    "packages/opencode-dashboard/src/app/api/providers/route.ts",
+    "rate-limit-fallback.json"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "pass",
+    "deploy": "not-run"
+  },
+  "learning": {
+    "patterns": [
+      "JavaScript falsy checks (0 is falsy) must use explicit === undefined for numeric fields",
+      "Model validation automation prevents config drift",
+      "Auto-fix patterns enable safe batch updates across multiple config files"
+    ],
+    "anti_patterns": [
+      "Using !value for numeric fields that can legitimately be 0",
+      "Manual model catalog updates across multiple files (error-prone)"
+    ]
+  }
+}

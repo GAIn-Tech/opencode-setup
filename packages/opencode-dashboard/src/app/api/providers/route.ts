@@ -85,8 +85,8 @@ const PROVIDER_ENDPOINTS: Record<string, {
     url: 'https://api.groq.com/openai/v1/chat/completions',
     auth: 'authorization',
     authPrefix: 'Bearer ',
-    model: 'llama-3.1-70b-versatile',
-    body: { model: 'llama-3.1-70b-versatile', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] }
+    model: 'llama-3.3-70b-versatile-versatile',
+    body: { model: 'llama-3.3-70b-versatile-versatile', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] }
   },
   cerebras: {
     url: 'https://api.cerebras.ai/v1/chat/completions',

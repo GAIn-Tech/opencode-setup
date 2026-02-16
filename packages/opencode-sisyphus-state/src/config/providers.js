@@ -66,8 +66,8 @@ const modelProviderMap = {
     'gemini-ultra': 'google',
     
     // Cerebras models
-    'llama-3.1-70b': 'cerebras',
-    'llama-3.1-8b': 'cerebras'
+    "llama-3.3-70b-versatile": 'cerebras',
+    "llama-3.3-70b-versatile": 'cerebras'
 };
 
 /**

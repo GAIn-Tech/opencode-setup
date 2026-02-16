@@ -14,8 +14,8 @@
     { "providerID": "google", "modelID": "antigravity-claude-opus-4-6-thinking" },
     { "providerID": "google", "modelID": "antigravity-claude-sonnet-4-5-thinking" },
     { "providerID": "google", "modelID": "antigravity-claude-sonnet-4-5" },
-    { "providerID": "google", "modelID": "antigravity-gemini-3-pro" },
-    { "providerID": "google", "modelID": "antigravity-gemini-3-flash" },
+    { "providerID": "google", "modelID": "antigravity-gemini-2.5-pro" },
+    { "providerID": "google", "modelID": "antigravity-gemini-2.5-flash" },
     { "providerID": "google", "modelID": "gemini-2.5-pro" },
     { "providerID": "google", "modelID": "gemini-2.5-flash" }
   ],
