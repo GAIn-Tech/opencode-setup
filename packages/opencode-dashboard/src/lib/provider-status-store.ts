@@ -238,10 +238,40 @@ function writeStore(store: UnifiedStatusStoreFile): void {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
-  // Atomic write pattern: write to temp file, then rename
-  const tmpPath = `${filePath}.tmp`;
-  fs.writeFileSync(tmpPath, JSON.stringify(store, null, 2));
-  fs.renameSync(tmpPath, filePath);  // atomic on most filesystems
+  // Robust atomic write pattern: write to temp file with unique name, validate, then rename
+  // Uses temp file with timestamp+random to avoid collisions under concurrent writes
+  const tmpPath = `${filePath}.tmp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  
+  // Write to temp file first
+  const jsonContent = JSON.stringify(store, null, 2);
+  fs.writeFileSync(tmpPath, jsonContent, 'utf-8');
+  
+  // Validate the written content before rename
+  let validatedContent: any;
+  try {
+    validatedContent = JSON.parse(fs.readFileSync(tmpPath, 'utf-8'));
+  } catch (readErr) {
+    // Temp file is corrupted, remove it and throw
+    fs.unlinkSync(tmpPath);
+    throw new Error(`Atomic write validation failed: ${readErr}`);
+  }
+  
+  // Verify we can serialize the validated content (ensures it's valid JSON)
+  if (JSON.stringify(validatedContent) !== jsonContent) {
+    fs.unlinkSync(tmpPath);
+    throw new Error('Atomic write validation failed: content mismatch');
+  }
+  
+  // Now rename to target - this is the atomic operation
+  fs.renameSync(tmpPath, filePath);
+  
+  // Verify the final file is valid (last line of defense)
+  try {
+    JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+  } catch (verifyErr) {
+    // This is a critical failure - the atomic write produced invalid output
+    throw new Error(`CRITICAL: Atomic write produced corrupted file: ${verifyErr}`);
+  }
 }
 
 function rateLimitsForProvider(providerId: string, rateLimits: RateLimitsState): UnifiedRateLimit[] {
