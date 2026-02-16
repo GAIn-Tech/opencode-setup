@@ -25,40 +25,31 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
    */
   #MODEL_CATALOG = {
     groq: {
-      simple_read: 'llama-3.3-70b-versatile',
-      format_transform: 'llama-3.3-70b-versatile',
-      documentation: 'llama-3.3-70b-versatile',
       code_generation: 'llama-3.3-70b-versatile',
-      code_transform: 'llama-3.1-405b',
+      code_transform: 'llama-3.3-70b-versatile',
       debugging: 'llama-3.3-70b-versatile',
-      architecture: 'llama-3.1-405b',
-      large_context: 'llama-3.1-405b',
-      multimodal: 'llama-3.3-70b-versatile',
-      orchestration: 'llama-3.1-405b'
+      documentation: 'llama-3.3-70b-versatile',
+      architecture: 'llama-3.3-70b-versatile',
+      large_context: 'llama-3.3-70b-versatile',
+      orchestration: 'llama-3.3-70b-versatile'
     },
     cerebras: {
-      simple_read: 'llama-3.3-70b-versatile',
-      format_transform: 'llama-3.3-70b-versatile',
-      documentation: 'llama-3.3-70b-versatile',
-      code_generation: 'llama-3.3-70b-versatile',
-      code_transform: 'llama-3.1-405b',
-      debugging: 'llama-3.3-70b-versatile',
-      architecture: 'llama-3.1-405b',
-      large_context: 'llama-3.1-405b',
-      multimodal: 'llama-3.3-70b-versatile',
-      orchestration: 'llama-3.1-405b'
+      code_generation: 'llama-3.3-70b',
+      code_transform: 'llama-3.3-70b',
+      debugging: 'llama-3.3-70b',
+      documentation: 'llama-3.3-70b',
+      architecture: 'llama-3.3-70b',
+      large_context: 'llama-3.3-70b',
+      orchestration: 'llama-3.3-70b'
     },
     nvidia: {
-      simple_read: 'llama-3.3-70b-versatile',
-      format_transform: 'llama-3.3-70b-versatile',
-      documentation: 'llama-3.3-70b-versatile',
-      code_generation: 'llama-3.1-405b',
-      code_transform: 'llama-3.1-405b',
-      debugging: 'llama-3.3-70b-versatile',
-      architecture: 'llama-3.1-405b',
-      large_context: 'llama-3.1-405b',
-      multimodal: 'llama-3.3-70b-versatile',
-      orchestration: 'llama-3.1-405b'
+      code_generation: 'llama-3.1-nemotron-70b-instruct',
+      code_transform: 'llama-3.1-nemotron-70b-instruct',
+      debugging: 'llama-3.1-nemotron-70b-instruct',
+      documentation: 'llama-3.1-nemotron-70b-instruct',
+      architecture: 'llama-3.1-nemotron-70b-instruct',
+      large_context: 'llama-3.1-nemotron-70b-instruct',
+      orchestration: 'llama-3.1-nemotron-70b-instruct'
     },
     antigravity: {
       simple_read: 'gemini-2.5-flash',
@@ -117,6 +108,7 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
   constructor() {
     super();
     this.currentLayer = 0;
+    this._advanceLock = Promise.resolve();  // Quota signal propagation lock
   }
 
   getName() {
@@ -186,14 +178,31 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
 
   /**
    * Advance to next layer (called on metrics-specific triggers)
+   * Uses lock to prevent concurrent 429 responses from racing
    *
    * @param {string} reason - Reason for advancing
+   * @returns {Promise<void>}
    */
-  advanceLayer(reason = '') {
-    if (this.currentLayer < this.#LAYERS.length - 1) {
-      this.currentLayer++;
-      console.log(`[FallbackLayerStrategy] Advanced to layer ${this.currentLayer} (${this.#LAYERS[this.currentLayer]}): ${reason}`);
-    }
+  async advanceLayer(reason = '') {
+    return this._acquireAdvanceLock(async () => {
+      if (this.currentLayer < this.#LAYERS.length - 1) {
+        this.currentLayer++;
+        console.log(`[FallbackLayerStrategy] Advanced to layer ${this.currentLayer} (${this.#LAYERS[this.currentLayer]}): ${reason}`);
+      }
+    });
+  }
+
+  /**
+   * Acquire lock for layer advancement to prevent race conditions
+   * @private
+   */
+  _acquireAdvanceLock(callback) {
+    return this._advanceLock.then(async () => {
+      this._advanceLock = callback().finally(() => {
+        this._advanceLock = Promise.resolve();
+      });
+      return this._advanceLock;
+    });
   }
 
   /**
