@@ -16,6 +16,7 @@ import { MemoryGuard } from './memory-guard.js';
 import { CrashRecovery } from './crash-recovery.js';
 import { ProcessIsolation } from './process-isolation.js';
 import { SubsystemGuard } from './subsystem-guard.js';
+import { commandExists, safeSpawn, whichMany, getSystemInfo } from './spawn-guard.js';
 
 /**
  * Initialize crash guard with all protections
@@ -172,5 +173,6 @@ export { MemoryGuard } from './memory-guard.js';
 export { CrashRecovery } from './crash-recovery.js';
 export { ProcessIsolation } from './process-isolation.js';
 export { SubsystemGuard } from './subsystem-guard.js';
+export { commandExists, safeSpawn, whichMany, getSystemInfo } from './spawn-guard.js';
 
 export default { initCrashGuard };
