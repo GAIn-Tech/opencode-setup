@@ -1,0 +1,18 @@
+{
+  "id": "quota-routing-providerid-fix-20260216",
+  "timestamp": "2026-02-16T00:52:00Z",
+  "category": "routing",
+  "summary": "Fixed provider ID normalization in quota-aware routing",
+  "details": "Updated quota-routing to use normalized provider IDs (`providerId` with `provider_id` fallback) when constructing allowedProviders and fetching quota status. This prevents empty/misaligned provider filtering under quota pressure.",
+  "affected_paths": [
+    "packages/opencode-sisyphus-state/src/integrations/quota-routing.js"
+  ],
+  "impact": "High - Restores correct quota-aware provider selection and warning signal collection",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "pass",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}

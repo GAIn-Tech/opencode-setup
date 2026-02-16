@@ -69,16 +69,20 @@ function createQuotaAwareRouterHandler(quotaManager, baseRouter) {
             }
 
             // Let base router select best model from healthy providers
+            const providerIds = healthyProviders
+                .map((p) => p.providerId || p.provider_id)
+                .filter(Boolean);
+
             selectedModel = await baseRouter.selectModel({
                 category,
                 skills,
-                allowedProviders: healthyProviders.map(p => p.provider_id),
+                allowedProviders: providerIds,
                 complexity: taskComplexity
             });
 
             // Check if we're approaching any warning thresholds
             const allStatuses = await Promise.all(
-                healthyProviders.map(p => quotaManager.getQuotaStatus(p.provider_id))
+                providerIds.map(providerId => quotaManager.getQuotaStatus(providerId))
             );
 
             for (const status of allStatuses) {
