@@ -172,7 +172,9 @@ class Governor {
     }
     const data = this._tracker.toState();
     data.savedAt = new Date().toISOString();
-    fs.writeFileSync(p, JSON.stringify(data, null, 2), 'utf-8');
+    const tmpPath = `${p}.tmp`;
+    fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), 'utf-8');
+    fs.renameSync(tmpPath, p);
   }
 
   // ---------------------------------------------------------------------------
