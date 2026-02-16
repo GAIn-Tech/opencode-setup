@@ -27,6 +27,44 @@ interface RateLimitsState {
   models: Record<string, RateLimitEntry>;
 }
 
+interface CachedHealth {
+  health: ProviderHealth;
+  expiresAt: number;
+}
+
+const HEALTH_CACHE = new Map<string, CachedHealth>();
+const HEALTH_CACHE_TTL_MS = 30_000;
+
+function cacheTtlForStatus(status: ProviderHealth['status']): number {
+  switch (status) {
+    case 'rate_limited':
+      return 60_000;
+    case 'auth_error':
+      return 120_000;
+    case 'network_error':
+      return 20_000;
+    default:
+      return HEALTH_CACHE_TTL_MS;
+  }
+}
+
+function getCachedHealth(provider: string): ProviderHealth | null {
+  const cached = HEALTH_CACHE.get(provider);
+  if (!cached) return null;
+  if (Date.now() > cached.expiresAt) {
+    HEALTH_CACHE.delete(provider);
+    return null;
+  }
+  return cached.health;
+}
+
+function setCachedHealth(provider: string, health: ProviderHealth): void {
+  HEALTH_CACHE.set(provider, {
+    health,
+    expiresAt: Date.now() + cacheTtlForStatus(health.status),
+  });
+}
+
 // Read rate limits from file
 function readRateLimits(): RateLimitsState {
   try {
@@ -119,25 +157,36 @@ function getApiKey(provider: string): string | null {
 }
 
 // Test provider health by making a minimal API call
-async function testProviderHealth(provider: string): Promise<ProviderHealth> {
+async function testProviderHealth(provider: string, options: { force?: boolean } = {}): Promise<ProviderHealth> {
+  if (!options.force) {
+    const cached = getCachedHealth(provider);
+    if (cached) {
+      return cached;
+    }
+  }
+
   const config = PROVIDER_ENDPOINTS[provider];
   if (!config) {
-    return {
+    const health: ProviderHealth = {
       provider,
       status: 'unknown',
       error: 'Provider not configured',
       lastChecked: new Date().toISOString()
     };
+    setCachedHealth(provider, health);
+    return health;
   }
 
   const apiKey = getApiKey(provider);
   if (!apiKey) {
-    return {
+    const health: ProviderHealth = {
       provider,
       status: 'auth_error',
       error: `No API key found (expected ${provider.toUpperCase()}_API_KEY)`,
       lastChecked: new Date().toISOString()
     };
+    setCachedHealth(provider, health);
+    return health;
   }
 
   const startTime = Date.now();
@@ -174,46 +223,56 @@ async function testProviderHealth(provider: string): Promise<ProviderHealth> {
     const latency = Date.now() - startTime;
 
     if (response.ok) {
-      return {
+      const health: ProviderHealth = {
         provider,
         status: 'healthy',
         latency,
         lastChecked: new Date().toISOString()
       };
+      setCachedHealth(provider, health);
+      return health;
     } else if (response.status === 429) {
-      return {
+      const health: ProviderHealth = {
         provider,
         status: 'rate_limited',
         latency,
         error: `Rate limited (${response.status})`,
         lastChecked: new Date().toISOString()
       };
+      setCachedHealth(provider, health);
+      return health;
     } else if (response.status === 401 || response.status === 403) {
-      return {
+      const health: ProviderHealth = {
         provider,
         status: 'auth_error',
         latency,
         error: `Authentication failed (${response.status})`,
         lastChecked: new Date().toISOString()
       };
+      setCachedHealth(provider, health);
+      return health;
     } else {
       const errorText = await response.text().catch(() => 'Unknown error');
-      return {
+      const health: ProviderHealth = {
         provider,
         status: 'network_error',
         latency,
         error: `HTTP ${response.status}: ${errorText.substring(0, 100)}`,
         lastChecked: new Date().toISOString()
       };
+      setCachedHealth(provider, health);
+      return health;
     }
   } catch (error) {
-    return {
+    const health: ProviderHealth = {
       provider,
       status: 'network_error',
       error: error instanceof Error ? error.message : 'Unknown error',
       latency: Date.now() - startTime,
       lastChecked: new Date().toISOString()
     };
+    setCachedHealth(provider, health);
+    return health;
   }
 }
 
@@ -270,7 +329,7 @@ export async function POST(request: NextRequest) {
 
     if (action === 'test') {
       // Run health test
-      const health = await testProviderHealth(provider);
+      const health = await testProviderHealth(provider, { force: true });
       return NextResponse.json(health);
     }
 
