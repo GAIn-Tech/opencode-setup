@@ -56,7 +56,6 @@ class SkillRLManager {
    * @returns {Object} Learning result
    */
   learnFromOutcome(outcome) {
-    console.log('[SkillRLManager] learnFromOutcome', { success: outcome.success, hasQuota: !!outcome.quota_signal });
     let result;
     if (outcome.success) {
       result = this.evolutionEngine.learnFromSuccess(outcome);
@@ -118,14 +117,33 @@ class SkillRLManager {
    */
   _save() {
     if (!this.persistencePath) return;
-    
+
     const state = {
       skillBank: this.skillBank.export(),
       evolutionEngine: this.evolutionEngine.export(),
       timestamp: Date.now()
     };
-    
-    fs.writeFileSync(this.persistencePath, JSON.stringify(state, null, 2));
+
+    const parentDir = path.dirname(this.persistencePath);
+    const tempPath = `${this.persistencePath}.tmp`;
+
+    try {
+      if (!fs.existsSync(parentDir)) {
+        fs.mkdirSync(parentDir, { recursive: true });
+      }
+
+      fs.writeFileSync(tempPath, JSON.stringify(state, null, 2));
+      fs.renameSync(tempPath, this.persistencePath);
+    } catch (error) {
+      try {
+        if (fs.existsSync(tempPath)) {
+          fs.unlinkSync(tempPath);
+        }
+      } catch {
+        // no-op cleanup best effort
+      }
+      console.warn('Failed to persist SkillRL state:', error.message);
+    }
   }
 
   /**
