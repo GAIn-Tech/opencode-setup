@@ -1,0 +1,15 @@
+{
+  "name": "opencode-feature-flags",
+  "version": "1.0.0",
+  "description": "Feature flags for gradual rollouts and A/B testing",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "keywords": ["feature-flags", "a-b-testing", "gradual-rollout"],
+  "author": "",
+  "license": "MIT"
+}

@@ -1,0 +1,14 @@
+{
+  "name": "opencode-test-utils",
+  "version": "1.0.0",
+  "description": "Test utilities for OpenCode packages",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "bun test",
+    "test:watch": "bun test --watch"
+  },
+  "devDependencies": {
+    "bun": "^1.0.0"
+  }
+}
