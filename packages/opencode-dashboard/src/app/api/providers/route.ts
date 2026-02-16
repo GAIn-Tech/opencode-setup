@@ -85,8 +85,8 @@ const PROVIDER_ENDPOINTS: Record<string, {
     url: 'https://api.groq.com/openai/v1/chat/completions',
     auth: 'authorization',
     authPrefix: 'Bearer ',
-    model: 'llama-3.3-70b-versatile-versatile',
-    body: { model: 'llama-3.3-70b-versatile-versatile', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] }
+    model: 'llama-3.3-70b-versatile',
+    body: { model: 'llama-3.3-70b-versatile', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] }
   },
   cerebras: {
     url: 'https://api.cerebras.ai/v1/chat/completions',
@@ -99,15 +99,15 @@ const PROVIDER_ENDPOINTS: Record<string, {
     url: 'https://integrate.api.nvidia.com/v1/chat/completions',
     auth: 'authorization',
     authPrefix: 'Bearer ',
-    model: 'meta/llama-3.1-405b-instruct',
-    body: { model: 'meta/llama-3.1-405b-instruct', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] }
+    model: 'meta/llama-3.3-70b-instruct',
+    body: { model: 'meta/llama-3.3-70b-instruct', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] }
   },
   antigravity: {
     url: 'https://api.anthropic.com/v1/messages',
     auth: 'x-api-key',
     authPrefix: 'Bearer ',
-    model: 'claude-3-haiku-20240307',
-    body: { model: 'claude-3-haiku-20240307', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] },
+    model: 'claude-haiku-4-5',
+    body: { model: 'claude-haiku-4-5', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] },
     headers: { 'anthropic-version': '2023-06-01' }
   }
 };

@@ -247,7 +247,7 @@ function main() {
     warnings += 1;
     printStatus('WARN', 'Model connectivity smoke test', 'Skipped (no API keys detected).');
   } else {
-    const smokeTest = spawnSync('opencode', ['run', 'ping', '--model=google/antigravity-gemini-3-pro'], {
+    const smokeTest = spawnSync('opencode', ['run', 'ping', '--model=google/antigravity-gemini-2.0-pro'], {
       encoding: 'utf8',
       timeout: 60000,
     });
