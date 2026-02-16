@@ -31,10 +31,10 @@ const KNOWN_MODELS = new Map([
   ['openai/o4-mini', { provider: 'openai', tier: 11, family: 'o-series' }],
 
   // Google Gemini
-  ['google/gemini-2.5-pro', { provider: 'google', tier: 10, family: 'gemini' }],
-  ['google/gemini-2.5-flash', { provider: 'google', tier: 11, family: 'gemini' }],
-  ['google/gemini-2.0-flash', { provider: 'google', tier: 12, family: 'gemini' }],
-  ['google/gemini-2.0-flash-lite', { provider: 'google', tier: 13, family: 'gemini' }],
+  ['google/gemini-2.0-pro', { provider: 'google', tier: 10, family: 'gemini' }],
+  ['google/gemini-2.0-flash', { provider: 'google', tier: 11, family: 'gemini' }],
+  ['google/gemini-2.0-flash-lite', { provider: 'google', tier: 12, family: 'gemini' }],
+  ['google/gemini-2.0-flash-thinking-exp', { provider: 'google', tier: 13, family: 'gemini' }],
 
   // Moonshot / Kimi
   ['kimi/k2.5', { provider: 'kimi', tier: 10, family: 'kimi' }],

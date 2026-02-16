@@ -21,14 +21,14 @@ class TokenCostCalculator {
       },
       // Gemini (Google)
       'google': {
-        'gemini-2.5-flash': { input: 0.075, output: 0.30 },
-        'gemini-2.5-flash-thinking-minimal': { input: 0.075, output: 0.30, thinking_multiplier: 1.2 },
-        'gemini-2.5-flash-thinking-low': { input: 0.075, output: 0.30, thinking_multiplier: 1.5 },
-        'gemini-2.5-flash-thinking-medium': { input: 0.075, output: 0.30, thinking_multiplier: 2.0 },
-        'gemini-2.5-pro': { input: 1.25, output: 5.0 },
-        'gemini-2.5-pro-thinking-low': { input: 1.25, output: 5.0, thinking_multiplier: 1.5 },
-        'gemini-2.5-pro-thinking-medium': { input: 1.25, output: 5.0, thinking_multiplier: 2.0 },
-        'gemini-2.5-pro-thinking-high': { input: 1.25, output: 5.0, thinking_multiplier: 3.0 }
+        "gemini-2.0-flash": { input: 0.075, output: 0.30 },
+        'gemini-2.0-flash-thinking-minimal': { input: 0.075, output: 0.30, thinking_multiplier: 1.2 },
+        'gemini-2.0-flash-thinking-low': { input: 0.075, output: 0.30, thinking_multiplier: 1.5 },
+        'gemini-2.0-flash-thinking-medium': { input: 0.075, output: 0.30, thinking_multiplier: 2.0 },
+        "gemini-2.0-pro": { input: 1.25, output: 5.0 },
+        'gemini-2.0-pro-thinking-low': { input: 1.25, output: 5.0, thinking_multiplier: 1.5 },
+        'gemini-2.0-pro-thinking-medium': { input: 1.25, output: 5.0, thinking_multiplier: 2.0 },
+        'gemini-2.0-pro-thinking-high': { input: 1.25, output: 5.0, thinking_multiplier: 3.0 }
       },
       // OpenAI
       'openai': {

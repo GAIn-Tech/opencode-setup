@@ -1,0 +1,54 @@
+{
+  "id": "gemini-model-correction-20260215",
+  "timestamp": "2026-02-15T20:27:00-05:00",
+  "category": "critical-fix",
+  "summary": "Corrected Gemini model names from non-existent gemini-2.5-* to official gemini-2.0-* across entire codebase",
+  "changes": {
+    "obsolete_models_fixed": 85,
+    "files_updated": 10,
+    "model_replacements": {
+      "gemini-3-pro": "gemini-2.0-pro",
+      "gemini-3-flash": "gemini-2.0-flash",
+      "gemini-2.5-pro": "gemini-2.0-pro",
+      "gemini-2.5-flash": "gemini-2.0-flash"
+    }
+  },
+  "root_cause": "Gemini 2.5 models do not exist in Google AI API. Official models are gemini-2.0-pro and gemini-2.0-flash released Dec 11, 2024. Previous gemini-3-* to gemini-2.5-* replacement was incorrect.",
+  "fixes": [
+    "Updated validate-models.mjs OBSOLETE_MODELS map with correct gemini-2.0-* replacements",
+    "Auto-fixed 70 references via validate-models.mjs --fix",
+    "Manually fixed 15 references in files outside validation scope",
+    "Updated schema.json with correct model specifications (1M context, multimodal capabilities)",
+    "Corrected pricing: gemini-2.0-pro ($1.25/$5.00), gemini-2.0-flash ($0.075/$0.30)",
+    "Updated release dates to Dec 11, 2024",
+    "Removed deprecated antigravity-gemini-3-* from rate-limit-fallback.json",
+    "Added gemini-2.0-* with correct google providerID"
+  ],
+  "verification": {
+    "tests": "not-run",
+    "lint": "pass",
+    "typecheck": "not-run",
+    "deploy": "not-run"
+  },
+  "impact": "All model routing, cost calculation, and provider selection now use correct Gemini 2.0 model names. Eliminates potential API errors from non-existent model references.",
+  "risk_level": "low",
+  "affected_paths": [
+    "packages/opencode-model-router-x/src/policies.json",
+    "packages/opencode-model-router-x/src/strategies/token-cost-calculator.js",
+    "packages/opencode-model-router-x/src/strategies/fallback-layer-strategy.js",
+    "packages/opencode-sisyphus-state/src/config/providers.js",
+    "packages/opencode-dashboard/src/app/api/providers/route.ts",
+    "packages/opencode-context-governor/src/budgets.json",
+    "packages/opencode-fallback-doctor/src/validators.js",
+    "opencode-config/rate-limit-fallback.json",
+    "opencode-config/models/schema.json",
+    "rate-limit-fallback.json",
+    "scripts/validate-models.mjs"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "pass",
+    "typecheck": "not-run",
+    "deploy": "not-run"
+  }
+}

@@ -28,9 +28,19 @@ const OBSOLETE_MODELS = {
   'gpt-5-mini': 'gpt-4o-mini',
   'gpt-4.1': 'o1',
   
-  // Google Gemini
-  'gemini-3-pro': 'gemini-2.5-pro',
-  'gemini-3-flash': 'gemini-2.5-flash',
+  // Google Gemini (gemini-2.0 is current, gemini-1.5 is older stable, 2.5 and 3.x don't exist)
+  'gemini-3-pro': 'gemini-2.0-pro',
+  'gemini-3-flash': 'gemini-2.0-flash',
+  'gemini-2.5-pro': 'gemini-2.0-pro',
+  'gemini-2.5-flash': 'gemini-2.0-flash',
+  'gemini-2.5-flash-thinking-minimal': 'gemini-2.0-flash-thinking-exp-01-21',
+  'gemini-2.5-flash-thinking-low': 'gemini-2.0-flash-thinking-exp-01-21',
+  'gemini-2.5-flash-thinking-medium': 'gemini-2.0-flash-thinking-exp-01-21',
+  'gemini-2.5-pro-thinking-low': 'gemini-2.0-pro-exp',
+  'gemini-2.5-pro-thinking-medium': 'gemini-2.0-pro-exp',
+  'gemini-2.5-pro-thinking-high': 'gemini-2.0-pro-exp',
+  'antigravity-gemini-2.5-pro': 'gemini-2.0-pro',
+  'antigravity-gemini-2.5-flash': 'gemini-2.0-flash',
   
   // Groq
   'llama-3.1-70b': 'llama-3.3-70b-versatile',

@@ -35,12 +35,12 @@
       "provider": "openai",
       "displayName": "GPT-5 Mini"
     },
-    "gemini-2.5-pro": {
+    "gemini-2.0-pro": {
       "maxTokens": 1000000,
       "warnThreshold": 0.75,
       "errorThreshold": 0.90,
       "provider": "google",
-      "displayName": "Gemini 2.5 Pro"
+      "displayName": "Gemini 2.0 Pro"
     }
   },
   "defaults": {

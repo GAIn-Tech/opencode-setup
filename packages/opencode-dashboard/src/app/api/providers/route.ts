@@ -75,10 +75,10 @@ const PROVIDER_ENDPOINTS: Record<string, {
     body: { model: 'gpt-4o-mini', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] }
   },
   google: {
-    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
     auth: 'authorization',
     authPrefix: 'Bearer ',
-    model: 'gemini-2.5-flash',
+    model: "gemini-2.0-flash",
     body: { contents: [{ parts: [{ text: 'hi' }] }] }
   },
   groq: {
