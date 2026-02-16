@@ -11,8 +11,8 @@ class ProjectStartStrategy extends ModelSelectionStrategy {
   #taskCount = 0;
   #active = true;
   #highPowerModels = [
-    { model_id: 'claude-opus-4.6-thinking-max', provider: 'anthropic' },
-    { model_id: 'gpt-5.3-pro', provider: 'openai' }
+    { model_id: 'claude-opus-4-6', provider: 'anthropic' },
+    { model_id: 'gpt-5.3-codex', provider: 'openai' }
   ];
 
   getName() {

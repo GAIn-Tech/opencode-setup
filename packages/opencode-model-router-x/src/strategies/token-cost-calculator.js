@@ -10,48 +10,49 @@ class TokenCostCalculator {
 
   constructor() {
     this.#pricingTable = {
-      // Claude (Anthropic)
+      // Claude (Anthropic) - 2025-2026 models
       'anthropic': {
-        'claude-sonnet-4.5': { input: 3.0, output: 15.0 },
-        'claude-sonnet-4.5-thinking-low': { input: 3.0, output: 15.0, thinking_multiplier: 1.5 },
-        'claude-sonnet-4.5-thinking-max': { input: 3.0, output: 15.0, thinking_multiplier: 3.0 },
-        'claude-opus-4.6': { input: 15.0, output: 75.0 },
-        'claude-opus-4.6-thinking-low': { input: 15.0, output: 75.0, thinking_multiplier: 1.5 },
-        'claude-opus-4.6-thinking-max': { input: 15.0, output: 75.0, thinking_multiplier: 3.0 }
+        'claude-opus-4-6': { input: 5.0, output: 25.0 },
+        'claude-opus-4-6-thinking-low': { input: 5.0, output: 25.0, thinking_multiplier: 1.5 },
+        'claude-opus-4-6-thinking-max': { input: 5.0, output: 25.0, thinking_multiplier: 3.0 },
+        'claude-opus-4-5': { input: 5.0, output: 25.0 },
+        'claude-sonnet-4-5': { input: 3.0, output: 15.0 },
+        'claude-sonnet-4-5-thinking-low': { input: 3.0, output: 15.0, thinking_multiplier: 1.5 },
+        'claude-sonnet-4-5-thinking-max': { input: 3.0, output: 15.0, thinking_multiplier: 3.0 },
+        'claude-haiku-4-5': { input: 1.0, output: 5.0 }
       },
-      // Gemini (Google)
+      // Gemini (Google) - Gemini 3 series (Nov/Dec 2025) - CURRENT FRONTIER
       'google': {
-        "gemini-2.0-flash": { input: 0.075, output: 0.30 },
-        'gemini-2.0-flash-thinking-minimal': { input: 0.075, output: 0.30, thinking_multiplier: 1.2 },
-        'gemini-2.0-flash-thinking-low': { input: 0.075, output: 0.30, thinking_multiplier: 1.5 },
-        'gemini-2.0-flash-thinking-medium': { input: 0.075, output: 0.30, thinking_multiplier: 2.0 },
-        "gemini-2.0-pro": { input: 1.25, output: 5.0 },
-        'gemini-2.0-pro-thinking-low': { input: 1.25, output: 5.0, thinking_multiplier: 1.5 },
-        'gemini-2.0-pro-thinking-medium': { input: 1.25, output: 5.0, thinking_multiplier: 2.0 },
-        'gemini-2.0-pro-thinking-high': { input: 1.25, output: 5.0, thinking_multiplier: 3.0 }
+        'gemini-3-flash': { input: 0.50, output: 3.0 },
+        'gemini-3-flash-thinking': { input: 0.50, output: 3.0, thinking_multiplier: 1.5 },
+        'gemini-3-pro': { input: 2.0, output: 10.0 },
+        'gemini-3-pro-thinking': { input: 2.0, output: 10.0, thinking_multiplier: 1.5 },
+        'gemini-3-pro-deep-think': { input: 2.0, output: 10.0, thinking_multiplier: 2.0 }
       },
-      // OpenAI
+      // OpenAI - GPT-5 series (2025-2026)
       'openai': {
+        'gpt-5.3-codex': { input: 2.0, output: 16.0 },
+        'gpt-5.2': { input: 1.75, output: 14.0 },
+        'gpt-5': { input: 1.25, output: 10.0 },
         'gpt-4o': { input: 2.50, output: 10.0 },
         'gpt-4o-thinking-low': { input: 2.50, output: 10.0, thinking_multiplier: 1.5 },
         'gpt-4o-thinking-max': { input: 2.50, output: 10.0, thinking_multiplier: 3.0 },
-        'gpt-4o-mini': { input: 0.15, output: 0.60 },
-        'o1': { input: 7.50, output: 30.0 }
+        'gpt-4o-mini': { input: 0.15, output: 0.60 }
       },
-      // NVIDIA (hosted Llama)
-      'nvidia': {
-        'llama-3.1-405b': { input: 0.45, output: 0.45 },
-        'llama-3.3-70b': { input: 0.15, output: 0.15 }
-      },
-      // Groq (hosted Llama)
+      // Groq (Llama 4 - Apr 2025)
       'groq': {
-        'llama-3.1-405b': { input: 0.27, output: 0.27 },
-        'llama-3.3-70b': { input: 0.08, output: 0.08 }
+        'llama-4-maverick': { input: 0.20, output: 0.60 },
+        'llama-4-scout': { input: 0.15, output: 0.45 },
+        'llama-3.3-70b-versatile': { input: 0.08, output: 0.08 }
       },
-      // Cerebras (hosted Llama)
+      // Cerebras (Llama 4 - Apr 2025)
       'cerebras': {
-        'llama-3.1-405b': { input: 0.60, output: 0.60 },
+        'llama-4-maverick': { input: 0.20, output: 0.60 },
         'llama-3.3-70b': { input: 0.20, output: 0.20 }
+      },
+      // DeepSeek
+      'deepseek': {
+        'deepseek-chat': { input: 0.14, output: 0.28 }
       }
     };
   }

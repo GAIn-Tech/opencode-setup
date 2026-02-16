@@ -1,0 +1,295 @@
+{
+  "version": "2026-02-16",
+  "models": {
+    "anthropic/claude-opus-4-6": {
+      "id": "claude-opus-4-6",
+      "provider": "anthropic",
+      "status": "active",
+      "capabilities": {
+        "contextWindow": 1000000,
+        "maxOutputTokens": 128000,
+        "vision": true,
+        "functionCalling": true,
+        "jsonMode": true,
+        "systemPrompt": true
+      },
+      "pricing": {
+        "inputPer1M": 5.00,
+        "outputPer1M": 25.00
+      },
+      "releaseDate": "2026-02-05"
+    },
+    "anthropic/claude-opus-4-5": {
+      "id": "claude-opus-4-5",
+      "provider": "anthropic",
+      "status": "active",
+      "capabilities": {
+        "contextWindow": 200000,
+        "maxOutputTokens": 64000,
+        "vision": true,
+        "functionCalling": true,
+        "jsonMode": true,
+        "systemPrompt": true
+      },
+      "pricing": {
+        "inputPer1M": 5.00,
+        "outputPer1M": 25.00
+      },
+      "releaseDate": "2025-11-24"
+    },
+    "anthropic/claude-sonnet-4-5": {
+      "id": "claude-sonnet-4-5",
+      "provider": "anthropic",
+      "status": "active",
+      "capabilities": {
+        "contextWindow": 200000,
+        "maxOutputTokens": 64000,
+        "vision": true,
+        "functionCalling": true,
+        "jsonMode": true,
+        "systemPrompt": true
+      },
+      "pricing": {
+        "inputPer1M": 3.00,
+        "outputPer1M": 15.00
+      },
+      "releaseDate": "2025-09-29"
+    },
+    "anthropic/claude-haiku-4-5": {
+      "id": "claude-haiku-4-5",
+      "provider": "anthropic",
+      "status": "active",
+      "capabilities": {
+        "contextWindow": 200000,
+        "maxOutputTokens": 64000,
+        "vision": true,
+        "functionCalling": true,
+        "jsonMode": true,
+        "systemPrompt": true
+      },
+      "pricing": {
+        "inputPer1M": 1.00,
+        "outputPer1M": 5.00
+      },
+      "releaseDate": "2025-09-29"
+    },
+    "openai/gpt-5.3-codex": {
+      "id": "gpt-5.3-codex",
+      "provider": "openai",
+      "status": "active",
+      "capabilities": {
+        "contextWindow": 400000,
+        "maxOutputTokens": 128000,
+        "vision": true,
+        "functionCalling": true,
+        "jsonMode": true,
+        "systemPrompt": true
+      },
+      "pricing": {
+        "inputPer1M": 2.00,
+        "outputPer1M": 16.00
+      },
+      "releaseDate": "2026-02-05"
+    },
+    "openai/gpt-5.2": {
+      "id": "gpt-5.2",
+      "provider": "openai",
+      "status": "active",
+      "capabilities": {
+        "contextWindow": 400000,
+        "maxOutputTokens": 128000,
+        "vision": true,
+        "functionCalling": true,
+        "jsonMode": true,
+        "systemPrompt": true
+      },
+      "pricing": {
+        "inputPer1M": 1.75,
+        "outputPer1M": 14.00
+      },
+      "releaseDate": "2025-12-11"
+    },
+    "openai/gpt-5": {
+      "id": "gpt-5",
+      "provider": "openai",
+      "status": "active",
+      "capabilities": {
+        "contextWindow": 400000,
+        "maxOutputTokens": 128000,
+        "vision": true,
+        "functionCalling": true,
+        "jsonMode": true,
+        "systemPrompt": true
+      },
+      "pricing": {
+        "inputPer1M": 1.25,
+        "outputPer1M": 10.00
+      },
+      "releaseDate": "2025-08-07"
+    },
+    "google/gemini-3-pro": {
+      "id": "gemini-3-pro",
+      "provider": "google",
+      "status": "active",
+      "capabilities": {
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "vision": true,
+        "functionCalling": true,
+        "jsonMode": true,
+        "systemPrompt": true
+      },
+      "pricing": {
+        "inputPer1M": 2.00,
+        "outputPer1M": 10.00
+      },
+      "releaseDate": "2025-11-18"
+    },
+    "google/gemini-3-flash": {
+      "id": "gemini-3-flash",
+      "provider": "google",
+      "status": "active",
+      "capabilities": {
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "vision": true,
+        "functionCalling": true,
+        "jsonMode": true,
+        "systemPrompt": true
+      },
+      "pricing": {
+        "inputPer1M": 0.50,
+        "outputPer1M": 3.00
+      },
+      "releaseDate": "2025-12-17"
+    },
+    "groq/llama-4-maverick": {
+      "id": "llama-4-maverick",
+      "provider": "groq",
+      "status": "active",
+      "capabilities": {
+        "contextWindow": 128000,
+        "maxOutputTokens": 32000,
+        "vision": true,
+        "functionCalling": true,
+        "jsonMode": true,
+        "systemPrompt": true
+      },
+      "pricing": {
+        "inputPer1M": 0.20,
+        "outputPer1M": 0.60
+      },
+      "releaseDate": "2025-04-05"
+    },
+    "groq/llama-4-scout": {
+      "id": "llama-4-scout",
+      "provider": "groq",
+      "status": "active",
+      "capabilities": {
+        "contextWindow": 128000,
+        "maxOutputTokens": 32000,
+        "vision": true,
+        "functionCalling": true,
+        "jsonMode": true,
+        "systemPrompt": true
+      },
+      "pricing": {
+        "inputPer1M": 0.15,
+        "outputPer1M": 0.45
+      },
+      "releaseDate": "2025-04-05"
+    },
+    "cerebras/llama-4-maverick": {
+      "id": "llama-4-maverick",
+      "provider": "cerebras",
+      "status": "active",
+      "capabilities": {
+        "contextWindow": 128000,
+        "maxOutputTokens": 32000,
+        "vision": false,
+        "functionCalling": true,
+        "jsonMode": true,
+        "systemPrompt": true
+      },
+      "pricing": {
+        "inputPer1M": 0.20,
+        "outputPer1M": 0.60
+      },
+      "releaseDate": "2025-04-05"
+    },
+    "deepseek/deepseek-chat": {
+      "id": "deepseek-chat",
+      "provider": "deepseek",
+      "status": "active",
+      "capabilities": {
+        "contextWindow": 64000,
+        "maxOutputTokens": 16000,
+        "vision": false,
+        "functionCalling": true,
+        "jsonMode": true,
+        "systemPrompt": true
+      },
+      "pricing": {
+        "inputPer1M": 0.14,
+        "outputPer1M": 0.28
+      },
+      "releaseDate": "2025-01-01"
+    }
+  },
+  "providers": {
+    "anthropic": {
+      "id": "anthropic",
+      "name": "Anthropic",
+      "apiEndpoint": "https://api.anthropic.com/v1",
+      "rateLimits": {
+        "requestsPerMinute": 4000,
+        "tokensPerMinute": 4000000
+      }
+    },
+    "openai": {
+      "id": "openai",
+      "name": "OpenAI",
+      "apiEndpoint": "https://api.openai.com/v1",
+      "rateLimits": {
+        "requestsPerMinute": 10000,
+        "tokensPerMinute": 10000000
+      }
+    },
+    "google": {
+      "id": "google",
+      "name": "Google Gemini",
+      "apiEndpoint": "https://generativelanguage.googleapis.com/v1beta",
+      "rateLimits": {
+        "requestsPerMinute": 10000,
+        "tokensPerMinute": 10000000
+      }
+    },
+    "groq": {
+      "id": "groq",
+      "name": "Groq",
+      "apiEndpoint": "https://api.groq.com/openai/v1",
+      "rateLimits": {
+        "requestsPerMinute": 3000,
+        "tokensPerMinute": 3000000
+      }
+    },
+    "cerebras": {
+      "id": "cerebras",
+      "name": "Cerebras",
+      "apiEndpoint": "https://api.cerebras.ai/v1",
+      "rateLimits": {
+        "requestsPerMinute": 80,
+        "tokensPerMinute": 200000
+      }
+    },
+    "deepseek": {
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "apiEndpoint": "https://api.deepseek.com/v1",
+      "rateLimits": {
+        "requestsPerMinute": 1000,
+        "tokensPerMinute": 1000000
+      }
+    }
+  }
+}

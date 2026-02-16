@@ -26,12 +26,12 @@ class PerspectiveSwitchStrategy extends ModelSelectionStrategy {
   };
 
   /**
-   * High-power models for perspective switch
+   * High-power models for perspective switch (2025-2026 frontier)
    */
   #PERSPECTIVE_MODELS = {
-    anthropic: 'claude-opus-4.6-thinking-max',
-    openai: 'gpt-5.3-pro',
-    gemini: 'gemini-3-pro-thinking-high'
+    anthropic: 'claude-opus-4-6',
+    openai: 'gpt-5.3-codex',
+    gemini: 'gemini-3-pro'
   };
 
   constructor(stuckBugDetector) {
