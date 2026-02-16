@@ -45,8 +45,7 @@ class IntelligentRotator {
      * @returns {Promise<object|null>} { id, value }
      */
     getNextKey() {
-        // Simple lock mechanism for concurrent calls
-        return this._lock.then(() => this._getNextKeyImpl());
+        return this._withLock(() => this._getNextKeyImpl());
     }
 
     /**
@@ -96,7 +95,7 @@ class IntelligentRotator {
         const oldLock = this._lock;
         let release;
         this._lock = new Promise(resolve => { release = resolve; });
-        return oldLock.then(() => fn().finally(() => release()));
+        return oldLock.then(() => Promise.resolve(fn()).finally(() => release()));
     }
 
 
@@ -109,24 +108,47 @@ class IntelligentRotator {
         const key = this.keys.find(k => k.id === keyId);
         if (!key) return;
 
+        const getHeader = (...names) => {
+            for (const name of names) {
+                if (headers?.[name] !== undefined && headers?.[name] !== null) return headers[name];
+            }
+            return undefined;
+        };
+
         // Standard x-ratelimit or x-nvapi headers
         const remainingRequests = parseInt(
-            headers['x-ratelimit-remaining-requests'] || 
-            headers['x-ratelimit-remaining'] ||
-            headers['x-nvapi-remaining-requests']
+            getHeader(
+                'x-ratelimit-remaining-requests',
+                'x-ratelimit-remaining-requests-minute',
+                'x-ratelimit-remaining-rpm',
+                'x-ratelimit-remaining',
+                'x-nvapi-remaining-requests'
+            )
         );
         const remainingTokens = parseInt(
-            headers['x-ratelimit-remaining-tokens'] ||
-            headers['x-nvapi-remaining-tokens']
+            getHeader(
+                'x-ratelimit-remaining-tokens',
+                'x-ratelimit-remaining-tokens-minute',
+                'x-ratelimit-remaining-tpm',
+                'x-nvapi-remaining-tokens'
+            )
         );
         const resetRequests = parseInt(
-            headers['x-ratelimit-reset-requests'] || 
-            headers['x-ratelimit-reset'] ||
-            headers['x-nvapi-reset-requests']
+            getHeader(
+                'x-ratelimit-reset-requests',
+                'x-ratelimit-reset-requests-minute',
+                'x-ratelimit-reset-rpm',
+                'x-ratelimit-reset',
+                'x-nvapi-reset-requests'
+            )
         );
         const resetTokens = parseInt(
-            headers['x-ratelimit-reset-tokens'] ||
-            headers['x-nvapi-reset-tokens']
+            getHeader(
+                'x-ratelimit-reset-tokens',
+                'x-ratelimit-reset-tokens-minute',
+                'x-ratelimit-reset-tpm',
+                'x-nvapi-reset-tokens'
+            )
         );
 
         if (!isNaN(remainingRequests)) key.remainingRequests = remainingRequests;
@@ -140,8 +162,10 @@ class IntelligentRotator {
             key.resetAt = Math.max(key.resetAt, now + (resetTokens * 1000));
         }
 
-        // Proactive throttling
-        if (key.remainingRequests < 5 || key.remainingTokens < 1000) {
+        // Proactive throttling with stricter Cerebras TPM floor
+        const requestFloor = this.providerId === 'cerebras' ? 2 : 5;
+        const tokenFloor = this.providerId === 'cerebras' ? 5000 : 1000;
+        if (key.remainingRequests < requestFloor || key.remainingTokens < tokenFloor) {
             key.status = 'throttled';
         } else {
             key.status = 'healthy';
@@ -164,13 +188,28 @@ class IntelligentRotator {
         if (typeof errorOrRetryAfterMs === 'object' && errorOrRetryAfterMs !== null) {
             const errorMessage = errorOrRetryAfterMs.message || '';
             const errorDetail = errorOrRetryAfterMs.detail || '';
-            
+            const message = `${errorMessage} ${errorDetail}`.toLowerCase();
+
+            const retryAfterHeader =
+                errorOrRetryAfterMs.retryAfter ||
+                errorOrRetryAfterMs?.headers?.['retry-after'] ||
+                errorOrRetryAfterMs?.headers?.['x-ratelimit-reset'] ||
+                null;
+            if (retryAfterHeader) {
+                const retryAfterSec = Number.parseInt(String(retryAfterHeader), 10);
+                if (Number.isFinite(retryAfterSec)) retryAfterMs = Math.max(retryAfterMs, retryAfterSec * 1000);
+            }
+
             if (errorMessage.includes('DEGRADED') || errorDetail.includes('DEGRADED') || 
                 errorMessage.includes('cannot be invoked') || errorDetail.includes('cannot be invoked')) {
                 isPlatformDegraded = true;
                 // Force a longer cooldown for platform issues (5 minutes)
                 retryAfterMs = Math.max(retryAfterMs, 300000);
                 console.warn(`[IntelligentRotator] Detected platform degradation for ${this.providerId} (${keyId}). Entering extended cooldown.`);
+            }
+
+            if (this.providerId === 'cerebras' && (message.includes('tokens per minute') || message.includes('tpm'))) {
+                retryAfterMs = Math.max(retryAfterMs, 60000);
             }
         }
 

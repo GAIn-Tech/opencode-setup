@@ -31,6 +31,8 @@ const defaultProviderQuotas = {
         providerId: 'cerebras',
         quotaType: 'request-based',
         quotaLimit: 10000,    // 10K requests
+        tokenLimitPerMinute: 200000,
+        requestLimitPerMinute: 80,
         quotaPeriod: null,
         warningThreshold: 0.8,
         criticalThreshold: 0.95
@@ -50,24 +52,29 @@ const defaultProviderQuotas = {
  */
 const modelProviderMap = {
     // Anthropic models
-    'claude-3-opus': 'anthropic',
-    'claude-3-sonnet': 'anthropic',
-    'claude-3-haiku': 'anthropic',
-    'claude-3-5-sonnet': 'anthropic',
-    
+    'claude-opus-4-6': 'anthropic',
+    'claude-sonnet-4-5': 'anthropic',
+    'claude-haiku-4-5': 'anthropic',
+
     // OpenAI models
-    'gpt-4': 'openai',
-    'gpt-4-turbo': 'openai',
     'gpt-4o': 'openai',
-    'gpt-3.5-turbo': 'openai',
-    
+    'gpt-4o-mini': 'openai',
+    'o1': 'openai',
+
     // Google models
-    'gemini-pro': 'google',
-    'gemini-ultra': 'google',
-    
-    // Cerebras models
-    "llama-3.3-70b-versatile": 'cerebras',
-    "llama-3.3-70b-versatile": 'cerebras'
+    'gemini-2.0-pro': 'google',
+    'gemini-2.0-flash': 'google',
+    'antigravity-gemini-2.0-pro': 'google',
+    'antigravity-gemini-2.0-flash': 'google',
+
+    // Groq/NVIDIA/Cerebras
+    'llama-3.3-70b': 'nvidia',
+    'llama-3.3-70b-versatile': 'groq',
+    'cerebras/llama-3.3-70b-versatile': 'cerebras',
+
+    // DeepSeek
+    'deepseek-chat': 'deepseek',
+    'deepseek-coder': 'deepseek'
 };
 
 /**
