@@ -59,7 +59,7 @@ describe('Entourage Synergy v2 (Full Cycle + Adaptive Behavior)', () => {
 
   it('demonstrates nonlinear adaptive behavior and deep tracing', async () => {
     // 1. Setup critical quota
-    quotaManager.setupProvider('primary-provider', { quotaLimit: 1000, criticalThreshold: 0.9 });
+    quotaManager.setupProvider('primary-provider', { quotaType: 'monthly', quotaLimit: 1000, criticalThreshold: 0.9 });
     quotaManager.recordUsage({ providerId: 'primary-provider', tokensInput: 950 }); // 95%
 
     // 2. Setup uncertain skill

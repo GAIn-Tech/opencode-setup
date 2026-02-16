@@ -46,12 +46,13 @@ describe('Entourage Synergy (Quota + RL + Sisyphus)', () => {
   it('coordinates quota-fallback across state, routing, and RL evolution', async () => {
     // 1. Setup critical quota for 'primary-provider'
     quotaManager.setupProvider('primary-provider', {
+      quotaType: 'monthly',
       quotaLimit: 1000,
       criticalThreshold: 0.9
     });
     quotaManager.recordUsage({ providerId: 'primary-provider', tokensInput: 910 }); // 91%
 
-    quotaManager.setupProvider('fallback-provider', { quotaLimit: 1000 });
+    quotaManager.setupProvider('fallback-provider', { quotaType: 'monthly', quotaLimit: 1000 });
 
     // 2. Setup Base Router mock
     const baseRouter = {

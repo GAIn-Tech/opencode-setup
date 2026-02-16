@@ -16,6 +16,7 @@
     "verify": "node scripts/verify-setup.mjs",
     "health": "node scripts/health-check.mjs",
     "models:validate": "node scripts/validate-models.mjs",
+    "policies:validate": "node scripts/validate-policies-structure.mjs",
     "models:sync": "node scripts/weekly-model-sync.mjs",
     "test:skillrl-api": "bun test integration-tests/skillrl-api-regression.test.js",
     "smoke": "node scripts/smoke-pipeline.mjs",

@@ -121,7 +121,8 @@ class EvolutionEngine {
       percent_used: Number.isFinite(percentUsed) ? percentUsed : 0,
       warning_threshold: Number.isFinite(warningThreshold) ? warningThreshold : 0.75,
       critical_threshold: Number.isFinite(criticalThreshold) ? criticalThreshold : 0.9,
-      fallback_applied: Boolean(signal.fallback_applied ?? signal.fallbackApplied)
+      fallback_applied: Boolean(signal.fallback_applied ?? signal.fallbackApplied),
+      fallback_reason: signal.fallback_reason ?? signal.fallbackReason ?? null
     };
   }
 
@@ -130,7 +131,16 @@ class EvolutionEngine {
       return false;
     }
 
-    return signal.fallback_applied || signal.percent_used >= signal.warning_threshold;
+    if (signal.percent_used >= signal.warning_threshold) {
+      return true;
+    }
+
+    if (!signal.fallback_applied) {
+      return false;
+    }
+
+    const reason = String(signal.fallback_reason || '').toLowerCase();
+    return reason.startsWith('quota');
   }
 
   _upsertQuotaAwareSkill(taskType) {
@@ -159,12 +169,6 @@ class EvolutionEngine {
   }
 
   _applyQuotaSecondarySignal({ task_type, skills_used, quota_signal, success, result }) {
-    console.log('[EvolutionEngine] _applyQuotaSecondarySignal', { task_type, success, hasSignal: !!quota_signal });
-    if (quota_signal) {
-      console.log('[EvolutionEngine] quota_signal:', JSON.stringify(quota_signal, null, 2));
-      console.log('[EvolutionEngine] _isQuotaPressure:', this._isQuotaPressure(quota_signal));
-    }
-    
     if (!this._isQuotaPressure(quota_signal)) {
       return;
     }
