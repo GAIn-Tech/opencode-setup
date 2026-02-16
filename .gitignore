@@ -63,3 +63,7 @@ tsconfig.tsbuildinfo
 
 # npm lockfile (we use bun)
 package-lock.json
+
+# Test output directories
+**/test-output/
+evidence-*.md
