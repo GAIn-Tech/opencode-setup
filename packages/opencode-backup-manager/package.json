@@ -1,0 +1,11 @@
+{
+  "name": "opencode-backup-manager",
+  "version": "1.0.0",
+  "description": "Backup manager for state files with rotation",
+  "main": "src/index.js",
+  "type": "module",
+  "dependencies": {},
+  "keywords": ["backup", "state", "persistence"],
+  "author": "",
+  "license": "MIT"
+}

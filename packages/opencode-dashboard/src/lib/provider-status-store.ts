@@ -489,20 +489,28 @@ function isSnapshotStale(snapshot: UnifiedStatusSnapshot): boolean {
 
 async function fetchProvidersFromApi(origin?: string): Promise<ProvidersApiResponse> {
   const baseOrigin = origin ?? process.env.NEXT_PUBLIC_DASHBOARD_URL ?? 'http://localhost:3000';
-  const response = await fetch(`${baseOrigin}/api/providers`, {
-    method: 'GET',
-    cache: 'no-store'
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  
+  try {
+    const response = await fetch(`${baseOrigin}/api/providers`, {
+      method: 'GET',
+      cache: 'no-store',
+      signal: controller.signal as any
+    });
 
-  if (!response.ok) {
-    throw new Error(`Provider health fetch failed with status ${response.status}`);
-  }
+    if (!response.ok) {
+      throw new Error(`Provider health fetch failed with status ${response.status}`);
+    }
 
-  const payload = (await response.json()) as ProvidersApiResponse;
-  if (!Array.isArray(payload.providers)) {
-    throw new Error('Provider health response missing providers array');
+    const payload = (await response.json()) as ProvidersApiResponse;
+    if (!Array.isArray(payload.providers)) {
+      throw new Error('Provider health response missing providers array');
+    }
+    return payload;
+  } finally {
+    clearTimeout(timeoutId);
   }
-  return payload;
 }
 
 export async function getUnifiedStatus(options?: {

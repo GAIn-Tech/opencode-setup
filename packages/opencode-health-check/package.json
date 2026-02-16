@@ -1,0 +1,11 @@
+{
+  "name": "opencode-health-check",
+  "version": "1.0.0",
+  "description": "Health check endpoints and subsystem monitoring",
+  "main": "src/index.js",
+  "type": "module",
+  "dependencies": {},
+  "keywords": ["health", "monitoring", "subsystem"],
+  "author": "",
+  "license": "MIT"
+}

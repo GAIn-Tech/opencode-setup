@@ -12,6 +12,10 @@ if (isBun) {
 }
 
 class WorkflowStore {
+  // Connection pool for better performance
+  static #connectionPool = new Map();
+  static #poolSize = 5;
+  
   constructor(dbPath) {
     if (!dbPath) {
       const configDir = join(process.env.HOME || process.env.USERPROFILE, '.opencode');
@@ -21,15 +25,49 @@ class WorkflowStore {
       dbPath = join(configDir, 'sisyphus-state.db');
     }
 
+    // Use connection from pool or create new one
+    if (WorkflowStore.#connectionPool.has(dbPath)) {
+      const pool = WorkflowStore.#connectionPool.get(dbPath);
+      if (pool.available < pool.connections.length) {
+        this.db = pool.connections[pool.available++];
+        this.dbPath = dbPath;
+        this.isPooled = true;
+        return;
+      }
+    }
+
     this.db = new Database(dbPath);
     if (isBun) {
       this.db.exec('PRAGMA journal_mode = WAL');
       this.db.exec('PRAGMA busy_timeout = 5000');
+      this.db.exec('PRAGMA query_only = OFF');
     } else {
       this.db.pragma('journal_mode = WAL');
       this.db.pragma('busy_timeout = 5000');
     }
+    this.dbPath = dbPath;
+    this.isPooled = false;
+    
+    // Initialize connection pool for this path
+    if (!WorkflowStore.#connectionPool.has(dbPath)) {
+      WorkflowStore.#connectionPool.set(dbPath, {
+        connections: [this.db],
+        available: 1,
+        maxSize: WorkflowStore.#poolSize
+      });
+    }
+    
     this.init();
+  }
+
+  // Release connection back to pool
+  release() {
+    if (this.isPooled && this.dbPath) {
+      const pool = WorkflowStore.#connectionPool.get(this.dbPath);
+      if (pool && pool.available > 0) {
+        pool.available--;
+      }
+    }
   }
 
   init() {
