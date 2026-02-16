@@ -179,6 +179,46 @@ class ConfigLoader {
   }
 
   /**
+   * Enable hot-reload of configuration.
+   * Watches config file and reloads on change.
+   * @param {Function} onReload - Callback when config reloads
+   * @param {number} intervalMs - Check interval (default 5000ms)
+   */
+  enableHotReload(onReload, intervalMs = 5000) {
+    const configFile = this._findConfigFile();
+    if (!configFile) {
+      console.warn('[ConfigLoader] No config file found for hot-reload');
+      return;
+    }
+
+    let lastMtime = null;
+    try {
+      lastMtime = fs.statSync(configFile).mtimeMs;
+    } catch (e) {
+      console.warn('[ConfigLoader] Cannot stat config file for hot-reload');
+      return;
+    }
+
+    const watcher = setInterval(() => {
+      try {
+        const stats = fs.statSync(configFile);
+        if (stats.mtimeMs !== lastMtime) {
+          lastMtime = stats.mtimeMs;
+          this._config = null; // Clear cache
+          const newConfig = this.load();
+          console.log('[ConfigLoader] Config hot-reloaded');
+          if (onReload) onReload(newConfig);
+        }
+      } catch (e) {
+        // Ignore errors during watch
+      }
+    }, intervalMs);
+
+    // Return cleanup function
+    return () => clearInterval(watcher);
+  }
+
+  /**
    * Load and merge all configuration sources.
    */
   load() {
