@@ -126,6 +126,9 @@ const demoData = {
     'Skills with >50 uses have 2x higher success rate',
     'Task-specific skills outperform general skills by 23% on average'
   ],
+  fallback: true,
+  data_fidelity: 'demo',
+  status_reason: 'missing_state',
   demo: true,
   _note: 'Demo data - run OpenCode to generate real skill evolution data'
 };
@@ -178,13 +181,18 @@ export async function GET() {
             ? `${taskSpecificSkills.length} task-specific skills loaded`
             : 'No task-specific skills yet'
         ],
-        fallback: false
+        fallback: false,
+        data_fidelity: 'live',
+        status_reason: 'ok',
+        demo: false
       });
     } catch (parseError) {
       console.error('[Skills API] Parse error:', parseError);
       return NextResponse.json(
         {
           ...demoData,
+          data_fidelity: 'degraded',
+          status_reason: 'malformed_state',
           warning: 'Using fallback data - engine unavailable'
         },
         { status: 503 }
@@ -197,7 +205,11 @@ export async function GET() {
       skills: { general_count: 0, task_specific_count: 0, total: 0, top_general: [], top_task_specific: [] },
       learning: { total_failures_learned: 0, total_successes_learned: 0, recent_evolutions: [], quota_signals: [] },
       insights: [],
+      fallback: true,
+      data_fidelity: 'degraded',
+      status_reason: 'unexpected_error',
+      demo: false,
       error: String(error)
-    });
+    }, { status: 503 });
   }
 }

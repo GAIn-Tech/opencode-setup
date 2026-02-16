@@ -58,6 +58,9 @@ export async function GET() {
         'Use AST tools for refactoring instead of regex',
         'Consider using test-driven-development for bug fixes'
       ],
+      fallback: true,
+      data_fidelity: 'demo',
+      status_reason: 'missing_state',
       demo: true,
       _note: 'Demo data - run OpenCode to generate real learning data'
     };
@@ -100,9 +103,20 @@ export async function GET() {
       try {
         const report = engine.getReport();
         if (engineWarning) {
-          return NextResponse.json({ ...report, warning: engineWarning });
+          return NextResponse.json({
+            ...report,
+            fallback: true,
+            data_fidelity: 'degraded',
+            status_reason: 'engine_warning',
+            warning: engineWarning,
+          });
         }
-        return NextResponse.json(report);
+        return NextResponse.json({
+          ...report,
+          fallback: false,
+          data_fidelity: 'live',
+          status_reason: 'ok',
+        });
       } catch (pkgError) {
         engineWarning = `Learning engine report failed, using file fallback: ${pkgError instanceof Error ? pkgError.message : String(pkgError)}`;
       }
@@ -138,6 +152,8 @@ export async function GET() {
         return NextResponse.json(
           {
             ...demoData,
+            data_fidelity: 'degraded',
+            status_reason: 'empty_state',
             warning: engineWarning || 'Using fallback data - engine unavailable'
           },
           { status: 503 }
@@ -180,6 +196,8 @@ export async function GET() {
           ? ['Review anti-patterns to improve workflow efficiency.']
           : ['No anti-patterns detected. Keep up the good work!'],
         fallback: true,
+        data_fidelity: 'degraded',
+        status_reason: 'file_fallback',
         ...(engineWarning ? { warning: engineWarning } : {})
       });
   } catch (error) {
@@ -191,6 +209,9 @@ export async function GET() {
         positive_patterns: { total: 0, by_type: {}, avg_success_rate: 0, items: [] },
         insights: [],
         recommendations: [],
+        fallback: true,
+        data_fidelity: 'degraded',
+        status_reason: 'unexpected_error',
         warning: 'Using fallback data - engine unavailable',
         error: String(error)
       },
