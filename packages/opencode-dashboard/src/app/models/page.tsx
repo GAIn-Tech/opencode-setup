@@ -24,6 +24,8 @@ type RoutingKey = 'intent_routing' | 'intentRouting';
 
 type ModelMap = Record<string, { provider?: string; name?: string }>;
 
+type SortMode = 'provider' | 'name';
+
 interface PoliciesPayload {
   models?: ModelMap;
   intent_routing?: unknown;
@@ -142,21 +144,68 @@ export default function ModelsPage() {
   const [matrix, setMatrix] = useState<RoutingMatrix>(createEmptyMatrix);
 
   const [editingCell, setEditingCell] = useState<MatrixCellRef | null>(null);
+  const [providerFilter, setProviderFilter] = useState<string>('all');
+  const [focusedLayer, setFocusedLayer] = useState<LayerName | 'all'>('all');
+  const [sortMode, setSortMode] = useState<SortMode>('provider');
 
   const modelMap = (policies?.models || {}) as ModelMap;
   const modelIds = useMemo(() => Object.keys(modelMap), [modelMap]);
 
   const sortedModels = useMemo(() => {
-    return Object.entries(modelMap)
+    const models = Object.entries(modelMap)
       .map(([id, model]) => ({ id, provider: model.provider || 'unknown', name: model.name || id }))
       .sort((a, b) => {
+        if (sortMode === 'name') {
+          const nameCompare = a.name.localeCompare(b.name);
+          if (nameCompare !== 0) return nameCompare;
+          return a.id.localeCompare(b.id);
+        }
+
         const providerCompare = a.provider.localeCompare(b.provider);
         if (providerCompare !== 0) return providerCompare;
         const nameCompare = a.name.localeCompare(b.name);
         if (nameCompare !== 0) return nameCompare;
         return a.id.localeCompare(b.id);
       });
-  }, [modelMap]);
+    return models;
+  }, [modelMap, sortMode]);
+
+  const providers = useMemo(() => {
+    const set = new Set<string>();
+    for (const item of sortedModels) set.add(item.provider);
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [sortedModels]);
+
+  const visibleLayers = useMemo(() => {
+    return focusedLayer === 'all' ? LAYERS : LAYERS.filter((layer) => layer === focusedLayer);
+  }, [focusedLayer]);
+
+  const matrixStats = useMemo(() => {
+    const perLayer = LAYERS.reduce((acc, layer) => {
+      acc[layer] = 0;
+      return acc;
+    }, {} as Record<LayerName, number>);
+
+    let filledCells = 0;
+    const totalCells = INTENTS.length * LAYERS.length;
+
+    for (const intent of INTENTS) {
+      for (const layer of LAYERS) {
+        const size = matrix[intent][layer].length;
+        if (size > 0) {
+          filledCells += 1;
+          perLayer[layer] += 1;
+        }
+      }
+    }
+
+    return {
+      filledCells,
+      totalCells,
+      percent: totalCells > 0 ? Math.round((filledCells / totalCells) * 100) : 0,
+      perLayer,
+    };
+  }, [matrix]);
 
   const loadData = async (silent = false) => {
     if (!silent) {
@@ -281,6 +330,68 @@ export default function ModelsPage() {
         </button>
       </div>
 
+      <div className="mb-4 grid gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 md:grid-cols-4">
+        <div>
+          <div className="text-xs uppercase tracking-wide text-zinc-400">Coverage</div>
+          <div className="mt-1 text-sm text-zinc-200">
+            {matrixStats.filledCells}/{matrixStats.totalCells} cells ({matrixStats.percent}%)
+          </div>
+        </div>
+
+        <label className="flex flex-col gap-1 text-xs uppercase tracking-wide text-zinc-400">
+          Provider Filter
+          <select
+            className="rounded-md border border-zinc-700 bg-zinc-900 px-2 py-2 text-sm normal-case text-zinc-100"
+            value={providerFilter}
+            onChange={(event) => setProviderFilter(event.target.value)}
+          >
+            <option value="all">All providers</option>
+            {providers.map((provider) => (
+              <option key={provider} value={provider}>{provider}</option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex flex-col gap-1 text-xs uppercase tracking-wide text-zinc-400">
+          Layer View
+          <select
+            className="rounded-md border border-zinc-700 bg-zinc-900 px-2 py-2 text-sm normal-case text-zinc-100"
+            value={focusedLayer}
+            onChange={(event) => setFocusedLayer(event.target.value as LayerName | 'all')}
+          >
+            <option value="all">All layers</option>
+            {LAYERS.map((layer) => (
+              <option key={layer} value={layer}>{layerLabel(layer)}</option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex flex-col gap-1 text-xs uppercase tracking-wide text-zinc-400">
+          Model Sort
+          <select
+            className="rounded-md border border-zinc-700 bg-zinc-900 px-2 py-2 text-sm normal-case text-zinc-100"
+            value={sortMode}
+            onChange={(event) => setSortMode(event.target.value as SortMode)}
+          >
+            <option value="provider">Provider, then name</option>
+            <option value="name">Name, then id</option>
+          </select>
+        </label>
+      </div>
+
+      <div className="mb-4 flex flex-wrap gap-2 text-xs text-zinc-300">
+        {LAYERS.map((layer) => {
+          const stat = matrixStats.perLayer[layer];
+          const total = INTENTS.length;
+          const colors = getLayerColor(layer);
+          return (
+            <span key={layer} className={`rounded-md border px-2 py-1 ${colors.bg} ${colors.border} ${colors.text}`}>
+              {layerLabel(layer)}: {stat}/{total}
+            </span>
+          );
+        })}
+      </div>
+
       {saveMessage && <div className="mb-4 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">{saveMessage}</div>}
       {saveError && <div className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{saveError}</div>}
       {error && <div className="mb-4 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-300">{error}</div>}
@@ -295,7 +406,7 @@ export default function ModelsPage() {
                 <th className="sticky left-0 z-20 border border-zinc-800 bg-zinc-950 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-400">
                   Intent
                 </th>
-                {LAYERS.map((layer) => {
+                {visibleLayers.map((layer) => {
                   const colors = getLayerColor(layer);
                   return (
                     <th key={layer} className={`border border-zinc-800 px-3 py-3 text-center text-xs font-semibold uppercase tracking-wide ${colors.bg} ${colors.text}`}>
@@ -311,8 +422,12 @@ export default function ModelsPage() {
                   <td className="sticky left-0 z-10 border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm font-medium text-zinc-200">
                     {humanIntent(intent)}
                   </td>
-                  {LAYERS.map((layer) => {
+                  {visibleLayers.map((layer) => {
                     const cellModels = matrix[intent][layer];
+                    const visibleCellModels = providerFilter === 'all'
+                      ? cellModels
+                      : cellModels.filter((id) => (modelMap[id]?.provider || 'unknown') === providerFilter);
+                    const hiddenCount = cellModels.length - visibleCellModels.length;
                     const layerColor = getLayerColor(layer);
                     return (
                       <td key={layer} className="border border-zinc-800 align-top">
@@ -323,9 +438,11 @@ export default function ModelsPage() {
                         >
                           {cellModels.length === 0 ? (
                             <span className="text-xs italic text-zinc-500">Select models</span>
+                          ) : visibleCellModels.length === 0 ? (
+                            <span className="text-xs italic text-zinc-500">Filtered out ({hiddenCount})</span>
                           ) : (
                             <div className="flex flex-wrap gap-1">
-                              {cellModels.map((modelId) => (
+                              {visibleCellModels.map((modelId) => (
                                 <span
                                   key={`${intent}-${layer}-${modelId}`}
                                   className={`rounded-md border px-2 py-0.5 text-xs ${layerColor.bg} ${layerColor.border} ${layerColor.text}`}
@@ -334,6 +451,11 @@ export default function ModelsPage() {
                                   {modelId}
                                 </span>
                               ))}
+                              {hiddenCount > 0 && (
+                                <span className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300">
+                                  +{hiddenCount} hidden
+                                </span>
+                              )}
                             </div>
                           )}
                         </button>
@@ -352,6 +474,7 @@ export default function ModelsPage() {
           cell={editingCell}
           allModels={sortedModels}
           selectedModels={matrix[editingCell.intent][editingCell.layer]}
+          initialProviderFilter={providerFilter}
           onClose={() => setEditingCell(null)}
           onSave={(selected) => void saveMatrixCell(editingCell, selected)}
           isSaving={isSaving}
@@ -365,6 +488,7 @@ function ModelSelectionModal({
   cell,
   allModels,
   selectedModels,
+  initialProviderFilter,
   onClose,
   onSave,
   isSaving,
@@ -372,24 +496,33 @@ function ModelSelectionModal({
   cell: MatrixCellRef;
   allModels: Array<{ id: string; provider: string; name: string }>;
   selectedModels: string[];
+  initialProviderFilter: string;
   onClose: () => void;
   onSave: (selected: string[]) => void;
   isSaving: boolean;
 }) {
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<string[]>(selectedModels);
+  const [providerFilter, setProviderFilter] = useState<string>(initialProviderFilter);
+
+  const providers = useMemo(() => {
+    const set = new Set<string>();
+    for (const model of allModels) set.add(model.provider);
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [allModels]);
 
   const filteredModels = useMemo(() => {
     const text = query.trim().toLowerCase();
-    if (!text) return allModels;
     return allModels.filter((model) => {
+      if (providerFilter !== 'all' && model.provider !== providerFilter) return false;
+      if (!text) return true;
       return (
         model.id.toLowerCase().includes(text) ||
         model.name.toLowerCase().includes(text) ||
         model.provider.toLowerCase().includes(text)
       );
     });
-  }, [allModels, query]);
+  }, [allModels, query, providerFilter]);
 
   const toggleModel = (modelId: string) => {
     setSelected((prev) => {
@@ -417,6 +550,20 @@ function ModelSelectionModal({
             placeholder="Search by provider, name, or model id"
             className="mb-4 w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-zinc-500"
           />
+
+          <label className="mb-4 flex flex-col gap-1 text-xs uppercase tracking-wide text-zinc-400">
+            Provider Filter
+            <select
+              className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm normal-case text-zinc-100"
+              value={providerFilter}
+              onChange={(event) => setProviderFilter(event.target.value)}
+            >
+              <option value="all">All providers</option>
+              {providers.map((provider) => (
+                <option key={provider} value={provider}>{provider}</option>
+              ))}
+            </select>
+          </label>
 
           <div className="mb-4 rounded-md border border-zinc-800 bg-zinc-900/50 p-3">
             <div className="mb-2 text-xs uppercase tracking-wide text-zinc-400">Selected ({selected.length})</div>
