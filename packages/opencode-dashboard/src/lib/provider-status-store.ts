@@ -105,10 +105,22 @@ interface UnifiedStatusStoreFile {
 
 const STORE_VERSION = '1.0.0';
 const STATUS_STALE_MS = 60_000;
-const CACHE_TTL_MS = 45_000;
+const CACHE_TTL_MS_BASE = 45_000; // Base TTL when stable
+const CACHE_TTL_MS_ERROR = 5_000;  // Short TTL when errors detected
 const MAX_USAGE_EVENTS = 5_000;
 const MAX_HEALTH_CHECKS = 5_000;
 const RATE_LIMIT_FILE = path.join(process.cwd(), '.opencode', 'rate-limits.json');
+
+// Adaptive cache TTL based on recent errors in store
+function getAdaptiveCacheTTL(store: UnifiedStatusStoreFile): number {
+  const recentErrors = store.health_checks?.filter(hc => 
+    hc.status === 'critical' || hc.status === 'unknown'
+  ).length || 0;
+  
+  if (recentErrors > 3) return CACHE_TTL_MS_ERROR;
+  if (recentErrors > 0) return Math.max(CACHE_TTL_MS_ERROR, CACHE_TTL_MS_BASE - (recentErrors * 10000));
+  return CACHE_TTL_MS_BASE;
+}
 
 let inMemoryCache: { expiresAt: number; value: UnifiedStatusSnapshot } | null = null;
 
@@ -512,7 +524,7 @@ export async function getUnifiedStatus(options?: {
   if (!shouldRefresh) {
     inMemoryCache = {
       value: store.snapshot,
-      expiresAt: Date.now() + CACHE_TTL_MS
+      expiresAt: Date.now() + getAdaptiveCacheTTL(store)
     };
     return store.snapshot;
   }
@@ -531,14 +543,14 @@ export async function getUnifiedStatus(options?: {
     writeStore(nextStore);
     inMemoryCache = {
       value: snapshot,
-      expiresAt: Date.now() + CACHE_TTL_MS
+      expiresAt: Date.now() + getAdaptiveCacheTTL(store)
     };
     return snapshot;
   } catch {
     const fallbackSnapshot = store.snapshot.providers.length > 0 ? store.snapshot : emptySnapshot();
     inMemoryCache = {
       value: fallbackSnapshot,
-      expiresAt: Date.now() + CACHE_TTL_MS
+      expiresAt: Date.now() + getAdaptiveCacheTTL(store)
     };
     return fallbackSnapshot;
   }
@@ -659,7 +671,7 @@ export function ingestUsageEvent(event: UsageEvent): { snapshot: UnifiedStatusSn
   writeStore(nextStore);
   inMemoryCache = {
     value: snapshot,
-    expiresAt: Date.now() + CACHE_TTL_MS
+    expiresAt: Date.now() + getAdaptiveCacheTTL(store)
   };
 
   return { snapshot, storedEvent: normalizedEvent };

@@ -5,6 +5,7 @@ const { IntelligentRotator } = require('./key-rotator');
 const { KeyRotatorFactory } = require('./key-rotator-factory');
 const policies = require('./policies.json');
 const Orchestrator = require('./strategies/orchestrator');
+const { CircuitBreaker } = require('opencode-circuit-breaker');
 
 class ModelRouter {
   constructor(options = {}) {
@@ -45,6 +46,19 @@ class ModelRouter {
       console.error('[ModelRouter] Failed to initialize Orchestrator:', error);
       console.error('[ModelRouter] Falling back to legacy scoring system');
       this.orchestrator = null;
+    }
+
+    // Initialize circuit breakers for each provider
+    this.circuitBreakers = {};
+    const providers = [...new Set(Object.values(this.models).map(m => m.provider))];
+    for (const provider of providers) {
+      this.circuitBreakers[provider] = new CircuitBreaker({
+        name: provider,
+        failureThreshold: 5,
+        successThreshold: 2,
+        timeout: 30000, // 30s
+        halfOpenAttempts: 3
+      });
     }
   }
 

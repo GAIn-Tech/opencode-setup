@@ -180,6 +180,49 @@ class WorkflowStore {
     };
   }
 
+  /**
+   * Execute multiple operations in a transaction.
+   * Ensures atomicity - all succeed or all fail.
+   * 
+   * @param {Function} callback - Function receiving db object to perform operations
+   * @returns {any} - Result from callback
+   * @throws {Error} - Re-throws error with transaction context
+   */
+  transaction(callback) {
+    const isBunRuntime = typeof Bun !== 'undefined';
+    
+    if (isBunRuntime) {
+      // Bun:sqlite transaction
+      return this.db.transaction(callback)();
+    } else {
+      // better-sqlite3 transaction
+      return this.db.transaction(callback)();
+    }
+  }
+
+  /**
+   * Execute operations in a savepoint (nested transaction).
+   * Use for complex operations that can partially fail.
+   * 
+   * @param {string} savepointName - Name for the savepoint
+   * @param {Function} callback - Function to execute within savepoint
+   */
+  savepoint(savepointName, callback) {
+    const savepointSql = `SAVEPOINT ${savepointName}`;
+    const releaseSql = `RELEASE SAVEPOINT ${savepointName}`;
+    const rollbackSql = `ROLLBACK TO SAVEPOINT ${savepointName}`;
+    
+    try {
+      this.db.exec(savepointSql);
+      const result = callback();
+      this.db.exec(releaseSql);
+      return result;
+    } catch (error) {
+      this.db.exec(rollbackSql);
+      throw error;
+    }
+  }
+
   logEvent(runId, type, payload) {
     this.db.prepare('INSERT INTO audit_events (run_id, type, payload) VALUES (?, ?, ?)')
       .run(runId, type, JSON.stringify(payload));
