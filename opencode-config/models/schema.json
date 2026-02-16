@@ -1,0 +1,269 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "lastUpdated": "2026-02-15",
+  "providers": {
+    "anthropic": {
+      "name": "Anthropic",
+      "apiEndpoint": "https://api.anthropic.com/v1",
+      "models": [
+        {
+          "id": "claude-opus-4-6",
+          "displayName": "Claude Opus 4.6",
+          "contextWindow": 200000,
+          "maxOutputTokens": 16384,
+          "capabilities": ["text", "vision", "thinking"],
+          "pricingTier": "premium",
+          "inputCostPer1M": 15.00,
+          "outputCostPer1M": 75.00,
+          "status": "active",
+          "releasedAt": "2025-12-01"
+        },
+        {
+          "id": "claude-sonnet-4-5",
+          "displayName": "Claude Sonnet 4.5",
+          "contextWindow": 200000,
+          "maxOutputTokens": 16384,
+          "capabilities": ["text", "vision", "thinking"],
+          "pricingTier": "standard",
+          "inputCostPer1M": 3.00,
+          "outputCostPer1M": 15.00,
+          "status": "active",
+          "releasedAt": "2025-09-01"
+        },
+        {
+          "id": "claude-haiku-4-5",
+          "displayName": "Claude Haiku 4.5",
+          "contextWindow": 200000,
+          "maxOutputTokens": 16384,
+          "capabilities": ["text", "vision"],
+          "pricingTier": "budget",
+          "inputCostPer1M": 0.80,
+          "outputCostPer1M": 4.00,
+          "status": "active",
+          "releasedAt": "2025-09-01"
+        }
+      ]
+    },
+    "openai": {
+      "name": "OpenAI",
+      "apiEndpoint": "https://api.openai.com/v1",
+      "models": [
+        {
+          "id": "gpt-4o",
+          "displayName": "GPT-4o",
+          "contextWindow": 128000,
+          "maxOutputTokens": 16384,
+          "capabilities": ["text", "vision", "audio"],
+          "pricingTier": "standard",
+          "inputCostPer1M": 2.50,
+          "outputCostPer1M": 10.00,
+          "status": "active",
+          "releasedAt": "2024-05-13"
+        },
+        {
+          "id": "gpt-4o-mini",
+          "displayName": "GPT-4o Mini",
+          "contextWindow": 128000,
+          "maxOutputTokens": 16384,
+          "capabilities": ["text", "vision"],
+          "pricingTier": "budget",
+          "inputCostPer1M": 0.15,
+          "outputCostPer1M": 0.60,
+          "status": "active",
+          "releasedAt": "2024-07-18"
+        },
+        {
+          "id": "o1",
+          "displayName": "OpenAI o1",
+          "contextWindow": 200000,
+          "maxOutputTokens": 100000,
+          "capabilities": ["text", "reasoning"],
+          "pricingTier": "premium",
+          "inputCostPer1M": 7.50,
+          "outputCostPer1M": 30.00,
+          "status": "active",
+          "releasedAt": "2024-09-12"
+        },
+        {
+          "id": "gpt-5",
+          "displayName": "GPT-5 (Deprecated)",
+          "status": "deprecated",
+          "deprecatedAt": "2025-11-01",
+          "replacementModel": "gpt-4o",
+          "deprecationReason": "Model never officially released, references were speculative"
+        },
+        {
+          "id": "gpt-5-mini",
+          "displayName": "GPT-5 Mini (Deprecated)",
+          "status": "deprecated",
+          "deprecatedAt": "2025-11-01",
+          "replacementModel": "gpt-4o-mini",
+          "deprecationReason": "Model never officially released, references were speculative"
+        },
+        {
+          "id": "gpt-4.1",
+          "displayName": "GPT-4.1 (Deprecated)",
+          "status": "deprecated",
+          "deprecatedAt": "2024-05-13",
+          "replacementModel": "gpt-4o",
+          "deprecationReason": "Superseded by GPT-4o"
+        }
+      ]
+    },
+    "google": {
+      "name": "Google",
+      "apiEndpoint": "https://generativelanguage.googleapis.com/v1",
+      "models": [
+        {
+          "id": "gemini-2.5-pro",
+          "displayName": "Gemini 2.5 Pro",
+          "contextWindow": 1000000,
+          "maxOutputTokens": 8192,
+          "capabilities": ["text", "vision", "audio", "video"],
+          "pricingTier": "standard",
+          "inputCostPer1M": 1.25,
+          "outputCostPer1M": 5.00,
+          "status": "active",
+          "releasedAt": "2025-11-01"
+        },
+        {
+          "id": "gemini-2.5-flash",
+          "displayName": "Gemini 2.5 Flash",
+          "contextWindow": 1000000,
+          "maxOutputTokens": 8192,
+          "capabilities": ["text", "vision", "audio", "video"],
+          "pricingTier": "budget",
+          "inputCostPer1M": 0.075,
+          "outputCostPer1M": 0.30,
+          "status": "active",
+          "releasedAt": "2025-11-01"
+        },
+        {
+          "id": "gemini-3-pro",
+          "displayName": "Gemini 3 Pro (Deprecated)",
+          "status": "deprecated",
+          "deprecatedAt": "2025-11-01",
+          "replacementModel": "gemini-2.5-pro",
+          "deprecationReason": "Model ID was speculative, gemini-2.5-pro is current frontier model"
+        },
+        {
+          "id": "gemini-3-flash",
+          "displayName": "Gemini 3 Flash (Deprecated)",
+          "status": "deprecated",
+          "deprecatedAt": "2025-11-01",
+          "replacementModel": "gemini-2.5-flash",
+          "deprecationReason": "Model ID was speculative, gemini-2.5-flash is current budget model"
+        }
+      ]
+    },
+    "nvidia": {
+      "name": "NVIDIA",
+      "apiEndpoint": "https://integrate.api.nvidia.com/v1",
+      "models": [
+        {
+          "id": "llama-3.3-70b",
+          "displayName": "Llama 3.3 70B",
+          "contextWindow": 128000,
+          "maxOutputTokens": 4096,
+          "capabilities": ["text"],
+          "pricingTier": "budget",
+          "inputCostPer1M": 0.15,
+          "outputCostPer1M": 0.15,
+          "status": "active",
+          "releasedAt": "2024-12-09"
+        },
+        {
+          "id": "llama-3.1-405b",
+          "displayName": "Llama 3.1 405B (Deprecated)",
+          "status": "deprecated",
+          "deprecatedAt": "2024-12-09",
+          "replacementModel": "llama-3.3-70b",
+          "deprecationReason": "Superseded by Llama 3.3 70B with better performance"
+        }
+      ]
+    },
+    "groq": {
+      "name": "Groq",
+      "apiEndpoint": "https://api.groq.com/openai/v1",
+      "models": [
+        {
+          "id": "llama-3.3-70b-versatile",
+          "displayName": "Llama 3.3 70B Versatile",
+          "contextWindow": 128000,
+          "maxOutputTokens": 32768,
+          "capabilities": ["text"],
+          "pricingTier": "budget",
+          "inputCostPer1M": 0.08,
+          "outputCostPer1M": 0.08,
+          "status": "active",
+          "releasedAt": "2024-12-09"
+        },
+        {
+          "id": "llama-3.1-70b-versatile",
+          "displayName": "Llama 3.1 70B Versatile (Deprecated)",
+          "status": "deprecated",
+          "deprecatedAt": "2024-12-09",
+          "replacementModel": "llama-3.3-70b-versatile",
+          "deprecationReason": "Superseded by Llama 3.3 70B Versatile"
+        }
+      ]
+    },
+    "cerebras": {
+      "name": "Cerebras",
+      "apiEndpoint": "https://api.cerebras.ai/v1",
+      "models": [
+        {
+          "id": "llama-3.3-70b",
+          "displayName": "Llama 3.3 70B",
+          "contextWindow": 128000,
+          "maxOutputTokens": 8192,
+          "capabilities": ["text"],
+          "pricingTier": "budget",
+          "inputCostPer1M": 0.20,
+          "outputCostPer1M": 0.20,
+          "status": "active",
+          "releasedAt": "2024-12-09"
+        },
+        {
+          "id": "llama-3.1-70b",
+          "displayName": "Llama 3.1 70B (Deprecated)",
+          "status": "deprecated",
+          "deprecatedAt": "2024-12-09",
+          "replacementModel": "llama-3.3-70b",
+          "deprecationReason": "Superseded by Llama 3.3 70B"
+        }
+      ]
+    },
+    "deepseek": {
+      "name": "DeepSeek",
+      "apiEndpoint": "https://api.deepseek.com/v1",
+      "models": [
+        {
+          "id": "deepseek-chat",
+          "displayName": "DeepSeek Chat",
+          "contextWindow": 64000,
+          "maxOutputTokens": 8192,
+          "capabilities": ["text"],
+          "pricingTier": "budget",
+          "inputCostPer1M": 0.14,
+          "outputCostPer1M": 0.28,
+          "status": "active",
+          "releasedAt": "2024-01-01"
+        },
+        {
+          "id": "deepseek-coder",
+          "displayName": "DeepSeek Coder",
+          "contextWindow": 64000,
+          "maxOutputTokens": 8192,
+          "capabilities": ["text", "code"],
+          "pricingTier": "budget",
+          "inputCostPer1M": 0.14,
+          "outputCostPer1M": 0.28,
+          "status": "active",
+          "releasedAt": "2024-01-01"
+        }
+      ]
+    }
+  }
+}
