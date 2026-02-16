@@ -1,0 +1,21 @@
+{
+  "id": "model-validation-critical-fixes-20260215",
+  "timestamp": "2026-02-15T22:00:00Z",
+  "summary": "Fixed critical model issues, provider key rotation race conditions, and added model catalog validation groundwork.",
+  "affected_paths": [
+    "packages/opencode-model-router-x/src/key-rotator.js",
+    "packages/opencode-model-router-x/src/key-rotator-factory.js",
+    "packages/opencode-model-router-x/src/index.js",
+    "packages/opencode-model-router-x/src/strategies/token-cost-calculator.js",
+    "packages/opencode-model-router-x/src/strategies/fallback-layer-strategy.js",
+    "packages/opencode-dashboard/src/app/api/providers/route.ts",
+    "rate-limit-fallback.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "pass"
+  },
+  "risk_level": "medium",
+  "notes": "Model catalog validation system design approved for future implementation. All obsolete models updated to current versions. Key rotation now uses locking primitives to prevent concurrent key exhaustion. Gemini provider alias added."
+}

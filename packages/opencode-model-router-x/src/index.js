@@ -74,7 +74,7 @@ class ModelRouter {
     const model = this.models[modelId];
     if (!model) return null;
 
-    const rotator = this.rotators[model.provider];
+    const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
     if (!rotator) return null;
 
     const key = rotator.getNextKey();
@@ -129,7 +129,7 @@ class ModelRouter {
 
     const winner = scored[0];
     const model = this.models[winner.modelId];
-    const rotator = this.rotators[model.provider];
+    const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
     const key = rotator ? rotator.getNextKey() : null;
     return {
       model,
@@ -148,7 +148,7 @@ class ModelRouter {
         const selection = await this.orchestrator.selectModel(ctx.task, ctx);
         if (selection && selection.model_id && this.models[selection.model_id]) {
           const model = this.models[selection.model_id];
-          const rotator = this.rotators[model.provider];
+          const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
           const key = rotator ? rotator.getNextKey() : null;
           return {
             model,
@@ -198,7 +198,7 @@ class ModelRouter {
       // Update key health if we have error details
       const model = this.models[modelId];
       if (model && error) {
-        const rotator = this.rotators[model.provider];
+        const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
         const keyId = error.keyId || null; // Some clients might provide the keyId
         if (rotator && keyId) {
             rotator.recordFailure(keyId, error);
@@ -270,7 +270,7 @@ class ModelRouter {
       if (matched.length > 0) reasons.push(`strengths=${matched.join(',')}`);
     }
 
-    const rotator = this.rotators[model.provider];
+    const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
     if (rotator && typeof rotator.getProviderStatus === 'function') {
       const status = rotator.getProviderStatus();
       if (status?.isExhausted) {

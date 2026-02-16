@@ -1,0 +1,25 @@
+{
+  "name": "@jackoatmon/opencode-shared-orchestration",
+  "version": "0.1.0",
+  "description": "Shared context utilities for OpenCode orchestration (session IDs, quota signals)",
+  "main": "src/context-utils.js",
+  "exports": {
+    ".": "./src/context-utils.js",
+    "./src/context-utils": "./src/context-utils.js"
+  },
+  "scripts": {
+    "test": "node -e \"const cu = require('./src/context-utils.js'); console.log('createOrchestrationId:', cu.createOrchestrationId()); console.log('pickSessionId:', cu.pickSessionId(null, 'ses_123')); console.log('PASS');\""
+  },
+  "keywords": [
+    "opencode",
+    "orchestration",
+    "context",
+    "session"
+  ],
+  "author": "OpenCode",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {}
+}

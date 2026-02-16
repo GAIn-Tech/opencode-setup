@@ -1,0 +1,34 @@
+{
+  "name": "@jackoatmon/opencode-integration-layer",
+  "version": "0.1.0",
+  "description": "Wires SkillRL, Showboat, and orchestration components into OpenCode",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "node tests/integration.test.js"
+  },
+  "keywords": [
+    "opencode",
+    "integration",
+    "skillrl",
+    "orchestration"
+  ],
+  "author": "OpenCode",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "@jackoatmon/opencode-skill-rl-manager": "*",
+    "@jackoatmon/opencode-learning-engine": "*",
+    "@jackoatmon/opencode-shared-orchestration": "*"
+  },
+  "peerDependenciesMeta": {
+    "@jackoatmon/opencode-skill-rl-manager": { "optional": true },
+    "@jackoatmon/opencode-learning-engine": { "optional": true },
+    "@jackoatmon/opencode-shared-orchestration": { "optional": true }
+  }
+}

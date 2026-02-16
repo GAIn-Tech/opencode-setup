@@ -1,0 +1,175 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OpenCode Configuration Schema",
+  "description": "JSON Schema for OpenCode centralized configuration",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Configuration version"
+    },
+    "runtime": {
+      "type": "object",
+      "properties": {
+        "bun": {
+          "type": "object",
+          "properties": {
+            "heapLimit": {
+              "type": "string",
+              "pattern": "^[0-9]+(mb|gb)$",
+              "description": "Bun heap memory limit (e.g., '4096mb', '4gb')"
+            }
+          }
+        }
+      }
+    },
+    "performance": {
+      "type": "object",
+      "properties": {
+        "concurrency": {
+          "type": "object",
+          "properties": {
+            "defaultLimit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Default max concurrent operations"
+            }
+          }
+        },
+        "batchSize": {
+          "type": "object",
+          "properties": {
+            "sessionProcessing": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            },
+            "graphEntries": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            }
+          }
+        },
+        "lruCache": {
+          "type": "object",
+          "properties": {
+            "maxEntries": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 100000
+            }
+          }
+        }
+      }
+    },
+    "database": {
+      "type": "object",
+      "properties": {
+        "wal": {
+          "type": "object",
+          "properties": {
+            "checkpointInterval": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Checkpoint every N writes"
+            },
+            "cleanupIntervalMs": {
+              "type": "integer",
+              "minimum": 1000,
+              "description": "Cleanup interval in milliseconds"
+            }
+          }
+        }
+      }
+    },
+    "logging": {
+      "type": "object",
+      "properties": {
+        "rotation": {
+          "type": "object",
+          "properties": {
+            "maxFiles": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "maxSizeMb": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            }
+          }
+        },
+        "healthd": {
+          "type": "object",
+          "properties": {
+            "checkIntervalMs": {
+              "type": "integer",
+              "minimum": 1000
+            }
+          }
+        }
+      }
+    },
+    "sessions": {
+      "type": "object",
+      "properties": {
+        "ttl": {
+          "type": "object",
+          "properties": {
+            "defaultMs": {
+              "type": "integer",
+              "minimum": 1000
+            }
+          }
+        }
+      }
+    },
+    "features": {
+      "type": "object",
+      "properties": {
+        "autoCleanup": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            }
+          }
+        },
+        "memoryOptimizations": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "streamingEnabled": {
+              "type": "boolean"
+            },
+            "batchingEnabled": {
+              "type": "boolean"
+            },
+            "lruEnabled": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "paths": {
+      "type": "object",
+      "properties": {
+        "opencodeDir": {
+          "type": "string"
+        },
+        "logsDir": {
+          "type": "string"
+        },
+        "databaseDir": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

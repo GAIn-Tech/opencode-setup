@@ -1,0 +1,14 @@
+{
+  "name": "opencode-config-loader",
+  "version": "1.0.0",
+  "description": "Centralized configuration loader for OpenCode plugins",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": ["opencode", "config", "configuration"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}

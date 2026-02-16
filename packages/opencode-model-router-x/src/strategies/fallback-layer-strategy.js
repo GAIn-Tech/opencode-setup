@@ -25,62 +25,62 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
    */
   #MODEL_CATALOG = {
     groq: {
-      simple_read: 'llama-3.1-70b',
-      format_transform: 'llama-3.1-70b',
-      documentation: 'llama-3.1-70b',
-      code_generation: 'llama-3.1-70b',
+      simple_read: 'llama-3.3-70b-versatile',
+      format_transform: 'llama-3.3-70b-versatile',
+      documentation: 'llama-3.3-70b-versatile',
+      code_generation: 'llama-3.3-70b-versatile',
       code_transform: 'llama-3.1-405b',
-      debugging: 'llama-3.1-70b',
+      debugging: 'llama-3.3-70b-versatile',
       architecture: 'llama-3.1-405b',
       large_context: 'llama-3.1-405b',
-      multimodal: 'llama-3.1-70b',
+      multimodal: 'llama-3.3-70b-versatile',
       orchestration: 'llama-3.1-405b'
     },
     cerebras: {
-      simple_read: 'llama-3.1-70b',
-      format_transform: 'llama-3.1-70b',
-      documentation: 'llama-3.1-70b',
-      code_generation: 'llama-3.1-70b',
+      simple_read: 'llama-3.3-70b-versatile',
+      format_transform: 'llama-3.3-70b-versatile',
+      documentation: 'llama-3.3-70b-versatile',
+      code_generation: 'llama-3.3-70b-versatile',
       code_transform: 'llama-3.1-405b',
-      debugging: 'llama-3.1-70b',
+      debugging: 'llama-3.3-70b-versatile',
       architecture: 'llama-3.1-405b',
       large_context: 'llama-3.1-405b',
-      multimodal: 'llama-3.1-70b',
+      multimodal: 'llama-3.3-70b-versatile',
       orchestration: 'llama-3.1-405b'
     },
     nvidia: {
-      simple_read: 'llama-3.1-70b',
-      format_transform: 'llama-3.1-70b',
-      documentation: 'llama-3.1-70b',
+      simple_read: 'llama-3.3-70b-versatile',
+      format_transform: 'llama-3.3-70b-versatile',
+      documentation: 'llama-3.3-70b-versatile',
       code_generation: 'llama-3.1-405b',
       code_transform: 'llama-3.1-405b',
-      debugging: 'llama-3.1-405b',
+      debugging: 'llama-3.3-70b-versatile',
       architecture: 'llama-3.1-405b',
       large_context: 'llama-3.1-405b',
-      multimodal: 'llama-3.1-70b',
+      multimodal: 'llama-3.3-70b-versatile',
       orchestration: 'llama-3.1-405b'
     },
     antigravity: {
-      simple_read: 'gemini-3-flash',
-      format_transform: 'gemini-3-flash',
-      documentation: 'gemini-3-flash-thinking-minimal',
-      code_generation: 'gemini-3-flash-thinking-minimal',
-      code_transform: 'gemini-3-flash',
-      debugging: 'gemini-3-flash-thinking-medium',
+      simple_read: 'gemini-2.5-flash',
+      format_transform: 'gemini-2.5-flash',
+      documentation: 'gemini-2.5-flash-thinking-minimal',
+      code_generation: 'gemini-2.5-flash-thinking-minimal',
+      code_transform: 'gemini-2.5-flash',
+      debugging: 'gemini-2.5-flash-thinking-medium',
       architecture: 'claude-sonnet-4.5',
-      large_context: 'gemini-3-pro',
-      multimodal: 'gemini-3-flash-thinking-minimal',
+      large_context: 'gemini-2.5-pro',
+      multimodal: 'gemini-2.5-flash-thinking-minimal',
       orchestration: 'claude-sonnet-4.5'
     },
     anthropic: {
       simple_read: null,
       format_transform: null,
-      documentation: 'gemini-3-flash-thinking-minimal',
+      documentation: 'gemini-2.5-flash-thinking-minimal',
       code_generation: 'claude-sonnet-4.5',
       code_transform: 'claude-sonnet-4.5',
       debugging: 'claude-sonnet-4.5-thinking-low',
       architecture: 'claude-sonnet-4.5',
-      large_context: 'gemini-3-pro',
+      large_context: 'gemini-2.5-pro',
       multimodal: 'claude-sonnet-4.6',
       orchestration: 'claude-sonnet-4.5'
     },
@@ -88,13 +88,13 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
       simple_read: null,
       format_transform: null,
       documentation: null,
-      code_generation: 'gpt-5.3-codex',
-      code_transform: 'gpt-5.3-codex',
-      debugging: 'gpt-5.3-codex',
-      architecture: 'gpt-5.3-codex',
-      large_context: 'gpt-5.3-pro',
-      multimodal: 'gpt-5.3-pro',
-      orchestration: 'gpt-5.3-pro'
+      code_generation: 'gpt-4o',
+      code_transform: 'gpt-4o',
+      debugging: 'gpt-4o',
+      architecture: 'gpt-4o',
+      large_context: 'o1',
+      multimodal: 'gpt-4o',
+      orchestration: 'o1'
     }
   };
 
@@ -156,7 +156,7 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
 
     // Fallback to lowest available model
     return {
-      model_id: 'llama-3.1-70b',
+      model_id: 'llama-3.3-70b-versatile',
       provider: 'groq',
       reasoning_effort: 'none',
       confidence: 0.5

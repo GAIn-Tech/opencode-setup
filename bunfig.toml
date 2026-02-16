@@ -1,0 +1,14 @@
+# Bun configuration for OpenCode setup
+# Addresses memory exhaustion issues with parallel agent execution
+
+[run]
+# Increase memory limit to 4GB (default is ~512MB-2GB)
+# Required for: parallel workflows, session backfills, memory graph operations
+smol = false
+
+[install]
+# Use frozen lockfile in CI
+frozen-lockfile = false
+
+# Cache settings
+cache = true

@@ -45,7 +45,9 @@ function saveRateLimits(state: RateLimitsState): void {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
-  fs.writeFileSync(RATE_LIMIT_FILE, JSON.stringify(state, null, 2));
+  const tmpPath = RATE_LIMIT_FILE + '.tmp';
+  fs.writeFileSync(tmpPath, JSON.stringify(state, null, 2));
+  fs.renameSync(tmpPath, RATE_LIMIT_FILE);
 }
 
 // Provider API endpoints for health checking
@@ -61,8 +63,8 @@ const PROVIDER_ENDPOINTS: Record<string, {
     url: 'https://api.anthropic.com/v1/messages',
     auth: 'x-api-key',
     authPrefix: 'Bearer ',
-    model: 'claude-3-haiku-20240307',
-    body: { model: 'claude-3-haiku-20240307', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] },
+    model: 'claude-haiku-4-5',
+    body: { model: 'claude-haiku-4-5', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] },
     headers: { 'anthropic-version': '2023-06-01' }
   },
   openai: {
@@ -73,10 +75,10 @@ const PROVIDER_ENDPOINTS: Record<string, {
     body: { model: 'gpt-4o-mini', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] }
   },
   google: {
-    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
     auth: 'authorization',
     authPrefix: 'Bearer ',
-    model: 'gemini-2.0-flash',
+    model: 'gemini-2.5-flash',
     body: { contents: [{ parts: [{ text: 'hi' }] }] }
   },
   groq: {
