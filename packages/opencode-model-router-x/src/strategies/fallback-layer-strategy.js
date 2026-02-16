@@ -43,13 +43,13 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
       orchestration: 'llama-3.3-70b'
     },
     nvidia: {
-      code_generation: 'llama-3.1-nemotron-70b-instruct',
-      code_transform: 'llama-3.1-nemotron-70b-instruct',
-      debugging: 'llama-3.1-nemotron-70b-instruct',
-      documentation: 'llama-3.1-nemotron-70b-instruct',
-      architecture: 'llama-3.1-nemotron-70b-instruct',
-      large_context: 'llama-3.1-nemotron-70b-instruct',
-      orchestration: 'llama-3.1-nemotron-70b-instruct'
+      code_generation: 'llama-3.3-70b',
+      code_transform: 'llama-3.3-70b',
+      debugging: 'llama-3.3-70b',
+      documentation: 'llama-3.3-70b',
+      architecture: 'llama-3.3-70b',
+      large_context: 'llama-3.3-70b',
+      orchestration: 'llama-3.3-70b'
     },
     antigravity: {
       simple_read: "gemini-2.0-flash",
@@ -58,34 +58,46 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
       code_generation: 'gemini-2.0-flash-thinking-minimal',
       code_transform: "gemini-2.0-flash",
       debugging: 'gemini-2.0-flash-thinking-medium',
-      architecture: 'claude-sonnet-4.5',
+      architecture: 'gemini-2.0-pro',
       large_context: "gemini-2.0-pro",
       multimodal: 'gemini-2.0-flash-thinking-minimal',
-      orchestration: 'claude-sonnet-4.5'
+      orchestration: 'gemini-2.0-pro'
     },
     anthropic: {
-      simple_read: null,
-      format_transform: null,
-      documentation: 'gemini-2.0-flash-thinking-minimal',
-      code_generation: 'claude-sonnet-4.5',
-      code_transform: 'claude-sonnet-4.5',
-      debugging: 'claude-sonnet-4.5-thinking-low',
-      architecture: 'claude-sonnet-4.5',
-      large_context: "gemini-2.0-pro",
-      multimodal: 'claude-sonnet-4.6',
-      orchestration: 'claude-sonnet-4.5'
+      simple_read: 'claude-haiku-4-5',
+      format_transform: 'claude-haiku-4-5',
+      documentation: 'claude-sonnet-4-5',
+      code_generation: 'claude-sonnet-4-5',
+      code_transform: 'claude-sonnet-4-5',
+      debugging: 'claude-sonnet-4-5-thinking-low',
+      architecture: 'claude-opus-4-6',
+      large_context: 'claude-opus-4-6',
+      multimodal: 'claude-sonnet-4-6',
+      orchestration: 'claude-opus-4-6'
     },
     openai: {
-      simple_read: null,
-      format_transform: null,
-      documentation: null,
+      simple_read: 'gpt-4o-mini',
+      format_transform: 'gpt-4o-mini',
+      documentation: 'gpt-4o',
       code_generation: 'gpt-4o',
       code_transform: 'gpt-4o',
       debugging: 'gpt-4o',
-      architecture: 'gpt-4o',
+      architecture: 'o1',
       large_context: 'o1',
       multimodal: 'gpt-4o',
       orchestration: 'o1'
+    },
+    deepseek: {
+      simple_read: 'deepseek-chat',
+      format_transform: 'deepseek-chat',
+      documentation: 'deepseek-chat',
+      code_generation: 'deepseek-coder',
+      code_transform: 'deepseek-coder',
+      debugging: 'deepseek-coder',
+      architecture: 'deepseek-chat',
+      large_context: 'deepseek-chat',
+      multimodal: null,
+      orchestration: 'deepseek-chat'
     }
   };
 
