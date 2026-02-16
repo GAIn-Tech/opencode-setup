@@ -48,28 +48,35 @@ const defaultProviderQuotas = {
 };
 
 /**
- * Model-to-provider mapping
+ * Model-to-provider mapping (2025-2026 frontier models)
  */
 const modelProviderMap = {
-    // Anthropic models
+    // Anthropic models (Claude 4.x series - Feb 2026)
     'claude-opus-4-6': 'anthropic',
+    'claude-opus-4-5': 'anthropic',
     'claude-sonnet-4-5': 'anthropic',
     'claude-haiku-4-5': 'anthropic',
 
-    // OpenAI models
+    // OpenAI models (GPT-5 series - 2025-2026)
+    'gpt-5.3-codex': 'openai',
+    'gpt-5.2': 'openai',
+    'gpt-5': 'openai',
     'gpt-4o': 'openai',
     'gpt-4o-mini': 'openai',
-    'o1': 'openai',
 
-    // Google models
-    'gemini-2.0-pro': 'google',
-    'gemini-2.0-flash': 'google',
-    'antigravity-gemini-2.0-pro': 'google',
-    'antigravity-gemini-2.0-flash': 'google',
+    // Google models (Gemini 3 series - Nov/Dec 2025) - CURRENT FRONTIER
+    'gemini-3-pro': 'google',
+    'gemini-3-flash': 'google',
+    'antigravity-gemini-3-pro': 'google',
+    'antigravity-gemini-3-flash': 'google',
 
-    // Groq/NVIDIA/Cerebras
-    'llama-3.3-70b': 'nvidia',
+    // Groq (Llama 4 - Apr 2025)
+    'llama-4-maverick': 'groq',
+    'llama-4-scout': 'groq',
     'llama-3.3-70b-versatile': 'groq',
+
+    // Cerebras (Llama 4 - Apr 2025)
+    'cerebras/llama-4-maverick': 'cerebras',
     'cerebras/llama-3.3-70b-versatile': 'cerebras',
 
     // DeepSeek
