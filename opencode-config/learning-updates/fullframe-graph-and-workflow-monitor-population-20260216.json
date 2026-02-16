@@ -1,0 +1,23 @@
+{
+  "id": "fullframe-graph-and-workflow-monitor-population-20260216",
+  "timestamp": "2026-02-16T03:10:00Z",
+  "category": "dashboard",
+  "summary": "Moved interactive graph to dedicated full-frame route and wired workflow monitor to real run/thread data",
+  "details": "Added dedicated /graph page with full-frame InteractiveKnowledgeGraph and optional browser fullscreen mode. Updated sidebar navigation to expose the route and changed Memory hub to link to the full-frame graph instead of embedding a constrained knowledge tab. Rebuilt workflow monitor home page to load /api/runs and /api/runs/[id], select sessions and steps, poll details, and react to /api/events real-time updates. Replaced static WorkflowTree/EvidenceViewer with thread-aware components that show historical runs, step threads, and rich payload rendering for live event timelines.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/graph/page.tsx",
+    "packages/opencode-dashboard/src/components/Sidebar.tsx",
+    "packages/opencode-dashboard/src/app/memory/page.tsx",
+    "packages/opencode-dashboard/src/app/page.tsx",
+    "packages/opencode-dashboard/src/components/dashboard/WorkflowTree.tsx",
+    "packages/opencode-dashboard/src/components/dashboard/EvidenceViewer.tsx"
+  ],
+  "impact": "High - resolves graph clutter by dedicating full frame and restores workflow monitor visibility for historical + real-time session data",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "pass",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}

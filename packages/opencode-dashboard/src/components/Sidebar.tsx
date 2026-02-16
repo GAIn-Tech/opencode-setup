@@ -13,6 +13,7 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   { name: 'Workflows', href: '/', icon: '⚡', description: 'Monitor workflow runs' },
+  { name: 'Knowledge Graph', href: '/graph', icon: '🕸️', description: 'Full-frame interactive graph' },
   { name: 'Memory Graph', href: '/memory', icon: '🧠', description: 'Session-error relationships' },
   { name: 'Learning', href: '/learning', icon: '📊', description: 'Anti-patterns & insights' },
   { name: 'Models', href: '/models', icon: '🤖', description: 'Model routing & RL metrics' },
