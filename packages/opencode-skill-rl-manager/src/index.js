@@ -17,6 +17,27 @@ const { EvolutionEngine } = require('./evolution-engine');
 const fs = require('fs');
 const path = require('path');
 
+// Safe JSON to prevent crashes from circular references
+const SafeJSON = {
+  stringify: (obj) => {
+    const seen = new WeakSet();
+    return JSON.stringify(obj, (key, value) => {
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) return '[Circular]';
+        seen.add(value);
+      }
+      return value;
+    });
+  },
+  parse: (str, fallback = {}) => {
+    try {
+      return JSON.parse(str);
+    } catch {
+      return fallback;
+    }
+  }
+};
+
 class SkillRLManager {
   constructor(options = {}) {
     this.skillBank = new SkillBank();
@@ -132,7 +153,7 @@ class SkillRLManager {
         fs.mkdirSync(parentDir, { recursive: true });
       }
 
-      fs.writeFileSync(tempPath, JSON.stringify(state, null, 2));
+      fs.writeFileSync(tempPath, SafeJSON.stringify(state, null, 2));
       fs.renameSync(tempPath, this.persistencePath);
     } catch (error) {
       try {
@@ -153,7 +174,7 @@ class SkillRLManager {
     if (!this.persistencePath || !fs.existsSync(this.persistencePath)) return;
     
     try {
-      const data = JSON.parse(fs.readFileSync(this.persistencePath, 'utf-8'));
+      const data = SafeJSON.parse(fs.readFileSync(this.persistencePath, 'utf-8'));
       
       if (data.skillBank) {
         this.skillBank.import(data.skillBank);
