@@ -1,0 +1,20 @@
+{
+  "id": "skillrl-stabilization-and-api-regression-20260215",
+  "timestamp": "2026-02-15T23:45:00Z",
+  "category": "testing",
+  "summary": "Stabilized SkillRL persistence and added API regression coverage for /api/rl and /api/skills",
+  "details": "Updated SkillRLManager persistence to use atomic temp-write+rename with directory creation and failure-safe cleanup, and removed noisy debug logging from learnFromOutcome. Added integration regression tests that exercise dashboard SkillRL API contracts for missing, valid, and malformed state paths. Added a root script to run the regression suite directly.",
+  "affected_paths": [
+    "packages/opencode-skill-rl-manager/src/index.js",
+    "integration-tests/skillrl-api-regression.test.js",
+    "package.json"
+  ],
+  "impact": "Medium - Reduces state corruption risk and locks API response contracts against regressions",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}

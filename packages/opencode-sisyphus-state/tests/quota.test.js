@@ -219,6 +219,49 @@ describe('ProviderQuotaManager', () => {
             expect(status.status).toBe('exhausted');
             expect(status.tokensRemaining).toBeLessThanOrEqual(0);
         });
+
+        test('should calculate request-based percent from request count, not tokens', () => {
+            manager.setupProvider('anthropic', {
+                quotaType: 'request-based',
+                quotaLimit: 10
+            });
+
+            // Four requests with very large token counts should still be 40% usage
+            for (let i = 0; i < 4; i++) {
+                manager.recordUsage({
+                    providerId: 'anthropic',
+                    modelId: 'claude-sonnet-4-5',
+                    tokensInput: 100000,
+                    tokensOutput: 100000
+                });
+            }
+
+            const status = manager.getQuotaStatus('anthropic');
+
+            expect(status.quotaType).toBe('request-based');
+            expect(status.requestCount).toBe(4);
+            expect(status.requestsRemaining).toBe(6);
+            expect(status.percentUsed).toBe(0.4);
+            expect(status.status).toBe('healthy');
+        });
+
+        test('should detect warning threshold for request-based providers', () => {
+            manager.setupProvider('anthropic', {
+                quotaType: 'request-based',
+                quotaLimit: 10,
+                warningThreshold: 0.7
+            });
+
+            for (let i = 0; i < 8; i++) {
+                manager.recordUsage({ providerId: 'anthropic', modelId: 'claude-sonnet-4-5' });
+            }
+
+            const status = manager.getQuotaStatus('anthropic');
+
+            expect(status.requestCount).toBe(8);
+            expect(status.percentUsed).toBe(0.8);
+            expect(status.status).toBe('warning');
+        });
     });
 
     describe('getHealthyProviders', () => {
@@ -453,6 +496,20 @@ describe('Quota-Aware Routing', () => {
             expect(result.warning).toBe(true);
             expect(result.severity).toBe('warning');
             expect(result.message).toContain('89%');
+        });
+
+        test('hasCapacity should use request capacity for request-based quotas', () => {
+            manager.setupProvider('cerebras', {
+                quotaType: 'request-based',
+                quotaLimit: 2,
+                criticalThreshold: 0.95
+            });
+
+            manager.recordUsage({ providerId: 'cerebras', modelId: 'llama-3.3-70b' });
+            expect(manager.hasCapacity('cerebras', 999999)).toBe(true);
+
+            manager.recordUsage({ providerId: 'cerebras', modelId: 'llama-3.3-70b' });
+            expect(manager.hasCapacity('cerebras', 1)).toBe(false);
         });
     });
 });

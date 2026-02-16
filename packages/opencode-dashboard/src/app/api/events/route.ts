@@ -53,9 +53,12 @@ setInterval(() => {
 export async function GET(request: NextRequest) {
   // Start watcher if not already started
   startWatcher();
+
+  let clientController: ReadableStreamDefaultController | null = null;
   
   const stream = new ReadableStream({
     start(controller) {
+      clientController = controller;
       clients.add(controller);
       console.log(`[SSE] Client connected. Total clients: ${clients.size}`);
       
@@ -68,7 +71,9 @@ export async function GET(request: NextRequest) {
       controller.enqueue(new TextEncoder().encode(connectEvent));
     },
     cancel() {
-      // Client will be removed from set when broadcast fails
+      if (clientController) {
+        clients.delete(clientController);
+      }
       console.log(`[SSE] Client disconnected. Total clients: ${clients.size}`);
     },
   });

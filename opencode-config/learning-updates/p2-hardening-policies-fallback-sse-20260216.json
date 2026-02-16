@@ -1,0 +1,25 @@
+{
+  "id": "p2-hardening-policies-fallback-sse-20260216",
+  "timestamp": "2026-02-16T02:05:00Z",
+  "category": "hardening",
+  "summary": "Completed P2 hardening for policies validation, fallback reason typing, and SSE client cleanup",
+  "details": "Added policies structural validator and CI wiring, refined fallback quota-signal typing to distinguish quota vs non-quota fallback reasons, updated entourage integration fixtures for explicit monthly quota semantics, and fixed SSE client lifecycle cleanup by removing disconnected clients immediately in cancel().",
+  "affected_paths": [
+    "scripts/validate-policies-structure.mjs",
+    ".github/workflows/opencode-ci.yml",
+    "package.json",
+    "packages/opencode-integration-layer/src/index.js",
+    "packages/opencode-integration-layer/tests/entourage.test.js",
+    "packages/opencode-integration-layer/tests/entourage-v2.test.js",
+    "packages/opencode-skill-rl-manager/src/evolution-engine.js",
+    "packages/opencode-dashboard/src/app/api/events/route.ts"
+  ],
+  "impact": "High - improves policy drift prevention, learning-loop signal fidelity, and dashboard SSE stability",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "pass",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}

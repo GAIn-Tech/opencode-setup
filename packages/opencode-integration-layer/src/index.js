@@ -437,9 +437,26 @@ class IntegrationLayer {
       {}
     );
 
+    const fallbackReason =
+      outcome?.fallback_reason ||
+      outcome?.fallbackReason ||
+      signal.fallback_reason ||
+      signal.fallbackReason ||
+      null;
+
+    const reasonText = String(
+      fallbackReason || outcome?.reason || outcome?.message || ''
+    ).toLowerCase();
+    const isQuotaReason = reasonText.includes('quota');
+
     if (outcome?.fallbackApplied === true) {
       signal.fallback_applied = true;
-      signal.percent_used = Math.max(signal.percent_used, 1.0);
+      signal.fallback_reason = isQuotaReason ? 'quota_fallback' : 'non_quota_fallback';
+      if (isQuotaReason || signal.percent_used >= signal.warning_threshold) {
+        signal.percent_used = Math.max(signal.percent_used, 1.0);
+      }
+    } else if (fallbackReason) {
+      signal.fallback_reason = isQuotaReason ? 'quota_fallback' : 'non_quota_fallback';
     }
 
     return signal.provider_id === 'unknown' && signal.percent_used === 0 && signal.rotator_risk === 0

@@ -1,0 +1,20 @@
+{
+  "id": "api-fallback-envelope-normalization-20260216",
+  "timestamp": "2026-02-16T01:45:00Z",
+  "category": "api",
+  "summary": "Normalized fallback envelope semantics across RL, Skills, and Learning APIs",
+  "details": "Aligned /api/rl, /api/skills, and /api/learning responses to include consistent fallback metadata fields (`fallback`, `data_fidelity`, `status_reason`) across success, missing-state, malformed-state, file-fallback, and unexpected-error paths.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/rl/route.ts",
+    "packages/opencode-dashboard/src/app/api/skills/route.ts",
+    "packages/opencode-dashboard/src/app/api/learning/route.ts"
+  ],
+  "impact": "Medium - client control plane can reliably interpret fallback/degraded/live responses across API boundaries",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "pass",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}

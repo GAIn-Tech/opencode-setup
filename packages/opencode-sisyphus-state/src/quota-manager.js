@@ -111,11 +111,15 @@ class ProviderQuotaManager {
     const usage = this.getCurrentUsage(providerId);
     const tokensUsed = usage?.tokens_used || 0;
     const requestCount = usage?.request_count || 0;
+    const quotaType = quota.quota_type || 'request-based';
+    const usageUsed = quotaType === 'request-based' ? requestCount : tokensUsed;
     
     // Handle request-based or unlimited quotas
     const hasLimit = quota.quota_limit && quota.quota_limit > 0;
-    const percentUsed = hasLimit ? tokensUsed / quota.quota_limit : 0;
-    const tokensRemaining = hasLimit ? Math.max(0, quota.quota_limit - tokensUsed) : Infinity;
+    const percentUsed = hasLimit ? usageUsed / quota.quota_limit : 0;
+    const usageRemaining = hasLimit ? Math.max(0, quota.quota_limit - usageUsed) : Infinity;
+    const requestsRemaining = quotaType === 'request-based' ? usageRemaining : Infinity;
+    const tokensRemaining = quotaType === 'request-based' ? Infinity : usageRemaining;
     const isExhausted = hasLimit ? percentUsed >= 1.0 : false;
     
     // Determine status based on thresholds
@@ -139,6 +143,10 @@ class ProviderQuotaManager {
       warningThreshold: quota.warning_threshold,
       criticalThreshold: quota.critical_threshold,
       requestCount,
+      requestsRemaining,
+      quotaType,
+      usageUsed,
+      usageRemaining,
       totalCost: usage?.total_cost || 0
     };
   }
@@ -204,6 +212,11 @@ class ProviderQuotaManager {
   hasCapacity(providerId, estimatedTokens) {
     const status = this.getQuotaStatus(providerId);
     if (!status) return true; // No quota configured = unlimited
+
+    if (status.quotaType === 'request-based') {
+      return !status.isExhausted &&
+             (status.requestsRemaining >= 1 || status.percentUsed < status.criticalThreshold);
+    }
 
     return !status.isExhausted &&
            (status.tokensRemaining >= estimatedTokens ||
@@ -271,13 +284,16 @@ class ProviderQuotaManager {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
+    const snapshotUsed = status.quotaType === 'request-based' ? status.requestCount : status.tokensUsed;
+    const snapshotRemaining = status.quotaType === 'request-based' ? status.requestsRemaining : status.tokensRemaining;
+
     stmt.run(
       uuidv4(),
       providerId,
       periodStart.toISOString(),
       periodEnd.toISOString(),
-      status.tokensUsed,
-      status.tokensRemaining,
+      snapshotUsed,
+      snapshotRemaining,
       status.percentUsed,
       status.status
     );

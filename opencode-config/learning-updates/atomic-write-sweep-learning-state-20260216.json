@@ -1,0 +1,21 @@
+{
+  "id": "atomic-write-sweep-learning-state-20260216",
+  "timestamp": "2026-02-16T01:20:00Z",
+  "category": "reliability",
+  "summary": "Applied atomic JSON write pattern to remaining learning and state persistence files",
+  "details": "Replaced direct writeFileSync JSON persistence with temp-file plus rename in context-governor, learning-engine anti/positive pattern catalogs, and memory-graph activator state. This reduces mid-write corruption risk while preserving existing fail-soft behavior.",
+  "affected_paths": [
+    "packages/opencode-context-governor/src/index.js",
+    "packages/opencode-learning-engine/src/anti-patterns.js",
+    "packages/opencode-learning-engine/src/positive-patterns.js",
+    "packages/opencode-memory-graph/src/activator.js"
+  ],
+  "impact": "High - closes remaining state-file corruption risk on key learning/control-plane paths",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "pass",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}

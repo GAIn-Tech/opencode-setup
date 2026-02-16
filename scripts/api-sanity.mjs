@@ -19,9 +19,9 @@ const endpoints = [
   { path: '/api/providers', name: 'Providers' },
   { path: '/api/skills', name: 'Skills' },
   { path: '/api/learning', name: 'Learning' },
-  { path: '/api/rl', name: 'RL State' },
+  { path: '/api/rl', name: 'RL State', allowedStatus: [200, 503] },
   { path: '/api/memory-graph', name: 'Memory Graph' },
-  { path: '/api/events', name: 'Events' },
+  { path: '/api/events', name: 'Events', expectSSE: true },
 ];
 
 let passed = 0;
@@ -32,6 +32,30 @@ async function checkEndpoint(endpoint) {
   try {
     const url = `${API_BASE_URL}${endpoint.path}`;
     const response = await fetch(url, { method: 'GET' });
+
+    if (endpoint.expectSSE) {
+      const contentType = response.headers.get('content-type') || '';
+      if (response.ok && contentType.includes('text/event-stream')) {
+        console.log(`✅ [${endpoint.name}] ${endpoint.path} — SSE stream ready`);
+        passed++;
+        return;
+      }
+      console.log(`❌ [${endpoint.name}] ${endpoint.path} — expected SSE stream (HTTP ${response.status}, content-type: ${contentType || 'n/a'})`);
+      failed++;
+      return;
+    }
+
+    if (Array.isArray(endpoint.allowedStatus) && endpoint.allowedStatus.includes(response.status)) {
+      const data = await response.json();
+      if (typeof data === 'object' && data !== null) {
+        console.log(`✅ [${endpoint.name}] ${endpoint.path} — HTTP ${response.status}`);
+        passed++;
+      } else {
+        console.log(`⚠️  [${endpoint.name}] ${endpoint.path} — non-JSON response`);
+        passed++;
+      }
+      return;
+    }
 
     if (!response.ok) {
       console.log(`❌ [${endpoint.name}] ${endpoint.path} — HTTP ${response.status}`);

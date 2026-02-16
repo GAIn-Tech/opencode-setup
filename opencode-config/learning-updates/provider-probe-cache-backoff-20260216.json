@@ -1,0 +1,18 @@
+{
+  "id": "provider-probe-cache-backoff-20260216",
+  "timestamp": "2026-02-16T01:35:00Z",
+  "category": "telemetry",
+  "summary": "Added in-memory cache/backoff for provider health probes",
+  "details": "Updated /api/providers health probe path to cache provider health responses with status-aware TTLs (healthy/network/429/auth), reducing repeated outbound probe calls during dashboard polling. Manual POST test action now bypasses cache with force mode.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/providers/route.ts"
+  ],
+  "impact": "Medium - Reduces self-induced provider load and noisy rate-limit signals from frequent polling",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "pass",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}

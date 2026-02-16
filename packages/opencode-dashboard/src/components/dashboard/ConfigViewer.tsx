@@ -260,6 +260,11 @@ function parseNumber(value: string, fallback = 0): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+function toStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === 'string');
+}
+
 function JsonTree({ data, searchTerm = '' }: { data: unknown; searchTerm?: string }) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
@@ -1082,6 +1087,61 @@ export function ConfigViewer() {
 
   const renderModelPoliciesEditor = () => {
     const draft = ensureRecord(formDraft);
+    const intentRouting = ensureRecord(draft.intentRouting);
+    const intentEntries = Object.entries(intentRouting);
+    const layerKeys = ['layer_1', 'layer_2', 'layer_3', 'layer_4', 'layer_5', 'layer_6'];
+
+    const updateIntentLayer = (intent: string, layer: string, value: string) => {
+      updateDraft((next) => {
+        const nextRouting = ensureRecord(next.intentRouting);
+        const intentObj = ensureRecord(nextRouting[intent]);
+        intentObj[layer] = fromLines(value);
+        nextRouting[intent] = intentObj;
+        next.intentRouting = nextRouting;
+      });
+    };
+
+    const renameIntent = (fromIntent: string, toIntentRaw: string) => {
+      const toIntent = toIntentRaw.trim();
+      if (!toIntent || toIntent === fromIntent) return;
+      updateDraft((next) => {
+        const nextRouting = ensureRecord(next.intentRouting);
+        const payload = nextRouting[fromIntent];
+        delete nextRouting[fromIntent];
+        nextRouting[toIntent] = payload;
+        next.intentRouting = nextRouting;
+      });
+    };
+
+    const removeIntent = (intent: string) => {
+      updateDraft((next) => {
+        const nextRouting = ensureRecord(next.intentRouting);
+        delete nextRouting[intent];
+        next.intentRouting = nextRouting;
+      });
+    };
+
+    const addIntent = () => {
+      updateDraft((next) => {
+        const nextRouting = ensureRecord(next.intentRouting);
+        const base = 'new_intent';
+        let candidate = base;
+        let i = 1;
+        while (candidate in nextRouting) {
+          candidate = `${base}_${i++}`;
+        }
+        nextRouting[candidate] = {
+          layer_1: [],
+          layer_2: [],
+          layer_3: [],
+          layer_4: [],
+          layer_5: [],
+          layer_6: [],
+        };
+        next.intentRouting = nextRouting;
+      });
+    };
+
     return (
       <div className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
@@ -1097,8 +1157,49 @@ export function ConfigViewer() {
           Hybrid editor: use typed top-level fields plus JSON blocks for deeply nested routing policy structures.
         </div>
 
-        <Field label="Intent routing (JSON)">
-          <JsonArea value={draft.intentRouting} onChange={(nextValue) => updateDraft((next) => (next.intentRouting = nextValue))} />
+        <Field label="Intent routing (typed)">
+          <div className="space-y-3">
+            {intentEntries.length === 0 ? <div className="text-xs text-zinc-500">No intents configured.</div> : null}
+            {intentEntries.map(([intent, value]) => {
+              const intentObj = ensureRecord(value);
+              return (
+                <div key={intent} className="rounded border border-zinc-700 bg-zinc-900 p-3">
+                  <div className="mb-3 flex items-center gap-2">
+                    <Input
+                      value={intent}
+                      onBlur={(e) => renameIntent(intent, e.target.value)}
+                      className="max-w-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeIntent(intent)}
+                      className="rounded bg-red-700/70 px-2 py-1 text-xs text-red-100 hover:bg-red-600/70"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {layerKeys.map((layer) => (
+                      <Field key={`${intent}-${layer}`} label={layer}>
+                        <Textarea
+                          rows={4}
+                          value={toLines(toStringArray(intentObj[layer]))}
+                          onChange={(e) => updateIntentLayer(intent, layer, e.target.value)}
+                        />
+                      </Field>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+            <button
+              type="button"
+              onClick={addIntent}
+              className="rounded bg-zinc-700 px-3 py-1 text-xs text-zinc-100 hover:bg-zinc-600"
+            >
+              Add intent
+            </button>
+          </div>
         </Field>
         <Field label="Models registry (JSON)">
           <JsonArea value={draft.models} onChange={(nextValue) => updateDraft((next) => (next.models = nextValue))} />

@@ -225,7 +225,9 @@ class PositivePatternTracker {
         count: this.patterns.length,
         patterns: this.patterns,
       };
-      fs.writeFileSync(PERSIST_FILE, JSON.stringify(data, null, 2), 'utf8');
+      const tempFile = `${PERSIST_FILE}.tmp`;
+      fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf8');
+      fs.renameSync(tempFile, PERSIST_FILE);
     } catch (err) {
       if (process.env.DEBUG) {
         console.error('[PositivePatternTracker] save error:', err.message);

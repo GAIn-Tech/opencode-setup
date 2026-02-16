@@ -47,6 +47,8 @@ type RLContract = {
     tier_adjustment_window: number;
   };
   fallback: boolean;
+  data_fidelity?: 'live' | 'degraded' | 'unavailable';
+  status_reason?: string;
   warning?: string;
   error?: string;
 };
@@ -178,7 +180,11 @@ function readPolicy(): RLContract['policy'] {
   }
 }
 
-function buildUnavailableResponse(message: string, error?: unknown): RLContract {
+function buildUnavailableResponse(
+  message: string,
+  error?: unknown,
+  statusReason = 'unavailable'
+): RLContract & { data_fidelity: string; status_reason: string } {
   return {
     version: '1.0.0',
     skill_bank: {
@@ -196,6 +202,8 @@ function buildUnavailableResponse(message: string, error?: unknown): RLContract 
     },
     policy: readPolicy(),
     fallback: true,
+    data_fidelity: 'unavailable',
+    status_reason: statusReason,
     warning: message,
     ...(error ? { error: String(error) } : {})
   };
@@ -291,11 +299,13 @@ export async function GET() {
         failure_history: failureHistory
       },
       policy: readPolicy(),
-      fallback: false
+      fallback: false,
+      data_fidelity: 'live',
+      status_reason: 'ok'
     } satisfies RLContract);
   } catch (error) {
     return NextResponse.json(
-      buildUnavailableResponse('RL state unavailable: unexpected error', error),
+      buildUnavailableResponse('RL state unavailable: unexpected error', error, 'unexpected_error'),
       { status: 503 }
     );
   }

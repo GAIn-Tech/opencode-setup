@@ -1,0 +1,18 @@
+{
+  "id": "provider-telemetry-ui-enhancements-20260215",
+  "timestamp": "2026-02-15T23:55:00Z",
+  "category": "dashboard",
+  "summary": "Enhanced provider telemetry dashboard with pressure analytics and hot model visibility",
+  "details": "Updated ProviderHealth UI to derive and display provider pressure metrics from request/token usage, severity badges, pressure bars, status summary cards, and top hot models by token usage. Providers are sorted by pressure to surface bottlenecks first.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/components/dashboard/ProviderHealth.tsx"
+  ],
+  "impact": "Medium - Improves operator visibility into quota pressure and rate-limit hotspots",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "pass",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}

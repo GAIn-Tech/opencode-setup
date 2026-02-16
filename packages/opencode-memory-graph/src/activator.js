@@ -137,7 +137,9 @@ class GraphActivator {
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
-      fs.writeFileSync(this._statePath, JSON.stringify(this._state, null, 2), 'utf-8');
+      const tempPath = `${this._statePath}.tmp`;
+      fs.writeFileSync(tempPath, JSON.stringify(this._state, null, 2), 'utf-8');
+      fs.renameSync(tempPath, this._statePath);
     } catch (_err) {
       // Silently fail — state is still in memory for current process
     }

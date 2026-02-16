@@ -36,16 +36,14 @@ class IntelligentRotator {
         };
  
         this.currentIndex = 0;
-        this._lock = Promise.resolve(); // Simple lock for concurrent calls
     }
 
     /**
      * Get the next available healthy key.
-     * Thread-safe with simple lock to prevent race conditions.
-     * @returns {Promise<object|null>} { id, value }
+     * @returns {object|null} { id, value }
      */
     getNextKey() {
-        return this._withLock(() => this._getNextKeyImpl());
+        return this._getNextKeyImpl();
     }
 
     /**
@@ -85,19 +83,6 @@ class IntelligentRotator {
         selected.lastUsed = now;
         return selected;
     }
-
-    /**
-     * Acquire lock for concurrent-safe getNextKey calls.
-     * @param {Function} fn - Function to execute while holding lock
-     * @returns {Promise<any>} Result of fn
-     */
-    _withLock(fn) {
-        const oldLock = this._lock;
-        let release;
-        this._lock = new Promise(resolve => { release = resolve; });
-        return oldLock.then(() => Promise.resolve(fn()).finally(() => release()));
-    }
-
 
     /**
      * Update key status based on response headers.
