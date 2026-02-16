@@ -1,0 +1,27 @@
+{
+  "name": "@opencode/crash-guard",
+  "version": "1.0.0",
+  "description": "Crash prevention, recovery, and graceful degradation for OpenCode",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./safe-json": "./src/safe-json.js",
+    "./memory-guard": "./src/memory-guard.js",
+    "./crash-recovery": "./src/crash-recovery.js",
+    "./process-isolation": "./src/process-isolation.js",
+    "./subsystem-guard": "./src/subsystem-guard.js"
+  },
+  "scripts": {
+    "test": "bun test"
+  },
+  "keywords": [
+    "crash",
+    "recovery",
+    "fault-tolerance",
+    "memory",
+    "safety"
+  ],
+  "author": "",
+  "license": "MIT"
+}
