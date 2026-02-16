@@ -14,6 +14,8 @@ import {
   ReactFlow,
   useEdgesState,
   useNodesState,
+  type OnMove,
+  type Viewport,
   type Edge,
   type Node,
   type NodeProps,
@@ -36,6 +38,8 @@ type UnifiedNodeData = {
 
 type UnifiedFlowNode = Node<UnifiedNodeData, UnifiedNodeType>;
 type UnifiedFlowEdge = Edge<{ label?: string; strength?: number }>;
+
+const VIEWPORT_STORAGE_KEY = 'opencode-dashboard:kg-viewport:v1';
 
 interface InputNode {
   id: string;
@@ -339,6 +343,45 @@ function normalizeGraph(rawNodes: InputNode[], rawEdges: InputEdge[]): { nodes: 
   return { nodes, edges };
 }
 
+function preserveNodePositions(nextNodes: UnifiedFlowNode[], previousNodes: UnifiedFlowNode[]): UnifiedFlowNode[] {
+  if (previousNodes.length === 0) return nextNodes;
+
+  const byId = new Map(previousNodes.map((node) => [node.id, node.position]));
+  return nextNodes.map((node) => {
+    const previousPosition = byId.get(node.id);
+    if (!previousPosition) return node;
+    return { ...node, position: previousPosition };
+  });
+}
+
+function loadSavedViewport(): Viewport | undefined {
+  if (typeof window === 'undefined') return undefined;
+  try {
+    const raw = window.localStorage.getItem(VIEWPORT_STORAGE_KEY);
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw) as Partial<Viewport>;
+    if (
+      typeof parsed.x === 'number' && Number.isFinite(parsed.x) &&
+      typeof parsed.y === 'number' && Number.isFinite(parsed.y) &&
+      typeof parsed.zoom === 'number' && Number.isFinite(parsed.zoom)
+    ) {
+      return { x: parsed.x, y: parsed.y, zoom: parsed.zoom };
+    }
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function saveViewport(viewport: Viewport): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(VIEWPORT_STORAGE_KEY, JSON.stringify(viewport));
+  } catch {
+    // no-op: storage failures should not affect graph interaction
+  }
+}
+
 export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externalEdges, onNodeSelect, selectedNode }: InteractiveKnowledgeGraphProps) {
   const [loading, setLoading] = useState(!externalNodes);
   const [error, setError] = useState<string | null>(null);
@@ -356,11 +399,12 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
   const [focusNodeId, setFocusNodeId] = useState<string | null>(null);
   const [focusDepth, setFocusDepth] = useState<1 | 2>(1);
   const [selectedFlowNode, setSelectedFlowNode] = useState<UnifiedFlowNode | null>(null);
+  const [defaultViewport, setDefaultViewport] = useState<Viewport | undefined>(() => loadSavedViewport());
 
   const fetchData = useCallback(async () => {
     if (externalNodes && externalEdges) {
       const normalized = normalizeGraph(externalNodes, externalEdges);
-      setNodes(normalized.nodes);
+      setNodes((prev) => preserveNodePositions(normalized.nodes, prev));
       setEdges(normalized.edges);
       setError(null);
       setLoading(false);
@@ -377,7 +421,7 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
       const payload = (await response.json()) as { nodes?: InputNode[]; edges?: InputEdge[] };
       const normalized = normalizeGraph(payload.nodes ?? [], payload.edges ?? []);
 
-      setNodes(normalized.nodes);
+      setNodes((prev) => preserveNodePositions(normalized.nodes, prev));
       setEdges(normalized.edges);
       setError(null);
     } catch (fetchError) {
@@ -498,6 +542,11 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
     onNodeSelect?.(match.id);
   }, [nodes, normalizedSearch, onNodeSelect]);
 
+  const onMoveEnd = useCallback<OnMove>((_, viewport) => {
+    saveViewport(viewport);
+    if (!defaultViewport) setDefaultViewport(viewport);
+  }, [defaultViewport]);
+
   if (loading) {
     return (
       <div className="flex min-h-[620px] items-center justify-center rounded-xl border border-zinc-800 bg-zinc-950">
@@ -526,10 +575,12 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
       <ReactFlow
         nodes={visibleNodes}
         edges={visibleEdges}
+        defaultViewport={defaultViewport}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onNodeClick={onNodeClick}
+        onMoveEnd={onMoveEnd}
         nodeTypes={nodeTypes}
         fitView
         panOnDrag

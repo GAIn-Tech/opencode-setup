@@ -1,0 +1,18 @@
+{
+  "id": "knowledge-graph-drag-zoom-20260215",
+  "timestamp": "2026-02-15T23:30:00Z",
+  "category": "dashboard",
+  "summary": "Improved knowledge graph drag/zoom UX with viewport persistence and position retention",
+  "details": "Enhanced InteractiveKnowledgeGraph to persist viewport in localStorage and restore it across renders, and to preserve node drag positions across refresh cycles by reusing previous positions for matching node IDs. Added robust viewport save/load guards and wired onMoveEnd for persistence.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/components/dashboard/InteractiveKnowledgeGraph.tsx"
+  ],
+  "impact": "Medium - Greatly improves graph navigation continuity and reduces disruption from periodic data refreshes",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "pass",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}
