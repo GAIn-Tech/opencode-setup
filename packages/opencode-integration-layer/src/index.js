@@ -26,7 +26,7 @@ try {
 const { createOrchestrationId, pickSessionId, normalizeQuotaSignal, getQuotaSignal } = contextUtils;
 
 // Import utility packages for full integration
-let structuredLogger, inputValidator, healthChecker, backupManager, featureFlags;
+let structuredLogger, inputValidator, healthChecker, backupManager, featureFlags, contextGovernor, memoryGraph;
 try {
   structuredLogger = require('opencode-logger');
 } catch (e) {
@@ -51,6 +51,16 @@ try {
   featureFlags = require('opencode-feature-flags');
 } catch (e) {
   featureFlags = null;
+}
+try {
+  contextGovernor = require('opencode-context-governor');
+} catch (e) {
+  contextGovernor = null;
+}
+try {
+  memoryGraph = require('opencode-memory-graph');
+} catch (e) {
+  memoryGraph = null;
 }
 
 // Initialize logger if available
@@ -77,6 +87,8 @@ class IntegrationLayer {
     this.healthChecker = healthChecker;
     this.backupManager = backupManager;
     this.featureFlags = featureFlags;
+    this.contextGovernor = contextGovernor;
+    this.memoryGraph = memoryGraph;
     
     // Log initialization status
     logger.info('IntegrationLayer initialized', {
@@ -90,6 +102,8 @@ class IntegrationLayer {
       hasHealthChecker: !!healthChecker,
       hasBackupManager: !!backupManager,
       hasFeatureFlags: !!featureFlags,
+      hasContextGovernor: !!contextGovernor,
+      hasMemoryGraph: !!memoryGraph,
     });
   }
 
