@@ -154,24 +154,42 @@
         }
       }
     },
-    "nvidia": {
+"nvidia": {
       "npm": "@ai-sdk/openai-compatible",
       "options": {
         "baseURL": "https://integrate.api.nvidia.com/v1",
         "apiKey": "{env:NVIDIA_API_KEY}"
       },
       "models": {
-        "meta/llama-4-scout-17b-16k-instruct": {
-          "name": "Llama 4 Scout 17B (NVIDIA) - FAST",
-          "limit": { "context": 128000, "output": 16384 },
-          "modalities": { "input": ["text"], "output": ["text"] },
+        "kimi-k2.5-pro": {
+          "name": "Kimi K2.5 Pro (NVIDIA) - FRONTIER",
+          "limit": { "context": 128000, "output": 32000 },
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
+          "priority": "primary"
+        },
+        "kimi-k2.5-flash": {
+          "name": "Kimi K2.5 Flash (NVIDIA)",
+          "limit": { "context": 128000, "output": 32000 },
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
+          "priority": "primary"
+        },
+        "glm4.7": {
+          "name": "GLM4.7 (NVIDIA)",
+          "limit": { "context": 128000, "output": 32000 },
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
           "priority": "secondary"
         },
-        "meta/llama-4-maverick-17b-128k-instruct": {
-          "name": "Llama 4 Maverick 17B (NVIDIA)",
-          "limit": { "context": 128000, "output": 16384 },
+        "deepseek-chat": {
+          "name": "DeepSeek Chat (NVIDIA)",
+          "limit": { "context": 64000, "output": 16000 },
           "modalities": { "input": ["text"], "output": ["text"] },
-          "priority": "secondary"
+          "priority": "fallback"
+        },
+        "deepseek-coder": {
+          "name": "DeepSeek Coder (NVIDIA)",
+          "limit": { "context": 64000, "output": 16000 },
+          "modalities": { "input": ["text"], "output": ["text"] },
+          "priority": "fallback"
         }
       }
     },
@@ -217,7 +235,7 @@
         }
       }
     },
-    "deepseek": {
+"deepseek": {
       "npm": "@ai-sdk/openai-compatible",
       "options": {
         "baseURL": "https://api.deepseek.com",
@@ -225,14 +243,65 @@
       },
       "models": {
         "deepseek-chat": {
-          "name": "DeepSeek Chat (Fallback)",
+          "name": "DeepSeek Chat - FALLBACK",
           "limit": { "context": 65536, "output": 8192 },
           "modalities": { "input": ["text"], "output": ["text"] },
           "priority": "fallback"
         },
         "deepseek-coder": {
-          "name": "DeepSeek Coder (Fallback)",
+          "name": "DeepSeek Coder - FALLBACK",
           "limit": { "context": 65536, "output": 8192 },
+          "modalities": { "input": ["text"], "output": ["text"] },
+          "priority": "fallback"
+        }
+      }
+    },
+    "zen": {
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://api.zen.ai/v1",
+        "apiKey": "{env:ZEN_API_KEY}"
+      },
+      "models": {
+        "glm5": {
+          "name": "GLM5 (Zen) - FRONTIER",
+          "limit": { "context": 256000, "output": 64000 },
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
+          "priority": "primary"
+        },
+        "kimi-k2.5-pro": {
+          "name": "Kimi K2.5 Pro (Zen)",
+          "limit": { "context": 128000, "output": 32000 },
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
+          "priority": "secondary"
+        }
+      }
+    },
+    "minimax": {
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://api.minimax.chat/v1",
+        "apiKey": "{env:MINIMAX_API_KEY}"
+      },
+      "models": {
+        "minimax-m2.5": {
+          "name": "MiniMax M2.5 - FRONTIER",
+          "limit": { "context": 128000, "output": 32000 },
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
+          "priority": "primary"
+        }
+      }
+    },
+    "zhipu": {
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://open.bigmodel.cn/api/paas/v4",
+        "apiKey": "{env:ZHIPU_API_KEY}"
+      },
+      "models": {
+        "glm-4-plus": {
+          "name": "GLM4 Plus (Zhipu)",
+          "limit": { "context": 128000, "output": 16384 },
           "modalities": { "input": ["text"], "output": ["text"] },
           "priority": "fallback"
         }
