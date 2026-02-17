@@ -17,6 +17,24 @@ const { EvolutionEngine } = require('./evolution-engine');
 const fs = require('fs');
 const path = require('path');
 
+// Simple file lock to prevent concurrent write corruption
+const _locks = new Map();
+
+async function _acquireLock(lockPath, timeout = 5000) {
+  const start = Date.now();
+  while (_locks.has(lockPath)) {
+    if (Date.now() - start > timeout) {
+      throw new Error(`Lock acquisition timeout for ${lockPath}`);
+    }
+    await new Promise(r => setTimeout(r, 50));
+  }
+  _locks.set(lockPath, true);
+}
+
+function _releaseLock(lockPath) {
+  _locks.delete(lockPath);
+}
+
 // Safe JSON to prevent crashes from circular references
 const SafeJSON = {
   stringify: (obj) => {
@@ -134,21 +152,24 @@ class SkillRLManager {
   }
 
   /**
-   * Save state to disk
+   * Save state to disk (with locking to prevent concurrent write corruption)
    */
-  _save() {
+  async _save() {
     if (!this.persistencePath) return;
 
-    const state = {
-      skillBank: this.skillBank.export(),
-      evolutionEngine: this.evolutionEngine.export(),
-      timestamp: Date.now()
-    };
-
-    const parentDir = path.dirname(this.persistencePath);
-    const tempPath = `${this.persistencePath}.tmp`;
-
+    const lockPath = `${this.persistencePath}.lock`;
+    await _acquireLock(lockPath);
+    
     try {
+      const state = {
+        skillBank: this.skillBank.export(),
+        evolutionEngine: this.evolutionEngine.export(),
+        timestamp: Date.now()
+      };
+
+      const parentDir = path.dirname(this.persistencePath);
+      const tempPath = `${this.persistencePath}.tmp`;
+
       if (!fs.existsSync(parentDir)) {
         fs.mkdirSync(parentDir, { recursive: true });
       }
@@ -156,22 +177,20 @@ class SkillRLManager {
       fs.writeFileSync(tempPath, SafeJSON.stringify(state, null, 2));
       fs.renameSync(tempPath, this.persistencePath);
     } catch (error) {
-      try {
-        if (fs.existsSync(tempPath)) {
-          fs.unlinkSync(tempPath);
-        }
-      } catch {
-        // no-op cleanup best effort
-      }
       console.warn('Failed to persist SkillRL state:', error.message);
+    } finally {
+      _releaseLock(lockPath);
     }
   }
 
   /**
    * Load state from disk
    */
-  _load() {
+  async _load() {
     if (!this.persistencePath || !fs.existsSync(this.persistencePath)) return;
+    
+    const lockPath = `${this.persistencePath}.lock`;
+    await _acquireLock(lockPath);
     
     try {
       const data = SafeJSON.parse(fs.readFileSync(this.persistencePath, 'utf-8'));
@@ -179,12 +198,13 @@ class SkillRLManager {
       if (data.skillBank) {
         this.skillBank.import(data.skillBank);
       }
-      
       if (data.evolutionEngine) {
         this.evolutionEngine.import(data.evolutionEngine);
       }
     } catch (error) {
       console.warn('Failed to load SkillRL state:', error.message);
+    } finally {
+      _releaseLock(lockPath);
     }
   }
 

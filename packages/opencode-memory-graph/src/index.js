@@ -34,12 +34,13 @@ class MemoryGraph {
     /** @type {object[]} */
     this._entries = [];
 
-    // Activation system — OFF by default
+    // Activation system — ON by default to collect learning data
     this._backfillEngine = new BackfillEngine({ bridge: this._bridge });
     this._activator = new GraphActivator({
       backfillEngine: this._backfillEngine,
       bridge: this._bridge,
     });
+    this._activated = true;
   }
 
   // ─── Core API ───────────────────────────────────────────────────────────
