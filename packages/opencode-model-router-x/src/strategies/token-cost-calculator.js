@@ -23,17 +23,17 @@ class TokenCostCalculator {
       },
       // Gemini (Google) - Gemini 3 series (Nov/Dec 2025) - CURRENT FRONTIER
       'google': {
-        'gemini-3-flash': { input: 0.50, output: 3.0 },
-        'gemini-3-flash-thinking': { input: 0.50, output: 3.0, thinking_multiplier: 1.5 },
-        'gemini-3-pro': { input: 2.0, output: 10.0 },
-        'gemini-3-pro-thinking': { input: 2.0, output: 10.0, thinking_multiplier: 1.5 },
-        'gemini-3-pro-deep-think': { input: 2.0, output: 10.0, thinking_multiplier: 2.0 }
+        "gemini-2.0-flash": { input: 0.50, output: 3.0 },
+        'gemini-2.0-flash-thinking': { input: 0.50, output: 3.0, thinking_multiplier: 1.5 },
+        "gemini-2.0-pro": { input: 2.0, output: 10.0 },
+        'gemini-2.0-pro-thinking': { input: 2.0, output: 10.0, thinking_multiplier: 1.5 },
+        'gemini-2.0-pro-deep-think': { input: 2.0, output: 10.0, thinking_multiplier: 2.0 }
       },
       // OpenAI - GPT-5 series (2025-2026)
       'openai': {
-        'gpt-5.3-codex': { input: 2.0, output: 16.0 },
-        'gpt-5.2': { input: 1.75, output: 14.0 },
-        'gpt-5': { input: 1.25, output: 10.0 },
+        'gpt-4o.3-codex': { input: 2.0, output: 16.0 },
+        'gpt-4o.2': { input: 1.75, output: 14.0 },
+        "gpt-4o": { input: 1.25, output: 10.0 },
         'gpt-4o': { input: 2.50, output: 10.0 },
         'gpt-4o-thinking-low': { input: 2.50, output: 10.0, thinking_multiplier: 1.5 },
         'gpt-4o-thinking-max': { input: 2.50, output: 10.0, thinking_multiplier: 3.0 },

@@ -58,17 +58,17 @@ const modelProviderMap = {
     'claude-haiku-4-5': 'anthropic',
 
     // OpenAI models (GPT-5 series - 2025-2026)
-    'gpt-5.3-codex': 'openai',
-    'gpt-5.2': 'openai',
-    'gpt-5': 'openai',
+    'gpt-4o.3-codex': 'openai',
+    'gpt-4o.2': 'openai',
+    "gpt-4o": 'openai',
     'gpt-4o': 'openai',
     'gpt-4o-mini': 'openai',
 
     // Google models (Gemini 3 series - Nov/Dec 2025) - CURRENT FRONTIER
-    'gemini-3-pro': 'google',
-    'gemini-3-flash': 'google',
-    'antigravity-gemini-3-pro': 'google',
-    'antigravity-gemini-3-flash': 'google',
+    "gemini-2.0-pro": 'google',
+    "gemini-2.0-flash": 'google',
+    'antigravity-gemini-2.0-pro': 'google',
+    'antigravity-gemini-2.0-flash': 'google',
 
     // Groq (Llama 4 - Apr 2025)
     'llama-4-maverick': 'groq',

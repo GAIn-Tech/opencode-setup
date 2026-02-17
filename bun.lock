@@ -235,17 +235,11 @@
 
     "@isaacs/cliui": ["@isaacs/cliui@8.0.2", "", { "dependencies": { "string-width": "^5.1.2", "string-width-cjs": "npm:string-width@^4.2.0", "strip-ansi": "^7.0.1", "strip-ansi-cjs": "npm:strip-ansi@^6.0.1", "wrap-ansi": "^8.1.0", "wrap-ansi-cjs": "npm:wrap-ansi@^7.0.0" } }, "sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA=="],
 
-    "@jackoatmon/opencode-circuit-breaker": ["opencode-circuit-breaker@workspace:packages/opencode-circuit-breaker"],
-
     "@jackoatmon/opencode-context-governor": ["@jackoatmon/opencode-context-governor@workspace:packages/opencode-context-governor"],
 
     "@jackoatmon/opencode-eval-harness": ["@jackoatmon/opencode-eval-harness@workspace:packages/opencode-eval-harness"],
 
     "@jackoatmon/opencode-fallback-doctor": ["@jackoatmon/opencode-fallback-doctor@workspace:packages/opencode-fallback-doctor"],
-
-    "@jackoatmon/opencode-feature-flags": ["opencode-feature-flags@workspace:packages/opencode-feature-flags"],
-
-    "@jackoatmon/opencode-health-check": ["opencode-health-check@workspace:packages/opencode-health-check"],
 
     "@jackoatmon/opencode-integration-layer": ["@jackoatmon/opencode-integration-layer@workspace:packages/opencode-integration-layer"],
 
@@ -1197,9 +1191,15 @@
 
     "@isaacs/cliui/strip-ansi": ["strip-ansi@7.1.2", "", { "dependencies": { "ansi-regex": "^6.0.1" } }, "sha512-gmBGslpoQJtgnMAvOVqGZpEz9dyoKTCzy2nfz/n8aIFhN/jCE/rCmcxabB6jOOHV+0WNnylOxaxBQPSvcWklhA=="],
 
+    "@jackoatmon/opencode-model-router-x/@jackoatmon/opencode-circuit-breaker": ["opencode-circuit-breaker@file:packages/opencode-circuit-breaker", {}],
+
     "@jackoatmon/opencode-model-router-x/@jackoatmon/opencode-context-governor": ["@jackoatmon/opencode-context-governor@file:packages/opencode-context-governor", {}],
 
     "@jackoatmon/opencode-model-router-x/@jackoatmon/opencode-fallback-doctor": ["@jackoatmon/opencode-fallback-doctor@file:packages/opencode-fallback-doctor", { "bin": { "fallback-doctor": "src/cli.js" } }],
+
+    "@jackoatmon/opencode-model-router-x/@jackoatmon/opencode-feature-flags": ["opencode-feature-flags@file:packages/opencode-feature-flags", {}],
+
+    "@jackoatmon/opencode-model-router-x/@jackoatmon/opencode-health-check": ["opencode-health-check@file:packages/opencode-health-check", {}],
 
     "@jackoatmon/opencode-model-router-x/@jackoatmon/opencode-learning-engine": ["opencode-learning-engine@file:packages/opencode-learning-engine", {}],
 

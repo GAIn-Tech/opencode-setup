@@ -273,7 +273,7 @@
     },
     "playwright": {
       "type": "local",
-      "command": ["npx", "@playwright/mcp@0.0.64"],
+      "command": ["npx", "-y", "@playwright/mcp@latest"],
       "enabled": false
     },
     "sequentialthinking": {
@@ -288,7 +288,7 @@
     },
     "grep": {
       "type": "local",
-      "command": ["uvx", "grep-mcp"],
+      "command": ["npx", "-y", "@modelcontextprotocol/server-grep"],
       "enabled": true
     },
     "github": {
