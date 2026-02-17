@@ -60,7 +60,7 @@
       "layer_6": []
     },
     "large_context": {
-      "layer_1": ["gemini-2.0-pro"],
+      "layer_1": ["gemini-3-pro"],
       "layer_2": [],
       "layer_3": [],
       "layer_4": [],
@@ -68,7 +68,7 @@
       "layer_6": []
     },
     "multimodal": {
-      "layer_1": ["gpt-4o", "gemini-2.0-pro"],
+      "layer_1": ["gpt-4o", "gemini-3-pro"],
       "layer_2": [],
       "layer_3": [],
       "layer_4": [],
@@ -122,7 +122,7 @@
       "strengths": ["general-reasoning", "code-generation", "math"],
       "default_success_rate": 0.88
     },
-    "gemini-2.0-pro": {
+    "gemini-3-pro": {
       "provider": "google",
       "tier": "flagship",
       "base_weight": 0.4,
@@ -197,12 +197,12 @@
     "moderate": {
       "description": "Standard code tasks, tests, small features",
       "cost_tier": "low",
-      "model_preference": ["anthropic/claude-sonnet-4-5", "kimi-k2.5", "gemini-2.0-pro"]
+      "model_preference": ["anthropic/claude-sonnet-4-5", "kimi-k2.5", "gemini-3-pro"]
     },
     "high": {
       "description": "Complex features, multi-file refactors",
       "cost_tier": "high",
-      "model_preference": ["anthropic/claude-opus-4-6", "gpt-4o", "gemini-2.0-pro"]
+      "model_preference": ["anthropic/claude-opus-4-6", "gpt-4o", "gemini-3-pro"]
     },
     "critical": {
       "description": "Architecture decisions, security, production issues",

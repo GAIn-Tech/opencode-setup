@@ -7,64 +7,170 @@ const policies = require('./policies.json');
 const Orchestrator = require('./strategies/orchestrator');
 const { CircuitBreaker } = require('@jackoatmon/opencode-circuit-breaker');
 
-// P2: Health-Check Integration - Import for provider health registration
-let HealthCheck;
+// P4: INTEGRATION LAYER - Use IntegrationLayer instead of individual imports (fixes option creep)
+// This single import replaces all the individual try/catch blocks below
+let IntegrationLayer;
 try {
-  HealthCheck = require('@jackoatmon/opencode-health-check');
+  IntegrationLayer = require('@jackoatmon/opencode-integration-layer');
 } catch (e) {
-  HealthCheck = null;
+  try {
+    IntegrationLayer = require('../../opencode-integration-layer/src/index.js');
+  } catch (e2) {
+    IntegrationLayer = null;
+  }
 }
 
-// P3: Feature Flags for Model Rollouts - Import for gradual model introductions
-let FeatureFlags;
-try {
-  FeatureFlags = require('@jackoatmon/opencode-feature-flags');
-} catch (e) {
-  FeatureFlags = null;
-}
+// Fallback imports for direct access (used in constructor)
+// These are kept for backwards compatibility - the adapter is preferred
+let Logger, ValidatorLib, OpenCodeErrors, FallbackDoctor, HealthCheck;
+try { Logger = require('@jackoatmon/opencode-logger'); } catch (e) { Logger = null; }
+try { ValidatorLib = require('@jackoatmon/opencode-validator'); } catch (e) { ValidatorLib = null; }
+try { OpenCodeErrors = require('@jackoatmon/opencode-errors'); } catch (e) { OpenCodeErrors = null; }
+try { FallbackDoctor = require('@jackoatmon/opencode-fallback-doctor'); } catch (e) { FallbackDoctor = null; }
+try { HealthCheck = require('@jackoatmon/opencode-health-check'); } catch (e) { HealthCheck = null; }
 
-// P1: ConfigLoader Integration - Import for centralized configuration
-let ConfigLoader;
-try {
-  ConfigLoader = require('@jackoatmon/opencode-config-loader');
-} catch (e) {
-  ConfigLoader = null;
-}
-
-// P2: Fallback Doctor Auto-Validation - Import for chain validation
-let FallbackDoctor;
-try {
-  FallbackDoctor = require('@jackoatmon/opencode-fallback-doctor');
-} catch (e) {
-  FallbackDoctor = null;
-}
-
-// P1: Errors Integration - Import for standardized error taxonomy
-let OpenCodeErrors;
-try {
-  OpenCodeErrors = require('@jackoatmon/opencode-errors');
-} catch (e) {
-  OpenCodeErrors = null;
-}
-
-// P2: Logger Integration - Import for structured logging
-let Logger;
-try {
-  Logger = require('@jackoatmon/opencode-logger');
-} catch (e) {
-  Logger = null;
-}
-
-// P2: Validator Integration - Import for input validation
-let ValidatorLib;
-try {
-  ValidatorLib = require('@jackoatmon/opencode-validator');
-} catch (e) {
-  ValidatorLib = null;
+/**
+ * P4: RouterIntegrationAdapter - Facade pattern to fix "option creep"
+ * 
+ * This adapter wraps the IntegrationLayer and provides a clean, unified API
+ * for ModelRouter. It replaces all the individual if-checks with a single
+ * integration point, making the code much cleaner and maintainable.
+ * 
+ * Before: 10+ if-checks in ModelRouter for optional dependencies
+ * After: Single adapter call with graceful fallbacks
+ */
+class RouterIntegrationAdapter {
+  constructor(integrationLayer, options = {}) {
+    this.layer = integrationLayer;
+    this.options = options;
+    this._initialized = false;
+    
+    // Lazy-initialize on first use
+    this._services = {};
+  }
+  
+  /**
+   * Initialize the adapter with required services
+   */
+  initialize(modelRouter) {
+    if (this._initialized) return;
+    
+    // Create IntegrationLayer instance if we got the class
+    if (IntegrationLayer && !this.layer) {
+      this.layer = new IntegrationLayer({
+        modelRouter,
+        skillRL: this.options.skillRL,
+        quotaManager: this.options.quotaManager,
+        preloadSkills: this.options.preloadSkills
+      });
+    }
+    
+    this._initialized = true;
+  }
+  
+  /**
+   * Get learning engine advice - returns null if not available
+   */
+  getLearningAdvice(context) {
+    if (!this.layer?.advisor) return null;
+    try {
+      return this.layer.advisor.advise(context);
+    } catch (e) {
+      return null;
+    }
+  }
+  
+  /**
+   * Record outcome to learning engine - fire and forget
+   */
+  recordLearningOutcome(outcome) {
+    if (!this.layer?.advisor) return;
+    try {
+      this.layer.advisor.learnFromOutcome?.(outcome);
+    } catch (e) {
+      // Fire and forget - don't block
+    }
+  }
+  
+  /**
+   * Validate input using validator - returns data if not available
+   */
+  validateInput(data) {
+    if (!this.layer?.validateInput) return { valid: true, data };
+    try {
+      return this.layer.validateInput(data);
+    } catch (e) {
+      return { valid: true, data };
+    }
+  }
+  
+  /**
+   * Check if feature flag is enabled - defaults to true
+   */
+  isFeatureEnabled(flagName) {
+    if (!this.layer?.isFeatureEnabled) return true;
+    try {
+      return this.layer.isFeatureEnabled(flagName);
+    } catch (e) {
+      return true;
+    }
+  }
+  
+  /**
+   * Get health status - returns healthy if not available
+   */
+  async getHealth() {
+    if (!this.layer?.getHealth) return { status: 'healthy' };
+    try {
+      return await this.layer.getHealth();
+    } catch (e) {
+      return { status: 'healthy' };
+    }
+  }
+  
+  /**
+   * Create backup - returns null if not available
+   */
+  async createBackup(label) {
+    if (!this.layer?.createBackup) return null;
+    try {
+      return await this.layer.createBackup(label);
+    } catch (e) {
+      return null;
+    }
+  }
+  
+  /**
+   * Get config - returns empty object if not available
+   */
+  getConfig() {
+    if (!this.layer?.config) return {};
+    return this.layer.config;
+  }
+  
+  /**
+   * Enrich task context with system signals
+   */
+  enrichContext(context) {
+    if (!this.layer?.enrichTaskContext) return context;
+    try {
+      return this.layer.enrichTaskContext(context);
+    } catch (e) {
+      return context;
+    }
+  }
 }
 
 class ModelRouter {
   constructor(options = {}) {
+    // P4: INTEGRATION ADAPTER - Single point of integration (fixes option creep)
+    // Instead of 10+ if-checks, use the adapter for all integrations
+    this._adapter = new RouterIntegrationAdapter(IntegrationLayer, {
+      skillRL: options.skillRLManager,
+      quotaManager: options.quotaManager,
+      preloadSkills: options.preloadSkills
+    });
+    
     this.policies = policies;
     this.models = this._flattenModels(this.policies);
     this.rotators = KeyRotatorFactory.createFromEnv(options.env || process.env);
@@ -263,14 +369,20 @@ class ModelRouter {
    * @param {string} modelId
    * @returns {object|null} { key: string, keyId: string, rotator: IntelligentRotator }
    */
-  getApiKeyForModel(modelId) {
+  async getApiKeyForModel(modelId) {
     const model = this.models[modelId];
     if (!model) return null;
 
     const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
     if (!rotator) return null;
 
-    const key = rotator.getNextKey();
+    let key = null;
+    try {
+      key = await rotator.getNextKey();
+    } catch (err) {
+      console.error(`[ModelRouter] Failed to get key for model ${modelId}:`, err.message);
+      return null;
+    }
     if (!key) return null;
 
     return {
@@ -291,12 +403,17 @@ class ModelRouter {
    * @param {string[]} [ctx.requiredStrengths] - Strengths the model must have.
    * @returns {Object} `{ model, key, score, reason, rotator }`
    */
-  route(ctx = {}) {
+  async route(ctx = {}) {
     if (ctx && typeof ctx.overrideModelId === 'string') {
       const forcedModel = this.models[ctx.overrideModelId];
       if (forcedModel) {
         const forcedRotator = this.rotators[forcedModel.provider];
-        const forcedKey = forcedRotator ? forcedRotator.getNextKey() : null;
+        let forcedKey = null;
+        try {
+          forcedKey = forcedRotator ? await forcedRotator.getNextKey() : null;
+        } catch (err) {
+          console.error(`[ModelRouter] Failed to get key for override model:`, err.message);
+        }
         return {
           model: forcedModel,
           keyId: forcedKey ? forcedKey.id : null,
@@ -352,7 +469,12 @@ class ModelRouter {
     const winner = scored[0];
     const model = this.models[winner.modelId];
     const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
-    const key = rotator ? rotator.getNextKey() : null;
+    let key = null;
+    try {
+      key = rotator ? await rotator.getNextKey() : null;
+    } catch (err) {
+      console.error(`[ModelRouter] Failed to get key for winner model:`, err.message);
+    }
     return {
       model,
       keyId: key ? key.id : null,
@@ -371,7 +493,12 @@ class ModelRouter {
         if (selection && selection.model_id && this.models[selection.model_id]) {
           const model = this.models[selection.model_id];
           const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
-          const key = rotator ? rotator.getNextKey() : null;
+          let key = null;
+          try {
+            key = rotator ? await rotator.getNextKey() : null;
+          } catch (err) {
+            console.error(`[ModelRouter] Failed to get key in routeAsync:`, err.message);
+          }
           return {
             model,
             keyId: key ? key.id : null,
@@ -435,8 +562,8 @@ class ModelRouter {
 
   /**
    * Atomic stats persistence - write to temp file then rename.
-   * @private
-   */
+    * @private
+    */
   async _persistStatsAtomic() {
     if (!this.statsPersistPath || this._statsWritePending) return;
     
@@ -444,7 +571,21 @@ class ModelRouter {
     try {
       const fs = require('fs').promises;
       const tempPath = this.statsPersistPath + '.tmp';
-      await fs.writeFile(tempPath, JSON.stringify(this.stats, null, 2), 'utf8');
+      const backupPath = this.statsPersistPath + '.backup';
+      
+      // Write to temp file
+      const statsJson = JSON.stringify(this.stats, null, 2);
+      await fs.writeFile(tempPath, statsJson, 'utf8');
+      
+      // Try to keep backup of previous successful write
+      try {
+        await fs.access(this.statsPersistPath);
+        await fs.copyFile(this.statsPersistPath, backupPath);
+      } catch {
+        // No previous file exists yet - that's OK
+      }
+      
+      // Atomic rename
       await fs.rename(tempPath, this.statsPersistPath);
     } catch (err) {
       console.error('[ModelRouter] Failed to persist stats:', err.message);

@@ -206,15 +206,23 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
 
   /**
    * Acquire lock for layer advancement to prevent race conditions
+   * Fixed: properly chain promises to avoid overwriting in-flight callbacks
    * @private
    */
   _acquireAdvanceLock(callback) {
-    return this._advanceLock.then(async () => {
-      this._advanceLock = callback().finally(() => {
-        this._advanceLock = Promise.resolve();
-      });
-      return this._advanceLock;
-    });
+    const previousLock = this._advanceLock;
+    
+    // Chain onto previous lock, then run callback
+    this._advanceLock = (async () => {
+      try {
+        await previousLock;  // Wait for any in-progress advance
+        return await callback();
+      } finally {
+        this._advanceLock = Promise.resolve();  // Reset after callback completes
+      }
+    })();
+    
+    return this._advanceLock;
   }
 
   /**

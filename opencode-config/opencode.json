@@ -61,14 +61,40 @@
           "priority": "secondary"
         },
         "gemini-3-flash": {
-          "name": "Gemini 3 Flash (Gemini CLI)",
-          "limit": { "context": 1000000, "output": 65535 },
-          "modalities": { "input": ["text", "image", "pdf", "video"], "output": ["text"] }
+          "name": "Gemini 3 Flash (Google)",
+          "limit": { "context": 1048576, "output": 65536 },
+          "modalities": { "input": ["text", "image", "video", "audio"], "output": ["text"] },
+          "priority": "primary"
         },
         "gemini-3-pro": {
-          "name": "Gemini 3 Pro (Gemini CLI)",
-          "limit": { "context": 1000000, "output": 65535 },
-          "modalities": { "input": ["text", "image", "pdf", "video"], "output": ["text"] }
+          "name": "Gemini 3 Pro (Google)",
+          "limit": { "context": 1048576, "output": 65536 },
+          "modalities": { "input": ["text", "image", "video", "audio"], "output": ["text"] },
+          "priority": "primary"
+        },
+        "gemini-3-flash": {
+          "name": "Gemini 3 Flash",
+          "limit": { "context": 1048576, "output": 65536 },
+          "modalities": { "input": ["text", "image", "video", "audio"], "output": ["text"] },
+          "priority": "primary"
+        },
+        "gemini-3-pro": {
+          "name": "Gemini 3 Pro",
+          "limit": { "context": 1048576, "output": 65536 },
+          "modalities": { "input": ["text", "image", "video", "audio"], "output": ["text"] },
+          "priority": "primary"
+        },
+        "gemini-3-flash": {
+          "name": "Gemini 3 Flash",
+          "limit": { "context": 1048576, "output": 65536 },
+          "modalities": { "input": ["text", "image", "video", "audio"], "output": ["text"] },
+          "priority": "primary"
+        },
+        "gemini-3-pro": {
+          "name": "Gemini 3 Pro",
+          "limit": { "context": 1048576, "output": 65536 },
+          "modalities": { "input": ["text", "image", "video", "audio"], "output": ["text"] },
+          "priority": "primary"
         }
       }
     },
@@ -107,6 +133,12 @@
           "modalities": { "input": ["text", "image"], "output": ["text"] },
           "priority": "primary",
           "specialty": "coding"
+        },
+        "gpt-5.2-codex": {
+          "name": "GPT-5.2 Codex (OpenAI) - BEST FOR CODING",
+          "limit": { "context": 400000, "output": 100000 },
+          "modalities": { "input": ["text", "image"], "output": ["text"] },
+          "priority": "primary"
         },
         "gpt-5.2": {
           "name": "GPT-5.2 (OpenAI)",

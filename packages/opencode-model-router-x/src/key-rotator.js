@@ -32,8 +32,10 @@ class IntelligentRotator {
         
         this.options = {
             strategy: 'round-robin', // 'round-robin' | 'health-first'
-            cooldownMs: 60000,
-            maxFailures: 3,
+            cooldownMs: options.cooldownMs || 60000, // Configurable, default 60s
+            maxFailures: options.maxFailures || 3,
+            tokenFloor: options.tokenFloor || 1000, // Configurable token floor
+            lockTimeoutMs: options.lockTimeoutMs || 5000, // Configurable lock timeout
             ...options
         };
  
@@ -57,9 +59,10 @@ class IntelligentRotator {
     /**
      * Acquire lock for concurrent access protection.
      * @param {Function} callback
+     * @param {number} timeoutMs - Timeout in milliseconds (default 5000)
      * @returns {Promise<any>}
      */
-    async _acquireLock(callback) {
+    async _acquireLock(callback, timeoutMs = 5000) {
         let release;
         const acquirePromise = new Promise((resolve) => {
             release = resolve;
@@ -69,8 +72,24 @@ class IntelligentRotator {
         this._lock = acquirePromise;
         
         try {
-            await previousLock;
-            return await callback();
+            // Add timeout to prevent deadlock
+            await Promise.race([
+                previousLock,
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Lock acquisition timeout')), timeoutMs)
+                )
+            ]);
+            
+            // Add timeout to callback execution
+            return await Promise.race([
+                callback(),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Callback execution timeout')), timeoutMs)
+                )
+            ]);
+        } catch (err) {
+            console.error(`[IntelligentRotator] Lock error for ${this.providerId}:`, err.message);
+            throw err;
         } finally {
             release();
         }
@@ -297,9 +316,11 @@ class IntelligentRotator {
             key.resetAt = Math.max(key.resetAt, now + (resetTokens * 1000));
         }
 
-        // Proactive throttling with stricter Cerebras TPM floor
+        // Proactive throttling with configurable floors (cerebras has stricter TPM)
         const requestFloor = this.providerId === 'cerebras' ? 3 : 5;
-        const tokenFloor = this.providerId === 'cerebras' ? 10000 : 1000;
+        const tokenFloor = this.providerId === 'cerebras' 
+            ? (this.options.tokenFloor || 10000) 
+            : (this.options.tokenFloor || 1000);
         if (key.remainingRequests < requestFloor || key.remainingTokens < tokenFloor) {
             key.status = 'throttled';
         } else {
@@ -309,10 +330,20 @@ class IntelligentRotator {
 
     /**
      * Record a failure (e.g. 429 or platform-level error) for a specific key.
+     * Now protected by lock to prevent race conditions.
      * @param {string} keyId 
      * @param {number|object} errorOrRetryAfterMs - Retry time in ms or error object
      */
-    recordFailure(keyId, errorOrRetryAfterMs = 0) {
+    async recordFailure(keyId, errorOrRetryAfterMs = 0) {
+        return this._acquireLock(() => this._recordFailureImpl(keyId, errorOrRetryAfterMs));
+    }
+
+    /**
+     * Internal implementation of recordFailure without locking.
+     * @param {string} keyId 
+     * @param {number|object} errorOrRetryAfterMs 
+     */
+    _recordFailureImpl(keyId, errorOrRetryAfterMs = 0) {
         const key = this.keys.find(k => k.id === keyId);
         if (!key) return;
 
@@ -360,9 +391,18 @@ class IntelligentRotator {
 
     /**
      * Record a success for a specific key.
+     * Now protected by lock to prevent race conditions.
      * @param {string} keyId 
      */
-    recordSuccess(keyId) {
+    async recordSuccess(keyId) {
+        return this._acquireLock(() => this._recordSuccessImpl(keyId));
+    }
+
+    /**
+     * Internal implementation of recordSuccess without locking.
+     * @param {string} keyId 
+     */
+    _recordSuccessImpl(keyId) {
         const key = this.keys.find(k => k.id === keyId);
         if (!key) return;
 

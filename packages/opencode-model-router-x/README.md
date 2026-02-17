@@ -26,7 +26,7 @@ console.log(pick);
 //   score: 0.812,
 //   reason: 'provider=anthropic(w0.6); tier-match; pref-1st; sr=92%',
 //   cost_tier: 'high',
-//   fallbacks: ['gpt-5', 'gemini-2.5-pro', 'anthropic/claude-sonnet-4-5']
+//   fallbacks: ['gpt-4o', 'gemini-3-pro', 'anthropic/claude-sonnet-4-5']
 // }
 
 // Record outcomes to tune future selections
@@ -43,7 +43,7 @@ const pick2 = router.selectModel({
   complexity: 'high',
   required_strengths: ['long-context'],
 });
-console.log(pick2.model); // may prefer gemini-2.5-pro
+console.log(pick2.model); // may prefer gemini-3-pro
 
 // Export/import state for persistence
 const state = router.exportState();
