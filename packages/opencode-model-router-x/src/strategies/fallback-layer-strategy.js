@@ -13,11 +13,12 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
    */
   #LAYERS = [
     'groq',        // Layer 1: Ultra-fast, ultra-low cost
-    'cerebras',    // Layer 2: Very fast, low cost
-    'nvidia',      // Layer 3: Fast, moderate cost
-    'antigravity', // Layer 4: Balanced accuracy/speed (Gemini variants)
-    'anthropic',   // Layer 5: High quality (Claude Sonnet)
-    'openai'       // Layer 6: Fallback-of-last-resort
+    'cerebras',   // Layer 2: Very fast, low cost
+    'nvidia',     // Layer 3: Fast, moderate cost (kimi, glm)
+    'zen',        // Layer 4: Fast, good for Chinese models (glm-5)
+    'antigravity', // Layer 5: Balanced accuracy/speed (Gemini variants)
+    'anthropic',  // Layer 6: High quality (Claude Sonnet)
+    'openai'      // Layer 7: Fallback-of-last-resort
   ];
 
   /**
@@ -43,25 +44,37 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
       orchestration: 'llama-3.3-70b'
     },
     nvidia: {
-      code_generation: 'llama-3.3-70b',
-      code_transform: 'llama-3.3-70b',
-      debugging: 'llama-3.3-70b',
-      documentation: 'llama-3.3-70b',
-      architecture: 'llama-3.3-70b',
-      large_context: 'llama-3.3-70b',
-      orchestration: 'llama-3.3-70b'
+      code_generation: 'kimi-k2.5-pro',
+      code_transform: 'kimi-k2.5-pro',
+      debugging: 'kimi-k2.5-pro',
+      documentation: 'kimi-k2.5-pro',
+      architecture: 'kimi-k2.5-pro',
+      large_context: 'glm4.7',
+      orchestration: 'kimi-k2.5-pro'
+    },
+    zen: {
+      simple_read: "glm-5",
+      format_transform: "glm-5",
+      documentation: 'glm-5',
+      code_generation: 'glm-5',
+      code_transform: "glm-5",
+      debugging: 'glm-5',
+      architecture: 'glm-5',
+      large_context: "glm-5",
+      multimodal: 'glm-5',
+      orchestration: 'glm-5'
     },
     antigravity: {
-      simple_read: "gemini-2.0-flash",
-      format_transform: "gemini-2.0-flash",
-      documentation: 'gemini-2.0-flash-thinking-minimal',
-      code_generation: 'gemini-2.0-flash-thinking-minimal',
-      code_transform: "gemini-2.0-flash",
-      debugging: 'gemini-2.0-flash-thinking-medium',
-      architecture: 'gemini-2.0-pro',
-      large_context: "gemini-2.0-pro",
-      multimodal: 'gemini-2.0-flash-thinking-minimal',
-      orchestration: 'gemini-2.0-pro'
+      simple_read: "gemini-3-flash",
+      format_transform: "gemini-3-flash",
+      documentation: 'gemini-3-flash',
+      code_generation: 'gemini-3-flash',
+      code_transform: "gemini-3-flash",
+      debugging: 'gemini-3-flash',
+      architecture: 'gemini-3-pro',
+      large_context: "gemini-3-pro",
+      multimodal: 'gemini-3-flash',
+      orchestration: 'gemini-3-pro'
     },
     anthropic: {
       simple_read: 'claude-haiku-4-5',
@@ -76,15 +89,15 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
       orchestration: 'claude-opus-4-6'
     },
     openai: {
-      simple_read: 'gpt-4o-mini',
-      format_transform: 'gpt-4o-mini',
-      documentation: 'gpt-4o',
-      code_generation: 'gpt-4o',
-      code_transform: 'gpt-4o',
-      debugging: 'gpt-4o',
+      simple_read: 'gpt-4.5-mini',
+      format_transform: 'gpt-4.5-mini',
+      documentation: 'gpt-4.5',
+      code_generation: 'gpt-4.5',
+      code_transform: 'gpt-4.5',
+      debugging: 'gpt-4.5',
       architecture: 'o1',
       large_context: 'o1',
-      multimodal: 'gpt-4o',
+      multimodal: 'gpt-4.5',
       orchestration: 'o1'
     },
     deepseek: {

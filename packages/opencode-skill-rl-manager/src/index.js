@@ -17,22 +17,54 @@ const { EvolutionEngine } = require('./evolution-engine');
 const fs = require('fs');
 const path = require('path');
 
-// Simple file lock to prevent concurrent write corruption
-const _locks = new Map();
+// File-based lock to prevent concurrent write corruption across processes
+// Uses .lock files alongside target files for atomic locking
+const LOCK_DIR = path.join(process.env.USERPROFILE || '', '.opencode', 'locks');
+let _lockInitialized = false;
+
+async function _ensureLockDir() {
+  if (!_lockInitialized) {
+    try {
+      if (!fs.existsSync(LOCK_DIR)) {
+        fs.mkdirSync(LOCK_DIR, { recursive: true });
+      }
+    } catch (e) {
+      // Ignore - may not have permissions
+    }
+    _lockInitialized = true;
+  }
+}
+
+function _getLockPath(targetPath) {
+  const hash = String(targetPath).replace(/[^a-zA-Z0-9]/g, '_');
+  return path.join(LOCK_DIR, `${hash}.lock`);
+}
 
 async function _acquireLock(lockPath, timeout = 5000) {
+  await _ensureLockDir();
+  const lockFile = _getLockPath(lockPath);
   const start = Date.now();
-  while (_locks.has(lockPath)) {
+  
+  while (fs.existsSync(lockFile)) {
     if (Date.now() - start > timeout) {
       throw new Error(`Lock acquisition timeout for ${lockPath}`);
     }
     await new Promise(r => setTimeout(r, 50));
   }
-  _locks.set(lockPath, true);
+  
+  // Atomic lock file creation
+  fs.writeFileSync(lockFile, String(Date.now()), { flag: 'wx' });
 }
 
 function _releaseLock(lockPath) {
-  _locks.delete(lockPath);
+  const lockFile = _getLockPath(lockPath);
+  try {
+    if (fs.existsSync(lockFile)) {
+      fs.unlinkSync(lockFile);
+    }
+  } catch (e) {
+    // Ignore cleanup errors
+  }
 }
 
 // Safe JSON to prevent crashes from circular references
