@@ -71,6 +71,33 @@ class KeyRotatorFactory {
         const keys = Array.from({ length: count }, (_, i) => `mock-key-${providerId}-${i}`);
         return new IntelligentRotator(providerId, keys);
     }
+
+    /**
+     * P1: Budget-Aware Key Rotation - Set governor on all rotators
+     * @param {object} rotators - Rotator map from createFromEnv()
+     * @param {object} governor - Governor instance from opencode-context-governor
+     * @param {string} sessionId - Session ID for budget tracking
+     */
+    static setGovernor(rotators, governor, sessionId = 'default') {
+        for (const [providerId, rotator] of Object.entries(rotators)) {
+            if (rotator && typeof rotator.setGovernor === 'function') {
+                rotator.setGovernor(governor, sessionId);
+            }
+        }
+    }
+
+    /**
+     * P3: KeyRotator → Learning - Set learning engine on all rotators
+     * @param {object} rotators - Rotator map from createFromEnv()
+     * @param {object} learningEngine - Learning engine instance
+     */
+    static setLearningEngine(rotators, learningEngine) {
+        for (const [providerId, rotator] of Object.entries(rotators)) {
+            if (rotator && typeof rotator.setLearningEngine === 'function') {
+                rotator.setLearningEngine(learningEngine);
+            }
+        }
+    }
 }
 
 module.exports = { KeyRotatorFactory };

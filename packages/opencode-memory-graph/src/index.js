@@ -76,7 +76,50 @@ class MemoryGraph {
     
     // Rebuild indexes for O(1) queries
     this._rebuildIndexes();
+    
+    // P2: Learning Feedback Loop - Auto-ingest error patterns into LearningEngine
+    await this._ingestPatternsToLearningEngine();
+    
     return this._graph;
+  }
+
+  /**
+   * P2: Auto-ingest frequent error patterns into LearningEngine
+   * @private
+   */
+  async _ingestPatternsToLearningEngine() {
+    let LearningEngine;
+    try {
+      LearningEngine = require('opencode-learning-engine');
+    } catch (e) {
+      return; // Learning engine not available
+    }
+    
+    const frequentErrors = this.getErrorFrequency();
+    if (!frequentErrors || frequentErrors.length === 0) {
+      return;
+    }
+    
+    try {
+      const le = new LearningEngine();
+      for (const error of frequentErrors.slice(0, 10)) {
+        if (error.count >= 3) {
+          await le.record({
+            type: 'anti_pattern',
+            pattern: error.error_type,
+            context: {
+              source: 'memory-graph',
+              count: error.count,
+              firstSeen: error.first_seen,
+              lastSeen: error.last_seen
+            },
+            severity: error.count > 10 ? 'high' : error.count > 5 ? 'medium' : 'low'
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('[MemoryGraph] Failed to ingest patterns to LearningEngine:', e.message);
+    }
   }
 
   /**

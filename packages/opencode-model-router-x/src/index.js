@@ -5,7 +5,63 @@ const { IntelligentRotator } = require('./key-rotator');
 const { KeyRotatorFactory } = require('./key-rotator-factory');
 const policies = require('./policies.json');
 const Orchestrator = require('./strategies/orchestrator');
-const { CircuitBreaker } = require('opencode-circuit-breaker');
+const { CircuitBreaker } = require('@jackoatmon/opencode-circuit-breaker');
+
+// P2: Health-Check Integration - Import for provider health registration
+let HealthCheck;
+try {
+  HealthCheck = require('@jackoatmon/opencode-health-check');
+} catch (e) {
+  HealthCheck = null;
+}
+
+// P3: Feature Flags for Model Rollouts - Import for gradual model introductions
+let FeatureFlags;
+try {
+  FeatureFlags = require('@jackoatmon/opencode-feature-flags');
+} catch (e) {
+  FeatureFlags = null;
+}
+
+// P1: ConfigLoader Integration - Import for centralized configuration
+let ConfigLoader;
+try {
+  ConfigLoader = require('@jackoatmon/opencode-config-loader');
+} catch (e) {
+  ConfigLoader = null;
+}
+
+// P2: Fallback Doctor Auto-Validation - Import for chain validation
+let FallbackDoctor;
+try {
+  FallbackDoctor = require('@jackoatmon/opencode-fallback-doctor');
+} catch (e) {
+  FallbackDoctor = null;
+}
+
+// P1: Errors Integration - Import for standardized error taxonomy
+let OpenCodeErrors;
+try {
+  OpenCodeErrors = require('@jackoatmon/opencode-errors');
+} catch (e) {
+  OpenCodeErrors = null;
+}
+
+// P2: Logger Integration - Import for structured logging
+let Logger;
+try {
+  Logger = require('@jackoatmon/opencode-logger');
+} catch (e) {
+  Logger = null;
+}
+
+// P2: Validator Integration - Import for input validation
+let ValidatorLib;
+try {
+  ValidatorLib = require('@jackoatmon/opencode-validator');
+} catch (e) {
+  ValidatorLib = null;
+}
 
 class ModelRouter {
   constructor(options = {}) {
@@ -19,6 +75,74 @@ class ModelRouter {
     this.tuning.success_rate_floor = this.tuning.success_rate_floor ?? 0.50;
     this.tuning.success_rate_ceiling = this.tuning.success_rate_ceiling ?? 0.99;
     this.tuning.min_samples_for_tuning = this.tuning.min_samples_for_tuning ?? 5;
+    
+    // P1: Atomic Write for Stats - add stats persistence path
+    this.statsPersistPath = options.statsPersistPath || null;
+    this._statsWritePending = false;
+    
+    // P1: Learning-Guided Model Routing - integrate LearningEngine
+    this.learningEngine = options.learningEngine || null;
+    this._learningAdviceCache = new Map();
+    this._learningAdviceCacheTTL = 60000; // 1 minute cache
+    
+    // P1: KeyRotator → Learning - connect key rotation to learning
+    if (this.learningEngine) {
+      Object.values(this.rotators).forEach(rotator => {
+        if (rotator.setLearningEngine) {
+          rotator.setLearningEngine(this.learningEngine);
+        }
+      });
+    }
+    
+    // P3: Skill-RL Integration - integrate SkillRLManager for skill-based routing
+    this.skillRLManager = options.skillRLManager || null;
+    
+    // P3: Feature Flags for Model Rollouts - integrate FeatureFlags for gradual model introductions
+    this.featureFlags = options.featureFlags || null;
+    
+    // P1: ConfigLoader Integration - use centralized configuration
+    this.configLoader = options.configLoader || null;
+    if (this.configLoader) {
+      this.config = this.configLoader.load();
+    } else {
+      this.config = {};
+    }
+    
+    // P2: Fallback Doctor Auto-Validation - validate fallback chains at initialization
+    this.fallbackDoctor = options.fallbackDoctor || null;
+    if (this.fallbackDoctor && FallbackDoctor) {
+      const chainModels = Object.keys(this.models);
+      const diagnosis = this.fallbackDoctor.diagnose({ models: chainModels });
+      if (!diagnosis.healthy) {
+        console.warn('[ModelRouter] Fallback chain issues detected:', diagnosis.issues.map(i => i.message).join('; '));
+      }
+    }
+    
+    // P1: Errors Integration - use standardized error taxonomy
+    this.errorHandler = options.errorHandler || null;
+    if (this.errorHandler && OpenCodeErrors) {
+      this._errorCategory = OpenCodeErrors.ErrorCategory;
+      this._errorCode = OpenCodeErrors.ErrorCode;
+    } else {
+      this._errorCategory = null;
+      this._errorCode = null;
+    }
+    
+    // P2: Logger Integration - use structured logging
+    if (options.logger) {
+      this.logger = options.logger;
+    } else if (Logger) {
+      this.logger = new Logger({ service: 'model-router' });
+    } else {
+      this.logger = null;
+    }
+
+    // P2: Validator Integration - Initialize input validator
+    if (ValidatorLib && ValidatorLib.Validator) {
+      this.validator = ValidatorLib;
+    } else {
+      this.validator = null;
+    }
     
     // Initialize Orchestrator correctly with strategies and global context
     try {
@@ -57,7 +181,62 @@ class ModelRouter {
         failureThreshold: 5,
         successThreshold: 2,
         timeout: 30000, // 30s
-        halfOpenAttempts: 3
+        halfOpenAttempts: 3,
+        // P3: Connect circuit breaker state to learning engine
+        onStateChange: (oldState, newState) => {
+          if (this.learningEngine) {
+            this.learningEngine.ingest({
+              type: 'circuit_breaker_state_change',
+              provider,
+              oldState,
+              newState,
+              timestamp: Date.now()
+            });
+          }
+        },
+        onFailure: (error) => {
+          if (this.learningEngine) {
+            this.learningEngine.ingest({
+              type: 'circuit_breaker_failure',
+              provider,
+              error: error.message,
+              timestamp: Date.now()
+            });
+          }
+        }
+      });
+    }
+    
+    // P2: Health-Check Integration - Register providers as subsystems
+    this._registerProvidersWithHealthCheck();
+  }
+
+  /**
+   * P2: Register model providers with health-check system
+   * @private
+   */
+  _registerProvidersWithHealthCheck() {
+    if (!HealthCheck || !HealthCheck.registerSubsystem) {
+      return;
+    }
+    
+    const providers = [...new Set(Object.values(this.models).map(m => m.provider))];
+    for (const provider of providers) {
+      HealthCheck.registerSubsystem(`model-provider:${provider}`, {
+        checkInterval: 30000,
+        checkFn: async () => {
+          const cb = this.circuitBreakers[provider];
+          if (!cb) {
+            return { healthy: true, message: 'No circuit breaker' };
+          }
+          const state = cb.getState();
+          return {
+            healthy: state !== 'open',
+            message: `Circuit breaker state: ${state}`,
+            metadata: { circuitState: state }
+          };
+        },
+        metadata: { provider }
       });
     }
   }
@@ -131,10 +310,39 @@ class ModelRouter {
     }
 
     const candidates = this._filterByConstraints(ctx || {});
-    const scored = candidates.map((modelId) => ({
-      modelId,
-      ...this._scoreModel(modelId, ctx),
-    }));
+    
+    // Skill-RL Integration: Get skill-based model recommendations
+    let skillBoost = {};
+    if (this.skillRLManager) {
+      try {
+        const taskType = ctx?.taskType || 'general';
+        const recommended = this.skillRLManager.selectSkills({ 
+          taskType, 
+          context: ctx 
+        });
+        if (recommended?.length > 0) {
+          recommended.forEach(skill => {
+            if (skill.recommendedModels) {
+              skill.recommendedModels.forEach(modelId => {
+                skillBoost[modelId] = (skillBoost[modelId] || 0) + skill.successRate;
+              });
+            }
+          });
+        }
+      } catch (e) {
+        // Silently skip skill RL if unavailable
+      }
+    }
+    
+    const scored = candidates.map((modelId) => {
+      const baseScore = this._scoreModel(modelId, ctx);
+      const boost = skillBoost[modelId] || 0;
+      return {
+        modelId,
+        ...baseScore,
+        score: baseScore.score + (boost * 0.1), // 10% weight for skill-based recommendations
+      };
+    });
     scored.sort((a, b) => b.score - a.score);
 
     if (scored.length === 0) {
@@ -220,6 +428,77 @@ class ModelRouter {
       }
     }
     this.stats[modelId].total_latency_ms += Number.isFinite(latencyMs) ? latencyMs : 0;
+    
+    // P1: Atomic Write for Stats - persist after each update
+    this._persistStatsAtomic();
+  }
+
+  /**
+   * Atomic stats persistence - write to temp file then rename.
+   * @private
+   */
+  async _persistStatsAtomic() {
+    if (!this.statsPersistPath || this._statsWritePending) return;
+    
+    this._statsWritePending = true;
+    try {
+      const fs = require('fs').promises;
+      const tempPath = this.statsPersistPath + '.tmp';
+      await fs.writeFile(tempPath, JSON.stringify(this.stats, null, 2), 'utf8');
+      await fs.rename(tempPath, this.statsPersistPath);
+    } catch (err) {
+      console.error('[ModelRouter] Failed to persist stats:', err.message);
+    } finally {
+      this._statsWritePending = false;
+    }
+  }
+
+  /**
+   * P1: Errors Integration - Create standardized error using OpenCodeErrors taxonomy
+   * @private
+   */
+  _createError(code, message, context = {}) {
+    if (this.errorHandler && this._errorCategory && this._errorCode) {
+      // Use the provided error handler with standardized taxonomy
+      return this.errorHandler.createError({
+        code: code,
+        message: message,
+        context: context,
+        category: this._errorCategory.ORCHESTRATION
+      });
+    }
+    // Fallback to standard Error
+    const err = new Error(message);
+    err.code = code;
+    err.context = context;
+    return err;
+  }
+
+  /**
+   * Validate route input using Validator if available.
+   * @private
+   * @param {Object} ctx - Route context
+   * @returns {Object|null} - ValidationResult or null if validator not available
+   */
+  _validateInput(ctx) {
+    if (!this.validator || !this.validator.Validator) {
+      return null;
+    }
+
+    const result = new this.validator.ValidationResult(true, []);
+    
+    // Validate required fields
+    const ctxValidator = new this.validator.Validator(ctx, 'ctx');
+    if (ctx.requiredTools) {
+      const toolsValidator = new this.validator.Validator(ctx.requiredTools, 'ctx.requiredTools');
+      toolsValidator.type('array');
+      if (toolsValidator.errors.length > 0) {
+        result.errors.push(...toolsValidator.errors);
+        result.valid = false;
+      }
+    }
+    
+    return result;
   }
 
   /**
@@ -232,6 +511,14 @@ class ModelRouter {
     return Object.keys(this.models).filter((modelId) => {
       const model = this.models[modelId];
       if (!model) return false;
+
+      // P3: Feature Flags for Model Rollouts - Check rollout percentage
+      if (this.featureFlags) {
+        const flagName = `model:${modelId}`;
+        if (!this.featureFlags.isEnabled(flagName, ctx.userId)) {
+          return false;
+        }
+      }
 
       if (requiredTools.length > 0) {
         const modelTools = Array.isArray(model.tools) ? model.tools : [];
@@ -304,10 +591,135 @@ class ModelRouter {
       }
     }
 
+    // P1: Apply learning-based penalties from LearningEngine
+    const learningPenalty = this._applyLearningPenalties(modelId, ctx);
+    if (learningPenalty.scorePenalty > 0) {
+      score -= learningPenalty.scorePenalty;
+      reasons.push(...learningPenalty.reasons);
+    }
+
     return {
       score: Math.max(0, Math.min(1, score)),
       reason: reasons.join('; '),
     };
+  }
+
+  /**
+   * P1: Get learning-guided advice for routing decisions
+   * Uses LearningEngine to penalize models with anti-pattern history
+   * @private
+   */
+  _getLearningAdvice(ctx = {}) {
+    if (!this.learningEngine) {
+      return { warnings: [], suggestions: [], shouldPause: false, riskScore: 0 };
+    }
+
+    // Build cache key from context
+    const cacheKey = JSON.stringify({
+      taskType: ctx.taskType,
+      files: ctx.files?.slice(0, 5) || [],
+      complexity: ctx.complexity
+    });
+
+    // Check cache
+    const cached = this._learningAdviceCache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp) < this._learningAdviceCacheTTL) {
+      return cached.advice;
+    }
+
+    try {
+      // Build task context for learning engine
+      const taskContext = {
+        task_type: ctx.taskType || ctx.task || 'general',
+        files: ctx.files || [],
+        complexity: ctx.complexity || 'moderate',
+        error_type: ctx.errorType,
+        attempt_number: ctx.attemptNumber || 1
+      };
+
+      const advice = this.learningEngine.advise(taskContext);
+
+      // Cache the result
+      this._learningAdviceCache.set(cacheKey, {
+        timestamp: Date.now(),
+        advice
+      });
+
+      return advice;
+    } catch (error) {
+      console.warn('[ModelRouter] LearningEngine advise failed:', error.message);
+      return { warnings: [], suggestions: [], shouldPause: false, riskScore: 0 };
+    }
+  }
+
+  /**
+   * Apply learning penalties to model scoring
+   * @private
+   */
+  _applyLearningPenalties(modelId, ctx = {}) {
+    const result = { scorePenalty: 0, reasons: [] };
+    
+    if (!this.learningEngine) {
+      return result;
+    }
+
+    const advice = this._getLearningAdvice(ctx);
+    
+    // Apply penalties from anti-pattern warnings
+    if (advice.warnings && advice.warnings.length > 0) {
+      for (const warning of advice.warnings) {
+        // Penalize if this model is associated with the warning or it's a general warning
+        if (warning.modelId === modelId || !warning.modelId) {
+          const severityWeight = warning.severity === 'critical' ? 0.5 : 
+                               warning.severity === 'high' ? 0.3 : 
+                               warning.severity === 'medium' ? 0.15 : 0.05;
+          result.scorePenalty += severityWeight;
+          result.reasons.push(`learning:${warning.type}(${warning.severity})`);
+        }
+      }
+    }
+
+    // Apply risk score penalty
+    if (advice.riskScore && advice.riskScore > 15) {
+      result.scorePenalty += Math.min(0.3, advice.riskScore / 100);
+      result.reasons.push(`risk:${advice.riskScore.toFixed(1)}`);
+    }
+
+    return result;
+  }
+
+  /**
+   * Record outcome to learning engine for future routing decisions
+   * @param {string} modelId
+   * @param {Object} outcome - { success, failureReason, tokensUsed, timeTakenMs }
+   */
+  recordLearningOutcome(modelId, outcome) {
+    if (!this.learningEngine) {
+      return;
+    }
+
+    try {
+      // Generate advice ID for tracking
+      const adviceId = `router_${modelId}_${Date.now()}`;
+      
+      // Learn from outcome
+      this.learningEngine.learnFromOutcome(adviceId, {
+        success: outcome.success,
+        failure_reason: outcome.failureReason,
+        tokens_used: outcome.tokensUsed,
+        time_taken_ms: outcome.timeTakenMs,
+        model_id: modelId
+      });
+
+      // Also emit event for other listeners
+      this.learningEngine.emit('routeOutcome', {
+        modelId,
+        outcome,
+        adviceId
+      });
+    } catch (error) {
+      console.warn('[ModelRouter] Failed to record learning outcome:', error.message);
+    }
   }
 
   /**
@@ -338,6 +750,29 @@ class ModelRouter {
     const s = this.stats[modelId];
     if (!s || s.calls === 0) return 0;
     return s.total_latency_ms / s.calls;
+  }
+
+  // ─── Backward Compatibility Aliases ─────────────────────────────────────
+
+  /**
+   * Alias for route() - backward compatibility
+   */
+  selectModel(ctx = {}) {
+    return this.route(ctx);
+  }
+
+  /**
+   * Alias for recordResult() - backward compatibility
+   */
+  recordOutcome(modelId, success, latencyOrError = 0) {
+    return this.recordResult(modelId, success, latencyOrError);
+  }
+
+  /**
+   * Alias for recordResult() - backward compatibility (old signature)
+   */
+  getModelStats(modelId) {
+    return this.stats[modelId] || { calls: 0, successes: 0, failures: 0, total_latency_ms: 0 };
   }
 }
 

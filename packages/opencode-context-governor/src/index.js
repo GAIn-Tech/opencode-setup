@@ -29,10 +29,12 @@ class Governor {
    * @param {object} [opts]
    * @param {string} [opts.persistPath] – path to save/load state (default: ~/.opencode/session-budgets.json)
    * @param {boolean} [opts.autoLoad] – load persisted state on construction (default: true)
+   * @param {object} [opts.learningEngine] – learning engine instance for budget pattern learning
    */
   constructor(opts = {}) {
     this._persistPath = opts.persistPath || DEFAULT_PERSIST_PATH;
     this._tracker = new SessionTracker();
+    this._learningEngine = opts.learningEngine || null;
 
     if (opts.autoLoad !== false) {
       try {
@@ -41,6 +43,14 @@ class Governor {
         // No persisted state yet — that's fine.
       }
     }
+  }
+
+  /**
+   * Set learning engine for budget pattern learning.
+   * @param {object} learningEngine - Learning engine instance
+   */
+  setLearningEngine(learningEngine) {
+    this._learningEngine = learningEngine;
   }
 
   // ---------------------------------------------------------------------------

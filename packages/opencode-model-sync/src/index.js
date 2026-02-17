@@ -170,6 +170,66 @@ function startScheduled(intervalMs) {
   setInterval(runSync, intervalMs);
 }
 
+/**
+ * Register with health-check subsystem
+ * @param {Object} healthCheck - HealthCheck instance
+ */
+function registerWithHealthCheck(healthCheck) {
+  if (!healthCheck || !healthCheck.registerSubsystem) {
+    console.warn('[ModelSync] HealthCheck not available - skipping registration');
+    return;
+  }
+  
+  healthCheck.registerSubsystem('model-sync', {
+    check: async () => {
+      try {
+        // Quick check - just verify catalog exists
+        if (!FS.existsSync(CONFIG.catalogPath)) {
+          return { healthy: false, message: 'Model catalog not found' };
+        }
+        
+        // Run validation synchronously for health check
+        const latestModels = await fetchLatestModels();
+        const issues = validateModels(latestModels);
+        
+        if (issues.length > 0) {
+          return { 
+            healthy: false, 
+            message: `${issues.length} model catalog issues found`,
+            details: issues.slice(0, 5)
+          };
+        }
+        
+        return { healthy: true, message: 'Model catalog up to date' };
+      } catch (error) {
+        return { healthy: false, message: error.message };
+      }
+    },
+    interval: 60000, // Check every minute
+  });
+  
+  console.log('[ModelSync] Registered with health-check');
+}
+
+/**
+ * Connect to learning engine for deprecated model patterns
+ * @param {Object} learningEngine - LearningEngine instance
+ */
+function connectToLearningEngine(learningEngine) {
+  if (!learningEngine || !learningEngine.ingest) {
+    console.warn('[ModelSync] LearningEngine not available - skipping connection');
+    return;
+  }
+  
+  // Store reference for use in runSync
+  CONFIG._learningEngine = learningEngine;
+  
+  // Override validateModels to also ingest to learning engine
+  const originalValidateModels = validateModels;
+  
+  console.log('[ModelSync] Connected to learning engine');
+}
+
 // CLI or import
 if (require.main === module) {
   const intervalMap = {

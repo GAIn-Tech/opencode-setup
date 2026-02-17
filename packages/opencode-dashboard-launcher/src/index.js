@@ -243,5 +243,33 @@ module.exports = {
   ensureDashboard,
   checkDashboard,
   stopDashboard,
-  launchDashboard
+  launchDashboard,
+  // Health-check integration
+  createHealthCheck
 };
+
+/**
+ * Creates a health check function for the dashboard
+ * @param {Object} healthCheck - Optional health-check package instance
+ * @returns {Function} Health check function
+ */
+function createHealthCheck(healthCheck) {
+  return async () => {
+    const status = checkDashboard();
+    
+    if (!status.running) {
+      return {
+        healthy: false,
+        status: 'stopped',
+        message: 'Dashboard not running'
+      };
+    }
+    
+    return {
+      healthy: true,
+      status: 'running',
+      pid: status.pid,
+      port: status.port
+    };
+  };
+}

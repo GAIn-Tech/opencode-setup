@@ -1,5 +1,7 @@
 'use strict';
 
+const path = require('path');
+
 /**
  * IntelligentRotator — Multi-key rotation with rate-limit header awareness.
  * 
@@ -38,6 +40,10 @@ class IntelligentRotator {
         this.currentIndex = 0;
         this._lock = Promise.resolve();
         this._inFlightKeys = new Set();
+        
+        // P1: Budget-Aware Key Rotation - Integrate ContextGovernor
+        this._governor = options.governor || null;
+        this._sessionId = options.sessionId || 'default';
     }
 
     /**
@@ -129,7 +135,103 @@ class IntelligentRotator {
         // Mark as in-flight immediately
         this._inFlightKeys.add(selected.id);
         selected.lastUsed = now;
+        
+        // P1: Budget-Aware Key Rotation - Check budget before returning key
+        if (this._governor) {
+            const budgetCheck = this._governor.checkBudget(this._sessionId, this.providerId, 1000);
+            if (!budgetCheck.allowed) {
+                // Budget exceeded - release key and return null
+                this._inFlightKeys.delete(selected.id);
+                console.warn(`[IntelligentRotator] Budget exceeded for ${this.providerId}: ${budgetCheck.message}`);
+                return null;
+            }
+            if (budgetCheck.status === 'error') {
+                console.warn(`[IntelligentRotator] Budget critical for ${this.providerId}: ${budgetCheck.message}`);
+            }
+        }
+        
         return selected;
+    }
+    
+    /**
+     * P1: Budget-Aware Key Rotation - Set governor instance
+     * @param {object} governor - Governor instance from opencode-context-governor
+     * @param {string} sessionId - Session ID for budget tracking
+     */
+    setGovernor(governor, sessionId = 'default') {
+        this._governor = governor;
+        this._sessionId = sessionId;
+    }
+
+    /**
+     * P1: KeyRotator → Learning - Set learning engine for pattern detection
+     * @param {object} learningEngine - Learning engine instance
+     */
+    setLearningEngine(learningEngine) {
+        this._learningEngine = learningEngine;
+    }
+
+    /**
+     * P1: KeyRotator → Learning - Record key rotation pattern for learning
+     * @param {string} patternType - Type of pattern (exhausted, degraded, rotated)
+     * @param {object} data - Pattern data
+     */
+    _recordLearningPattern(patternType, data) {
+        if (!this._learningEngine) return;
+        
+        const pattern = {
+            providerId: this.providerId,
+            patternType,
+            timestamp: Date.now(),
+            ...data
+        };
+        
+        // Use learning engine's pattern storage if available
+        if (this._learningEngine.recordKeyRotationPattern) {
+            this._learningEngine.recordKeyRotationPattern(pattern);
+        } else if (this._learningEngine.ingestWithValidation) {
+            // Fallback: use generic ingest
+            this._learningEngine.ingestWithValidation({
+                type: 'key_rotation',
+                category: patternType,
+                provider: this.providerId,
+                data
+            });
+        }
+    }
+    
+    /**
+     * P1: Budget-Aware Key Rotation - Get current budget status
+     * @returns {object|null} Budget status or null if no governor set
+     */
+    getBudgetStatus() {
+        if (!this._governor) return null;
+        return this._governor.getRemainingBudget(this._sessionId, this.providerId);
+    }
+
+    /**
+     * P3: KeyRotator → Learning - Set learning engine instance
+     * @param {object} learningEngine - Learning engine instance
+     */
+    setLearningEngine(learningEngine) {
+        this._learningEngine = learningEngine;
+    }
+
+    /**
+     * P3: KeyRotator → Learning - failure Report key to learning
+     * @param {string} keyId - The key that failed
+     * @param {string} reason - Failure reason
+     */
+    _reportKeyFailureToLearning(keyId, reason) {
+        if (this._learningEngine && typeof this._learningEngine.ingest === 'function') {
+            this._learningEngine.ingest({
+                type: 'key_rotation_failure',
+                provider: this.providerId,
+                keyId,
+                reason,
+                timestamp: Date.now()
+            });
+        }
     }
 
     /**

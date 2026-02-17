@@ -24,6 +24,12 @@
   },
   "dependencies": {
     "uuid": "^10.0.0",
-    "zod": "^3.23.0"
+    "zod": "^3.23.0",
+    "@jackoatmon/opencode-learning-engine": "file:../opencode-learning-engine",
+    "@jackoatmon/opencode-circuit-breaker": "file:../opencode-circuit-breaker",
+    "@jackoatmon/opencode-context-governor": "file:../opencode-context-governor",
+    "@jackoatmon/opencode-health-check": "file:../opencode-health-check",
+    "@jackoatmon/opencode-fallback-doctor": "file:../opencode-fallback-doctor",
+    "@jackoatmon/opencode-feature-flags": "file:../opencode-feature-flags"
   }
 }
