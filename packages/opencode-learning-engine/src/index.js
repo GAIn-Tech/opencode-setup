@@ -70,6 +70,83 @@ class LearningEngine extends EventEmitter {
   }
 
   /**
+   * Quality gates for learnings - prevents corrupted data from entering system
+   */
+  validateLearning(learning) {
+    if (!learning || typeof learning !== 'object') {
+      return { valid: false, reason: 'Learning must be an object' };
+    }
+
+    // Check required fields
+    if (!learning.type || typeof learning.type !== 'string') {
+      return { valid: false, reason: 'Learning must have a type' };
+    }
+
+    if (!learning.timestamp || isNaN(Date.parse(learning.timestamp))) {
+      return { valid: false, reason: 'Learning must have valid timestamp' };
+    }
+
+    // Validate anti-pattern learnings
+    if (learning.type === 'anti-pattern') {
+      if (!learning.pattern || typeof learning.pattern !== 'string') {
+        return { valid: false, reason: 'Anti-pattern must have pattern string' };
+      }
+      if (!ANTI_PATTERN_TYPES.includes(learning.severity)) {
+        return { valid: false, reason: `Invalid severity: ${learning.severity}` };
+      }
+    }
+
+    // Validate positive pattern learnings
+    if (learning.type === 'positive-pattern') {
+      if (!learning.pattern || typeof learning.pattern !== 'string') {
+        return { valid: false, reason: 'Positive pattern must have pattern string' };
+      }
+      if (!POSITIVE_PATTERN_TYPES.includes(learning.pattern_type)) {
+        return { valid: false, reason: `Invalid pattern_type: ${learning.pattern_type}` };
+      }
+    }
+
+    // Validate model learnings
+    if (learning.type === 'model-performance') {
+      if (!learning.model || typeof learning.model !== 'string') {
+        return { valid: false, reason: 'Model performance must have model string' };
+      }
+      if (typeof learning.success_rate !== 'number' || learning.success_rate < 0 || learning.success_rate > 1) {
+        return { valid: false, reason: 'success_rate must be number between 0 and 1' };
+      }
+    }
+
+    return { valid: true };
+  }
+
+  /**
+   * Apply quality gates before accepting any learning
+   */
+  ingestWithValidation(learning) {
+    const validation = this.validateLearning(learning);
+    if (!validation.valid) {
+      console.warn(`[LearningEngine] Rejected invalid learning: ${validation.reason}`);
+      this.emit('learningRejected', { learning, reason: validation.reason });
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Get learning system health metrics
+   */
+  getHealthMetrics() {
+    return {
+      antiPatternCount: this.antiPatterns?.patterns?.size || 0,
+      positivePatternCount: this.positivePatterns?.patterns?.size || 0,
+      sessionCount: this.sessionLog?.length || 0,
+      hooksCount: Object.keys(this.hooks).length,
+      lastLoad: this.lastLoad || null,
+      lastSave: this.lastSave || null
+    };
+  }
+
+  /**
    * Unregister extension hook handler.
    * @param {string} hookName
    * @param {(payload: any) => void} fn
