@@ -120,6 +120,48 @@ class LearningEngine extends EventEmitter {
   }
 
   /**
+   * Calculate adaptive weight for a learning based on age
+   * Uses exponential decay instead of hard cutoff
+   * - < 7 days: full weight (1.0)
+   * - 7-30 days: gradual decay (1.0 → 0.3)
+   * - 30-90 days: reduced but not zero (0.3 → 0.1)
+   * - > 90 days: minimal but retained (0.1)
+   * This ensures learnings remain for pattern recognition while favoring recent data
+   */
+  getAdaptiveWeight(learning) {
+    const age = Date.now() - new Date(learning.timestamp).getTime();
+    const days = age / (1000 * 60 * 60 * 24);
+
+    if (days < 7) return 1.0;
+    if (days < 30) return 1.0 - ((days - 7) / 23) * 0.7; // 1.0 → 0.3
+    if (days < 90) return 0.3 - ((days - 30) / 60) * 0.2; // 0.3 → 0.1
+    return 0.1; // Keep learnings indefinitely but with minimal weight
+  }
+
+  /**
+   * Get staleness status without hard rejection
+   * Returns { isStale, weight, status } for adaptive handling
+   */
+  getLearningStaleness(learning) {
+    const age = Date.now() - new Date(learning.timestamp).getTime();
+    const days = age / (1000 * 60 * 60 * 24);
+    const weight = this.getAdaptiveWeight(learning);
+
+    let status;
+    if (days < 7) status = 'fresh';
+    else if (days < 30) status = 'active';
+    else if (days < 90) status = 'stale';
+    else status = 'archival';
+
+    return {
+      isStale: days > 90, // Only truly "stale" after 90 days
+      weight,
+      status,
+      days: Math.round(days)
+    };
+  }
+
+  /**
    * Apply quality gates before accepting any learning
    */
   ingestWithValidation(learning) {
@@ -129,6 +171,14 @@ class LearningEngine extends EventEmitter {
       this.emit('learningRejected', { learning, reason: validation.reason });
       return false;
     }
+
+    // Add adaptive weight based on age instead of rejecting old learnings
+    learning.weight = this.getAdaptiveWeight(learning);
+    const staleness = this.getLearningStaleness(learning);
+    if (staleness.status === 'stale' || staleness.status === 'archival') {
+      console.log(`[LearningEngine] Accepted ${staleness.status} learning (weight: ${learning.weight.toFixed(3)}, age: ${staleness.days} days)`);
+    }
+
     return true;
   }
 
