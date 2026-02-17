@@ -29,7 +29,7 @@
     },
     "code_generation": {
       "layer_1": ["anthropic/claude-sonnet-4-5"],
-      "layer_2": ["gpt-4o"],
+      "layer_2": ["gpt-4.5"],
       "layer_3": [],
       "layer_4": [],
       "layer_5": [],
@@ -53,7 +53,7 @@
     },
     "architecture": {
       "layer_1": ["anthropic/claude-opus-4-6"],
-      "layer_2": ["gpt-4o"],
+      "layer_2": ["gpt-4.5"],
       "layer_3": [],
       "layer_4": [],
       "layer_5": [],
@@ -68,7 +68,7 @@
       "layer_6": []
     },
     "multimodal": {
-      "layer_1": ["gpt-4o", "gemini-3-pro"],
+      "layer_1": ["gpt-4.5", "gemini-3-pro"],
       "layer_2": [],
       "layer_3": [],
       "layer_4": [],
@@ -113,7 +113,7 @@
       "strengths": ["simple-tasks", "formatting", "linting", "quick-answers"],
       "default_success_rate": 0.82
     },
-    "gpt-4o": {
+    "gpt-4.5": {
       "provider": "openai",
       "tier": "flagship",
       "base_weight": 0.4,
@@ -202,12 +202,12 @@
     "high": {
       "description": "Complex features, multi-file refactors",
       "cost_tier": "high",
-      "model_preference": ["anthropic/claude-opus-4-6", "gpt-4o", "gemini-3-pro"]
+      "model_preference": ["anthropic/claude-opus-4-6", "gpt-4.5", "gemini-3-pro"]
     },
     "critical": {
       "description": "Architecture decisions, security, production issues",
       "cost_tier": "critical",
-      "model_preference": ["anthropic/claude-opus-4-6", "gpt-4o", "anthropic/claude-sonnet-4-5"]
+      "model_preference": ["anthropic/claude-opus-4-6", "gpt-4.5", "anthropic/claude-sonnet-4-5"]
     }
   },
 
