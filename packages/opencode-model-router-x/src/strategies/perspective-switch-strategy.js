@@ -13,8 +13,9 @@ class PerspectiveSwitchStrategy extends ModelSelectionStrategy {
   #activePerspective = false;
 
   #PERSPECTIVE_MODELS = [
-    'openai/moonshotai/kimi-k2.5',
-    'gpt-5.3-codex-spark'
+    'anthropic/claude-opus-4-6',
+    'openai/gpt-5.3-codex-spark',
+    'opencode/kimi-k2.5-free'
   ];
 
   constructor(stuckBugDetector) {
@@ -59,11 +60,17 @@ class PerspectiveSwitchStrategy extends ModelSelectionStrategy {
 
     this.#activePerspective = true;
 
-    console.log(`[PerspectiveSwitchStrategy] Switching to openai:${modelId} for new perspective`);
+    console.log(`[PerspectiveSwitchStrategy] Switching to ${modelId} for new perspective`);
+
+    let provider = 'openai';
+    if (modelId.startsWith('anthropic/')) provider = 'anthropic';
+    else if (modelId.startsWith('google/')) provider = 'google';
+    else if (modelId.startsWith('opencode/')) provider = 'opencode';
+    else if (modelId.startsWith('nvidia/')) provider = 'nvidia';
 
     return {
       model_id: modelId,
-      provider: 'openai',
+      provider,
       reasoning_effort: 'high',
       confidence: 0.95,
       strategy: 'PerspectiveSwitchStrategy',

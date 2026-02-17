@@ -3,43 +3,34 @@
   "description": "Policy-based routing rules for OpenCode model selection",
 
   "models": {
-    "anthropic/claude-opus-4-6": {
-      "provider": "anthropic",
+    "openai/gpt-5.3-codex-spark": {
+      "provider": "openai",
       "tier": "flagship",
       "base_weight": 0.65,
-      "cost_per_1k_tokens": 0.015,
-      "max_context": 200000,
-      "strengths": ["deep-reasoning", "architecture", "debugging", "security", "long-context"],
-      "default_success_rate": 0.95
-    },
-    "openai/moonshotai/kimi-k2.5": {
-      "provider": "openai",
-      "tier": "flagship",
-      "base_weight": 0.6,
-      "cost_per_1k_tokens": 0.012,
-      "max_context": 262144,
-      "strengths": ["orchestration", "deep-reasoning", "long-context", "architecture"],
-      "default_success_rate": 0.92
-    },
-    "gpt-5.3-codex-spark": {
-      "provider": "openai",
-      "tier": "flagship",
-      "base_weight": 0.6,
       "cost_per_1k_tokens": 0.014,
       "max_context": 200000,
       "strengths": ["code-generation", "debugging", "refactoring", "tool-use"],
       "default_success_rate": 0.93
     },
-    "gemini-3-pro": {
+    "anthropic/claude-opus-4-6": {
+      "provider": "anthropic",
+      "tier": "flagship",
+      "base_weight": 0.67,
+      "cost_per_1k_tokens": 0.015,
+      "max_context": 200000,
+      "strengths": ["deep-reasoning", "architecture", "debugging", "security", "long-context"],
+      "default_success_rate": 0.95
+    },
+    "google/antigravity-gemini-3-pro-high": {
       "provider": "google",
-      "tier": "balanced",
-      "base_weight": 0.55,
+      "tier": "flagship",
+      "base_weight": 0.60,
       "cost_per_1k_tokens": 0.00125,
       "max_context": 1000000,
       "strengths": ["long-context", "reasoning", "analysis", "planning"],
       "default_success_rate": 0.9
     },
-    "gemini-3-flash": {
+    "google/antigravity-gemini-3-flash": {
       "provider": "google",
       "tier": "speed",
       "base_weight": 0.52,
@@ -48,94 +39,31 @@
       "strengths": ["fast-iteration", "simple-tasks", "formatting", "summarization"],
       "default_success_rate": 0.88
     },
-    "openai/minimaxai/minimax-m2.1": {
-      "provider": "openai",
+    "opencode/kimi-k2.5-free": {
+      "provider": "opencode",
+      "tier": "balanced",
+      "base_weight": 0.56,
+      "cost_per_1k_tokens": 0.0,
+      "max_context": 262144,
+      "strengths": ["orchestration", "deep-reasoning", "long-context", "architecture", "free-tier"],
+      "default_success_rate": 0.91
+    },
+    "nvidia/z-ai/glm5": {
+      "provider": "nvidia",
       "tier": "speed",
-      "base_weight": 0.5,
+      "base_weight": 0.50,
+      "cost_per_1k_tokens": 0.0,
+      "max_context": 128000,
+      "strengths": ["code-generation", "general-purpose", "fallback", "free-tier"],
+      "default_success_rate": 0.85
+    },
+    "nvidia/minimaxai/minimax-m2.5": {
+      "provider": "nvidia",
+      "tier": "speed",
+      "base_weight": 0.51,
       "cost_per_1k_tokens": 0.01,
       "max_context": 204800,
       "strengths": ["exploration", "alternative-perspective", "fast-iteration", "analysis"],
-      "default_success_rate": 0.87
-    },
-    "openai/z-ai/glm4.7": {
-      "provider": "openai",
-      "tier": "fallback",
-      "base_weight": 0.45,
-      "cost_per_1k_tokens": 0.014,
-      "max_context": 131072,
-      "strengths": ["code-generation", "general-code", "fallback", "tool-use"],
-      "default_success_rate": 0.85
-    },
-    "openai/gpt-5.3-codex": {
-      "provider": "openai",
-      "tier": "flagship",
-      "base_weight": 0.62,
-      "cost_per_1k_tokens": 0.016,
-      "max_context": 128000,
-      "strengths": ["code-generation", "codex", "refactoring", "optimization"],
-      "default_success_rate": 0.94
-    },
-    "iflytek/spark-4.0-ultra": {
-      "provider": "iflytek",
-      "tier": "flagship",
-      "base_weight": 0.58,
-      "cost_per_1k_tokens": 0.011,
-      "max_context": 200000,
-      "strengths": ["reasoning", "analysis", "deep-thinking", "complex-tasks"],
-      "default_success_rate": 0.91
-    },
-    "anthropic/claude-opus-4-6-20250514": {
-      "provider": "anthropic",
-      "tier": "flagship",
-      "base_weight": 0.67,
-      "cost_per_1k_tokens": 0.018,
-      "max_context": 200000,
-      "strengths": ["deep-reasoning", "security", "architecture", "debugging"],
-      "default_success_rate": 0.96
-    },
-    "google/gemini-2.0-flash-exp-01-21": {
-      "provider": "google",
-      "tier": "speed",
-      "base_weight": 0.53,
-      "cost_per_1k_tokens": 0.000075,
-      "max_context": 1000000,
-      "strengths": ["fast-iteration", "long-context", "simple-tasks", "streaming"],
-      "default_success_rate": 0.89
-    },
-    "google/gemini-2.0-pro-exp-02-05": {
-      "provider": "google",
-      "tier": "flagship",
-      "base_weight": 0.6,
-      "cost_per_1k_tokens": 0.0015,
-      "max_context": 1000000,
-      "strengths": ["long-context", "reasoning", "analysis", "multi-modal"],
-      "default_success_rate": 0.93
-    },
-    "minimax/minimax-01": {
-      "provider": "minimax",
-      "tier": "balanced",
-      "base_weight": 0.51,
-      "cost_per_1k_tokens": 0.009,
-      "max_context": 200000,
-      "strengths": ["exploration", "analysis", "fast-iteration", "reasoning"],
-      "default_success_rate": 0.88
-    },
-    "zhipu/glm-5-free": {
-      "provider": "zhipu",
-      "tier": "speed",
-      "base_weight": 0.48,
-      "cost_per_1k_tokens": 0.0,
-      "max_context": 128000,
-      "strengths": ["free-tier", "general-purpose", "fallback"],
-      "default_success_rate": 0.82
-    },
-    "moonshot/kimi-2.5-free": {
-      "provider": "moonshot",
-      "tier": "balanced",
-      "base_weight": 0.54,
-      "cost_per_1k_tokens": 0.0,
-      "max_context": 256000,
-      "strengths": ["free-tier", "long-context", "reasoning"],
       "default_success_rate": 0.87
     }
   },
@@ -154,22 +82,22 @@
     "simple": {
       "description": "Mechanical tasks, formatting, linting",
       "cost_tier": "mechanical",
-      "model_preference": ["google/gemini-2.0-flash-exp-01-21", "zhipu/glm-5-free", "openai/minimaxai/minimax-m2.1", "openai/z-ai/glm4.7"]
+      "model_preference": ["google/antigravity-gemini-3-flash", "nvidia/z-ai/glm5", "nvidia/minimaxai/minimax-m2.5"]
     },
     "moderate": {
       "description": "Standard code tasks, tests, small features",
       "cost_tier": "low",
-      "model_preference": ["google/gemini-2.0-pro-exp-02-05", "minimax/minimax-01", "moonshot/kimi-2.5-free", "openai/minimaxai/minimax-m2.1"]
+      "model_preference": ["google/antigravity-gemini-3-pro-high", "opencode/kimi-k2.5-free", "nvidia/minimaxai/minimax-m2.5"]
     },
     "high": {
       "description": "Complex features, multi-file refactors",
       "cost_tier": "high",
-      "model_preference": ["openai/moonshotai/kimi-k2.5", "openai/gpt-5.3-codex", "iflytek/spark-4.0-ultra", "google/gemini-2.0-pro-exp-02-05"]
+      "model_preference": ["openai/gpt-5.3-codex-spark", "opencode/kimi-k2.5-free", "google/antigravity-gemini-3-pro-high"]
     },
     "critical": {
       "description": "Architecture decisions, security, production issues",
       "cost_tier": "critical",
-      "model_preference": ["anthropic/claude-opus-4-6-20250514", "openai/moonshotai/kimi-k2.5", "openai/gpt-5.3-codex", "iflytek/spark-4.0-ultra"]
+      "model_preference": ["anthropic/claude-opus-4-6", "openai/gpt-5.3-codex-spark", "opencode/kimi-k2.5-free"]
     }
   },
 

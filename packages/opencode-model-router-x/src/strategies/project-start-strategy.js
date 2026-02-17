@@ -11,8 +11,8 @@ class ProjectStartStrategy extends ModelSelectionStrategy {
   #taskCount = 0;
   #active = true;
   #highPowerModels = [
-    { model_id: 'openai/moonshotai/kimi-k2.5', provider: 'openai' },
-    { model_id: 'gpt-5.3-codex-spark', provider: 'openai' }
+    { model_id: 'anthropic/claude-opus-4-6', provider: 'anthropic' },
+    { model_id: 'openai/gpt-5.3-codex-spark', provider: 'openai' }
   ];
 
   getName() {

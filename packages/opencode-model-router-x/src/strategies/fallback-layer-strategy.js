@@ -4,18 +4,18 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
   #TIER_MODELS = {
     flagship: [
       'anthropic/claude-opus-4-6',
-      'openai/moonshotai/kimi-k2.5',
-      'gpt-5.3-codex-spark'
+      'openai/gpt-5.3-codex-spark',
+      'opencode/kimi-k2.5-free'
     ],
     balanced: [
-      'gemini-3-pro'
+      'google/antigravity-gemini-3-pro-high'
     ],
     speed: [
-      'gemini-3-flash',
-      'openai/minimaxai/minimax-m2.1'
+      'google/antigravity-gemini-3-flash',
+      'nvidia/minimaxai/minimax-m2.5'
     ],
     fallback: [
-      'openai/z-ai/glm4.7'
+      'nvidia/z-ai/glm5'
     ]
   };
 
@@ -76,7 +76,9 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
     const modelId = models[0];
     let provider = 'openai';
     if (modelId.startsWith('anthropic/')) provider = 'anthropic';
-    else if (modelId.startsWith('gemini-')) provider = 'google';
+    else if (modelId.startsWith('google/')) provider = 'google';
+    else if (modelId.startsWith('opencode/')) provider = 'opencode';
+    else if (modelId.startsWith('nvidia/')) provider = 'nvidia';
 
     return {
       model_id: modelId,

@@ -10,21 +10,22 @@ class TokenCostCalculator {
 
   constructor() {
     this.#pricingTable = {
-      // Claude (Anthropic)
       'anthropic': {
         'anthropic/claude-opus-4-6': { input: 15.0, output: 75.0 }
       },
-      // Google
       'google': {
-        'gemini-3-flash': { input: 0.075, output: 0.30 },
-        'gemini-3-pro': { input: 1.25, output: 5.0 }
+        'google/antigravity-gemini-3-flash': { input: 0.075, output: 0.30 },
+        'google/antigravity-gemini-3-pro-high': { input: 1.25, output: 5.0 }
       },
-      // OpenAI (includes NIM-hosted models)
       'openai': {
-        'gpt-5.3-codex-spark': { input: 1.75, output: 14.0 },
-        'openai/moonshotai/kimi-k2.5': { input: 1.20, output: 4.80 },
-        'openai/minimaxai/minimax-m2.1': { input: 1.00, output: 4.00 },
-        'openai/z-ai/glm4.7': { input: 1.40, output: 5.60 }
+        'openai/gpt-5.3-codex-spark': { input: 1.75, output: 14.0 }
+      },
+      'opencode': {
+        'opencode/kimi-k2.5-free': { input: 0.0, output: 0.0 }
+      },
+      'nvidia': {
+        'nvidia/z-ai/glm5': { input: 0.0, output: 0.0 },
+        'nvidia/minimaxai/minimax-m2.5': { input: 1.00, output: 4.00 }
       }
     };
   }
