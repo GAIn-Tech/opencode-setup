@@ -12,27 +12,10 @@ class PerspectiveSwitchStrategy extends ModelSelectionStrategy {
   #priorModel = null;
   #activePerspective = false;
 
-  /**
-   * Provider diversity matrix (most different providers)
-   */
-  #DIVERSITY_MATRIX = {
-    anthropic: { most_different: ['gemini', 'openai'] },
-    openai: { most_different: ['gemini', 'anthropic'] },
-    gemini: { most_different: ['anthropic', 'openai'] },
-    antigravity: { most_different: ['anthropic', 'openai'] },
-    groq: { most_different: ['cerebras', 'nvidia', 'anthropic'] },
-    cerebras: { most_different: ['groq', 'nvidia', 'anthropic'] },
-    nvidia: { most_different: ['groq', 'cerebras', 'gemini'] }
-  };
-
-  /**
-   * High-power models for perspective switch
-   */
-  #PERSPECTIVE_MODELS = {
-    anthropic: 'claude-opus-4.6-thinking-max',
-    openai: 'gpt-5.3-pro',
-    gemini: 'gemini-3-pro-thinking-high'
-  };
+  #PERSPECTIVE_MODELS = [
+    'openai/moonshotai/kimi-k2.5',
+    'gpt-5.3-codex-spark'
+  ];
 
   constructor(stuckBugDetector) {
     super();
@@ -70,45 +53,38 @@ class PerspectiveSwitchStrategy extends ModelSelectionStrategy {
       console.log(`[PerspectiveSwitchStrategy] Stored prior model: ${this.#priorModel.model_id}`);
     }
 
-    // Get alternative provider (most different)
-    const currentProvider = context.currentModel?.provider || 'anthropic';
-    const alternativeProvider = this.#getMostDifferentProvider(currentProvider);
-
-    // Select high-power model from provider
-    const modelId = this.#PERSPECTIVE_MODELS[alternativeProvider] ||
-                    this.#PERSPECTIVE_MODELS['anthropic'];
+    const currentProvider = context.currentModel?.provider || 'openai';
+    const currentModelId = context.currentModel?.model_id;
+    const modelId = this.#getPerspectiveModel(currentModelId);
 
     this.#activePerspective = true;
 
-    console.log(`[PerspectiveSwitchStrategy] Switching to ${alternativeProvider}:${modelId} for new perspective`);
+    console.log(`[PerspectiveSwitchStrategy] Switching to openai:${modelId} for new perspective`);
 
     return {
       model_id: modelId,
-      provider: alternativeProvider,
-      reasoning_effort: alternativeProvider === 'anthropic' ? 'max' : 'high',
+      provider: 'openai',
+      reasoning_effort: 'high',
       confidence: 0.95,
       strategy: 'PerspectiveSwitchStrategy',
       meta: {
         perspective_switch: true,
         prior_provider: currentProvider,
         prior_model: this.#priorModel?.model_id,
-        reason: 'Stuck bug detected - switching to most-different provider'
+        reason: 'Stuck bug detected - switching to alternate runtime model'
       }
     };
   }
 
   /**
-   * Get the most different provider from current provider
+   * Pick a perspective model different from the current one.
    *
-   * @param {string} currentProvider - Current provider
-   * @returns {string} - Most different provider
+   * @param {string|undefined} currentModelId - Current model ID
+   * @returns {string}
    */
-  #getMostDifferentProvider(currentProvider) {
-    const diversityInfo = this.#DIVERSITY_MATRIX[currentProvider];
-    const alternatives = diversityInfo?.most_different || ['openai'];
-
-    // Return first most-different provider
-    return alternatives[0];
+  #getPerspectiveModel(currentModelId) {
+    const alternative = this.#PERSPECTIVE_MODELS.find((modelId) => modelId !== currentModelId);
+    return alternative || this.#PERSPECTIVE_MODELS[0];
   }
 
   /**

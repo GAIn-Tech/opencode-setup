@@ -146,7 +146,10 @@ class ModelRouter {
     if (this.orchestrator && typeof this.orchestrator.selectModel === 'function' && ctx.task) {
       try {
         const selection = await this.orchestrator.selectModel(ctx.task, ctx);
-        if (selection && selection.model_id && this.models[selection.model_id]) {
+        if (selection && selection.model_id) {
+          if (!this.models[selection.model_id]) {
+            throw new Error(`Strategy selected unknown model: ${selection.model_id}. Not in policies.json. Strategy: ${selection.strategy || 'unknown'}`);
+          }
           const model = this.models[selection.model_id];
           const rotator = this.rotators[model.provider];
           const key = rotator ? rotator.getNextKey() : null;

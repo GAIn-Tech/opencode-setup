@@ -8,7 +8,7 @@
     "./policies": "./src/policies.json"
   },
   "scripts": {
-    "test": "node -e \"const { ModelRouter } = require('./src/index.js'); const r = new ModelRouter(); console.log('selectModel:', r.selectModel({ complexity: 'high' })); r.recordOutcome('anthropic/claude-opus-4-6', true, 1200); console.log('after outcome:', r.getModelStats('anthropic/claude-opus-4-6')); console.log('ALL TESTS PASSED');\""
+    "test": "node -e \"const { ModelRouter } = require('./src/index.js'); const r = new ModelRouter(); const pick = r.route({ complexity: 'high' }); console.log('route:', pick); r.recordResult(pick.modelId, true, 1200); console.log('models:', r.listModels().map(m => m.id)); console.log('ALL TESTS PASSED');\""
   },
   "keywords": [
     "opencode",

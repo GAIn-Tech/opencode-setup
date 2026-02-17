@@ -12,46 +12,19 @@ class TokenCostCalculator {
     this.#pricingTable = {
       // Claude (Anthropic)
       'anthropic': {
-        'claude-sonnet-4.5': { input: 3.0, output: 15.0 },
-        'claude-sonnet-4.5-thinking-low': { input: 3.0, output: 15.0, thinking_multiplier: 1.5 },
-        'claude-sonnet-4.5-thinking-max': { input: 3.0, output: 15.0, thinking_multiplier: 3.0 },
-        'claude-opus-4.6': { input: 15.0, output: 75.0 },
-        'claude-opus-4.6-thinking-low': { input: 15.0, output: 75.0, thinking_multiplier: 1.5 },
-        'claude-opus-4.6-thinking-max': { input: 15.0, output: 75.0, thinking_multiplier: 3.0 }
+        'anthropic/claude-opus-4-6': { input: 15.0, output: 75.0 }
       },
-      // Gemini (Google)
+      // Google
       'google': {
         'gemini-3-flash': { input: 0.075, output: 0.30 },
-        'gemini-3-flash-thinking-minimal': { input: 0.075, output: 0.30, thinking_multiplier: 1.2 },
-        'gemini-3-flash-thinking-low': { input: 0.075, output: 0.30, thinking_multiplier: 1.5 },
-        'gemini-3-flash-thinking-medium': { input: 0.075, output: 0.30, thinking_multiplier: 2.0 },
-        'gemini-3-pro': { input: 1.25, output: 5.0 },
-        'gemini-3-pro-thinking-low': { input: 1.25, output: 5.0, thinking_multiplier: 1.5 },
-        'gemini-3-pro-thinking-medium': { input: 1.25, output: 5.0, thinking_multiplier: 2.0 },
-        'gemini-3-pro-thinking-high': { input: 1.25, output: 5.0, thinking_multiplier: 3.0 }
+        'gemini-3-pro': { input: 1.25, output: 5.0 }
       },
-      // OpenAI
+      // OpenAI (includes NIM-hosted models)
       'openai': {
-        'gpt-5.2': { input: 2.50, output: 10.0 },
-        'gpt-5.2-thinking-low': { input: 2.50, output: 10.0, thinking_multiplier: 1.5 },
-        'gpt-5.2-thinking-max': { input: 2.50, output: 10.0, thinking_multiplier: 3.0 },
-        'gpt-5.3-codex': { input: 1.75, output: 14.0 },
-        'gpt-5.3-codex-thinking-xhigh': { input: 1.75, output: 14.0, thinking_multiplier: 2.5 }
-      },
-      // NVIDIA (hosted Llama)
-      'nvidia': {
-        'llama-3.1-405b': { input: 0.45, output: 0.45 },
-        'llama-3.1-70b': { input: 0.15, output: 0.15 }
-      },
-      // Groq (hosted Llama)
-      'groq': {
-        'llama-3.1-405b': { input: 0.27, output: 0.27 },
-        'llama-3.1-70b': { input: 0.08, output: 0.08 }
-      },
-      // Cerebras (hosted Llama)
-      'cerebras': {
-        'llama-3.1-405b': { input: 0.60, output: 0.60 },
-        'llama-3.1-70b': { input: 0.20, output: 0.20 }
+        'gpt-5.3-codex-spark': { input: 1.75, output: 14.0 },
+        'openai/moonshotai/kimi-k2.5': { input: 1.20, output: 4.80 },
+        'openai/minimaxai/minimax-m2.1': { input: 1.00, output: 4.00 },
+        'openai/z-ai/glm4.7': { input: 1.40, output: 5.60 }
       }
     };
   }

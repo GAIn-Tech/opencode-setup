@@ -11,8 +11,8 @@ class ProjectStartStrategy extends ModelSelectionStrategy {
   #taskCount = 0;
   #active = true;
   #highPowerModels = [
-    { model_id: 'claude-opus-4.6-thinking-max', provider: 'anthropic' },
-    { model_id: 'gpt-5.3-pro', provider: 'openai' }
+    { model_id: 'openai/moonshotai/kimi-k2.5', provider: 'openai' },
+    { model_id: 'gpt-5.3-codex-spark', provider: 'openai' }
   ];
 
   getName() {
@@ -43,9 +43,9 @@ class ProjectStartStrategy extends ModelSelectionStrategy {
     const intent = task.intent;
 
     if (['architecture', 'orchestration', 'debugging'].includes(intent)) {
-      selectedModel = this.#highPowerModels[0]; // Claude Opus with max thinking
+      selectedModel = this.#highPowerModels[0];
     } else if (['code_generation', 'code_transform'].includes(intent)) {
-      selectedModel = this.#highPowerModels[1]; // GPT-5.3 Pro
+      selectedModel = this.#highPowerModels[1];
     } else {
       selectedModel = this.#highPowerModels[0];
     }

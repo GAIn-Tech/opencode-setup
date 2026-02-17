@@ -1,0 +1,45 @@
+{
+  "id": "model-router-alignment-20260217",
+  "timestamp": "2026-02-17T12:00:00Z",
+  "summary": "Aligned model-router-x policies and strategies with user-specified 7-model set, removing all excluded models",
+  "affected_paths": [
+    "packages/opencode-model-router-x/src/policies.json",
+    "packages/opencode-model-router-x/src/index.js",
+    "packages/opencode-model-router-x/src/strategies/fallback-layer-strategy.js",
+    "packages/opencode-model-router-x/src/strategies/perspective-switch-strategy.js",
+    "packages/opencode-model-router-x/src/strategies/project-start-strategy.js",
+    "packages/opencode-model-router-x/src/strategies/token-cost-calculator.js",
+    "packages/opencode-model-router-x/package.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-applicable"
+  },
+  "risk_level": "medium",
+  "details": {
+    "models_added": [
+      "anthropic/claude-opus-4-6",
+      "openai/moonshotai/kimi-k2.5",
+      "gpt-5.3-codex-spark",
+      "gemini-3-pro",
+      "gemini-3-flash",
+      "openai/minimaxai/minimax-m2.1",
+      "openai/z-ai/glm4.7"
+    ],
+    "models_removed": [
+      "openai/stepfun-ai/step-3.5-flash",
+      "openai/nvidia/nemotron-3-nano-30b-a3b",
+      "openai/moonshotai/kimi-k2",
+      "openai/meta/llama-3.1-70b-instruct"
+    ],
+    "tier_mapping": {
+      "flagship": ["anthropic/claude-opus-4-6", "openai/moonshotai/kimi-k2.5", "gpt-5.3-codex-spark"],
+      "balanced": ["gemini-3-pro"],
+      "speed": ["gemini-3-flash", "openai/minimaxai/minimax-m2.1"],
+      "fallback": ["openai/z-ai/glm4.7"]
+    },
+    "excluded_permanently": ["llama", "groq", "cerebras", "stepfun", "nemotron", "kimi-k2"],
+    "index_js_validation": "routeAsync() throws if strategy selects model not in policies.json"
+  }
+}
