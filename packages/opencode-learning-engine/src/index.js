@@ -126,9 +126,18 @@ class LearningEngine extends EventEmitter {
    * - 7-30 days: gradual decay (1.0 → 0.3)
    * - 30-90 days: reduced but not zero (0.3 → 0.1)
    * - > 90 days: minimal but retained (0.1)
-   * This ensures learnings remain for pattern recognition while favoring recent data
+   * 
+   * HOWEVER: If learning.persistence === 'core', weight is ALWAYS 1.0
+   * Core learnings represent fundamental truths that should never decay
+   * (e.g., "Bun v1.3.x crashes", "always use atomic writes")
    */
   getAdaptiveWeight(learning) {
+    // Core learnings never decay - they're fundamental truths
+    if (learning.persistence === 'core') {
+      return 1.0;
+    }
+    
+    // Adaptive learnings decay over time
     const age = Date.now() - new Date(learning.timestamp).getTime();
     const days = age / (1000 * 60 * 60 * 24);
 
@@ -136,6 +145,57 @@ class LearningEngine extends EventEmitter {
     if (days < 30) return 1.0 - ((days - 7) / 23) * 0.7; // 1.0 → 0.3
     if (days < 90) return 0.3 - ((days - 30) / 60) * 0.2; // 0.3 → 0.1
     return 0.1; // Keep learnings indefinitely but with minimal weight
+  }
+
+  /**
+   * Mark a learning as core/persistent (never decays)
+   * Use for fundamental truths that should always guide decisions
+   * Examples: "Bun v1.3.x crashes", "use atomic writes"
+   */
+  markAsCore(learningId) {
+    const entry = this.catalog.entries.find(e => e.id === learningId);
+    if (entry) {
+      entry.persistence = 'core';
+      entry.isCore = true;
+      console.log(`[LearningEngine] Marked learning ${learningId} as CORE - will never decay`);
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Update a core learning with new evidence
+   * Core learnings can be updated but stay as core
+   */
+  updateCoreLearning(learningId, newData) {
+    const entry = this.catalog.entries.find(e => e.id === learningId);
+    if (entry && entry.persistence === 'core') {
+      // Keep it as core but update the data
+      Object.assign(entry, newData, { 
+        persistence: 'core',
+        isCore: true,
+        updatedAt: Date.now()
+      });
+      console.log(`[LearningEngine] Updated core learning ${learningId}`);
+      this.save();
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Get all core learnings (never decay)
+   */
+  getCoreLearnings() {
+    return this.catalog.entries.filter(e => e.persistence === 'core');
+  }
+
+  /**
+   * Get all adaptive learnings (decay over time)
+   */
+  getAdaptiveLearnings() {
+    return this.catalog.entries.filter(e => e.persistence !== 'core');
   }
 
   /**
@@ -186,11 +246,18 @@ class LearningEngine extends EventEmitter {
    * Get learning system health metrics
    */
   getHealthMetrics() {
+    const core = this.getCoreLearnings();
+    const adaptive = this.getAdaptiveLearnings();
+    
     return {
       antiPatternCount: this.antiPatterns?.patterns?.size || 0,
       positivePatternCount: this.positivePatterns?.patterns?.size || 0,
       sessionCount: this.sessionLog?.length || 0,
       hooksCount: Object.keys(this.hooks).length,
+      // New: Core vs Adaptive breakdown
+      coreLearnings: core.length,
+      adaptiveLearnings: adaptive.length,
+      totalLearnings: this.catalog?.entries?.length || 0,
       lastLoad: this.lastLoad || null,
       lastSave: this.lastSave || null
     };
