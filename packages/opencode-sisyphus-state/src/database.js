@@ -344,6 +344,17 @@ class WorkflowStore {
     
     this.db.close();
   }
+
+  // Static cleanup for connection pool - call on process shutdown
+  static cleanup() {
+    WorkflowStore._connectionPool.forEach((conn, id) => {
+      try {
+        if (conn.db) conn.db.close();
+      } catch (e) { /* ignore */ }
+    });
+    WorkflowStore._connectionPool.clear();
+    console.log('[WorkflowStore] Connection pool cleaned up');
+  }
 }
 
 module.exports = { WorkflowStore };
