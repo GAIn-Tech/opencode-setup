@@ -55,7 +55,7 @@ const KNOWN_MODELS = new Map([
 ]);
 
 // Valid providers
-const VALID_PROVIDERS = new Set(['anthropic', 'openai', 'google', 'kimi', 'groq', 'cerebras', 'sambanova', 'mistral', 'meta', 'deepseek', 'xai']);
+const VALID_PROVIDERS = new Set(['anthropic', 'openai', 'google', 'nvidia', 'zen', 'zhipu', 'minimax', 'kimi', 'groq', 'cerebras', 'sambanova', 'mistral', 'meta', 'deepseek', 'xai', 'antigravity']);
 
 // ─── Model Name Syntax ──────────────────────────────────────────────────────
 // Accepted formats:
