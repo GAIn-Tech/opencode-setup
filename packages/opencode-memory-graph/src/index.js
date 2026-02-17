@@ -41,6 +41,14 @@ class MemoryGraph {
       bridge: this._bridge,
     });
     this._activated = true;
+    
+    // Performance indexes for O(1) lookups instead of O(n) filters
+    this._indexes = {
+      byType: new Map(),        // node type → array of nodes
+      bySession: new Map(),     // session_id → session node
+      byError: new Map(),       // error_type → array of error nodes
+      byTimestamp: [],          // sorted array of nodes by timestamp
+    };
   }
 
   // ─── Core API ───────────────────────────────────────────────────────────
@@ -65,6 +73,9 @@ class MemoryGraph {
     // When inactive: in-memory only (bridge=null), existing behavior preserved
     const effectiveBridge = this._activator.isActive() ? this._bridge : null;
     this._graph = await buildGraphWithBridge(this._entries, effectiveBridge);
+    
+    // Rebuild indexes for O(1) queries
+    this._rebuildIndexes();
     return this._graph;
   }
 
@@ -84,6 +95,9 @@ class MemoryGraph {
 
     const { buildGraph } = require('./graph-builder');
     this._graph = buildGraph(this._entries);
+    
+    // Rebuild indexes for O(1) queries
+    this._rebuildIndexes();
     return this._graph;
   }
 
@@ -94,6 +108,82 @@ class MemoryGraph {
   getGraph() {
     this._ensureBuilt();
     return this._graph;
+  }
+
+  /**
+   * Rebuild performance indexes for O(1) lookups.
+   * Called automatically after buildGraph.
+   */
+  _rebuildIndexes() {
+    if (!this._graph) return;
+    
+    // Reset indexes
+    this._indexes = {
+      byType: new Map(),
+      bySession: new Map(),
+      byError: new Map(),
+      byTimestamp: [],
+    };
+    
+    // Index nodes by type and other attributes
+    for (const node of this._graph.nodes) {
+      // Index by type
+      if (!this._indexes.byType.has(node.type)) {
+        this._indexes.byType.set(node.type, []);
+      }
+      this._indexes.byType.get(node.type).push(node);
+      
+      // Index by session
+      if (node.type === 'session' && node.id) {
+        this._indexes.bySession.set(node.id, node);
+      }
+      
+      // Index by error type
+      if (node.type === 'error' && node.error_type) {
+        if (!this._indexes.byError.has(node.error_type)) {
+          this._indexes.byError.set(node.error_type, []);
+        }
+        this._indexes.byError.get(node.error_type).push(node);
+      }
+      
+      // Index by timestamp
+      if (node.timestamp) {
+        this._indexes.byTimestamp.push({ node, ts: new Date(node.timestamp).getTime() });
+      }
+    }
+    
+    // Sort by timestamp
+    this._indexes.byTimestamp.sort((a, b) => b.ts - a.ts);
+  }
+
+  /**
+   * Get indexed nodes by type - O(1) instead of O(n) filter
+   * @param {string} type - node type (session, error, model, provider)
+   * @returns {object[]}
+   */
+  getNodesByType(type) {
+    this._ensureBuilt();
+    return this._indexes.byType.get(type) || [];
+  }
+
+  /**
+   * Get session node by ID - O(1) lookup
+   * @param {string} sessionId
+   * @returns {object|null}
+   */
+  getSessionById(sessionId) {
+    this._ensureBuilt();
+    return this._indexes.bySession.get(sessionId) || null;
+  }
+
+  /**
+   * Get errors by type - O(1) lookup
+   * @param {string} errorType
+   * @returns {object[]}
+   */
+  getErrorsByType(errorType) {
+    this._ensureBuilt();
+    return this._indexes.byError.get(errorType) || [];
   }
 
   // ─── Query API ──────────────────────────────────────────────────────────

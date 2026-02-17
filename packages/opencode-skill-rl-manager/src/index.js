@@ -56,18 +56,97 @@ const SafeJSON = {
   }
 };
 
+// Learning validation to prevent corrupted learnings from corrupting the system
+const LearningValidator = {
+  // Validate skill data before accepting it
+  validateSkill: (skill) => {
+    if (!skill || typeof skill !== 'object') return { valid: false, reason: 'Not an object' };
+    if (!skill.name || typeof skill.name !== 'string') return { valid: false, reason: 'Missing or invalid name' };
+    if (skill.success_rate !== undefined) {
+      if (typeof skill.success_rate !== 'number' || skill.success_rate < 0 || skill.success_rate > 1) {
+        return { valid: false, reason: 'success_rate must be 0-1' };
+      }
+    }
+    if (skill.usage_count !== undefined) {
+      if (typeof skill.usage_count !== 'number' || skill.usage_count < 0) {
+        return { valid: false, reason: 'usage_count must be >= 0' };
+      }
+    }
+    return { valid: true };
+  },
+  
+  // Validate evolution rule
+  validateRule: (rule) => {
+    if (!rule || typeof rule !== 'object') return { valid: false, reason: 'Not an object' };
+    if (!rule.trigger || typeof rule.trigger !== 'string') return { valid: false, reason: 'Missing trigger' };
+    if (!rule.action || typeof rule.action !== 'string') return { valid: false, reason: 'Missing action' };
+    return { valid: true };
+  },
+  
+  // Sanitize and clamp values to prevent drift
+  sanitize: (skill) => {
+    const sanitized = { ...skill };
+    if (sanitized.success_rate !== undefined) {
+      sanitized.success_rate = Math.max(0, Math.min(1, sanitized.success_rate));
+    }
+    if (sanitized.usage_count !== undefined) {
+      sanitized.usage_count = Math.max(0, Math.floor(sanitized.usage_count));
+    }
+    if (sanitized.adaptive_threshold !== undefined) {
+      sanitized.adaptive_threshold = Math.max(0, Math.min(1, sanitized.adaptive_threshold));
+    }
+    return sanitized;
+  }
+};
+
 class SkillRLManager {
   constructor(options = {}) {
-    this.skillBank = new SkillBank();
-    this.evolutionEngine = new EvolutionEngine(this.skillBank);
+    this.stateFile = options.stateFile || './skill-rl-state.json';
+    this.skillBank = new SkillBank(options.skillBank);
+    this.evolutionEngine = new EvolutionEngine(options.evolution);
     
-    // Persistence path (optional)
-    this.persistencePath = options.persistencePath || null;
-    
-    // Load from persistence if path provided
-    if (this.persistencePath && fs.existsSync(this.persistencePath)) {
-      this._load();
+    // Learning validation enabled by default
+    this._validationEnabled = options.validationEnabled !== false;
+  }
+
+  /**
+   * Learn from an outcome - validate before accepting
+   * @param {object} outcome - { task_type, outcome, skill_used, success, ... }
+   */
+  learnFromOutcome(outcome) {
+    // Validate outcome before processing
+    if (this._validationEnabled) {
+      if (!outcome || typeof outcome !== 'object') {
+        console.warn('[SkillRL] Rejected invalid outcome: not an object');
+        return;
+      }
+      if (outcome.success === undefined) {
+        console.warn('[SkillRL] Rejected outcome: missing success field');
+        return;
+      }
     }
+    
+    // Process through skill bank
+    const updated = this.skillBank.learn(outcome);
+    
+    // Validate updated skill data
+    if (this._validationEnabled) {
+      const validation = LearningValidator.validateSkill(updated);
+      if (!validation.valid) {
+        console.warn(`[SkillRL] Rejected corrupted skill update: ${validation.reason}`);
+        return;
+      }
+      // Sanitize to prevent drift
+      Object.assign(updated, LearningValidator.sanitize(updated));
+    }
+    
+    // Process through evolution engine
+    this.evolutionEngine.evolve(outcome);
+    
+    // Save state
+    this._save();
+    
+    return updated;
   }
 
   /**
