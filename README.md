@@ -96,16 +96,16 @@ See [INSTALL.md](INSTALL.md) for detailed installation instructions.
 | `github` | local | GitHub API (issues, PRs, repos) |
 | `distill` | local | AST-based intelligent context compression (50-70% token savings) |
 
-### Models (7 defined + default)
-| Model | Provider | Use Case |
-|-------|----------|----------|
-| `kimi-k2.5-free` | Moonshot | Default / free-tier mechanical tasks |
-| `gemini-2.5-flash` | Google | Trivial tasks, fast lookups |
-| `antigravity-gemini-3-flash` | Antigravity | Routine dev work, exploration, research |
-| `claude-sonnet-4-5` | Anthropic | Complex reasoning, multi-file refactors |
-| `claude-sonnet-4-5-thinking` | Anthropic | Deep analysis, debugging, optimization |
-| `claude-opus-4-6` | Anthropic | Architectural decisions, system design |
-| `claude-opus-4-6-thinking` | Anthropic | Critical/high-stakes, security audits |
+### Models (Current Stack)
+| Model | Provider | Status |
+|-------|----------|--------|
+| `kimi-k2.5-free` | Moonshot | Default / free-tier |
+| `gemini-3-flash` | Google | Active - Current budget model |
+| `antigravity-gemini-3-flash` | Antigravity | Active - Multi-account rotation |
+| `claude-sonnet-4-5` | Anthropic | Active |
+| `claude-sonnet-4-5-thinking` | Anthropic | Active - Deep reasoning |
+| `claude-opus-4-6` | Anthropic | Active - Frontier |
+| `claude-opus-4-6-thinking` | Anthropic | Active - Max reasoning |
 
 ### Execution Modes
 - **Ralph Loop**: Persistence until completion

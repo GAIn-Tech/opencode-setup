@@ -116,8 +116,8 @@
       "apiEndpoint": "https://generativelanguage.googleapis.com/v1",
       "models": [
         {
-          "id": "gemini-2.0-pro",
-          "displayName": "Gemini 2.0 Pro",
+          "id": "gemini-3-pro",
+          "displayName": "Gemini 3 Pro",
           "contextWindow": 1000000,
           "maxOutputTokens": 8192,
           "capabilities": ["text", "vision", "audio", "video"],
@@ -125,11 +125,11 @@
           "inputCostPer1M": 1.25,
           "outputCostPer1M": 5.00,
           "status": "active",
-          "releasedAt": "2024-12-11"
+          "releasedAt": "2025-02-01"
         },
         {
-          "id": "gemini-2.0-flash",
-          "displayName": "Gemini 2.0 Flash",
+          "id": "gemini-3-flash",
+          "displayName": "Gemini 3 Flash",
           "contextWindow": 1000000,
           "maxOutputTokens": 8192,
           "capabilities": ["text", "vision", "audio", "video"],
@@ -137,23 +137,23 @@
           "inputCostPer1M": 0.075,
           "outputCostPer1M": 0.30,
           "status": "active",
-          "releasedAt": "2024-12-11"
+          "releasedAt": "2025-02-01"
         },
         {
-          "id": "gemini-3-pro",
-          "displayName": "Gemini 3 Pro (Deprecated)",
+          "id": "gemini-2.0-pro",
+          "displayName": "Gemini 2.0 Pro (Legacy)",
           "status": "deprecated",
-          "deprecatedAt": "2025-11-01",
-          "replacementModel": "gemini-2.0-pro",
-          "deprecationReason": "Model ID was speculative, gemini-2.0-pro is current frontier model"
+          "deprecatedAt": "2025-02-01",
+          "replacementModel": "gemini-3-pro",
+          "deprecationReason": "Superseded by Gemini 3 Pro"
         },
         {
-          "id": "gemini-3-flash",
-          "displayName": "Gemini 3 Flash (Deprecated)",
+          "id": "gemini-2.0-flash",
+          "displayName": "Gemini 2.0 Flash (Legacy)",
           "status": "deprecated",
-          "deprecatedAt": "2025-11-01",
-          "replacementModel": "gemini-2.0-flash",
-          "deprecationReason": "Model ID was speculative, gemini-2.0-flash is current budget model"
+          "deprecatedAt": "2025-02-01",
+          "replacementModel": "gemini-3-flash",
+          "deprecationReason": "Superseded by Gemini 3 Flash"
         }
       ]
     },
