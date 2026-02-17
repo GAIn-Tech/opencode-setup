@@ -20,6 +20,10 @@ const __dirname = path.dirname(__filename);
  * @returns {boolean} True if executable exists
  */
 export function commandExists(command) {
+  // Guard against undefined/null/non-string command
+  if (!command || typeof command !== "string") {
+    return false;
+  }
   // Check if it's a path
   if (command.includes('/') || command.includes('\\')) {
     return existsSync(command);
