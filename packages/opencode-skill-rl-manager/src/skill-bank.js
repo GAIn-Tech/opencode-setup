@@ -26,8 +26,40 @@ class SkillBank {
     // Task-Specific Skills - Indexed by task_type
     this.taskSpecificSkills = new Map();
     
+    // Sorted cache for O(1) top-skill lookups (instead of O(n log n) sort every time)
+    // Cache is invalidated and rebuilt on any skill update
+    this._sortedGeneralCache = null;
+    this._sortedTaskCache = new Map(); // by task_type
+    
     // Seed with initial general skills
     this._seedGeneralSkills();
+  }
+  
+  // Invalidate sorted cache (call after any skill update)
+  _invalidateCache() {
+    this._sortedGeneralCache = null;
+    this._sortedTaskCache.clear();
+  }
+  
+  // Get top N skills sorted by success_rate (uses cache if available)
+  getTopSkills(count = 5, taskType = null) {
+    if (taskType) {
+      // Task-specific skills
+      if (!this._sortedTaskCache.has(taskType)) {
+        const taskSkills = this.taskSpecificSkills.get(taskType) || [];
+        this._sortedTaskCache.set(taskType, 
+          [...taskSkills].sort((a, b) => (b.success_rate || 0) - (a.success_rate || 0))
+        );
+      }
+      return this._sortedTaskCache.get(taskType).slice(0, count);
+    }
+    
+    // General skills
+    if (!this._sortedGeneralCache) {
+      this._sortedGeneralCache = 
+        [...this.generalSkills.values()].sort((a, b) => (b.success_rate || 0) - (a.success_rate || 0));
+    }
+    return this._sortedGeneralCache.slice(0, count);
   }
 
   /**
@@ -109,6 +141,8 @@ class SkillBank {
         last_updated: Date.now()
       });
     }
+    // Invalidate sorted cache
+    this._invalidateCache();
   }
 
   /**
@@ -141,6 +175,8 @@ class SkillBank {
         last_updated: Date.now()
       });
     }
+    // Invalidate sorted cache
+    this._invalidateCache();
   }
 
   /**
