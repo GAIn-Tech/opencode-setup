@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "OpenCode custom plugins and configuration",
   "private": true,
+  "packageManager": "bun@1.1.12",
   "workspaces": [
     "packages/*"
   ],

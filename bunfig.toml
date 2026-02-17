@@ -1,6 +1,9 @@
 # Bun configuration for OpenCode setup
 # Addresses memory exhaustion issues with parallel agent execution
 
+# REQUIRED: Bun version 1.1.x (v1.3.x has segfault bugs on Windows)
+# Run: bun install -g bun@1.1.12
+# https://github.com/oven-sh/bun/issues/26026
 [run]
 # Increase memory limit to 4GB (default is ~512MB-2GB)
 # Required for: parallel workflows, session backfills, memory graph operations
