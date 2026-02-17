@@ -226,6 +226,45 @@ class WorkflowStore {
    * @returns {any} - Result from callback
    * @throws {Error} - Re-throws error with transaction context
    */
+  /**
+   * Sync audit events to knowledge graph.
+   * Creates nodes in MemoryGraph for each error/pattern.
+   */
+  async syncToGraph(memoryGraph) {
+    if (!memoryGraph || !memoryGraph.isActivated) {
+      console.warn('[WorkflowStore] MemoryGraph not available for sync');
+      return;
+    }
+
+    const events = this.db.prepare(`
+      SELECT * FROM audit_events 
+      WHERE created_at > datetime('now', '-7 days')
+      ORDER BY created_at DESC
+      LIMIT 100
+    `).all();
+
+    for (const event of events) {
+      try {
+        const payload = JSON.parse(event.payload || '{}');
+        
+        // Extract error patterns and add to graph
+        if (event.event_type.includes('error') || event.event_type.includes('fail')) {
+          await memoryGraph.addErrorNode({
+            sessionId: payload.session_id || event.run_id,
+            errorType: event.event_type,
+            model: payload.model,
+            provider: payload.provider,
+            metadata: payload
+          });
+        }
+      } catch (e) {
+        console.error('[WorkflowStore] Failed to sync event to graph:', e.message);
+      }
+    }
+    
+    console.log(`[WorkflowStore] Synced ${events.length} events to knowledge graph`);
+  }
+
   transaction(callback) {
     const isBunRuntime = typeof Bun !== 'undefined';
     
@@ -236,6 +275,8 @@ class WorkflowStore {
       // better-sqlite3 transaction
       return this.db.transaction(callback)();
     }
+  }
+}
   }
 
   /**
