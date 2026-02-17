@@ -155,23 +155,11 @@
           "modalities": { "input": ["text"], "output": ["text"] },
           "priority": "secondary"
         },
-        "nvidia/glm-4": {
-          "name": "GLM-4 (NVIDIA)",
+        "nvidia/glm4.7": {
+          "name": "GLM 4.7 (NVIDIA)",
           "limit": { "context": 128000, "output": 8192 },
           "modalities": { "input": ["text"], "output": ["text"] },
           "priority": "secondary"
-        },
-        "deepseek/deepseek-chat": {
-          "name": "DeepSeek Chat (NVIDIA)",
-          "limit": { "context": 64000, "output": 8192 },
-          "modalities": { "input": ["text"], "output": ["text"] },
-          "priority": "fallback"
-        },
-        "deepseek/deepseek-coder": {
-          "name": "DeepSeek Coder (NVIDIA)",
-          "limit": { "context": 64000, "output": 8192 },
-          "modalities": { "input": ["text"], "output": ["text"] },
-          "priority": "fallback"
         }
       }
     },
@@ -182,13 +170,13 @@
         "apiKey": "{env:DEEPSEEK_API_KEY}"
       },
       "models": {
-        "glm-5": {
+        "zen/glm5": {
           "name": "GLM-5 (Zen)",
           "limit": { "context": 128000, "output": 8192 },
           "modalities": { "input": ["text"], "output": ["text"] },
           "priority": "primary"
         },
-        "nvidia/kimi-k2.5-pro": {
+        "zen/kimi-k2.5-pro": {
           "name": "Kimi K2.5 Pro (Zen)",
           "limit": { "context": 200000, "output": 8192 },
           "modalities": { "input": ["text"], "output": ["text"] },

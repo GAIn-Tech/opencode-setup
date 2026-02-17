@@ -408,7 +408,7 @@
         "tokensPerMinute": 200000
       }
     },
-"deepseek": {
+    "deepseek": {
       "id": "deepseek",
       "name": "DeepSeek",
       "apiEndpoint": "https://api.deepseek.com/v1",
@@ -433,15 +433,6 @@
       "rateLimits": {
         "requestsPerMinute": 2000,
         "tokensPerMinute": 2000000
-      }
-    },
-    "minimax": {
-      "id": "minimax",
-      "name": "MiniMax",
-      "apiEndpoint": "https://api.minimax.chat/v1",
-      "rateLimits": {
-        "requestsPerMinute": 1000,
-        "tokensPerMinute": 1000000
       }
     },
     "antigravity": {
