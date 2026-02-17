@@ -145,6 +145,34 @@ class WorkflowStore {
     }
   }
 
+  /**
+   * Close the database connection and cleanup resources.
+   * FIX: Memory leak - clear WAL checkpoint interval on close
+   * FIX: Added try-catch to prevent crashes during cleanup
+   */
+  close() {
+    try {
+      // Clear WAL checkpoint interval to prevent memory leak
+      if (this._walCheckpointInterval) {
+        clearInterval(this._walCheckpointInterval);
+        this._walCheckpointInterval = null;
+      }
+      
+      // Final checkpoint before close
+      this._checkpointWAL();
+      
+      // Close database
+      if (this.db) {
+        this.db.close();
+      }
+      console.log('[WorkflowStore] Database closed safely');
+    } catch (e) {
+      console.error('[WorkflowStore] Close error:', e.message);
+      // Force exit anyway to prevent hanging
+      process.exit(1);
+    }
+  }
+
   runMigrations() {
     // Get current schema version
     let currentVersion;
@@ -275,8 +303,6 @@ class WorkflowStore {
       // better-sqlite3 transaction
       return this.db.transaction(callback)();
     }
-  }
-}
   }
 
   /**

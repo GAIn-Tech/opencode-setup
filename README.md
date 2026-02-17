@@ -130,3 +130,71 @@ See [INSTALL.md](INSTALL.md) for detailed installation instructions.
 ## Setup on New Machine
 
 See `setup-instructions.md` for detailed step-by-step instructions.
+
+## Updating from Remote
+
+If your local machine is behind the remote and you need to sync up:
+
+```bash
+# 1. Stash any local changes you want to keep
+git stash
+
+# 2. Pull latest from remote (using rebase to keep history clean)
+git fetch origin
+git rebase origin/main
+
+# 3. Restore your local changes if any
+git stash pop
+```
+
+### After Pulling (Critical)
+
+**Always run the setup script again** to ensure all package links and dependencies are updated:
+
+```bash
+# Run from the opencode-setup directory
+cd opencode-setup
+
+# Re-run setup to reinstall/relink all plugins and dependencies
+./setup.sh
+
+# Or manually if needed:
+npm install
+cd packages/* && npm link  # Re-link each custom plugin
+```
+
+### What the Setup Script Does
+
+The `setup.sh` script performs these critical tasks:
+1. Installs root dependencies (`npm install`)
+2. Links all custom plugins (`npm link` in each package)
+3. Copies config files to `~/.config/opencode/` if needed
+4. Ensures all package dependencies are installed
+
+### Troubleshooting After Update
+
+If you experience issues after pulling:
+
+```bash
+# Clear node_modules and reinstall from scratch
+rm -rf node_modules
+rm -rf packages/*/node_modules
+npm install
+
+# Re-run setup
+./setup.sh
+
+# If crashes persist, check the crash guard is initialized
+# (should see "[WorkflowExecutor] Crash guard initialized" in logs)
+```
+
+### Verifying Crash Guards Active
+
+After updating, verify crash guards are working:
+
+```bash
+# Run a simple workflow and check logs for:
+# - "[WorkflowExecutor] Crash guard initialized"
+# - "[CrashRecovery] Initialized"
+# - "[MemoryGuard] Starting memory monitoring"
+```
