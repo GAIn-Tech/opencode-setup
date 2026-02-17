@@ -90,6 +90,39 @@ function logError(agent, error, context = '') {
 }
 
 /**
+ * Log a tool invocation with context and result
+ * @param {string} toolName - Name of the tool (e.g., 'read', 'grep', 'bash')
+ * @param {object} params - Tool parameters (sanitized - no secrets)
+ * @param {object} result - Tool result summary
+ * @param {object} context - Session/task context
+ */
+function logToolInvocation(toolName, params = {}, result = {}, context = {}) {
+  const sanitizedParams = { ...params };
+  // Strip sensitive data
+  delete sanitizedParams.apiKey;
+  delete sanitizedParams.token;
+  delete sanitizedParams.secret;
+  // Truncate large values
+  for (const [k, v] of Object.entries(sanitizedParams)) {
+    if (typeof v === 'string' && v.length > 200) {
+      sanitizedParams[k] = v.substring(0, 200) + '...';
+    }
+  }
+
+  logEvent({
+    type: 'tool_invocation',
+    tool: toolName,
+    params_summary: sanitizedParams,
+    success: result.success !== false,
+    duration_ms: result.durationMs || null,
+    error: result.error || null,
+    session_id: context.sessionId || null,
+    task_id: context.taskId || null,
+    agent: context.agent || null
+  });
+}
+
+/**
  * Log model routing decision
  * @param {string} fromModel - Original model
  * @param {string} toModel - Target model after routing
@@ -133,6 +166,7 @@ module.exports = {
   logTaskStart,
   logTaskComplete,
   logError,
+  logToolInvocation,
   logModelRouting,
   SESSION_LOG
 };
