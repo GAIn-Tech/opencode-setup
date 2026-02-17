@@ -25,6 +25,41 @@ try {
 }
 const { createOrchestrationId, pickSessionId, normalizeQuotaSignal, getQuotaSignal } = contextUtils;
 
+// Import utility packages for full integration
+let structuredLogger, inputValidator, healthChecker, backupManager, featureFlags;
+try {
+  structuredLogger = require('opencode-logger');
+} catch (e) {
+  structuredLogger = null;
+}
+try {
+  inputValidator = require('opencode-validator');
+} catch (e) {
+  inputValidator = null;
+}
+try {
+  healthChecker = require('opencode-health-check');
+} catch (e) {
+  healthChecker = null;
+}
+try {
+  backupManager = require('opencode-backup-manager');
+} catch (e) {
+  backupManager = null;
+}
+try {
+  featureFlags = require('opencode-feature-flags');
+} catch (e) {
+  featureFlags = null;
+}
+
+// Initialize logger if available
+const logger = structuredLogger?.createLogger?.('integration-layer') || {
+  info: (msg, data) => console.log(`[INFO] ${msg}`, data || ''),
+  warn: (msg, data) => console.warn(`[WARN] ${msg}`, data || ''),
+  error: (msg, data) => console.error(`[ERROR] ${msg}`, data || ''),
+};
+
 class IntegrationLayer {
   constructor(config = {}) {
     this.skillRL = config.skillRL || config.skillRLManager || null;
@@ -35,6 +70,93 @@ class IntegrationLayer {
     this.preloadSkills = config.preloadSkills || null;
     this.currentTaskContext = null;
     this.currentSessionId = config.currentSessionId || config.sessionId || null;
+    
+    // Initialize utility packages
+    this.logger = logger;
+    this.validator = inputValidator;
+    this.healthChecker = healthChecker;
+    this.backupManager = backupManager;
+    this.featureFlags = featureFlags;
+    
+    // Log initialization status
+    logger.info('IntegrationLayer initialized', {
+      hasSkillRL: !!this.skillRL,
+      hasShowboat: !!this.showboat,
+      hasQuotaManager: !!this.quotaManager,
+      hasAdvisor: !!this.advisor,
+      hasModelRouter: !!this.modelRouter,
+      hasLogger: !!structuredLogger,
+      hasValidator: !!inputValidator,
+      hasHealthChecker: !!healthChecker,
+      hasBackupManager: !!backupManager,
+      hasFeatureFlags: !!featureFlags,
+    });
+  }
+
+  /**
+   * Validate input data using the validator package.
+   */
+  validateInput(data, schema) {
+    if (!this.validator) {
+      this.logger.warn('validateInput called but validator not available');
+      return { valid: true, data }; // Pass through if no validator
+    }
+    try {
+      const result = this.validator.validate(data);
+      if (schema) {
+        return result.type('object').schema(schema);
+      }
+      return result;
+    } catch (err) {
+      this.logger.error('Validation failed', { error: err.message });
+      return { valid: false, errors: [err.message] };
+    }
+  }
+
+  /**
+   * Get system health status.
+   */
+  async getHealth() {
+    if (!this.healthChecker) {
+      return { status: 'unknown', reason: 'health-check not available' };
+    }
+    try {
+      return await this.healthChecker.getHealth();
+    } catch (err) {
+      this.logger.error('Health check failed', { error: err.message });
+      return { status: 'unhealthy', error: err.message };
+    }
+  }
+
+  /**
+   * Create a backup of current state.
+   */
+  async createBackup(label) {
+    if (!this.backupManager) {
+      this.logger.warn('createBackup called but backup-manager not available');
+      return null;
+    }
+    try {
+      return await this.backupManager.backup(label);
+    } catch (err) {
+      this.logger.error('Backup failed', { error: err.message });
+      return null;
+    }
+  }
+
+  /**
+   * Check if a feature flag is enabled.
+   */
+  isFeatureEnabled(flagName) {
+    if (!this.featureFlags) {
+      return true; // Default to enabled if not configured
+    }
+    try {
+      return this.featureFlags.isEnabled(flagName);
+    } catch (err) {
+      this.logger.warn('Feature flag check failed', { flag: flagName, error: err.message });
+      return true;
+    }
   }
 
   /**
