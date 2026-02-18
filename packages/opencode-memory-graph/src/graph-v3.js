@@ -75,12 +75,60 @@ class MemoryGraphV3 extends EventEmitter {
   }
 
   /**
-   * Get a node by ID.
-   * @param {string} id
-   * @returns {object|undefined}
+   * Safely stringify an object, handling circular references.
+   * @param {any} obj
+   * @returns {string}
    */
-  getNode(id) {
-    return this.nodes.get(id);
+  _safeStringify(obj) {
+    const seen = new WeakSet();
+    return JSON.stringify(obj, (key, value) => {
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) {
+          return '[Circular]';
+        }
+        seen.add(value);
+      }
+      return value;
+    });
+  }
+
+  /**
+   * Safely deep clone an object, handling circular references.
+   * @param {any} obj
+   * @returns {any}
+   */
+  _safeClone(obj) {
+    try {
+      return JSON.parse(this._safeStringify(obj));
+    } catch (e) {
+      this._log.warn('[GraphV3] Clone failed, returning shallow copy:', e.message);
+      return { ...obj };
+    }
+  }
+
+  /**
+   * Captures all nodes and edges as deep copies.
+   *
+   * @returns {{ nodes: Map<string, object>, edges: Map<string, object> }}
+   */
+  _takeSnapshot() {
+    // Snapshot all nodes from global index
+    const nodeSnapshot = new Map();
+    for (const id of this.nodes.allIds()) {
+      const node = this.nodes.peek(id);
+      if (node) {
+        nodeSnapshot.set(id, this._safeClone(node));
+      }
+    }
+
+    // Snapshot all edges
+    const edgeSnapshot = new Map();
+    for (const edge of this.edges) {
+      const key = `${edge.from}|${edge.to}|${edge.type}`;
+      edgeSnapshot.set(key, this._safeClone(edge));
+    }
+
+    return { nodes: nodeSnapshot, edges: edgeSnapshot };
   }
 
   /**

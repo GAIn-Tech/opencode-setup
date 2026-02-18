@@ -32,15 +32,14 @@ class IntelligentRotator {
         
         this.options = {
             strategy: 'round-robin', // 'round-robin' | 'health-first'
-            cooldownMs: options.cooldownMs || 60000, // Configurable, default 60s
-            maxFailures: options.maxFailures || 3,
-            tokenFloor: options.tokenFloor || 1000, // Configurable token floor
-            lockTimeoutMs: options.lockTimeoutMs || 5000, // Configurable lock timeout
+            cooldownMs: 60000,
+            maxFailures: 3,
             ...options
         };
  
         this.currentIndex = 0;
-        this._lock = Promise.resolve();
+        this._lock = null;
+        this._lockQueue = [];  // Queue for proper mutex behavior
         this._inFlightKeys = new Set();
         
         // P1: Budget-Aware Key Rotation - Integrate ContextGovernor
@@ -58,40 +57,48 @@ class IntelligentRotator {
 
     /**
      * Acquire lock for concurrent access protection.
+     * Uses proper queue-based mutex to prevent race conditions.
      * @param {Function} callback
-     * @param {number} timeoutMs - Timeout in milliseconds (default 5000)
      * @returns {Promise<any>}
      */
-    async _acquireLock(callback, timeoutMs = 5000) {
-        let release;
-        const acquirePromise = new Promise((resolve) => {
-            release = resolve;
+    async _acquireLock(callback) {
+        // If no lock held, acquire immediately
+        if (!this._lock) {
+            this._lock = true;
+            try {
+                return await callback();
+            } finally {
+                this._lock = false;
+                this._processLockQueue();
+            }
+        }
+        
+        // Lock held - add to queue and wait
+        return new Promise((resolve, reject) => {
+            this._lockQueue.push({ resolve, reject, callback });
         });
-        
-        const previousLock = this._lock;
-        this._lock = acquirePromise;
-        
-        try {
-            // Add timeout to prevent deadlock
-            await Promise.race([
-                previousLock,
-                new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Lock acquisition timeout')), timeoutMs)
-                )
-            ]);
-            
-            // Add timeout to callback execution
-            return await Promise.race([
-                callback(),
-                new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Callback execution timeout')), timeoutMs)
-                )
-            ]);
-        } catch (err) {
-            console.error(`[IntelligentRotator] Lock error for ${this.providerId}:`, err.message);
-            throw err;
-        } finally {
-            release();
+    }
+    
+    /**
+     * Process waiting callers in queue.
+     * @private
+     */
+    _processLockQueue() {
+        if (this._lockQueue.length > 0 && !this._lock) {
+            const next = this._lockQueue.shift();
+            this._lock = true;
+            // Execute the next caller's callback
+            Promise.resolve().then(async () => {
+                try {
+                    const result = await next.callback();
+                    next.resolve(result);
+                } catch (err) {
+                    next.reject(err);
+                } finally {
+                    this._lock = false;
+                    this._processLockQueue();
+                }
+            });
         }
     }
 
@@ -229,14 +236,6 @@ class IntelligentRotator {
     }
 
     /**
-     * P3: KeyRotator → Learning - Set learning engine instance
-     * @param {object} learningEngine - Learning engine instance
-     */
-    setLearningEngine(learningEngine) {
-        this._learningEngine = learningEngine;
-    }
-
-    /**
      * P3: KeyRotator → Learning - failure Report key to learning
      * @param {string} keyId - The key that failed
      * @param {string} reason - Failure reason
@@ -269,14 +268,15 @@ class IntelligentRotator {
             return undefined;
         };
 
-        // Standard x-ratelimit or x-nvapi headers
+        // Standard x-ratelimit, x-nvapi, or Groq headers
         const remainingRequests = parseInt(
             getHeader(
                 'x-ratelimit-remaining-requests',
                 'x-ratelimit-remaining-requests-minute',
                 'x-ratelimit-remaining-rpm',
                 'x-ratelimit-remaining',
-                'x-nvapi-remaining-requests'
+                'x-nvapi-remaining-requests',
+                'x-groq-rate-limit-remaining'
             )
         );
         const remainingTokens = parseInt(
@@ -284,7 +284,8 @@ class IntelligentRotator {
                 'x-ratelimit-remaining-tokens',
                 'x-ratelimit-remaining-tokens-minute',
                 'x-ratelimit-remaining-tpm',
-                'x-nvapi-remaining-tokens'
+                'x-nvapi-remaining-tokens',
+                'x-groq-rate-limit-tokens-remaining'
             )
         );
         const resetRequests = parseInt(
@@ -293,7 +294,8 @@ class IntelligentRotator {
                 'x-ratelimit-reset-requests-minute',
                 'x-ratelimit-reset-rpm',
                 'x-ratelimit-reset',
-                'x-nvapi-reset-requests'
+                'x-nvapi-reset-requests',
+                'x-groq-rate-limit-reset'
             )
         );
         const resetTokens = parseInt(
@@ -301,7 +303,8 @@ class IntelligentRotator {
                 'x-ratelimit-reset-tokens',
                 'x-ratelimit-reset-tokens-minute',
                 'x-ratelimit-reset-tpm',
-                'x-nvapi-reset-tokens'
+                'x-nvapi-reset-tokens',
+                'x-groq-rate-limit-tokens-reset'
             )
         );
 
@@ -316,11 +319,9 @@ class IntelligentRotator {
             key.resetAt = Math.max(key.resetAt, now + (resetTokens * 1000));
         }
 
-        // Proactive throttling with configurable floors (cerebras has stricter TPM)
+        // Proactive throttling with stricter Cerebras TPM floor
         const requestFloor = this.providerId === 'cerebras' ? 3 : 5;
-        const tokenFloor = this.providerId === 'cerebras' 
-            ? (this.options.tokenFloor || 10000) 
-            : (this.options.tokenFloor || 1000);
+        const tokenFloor = this.providerId === 'cerebras' ? 10000 : 1000;
         if (key.remainingRequests < requestFloor || key.remainingTokens < tokenFloor) {
             key.status = 'throttled';
         } else {
@@ -330,20 +331,10 @@ class IntelligentRotator {
 
     /**
      * Record a failure (e.g. 429 or platform-level error) for a specific key.
-     * Now protected by lock to prevent race conditions.
      * @param {string} keyId 
      * @param {number|object} errorOrRetryAfterMs - Retry time in ms or error object
      */
-    async recordFailure(keyId, errorOrRetryAfterMs = 0) {
-        return this._acquireLock(() => this._recordFailureImpl(keyId, errorOrRetryAfterMs));
-    }
-
-    /**
-     * Internal implementation of recordFailure without locking.
-     * @param {string} keyId 
-     * @param {number|object} errorOrRetryAfterMs 
-     */
-    _recordFailureImpl(keyId, errorOrRetryAfterMs = 0) {
+    recordFailure(keyId, errorOrRetryAfterMs = 0) {
         const key = this.keys.find(k => k.id === keyId);
         if (!key) return;
 
@@ -391,18 +382,9 @@ class IntelligentRotator {
 
     /**
      * Record a success for a specific key.
-     * Now protected by lock to prevent race conditions.
      * @param {string} keyId 
      */
-    async recordSuccess(keyId) {
-        return this._acquireLock(() => this._recordSuccessImpl(keyId));
-    }
-
-    /**
-     * Internal implementation of recordSuccess without locking.
-     * @param {string} keyId 
-     */
-    _recordSuccessImpl(keyId) {
+    recordSuccess(keyId) {
         const key = this.keys.find(k => k.id === keyId);
         if (!key) return;
 

@@ -72,10 +72,14 @@ class RouterIntegrationAdapter {
    * Get learning engine advice - returns null if not available
    */
   getLearningAdvice(context) {
-    if (!this.layer?.advisor) return null;
+    if (!this.layer?.advisor) {
+      this._log?.warn('[ModelRouter] Learning advisor not available');
+      return null;
+    }
     try {
       return this.layer.advisor.advise(context);
     } catch (e) {
+      this._log?.error('[ModelRouter] Learning advice failed:', e.message);
       return null;
     }
   }
@@ -189,7 +193,8 @@ class ModelRouter {
     // P1: Learning-Guided Model Routing - integrate LearningEngine
     this.learningEngine = options.learningEngine || null;
     this._learningAdviceCache = new Map();
-    this._learningAdviceCacheTTL = 60000; // 1 minute cache
+    this._learningAdviceCacheTTL = 300000; // 5 minutes cache - longer for anti-pattern learning
+    this._learningAdviceCacheMaxSize = 1000; // Prevent unbounded growth - evict oldest at limit
     
     // P1: KeyRotator → Learning - connect key rotation to learning
     if (this.learningEngine) {
@@ -369,20 +374,14 @@ class ModelRouter {
    * @param {string} modelId
    * @returns {object|null} { key: string, keyId: string, rotator: IntelligentRotator }
    */
-  async getApiKeyForModel(modelId) {
+  getApiKeyForModel(modelId) {
     const model = this.models[modelId];
     if (!model) return null;
 
     const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
     if (!rotator) return null;
 
-    let key = null;
-    try {
-      key = await rotator.getNextKey();
-    } catch (err) {
-      console.error(`[ModelRouter] Failed to get key for model ${modelId}:`, err.message);
-      return null;
-    }
+    const key = rotator.getNextKey();
     if (!key) return null;
 
     return {
@@ -403,17 +402,12 @@ class ModelRouter {
    * @param {string[]} [ctx.requiredStrengths] - Strengths the model must have.
    * @returns {Object} `{ model, key, score, reason, rotator }`
    */
-  async route(ctx = {}) {
+  route(ctx = {}) {
     if (ctx && typeof ctx.overrideModelId === 'string') {
       const forcedModel = this.models[ctx.overrideModelId];
       if (forcedModel) {
         const forcedRotator = this.rotators[forcedModel.provider];
-        let forcedKey = null;
-        try {
-          forcedKey = forcedRotator ? await forcedRotator.getNextKey() : null;
-        } catch (err) {
-          console.error(`[ModelRouter] Failed to get key for override model:`, err.message);
-        }
+        const forcedKey = forcedRotator ? forcedRotator.getNextKey() : null;
         return {
           model: forcedModel,
           keyId: forcedKey ? forcedKey.id : null,
@@ -463,18 +457,29 @@ class ModelRouter {
     scored.sort((a, b) => b.score - a.score);
 
     if (scored.length === 0) {
+      // Emergency fallback: try any available model regardless of constraints
+      const emergencyModels = Object.values(this.models).filter(m => m.provider);
+      if (emergencyModels.length > 0) {
+        const fallback = emergencyModels[0];
+        const rotator = KeyRotatorFactory.getRotator(this.rotators, fallback.provider);
+        const key = rotator ? rotator.getNextKey() : null;
+        return {
+          model: fallback,
+          keyId: key ? key.id : null,
+          modelId: fallback.id,
+          score: 0,
+          reason: 'emergency-fallback: no models matched constraints',
+          rotator,
+          key,
+        };
+      }
       throw new Error('No model available for the given constraints');
     }
 
     const winner = scored[0];
     const model = this.models[winner.modelId];
     const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
-    let key = null;
-    try {
-      key = rotator ? await rotator.getNextKey() : null;
-    } catch (err) {
-      console.error(`[ModelRouter] Failed to get key for winner model:`, err.message);
-    }
+    const key = rotator ? rotator.getNextKey() : null;
     return {
       model,
       keyId: key ? key.id : null,
@@ -493,12 +498,7 @@ class ModelRouter {
         if (selection && selection.model_id && this.models[selection.model_id]) {
           const model = this.models[selection.model_id];
           const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
-          let key = null;
-          try {
-            key = rotator ? await rotator.getNextKey() : null;
-          } catch (err) {
-            console.error(`[ModelRouter] Failed to get key in routeAsync:`, err.message);
-          }
+          const key = rotator ? rotator.getNextKey() : null;
           return {
             model,
             keyId: key ? key.id : null,
@@ -562,8 +562,8 @@ class ModelRouter {
 
   /**
    * Atomic stats persistence - write to temp file then rename.
-    * @private
-    */
+   * @private
+   */
   async _persistStatsAtomic() {
     if (!this.statsPersistPath || this._statsWritePending) return;
     
@@ -571,21 +571,7 @@ class ModelRouter {
     try {
       const fs = require('fs').promises;
       const tempPath = this.statsPersistPath + '.tmp';
-      const backupPath = this.statsPersistPath + '.backup';
-      
-      // Write to temp file
-      const statsJson = JSON.stringify(this.stats, null, 2);
-      await fs.writeFile(tempPath, statsJson, 'utf8');
-      
-      // Try to keep backup of previous successful write
-      try {
-        await fs.access(this.statsPersistPath);
-        await fs.copyFile(this.statsPersistPath, backupPath);
-      } catch {
-        // No previous file exists yet - that's OK
-      }
-      
-      // Atomic rename
+      await fs.writeFile(tempPath, JSON.stringify(this.stats, null, 2), 'utf8');
       await fs.rename(tempPath, this.statsPersistPath);
     } catch (err) {
       console.error('[ModelRouter] Failed to persist stats:', err.message);
@@ -724,6 +710,19 @@ class ModelRouter {
       }
     }
 
+    // Check circuit breaker state - heavily penalize if open
+    const cb = this.circuitBreakers[model.provider];
+    if (cb) {
+      const state = cb.getState();
+      if (state === 'open') {
+        score -= 0.80;
+        reasons.push('circuit-open');
+      } else if (state === 'half-open') {
+        score -= 0.30;
+        reasons.push('circuit-half-open');
+      }
+    }
+
     if (ctx.maxBudget && Number.isFinite(model.cost_per_1k_tokens)) {
       const estimatedCost = model.cost_per_1k_tokens * 2;
       if (estimatedCost > ctx.maxBudget) {
@@ -780,7 +779,16 @@ class ModelRouter {
 
       const advice = this.learningEngine.advise(taskContext);
 
-      // Cache the result
+      // Cache the result - with eviction to prevent unbounded growth
+      if (this._learningAdviceCache.size >= this._learningAdviceCacheMaxSize) {
+        // Evict oldest 10% entries
+        const entries = [...this._learningAdviceCache.entries()];
+        entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+        const toRemove = Math.floor(this._learningAdviceCacheMaxSize * 0.1);
+        for (let i = 0; i < toRemove; i++) {
+          this._learningAdviceCache.delete(entries[i][0]);
+        }
+      }
       this._learningAdviceCache.set(cacheKey, {
         timestamp: Date.now(),
         advice

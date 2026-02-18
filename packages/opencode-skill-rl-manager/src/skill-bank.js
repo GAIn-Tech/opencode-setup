@@ -253,7 +253,7 @@ class SkillBank {
     if (skill.tags) {
       const taskTypeMatch = task_type && skill.tags.includes(task_type);
       const complexityMatch = complexity && skill.tags.includes(complexity);
-      const errorMatch = error_type && skill.tags.some(tag => 
+      const errorMatch = error_type && typeof error_type === 'string' && skill.tags.some(tag => 
         error_type.toLowerCase().includes(tag.toLowerCase())
       );
 

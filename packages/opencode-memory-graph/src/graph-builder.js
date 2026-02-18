@@ -199,7 +199,12 @@ async function buildGraphWithBridge(entries, bridge, opts = {}) {
 
     // Create/upsert all edges
     for (const [key, data] of edgeMap) {
-      const [from, to] = key.split('::');
+      const parts = key.split('::');
+      if (parts.length !== 2 || !parts[0] || !parts[1]) {
+        console.warn(`[GraphBuilder] Invalid edge key format: "${key}", skipping`);
+        continue;
+      }
+      const [from, to] = parts;
       await bridge.upsertEdge('ENCOUNTERED', from, to, data);
     }
   }

@@ -37,8 +37,16 @@ class EvolutionEngine {
     } = failureContext;
     const quotaSignal = this._extractQuotaSignal(failureContext);
 
-    // Step 1: Record failure in history
+    // Step 1: Record failure in history (max 1000 entries to prevent memory leak)
     this.failureHistory.push({
+      task_id,
+      task_type,
+      skills_used,
+      timestamp: Date.now()
+    });
+    if (this.failureHistory.length > 1000) {
+      this.failureHistory = this.failureHistory.slice(-1000);
+    }
       task_id,
       task_type,
       skills_used,

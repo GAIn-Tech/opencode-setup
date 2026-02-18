@@ -17,53 +17,47 @@ const { EvolutionEngine } = require('./evolution-engine');
 const fs = require('fs');
 const path = require('path');
 
-// File-based lock to prevent concurrent write corruption across processes
-// Uses .lock files alongside target files for atomic locking
-const LOCK_DIR = path.join(process.env.USERPROFILE || '', '.opencode', 'locks');
-let _lockInitialized = false;
+// Cross-process file lock to prevent concurrent write corruption
+// Uses filesystem locks instead of in-memory Map (which fails across processes)
+const LOCK_DIR = path.join(process.cwd(), '.opencode', 'locks');
 
 async function _ensureLockDir() {
-  if (!_lockInitialized) {
-    try {
-      if (!fs.existsSync(LOCK_DIR)) {
-        fs.mkdirSync(LOCK_DIR, { recursive: true });
-      }
-    } catch (e) {
-      // Ignore - may not have permissions
-    }
-    _lockInitialized = true;
+  if (!fs.existsSync(LOCK_DIR)) {
+    fs.mkdirSync(LOCK_DIR, { recursive: true });
   }
-}
-
-function _getLockPath(targetPath) {
-  const hash = String(targetPath).replace(/[^a-zA-Z0-9]/g, '_');
-  return path.join(LOCK_DIR, `${hash}.lock`);
 }
 
 async function _acquireLock(lockPath, timeout = 5000) {
   await _ensureLockDir();
-  const lockFile = _getLockPath(lockPath);
+  const lockFile = path.join(LOCK_DIR, `${lockPath.replace(/[^a-zA-Z0-9]/g, '_')}.lock`);
   const start = Date.now();
   
-  while (fs.existsSync(lockFile)) {
+  // Use atomic lock acquisition with O_EXCL flag
+  while (true) {
     if (Date.now() - start > timeout) {
       throw new Error(`Lock acquisition timeout for ${lockPath}`);
     }
-    await new Promise(r => setTimeout(r, 50));
+    try {
+      // O_EXCL creates atomically - fails if file exists
+      fs.closeSync(fs.openSync(lockFile, 'wx'));
+      // Write pid after atomic creation
+      fs.writeFileSync(lockFile, String(process.pid), 'utf8');
+      return; // Lock acquired
+    } catch (err) {
+      if (err.code === 'EEXIST') {
+        // Lock exists, wait and retry
+        await new Promise(r => setTimeout(r, 50));
+        continue;
+      }
+      throw err; // Other error
+    }
   }
-  
-  // Atomic lock file creation
-  fs.writeFileSync(lockFile, String(Date.now()), { flag: 'wx' });
 }
 
 function _releaseLock(lockPath) {
-  const lockFile = _getLockPath(lockPath);
-  try {
-    if (fs.existsSync(lockFile)) {
-      fs.unlinkSync(lockFile);
-    }
-  } catch (e) {
-    // Ignore cleanup errors
+  const lockFile = path.join(LOCK_DIR, `${lockPath.replace(/[^a-zA-Z0-9]/g, '_')}.lock`);
+  if (fs.existsSync(lockFile)) {
+    fs.unlinkSync(lockFile);
   }
 }
 
@@ -133,7 +127,7 @@ const LearningValidator = {
 
 class SkillRLManager {
   constructor(options = {}) {
-    this.stateFile = options.stateFile || './skill-rl-state.json';
+    this.persistencePath = options.stateFile || './skill-rl-state.json'; // FIX: was setting stateFile but checking persistencePath
     this.skillBank = new SkillBank(options.skillBank);
     this.evolutionEngine = new EvolutionEngine(options.evolution);
     
@@ -142,7 +136,7 @@ class SkillRLManager {
   }
 
   /**
-   * Learn from an outcome - validate before accepting
+   * Learn from an outcome - validate before accepting, then route to skill bank and evolution engine
    * @param {object} outcome - { task_type, outcome, skill_used, success, ... }
    */
   learnFromOutcome(outcome) {
@@ -158,11 +152,14 @@ class SkillRLManager {
       }
     }
     
-    // Process through skill bank
-    const updated = this.skillBank.learn(outcome);
+    // Process through skill bank - update success rate for used skill
+    let updated = null;
+    if (outcome.skill_used) {
+      updated = this.skillBank.updateSuccessRate(outcome.skill_used, outcome.success, outcome.task_type);
+    }
     
     // Validate updated skill data
-    if (this._validationEnabled) {
+    if (this._validationEnabled && updated) {
       const validation = LearningValidator.validateSkill(updated);
       if (!validation.valid) {
         console.warn(`[SkillRL] Rejected corrupted skill update: ${validation.reason}`);
@@ -172,8 +169,13 @@ class SkillRLManager {
       Object.assign(updated, LearningValidator.sanitize(updated));
     }
     
-    // Process through evolution engine
-    this.evolutionEngine.evolve(outcome);
+    // Also route to evolution engine for success/failure learning
+    let result;
+    if (outcome.success) {
+      result = this.evolutionEngine.learnFromSuccess(outcome);
+    } else {
+      result = this.evolutionEngine.learnFromFailure(outcome);
+    }
     
     // Save state
     this._save();
@@ -196,28 +198,6 @@ class SkillRLManager {
     });
     
     return skills;
-  }
-
-  /**
-   * Learn from task outcome
-   * Routes to either learnFromFailure or learnFromSuccess
-   * 
-   * @param {Object} outcome - Task outcome from learning-engine
-   * @returns {Object} Learning result
-   */
-  learnFromOutcome(outcome) {
-    let result;
-    if (outcome.success) {
-      result = this.evolutionEngine.learnFromSuccess(outcome);
-    } else {
-      result = this.evolutionEngine.learnFromFailure(outcome);
-    }
-    
-    if (this.persistencePath) {
-      this._save();
-    }
-    
-    return result;
   }
 
   /**

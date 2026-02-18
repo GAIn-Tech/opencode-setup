@@ -74,8 +74,8 @@ class MemoryGraph {
     const effectiveBridge = this._activator.isActive() ? this._bridge : null;
     this._graph = await buildGraphWithBridge(this._entries, effectiveBridge);
     
-    // Rebuild indexes for O(1) queries
-    this._rebuildIndexes();
+    // Rebuild indexes for O(1) queries (async to avoid blocking)
+    await this._rebuildIndexes();
     
     // P2: Learning Feedback Loop - Auto-ingest error patterns into LearningEngine
     await this._ingestPatternsToLearningEngine();
@@ -119,6 +119,10 @@ class MemoryGraph {
       }
     } catch (e) {
       console.warn('[MemoryGraph] Failed to ingest patterns to LearningEngine:', e.message);
+      // Emit error event for monitoring
+      if (this.emit) {
+        this.emit('learningIngestError', { error: e.message, errorCount: frequentErrors?.length || 0 });
+      }
     }
   }
 
@@ -139,8 +143,10 @@ class MemoryGraph {
     const { buildGraph } = require('./graph-builder');
     this._graph = buildGraph(this._entries);
     
-    // Rebuild indexes for O(1) queries
-    this._rebuildIndexes();
+    // Rebuild indexes for O(1) queries (async, non-blocking)
+    this._rebuildIndexes().catch(err => 
+      console.warn('[MemoryGraph] Index rebuild failed:', err.message)
+    );
     return this._graph;
   }
 
@@ -155,9 +161,10 @@ class MemoryGraph {
 
   /**
    * Rebuild performance indexes for O(1) lookups.
-   * Called automatically after buildGraph.
+   * Uses async chunked processing to avoid blocking event loop.
+   * @returns {Promise<void>}
    */
-  _rebuildIndexes() {
+  async _rebuildIndexes() {
     if (!this._graph) return;
     
     // Reset indexes
@@ -168,30 +175,44 @@ class MemoryGraph {
       byTimestamp: [],
     };
     
-    // Index nodes by type and other attributes
-    for (const node of this._graph.nodes) {
-      // Index by type
-      if (!this._indexes.byType.has(node.type)) {
-        this._indexes.byType.set(node.type, []);
-      }
-      this._indexes.byType.get(node.type).push(node);
+    // Chunk size for non-blocking processing
+    const CHUNK_SIZE = 500;
+    const nodes = this._graph.nodes;
+    
+    // Process in chunks with setImmediate to avoid blocking
+    for (let i = 0; i < nodes.length; i += CHUNK_SIZE) {
+      const chunk = nodes.slice(i, i + CHUNK_SIZE);
       
-      // Index by session
-      if (node.type === 'session' && node.id) {
-        this._indexes.bySession.set(node.id, node);
-      }
-      
-      // Index by error type
-      if (node.type === 'error' && node.error_type) {
-        if (!this._indexes.byError.has(node.error_type)) {
-          this._indexes.byError.set(node.error_type, []);
+      // Process chunk synchronously
+      for (const node of chunk) {
+        // Index by type
+        if (!this._indexes.byType.has(node.type)) {
+          this._indexes.byType.set(node.type, []);
         }
-        this._indexes.byError.get(node.error_type).push(node);
+        this._indexes.byType.get(node.type).push(node);
+        
+        // Index by session
+        if (node.type === 'session' && node.id) {
+          this._indexes.bySession.set(node.id, node);
+        }
+        
+        // Index by error type
+        if (node.type === 'error' && node.error_type) {
+          if (!this._indexes.byError.has(node.error_type)) {
+            this._indexes.byError.set(node.error_type, []);
+          }
+          this._indexes.byError.get(node.error_type).push(node);
+        }
+        
+        // Index by timestamp
+        if (node.timestamp) {
+          this._indexes.byTimestamp.push({ node, ts: new Date(node.timestamp).getTime() });
+        }
       }
       
-      // Index by timestamp
-      if (node.timestamp) {
-        this._indexes.byTimestamp.push({ node, ts: new Date(node.timestamp).getTime() });
+      // Yield to event loop between chunks
+      if (i + CHUNK_SIZE < nodes.length) {
+        await new Promise(resolve => setImmediate(resolve));
       }
     }
     

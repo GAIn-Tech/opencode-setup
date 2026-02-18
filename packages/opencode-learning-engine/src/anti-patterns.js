@@ -330,7 +330,18 @@ class AntiPatternCatalog {
         this._rebuildIndex();
       }
     } catch (err) {
+      // Backup corrupted file before resetting
+      if (fs.existsSync(PERSIST_FILE)) {
+        const backupPath = PERSIST_FILE + '.backup.' + Date.now();
+        try {
+          fs.copyFileSync(PERSIST_FILE, backupPath);
+          console.warn(`[AntiPatternCatalog] Corrupted file backed up to: ${backupPath}`);
+        } catch (backupErr) {
+          console.error('[AntiPatternCatalog] Failed to backup corrupted file:', backupErr.message);
+        }
+      }
       this.patterns = [];
+      this.emit('loadError', { error: err, backupAttempted: true });
       if (process.env.DEBUG) {
         console.error('[AntiPatternCatalog] load error:', err.message);
       }

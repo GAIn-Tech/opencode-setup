@@ -168,6 +168,12 @@ class NodeStore {
 
     /** @type {function[]} Eviction listeners */
     this._onEvict = [];
+    
+    /** Max eviction listeners to prevent memory leak */
+    this._maxEvictListeners = 10;
+    
+    /** Track listener count for warning */
+    this._evictListenerCount = 0;
 
     // Initialize one LRUMap per type
     const mergedCaps = { ...DEFAULT_CAPACITIES, ...capacities };

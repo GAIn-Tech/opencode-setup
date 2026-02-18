@@ -153,7 +153,7 @@ class LearningEngine extends EventEmitter {
    * Examples: "Bun v1.3.x crashes", "use atomic writes"
    */
   markAsCore(learningId) {
-    const entry = this.catalog.entries.find(e => e.id === learningId);
+    const entry = this.antiPatterns.patterns.find(e => e.id === learningId);
     if (entry) {
       entry.persistence = 'core';
       entry.isCore = true;
@@ -169,7 +169,7 @@ class LearningEngine extends EventEmitter {
    * Core learnings can be updated but stay as core
    */
   updateCoreLearning(learningId, newData) {
-    const entry = this.catalog.entries.find(e => e.id === learningId);
+    const entry = this.antiPatterns.patterns.find(e => e.id === learningId);
     if (entry && entry.persistence === 'core') {
       // Keep it as core but update the data
       Object.assign(entry, newData, { 
@@ -188,14 +188,14 @@ class LearningEngine extends EventEmitter {
    * Get all core learnings (never decay)
    */
   getCoreLearnings() {
-    return this.catalog.entries.filter(e => e.persistence === 'core');
+    return this.antiPatterns.patterns.filter(e => e.persistence === 'core');
   }
 
   /**
    * Get all adaptive learnings (decay over time)
    */
   getAdaptiveLearnings() {
-    return this.catalog.entries.filter(e => e.persistence !== 'core');
+    return this.antiPatterns.patterns.filter(e => e.persistence !== 'core');
   }
 
   /**
@@ -333,6 +333,11 @@ class LearningEngine extends EventEmitter {
       positive_patterns_found: result.positive_patterns.length,
       message_count: result.message_count,
     });
+    // Cap session log to prevent unbounded memory growth (keep last 1000)
+    const MAX_SESSION_LOG = 1000;
+    if (this.sessionLog.length > MAX_SESSION_LOG) {
+      this.sessionLog = this.sessionLog.slice(-MAX_SESSION_LOG);
+    }
 
     if (this.autoSave) {
       this.save();
@@ -520,9 +525,6 @@ class LearningEngine extends EventEmitter {
   }
 }
 
-// ===== TOOL USAGE TRACKER =====
-const ToolUsageTracker = require('./tool-usage-tracker');
-
 // ===== EXPORTS =====
 
 module.exports = {
@@ -531,7 +533,6 @@ module.exports = {
   PositivePatternTracker,
   PatternExtractor,
   OrchestrationAdvisor,
-  ToolUsageTracker,
   // Constants
   ANTI_PATTERN_TYPES,
   POSITIVE_PATTERN_TYPES,
