@@ -21,6 +21,15 @@ const CONFIG_FILES = [
   'tool-tiers.json',
 ];
 
+const CONFIG_DIRS = [
+  'learning-updates',
+  'skills',
+  'commands',
+  'agents',
+  'docs',
+  'models',
+];
+
 function ensureDir(dirPath) {
   mkdirSync(dirPath, { recursive: true });
 }
@@ -71,7 +80,9 @@ function main() {
     copyFileSafe(file);
   }
 
-  copyDirSafe('learning-updates');
+  for (const dir of CONFIG_DIRS) {
+    copyDirSafe(dir);
+  }
   copyDataConfig();
 
   console.log('[copy-config] Configuration sync complete');

@@ -192,19 +192,28 @@ jq .mcpServers ~/.config/opencode/opencode.json | grep tavily
 **Fix:**
 1. List available skills:
    ```bash
-   cat ~/.config/opencode/compound-engineering.json | jq '.skills | keys'
+   cat ~/.config/opencode/compound-engineering.json | jq '.skills.enabled'
    ```
 2. Check if skill is enabled:
    ```bash
-   cat ~/.config/opencode/compound-engineering.json | jq '.skillsGlobal'
+   cat ~/.config/opencode/compound-engineering.json | jq '.skills.enabled | index("my-skill")'
    ```
-3. Enable skill:
+3. Enable skill in template:
    ```json
    {
-     "skillsGlobal": ["existing-skills", "my-skill"]
-   }
+      "skills": {
+        "enabled": ["existing-skills", "my-skill"],
+        "categories": {
+          "custom": ["my-skill"]
+        }
+      }
+    }
    ```
-4. Restart OpenCode
+4. Sync config and skills to runtime:
+   ```bash
+   node scripts/copy-config.mjs
+   ```
+5. Restart OpenCode
 
 ---
 
@@ -455,4 +464,3 @@ fallback-doctor diagnose ~/.config/opencode/rate-limit-fallback.json
 4. **View previous solutions:**
    - `LEARNING-ENGINE.md` — Anti-pattern catalog
    - `runbooks.json` — 7+ error patterns with remedies
-

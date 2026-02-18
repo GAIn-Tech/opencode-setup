@@ -64,6 +64,17 @@ opencode
 
 See [INSTALL.md](INSTALL.md) for detailed installation instructions.
 
+## Living Docs
+
+Central docs are treated as living source-of-truth documents and are gate-enforced.
+
+- Governance policy: `opencode-config/docs-governance.json`
+- Drift gate: `scripts/docs-gate.mjs`
+- Run manually: `npm run gate:docs`
+- Enforced on push via: `npm run governance:check`
+
+When changing configs, skills, plugins, MCPs, or bootstrap/governance scripts, update at least one required central doc in the policy.
+
 ## Current Stack
 
 ### Plugins (12)
@@ -96,16 +107,16 @@ See [INSTALL.md](INSTALL.md) for detailed installation instructions.
 | `github` | local | GitHub API (issues, PRs, repos) |
 | `distill` | local | AST-based intelligent context compression (50-70% token savings) |
 
-### Models (Current Stack)
-| Model | Provider | Status |
-|-------|----------|--------|
-| `kimi-k2.5-free` | Moonshot | Default / free-tier |
-| `gemini-3-flash` | Google | Active - Current budget model |
-| `antigravity-gemini-3-flash` | Antigravity | Active - Multi-account rotation |
-| `claude-sonnet-4-5` | Anthropic | Active |
-| `claude-sonnet-4-5-thinking` | Anthropic | Active - Deep reasoning |
-| `claude-opus-4-6` | Anthropic | Active - Frontier |
-| `claude-opus-4-6-thinking` | Anthropic | Active - Max reasoning |
+### Models (7 defined + default)
+| Model | Provider | Use Case |
+|-------|----------|----------|
+| `kimi-k2.5-free` | Moonshot | Default / free-tier mechanical tasks |
+| `gemini-2.5-flash` | Google | Trivial tasks, fast lookups |
+| `antigravity-gemini-3-flash` | Antigravity | Routine dev work, exploration, research |
+| `claude-sonnet-4-5` | Anthropic | Complex reasoning, multi-file refactors |
+| `claude-sonnet-4-5-thinking` | Anthropic | Deep analysis, debugging, optimization |
+| `claude-opus-4-6` | Anthropic | Architectural decisions, system design |
+| `claude-opus-4-6-thinking` | Anthropic | Critical/high-stakes, security audits |
 
 ### Execution Modes
 - **Ralph Loop**: Persistence until completion
@@ -130,71 +141,3 @@ See [INSTALL.md](INSTALL.md) for detailed installation instructions.
 ## Setup on New Machine
 
 See `setup-instructions.md` for detailed step-by-step instructions.
-
-## Updating from Remote
-
-If your local machine is behind the remote and you need to sync up:
-
-```bash
-# 1. Stash any local changes you want to keep
-git stash
-
-# 2. Pull latest from remote (using rebase to keep history clean)
-git fetch origin
-git rebase origin/main
-
-# 3. Restore your local changes if any
-git stash pop
-```
-
-### After Pulling (Critical)
-
-**Always run the setup script again** to ensure all package links and dependencies are updated:
-
-```bash
-# Run from the opencode-setup directory
-cd opencode-setup
-
-# Re-run setup to reinstall/relink all plugins and dependencies
-./setup.sh
-
-# Or manually if needed:
-npm install
-cd packages/* && npm link  # Re-link each custom plugin
-```
-
-### What the Setup Script Does
-
-The `setup.sh` script performs these critical tasks:
-1. Installs root dependencies (`npm install`)
-2. Links all custom plugins (`npm link` in each package)
-3. Copies config files to `~/.config/opencode/` if needed
-4. Ensures all package dependencies are installed
-
-### Troubleshooting After Update
-
-If you experience issues after pulling:
-
-```bash
-# Clear node_modules and reinstall from scratch
-rm -rf node_modules
-rm -rf packages/*/node_modules
-npm install
-
-# Re-run setup
-./setup.sh
-
-# If crashes persist, check the crash guard is initialized
-# (should see "[WorkflowExecutor] Crash guard initialized" in logs)
-```
-
-### Verifying Crash Guards Active
-
-After updating, verify crash guards are working:
-
-```bash
-# Run a simple workflow and check logs for:
-# - "[WorkflowExecutor] Crash guard initialized"
-# - "[CrashRecovery] Initialized"
-# - "[MemoryGuard] Starting memory monitoring"
-```

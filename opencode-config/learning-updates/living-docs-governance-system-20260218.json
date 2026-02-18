@@ -1,0 +1,26 @@
+{
+  "id": "living-docs-governance-system-20260218",
+  "timestamp": "2026-02-18T18:00:00.000Z",
+  "summary": "Add living-docs governance system with drift gate enforcement",
+  "affected_paths": [
+    "opencode-config/docs-governance.json",
+    "scripts/docs-gate.mjs",
+    "package.json",
+    "INTEGRATION-GUIDE.md",
+    "TROUBLESHOOTING.md",
+    "setup-instructions.md",
+    "README.md",
+    "LIVING-DOCS.md",
+    "scripts/copy-config.mjs",
+    "setup.sh",
+    "verify-setup.sh",
+    "scripts/verify-setup.mjs",
+    "opencode-config/skills/innovation-migration-planner/"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "pass",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

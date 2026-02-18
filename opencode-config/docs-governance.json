@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "central_docs": [
+    "README.md",
+    "INTEGRATION-GUIDE.md",
+    "setup-instructions.md",
+    "TROUBLESHOOTING.md",
+    "PORTABILITY.md"
+  ],
+  "rules": [
+    {
+      "id": "configs",
+      "title": "Core config changes require central docs review",
+      "governed_paths": [
+        "opencode-config/"
+      ],
+      "exclude_paths": [
+        "opencode-config/learning-updates/"
+      ],
+      "require_any": [
+        "README.md",
+        "INTEGRATION-GUIDE.md",
+        "setup-instructions.md",
+        "TROUBLESHOOTING.md",
+        "PORTABILITY.md"
+      ]
+    },
+    {
+      "id": "skills-and-commands",
+      "title": "Skill and command system changes require integration docs",
+      "governed_paths": [
+        "opencode-config/skills/",
+        "opencode-config/commands/",
+        "opencode-config/agents/",
+        "opencode-config/compound-engineering.json",
+        "plugins/preload-skills/",
+        "plugins/compound-engineering/"
+      ],
+      "require_any": [
+        "INTEGRATION-GUIDE.md",
+        "TROUBLESHOOTING.md",
+        "README.md"
+      ]
+    },
+    {
+      "id": "plugins-and-mcps",
+      "title": "Plugin and MCP behavior changes require setup docs",
+      "governed_paths": [
+        "plugins/",
+        "mcp-servers/",
+        "opencode-config/opencode.json"
+      ],
+      "require_any": [
+        "README.md",
+        "setup-instructions.md",
+        "INTEGRATION-GUIDE.md"
+      ]
+    },
+    {
+      "id": "bootstrap-and-governance",
+      "title": "Bootstrap/governance script changes require portability docs",
+      "governed_paths": [
+        "setup.sh",
+        "setup.ps1",
+        "verify-setup.sh",
+        "scripts/copy-config.mjs",
+        "scripts/verify-setup.mjs",
+        "scripts/learning-gate.mjs",
+        "scripts/docs-gate.mjs",
+        "package.json",
+        ".githooks/"
+      ],
+      "require_any": [
+        "PORTABILITY.md",
+        "setup-instructions.md",
+        "README.md",
+        "INTEGRATION-GUIDE.md"
+      ]
+    }
+  ]
+}

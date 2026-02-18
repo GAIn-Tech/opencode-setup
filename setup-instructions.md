@@ -24,27 +24,14 @@ mkdir -p ~/.config/opencode
 mkdir -p ~/.opencode/global-rules
 ```
 
-## Step 3: Copy Configuration Files
+## Step 3: Sync Configuration and Runtime Assets
 
 ```bash
-# Main OpenCode config (models, plugins, MCPs, permissions)
-cp opencode-config/opencode.json ~/.config/opencode/opencode.json
-
-# Antigravity account rotation
-cp opencode-config/antigravity.json ~/.config/opencode/antigravity.json
-
-# oh-my-opencode agent overrides
-cp opencode-config/oh-my-opencode.json ~/.config/opencode/oh-my-opencode.json
-
-# Compound engineering (skills, commands)
-cp opencode-config/compound-engineering.json ~/.config/opencode/compound-engineering.json
-
-# Supermemory relevance-focused memory behavior
-cp opencode-config/supermemory.json ~/.config/opencode/supermemory.json
-
-# Global config (delegation standards, rules, profiles)
-cp opencode-config/config.yaml ~/.opencode/config.yaml
+# Sync config files + repo-vendored skills/commands/agents to live runtime
+node scripts/copy-config.mjs
 ```
+
+This keeps `~/.config/opencode/` aligned with `opencode-config/` after setup and after every pull.
 
 ### API Keys & Environment Variables
 
