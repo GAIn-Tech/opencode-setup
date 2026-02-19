@@ -7,6 +7,13 @@ if [[ "$HOME" == /c/* ]]; then
   HOME="C:/${HOME_DIR}"
 fi
 
+# Try to source .env if it exists in the workspace
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WORKSPACE_DIR="$(dirname "$SCRIPT_DIR")"
+if [ -f "$WORKSPACE_DIR/.env" ]; then
+  source "$WORKSPACE_DIR/.env" 2>/dev/null || true
+fi
+
 CONFIG_FILE="$HOME/.config/opencode/opencode.json"
 
 echo "== OpenCode Health Check =="
@@ -51,27 +58,78 @@ if grep -Eq 'tvly-[A-Za-z0-9_-]{10,}|sm_[A-Za-z0-9_-]{20,}' "$CONFIG_FILE"; then
 fi
 echo "  OK: opencode.json uses env placeholders for Tavily/Supermemory"
 
-echo "[6/7] Provider API keys"
-providers_with_keys=0
-providers_without_keys=0
-
-# Check each provider for API keys
-for provider in google anthropic openai nvidia groq cerebras deepseek; do
-  key_var=$(node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG_FILE')); const p=c.provider?.$provider?.options?.apiKey; console.log(p ? p.replace(/{env:([^}]+)}/,'\$1') : '')" 2>/dev/null)
-  if [ -n "$key_var" ]; then
-    key_value="${!key_var:-}"
-    if [ -n "$key_value" ]; then
-      echo "  OK: $provider has $key_var set"
-      providers_with_keys=$((providers_with_keys + 1))
+echo "[5.5/7] Env var alignment check"
+# Validate that config env vars match what's in .env (warn only, don't fail)
+if [ -f "$WORKSPACE_DIR/.env" ]; then
+  env_vars_in_config=$(node -e "
+    const c = JSON.parse(require('fs').readFileSync('$CONFIG_FILE', 'utf8'));
+    const vars = [];
+    for (const [provider, config] of Object.entries(c.provider || {})) {
+      if (config.options?.apiKey?.match(/{env:([^}]+)}/)) {
+        vars.push({provider, var: '{env:' + provider.toUpperCase() + '_API_KEY}', singular: provider.toUpperCase() + '_API_KEY', plural: provider.toUpperCase() + '_API_KEYS'});
+      }
+    }
+    console.log(JSON.stringify(vars));
+  " 2>/dev/null || echo "[]")
+  
+  for row in $(echo "$env_vars_in_config" | node -e "
+    const vars = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+    vars.forEach(v => console.log(v.provider + '|' + v.singular + '|' + v.plural));
+  " 2>/dev/null); do
+    provider=$(echo "$row" | cut -d'|' -f1)
+    singular=$(echo "$row" | cut -d'|' -f2)
+    plural=$(echo "$row" | cut -d'|' -f3)
+    
+    # Check if either singular or plural var exists in .env
+    if grep -q "^${singular}=" "$WORKSPACE_DIR/.env" 2>/dev/null; then
+      echo "  OK: $provider → $singular (matches .env)"
+    elif grep -q "^${plural}=" "$WORKSPACE_DIR/.env" 2>/dev/null; then
+      echo "  OK: $provider → $plural (matches .env)"
     else
-      echo "  WARN: $provider configured but $key_var not set"
-      providers_without_keys=$((providers_without_keys + 1))
+      echo "  WARN: $provider expects env var but not found in .env ($singular or $plural)"
     fi
+  done
+  
+  echo "  OK: Env alignment check complete"
+else
+  echo "  SKIP: .env not found in workspace"
+fi
+
+echo "[6/7] Provider API keys"
+# Dynamically check providers that require API keys (have apiKey config with {env:VAR})
+node -e "
+const fs = require('fs');
+const c = JSON.parse(fs.readFileSync('$CONFIG_FILE', 'utf8'));
+const providers = [];
+for (const [name, config] of Object.entries(c.provider || {})) {
+  if (config.options?.apiKey?.match(/{env:([^}]+)}/)) {
+    providers.push(name);
+  }
+}
+console.log(providers.join(','));
+" | tr ',' '\n' | while read provider; do
+  [ -z "$provider" ] && continue
+  
+  # Try singular first, then plural
+  key_singular="${provider^^}_API_KEY"
+  key_plural="${provider^^}_API_KEYS"
+  
+  key_value=""
+  if [ -n "${!key_singular:-}" ]; then
+    key_value="${!key_singular}"
+    key_name="$key_singular"
+  elif [ -n "${!key_plural:-}" ]; then
+    key_value="${!key_plural}"
+    key_name="$key_plural"
+  fi
+  
+  if [ -n "$key_value" ]; then
+    echo "  OK: $provider has $key_name set"
   else
-    echo "  SKIP: $provider has no apiKey config"
+    echo "  WARN: $provider requires API key but not set ($key_singular or $key_plural)"
   fi
 done
-echo "  Summary: $providers_with_keys providers with keys, $providers_without_keys missing"
+echo "  OK: Provider API key check complete"
 
 echo "[7/7] MCP config"
 if ! opencode mcp list >/dev/null 2>&1; then

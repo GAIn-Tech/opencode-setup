@@ -29,7 +29,7 @@
     },
     "code_generation": {
       "layer_1": ["anthropic/claude-sonnet-4-5"],
-      "layer_2": ["gpt-4.5"],
+      "layer_2": ["gpt-4o"],
       "layer_3": [],
       "layer_4": [],
       "layer_5": [],
@@ -53,14 +53,14 @@
     },
     "architecture": {
       "layer_1": ["anthropic/claude-opus-4-6"],
-      "layer_2": ["gpt-4.5"],
+      "layer_2": ["gpt-4o"],
       "layer_3": [],
       "layer_4": [],
       "layer_5": [],
       "layer_6": []
     },
     "large_context": {
-      "layer_1": ["gemini-3-pro"],
+      "layer_1": ["gemini-2.5-pro"],
       "layer_2": [],
       "layer_3": [],
       "layer_4": [],
@@ -68,7 +68,7 @@
       "layer_6": []
     },
     "multimodal": {
-      "layer_1": ["gpt-4.5", "gemini-3-pro"],
+      "layer_1": ["gpt-4o", "gemini-2.5-pro"],
       "layer_2": [],
       "layer_3": [],
       "layer_4": [],
@@ -113,7 +113,7 @@
       "strengths": ["simple-tasks", "formatting", "linting", "quick-answers"],
       "default_success_rate": 0.82
     },
-    "gpt-4.5": {
+    "gpt-4o": {
       "provider": "openai",
       "tier": "flagship",
       "base_weight": 0.4,
@@ -122,7 +122,7 @@
       "strengths": ["general-reasoning", "code-generation", "math"],
       "default_success_rate": 0.88
     },
-    "gemini-3-pro": {
+    "gemini-2.5-pro": {
       "provider": "google",
       "tier": "flagship",
       "base_weight": 0.4,
@@ -158,7 +158,7 @@
       "strengths": ["extreme-speed", "simple-tasks", "extraction"],
       "default_success_rate": 0.85
     },
-    "llama-3.3-70b": {
+    "llama-3.3-70b-sambanova": {
       "provider": "sambanova",
       "tier": "flagship",
       "base_weight": 0.5,
@@ -197,17 +197,17 @@
     "moderate": {
       "description": "Standard code tasks, tests, small features",
       "cost_tier": "low",
-      "model_preference": ["anthropic/claude-sonnet-4-5", "kimi-k2.5", "gemini-3-pro"]
+      "model_preference": ["anthropic/claude-sonnet-4-5", "kimi-k2.5", "gemini-2.5-pro"]
     },
     "high": {
       "description": "Complex features, multi-file refactors",
       "cost_tier": "high",
-      "model_preference": ["anthropic/claude-opus-4-6", "gpt-4.5", "gemini-3-pro"]
+      "model_preference": ["anthropic/claude-opus-4-6", "gpt-4o", "gemini-2.5-pro"]
     },
     "critical": {
       "description": "Architecture decisions, security, production issues",
       "cost_tier": "critical",
-      "model_preference": ["anthropic/claude-opus-4-6", "gpt-4.5", "anthropic/claude-sonnet-4-5"]
+      "model_preference": ["anthropic/claude-opus-4-6", "gpt-4o", "anthropic/claude-sonnet-4-5"]
     }
   },
 

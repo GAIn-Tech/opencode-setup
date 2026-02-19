@@ -22,116 +22,313 @@
       "models": {
         "antigravity-gemini-3-pro": {
           "name": "Gemini 3 Pro (Antigravity) - CURRENT FRONTIER",
-          "limit": { "context": 1048576, "output": 65535 },
-          "modalities": { "input": ["text", "image", "pdf", "video"], "output": ["text"] },
+          "limit": {
+            "context": 1048576,
+            "output": 65535
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf",
+              "video"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "variants": {
-            "low": { "thinkingLevel": "low" },
-            "high": { "thinkingLevel": "high" }
+            "low": {
+              "thinkingLevel": "low"
+            },
+            "high": {
+              "thinkingLevel": "high"
+            }
           },
           "priority": "primary"
         },
         "antigravity-gemini-3-flash": {
           "name": "Gemini 3 Flash (Antigravity) - CURRENT FRONTIER",
-          "limit": { "context": 1048576, "output": 65536 },
-          "modalities": { "input": ["text", "image", "pdf", "video"], "output": ["text"] },
+          "limit": {
+            "context": 1048576,
+            "output": 65536
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf",
+              "video"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "variants": {
-            "minimal": { "thinkingLevel": "minimal" },
-            "low": { "thinkingLevel": "low" },
-            "medium": { "thinkingLevel": "medium" },
-            "high": { "thinkingLevel": "high" }
+            "minimal": {
+              "thinkingLevel": "minimal"
+            },
+            "low": {
+              "thinkingLevel": "low"
+            },
+            "medium": {
+              "thinkingLevel": "medium"
+            },
+            "high": {
+              "thinkingLevel": "high"
+            }
           },
           "priority": "primary"
         },
         "antigravity-gemini-3-flash-8b": {
           "name": "Gemini 3 Flash 8B (Antigravity) - FAST",
-          "limit": { "context": 1048576, "output": 65536 },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "limit": {
+            "context": 1048576,
+            "output": 65536
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "priority": "secondary"
         },
         "antigravity-claude-sonnet-4-5": {
           "name": "Claude Sonnet 4.5 (Antigravity)",
-          "limit": { "context": 200000, "output": 64000 },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "priority": "secondary"
         },
         "antigravity-claude-sonnet-4-5-thinking": {
           "name": "Claude Sonnet 4.5 Thinking (Antigravity)",
-          "limit": { "context": 200000, "output": 64000 },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "variants": {
-            "low": { "thinkingConfig": { "thinkingBudget": 8192 } },
-            "max": { "thinkingConfig": { "thinkingBudget": 32768 } }
+            "low": {
+              "thinkingConfig": {
+                "thinkingBudget": 8192
+              }
+            },
+            "max": {
+              "thinkingConfig": {
+                "thinkingBudget": 32768
+              }
+            }
           },
           "priority": "secondary"
         },
         "antigravity-claude-opus-4-6-thinking": {
           "name": "Claude Opus 4.6 Thinking (Antigravity)",
-          "limit": { "context": 200000, "output": 64000 },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "variants": {
-            "low": { "thinkingConfig": { "thinkingBudget": 8192 } },
-            "max": { "thinkingConfig": { "thinkingBudget": 32768 } }
+            "low": {
+              "thinkingConfig": {
+                "thinkingBudget": 8192
+              }
+            },
+            "max": {
+              "thinkingConfig": {
+                "thinkingBudget": 32768
+              }
+            }
           },
           "priority": "secondary"
         },
         "gemini-3-flash": {
           "name": "Gemini 3 Flash (Gemini CLI)",
-          "limit": { "context": 1000000, "output": 65535 },
-          "modalities": { "input": ["text", "image", "pdf", "video"], "output": ["text"] }
+          "limit": {
+            "context": 1000000,
+            "output": 65535
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf",
+              "video"
+            ],
+            "output": [
+              "text"
+            ]
+          }
         },
         "gemini-3-pro": {
           "name": "Gemini 3 Pro (Gemini CLI)",
-          "limit": { "context": 1000000, "output": 65535 },
-          "modalities": { "input": ["text", "image", "pdf", "video"], "output": ["text"] }
+          "limit": {
+            "context": 1000000,
+            "output": 65535
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf",
+              "video"
+            ],
+            "output": [
+              "text"
+            ]
+          }
         }
       }
     },
     "anthropic": {
       "npm": "@ai-sdk/anthropic",
       "options": {
-        "apiKey": "{env:ANTHROPIC_API_KEY}"
+        "apiKey": "{env:ANTHROPIC_API_KEYS}"
       },
       "models": {
         "claude-opus-4-6": {
           "name": "Claude Opus 4.6",
-          "limit": { "context": 200000, "output": 64000 },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          }
         },
         "claude-sonnet-4-5": {
           "name": "Claude Sonnet 4.5",
-          "limit": { "context": 200000, "output": 64000 },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          }
         },
         "claude-haiku-4-5": {
           "name": "Claude Haiku 4.5",
-          "limit": { "context": 200000, "output": 64000 },
-          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          }
         }
       }
     },
     "openai": {
       "npm": "@ai-sdk/openai",
       "options": {
-        "apiKey": "{env:OPENAI_API_KEY}"
+        "apiKey": "{env:OPENAI_API_KEYS}"
       },
       "models": {
         "gpt-5.3-codex": {
           "name": "GPT-5.3 Codex (OpenAI) - CODING SPECIALIST",
-          "limit": { "context": 400000, "output": 100000 },
-          "modalities": { "input": ["text", "image"], "output": ["text"] },
+          "limit": {
+            "context": 400000,
+            "output": 100000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "priority": "primary",
           "specialty": "coding"
         },
         "gpt-5.2": {
           "name": "GPT-5.2 (OpenAI)",
-          "limit": { "context": 400000, "output": 100000 },
-          "modalities": { "input": ["text", "image"], "output": ["text"] },
+          "limit": {
+            "context": 400000,
+            "output": 100000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "priority": "primary"
         },
         "gpt-5": {
           "name": "GPT-5 (OpenAI)",
-          "limit": { "context": 400000, "output": 100000 },
-          "modalities": { "input": ["text", "image"], "output": ["text"] },
+          "limit": {
+            "context": 400000,
+            "output": 100000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "priority": "secondary"
         }
       }
@@ -145,41 +342,50 @@
       "models": {
         "nvidia/kimi-k2.5-pro": {
           "name": "Kimi K2.5 Pro (NVIDIA)",
-          "limit": { "context": 200000, "output": 8192 },
-          "modalities": { "input": ["text"], "output": ["text"] },
+          "limit": {
+            "context": 200000,
+            "output": 8192
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "priority": "primary"
         },
         "nvidia/kimi-k2.5-flash": {
           "name": "Kimi K2.5 Flash (NVIDIA) - FAST",
-          "limit": { "context": 100000, "output": 8192 },
-          "modalities": { "input": ["text"], "output": ["text"] },
+          "limit": {
+            "context": 100000,
+            "output": 8192
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "priority": "secondary"
         },
         "nvidia/glm4.7": {
           "name": "GLM 4.7 (NVIDIA)",
-          "limit": { "context": 128000, "output": 8192 },
-          "modalities": { "input": ["text"], "output": ["text"] },
-          "priority": "secondary"
-        }
-      }
-    },
-    "zen": {
-      "npm": "@ai-sdk/openai-compatible",
-      "options": {
-        "baseURL": "https://api.zen.my.id/v1",
-        "apiKey": "{env:DEEPSEEK_API_KEY}"
-      },
-      "models": {
-        "zen/glm5": {
-          "name": "GLM-5 (Zen)",
-          "limit": { "context": 128000, "output": 8192 },
-          "modalities": { "input": ["text"], "output": ["text"] },
-          "priority": "primary"
-        },
-        "zen/kimi-k2.5-pro": {
-          "name": "Kimi K2.5 Pro (Zen)",
-          "limit": { "context": 200000, "output": 8192 },
-          "modalities": { "input": ["text"], "output": ["text"] },
+          "limit": {
+            "context": 128000,
+            "output": 8192
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "priority": "secondary"
         }
       }
@@ -193,14 +399,34 @@
       "models": {
         "llama-4-scout-17b-16k-instruct": {
           "name": "Llama 4 Scout 17B (Groq) - FASTEST",
-          "limit": { "context": 128000, "output": 32768 },
-          "modalities": { "input": ["text"], "output": ["text"] },
+          "limit": {
+            "context": 128000,
+            "output": 32768
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "priority": "fallback"
         },
         "llama-4-maverick-17b-128k-instruct": {
           "name": "Llama 4 Maverick 17B (Groq)",
-          "limit": { "context": 128000, "output": 32768 },
-          "modalities": { "input": ["text"], "output": ["text"] },
+          "limit": {
+            "context": 128000,
+            "output": 32768
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "priority": "fallback"
         }
       }
@@ -214,35 +440,114 @@
       "models": {
         "llama-4-scout-17b-16k-instruct": {
           "name": "Llama 4 Scout 17B (Cerebras) - FASTEST",
-          "limit": { "context": 128000, "output": 8192 },
-          "modalities": { "input": ["text"], "output": ["text"] },
+          "limit": {
+            "context": 128000,
+            "output": 8192
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "priority": "fallback"
         },
         "llama-4-maverick-17b-128k-instruct": {
           "name": "Llama 4 Maverick 17B (Cerebras)",
-          "limit": { "context": 128000, "output": 8192 },
-          "modalities": { "input": ["text"], "output": ["text"] },
+          "limit": {
+            "context": 128000,
+            "output": 8192
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "priority": "fallback"
+        }
+      }
+    },
+    "zen": {
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "https://api.zen.my.id/v1"
+      },
+      "models": {
+        "zen/glm5": {
+          "name": "GLM-5 (Zen)",
+          "limit": {
+            "context": 128000,
+            "output": 8192
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "priority": "primary"
+        },
+        "zen/kimi-k2.5-pro": {
+          "name": "Kimi K2.5 Pro (Zen)",
+          "limit": {
+            "context": 200000,
+            "output": 8192
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "priority": "secondary"
         }
       }
     },
     "deepseek": {
       "npm": "@ai-sdk/openai-compatible",
       "options": {
-        "baseURL": "https://api.deepseek.com",
-        "apiKey": "{env:DEEPSEEK_API_KEY}"
+        "baseURL": "https://api.deepseek.com"
       },
       "models": {
         "deepseek-chat": {
-          "name": "DeepSeek Chat (Fallback)",
-          "limit": { "context": 65536, "output": 8192 },
-          "modalities": { "input": ["text"], "output": ["text"] },
+          "name": "DeepSeek Chat",
+          "limit": {
+            "context": 65536,
+            "output": 8192
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "priority": "fallback"
         },
         "deepseek-coder": {
-          "name": "DeepSeek Coder (Fallback)",
-          "limit": { "context": 65536, "output": 8192 },
-          "modalities": { "input": ["text"], "output": ["text"] },
+          "name": "DeepSeek Coder",
+          "limit": {
+            "context": 65536,
+            "output": 8192
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
           "priority": "fallback"
         }
       }
@@ -293,7 +598,11 @@
   "mcp": {
     "tavily": {
       "type": "local",
-      "command": ["npx", "-y", "tavily-mcp@0.2.16"],
+      "command": [
+        "npx",
+        "-y",
+        "tavily-mcp@0.2.16"
+      ],
       "environment": {
         "TAVILY_API_KEY": "{env:TAVILY_API_KEY}"
       },
@@ -314,27 +623,45 @@
     },
     "playwright": {
       "type": "local",
-      "command": ["npx", "@playwright/mcp@0.0.64"],
+      "command": [
+        "npx",
+        "@playwright/mcp@0.0.64"
+      ],
       "enabled": false
     },
     "sequentialthinking": {
       "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
       "enabled": true
     },
     "websearch": {
       "type": "local",
-      "command": ["npx", "-y", "@ignidor/web-search-mcp"],
+      "command": [
+        "npx",
+        "-y",
+        "@ignidor/web-search-mcp"
+      ],
       "enabled": true
     },
     "grep": {
       "type": "local",
-      "command": ["uvx", "grep-mcp"],
+      "command": [
+        "uvx",
+        "grep-mcp"
+      ],
       "enabled": true
     },
     "github": {
       "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-github@2025.4.8"],
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-github@2025.4.8"
+      ],
       "environment": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "{env:GITHUB_TOKEN}"
       },
@@ -342,7 +669,13 @@
     },
     "distill": {
       "type": "local",
-      "command": ["npx", "-y", "distill-mcp@0.8.1", "serve", "--lazy"],
+      "command": [
+        "npx",
+        "-y",
+        "distill-mcp@0.8.1",
+        "serve",
+        "--lazy"
+      ],
       "enabled": true
     }
   },

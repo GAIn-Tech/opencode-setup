@@ -64,16 +64,16 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
       orchestration: 'llama-3.3-70b'
     },
     antigravity: {
-      simple_read: "gemini-2.0-flash",
-      format_transform: "gemini-2.0-flash",
-      documentation: 'gemini-2.0-flash-thinking-minimal',
-      code_generation: 'gemini-2.0-flash-thinking-minimal',
-      code_transform: "gemini-2.0-flash",
-      debugging: 'gemini-2.0-flash-thinking-medium',
-      architecture: 'gemini-2.0-pro',
-      large_context: "gemini-2.0-pro",
-      multimodal: 'gemini-2.0-flash-thinking-minimal',
-      orchestration: 'gemini-2.0-pro'
+      simple_read: "gemini-2.5-flash",
+      format_transform: "gemini-2.5-flash",
+      documentation: 'gemini-2.5-flash-thinking-minimal',
+      code_generation: 'gemini-2.5-flash-thinking-minimal',
+      code_transform: "gemini-2.5-flash",
+      debugging: 'gemini-2.5-flash-thinking-medium',
+      architecture: 'gemini-2.5-pro',
+      large_context: "gemini-2.5-pro",
+      multimodal: 'gemini-2.5-flash-thinking-minimal',
+      orchestration: 'gemini-2.5-pro'
     },
     anthropic: {
       simple_read: 'claude-haiku-4-5',
