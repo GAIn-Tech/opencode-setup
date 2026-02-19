@@ -15,6 +15,7 @@
     "hooks:install": "node scripts/install-git-hooks.mjs",
     "generate": "node scripts/generate-mcp-config.mjs",
     "verify": "node scripts/verify-setup.mjs",
+    "verify:integration": "node scripts/verify-integration.mjs",
     "health": "node scripts/health-check.mjs",
     "models:validate": "node scripts/validate-models.mjs",
     "policies:validate": "node scripts/validate-policies-structure.mjs",
@@ -24,8 +25,9 @@
     "smoke": "node scripts/smoke-pipeline.mjs",
     "gate:learning": "node scripts/learning-gate.mjs --staged",
     "gate:docs": "node scripts/docs-gate.mjs --staged",
+    "gate:integration": "node scripts/verify-integration.mjs",
     "state:deploy": "node scripts/deployment-state.mjs",
-    "governance:check": "node scripts/learning-gate.mjs --staged && node scripts/docs-gate.mjs --staged && node scripts/deployment-state.mjs check-flow"
+    "governance:check": "node scripts/learning-gate.mjs --staged && node scripts/docs-gate.mjs --staged && node scripts/verify-integration.mjs && node scripts/deployment-state.mjs check-flow"
   },
   "main": "index.js",
   "devDependencies": {},
