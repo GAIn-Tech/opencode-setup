@@ -16,6 +16,19 @@ const { AntiPatternCatalog, VALID_TYPES: ANTI_PATTERN_TYPES, SEVERITY_WEIGHTS } 
 const { PositivePatternTracker, VALID_TYPES: POSITIVE_PATTERN_TYPES } = require('./positive-patterns');
 const { PatternExtractor } = require('./pattern-extractor');
 const { OrchestrationAdvisor, AGENT_CAPABILITIES, SKILL_AFFINITY } = require('./orchestration-advisor');
+
+// Export new meta-awareness components
+let MetaAwareness, MetaInstructionParser;
+try {
+  MetaAwareness = require('./meta-awareness');
+} catch (e) {
+  // Optional - works without
+}
+try {
+  MetaInstructionParser = require('./meta-instruction-parser');
+} catch (e) {
+  // Optional - works without
+}
 const EventEmitter = require('events');
 
 class LearningEngine extends EventEmitter {
@@ -91,7 +104,9 @@ class LearningEngine extends EventEmitter {
       if (!learning.pattern || typeof learning.pattern !== 'string') {
         return { valid: false, reason: 'Anti-pattern must have pattern string' };
       }
-      if (!ANTI_PATTERN_TYPES.includes(learning.severity)) {
+      // Check severity against valid severity values, not pattern types
+      const validSeverities = ['critical', 'high', 'medium', 'low', 'info'];
+      if (!validSeverities.includes(learning.severity)) {
         return { valid: false, reason: `Invalid severity: ${learning.severity}` };
       }
     }
@@ -250,8 +265,8 @@ class LearningEngine extends EventEmitter {
     const adaptive = this.getAdaptiveLearnings();
     
     return {
-      antiPatternCount: this.antiPatterns?.patterns?.size || 0,
-      positivePatternCount: this.positivePatterns?.patterns?.size || 0,
+      antiPatternCount: Array.isArray(this.antiPatterns?.patterns) ? this.antiPatterns.patterns.length : 0,
+      positivePatternCount: Array.isArray(this.positivePatterns?.patterns) ? this.positivePatterns.patterns.length : 0,
       sessionCount: this.sessionLog?.length || 0,
       hooksCount: Object.keys(this.hooks).length,
       // New: Core vs Adaptive breakdown
@@ -293,6 +308,114 @@ class LearningEngine extends EventEmitter {
         this.emit('hook:error', { hook: hookName, payload, error: err });
       }
     }
+  }
+
+  // ===== UNIFIED EVENT INGESTION =====
+
+  /**
+   * Unified event ingestion API - single stable contract for all learning events.
+   * This is the recommended API for external integrators (router, rotator, memory-graph).
+   * 
+   * @param {Object} event - Learning event
+   * @param {string} event.type - Event type: 'anti-pattern', 'positive-pattern', 'outcome', 'tool-usage'
+   * @param {Object} event.payload - Event-specific payload
+   * @returns {Object} { success: boolean, reason?: string }
+   */
+  ingestEvent(event) {
+    if (!event || typeof event !== 'object') {
+      return { success: false, reason: 'Event must be an object' };
+    }
+    
+    const { type, payload } = event;
+    if (!type || !payload) {
+      return { success: false, reason: 'Event must have type and payload' };
+    }
+    
+    try {
+      switch (type) {
+        case 'anti-pattern':
+          // Payload: { pattern, severity, context: { modelId?, provider?, tool?, sessionId? } }
+          if (this.validateLearning({ type: 'anti-pattern', ...payload }).valid) {
+            this.antiPatterns.addAntiPattern({
+              ...payload,
+              discovered_at: new Date().toISOString(),
+              source: 'external-event',
+            });
+            this._emitHook('patternStored', { type: 'anti', pattern: payload });
+            return { success: true };
+          }
+          return { success: false, reason: 'Invalid anti-pattern payload' };
+          
+        case 'positive-pattern':
+          // Payload: { pattern, pattern_type, context: { modelId?, provider?, tool?, sessionId? } }
+          if (this.validateLearning({ type: 'positive-pattern', ...payload }).valid) {
+            this.positivePatterns.addPositivePattern({
+              ...payload,
+              discovered_at: new Date().toISOString(),
+              source: 'external-event',
+            });
+            this._emitHook('patternStored', { type: 'positive', pattern: payload });
+            return { success: true };
+          }
+          return { success: false, reason: 'Invalid positive-pattern payload' };
+          
+        case 'outcome':
+          // Payload: { adviceId?, taskContext, success, failure_reason?, tokens_used? }
+          if (payload.adviceId) {
+            return this.learnFromOutcome(payload.adviceId, {
+              success: payload.success,
+              description: payload.failure_reason,
+              tokens_used: payload.tokens_used,
+              time_taken_ms: payload.time_taken_ms,
+            });
+          } else if (payload.taskContext) {
+            // Direct learning without advice ID - create a new advice entry
+            return this._learnDirect(payload.taskContext, payload);
+          }
+          return { success: false, reason: 'Outcome must have adviceId or taskContext' };
+          
+        case 'tool-usage':
+          // Payload: { tool, success, tokens_used, context: { modelId?, sessionId? } }
+          this._emitHook('toolUsage', payload);
+          return { success: true };
+          
+        default:
+          return { success: false, reason: `Unknown event type: ${type}` };
+      }
+    } catch (err) {
+      return { success: false, reason: err.message };
+    }
+  }
+
+  /**
+   * Direct learning without prior advice - creates new advice entry from task context.
+   * @private
+   */
+  _learnDirect(taskContext, outcome) {
+    const adviceId = `direct_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    
+    // Create a synthetic entry in outcomeLog for future reference
+    this.advisor.outcomeLog.push({
+      advice_id: adviceId,
+      task_context: taskContext,
+      timestamp: new Date().toISOString(),
+      outcome: { success: outcome.success, ...outcome },
+    });
+    
+    // Learn from the outcome
+    if (!outcome.success && outcome.failure_reason) {
+      // Extract pattern from failure
+      const pattern = this.extractor._extractFailurePattern(outcome.failure_reason, taskContext);
+      if (pattern) {
+        this.antiPatterns.addAntiPattern({
+          ...pattern,
+          discovered_at: new Date().toISOString(),
+          source: 'direct-learning',
+        });
+      }
+    }
+    
+    return { learned: true, advice_id: adviceId };
   }
 
   // ===== SESSION INGESTION =====
