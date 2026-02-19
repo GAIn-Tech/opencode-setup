@@ -25,6 +25,22 @@ function validateEvent(payload: unknown): { ok: true; event: UsageEvent } | { ok
     return { ok: false, error: 'latency_ms must be a non-negative number' };
   }
 
+  // Validate token fields if provided
+  if (candidate.input_tokens !== undefined && (typeof candidate.input_tokens !== 'number' || candidate.input_tokens < 0 || Number.isNaN(candidate.input_tokens))) {
+    return { ok: false, error: 'input_tokens must be a non-negative number' };
+  }
+  if (candidate.output_tokens !== undefined && (typeof candidate.output_tokens !== 'number' || candidate.output_tokens < 0 || Number.isNaN(candidate.output_tokens))) {
+    return { ok: false, error: 'output_tokens must be a non-negative number' };
+  }
+  if (candidate.total_tokens !== undefined && (typeof candidate.total_tokens !== 'number' || candidate.total_tokens < 0 || Number.isNaN(candidate.total_tokens))) {
+    return { ok: false, error: 'total_tokens must be a non-negative number' };
+  }
+
+  // Validate request_type if provided
+  if (candidate.request_type !== undefined && !['main', 'subagent', 'tool'].includes(candidate.request_type)) {
+    return { ok: false, error: 'request_type must be "main", "subagent", or "tool"' };
+  }
+
   const timestamp =
     typeof candidate.timestamp === 'string' && Number.isFinite(Date.parse(candidate.timestamp))
       ? candidate.timestamp
@@ -38,7 +54,13 @@ function validateEvent(payload: unknown): { ok: true; event: UsageEvent } | { ok
       request_id: candidate.request_id,
       success: candidate.success,
       latency_ms: candidate.latency_ms,
-      timestamp
+      timestamp,
+      input_tokens: candidate.input_tokens,
+      output_tokens: candidate.output_tokens,
+      total_tokens: candidate.total_tokens,
+      request_type: candidate.request_type,
+      session_id: candidate.session_id,
+      parent_session_id: candidate.parent_session_id
     }
   };
 }

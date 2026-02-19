@@ -13,6 +13,18 @@ export interface UnifiedModelStatus {
     success_rate: number;
     avg_latency_ms: number;
   };
+  // Token metrics
+  tokens?: {
+    input: number;
+    output: number;
+    total: number;
+  };
+  // Breakdown by request type
+  tokens_by_type?: {
+    main: number;
+    subagent: number;
+    tool: number;
+  };
 }
 
 export interface UnifiedRateLimit {
@@ -35,6 +47,18 @@ export interface UnifiedProviderStatus {
     error_count: number;
     avg_latency_ms: number;
   };
+  // Token metrics
+  tokens?: {
+    input: number;
+    output: number;
+    total: number;
+  };
+  // Breakdown by request type
+  tokens_by_type?: {
+    main: number;
+    subagent: number;
+    tool: number;
+  };
   rate_limits: UnifiedRateLimit[];
   models: UnifiedModelStatus[];
 }
@@ -47,6 +71,10 @@ export interface UnifiedStatusSnapshot {
     warning_count: number;
     critical_count: number;
     unknown_count: number;
+    // Token summary across all providers
+    total_tokens?: number;
+    total_input_tokens?: number;
+    total_output_tokens?: number;
   };
   providers: UnifiedProviderStatus[];
 }
@@ -58,6 +86,15 @@ export interface UsageEvent {
   success: boolean;
   latency_ms: number;
   timestamp: string;
+  // Token tracking fields
+  input_tokens?: number;
+  output_tokens?: number;
+  total_tokens?: number;
+  // Context type to distinguish main vs subagent vs tool
+  request_type?: 'main' | 'subagent' | 'tool';
+  // Session tracking for subagents
+  session_id?: string;
+  parent_session_id?: string;
 }
 
 interface HealthCheckRecord {
@@ -163,21 +200,33 @@ function modelStatusFromMetrics(requestCount: number, successCount: number): Uni
 }
 
 function buildSummary(providers: UnifiedProviderStatus[]): UnifiedStatusSnapshot['summary'] {
-  return providers.reduce(
+  const summary = providers.reduce(
     (acc, provider) => {
       if (provider.status === 'healthy') acc.healthy_count += 1;
       else if (provider.status === 'warning') acc.warning_count += 1;
       else if (provider.status === 'critical') acc.critical_count += 1;
       else acc.unknown_count += 1;
+
+      // Aggregate tokens across all providers
+      if (provider.tokens) {
+        acc.total_input_tokens += provider.tokens.input;
+        acc.total_output_tokens += provider.tokens.output;
+        acc.total_tokens += provider.tokens.total;
+      }
+
       return acc;
     },
     {
       healthy_count: 0,
       warning_count: 0,
       critical_count: 0,
-      unknown_count: 0
+      unknown_count: 0,
+      total_tokens: 0,
+      total_input_tokens: 0,
+      total_output_tokens: 0
     }
   );
+  return summary;
 }
 
 function emptySnapshot(timestamp = new Date().toISOString()): UnifiedStatusSnapshot {
@@ -188,7 +237,10 @@ function emptySnapshot(timestamp = new Date().toISOString()): UnifiedStatusSnaps
       healthy_count: 0,
       warning_count: 0,
       critical_count: 0,
-      unknown_count: 0
+      unknown_count: 0,
+      total_tokens: 0,
+      total_input_tokens: 0,
+      total_output_tokens: 0
     },
     providers: []
   };
@@ -354,6 +406,16 @@ function buildModels(
         request_count: 0,
         success_rate: 0,
         avg_latency_ms: 0
+      },
+      tokens: {
+        input: 0,
+        output: 0,
+        total: 0
+      },
+      tokens_by_type: {
+        main: 0,
+        subagent: 0,
+        tool: 0
       }
     };
 
@@ -369,6 +431,21 @@ function buildModels(
       previousCount,
       safeNumber(usageEvent.latency_ms)
     );
+
+    // Aggregate token counts
+    const eventTokens = safeNumber(usageEvent.total_tokens) || (safeNumber(usageEvent.input_tokens) + safeNumber(usageEvent.output_tokens));
+    if (eventTokens > 0) {
+      current.tokens = current.tokens || { input: 0, output: 0, total: 0 };
+      current.tokens.input += safeNumber(usageEvent.input_tokens);
+      current.tokens.output += safeNumber(usageEvent.output_tokens);
+      current.tokens.total += eventTokens;
+
+      // Track by request type
+      current.tokens_by_type = current.tokens_by_type || { main: 0, subagent: 0, tool: 0 };
+      const requestType = usageEvent.request_type || 'main';
+      current.tokens_by_type[requestType] = (current.tokens_by_type[requestType] || 0) + eventTokens;
+    }
+
     current.status = modelStatusFromMetrics(nextCount, nextSuccesses);
     modelMap.set(usageEvent.model_id, current);
   }
@@ -385,6 +462,16 @@ function buildModels(
           request_count: 0,
           success_rate: 0,
           avg_latency_ms: 0
+        },
+        tokens: {
+          input: 0,
+          output: 0,
+          total: 0
+        },
+        tokens_by_type: {
+          main: 0,
+          subagent: 0,
+          tool: 0
         }
       });
     }
@@ -431,6 +518,18 @@ function mergeSnapshot(
         error_count: errorCount,
         avg_latency_ms: avgLatency
       },
+      // Aggregate tokens from all models
+      tokens: {
+        input: models.reduce((acc, m) => acc + (m.tokens?.input || 0), 0),
+        output: models.reduce((acc, m) => acc + (m.tokens?.output || 0), 0),
+        total: models.reduce((acc, m) => acc + (m.tokens?.total || 0), 0)
+      },
+      // Aggregate tokens by type
+      tokens_by_type: {
+        main: models.reduce((acc, m) => acc + (m.tokens_by_type?.main || 0), 0),
+        subagent: models.reduce((acc, m) => acc + (m.tokens_by_type?.subagent || 0), 0),
+        tool: models.reduce((acc, m) => acc + (m.tokens_by_type?.tool || 0), 0)
+      },
       rate_limits: rateLimitsForProvider(providerId, rateLimits),
       models
     };
@@ -453,6 +552,7 @@ function mergeSnapshot(
 
   for (const providerId of Object.keys(rateLimits.providers)) {
     if (!mergedProviders.has(providerId)) {
+      const models = buildModels(providerId, [], usageEvents, rateLimits);
       mergedProviders.set(providerId, {
         id: providerId,
         name: providerName(providerId),
@@ -464,8 +564,18 @@ function mergeSnapshot(
           error_count: 0,
           avg_latency_ms: 0
         },
+        tokens: {
+          input: models.reduce((acc, m) => acc + (m.tokens?.input || 0), 0),
+          output: models.reduce((acc, m) => acc + (m.tokens?.output || 0), 0),
+          total: models.reduce((acc, m) => acc + (m.tokens?.total || 0), 0)
+        },
+        tokens_by_type: {
+          main: models.reduce((acc, m) => acc + (m.tokens_by_type?.main || 0), 0),
+          subagent: models.reduce((acc, m) => acc + (m.tokens_by_type?.subagent || 0), 0),
+          tool: models.reduce((acc, m) => acc + (m.tokens_by_type?.tool || 0), 0)
+        },
         rate_limits: rateLimitsForProvider(providerId, rateLimits),
-        models: buildModels(providerId, [], usageEvents, rateLimits)
+        models
       });
     }
   }
@@ -591,7 +701,13 @@ export function ingestUsageEvent(event: UsageEvent): { snapshot: UnifiedStatusSn
     request_id: event.request_id,
     success: Boolean(event.success),
     latency_ms: safeNumber(event.latency_ms),
-    timestamp: event.timestamp || new Date().toISOString()
+    timestamp: event.timestamp || new Date().toISOString(),
+    input_tokens: event.input_tokens,
+    output_tokens: event.output_tokens,
+    total_tokens: event.total_tokens,
+    request_type: event.request_type,
+    session_id: event.session_id,
+    parent_session_id: event.parent_session_id
   };
 
   const providers = [...store.snapshot.providers];
@@ -614,6 +730,8 @@ export function ingestUsageEvent(event: UsageEvent): { snapshot: UnifiedStatusSn
             error_count: 0,
             avg_latency_ms: 0
           },
+          tokens: { input: 0, output: 0, total: 0 },
+          tokens_by_type: { main: 0, subagent: 0, tool: 0 },
           rate_limits: [],
           models: []
         };
@@ -627,6 +745,19 @@ export function ingestUsageEvent(event: UsageEvent): { snapshot: UnifiedStatusSn
   if (normalizedEvent.success) provider.metrics.success_count += 1;
   else provider.metrics.error_count += 1;
 
+  // Aggregate tokens
+  const eventTokens = safeNumber(normalizedEvent.total_tokens) || (safeNumber(normalizedEvent.input_tokens) + safeNumber(normalizedEvent.output_tokens));
+  if (eventTokens > 0) {
+    provider.tokens = provider.tokens || { input: 0, output: 0, total: 0 };
+    provider.tokens.input += safeNumber(normalizedEvent.input_tokens);
+    provider.tokens.output += safeNumber(normalizedEvent.output_tokens);
+    provider.tokens.total += eventTokens;
+
+    provider.tokens_by_type = provider.tokens_by_type || { main: 0, subagent: 0, tool: 0 };
+    const requestType = normalizedEvent.request_type || 'main';
+    provider.tokens_by_type[requestType] = (provider.tokens_by_type[requestType] || 0) + eventTokens;
+  }
+
   const modelIndex = provider.models.findIndex((model) => model.id === normalizedEvent.model_id);
   const model =
     modelIndex >= 0
@@ -639,7 +770,9 @@ export function ingestUsageEvent(event: UsageEvent): { snapshot: UnifiedStatusSn
             request_count: 0,
             success_rate: 0,
             avg_latency_ms: 0
-          }
+          },
+          tokens: { input: 0, output: 0, total: 0 },
+          tokens_by_type: { main: 0, subagent: 0, tool: 0 }
         };
 
   const priorModelRequests = model.metrics.request_count;
@@ -651,6 +784,18 @@ export function ingestUsageEvent(event: UsageEvent): { snapshot: UnifiedStatusSn
   model.metrics.success_rate = Number(((nextModelSuccesses / nextModelRequests) * 100).toFixed(2));
   model.metrics.avg_latency_ms = average(model.metrics.avg_latency_ms, priorModelRequests, normalizedEvent.latency_ms);
   model.status = modelStatusFromMetrics(nextModelRequests, nextModelSuccesses);
+
+  // Aggregate tokens at model level
+  if (eventTokens > 0) {
+    model.tokens = model.tokens || { input: 0, output: 0, total: 0 };
+    model.tokens.input += safeNumber(normalizedEvent.input_tokens);
+    model.tokens.output += safeNumber(normalizedEvent.output_tokens);
+    model.tokens.total += eventTokens;
+
+    model.tokens_by_type = model.tokens_by_type || { main: 0, subagent: 0, tool: 0 };
+    const requestType = normalizedEvent.request_type || 'main';
+    model.tokens_by_type[requestType] = (model.tokens_by_type[requestType] || 0) + eventTokens;
+  }
 
   if (modelIndex >= 0) provider.models[modelIndex] = model;
   else provider.models.push(model);
