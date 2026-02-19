@@ -138,6 +138,8 @@ interface UnifiedStatusStoreFile {
   snapshot: UnifiedStatusSnapshot;
   usage_events: UsageEvent[];
   health_checks: HealthCheckRecord[];
+  // Session token aggregation for workflow linking
+  session_tokens: Record<string, { input: number; output: number; total: number }>;
 }
 
 const STORE_VERSION = '1.0.0';
@@ -253,7 +255,8 @@ function emptyStore(): UnifiedStatusStoreFile {
     last_updated: timestamp,
     snapshot: emptySnapshot(timestamp),
     usage_events: [],
-    health_checks: []
+    health_checks: [],
+    session_tokens: {}
   };
 }
 
@@ -818,7 +821,16 @@ export function ingestUsageEvent(event: UsageEvent): { snapshot: UnifiedStatusSn
     version: STORE_VERSION,
     last_updated: timestamp,
     snapshot,
-    usage_events: [...store.usage_events, normalizedEvent].slice(-MAX_USAGE_EVENTS)
+    usage_events: [...store.usage_events, normalizedEvent].slice(-MAX_USAGE_EVENTS),
+    // Aggregate tokens by session for workflow linking
+    session_tokens: normalizedEvent.session_id ? {
+      ...store.session_tokens,
+      [normalizedEvent.session_id]: {
+        input: (store.session_tokens[normalizedEvent.session_id]?.input || 0) + safeNumber(normalizedEvent.input_tokens),
+        output: (store.session_tokens[normalizedEvent.session_id]?.output || 0) + safeNumber(normalizedEvent.output_tokens),
+        total: (store.session_tokens[normalizedEvent.session_id]?.total || 0) + eventTokens
+      }
+    } : store.session_tokens
   };
 
   writeStore(nextStore);
@@ -828,4 +840,20 @@ export function ingestUsageEvent(event: UsageEvent): { snapshot: UnifiedStatusSn
   };
 
   return { snapshot, storedEvent: normalizedEvent };
+}
+
+export interface SessionTokenTotals {
+  input: number;
+  output: number;
+  total: number;
+}
+
+export function getSessionTokens(sessionId: string): SessionTokenTotals {
+  const store = readStore();
+  return store.session_tokens[sessionId] || { input: 0, output: 0, total: 0 };
+}
+
+export function getAllSessionTokens(): Record<string, SessionTokenTotals> {
+  const store = readStore();
+  return store.session_tokens;
 }

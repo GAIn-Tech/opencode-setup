@@ -13,6 +13,11 @@ type WorkflowRun = {
   updated_at: string;
   input?: unknown;
   context?: unknown;
+  session_tokens?: {
+    input_tokens: number;
+    output_tokens: number;
+    total_tokens: number;
+  };
 };
 
 type WorkflowStep = {

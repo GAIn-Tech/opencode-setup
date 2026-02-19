@@ -8,6 +8,11 @@ export interface WorkflowRunItem {
   status: string;
   updated_at: string;
   created_at: string;
+  session_tokens?: {
+    input_tokens: number;
+    output_tokens: number;
+    total_tokens: number;
+  };
 }
 
 export interface WorkflowStepItem {
@@ -78,7 +83,14 @@ export const WorkflowTree: React.FC<WorkflowTreeProps> = ({
                     </span>
                   </div>
                   <div className="truncate text-xs font-mono text-zinc-500">{run.id}</div>
-                  <div className="mt-1 text-[11px] text-zinc-500">Updated {new Date(run.updated_at).toLocaleString()}</div>
+                  <div className="mt-1 flex items-center justify-between">
+                    <span className="text-[11px] text-zinc-500">Updated {new Date(run.updated_at).toLocaleString()}</span>
+                    {run.session_tokens && run.session_tokens.total_tokens > 0 && (
+                      <span className="text-[11px] font-mono text-emerald-400">
+                        {run.session_tokens.total_tokens.toLocaleString()} tokens
+                      </span>
+                    )}
+                  </div>
                 </button>
               );
             })}
