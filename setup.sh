@@ -74,6 +74,22 @@ if [ -d opencode-config ]; then
     mkdir -p ~/.config/opencode/learning-updates
     cp -r opencode-config/learning-updates/* ~/.config/opencode/learning-updates/ 2>/dev/null && echo "  ✓ learning-updates/"
   fi
+
+  # Portable directories for skills, docs, commands, agents
+  for dir_name in skills docs commands agents supermemory; do
+    if [ -d "opencode-config/$dir_name" ]; then
+      mkdir -p "$HOME/.config/opencode/$dir_name"
+      cp -r "opencode-config/$dir_name"/* "$HOME/.config/opencode/$dir_name/" 2>/dev/null && echo "  ✓ $dir_name/"
+    fi
+  done
+
+  # Governance and documentation config files
+  for file_name in docs-governance.json; do
+    if [ -f "opencode-config/$file_name" ]; then
+      cp "opencode-config/$file_name" "$HOME/.config/opencode/$file_name" 2>/dev/null && echo "  ✓ $file_name"
+    fi
+  done
+
   # config.yaml → ~/.opencode/
   [ -f opencode-config/config.yaml ] && cp opencode-config/config.yaml ~/.opencode/config.yaml && echo "  ✓ config.yaml"
   # docs-governance.json (new governance system)

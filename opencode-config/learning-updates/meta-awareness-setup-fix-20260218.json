@@ -1,0 +1,16 @@
+{
+  "id": "meta-awareness-and-setup-fix-20260218",
+  "timestamp": "2026-02-18T21:00:00.000Z",
+  "summary": "Add meta-awareness system and fix setup.sh skill transfer",
+  "affected_paths": [
+    "packages/opencode-learning-engine/src/meta-awareness.js",
+    "packages/opencode-learning-engine/src/meta-instruction-parser.js",
+    "setup.sh"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "pass"
+  },
+  "risk_level": "low"
+}
