@@ -1,0 +1,16 @@
+{
+  "id": "token-counting-dashboard-20260219",
+  "timestamp": "2026-02-19T01:00:00.000Z",
+  "summary": "Add true token counting to workflows dashboard with input/output/total token tracking",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/status/usage/route.ts",
+    "packages/opencode-dashboard/src/lib/provider-status-store.ts"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "pass",
+    "typecheck": "pass",
+    "build": "pass"
+  },
+  "risk_level": "low"
+}

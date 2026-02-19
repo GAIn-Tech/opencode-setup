@@ -28,6 +28,7 @@ const CONFIG_DIRS = [
   'agents',
   'docs',
   'models',
+  'supermemory',
 ];
 
 function ensureDir(dirPath) {

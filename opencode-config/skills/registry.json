@@ -1,0 +1,299 @@
+{
+  "$schema": "./registry.schema.json",
+  "version": "1.0.0",
+  "lastUpdated": "2026-02-19T08:48:00Z",
+  
+  "skills": {
+    "git-master": {
+      "description": "Atomic commits, rebase/squash, history search (blame, bisect, log -S)",
+      "category": "git",
+      "tags": ["commits", "history", "rebase"],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": ["verification-before-completion", "code-doctor"],
+      "conflicts": [],
+      "triggers": ["commit", "rebase", "squash", "who wrote", "when was X added", "find the commit that"]
+    },
+    "frontend-ui-ux": {
+      "description": "Designer-turned-developer who crafts stunning UI/UX even without design mockups",
+      "category": "implementation",
+      "tags": ["ui", "ux", "design", "frontend"],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": ["dev-browser", "verification-before-completion"],
+      "conflicts": [],
+      "triggers": ["build UI", "design component", "style", "make it look"]
+    },
+    "dev-browser": {
+      "description": "Browser automation with persistent page state via Playwright MCP",
+      "category": "browser",
+      "tags": ["playwright", "testing", "automation"],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": ["frontend-ui-ux", "test-driven-development"],
+      "conflicts": ["agent-browser"],
+      "triggers": ["go to url", "click on", "fill form", "take screenshot", "test the website"]
+    },
+    "agent-browser": {
+      "description": "Browser automation using Vercel's agent-browser CLI with ref-based selection",
+      "category": "browser",
+      "tags": ["browser", "automation", "cli"],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": ["frontend-ui-ux"],
+      "conflicts": ["dev-browser"],
+      "triggers": ["browse website", "fill form", "click button", "web automation"]
+    },
+    "innovation-migration-planner": {
+      "description": "Weighted hotspot scoring for identifying high-leverage innovation opportunities",
+      "category": "planning",
+      "tags": ["innovation", "migration", "planning", "scoring"],
+      "source": "custom",
+      "dependencies": [],
+      "synergies": ["writing-plans", "executing-plans"],
+      "conflicts": [],
+      "triggers": ["find innovation areas", "push boundaries", "draft migration plan", "rank opportunities"]
+    },
+    "token-reporter": {
+      "description": "Manual token tracking to dashboard API for usage monitoring",
+      "category": "observability",
+      "tags": ["tokens", "usage", "dashboard"],
+      "source": "custom",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": ["report tokens", "track usage", "token count"]
+    },
+    "github-triage": {
+      "description": "Parallel issue/PR triage with background tasks",
+      "category": "review",
+      "tags": ["github", "issues", "pr", "triage"],
+      "source": "custom",
+      "dependencies": [],
+      "synergies": ["requesting-code-review", "receiving-code-review"],
+      "conflicts": [],
+      "triggers": ["triage issues", "review PRs", "github cleanup"]
+    },
+    "systematic-debugging": {
+      "description": "Root cause analysis with evidence-based debugging and defense-in-depth fixes",
+      "category": "debugging",
+      "tags": ["debugging", "rca", "troubleshooting"],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": ["test-driven-development", "code-doctor", "git-master"],
+      "conflicts": [],
+      "triggers": ["debug", "why is this failing", "root cause", "unexpected behavior"]
+    },
+    "test-driven-development": {
+      "description": "TDD workflow with anti-patterns guide - write tests before implementation",
+      "category": "testing",
+      "tags": ["tdd", "testing", "red-green-refactor"],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": ["systematic-debugging", "verification-before-completion"],
+      "conflicts": [],
+      "triggers": ["implement feature", "add tests first", "TDD", "test-driven"]
+    },
+    "brainstorming": {
+      "description": "Pre-implementation ideation to explore intent, approaches, and design decisions",
+      "category": "planning",
+      "tags": ["ideation", "design", "exploration"],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": ["writing-plans", "innovation-migration-planner"],
+      "conflicts": [],
+      "triggers": ["let's brainstorm", "help me think through", "explore approaches", "what should we build"]
+    },
+    "writing-plans": {
+      "description": "Create detailed implementation plans before touching code",
+      "category": "planning",
+      "tags": ["planning", "specs", "documentation"],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": ["brainstorming", "executing-plans"],
+      "conflicts": [],
+      "triggers": ["write a plan", "spec this out", "before we code"]
+    },
+    "executing-plans": {
+      "description": "Execute implementation plans with review checkpoints",
+      "category": "implementation",
+      "tags": ["execution", "implementation", "checkpoints"],
+      "source": "superpowers",
+      "dependencies": ["writing-plans"],
+      "synergies": ["subagent-driven-development", "verification-before-completion"],
+      "conflicts": [],
+      "triggers": ["execute plan", "start implementation", "follow the plan"]
+    },
+    "verification-before-completion": {
+      "description": "Pre-completion verification gates - evidence before assertions",
+      "category": "review",
+      "tags": ["verification", "quality", "gates"],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": ["test-driven-development", "git-master"],
+      "conflicts": [],
+      "triggers": ["verify before done", "check completion", "before PR"]
+    },
+    "requesting-code-review": {
+      "description": "Code review request workflow for completed work",
+      "category": "review",
+      "tags": ["code-review", "pr", "feedback"],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": ["receiving-code-review", "verification-before-completion"],
+      "conflicts": [],
+      "triggers": ["request review", "ready for review", "need feedback"]
+    },
+    "receiving-code-review": {
+      "description": "Handle code review feedback with technical rigor",
+      "category": "review",
+      "tags": ["code-review", "feedback", "iteration"],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": ["requesting-code-review", "git-master"],
+      "conflicts": [],
+      "triggers": ["received feedback", "review comments", "address feedback"]
+    },
+    "dispatching-parallel-agents": {
+      "description": "Multi-agent parallel dispatch for independent tasks",
+      "category": "implementation",
+      "tags": ["parallel", "agents", "concurrency"],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": ["subagent-driven-development", "executing-plans"],
+      "conflicts": [],
+      "triggers": ["parallel tasks", "multiple agents", "concurrent work"]
+    },
+    "subagent-driven-development": {
+      "description": "Implementer/reviewer/spec prompts for complex implementations",
+      "category": "implementation",
+      "tags": ["subagents", "delegation", "complex"],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": ["dispatching-parallel-agents", "executing-plans"],
+      "conflicts": [],
+      "triggers": ["complex implementation", "need subagents", "delegate work"]
+    },
+    "finishing-a-development-branch": {
+      "description": "Branch completion workflow with merge/PR/cleanup options",
+      "category": "git",
+      "tags": ["git", "branch", "merge", "pr"],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": ["git-master", "verification-before-completion"],
+      "conflicts": [],
+      "triggers": ["finish branch", "ready to merge", "branch complete"]
+    },
+    "using-git-worktrees": {
+      "description": "Isolated git worktrees for parallel development",
+      "category": "git",
+      "tags": ["git", "worktrees", "isolation"],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": ["git-master", "dispatching-parallel-agents"],
+      "conflicts": [],
+      "triggers": ["worktree", "isolated branch", "parallel branches"]
+    },
+    "using-superpowers": {
+      "description": "Meta-skill for discovering and using available skills",
+      "category": "meta",
+      "tags": ["discovery", "skills", "meta"],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": ["what skills", "help me find", "skill discovery"]
+    },
+    "writing-skills": {
+      "description": "Skill authoring with testing and persuasion principles",
+      "category": "meta",
+      "tags": ["authoring", "skills", "meta"],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": ["create skill", "write skill", "new skill"]
+    }
+  },
+
+  "profiles": {
+    "deep-refactoring": {
+      "description": "Comprehensive refactoring with TDD, debugging, and atomic commits",
+      "skills": ["test-driven-development", "systematic-debugging", "git-master", "verification-before-completion"],
+      "triggers": ["refactor", "clean up code", "improve architecture"]
+    },
+    "planning-cycle": {
+      "description": "Full planning workflow from ideation to execution",
+      "skills": ["brainstorming", "writing-plans", "executing-plans"],
+      "triggers": ["plan feature", "design system", "architect"]
+    },
+    "review-cycle": {
+      "description": "Complete code review workflow",
+      "skills": ["requesting-code-review", "receiving-code-review", "verification-before-completion"],
+      "triggers": ["code review", "PR review", "review cycle"]
+    },
+    "parallel-implementation": {
+      "description": "Multi-agent parallel execution for complex work",
+      "skills": ["dispatching-parallel-agents", "subagent-driven-development", "executing-plans"],
+      "triggers": ["parallel work", "divide and conquer", "complex implementation"]
+    },
+    "browser-testing": {
+      "description": "UI testing and verification workflow",
+      "skills": ["dev-browser", "frontend-ui-ux", "verification-before-completion"],
+      "triggers": ["test UI", "browser test", "visual verification"]
+    },
+    "diagnostic-healing": {
+      "description": "Problem diagnosis and self-healing workflow",
+      "skills": ["code-doctor", "systematic-debugging", "git-master"],
+      "triggers": ["diagnose", "fix bug", "heal code", "auto-fix"]
+    },
+    "research-to-code": {
+      "description": "Research, spec, and implementation pipeline",
+      "skills": ["research-builder", "writing-plans", "executing-plans"],
+      "triggers": ["research and build", "investigate then implement", "deep dive"]
+    }
+  },
+
+  "categories": {
+    "planning": {
+      "description": "Skills for planning and design work",
+      "skills": ["brainstorming", "writing-plans", "innovation-migration-planner"]
+    },
+    "implementation": {
+      "description": "Skills for building and implementing features",
+      "skills": ["executing-plans", "subagent-driven-development", "dispatching-parallel-agents", "frontend-ui-ux"]
+    },
+    "debugging": {
+      "description": "Skills for troubleshooting and fixing issues",
+      "skills": ["systematic-debugging", "code-doctor"]
+    },
+    "testing": {
+      "description": "Skills for testing and verification",
+      "skills": ["test-driven-development", "verification-before-completion"]
+    },
+    "review": {
+      "description": "Skills for code review workflows",
+      "skills": ["requesting-code-review", "receiving-code-review", "github-triage"]
+    },
+    "git": {
+      "description": "Skills for git operations",
+      "skills": ["git-master", "finishing-a-development-branch", "using-git-worktrees"]
+    },
+    "browser": {
+      "description": "Skills for browser automation",
+      "skills": ["dev-browser", "agent-browser"]
+    },
+    "research": {
+      "description": "Skills for research and discovery",
+      "skills": ["research-builder"]
+    },
+    "meta": {
+      "description": "Skills about skills",
+      "skills": ["using-superpowers", "writing-skills"]
+    },
+    "observability": {
+      "description": "Skills for monitoring and tracking",
+      "skills": ["token-reporter"]
+    }
+  }
+}
