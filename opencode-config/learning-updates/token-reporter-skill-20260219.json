@@ -1,0 +1,25 @@
+{
+  "id": "token-reporter-skill-20260219",
+  "timestamp": "2026-02-19T02:35:00.000Z",
+  "date": "2026-02-19",
+  "type": "skill-addition",
+  "skill_name": "token-reporter",
+  "summary": "Add token-reporter skill for manual token tracking",
+  "description": "Manual token usage reporter skill for workflows dashboard",
+  "purpose": "Allows manual reporting of token usage to the dashboard when automatic reporting isn't available",
+  "usage_triggers": [
+    "report tokens",
+    "track tokens",
+    "log token usage"
+  ],
+  "affected_paths": [
+    "opencode-config/skills/token-reporter/"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "pass",
+    "typecheck": "pass",
+    "build": "pass"
+  },
+  "risk_level": "low"
+}
