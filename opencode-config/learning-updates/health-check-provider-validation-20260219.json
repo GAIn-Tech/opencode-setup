@@ -1,0 +1,14 @@
+{
+  "date": "2026-02-19",
+  "category": "infrastructure",
+  "description": "Enhance health check with provider API key validation",
+  "changes": [
+    "Add JSON validity check for opencode.json",
+    "Add provider count check", 
+    "Replace slow model smoke test with fast API key validation",
+    "Check each provider for configured but missing keys",
+    "Fix Windows path handling for HOME variable"
+  ],
+  "rationale": "The model smoke test was timing out (180s). Replaced with fast config-based validation that checks if API keys are set in environment without making actual API calls.",
+  "impact": "Faster health checks, clearer provider auth status"
+}

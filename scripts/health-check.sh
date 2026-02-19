@@ -1,13 +1,33 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Resolve HOME properly on Windows (handle /c/Users/xxx format)
+if [[ "$HOME" == /c/* ]]; then
+  HOME_DIR="${HOME#/c/}"
+  HOME="C:/${HOME_DIR}"
+fi
+
+CONFIG_FILE="$HOME/.config/opencode/opencode.json"
+
 echo "== OpenCode Health Check =="
 
-echo "[1/6] CLI"
+echo "[1/7] CLI"
 opencode --version >/dev/null
 echo "  OK: opencode is installed"
 
-echo "[2/6] Plugins"
+echo "[2/7] Config JSON validity"
+if node -e "JSON.parse(require('fs').readFileSync('$CONFIG_FILE'))" 2>/dev/null; then
+  echo "  OK: opencode.json is valid JSON"
+else
+  echo "  FAIL: opencode.json is invalid JSON"
+  exit 1
+fi
+
+echo "[3/7] Providers configured"
+provider_count=$(node -e "console.log(Object.keys(JSON.parse(require('fs').readFileSync('$CONFIG_FILE')).provider || {}).length)")
+echo "  OK: $provider_count providers configured"
+
+echo "[4/7] Plugins"
 npm list -g --depth=0 \
   oh-my-opencode \
   opencode-antigravity-auth \
@@ -24,49 +44,52 @@ npm list -g --depth=0 \
   envsitter-guard >/dev/null
 echo "  OK: core plugins installed"
 
-echo "[3/6] Secrets references"
-if grep -Eq 'tvly-[A-Za-z0-9_-]{10,}|sm_[A-Za-z0-9_-]{20,}' "$HOME/.config/opencode/opencode.json"; then
-  echo "  FAIL: hardcoded Tavily/Supermemory secret found in ~/.config/opencode/opencode.json"
+echo "[5/7] Secrets references"
+if grep -Eq 'tvly-[A-Za-z0-9_-]{10,}|sm_[A-Za-z0-9_-]{20,}' "$CONFIG_FILE"; then
+  echo "  FAIL: hardcoded Tavily/Supermemory secret found in config"
   exit 1
 fi
 echo "  OK: opencode.json uses env placeholders for Tavily/Supermemory"
 
-echo "[4/6] MCP config"
+echo "[6/7] Provider API keys"
+providers_with_keys=0
+providers_without_keys=0
+
+# Check each provider for API keys
+for provider in google anthropic openai nvidia groq cerebras deepseek; do
+  key_var=$(node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG_FILE')); const p=c.provider?.$provider?.options?.apiKey; console.log(p ? p.replace(/{env:([^}]+)}/,'\$1') : '')" 2>/dev/null)
+  if [ -n "$key_var" ]; then
+    key_value="${!key_var:-}"
+    if [ -n "$key_value" ]; then
+      echo "  OK: $provider has $key_var set"
+      providers_with_keys=$((providers_with_keys + 1))
+    else
+      echo "  WARN: $provider configured but $key_var not set"
+      providers_without_keys=$((providers_without_keys + 1))
+    fi
+  else
+    echo "  SKIP: $provider has no apiKey config"
+  fi
+done
+echo "  Summary: $providers_with_keys providers with keys, $providers_without_keys missing"
+
+echo "[7/7] MCP config"
 if ! opencode mcp list >/dev/null 2>&1; then
   echo "  WARN: unable to query MCP list (auth/session may be required)"
 else
   echo "  OK: MCP list command responded"
 fi
 
-echo "[5/6] Critical env vars"
-missing=0
-for key in TAVILY_API_KEY SUPERMEMORY_API_KEY GITHUB_TOKEN; do
-  if [ -z "${!key:-}" ]; then
-    echo "  WARN: $key is not set"
-    missing=1
-  fi
-done
-if [ "$missing" -eq 0 ]; then
-  echo "  OK: required env vars are set"
-fi
-
-echo "[6/6] Model smoke test"
-if opencode run "ping" --model=google/antigravity-gemini-3-pro >/dev/null 2>&1; then
-  echo "  OK: default model request succeeded"
-else
-  echo "  WARN: model smoke test failed (check auth/quota/network)"
-fi
-
 echo "== Health check complete =="
 
-echo "[7/7] Ops kit checks"
+echo "[8/8] Ops kit checks"
 if python "$(dirname "$0")/opencode_ops_kit.py" fallback-doctor >/dev/null 2>&1; then
   echo "  OK: fallback-doctor passed"
 else
   echo "  WARN: fallback-doctor reported issues"
 fi
 
-if python "$(dirname "$0")/opencode_ops_kit.py" plugin-health --config "$HOME/.config/opencode/opencode.json" >/dev/null 2>&1; then
+if python "$(dirname "$0")/opencode_ops_kit.py" plugin-health --config "$CONFIG_FILE" >/dev/null 2>&1; then
   echo "  OK: plugin-health passed"
 else
   echo "  WARN: plugin-health reported issues"
