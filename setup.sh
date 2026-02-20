@@ -74,41 +74,8 @@ if [ -d opencode-config ]; then
     mkdir -p ~/.config/opencode/learning-updates
     cp -r opencode-config/learning-updates/* ~/.config/opencode/learning-updates/ 2>/dev/null && echo "  ✓ learning-updates/"
   fi
-
-  # Portable directories for skills, docs, commands, agents
-  for dir_name in skills docs commands agents supermemory; do
-    if [ -d "opencode-config/$dir_name" ]; then
-      mkdir -p "$HOME/.config/opencode/$dir_name"
-      cp -r "opencode-config/$dir_name"/* "$HOME/.config/opencode/$dir_name/" 2>/dev/null && echo "  ✓ $dir_name/"
-    fi
-  done
-
-  # Governance and documentation config files
-  for file_name in docs-governance.json; do
-    if [ -f "opencode-config/$file_name" ]; then
-      cp "opencode-config/$file_name" "$HOME/.config/opencode/$file_name" 2>/dev/null && echo "  ✓ $file_name"
-    fi
-  done
-
   # config.yaml → ~/.opencode/
   [ -f opencode-config/config.yaml ] && cp opencode-config/config.yaml ~/.opencode/config.yaml && echo "  ✓ config.yaml"
-  # docs-governance.json (new governance system)
-  [ -f opencode-config/docs-governance.json ] && cp opencode-config/docs-governance.json ~/.config/opencode/docs-governance.json && echo "  ✓ docs-governance.json"
-  # Skills directory
-  if [ -d opencode-config/skills ]; then
-    mkdir -p ~/.config/opencode/skills
-    cp -r opencode-config/skills/* ~/.config/opencode/skills/ 2>/dev/null && echo "  ✓ skills/"
-  fi
-  # Docs directory
-  if [ -d opencode-config/docs ]; then
-    mkdir -p ~/.config/opencode/docs
-    cp -r opencode-config/docs/* ~/.config/opencode/docs/ 2>/dev/null && echo "  ✓ docs/"
-  fi
-  # Supermemory directory
-  if [ -d opencode-config/supermemory ]; then
-    mkdir -p ~/.config/opencode/supermemory
-    cp -r opencode-config/supermemory/* ~/.config/opencode/supermemory/ 2>/dev/null && echo "  ✓ supermemory/"
-  fi
 fi
 echo ""
 

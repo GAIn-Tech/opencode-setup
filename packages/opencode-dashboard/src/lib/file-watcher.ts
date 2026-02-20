@@ -1,4 +1,4 @@
-import chokidar from 'chokidar';
+import chokidar, { FSWatcher } from 'chokidar';
 import { homedir } from 'os';
 import { join } from 'path';
 import { EventEmitter } from 'events';
@@ -17,7 +17,7 @@ export interface WatchEvent {
 }
 
 class FileWatcherService extends EventEmitter {
-  private watcher: chokidar.FSWatcher | null = null;
+  private watcher: FSWatcher | null = null;
   private debounceTimers: Map<string, NodeJS.Timeout> = new Map();
   private static instance: FileWatcherService | null = null;
   

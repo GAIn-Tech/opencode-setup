@@ -64,17 +64,6 @@ opencode
 
 See [INSTALL.md](INSTALL.md) for detailed installation instructions.
 
-## Living Docs
-
-Central docs are treated as living source-of-truth documents and are gate-enforced.
-
-- Governance policy: `opencode-config/docs-governance.json`
-- Drift gate: `scripts/docs-gate.mjs`
-- Run manually: `npm run gate:docs`
-- Enforced on push via: `npm run governance:check`
-
-When changing configs, skills, plugins, MCPs, or bootstrap/governance scripts, update at least one required central doc in the policy.
-
 ## Current Stack
 
 ### Plugins (12)

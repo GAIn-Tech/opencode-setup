@@ -24,6 +24,8 @@ inputs:                   # What this skill expects
     required: true
 ---
 
+This document follows the opencode-setup Documentation Style Guide (docs/documentation-style-guide.md). Use consistent heading levels, code block syntax highlighting, and visual hierarchy principles.
+
 # Skill Name
 
 ## Overview

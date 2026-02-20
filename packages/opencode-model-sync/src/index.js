@@ -5,8 +5,12 @@
  * Fetches latest model info and validates against known models
  */
 
-const FS = require('fs');
-const PATH = require('path');
+import FS from 'fs';
+import PATH from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = PATH.dirname(__filename);
 
 // Configuration
 const CONFIG = {
@@ -181,7 +185,7 @@ function registerWithHealthCheck(healthCheck) {
   }
   
   healthCheck.registerSubsystem('model-sync', {
-    check: async () => {
+    checkFn: async () => {
       try {
         // Quick check - just verify catalog exists
         if (!FS.existsSync(CONFIG.catalogPath)) {
@@ -205,7 +209,7 @@ function registerWithHealthCheck(healthCheck) {
         return { healthy: false, message: error.message };
       }
     },
-    interval: 60000, // Check every minute
+    checkInterval: 60000, // Check every minute
   });
   
   console.log('[ModelSync] Registered with health-check');
@@ -241,7 +245,7 @@ if (require.main === module) {
   startScheduled(intervalMs);
 }
 
-module.exports = {
+export {
   runSync,
   startScheduled,
   fetchLatestModels,

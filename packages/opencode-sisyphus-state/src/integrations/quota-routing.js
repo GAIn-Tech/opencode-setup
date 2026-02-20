@@ -81,18 +81,11 @@ function createQuotaAwareRouterHandler(quotaManager, baseRouter) {
             });
 
             // Check if we're approaching any warning thresholds
-            // FIX: Use Promise.allSettled to handle partial failures gracefully
-            const allStatuses = await Promise.allSettled(
+            const allStatuses = await Promise.all(
                 providerIds.map(providerId => quotaManager.getQuotaStatus(providerId))
             );
 
-            for (const result of allStatuses) {
-                // Skip failed promises
-                if (result.status === 'rejected') {
-                    console.warn('[QuotaRouter] Failed to get quota status:', result.reason);
-                    continue;
-                }
-                const status = result.value;
+            for (const status of allStatuses) {
                 if (status && status.percentUsed >= status.warningThreshold) {
                     quotaFactors.push({
                         provider: status.providerId,

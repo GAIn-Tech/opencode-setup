@@ -69,38 +69,5 @@ module.exports = {
     warningThreshold: 1.0,  // Never warn
     criticalThreshold: 1.0,  // Never critical
     defaultMonthlyBudget: null
-  },
-
-  // NVIDIA (kimi-k2.5, glm4.7)
-  nvidia: {
-    quotaType: 'request-based',
-    warningThreshold: 0.8,
-    criticalThreshold: 0.95,
-    defaultMonthlyBudget: null
-  },
-
-  // Zen (kimi-k2.5-pro, glm5)
-  zen: {
-    quotaType: 'request-based',
-    warningThreshold: 0.8,
-    criticalThreshold: 0.95,
-    defaultMonthlyBudget: null
-  },
-
-  // MiniMax
-  minimax: {
-    quotaType: 'request-based',
-    warningThreshold: 0.8,
-    criticalThreshold: 0.95,
-    defaultMonthlyBudget: null
-  },
-
-  // Antigravity (Google via Antigravity proxy)
-  antigravity: {
-    quotaType: 'request-based',
-    quotaLimit: 5000,
-    warningThreshold: 0.7,
-    criticalThreshold: 0.9,
-    defaultMonthlyBudget: null
   }
 };

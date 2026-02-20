@@ -1,23 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
 
-// Initialize crash guard at module load time
-let crashGuard;
-try {
-  const crashGuardModule = require('@jackoatmon/opencode-crash-guard');
-  crashGuard = crashGuardModule.initCrashGuard({
-    enableRecovery: true,
-    enableMemoryGuard: true,
-    enableIsolation: true,
-    memoryThresholdMB: 512,
-    onCrash: (crashInfo) => {
-      console.error('[CrashGuard] Captured crash in workflow:', crashInfo.type);
-    }
-  });
-  console.log('[WorkflowExecutor] Crash guard initialized');
-} catch (e) {
-  console.warn('[WorkflowExecutor] Crash guard not available:', e.message);
-}
-
 class WorkflowExecutor {
   constructor(store, handlers = {}) {
     this.store = store;

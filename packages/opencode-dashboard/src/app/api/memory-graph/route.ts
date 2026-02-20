@@ -5,6 +5,14 @@ import fs from 'fs';
 
 export const dynamic = 'force-dynamic';
 
+interface GraphQueryOptions {
+  sinceDays: number;
+  maxFanout: number;
+  focus?: string;
+  depth: number;
+  maxNodes: number;
+}
+
 // Enhanced node types for comprehensive KG
 interface GraphNode {
   id: string;
@@ -22,7 +30,98 @@ interface GraphEdge {
 }
 
 // Read from multiple .opencode data sources
-function readOpenCodeData(opencodePath: string) {
+function normalizeFocusId(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  const idx = trimmed.indexOf(':');
+  return idx > 0 ? trimmed.slice(idx + 1) : trimmed;
+}
+
+function hasTokenMatch(haystack: string, token: string): boolean {
+  const normalizedToken = token.trim().toLowerCase();
+  if (!normalizedToken) return false;
+  const chunks = haystack.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+  return chunks.includes(normalizedToken);
+}
+
+function parsePositiveInt(value: string | null, fallback: number): number {
+  if (!value) return fallback;
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return parsed;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+function limitFanout(edges: GraphEdge[], maxFanout: number): GraphEdge[] {
+  if (maxFanout <= 0) return edges;
+
+  const bySource = new Map<string, GraphEdge[]>();
+  for (const edge of edges) {
+    const list = bySource.get(edge.from) ?? [];
+    list.push(edge);
+    bySource.set(edge.from, list);
+  }
+
+  const limited: GraphEdge[] = [];
+  for (const sourceEdges of bySource.values()) {
+    sourceEdges.sort((a, b) => b.weight - a.weight);
+    limited.push(...sourceEdges.slice(0, maxFanout));
+  }
+
+  return limited;
+}
+
+function buildFocusedSubgraph(nodes: GraphNode[], edges: GraphEdge[], focus: string, depth: number, maxNodes: number) {
+  const normalizedFocus = normalizeFocusId(focus);
+  if (!normalizedFocus) {
+    return { nodes, edges };
+  }
+
+  const adjacency = new Map<string, Set<string>>();
+  for (const edge of edges) {
+    if (!adjacency.has(edge.from)) adjacency.set(edge.from, new Set());
+    if (!adjacency.has(edge.to)) adjacency.set(edge.to, new Set());
+    adjacency.get(edge.from)?.add(edge.to);
+    adjacency.get(edge.to)?.add(edge.from);
+  }
+
+  const visited = new Set<string>([normalizedFocus]);
+  let frontier = new Set<string>([normalizedFocus]);
+
+  for (let d = 0; d < depth; d += 1) {
+    const next = new Set<string>();
+    for (const id of frontier) {
+      for (const neighbor of adjacency.get(id) ?? []) {
+        if (!visited.has(neighbor)) {
+          visited.add(neighbor);
+          next.add(neighbor);
+        }
+      }
+    }
+    frontier = next;
+    if (frontier.size === 0) break;
+  }
+
+  let filteredNodes = nodes.filter((node) => visited.has(node.id));
+  if (filteredNodes.length === 0) {
+    filteredNodes = nodes;
+  }
+
+  filteredNodes.sort((a, b) => b.count - a.count);
+  const cappedNodeIds = new Set(filteredNodes.slice(0, maxNodes).map((node) => node.id));
+  if (cappedNodeIds.size > 0 && !cappedNodeIds.has(normalizedFocus)) {
+    cappedNodeIds.add(normalizedFocus);
+  }
+
+  const focusedNodes = nodes.filter((node) => cappedNodeIds.has(node.id));
+  const focusedEdges = edges.filter((edge) => cappedNodeIds.has(edge.from) && cappedNodeIds.has(edge.to));
+  return { nodes: focusedNodes, edges: focusedEdges };
+}
+
+function readOpenCodeData(opencodePath: string, options: GraphQueryOptions) {
   const data: { nodes: GraphNode[]; edges: GraphEdge[]; meta: Record<string, unknown> } = {
     nodes: [],
     edges: [],
@@ -60,10 +159,21 @@ function readOpenCodeData(opencodePath: string) {
       } catch { return false; }
     });
     
+    const cutoffTime = Date.now() - options.sinceDays * 24 * 60 * 60 * 1000;
+
     for (const sessionId of sessionDirs) {
-      addNode(sessionId, 'session', 1, { source: 'messages' });
-      
       const sessionPath = path.join(messagesPath, sessionId);
+      try {
+        const stats = fs.statSync(sessionPath);
+        if (stats.mtimeMs < cutoffTime) {
+          continue;
+        }
+      } catch {
+        continue;
+      }
+
+      addNode(sessionId, 'session', 1, { source: 'messages' });
+
       const files = fs.readdirSync(sessionPath).filter(f => f.endsWith('.json'));
       
       for (const file of files) {
@@ -251,15 +361,15 @@ function readOpenCodeData(opencodePath: string) {
   if (fs.existsSync(templatesPath)) {
     const templateEntries = fs.readdirSync(templatesPath);
     
-    for (const entry of templateEntries) {
-      addNode(entry, 'template', 1, { source: 'templates' });
-      
-      // Connect sessions using this template (by name match)
-      for (const [nodeKey, node] of nodesMap) {
-        if (node.type === 'session' && node.id.includes(entry)) {
-          addEdge(node.id, entry, 'uses_template');
+      for (const entry of templateEntries) {
+        addNode(entry, 'template', 1, { source: 'templates' });
+
+        // Connect sessions using this template (by name match)
+        for (const node of nodesMap.values()) {
+          if (node.type === 'session' && hasTokenMatch(node.id, entry)) {
+            addEdge(node.id, entry, 'uses_template');
+          }
         }
-      }
     }
     data.meta.templates = templateEntries.length;
   }
@@ -269,16 +379,16 @@ function readOpenCodeData(opencodePath: string) {
   if (fs.existsSync(profilesPath)) {
     const profileFiles = fs.readdirSync(profilesPath).filter(f => f.endsWith('.yaml') || f.endsWith('.yml') || f.endsWith('.json'));
     
-    for (const file of profileFiles) {
-      const profileId = file.replace(/\.(yaml|yml|json)$/, '');
-      addNode(profileId, 'profile', 1, { source: 'profiles' });
-      
-      // Connect sessions with this profile (by name match)
-      for (const [nodeKey, node] of nodesMap) {
-        if (node.type === 'session' && node.id.includes(profileId)) {
-          addEdge(node.id, profileId, 'has_profile');
+      for (const file of profileFiles) {
+        const profileId = file.replace(/\.(yaml|yml|json)$/, '');
+        addNode(profileId, 'profile', 1, { source: 'profiles' });
+
+        // Connect sessions with this profile (by name match)
+        for (const node of nodesMap.values()) {
+          if (node.type === 'session' && hasTokenMatch(node.id, profileId)) {
+            addEdge(node.id, profileId, 'has_profile');
+          }
         }
-      }
     }
     data.meta.profiles = profileFiles.length;
   }
@@ -322,7 +432,15 @@ function readOpenCodeData(opencodePath: string) {
   
   // Convert maps to arrays
   data.nodes = Array.from(nodesMap.values());
-  data.edges = Array.from(edgesMap.values());
+  data.edges = limitFanout(Array.from(edgesMap.values()), options.maxFanout);
+
+  if (options.focus) {
+    const focused = buildFocusedSubgraph(data.nodes, data.edges, options.focus, options.depth, options.maxNodes);
+    data.nodes = focused.nodes;
+    data.edges = focused.edges;
+    data.meta.focus = options.focus;
+    data.meta.focusDepth = options.depth;
+  }
   
   // Add meta counts
   const nodeTypeCounts: Record<string, number> = {};
@@ -336,7 +454,7 @@ function readOpenCodeData(opencodePath: string) {
   return data;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const homeDir = os.homedir();
     const opencodePath = path.join(homeDir, '.opencode');
@@ -350,14 +468,26 @@ export async function GET() {
       });
     }
     
+    const search = new URL(request.url).searchParams;
+
+    const options: GraphQueryOptions = {
+      sinceDays: clamp(parsePositiveInt(search.get('sinceDays'), 7), 1, 90),
+      maxFanout: clamp(parsePositiveInt(search.get('maxFanout'), 15), 1, 100),
+      focus: search.get('focus') ?? undefined,
+      depth: clamp(parsePositiveInt(search.get('depth'), 2), 1, 4),
+      maxNodes: clamp(parsePositiveInt(search.get('maxNodes'), 120), 20, 1000),
+    };
+
     // Read all OpenCode data sources
-    const data = readOpenCodeData(opencodePath);
+    const data = readOpenCodeData(opencodePath, options);
     
     return NextResponse.json({
       ...data,
       meta: {
         ...data.meta,
         source: '~/.opencode (messages, learning, skills, templates, profiles, rules, parts)',
+        sinceDays: options.sinceDays,
+        maxFanout: options.maxFanout,
         timestamp: new Date().toISOString()
       }
     });

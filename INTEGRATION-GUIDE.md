@@ -88,7 +88,7 @@ The `~/.config/opencode/` directory (on Windows: `%USERPROFILE%\.config\opencode
 | `learning-updates/*.json` | Yes | -- | Governance records |
 | `antigravity-accounts.json` | -- | Yes | OAuth tokens (sensitive, runtime-only) |
 | `package.json`, `bun.lock` | -- | Yes | Plugin install artifacts |
-| `skills/`, `commands/`, `agents/` | Yes (vendored under `opencode-config/`) | Yes | Synced to runtime via `node scripts/copy-config.mjs` |
+| `skills/`, `commands/` | -- | Yes | Runtime-generated directories |
 
 ### Keeping them in sync
 
@@ -103,11 +103,14 @@ Sync-OpenCodeConfig -Pull      # live -> repo  (use live as source of truth)
 
 **Bash / manual:**
 ```bash
-# Sync template -> local runtime (recommended after pull)
-node scripts/copy-config.mjs
-
-# Optional: inspect one file for drift
+# Check differences
 diff ~/.config/opencode/opencode.json ~/opencode-setup/opencode-config/opencode.json
+
+# Sync local -> template (recommended after local edits)
+cp ~/.config/opencode/*.json ~/opencode-setup/opencode-config/
+
+# Sync template -> local (after pulling repo updates)
+cp ~/opencode-setup/opencode-config/*.json ~/.config/opencode/
 ```
 
 ### Common pitfall
@@ -564,25 +567,19 @@ npm run dev
 
 ## 🎯 Adding New Skills
 
-1. **Create skill source of truth:** Create `opencode-config/skills/my-skill/SKILL.md`
+1. **Create skill:** Create `~/.config/opencode/skills/my-skill/SKILL.md`
 
 2. **Structure:** Follow oh-my-opencode SKILL.md format
 
-3. **Register:** Add to `opencode-config/compound-engineering.json`
+3. **Register:** Add to `compound-engineering.json`
    ```json
    {
-      "skills": {
-        "enabled": [..., "my-skill"],
-        "categories": {
-          "custom": ["my-skill"]
-        }
-      }
-    }
+     "skillsGlobal": [..., "my-skill"],
+     "skills": { "my-skill": { "category": "custom", ... } }
+   }
    ```
 
-4. **Sync to runtime:** Run `node scripts/copy-config.mjs` (or `./setup.sh`)
-
-5. **Use:** Invoke via `/my-skill <input>` command
+4. **Use:** Invoke via `/my-skill <input>` command
 
 ---
 

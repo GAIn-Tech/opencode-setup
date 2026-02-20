@@ -95,7 +95,38 @@ class RouterIntegrationAdapter {
       // Fire and forget - don't block
     }
   }
-  
+
+  /**
+   * Orchestration state machine for tracking task lifecycle
+   * Enables dynamic adaptation and error recovery
+   */
+  orchestrationState = {
+    currentTaskId: null,
+    phase: 'idle', // idle -> selecting -> executing -> completed | failed
+    attempts: 0,
+    history: [],
+    context: {}
+  };
+
+  /**
+   * Transition orchestration state and record in history
+   */
+  transitionState(newPhase, context = {}) {
+    const prevPhase = this.orchestrationState.phase;
+    this.orchestrationState.phase = newPhase;
+    this.orchestrationState.context = { ...this.orchestrationState.context, ...context };
+    this.orchestrationState.history.push({
+      from: prevPhase,
+      to: newPhase,
+      timestamp: Date.now(),
+      ...context
+    });
+    // Keep history bounded
+    if (this.orchestrationState.history.length > 50) {
+      this.orchestrationState.history.shift();
+    }
+  }
+
   /**
    * Validate input using validator - returns data if not available
    */
@@ -323,6 +354,76 @@ class ModelRouter {
   }
 
   /**
+   * P1: Canonical Model ID Resolver - Fix schema mismatch between strategies and registry
+   * Strategies return IDs like 'claude-opus-4-6' but registry keys are namespaced like 'anthropic/claude-opus-4-6'
+   * @param {string} modelId - Potentially non-namespaced model ID
+   * @returns {string|null} - Canonical namespaced model ID or null if not found
+   */
+  resolveModelId(modelId) {
+    if (!modelId) return null;
+    
+    // Already namespaced and exists in registry
+    if (this.models[modelId]) return modelId;
+    
+    // Provider prefix mapping for common model name patterns
+    const modelToProvider = {
+      'claude': 'anthropic', 'gpt-4': 'openai', 'gpt-4o': 'openai', 'gpt-4-turbo': 'openai',
+      'gpt-3.5': 'openai', 'llama': 'groq', 'mixtral': 'mistral', 'gemini': 'google',
+      'command': 'cohere', 'mistral': 'mistral', 'deepseek': 'deepseek'
+    };
+    
+    // Try to infer provider from model name prefix
+    const modelLower = modelId.toLowerCase();
+    for (const [pattern, provider] of Object.entries(modelToProvider)) {
+      if (modelLower.startsWith(pattern) || modelLower.includes(pattern)) {
+        const namespaced = `${provider}/${modelId}`;
+        if (this.models[namespaced]) return namespaced;
+      }
+    }
+    
+    // Try all provider prefixes
+    const providerPrefixes = ['anthropic/', 'openai/', 'groq/', 'cerebras/', 'deepseek/', 'nvidia/', 'google/', 'mistral/', 'cohere/', 'x/', 'antigravity/'];
+    
+    for (const prefix of providerPrefixes) {
+      const namespaced = `${prefix}${modelId}`;
+      if (this.models[namespaced]) return namespaced;
+    }
+    
+    // Try partial match - extract base model name (e.g., claude-opus-4-20240229 -> claude-opus)
+    const baseName = modelId.replace(/-(\d{8})$/, '').replace(/-(\d{4})$/, '');
+    
+    for (const [key, model] of Object.entries(this.models)) {
+      const modelBaseName = model.id?.replace(/-(\d{8})$/, '').replace(/-(\d{4})$/, '');
+      if (modelBaseName && modelId.includes(modelBaseName)) {
+        return key;
+      }
+      // Also try matching the suffix without provider prefix
+      const keySuffix = key.split('/').pop();
+      if (keySuffix) {
+        const keyBase = keySuffix.replace(/-(\d{8})$/, '').replace(/-(\d{4})$/, '');
+        if (modelId.includes(keyBase)) {
+          return key;
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * P1: Execute through circuit breaker - Wrap provider calls with active circuit breaker
+   * @param {string} provider - Provider name
+   * @param {Function} fn - Async function to execute
+   * @returns {Promise<any>}
+   */
+  async executeThroughBreaker(provider, fn) {
+    const breaker = this.circuitBreakers[provider];
+    if (!breaker) return fn();
+    
+    return breaker.execute(fn);
+  }
+
+  /**
    * P2: Register model providers with health-check system
    * @private
    */
@@ -495,19 +596,24 @@ class ModelRouter {
     if (this.orchestrator && typeof this.orchestrator.selectModel === 'function' && ctx.task) {
       try {
         const selection = await this.orchestrator.selectModel(ctx.task, ctx);
-        if (selection && selection.model_id && this.models[selection.model_id]) {
-          const model = this.models[selection.model_id];
+        // P1: Use resolveModelId to canonicalize model ID from orchestrator
+        const resolvedModelId = this.resolveModelId(selection?.model_id);
+        if (selection && selection.model_id && resolvedModelId) {
+          const model = this.models[resolvedModelId];
           const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
-          const key = rotator ? rotator.getNextKey() : null;
+          const key = rotator ? await rotator.getNextKey() : null;
+          // P1: Track adviceId for learning correlation
+          const adviceId = selection.adviceId || `orchestrator_${selection.model_id}_${Date.now()}`;
           return {
             model,
             keyId: key ? key.id : null,
-            modelId: selection.model_id,
+            modelId: resolvedModelId,
             score: -1,
             reason: `orchestrator:${selection.strategy || 'strategy'}`,
             rotator,
             key,
             orchestration: selection,
+            adviceId, // P1: Pass adviceId for learning correlation
           };
         }
       } catch (error) {

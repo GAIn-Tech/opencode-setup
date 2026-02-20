@@ -245,8 +245,30 @@ module.exports = {
   stopDashboard,
   launchDashboard,
   // Health-check integration
-  createHealthCheck
+  createHealthCheck,
+  // MCP server interface
+  startServer
 };
+
+// MCP server interface for auto-start with OpenCode sessions
+async function startServer() {
+  console.log('Initializing OpenCode Dashboard Launcher...');
+  
+  // Ensure dashboard is running (don't open browser from MCP)
+  const result = ensureDashboard(false);
+  
+  if (result.launched) {
+    console.log(`✓ Dashboard launched on port ${result.port}`);
+  } else {
+    console.log(`✓ Dashboard already running on port ${result.port}`);
+  }
+  
+  // Keep server running
+  return {
+    port: result.port,
+    pid: result.pid
+  };
+}
 
 /**
  * Creates a health check function for the dashboard

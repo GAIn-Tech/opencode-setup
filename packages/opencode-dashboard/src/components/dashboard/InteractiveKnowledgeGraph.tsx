@@ -22,7 +22,22 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-const KNOWN_TYPES = ['session', 'error', 'HIT_ERROR', 'pattern', 'tool', 'file'] as const;
+const KNOWN_TYPES = [
+  'session',
+  'error',
+  'HIT_ERROR',
+  'agent',
+  'tool',
+  'model',
+  'skill',
+  'pattern',
+  'concept',
+  'solution',
+  'template',
+  'profile',
+  'rule',
+  'file',
+] as const;
 type UnifiedNodeType = (typeof KNOWN_TYPES)[number];
 
 type UnifiedNodeData = {
@@ -38,6 +53,9 @@ type UnifiedNodeData = {
 
 type UnifiedFlowNode = Node<UnifiedNodeData, UnifiedNodeType>;
 type UnifiedFlowEdge = Edge<{ label?: string; strength?: number }>;
+
+type LODTier = 0 | 1 | 2;
+type GroupKey = 'runtime' | 'capabilities' | 'knowledge' | 'issues' | 'other';
 
 const VIEWPORT_STORAGE_KEY = 'opencode-dashboard:kg-viewport:v1';
 
@@ -71,8 +89,16 @@ const TYPE_LABEL: Record<UnifiedNodeType, string> = {
   session: 'Session',
   error: 'Error',
   HIT_ERROR: 'HIT Error',
+  agent: 'Agent',
   pattern: 'Pattern',
   tool: 'Tool',
+  model: 'Model',
+  skill: 'Skill',
+  concept: 'Concept',
+  solution: 'Solution',
+  template: 'Template',
+  profile: 'Profile',
+  rule: 'Rule',
   file: 'File',
 };
 
@@ -80,9 +106,66 @@ const TYPE_COLORS: Record<UnifiedNodeType, string> = {
   session: '#3b82f6',
   error: '#ef4444',
   HIT_ERROR: '#a855f7',
+  agent: '#8b5cf6',
   pattern: '#10b981',
   tool: '#06b6d4',
+  model: '#0ea5e9',
+  skill: '#14b8a6',
+  concept: '#22c55e',
+  solution: '#84cc16',
+  template: '#f59e0b',
+  profile: '#f97316',
+  rule: '#eab308',
   file: '#f59e0b',
+};
+
+const GROUP_LABELS: Record<GroupKey, string> = {
+  runtime: 'Runtime',
+  capabilities: 'Capabilities',
+  knowledge: 'Knowledge',
+  issues: 'Issues',
+  other: 'Other',
+};
+
+const GROUP_COLORS: Record<GroupKey, string> = {
+  runtime: '#3b82f6',
+  capabilities: '#06b6d4',
+  knowledge: '#22c55e',
+  issues: '#ef4444',
+  other: '#a1a1aa',
+};
+
+const TYPE_TO_GROUP: Record<UnifiedNodeType, GroupKey> = {
+  session: 'runtime',
+  agent: 'runtime',
+  model: 'runtime',
+  tool: 'capabilities',
+  skill: 'capabilities',
+  template: 'capabilities',
+  pattern: 'knowledge',
+  concept: 'knowledge',
+  solution: 'knowledge',
+  rule: 'knowledge',
+  error: 'issues',
+  HIT_ERROR: 'issues',
+  profile: 'issues',
+  file: 'other',
+};
+
+const GROUP_NODE_TYPE: Record<GroupKey, UnifiedNodeType> = {
+  runtime: 'session',
+  capabilities: 'tool',
+  knowledge: 'concept',
+  issues: 'error',
+  other: 'file',
+};
+
+const GROUP_POSITIONS: Record<GroupKey, { x: number; y: number }> = {
+  runtime: { x: 240, y: 210 },
+  capabilities: { x: 940, y: 210 },
+  knowledge: { x: 240, y: 560 },
+  issues: { x: 940, y: 560 },
+  other: { x: 590, y: 760 },
 };
 
 function normalizeType(rawType: string | undefined, sourceId: string, data?: Record<string, unknown>): UnifiedNodeType {
@@ -93,16 +176,28 @@ function normalizeType(rawType: string | undefined, sourceId: string, data?: Rec
 
   if (value === 'HIT_ERROR' || lowerType === 'hit_error' || lowerType === 'hit-error') return 'HIT_ERROR';
   if (lowerType === 'session') return 'session';
+  if (lowerType === 'agent') return 'agent';
   if (lowerType === 'error' || lowerType.includes('exception') || severity === 'critical') return 'error';
   if (lowerType === 'tool') return 'tool';
+  if (lowerType === 'model') return 'model';
+  if (lowerType === 'skill') return 'skill';
   if (lowerType === 'pattern') return 'pattern';
+  if (lowerType === 'concept') return 'concept';
+  if (lowerType === 'solution') return 'solution';
+  if (lowerType === 'template') return 'template';
+  if (lowerType === 'profile') return 'profile';
+  if (lowerType === 'rule') return 'rule';
   if (lowerType === 'file') return 'file';
 
   if (lowerId.includes('hit_error') || lowerId.includes('hit-error')) return 'HIT_ERROR';
   if (lowerId.includes('error') || lowerId.includes('exception') || lowerId.includes('timeout')) return 'error';
   if (/[\\/]/.test(sourceId) || /\.[a-z0-9]{1,8}$/i.test(sourceId)) return 'file';
 
-  return 'pattern';
+  return 'concept';
+}
+
+function isUnifiedNodeType(value: string): value is UnifiedNodeType {
+  return (KNOWN_TYPES as readonly string[]).includes(value);
 }
 
 function stripPrefix(id: string): string {
@@ -135,9 +230,17 @@ function positionForNode(type: UnifiedNodeType, id: string): { x: number; y: num
     session: { x: 180, y: 160 },
     error: { x: 620, y: 160 },
     HIT_ERROR: { x: 940, y: 240 },
-    pattern: { x: 260, y: 500 },
-    tool: { x: 700, y: 500 },
-    file: { x: 980, y: 500 },
+    agent: { x: 360, y: 160 },
+    tool: { x: 820, y: 160 },
+    model: { x: 1060, y: 160 },
+    skill: { x: 180, y: 420 },
+    pattern: { x: 380, y: 420 },
+    concept: { x: 580, y: 420 },
+    solution: { x: 780, y: 420 },
+    template: { x: 980, y: 420 },
+    profile: { x: 1180, y: 420 },
+    rule: { x: 380, y: 650 },
+    file: { x: 780, y: 650 },
   }[type];
 
   const seed = seedFromString(id);
@@ -157,6 +260,29 @@ function edgeColorForLabel(label: string | undefined): string {
   if (lower.includes('pattern')) return '#047857';
   if (lower.includes('tool')) return '#0891b2';
   return '#52525b';
+}
+
+function applyEdgeControls<T extends { data?: { strength?: number } }>(
+  input: T[],
+  minStrength: number,
+  topK: number
+): T[] {
+  const withStrength = input.filter((item) => {
+    const strength = typeof item.data?.strength === 'number' ? item.data.strength : 1;
+    return strength >= minStrength;
+  });
+
+  if (topK <= 0 || withStrength.length <= topK) {
+    return withStrength;
+  }
+
+  return [...withStrength]
+    .sort((a, b) => {
+      const aStrength = typeof a.data?.strength === 'number' ? a.data.strength : 1;
+      const bStrength = typeof b.data?.strength === 'number' ? b.data.strength : 1;
+      return bStrength - aStrength;
+    })
+    .slice(0, topK);
 }
 
 function nodeColor(nodeType: UnifiedNodeType, severity?: string): string {
@@ -205,8 +331,16 @@ const nodeTypes = {
   session: GraphNodeCard,
   error: GraphNodeCard,
   HIT_ERROR: GraphNodeCard,
+  agent: GraphNodeCard,
   pattern: GraphNodeCard,
   tool: GraphNodeCard,
+  model: GraphNodeCard,
+  skill: GraphNodeCard,
+  concept: GraphNodeCard,
+  solution: GraphNodeCard,
+  template: GraphNodeCard,
+  profile: GraphNodeCard,
+  rule: GraphNodeCard,
   file: GraphNodeCard,
 } as const;
 
@@ -391,8 +525,16 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
     session: true,
     error: true,
     HIT_ERROR: true,
+    agent: true,
     pattern: true,
     tool: true,
+    model: true,
+    skill: true,
+    concept: true,
+    solution: true,
+    template: true,
+    profile: true,
+    rule: true,
     file: true,
   });
   const [searchTerm, setSearchTerm] = useState('');
@@ -400,6 +542,13 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
   const [focusDepth, setFocusDepth] = useState<1 | 2>(1);
   const [selectedFlowNode, setSelectedFlowNode] = useState<UnifiedFlowNode | null>(null);
   const [defaultViewport, setDefaultViewport] = useState<Viewport | undefined>(() => loadSavedViewport());
+  const [viewportZoom, setViewportZoom] = useState<number>(defaultViewport?.zoom ?? 1);
+  const [tierOverride, setTierOverride] = useState<LODTier | null>(null);
+  const [focusGroup, setFocusGroup] = useState<GroupKey | null>(null);
+  const [focusType, setFocusType] = useState<UnifiedNodeType | null>(null);
+  const [minEdgeStrength, setMinEdgeStrength] = useState<number>(1);
+  const [maxVisibleEdges, setMaxVisibleEdges] = useState<number>(300);
+  const [autoEdgeControls, setAutoEdgeControls] = useState<boolean>(true);
 
   const fetchData = useCallback(async () => {
     if (externalNodes && externalEdges) {
@@ -413,7 +562,7 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
 
     try {
       setLoading(true);
-      const response = await fetch('/api/memory-graph');
+      const response = await fetch('/api/memory-graph?sinceDays=7&maxFanout=15');
       if (!response.ok) {
         throw new Error(`Failed to load graph (${response.status})`);
       }
@@ -440,7 +589,7 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
 
     const timer = setInterval(() => {
       void fetchData();
-    }, 5000);
+    }, 15000);
 
     return () => clearInterval(timer);
   }, [externalEdges, externalNodes, fetchData]);
@@ -457,10 +606,13 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const neighborhood = useMemo(() => computeNeighborhood(focusNodeId, focusDepth, edges), [edges, focusDepth, focusNodeId]);
 
-  const visibleNodes = useMemo(() => {
+  const visibleInstanceNodes = useMemo(() => {
     return nodes.filter((node) => {
       const typeVisible = activeTypes[node.type as UnifiedNodeType] ?? false;
       if (!typeVisible && node.id !== focusNodeId) return false;
+
+      if (focusGroup && TYPE_TO_GROUP[node.type as UnifiedNodeType] !== focusGroup) return false;
+      if (focusType && node.type !== focusType) return false;
 
       if (neighborhood && !neighborhood.has(node.id)) return false;
 
@@ -470,29 +622,225 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
     });
   }, [activeTypes, focusNodeId, neighborhood, nodes, normalizedSearch]);
 
-  const visibleNodeIds = useMemo(() => new Set(visibleNodes.map((node) => node.id)), [visibleNodes]);
+  const visibleNodeIds = useMemo(() => new Set(visibleInstanceNodes.map((node) => node.id)), [visibleInstanceNodes]);
 
-  const visibleEdges = useMemo(() => {
+  const visibleInstanceEdges = useMemo(() => {
     return edges.filter((edge) => visibleNodeIds.has(edge.source) && visibleNodeIds.has(edge.target));
   }, [edges, visibleNodeIds]);
 
+  const filteredInstanceEdges = useMemo(() => {
+    return applyEdgeControls(visibleInstanceEdges, minEdgeStrength, maxVisibleEdges);
+  }, [maxVisibleEdges, minEdgeStrength, visibleInstanceEdges]);
+
+  const effectiveTier = useMemo<LODTier>(() => {
+    if (tierOverride !== null) return tierOverride;
+    if (viewportZoom < 0.45) return 0;
+    if (viewportZoom < 0.85 || visibleInstanceNodes.length > 180) return 1;
+    return 2;
+  }, [tierOverride, viewportZoom, visibleInstanceNodes.length]);
+
+  useEffect(() => {
+    if (!autoEdgeControls) return;
+
+    let nextMinStrength = 1;
+    let nextMaxEdges = 400;
+
+    if (viewportZoom < 0.35) {
+      nextMinStrength = 4;
+      nextMaxEdges = 120;
+    } else if (viewportZoom < 0.55) {
+      nextMinStrength = 3;
+      nextMaxEdges = 180;
+    } else if (viewportZoom < 0.85) {
+      nextMinStrength = 2;
+      nextMaxEdges = 260;
+    }
+
+    if (effectiveTier === 0) {
+      nextMinStrength = Math.max(nextMinStrength, 3);
+      nextMaxEdges = Math.min(nextMaxEdges, 180);
+    } else if (effectiveTier === 1) {
+      nextMinStrength = Math.max(nextMinStrength, 2);
+      nextMaxEdges = Math.min(nextMaxEdges, 240);
+    }
+
+    setMinEdgeStrength(nextMinStrength);
+    setMaxVisibleEdges(nextMaxEdges);
+  }, [autoEdgeControls, effectiveTier, viewportZoom]);
+
+  const visibleGraph = useMemo<{ nodes: UnifiedFlowNode[]; edges: UnifiedFlowEdge[] }>(() => {
+    if (effectiveTier === 2) {
+      return { nodes: visibleInstanceNodes, edges: filteredInstanceEdges };
+    }
+
+    const nodeById = new Map(visibleInstanceNodes.map((node) => [node.id, node]));
+
+    if (effectiveTier === 1) {
+      const typeNodes: UnifiedFlowNode[] = [];
+      for (const type of KNOWN_TYPES) {
+        if (!activeTypes[type]) continue;
+        if (focusGroup && TYPE_TO_GROUP[type] !== focusGroup) continue;
+
+        const count = visibleInstanceNodes.filter((node) => node.type === type).length;
+        if (count === 0) continue;
+
+        typeNodes.push({
+          id: `meta-type:${type}`,
+          type,
+          position: positionForNode(type, `meta-type:${type}`),
+          data: {
+            label: `${TYPE_LABEL[type]} (${count})`,
+            frequency: count,
+            source_id: `meta-type:${type}`,
+            task_context: 'hierarchy-type-node',
+          },
+          style: { borderRadius: 12 },
+          draggable: true,
+          selectable: true,
+        });
+      }
+
+      const typeEdgeMap = new Map<string, { from: UnifiedNodeType; to: UnifiedNodeType; weight: number }>();
+      for (const edge of filteredInstanceEdges) {
+        const sourceNode = nodeById.get(edge.source);
+        const targetNode = nodeById.get(edge.target);
+        if (!sourceNode || !targetNode) continue;
+
+        const fromType = sourceNode.type as UnifiedNodeType;
+        const toType = targetNode.type as UnifiedNodeType;
+        if (focusGroup && (TYPE_TO_GROUP[fromType] !== focusGroup || TYPE_TO_GROUP[toType] !== focusGroup)) continue;
+
+        const key = `${fromType}->${toType}`;
+        const existing = typeEdgeMap.get(key);
+        const strength = typeof edge.data?.strength === 'number' ? edge.data.strength : 1;
+        if (existing) {
+          existing.weight += strength;
+        } else {
+          typeEdgeMap.set(key, { from: fromType, to: toType, weight: strength });
+        }
+      }
+
+      const typeEdges: UnifiedFlowEdge[] = applyEdgeControls(
+        Array.from(typeEdgeMap.values()).map((item, index) => ({
+        id: `meta-type-edge:${item.from}->${item.to}:${index}`,
+        source: `meta-type:${item.from}`,
+        target: `meta-type:${item.to}`,
+        type: 'smoothstep',
+        data: { label: `${TYPE_LABEL[item.from]} -> ${TYPE_LABEL[item.to]}`, strength: item.weight },
+        label: `${item.weight}`,
+        animated: item.weight > 3,
+        style: {
+          stroke: edgeColorForLabel(`${item.from}->${item.to}`),
+          strokeWidth: Math.max(1, Math.min(6, 1 + item.weight / 2)),
+          opacity: 0.8,
+        },
+        markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14, color: '#52525b' },
+      })),
+        minEdgeStrength,
+        maxVisibleEdges
+      );
+
+      return { nodes: typeNodes, edges: typeEdges };
+    }
+
+    const groupNodes: UnifiedFlowNode[] = [];
+    for (const group of Object.keys(GROUP_LABELS) as GroupKey[]) {
+      const count = visibleInstanceNodes.filter((node) => TYPE_TO_GROUP[node.type as UnifiedNodeType] === group).length;
+      if (count === 0) continue;
+
+      groupNodes.push({
+        id: `meta-group:${group}`,
+        type: GROUP_NODE_TYPE[group],
+        position: GROUP_POSITIONS[group],
+        data: {
+          label: `${GROUP_LABELS[group]} (${count})`,
+          frequency: count,
+          source_id: `meta-group:${group}`,
+          task_context: 'hierarchy-group-node',
+        },
+        style: {
+          borderRadius: 14,
+          boxShadow: `0 0 0 1px ${GROUP_COLORS[group]}66 inset`,
+        },
+        draggable: true,
+        selectable: true,
+      });
+    }
+
+    const groupEdgeMap = new Map<string, { from: GroupKey; to: GroupKey; weight: number }>();
+    for (const edge of filteredInstanceEdges) {
+      const sourceNode = nodeById.get(edge.source);
+      const targetNode = nodeById.get(edge.target);
+      if (!sourceNode || !targetNode) continue;
+
+      const fromGroup = TYPE_TO_GROUP[sourceNode.type as UnifiedNodeType];
+      const toGroup = TYPE_TO_GROUP[targetNode.type as UnifiedNodeType];
+      const key = `${fromGroup}->${toGroup}`;
+      const strength = typeof edge.data?.strength === 'number' ? edge.data.strength : 1;
+      const existing = groupEdgeMap.get(key);
+      if (existing) {
+        existing.weight += strength;
+      } else {
+        groupEdgeMap.set(key, { from: fromGroup, to: toGroup, weight: strength });
+      }
+    }
+
+    const groupEdges: UnifiedFlowEdge[] = applyEdgeControls(
+      Array.from(groupEdgeMap.values()).map((item, index) => ({
+      id: `meta-group-edge:${item.from}->${item.to}:${index}`,
+      source: `meta-group:${item.from}`,
+      target: `meta-group:${item.to}`,
+      type: 'smoothstep',
+      data: { label: `${GROUP_LABELS[item.from]} -> ${GROUP_LABELS[item.to]}`, strength: item.weight },
+      label: `${item.weight}`,
+      animated: item.weight > 5,
+      style: {
+        stroke: GROUP_COLORS[item.from],
+        strokeWidth: Math.max(1, Math.min(8, 2 + item.weight / 3)),
+        opacity: 0.75,
+      },
+      markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16, color: GROUP_COLORS[item.from] },
+    })),
+      minEdgeStrength,
+      maxVisibleEdges
+    );
+
+    return { nodes: groupNodes, edges: groupEdges };
+  }, [
+    activeTypes,
+    effectiveTier,
+    filteredInstanceEdges,
+    focusGroup,
+    maxVisibleEdges,
+    minEdgeStrength,
+    visibleInstanceNodes,
+  ]);
+
   const typeCounts = useMemo(() => {
-    return nodes.reduce<Record<UnifiedNodeType, number>>(
+    return visibleInstanceNodes.reduce<Record<UnifiedNodeType, number>>(
       (acc, node) => {
         const nodeType = node.type as UnifiedNodeType;
         acc[nodeType] = (acc[nodeType] ?? 0) + 1;
         return acc;
       },
-      {
-        session: 0,
-        error: 0,
-        HIT_ERROR: 0,
-        pattern: 0,
-        tool: 0,
-        file: 0,
-      }
+        {
+          session: 0,
+          error: 0,
+          HIT_ERROR: 0,
+          agent: 0,
+          pattern: 0,
+          tool: 0,
+          model: 0,
+          skill: 0,
+          concept: 0,
+          solution: 0,
+          template: 0,
+          profile: 0,
+          rule: 0,
+          file: 0,
+        }
     );
-  }, [nodes]);
+  }, [visibleInstanceNodes]);
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -514,6 +862,27 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
 
   const onNodeClick = useCallback(
     (_: React.MouseEvent, node: UnifiedFlowNode) => {
+      if (node.id.startsWith('meta-group:')) {
+        const group = node.id.replace('meta-group:', '') as GroupKey;
+        setFocusGroup(group);
+        setFocusType(null);
+        setTierOverride(1);
+        setSelectedFlowNode(node);
+        onNodeSelect?.(null);
+        return;
+      }
+
+      if (node.id.startsWith('meta-type:')) {
+        const typeValue = node.id.replace('meta-type:', '');
+        if (isUnifiedNodeType(typeValue)) {
+          setFocusType(typeValue);
+          setTierOverride(2);
+          setSelectedFlowNode(node);
+          onNodeSelect?.(null);
+          return;
+        }
+      }
+
       setSelectedFlowNode(node);
       setFocusNodeId(node.id);
       onNodeSelect?.(node.id);
@@ -523,6 +892,9 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
 
   const clearFocus = useCallback(() => {
     setFocusNodeId(null);
+    setFocusType(null);
+    setFocusGroup(null);
+    setTierOverride(null);
     setSelectedFlowNode(null);
     onNodeSelect?.(null);
   }, [onNodeSelect]);
@@ -539,11 +911,15 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
 
     setSelectedFlowNode(match);
     setFocusNodeId(match.id);
+    setTierOverride(2);
+    setFocusType(null);
+    setFocusGroup(null);
     onNodeSelect?.(match.id);
   }, [nodes, normalizedSearch, onNodeSelect]);
 
   const onMoveEnd = useCallback<OnMove>((_, viewport) => {
     saveViewport(viewport);
+    setViewportZoom(viewport.zoom);
     if (!defaultViewport) setDefaultViewport(viewport);
   }, [defaultViewport]);
 
@@ -573,8 +949,8 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
   return (
     <div className="h-full min-h-[640px] w-full overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950">
       <ReactFlow
-        nodes={visibleNodes}
-        edges={visibleEdges}
+        nodes={visibleGraph.nodes}
+        edges={visibleGraph.edges}
         defaultViewport={defaultViewport}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
@@ -659,14 +1035,82 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
             </button>
             <button
               type="button"
+              onClick={() => setTierOverride((prev) => (prev === 0 ? null : 0))}
+              className="rounded-md border border-zinc-600 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-700"
+            >
+              Group view
+            </button>
+            <button
+              type="button"
+              onClick={() => setTierOverride((prev) => (prev === 1 ? null : 1))}
+              className="rounded-md border border-zinc-600 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-700"
+            >
+              Type view
+            </button>
+            <button
+              type="button"
+              onClick={() => setTierOverride((prev) => (prev === 2 ? null : 2))}
+              className="rounded-md border border-zinc-600 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-700"
+            >
+              Instance view
+            </button>
+            <button
+              type="button"
               onClick={clearFocus}
               className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800"
             >
               Clear focus
             </button>
           </div>
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-zinc-400">
+            <label className="flex items-center gap-2">
+              <span>Edge min strength</span>
+              <input
+                type="range"
+                min={1}
+                max={10}
+                step={1}
+                value={minEdgeStrength}
+                onChange={(event) => {
+                  setAutoEdgeControls(false);
+                  setMinEdgeStrength(Number(event.target.value));
+                }}
+                className="accent-emerald-500"
+              />
+              <span className="font-mono text-zinc-200">{minEdgeStrength}</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <span>Max edges</span>
+              <input
+                type="number"
+                min={25}
+                max={1500}
+                step={25}
+                value={maxVisibleEdges}
+                onChange={(event) => {
+                  const parsed = Number.parseInt(event.target.value, 10);
+                  if (!Number.isFinite(parsed)) return;
+                  setAutoEdgeControls(false);
+                  setMaxVisibleEdges(Math.max(25, Math.min(1500, parsed)));
+                }}
+                className="w-20 rounded border border-zinc-700 bg-zinc-950 px-2 py-1 text-zinc-100"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => setAutoEdgeControls((prev) => !prev)}
+              className={`rounded-md border px-2 py-1 ${
+                autoEdgeControls
+                  ? 'border-emerald-600/40 bg-emerald-500/15 text-emerald-200'
+                  : 'border-zinc-700 bg-zinc-900 text-zinc-300'
+              }`}
+            >
+              {autoEdgeControls ? 'Auto edges' : 'Manual edges'}
+            </button>
+            <span className="text-zinc-500">Visible edges: {visibleGraph.edges.length}</span>
+          </div>
           <p className="mt-2 text-xs text-zinc-500">
-            Drag to rearrange, scroll to zoom, click node to expand neighborhood.
+            Tier {effectiveTier} • zoom {viewportZoom.toFixed(2)} • drag to rearrange, scroll to zoom, click nodes to drill down.
           </p>
         </Panel>
 

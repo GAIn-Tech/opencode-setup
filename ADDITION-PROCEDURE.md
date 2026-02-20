@@ -19,6 +19,7 @@ This procedure **automates enforcement** to prevent future gaps.
 |---------------|--------|----------------|
 | Package | `packages/` | 1-6 |
 | Custom Skill | `opencode-config/skills/` | 1, 4-6 |
+| Skill Profile | `opencode-config/skills/registry.json` | 1, 4-6 |
 | Custom Command | `opencode-config/commands/` | 1, 4-6 |
 | MCP Server | `mcp-servers/` | 1-6 |
 | Plugin | `plugins/` | 1-6 |
@@ -37,6 +38,12 @@ packages/opencode-new-package/src/index.js
 
 # Skill  
 opencode-config/skills/my-skill/SKILL.md
+
+# Skill docs (if adding/modifying composition behavior)
+docs/skills/OVERVIEW.md
+docs/skills/PROFILES.md
+docs/skills/CREATING-SKILLS.md
+docs/skills/COMPOSITION.md
 
 # Command
 opencode-config/commands/my-command/
@@ -89,11 +96,12 @@ const CONFIG_DIRS = [
 
 ### Step 5: Document the Component
 
-Update central documentation:
+Update central documentation following the opencode-setup Documentation Style Guide (docs/documentation-style-guide.md):
 
 - `README.md` - Add to feature list
 - `INTEGRATION-GUIDE.md` - Document usage if applicable
 - `TROUBLESHOOTING.md` - Add troubleshooting notes if needed
+- All new documentation must use consistent heading levels, code block syntax highlighting, and visual hierarchy principles
 
 ### Step 6: Run Automated Verification
 
@@ -101,11 +109,15 @@ Update central documentation:
 
 ```bash
 npm run verify
+npm run verify:integration
+node scripts/skill-profile-loader.mjs validate
 ```
 
 This runs `scripts/verify-integration.mjs` which checks:
 - All packages export from index.js
-- All skills have SKILL.md
+- All skills have SKILL.md (including nested skills like `superpowers/*`)
+- Skill registry and schema files exist
+- Skill profile/dependency validation passes
 - All imports resolve
 - Sync directories are configured
 
@@ -161,6 +173,8 @@ Before submitting a PR, confirm:
 - [ ] Package has `src/index.js` with exports
 - [ ] New package imported in orchestration (if applicable)
 - [ ] New directories added to `CONFIG_DIRS` in copy-config.mjs
+- [ ] If adding a skill: `registry.json` updated with dependencies/synergies/conflicts/triggers
+- [ ] If adding profile behavior: docs in `docs/skills/` updated
 - [ ] Documentation updated
 - [ ] `npm run verify` passes
 - [ ] `npm run governance:check` passes

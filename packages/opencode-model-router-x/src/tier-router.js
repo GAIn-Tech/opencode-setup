@@ -2,7 +2,27 @@
  * VISION Tier Routing System
  * Based on JARVIS/VISION integration patterns
  * Provides complexity-based model selection and automatic fallback
+ * Includes anti-pattern detection and memory-aware routing
  */
+
+// VISION-style anti-pattern detection
+const ANTI_PATTERNS = [
+  { pattern: /override|veto|bypass/i, risk: 0.7, name: 'attempt_override' },
+  { pattern: /ignore.*error|skip.*validation|disable.*check/i, risk: 0.5, name: 'policy_bypass' },
+  { pattern: /timeout|timeout.*error|deadlock/i, risk: 0.4, name: 'execution_timeout' },
+  { pattern: /rate.*limit|quota|exhausted/i, risk: 0.3, name: 'rate_limit' },
+  { pattern: /circuit.*break|too.*many.*request/i, risk: 0.3, name: 'circuit_open' },
+  { pattern: /auth.*fail|unauthorized|forbidden/i, risk: 0.5, name: 'auth_failure' },
+  { pattern: /parse.*error|invalid.*json|malformed/i, risk: 0.4, name: 'parse_error' },
+  { pattern: /memory.*error|heap.*out|oom/i, risk: 0.6, name: 'memory_error' },
+];
+
+// Memory thresholds for model selection (from VISION context_governor)
+const MEMORY_THRESHOLDS = {
+  LOW: 256 * 1024 * 1024,    // 256MB - use cheaper models
+  MEDIUM: 768 * 1024 * 1024, // 768MB - use standard models
+  HIGH: 1024 * 1024 * 1024,  // 1GB - use faster models
+};
 
 const COMPLEXITY_KEYWORDS = [
   'architecture', 'design', 'refactor', 'implement',
@@ -77,6 +97,11 @@ class TierRouter {
       critical: { calls: 0, success: 0, cost: 0 }
     };
     this.learningObservations = [];
+    
+    // Context budget tracking (VISION pattern)
+    this.contextBudget = options.contextBudget || 100000; // default 100k tokens
+    this.contextUsed = 0;
+    this.contextWarnings = [];
   }
 
   /**
@@ -142,6 +167,70 @@ class TierRouter {
   }
 
   /**
+   * Detect anti-patterns in error messages (VISION pattern)
+   * Returns highest risk score found
+   */
+  detectAntiPattern(errorMessage) {
+    if (!errorMessage || typeof errorMessage !== 'string') {
+      return { risk: 0, patterns: [] };
+    }
+
+    let highestRisk = 0;
+    const matchedPatterns = [];
+
+    for (const anti of ANTI_PATTERNS) {
+      if (anti.pattern.test(errorMessage)) {
+        matchedPatterns.push(anti.name);
+        highestRisk = Math.max(highestRisk, anti.risk);
+      }
+    }
+
+    return { risk: highestRisk, patterns: matchedPatterns };
+  }
+
+  /**
+   * Determine routing based on risk score (VISION pattern)
+   * >= 0.6: requires review
+   * >= 0.3: retry with fallback
+   * < 0.3: normal execution
+   */
+  getRiskBasedRouting(riskScore, tier) {
+    if (riskScore >= 0.6) {
+      return { action: 'REVIEW', reason: 'High risk detected', fallbackTier: this.getFallbackTier(tier) };
+    } else if (riskScore >= 0.3) {
+      return { action: 'RETRY', reason: 'Medium risk - retry with fallback', fallbackTier: this.getFallbackTier(tier) };
+    } else {
+      return { action: 'PROCEED', reason: 'Low risk - proceed normally', fallbackTier: null };
+    }
+  }
+
+  /**
+   * Memory-aware model selection (VISION context_governor pattern)
+   * Adjusts tier based on available memory
+   */
+  getMemoryAwareTier(baseTier, availableMemory = null) {
+    // If no memory info, return base tier
+    if (!availableMemory) {
+      return baseTier;
+    }
+
+    // Get memory in bytes
+    const memoryMB = availableMemory;
+    
+    // Downgrade tier if low memory
+    if (memoryMB < MEMORY_THRESHOLDS.LOW / (1024 * 1024)) {
+      // Force to cheaper model for low memory
+      return this.getFallbackTier(baseTier) || 'mechanical';
+    } else if (memoryMB < MEMORY_THRESHOLDS.MEDIUM / (1024 * 1024)) {
+      // Keep current tier but prefer faster models
+      return baseTier;
+    } else {
+      // Full memory - can use any tier
+      return baseTier;
+    }
+  }
+
+  /**
    * Get fallback tier
    */
   getFallbackTier(currentTier) {
@@ -155,6 +244,41 @@ class TierRouter {
     this._checkDailyReset();
     const tierCost = TIER_CONFIG[tier]?.cost || 0.2;
     return (this.dailySpent + tierCost) <= this.dailyBudget;
+  }
+
+  /**
+   * Context budget tracking (VISION pattern)
+   * Returns degradation strategy based on context usage
+   */
+  getContextStrategy(tokensUsed) {
+    this.contextUsed = tokensUsed || 0;
+    const usagePercent = (this.contextUsed / this.contextBudget) * 100;
+
+    if (usagePercent > 90) {
+      return { 
+        strategy: 'fallback_to_summary_context', 
+        percent: usagePercent,
+        action: 'Compact context to summary'
+      };
+    } else if (usagePercent > 70) {
+      return { 
+        strategy: 'open_new_window_with_compaction', 
+        percent: usagePercent,
+        action: 'Start new window with compaction'
+      };
+    } else if (usagePercent > 50) {
+      return { 
+        strategy: 'semantic_fold_and_continue', 
+        percent: usagePercent,
+        action: 'Fold semantic sections'
+      };
+    } else {
+      return { 
+        strategy: 'normal', 
+        percent: usagePercent,
+        action: 'Continue normally'
+      };
+    }
   }
 
   /**

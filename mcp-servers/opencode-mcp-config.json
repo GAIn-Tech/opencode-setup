@@ -1,5 +1,11 @@
 {
   "mcpServers": {
+    "opencode-dashboard-launcher": {
+      "command": "node",
+      "args": ["{{OPENCODE_ROOT}}/packages/opencode-dashboard-launcher/src/index.js"],
+      "description": "Auto-starts the OpenCode dashboard when sessions begin",
+      "enabled": true
+    },
     "opencode-memory-graph": {
       "command": "node",
       "args": ["{{OPENCODE_ROOT}}/packages/opencode-memory-graph/src/cli.js"],

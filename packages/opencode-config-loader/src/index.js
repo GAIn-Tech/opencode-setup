@@ -48,16 +48,6 @@ class ConfigLoader {
           cleanupIntervalMs: 300000
         }
       },
-      timeouts: {
-        default: 5000,
-        longRunning: 30000,
-        healthCheck: 5000,
-        modelSync: 60000,
-        spawn: 5000,
-        graphDb: 10000,
-        quotaRisk: 3000,
-        retryBackoff: 1000
-      },
       logging: {
         rotation: {
           maxFiles: 5,

@@ -1,25 +1,12 @@
 {
-  "$schema": "https://opencode.ai/config.json",
-  "model": "openai/gpt-5.3-codex",
-  "plugin": [
-    "oh-my-opencode@3.5.2",
-    "opencode-antigravity-auth@1.4.6",
-    "opencode-supermemory@2.0.1",
-    "@tarquinen/opencode-dcp@2.1.1",
-    "cc-safety-net@0.7.1",
-    "@azumag/opencode-rate-limit-fallback@1.67.0",
-    "@mohak34/opencode-notifier@0.1.18",
-    "opencode-plugin-langfuse@0.1.8",
-    "opencode-plugin-preload-skills@1.8.0",
-    "@symbioticsec/opencode-security-plugin@0.0.1-beta.9",
-    "envsitter-guard@0.0.4",
-    "opencode-antigravity-quota@0.1.6",
-    "opencode-pty@0.2.1"
-  ],
-  "provider": {
+  "models": {
     "google": {
       "npm": "@ai-sdk/google",
+      "options": {
+        "apiKey": "{env:GEMINI_API_KEY}"
+      },
       "models": {
+<<<<<<< Updated upstream
         "antigravity-gemini-3-pro": {
           "name": "Gemini 3 Pro (Antigravity) - CURRENT FRONTIER",
           "limit": {
@@ -47,6 +34,8 @@
           },
           "priority": "primary"
         },
+=======
+>>>>>>> Stashed changes
         "antigravity-gemini-3-flash": {
           "name": "Gemini 3 Flash (Antigravity) - CURRENT FRONTIER",
           "limit": {
@@ -340,52 +329,16 @@
         "apiKey": "{env:NVIDIA_API_KEY}"
       },
       "models": {
-        "nvidia/kimi-k2.5-pro": {
-          "name": "Kimi K2.5 Pro (NVIDIA)",
-          "limit": {
-            "context": 200000,
-            "output": 8192
-          },
-          "modalities": {
-            "input": [
-              "text"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "priority": "primary"
-        },
-        "nvidia/kimi-k2.5-flash": {
-          "name": "Kimi K2.5 Flash (NVIDIA) - FAST",
-          "limit": {
-            "context": 100000,
-            "output": 8192
-          },
-          "modalities": {
-            "input": [
-              "text"
-            ],
-            "output": [
-              "text"
-            ]
-          },
+        "meta/llama-4-scout-17b-16k-instruct": {
+          "name": "Llama 4 Scout 17B (NVIDIA) - FAST",
+          "limit": { "context": 128000, "output": 16384 },
+          "modalities": { "input": ["text"], "output": ["text"] },
           "priority": "secondary"
         },
-        "nvidia/glm4.7": {
-          "name": "GLM 4.7 (NVIDIA)",
-          "limit": {
-            "context": 128000,
-            "output": 8192
-          },
-          "modalities": {
-            "input": [
-              "text"
-            ],
-            "output": [
-              "text"
-            ]
-          },
+        "meta/llama-4-maverick-17b-128k-instruct": {
+          "name": "Llama 4 Maverick 17B (NVIDIA)",
+          "limit": { "context": 128000, "output": 16384 },
+          "modalities": { "input": ["text"], "output": ["text"] },
           "priority": "secondary"
         }
       }

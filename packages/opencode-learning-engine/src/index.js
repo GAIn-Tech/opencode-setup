@@ -16,19 +16,6 @@ const { AntiPatternCatalog, VALID_TYPES: ANTI_PATTERN_TYPES, SEVERITY_WEIGHTS } 
 const { PositivePatternTracker, VALID_TYPES: POSITIVE_PATTERN_TYPES } = require('./positive-patterns');
 const { PatternExtractor } = require('./pattern-extractor');
 const { OrchestrationAdvisor, AGENT_CAPABILITIES, SKILL_AFFINITY } = require('./orchestration-advisor');
-
-// Export new meta-awareness components
-let MetaAwareness, MetaInstructionParser;
-try {
-  MetaAwareness = require('./meta-awareness');
-} catch (e) {
-  // Optional - works without
-}
-try {
-  MetaInstructionParser = require('./meta-instruction-parser');
-} catch (e) {
-  // Optional - works without
-}
 const EventEmitter = require('events');
 
 class LearningEngine extends EventEmitter {

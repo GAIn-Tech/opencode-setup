@@ -24,64 +24,57 @@ const PROCESSED_MARKER = path.join(LOG_DIR, '.memory-graph-processed');
 
 /**
  * Process new log entries and send to memory graph
- * FIX: Added try-catch wrapper to prevent crashes during log processing
  */
 async function processLogs() {
-  try {
-    if (!MemoryGraph) {
-      console.log('[memory-graph-bridge] MemoryGraph not available, skipping');
-      return;
-    }
-
-    if (!fs.existsSync(SESSION_LOG)) {
-      console.log('[memory-graph-bridge] No session log found');
-      return;
-    }
-
-    // Read last processed position
-    let lastPosition = 0;
-    if (fs.existsSync(PROCESSED_MARKER)) {
-      lastPosition = parseInt(fs.readFileSync(PROCESSED_MARKER, 'utf8')) || 0;
-    }
-
-    // Read new entries
-    const content = fs.readFileSync(SESSION_LOG, 'utf8');
-    const lines = content.slice(lastPosition).split('\n').filter(line => line.trim());
-    
-    if (lines.length === 0) {
-      console.log('[memory-graph-bridge] No new entries to process');
-      return;
-    }
-
-    console.log(`[memory-graph-bridge] Processing ${lines.length} new entries...`);
-
-    // Initialize memory graph
-    const graph = new MemoryGraph({
-      storagePath: path.join(os.homedir(), '.omc', 'memory-graph', 'data.json')
-    });
-
-    // Process each entry
-    for (const line of lines) {
-      try {
-        const entry = JSON.parse(line);
-        await processEntry(graph, entry);
-      } catch (e) {
-        console.error('[memory-graph-bridge] Failed to process entry:', e.message);
-      }
-    }
-
-    // Save graph
-    await graph.save();
-
-    // Update marker
-    fs.writeFileSync(PROCESSED_MARKER, String(content.length));
-
-    console.log('[memory-graph-bridge] Processing complete');
-  } catch (e) {
-    console.error('[memory-graph-bridge] Critical error during log processing:', e.message);
-    // Don't crash - just log the error and exit gracefully
-    process.exit(0);
+  if (!MemoryGraph) {
+    console.log('[memory-graph-bridge] MemoryGraph not available, skipping');
+    return;
   }
+
+  if (!fs.existsSync(SESSION_LOG)) {
+    console.log('[memory-graph-bridge] No session log found');
+    return;
+  }
+
+  // Read last processed position
+  let lastPosition = 0;
+  if (fs.existsSync(PROCESSED_MARKER)) {
+    lastPosition = parseInt(fs.readFileSync(PROCESSED_MARKER, 'utf8')) || 0;
+  }
+
+  // Read new entries
+  const content = fs.readFileSync(SESSION_LOG, 'utf8');
+  const lines = content.slice(lastPosition).split('\n').filter(line => line.trim());
+  
+  if (lines.length === 0) {
+    console.log('[memory-graph-bridge] No new entries to process');
+    return;
+  }
+
+  console.log(`[memory-graph-bridge] Processing ${lines.length} new entries...`);
+
+  // Initialize memory graph
+  const graph = new MemoryGraph({
+    storagePath: path.join(os.homedir(), '.omc', 'memory-graph', 'data.json')
+  });
+
+  // Process each entry
+  for (const line of lines) {
+    try {
+      const entry = JSON.parse(line);
+      await processEntry(graph, entry);
+    } catch (e) {
+      console.error('[memory-graph-bridge] Failed to process entry:', e.message);
+    }
+  }
+
+  // Save graph
+  await graph.save();
+
+  // Update marker
+  fs.writeFileSync(PROCESSED_MARKER, String(content.length));
+
+  console.log('[memory-graph-bridge] Processing complete');
 }
 
 /**

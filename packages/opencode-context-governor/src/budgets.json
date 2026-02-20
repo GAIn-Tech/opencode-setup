@@ -56,19 +56,19 @@
       "provider": "openai",
       "displayName": "GPT-4o Mini"
     },
-    "google/gemini-2.0-pro": {
+    "google/gemini-3-pro": {
       "maxTokens": 1000000,
       "warnThreshold": 0.75,
       "errorThreshold": 0.90,
       "provider": "google",
-      "displayName": "Gemini 2.0 Pro"
+      "displayName": "Gemini 3 Pro (Nov 2025)"
     },
-    "google/gemini-2.0-flash": {
+    "google/gemini-3-flash": {
       "maxTokens": 1000000,
       "warnThreshold": 0.75,
       "errorThreshold": 0.90,
       "provider": "google",
-      "displayName": "Gemini 2.0 Flash"
+      "displayName": "Gemini 3 Flash (Dec 2025)"
     }
   },
   "defaults": {

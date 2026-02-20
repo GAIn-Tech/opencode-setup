@@ -2,11 +2,12 @@
 
 ## Prerequisites
 
-1. **Windows** (with Git Bash) or **Linux/macOS**
-2. **Node.js** v18+ and npm
-3. **Git**
-4. **bun** (optional, used by some plugins)
-5. **uv/uvx** (needed for grep MCP server)
+- **Operating System**: Windows (with Git Bash) or Linux/macOS
+- **Node.js**: v18+
+- **npm**: Package manager for Node.js
+- **Git**: Version control system
+- **bun**: Optional, used by some plugins
+- **uv/uvx**: Required for grep MCP server
 
 ## Step 1: Install OpenCode CLI
 
@@ -24,14 +25,27 @@ mkdir -p ~/.config/opencode
 mkdir -p ~/.opencode/global-rules
 ```
 
-## Step 3: Sync Configuration and Runtime Assets
+## Step 3: Copy Configuration Files
 
 ```bash
-# Sync config files + repo-vendored skills/commands/agents to live runtime
-node scripts/copy-config.mjs
-```
+# Main OpenCode config (models, plugins, MCPs, permissions)
+cp opencode-config/opencode.json ~/.config/opencode/opencode.json
 
-This keeps `~/.config/opencode/` aligned with `opencode-config/` after setup and after every pull.
+# Antigravity account rotation
+cp opencode-config/antigravity.json ~/.config/opencode/antigravity.json
+
+# oh-my-opencode agent overrides
+cp opencode-config/oh-my-opencode.json ~/.config/opencode/oh-my-opencode.json
+
+# Compound engineering (skills, commands)
+cp opencode-config/compound-engineering.json ~/.config/opencode/compound-engineering.json
+
+# Supermemory relevance-focused memory behavior
+cp opencode-config/supermemory.json ~/.config/opencode/supermemory.json
+
+# Global config (delegation standards, rules, profiles)
+cp opencode-config/config.yaml ~/.opencode/config.yaml
+```
 
 ### API Keys & Environment Variables
 

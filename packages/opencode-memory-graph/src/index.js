@@ -95,7 +95,8 @@ class MemoryGraph {
       return; // Learning engine not available
     }
     
-    const frequentErrors = this.getErrorFrequency();
+    // FIX: Await async getErrorFrequency() call
+    const frequentErrors = await this.getErrorFrequency();
     if (!frequentErrors || frequentErrors.length === 0) {
       return;
     }
@@ -104,19 +105,23 @@ class MemoryGraph {
       const le = new LearningEngine();
       for (const error of frequentErrors.slice(0, 10)) {
         if (error.count >= 3) {
-          await le.record({
-            type: 'anti_pattern',
-            pattern: error.error_type,
+          // FIX: Use correct API - addAntiPattern instead of non-existent record()
+          le.addAntiPattern({
+            type: 'repeated_mistake',
+            description: `Error ${error.error_type} occurred ${error.count} times across sessions`,
+            severity: error.count > 10 ? 'high' : error.count > 5 ? 'medium' : 'low',
             context: {
               source: 'memory-graph',
+              error_type: error.error_type,
               count: error.count,
-              firstSeen: error.first_seen,
-              lastSeen: error.last_seen
-            },
-            severity: error.count > 10 ? 'high' : error.count > 5 ? 'medium' : 'low'
+              first_seen: error.first_seen,
+              last_seen: error.last_seen
+            }
           });
         }
       }
+      // Persist after adding patterns
+      le.save();
     } catch (e) {
       console.warn('[MemoryGraph] Failed to ingest patterns to LearningEngine:', e.message);
       // Emit error event for monitoring

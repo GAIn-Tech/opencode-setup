@@ -73,7 +73,7 @@
       },
       "releaseDate": "2025-09-29"
     },
-"openai/gpt-5.3-codex": {
+    "openai/gpt-5.3-codex": {
       "id": "gpt-5.3-codex",
       "provider": "openai",
       "status": "active",
@@ -88,24 +88,6 @@
       "pricing": {
         "inputPer1M": 2.00,
         "outputPer1M": 16.00
-      },
-      "releaseDate": "2026-02-05"
-    },
-    "openai/gpt-5.3-codex-spark": {
-      "id": "gpt-5.3-codex-spark",
-      "provider": "openai",
-      "status": "active",
-      "capabilities": {
-        "contextWindow": 400000,
-        "maxOutputTokens": 128000,
-        "vision": true,
-        "functionCalling": true,
-        "jsonMode": true,
-        "systemPrompt": true
-      },
-      "pricing": {
-        "inputPer1M": 1.50,
-        "outputPer1M": 12.00
       },
       "releaseDate": "2026-02-05"
     },
@@ -161,7 +143,7 @@
         "inputPer1M": 2.00,
         "outputPer1M": 10.00
       },
-      "releaseDate": "2024-12-11"
+      "releaseDate": "2025-11-18"
     },
     "google/gemini-3-flash": {
       "id": "gemini-3-flash",
@@ -179,7 +161,7 @@
         "inputPer1M": 0.50,
         "outputPer1M": 3.00
       },
-      "releaseDate": "2024-12-11"
+      "releaseDate": "2025-12-17"
     },
     "groq/llama-4-maverick": {
       "id": "llama-4-maverick",
@@ -235,7 +217,7 @@
       },
       "releaseDate": "2025-04-05"
     },
-"deepseek/deepseek-chat": {
+    "deepseek/deepseek-chat": {
       "id": "deepseek-chat",
       "provider": "deepseek",
       "status": "active",
@@ -252,114 +234,6 @@
         "outputPer1M": 0.28
       },
       "releaseDate": "2025-01-01"
-    },
-    "nvidia/kimi-k2.5-pro": {
-      "id": "kimi-k2.5-pro",
-      "provider": "nvidia",
-      "status": "active",
-      "capabilities": {
-        "contextWindow": 128000,
-        "maxOutputTokens": 32000,
-        "vision": true,
-        "functionCalling": true,
-        "jsonMode": true,
-        "systemPrompt": true
-      },
-      "pricing": {
-        "inputPer1M": 0.60,
-        "outputPer1M": 1.80
-      },
-      "releaseDate": "2026-01-15"
-    },
-    "nvidia/kimi-k2.5-flash": {
-      "id": "kimi-k2.5-flash",
-      "provider": "nvidia",
-      "status": "active",
-      "capabilities": {
-        "contextWindow": 128000,
-        "maxOutputTokens": 32000,
-        "vision": true,
-        "functionCalling": true,
-        "jsonMode": true,
-        "systemPrompt": true
-      },
-      "pricing": {
-        "inputPer1M": 0.30,
-        "outputPer1M": 0.90
-      },
-      "releaseDate": "2026-01-15"
-    },
-    "zen/kimi-k2.5-pro": {
-      "id": "kimi-k2.5-pro",
-      "provider": "zen",
-      "status": "active",
-      "capabilities": {
-        "contextWindow": 128000,
-        "maxOutputTokens": 32000,
-        "vision": true,
-        "functionCalling": true,
-        "jsonMode": true,
-        "systemPrompt": true
-      },
-      "pricing": {
-        "inputPer1M": 0.50,
-        "outputPer1M": 1.50
-      },
-      "releaseDate": "2026-01-15"
-    },
-    "nvidia/glm4.7": {
-      "id": "glm4.7",
-      "provider": "nvidia",
-      "status": "active",
-      "capabilities": {
-        "contextWindow": 128000,
-        "maxOutputTokens": 32000,
-        "vision": true,
-        "functionCalling": true,
-        "jsonMode": true,
-        "systemPrompt": true
-      },
-      "pricing": {
-        "inputPer1M": 0.35,
-        "outputPer1M": 0.70
-      },
-      "releaseDate": "2025-11-20"
-    },
-    "zen/glm5": {
-      "id": "glm5",
-      "provider": "zen",
-      "status": "active",
-      "capabilities": {
-        "contextWindow": 256000,
-        "maxOutputTokens": 64000,
-        "vision": true,
-        "functionCalling": true,
-        "jsonMode": true,
-        "systemPrompt": true
-      },
-      "pricing": {
-        "inputPer1M": 0.50,
-        "outputPer1M": 1.00
-      },
-      "releaseDate": "2026-02-01"
-    },
-    "minimax/minimax-m2.5": {
-      "id": "minimax-m2.5",
-      "provider": "minimax",
-      "status": "active",
-      "capabilities": {
-        "contextWindow": 128000,
-        "maxOutputTokens": 32000,
-        "vision": true,
-        "functionCalling": true,
-        "jsonMode": true,
-        "systemPrompt": true
-      },
-      "pricing": {
-        "inputPer1M": 0.40,
-        "outputPer1M": 0.80
-      },
-      "releaseDate": "2026-01-10"
     }
   },
   "providers": {
@@ -415,33 +289,6 @@
       "rateLimits": {
         "requestsPerMinute": 1000,
         "tokensPerMinute": 1000000
-      }
-    },
-    "nvidia": {
-      "id": "nvidia",
-      "name": "NVIDIA NIM",
-      "apiEndpoint": "https://integrate.api.nvidia.com/v1",
-      "rateLimits": {
-        "requestsPerMinute": 5000,
-        "tokensPerMinute": 5000000
-      }
-    },
-    "zen": {
-      "id": "zen",
-      "name": "Zen AI",
-      "apiEndpoint": "https://api.zen.ai/v1",
-      "rateLimits": {
-        "requestsPerMinute": 2000,
-        "tokensPerMinute": 2000000
-      }
-    },
-    "antigravity": {
-      "id": "antigravity",
-      "name": "Antigravity (Google Proxy)",
-      "apiEndpoint": "https://api.antigravity.ai/v1",
-      "rateLimits": {
-        "requestsPerMinute": 5000,
-        "tokensPerMinute": 5000000
       }
     }
   }

@@ -10,24 +10,6 @@
 const { AntiPatternCatalog } = require('./anti-patterns');
 const { PositivePatternTracker } = require('./positive-patterns');
 
-// Wire in MetaAwareness for self-diagnosis and orchestration guidance
-let MetaAwareness;
-try {
-  MetaAwareness = require('./meta-awareness');
-} catch (e) {
-  console.warn('[OrchestrationAdvisor] MetaAwareness not found — self-diagnosis disabled');
-  MetaAwareness = null;
-}
-
-// Wire in MetaInstructionParser for prompt-embedded orchestration control
-let MetaInstructionParser;
-try {
-  MetaInstructionParser = require('./meta-instruction-parser');
-} catch (e) {
-  console.warn('[OrchestrationAdvisor] MetaInstructionParser not found — prompt directives disabled');
-  MetaInstructionParser = null;
-}
-
 // Wire in tool-usage tracker for tool appropriateness insights
 let ToolUsageTracker;
 try {
@@ -106,12 +88,6 @@ class OrchestrationAdvisor {
     this.positivePatterns = positivePatternTracker || new PositivePatternTracker();
     this.hooks = hooks;
     this.outcomeLog = []; // Track advice → outcome for learning
-
-    // Initialize MetaAwareness for self-diagnosis and orchestration guidance
-    this.metaAwareness = MetaAwareness ? new MetaAwareness() : null;
-
-    // Initialize MetaInstructionParser for prompt-embedded directives
-    this.metaParser = MetaInstructionParser ? new MetaInstructionParser() : null;
   }
 
   /**
@@ -197,60 +173,10 @@ class OrchestrationAdvisor {
       suggestions,
       routing,
       risk_score: Math.max(antiCheck.risk_score, quotaRisk * 100),
+      riskScore: Math.max(antiCheck.risk_score, quotaRisk * 100), // camelCase for router compatibility
       quota_risk: quotaRisk,
-      should_pause: warnings.some(w => w.severity === 'critical'),
+      should_pause: antiCheck.risk_score > 15 || quotaRisk > 0.85, // High risk → agent should pause
     };
-
-    // === Meta-Instruction Parsing: Extract prompt-embedded directives ===
-    if (this.metaParser && taskContext.description) {
-      const metaConfig = this.metaParser.parse(taskContext.description);
-      if (metaConfig && Object.keys(metaConfig).length > 0) {
-        advice.executionConfig = metaConfig;
-        advice.meta_parsed = true;
-      }
-    }
-
-    // === Meta-Awareness: Self-diagnosis and orchestration guidance ===
-    if (this.metaAwareness) {
-      // Build system state from current advisor state
-      const systemState = {
-        antiPatterns: {
-          patterns: this.antiPatterns.patterns || [],
-        },
-        positivePatterns: {
-          patterns: this.positivePatterns.patterns || [],
-        },
-        recentOutcomes: this.outcomeLog.slice(-50), // Last 50 outcomes
-        advisor: {
-          outcomeLog: this.outcomeLog,
-        },
-      };
-
-      // Get self-diagnosis
-      const diagnostics = this.metaAwareness.diagnose(systemState);
-      advice.systemHealth = diagnostics;
-
-      // Get orchestration guidance based on task context
-      const guidance = this.metaAwareness.getOrchestrationGuidance(taskContext, systemState);
-      advice.metaGuidance = guidance;
-
-      // Apply meta-awareness adjustments to advice
-      if (guidance.shouldAdjust && guidance.adjustments.length > 0) {
-        // Add meta-awareness warnings
-        guidance.adjustments.forEach(adj => {
-          advice.warnings.push({
-            type: `meta_${adj.type}`,
-            description: adj.reason,
-            action: adj.action,
-            severity: 'medium',
-            strength: 'META_AWARENESS',
-          });
-        });
-
-        // Adjust confidence based on meta-awareness
-        advice.routing.confidence *= guidance.confidence;
-      }
-    }
 
     // Allow hooks to augment advice before returning
     if (this.hooks && typeof this.hooks.onBeforeAdviceReturn === 'function') {

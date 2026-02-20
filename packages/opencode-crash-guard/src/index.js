@@ -174,6 +174,5 @@ export { CrashRecovery } from './crash-recovery.js';
 export { ProcessIsolation } from './process-isolation.js';
 export { SubsystemGuard } from './subsystem-guard.js';
 export { commandExists, safeSpawn, whichMany, getSystemInfo } from './spawn-guard.js';
-export { default as shutdown } from './shutdown-manager.js';
 
 export default { initCrashGuard };

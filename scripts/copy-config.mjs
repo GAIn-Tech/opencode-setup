@@ -22,13 +22,12 @@ const CONFIG_FILES = [
 ];
 
 const CONFIG_DIRS = [
-  'learning-updates',
-  'skills',
   'commands',
   'agents',
   'docs',
   'models',
   'supermemory',
+  'skills',
 ];
 
 function ensureDir(dirPath) {
@@ -61,6 +60,11 @@ function copyDirSafe(dirName) {
   console.log(`[copy-config] Copied ${dirName}/`);
 }
 
+// Add copyDirSafe for new directories
+for (const dir of CONFIG_DIRS) {
+  copyDirSafe(dir);
+}
+
 function copyDataConfig() {
   const sourcePath = path.join(SOURCE_CONFIG_DIR, 'config.yaml');
   const targetPath = path.join(TARGET_DATA_DIR, 'config.yaml');
@@ -81,9 +85,7 @@ function main() {
     copyFileSafe(file);
   }
 
-  for (const dir of CONFIG_DIRS) {
-    copyDirSafe(dir);
-  }
+  copyDirSafe('learning-updates');
   copyDataConfig();
 
   console.log('[copy-config] Configuration sync complete');

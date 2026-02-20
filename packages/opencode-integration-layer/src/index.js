@@ -5,26 +5,7 @@
  * - SkillRL → OrchestrationAdvisor (skill selection augmentation)
  * - SkillRL → Learning Engine (failure distillation)
  * - Showboat → Proofcheck (evidence capture)
- * - ToolUsageTracker → Session Logger (tool invocation tracking)
  */
-
-let toolUsageTracker;
-try {
-  toolUsageTracker = require('@jackoatmon/opencode-learning-engine/src/tool-usage-tracker');
-} catch {
-  try {
-    toolUsageTracker = require('../../opencode-learning-engine/src/tool-usage-tracker');
-  } catch {
-    toolUsageTracker = null;
-  }
-}
-
-let sessionLogger;
-try {
-  sessionLogger = require('../../../orchestrate-bridge/session-logger');
-} catch {
-  sessionLogger = null;
-}
 let contextUtils;
 try {
   contextUtils = require('@jackoatmon/opencode-shared-orchestration/src/context-utils');
@@ -97,7 +78,8 @@ class IntegrationLayer {
     this.advisor = config.advisor || config.orchestrationAdvisor || null;
     this.modelRouter = config.modelRouter || config.ModelRouter || null;
     this.preloadSkills = config.preloadSkills || null;
-    this.currentTaskContext = null;
+    // P1 FIX: Use Map keyed by task_id instead of global mutable state
+    this.taskContextMap = new Map();
     this.currentSessionId = config.currentSessionId || config.sessionId || null;
     
     // Initialize utility packages
@@ -108,16 +90,6 @@ class IntegrationLayer {
     this.featureFlags = featureFlags;
     this.contextGovernor = contextGovernor;
     this.memoryGraph = memoryGraph;
-    
-    // Initialize tool usage tracker
-    this.toolUsageTracker = toolUsageTracker;
-    if (this.toolUsageTracker) {
-      try {
-        this.toolUsageTracker.init();
-      } catch (e) {
-        logger.warn('ToolUsageTracker init failed', { error: e.message });
-      }
-    }
     
     // Log initialization status
     logger.info('IntegrationLayer initialized', {
@@ -133,7 +105,6 @@ class IntegrationLayer {
       hasFeatureFlags: !!featureFlags,
       hasContextGovernor: !!contextGovernor,
       hasMemoryGraph: !!memoryGraph,
-      hasToolUsageTracker: !!toolUsageTracker,
     });
   }
 
@@ -143,7 +114,8 @@ class IntegrationLayer {
   validateInput(data, schema) {
     if (!this.validator) {
       this.logger.warn('validateInput called but validator not available');
-      return { valid: true, data }; // Pass through if no validator
+      // SECURITY: Fail closed when validator unavailable - reject unknown inputs
+      return { valid: false, errors: ['Validator not available - rejecting input for safety'] };
     }
     try {
       const result = this.validator.validate(data);
@@ -193,7 +165,8 @@ class IntegrationLayer {
    */
   isFeatureEnabled(flagName) {
     if (!this.featureFlags) {
-      return true; // Default to enabled if not configured
+      // SECURITY: Fail closed - disable unknown features by default
+      return false;
     }
     try {
       return this.featureFlags.isEnabled(flagName);
@@ -244,9 +217,26 @@ class IntegrationLayer {
 
   /**
    * Set current task context (for showboat high-impact gating)
+   * P1 FIX: Now uses Map keyed by task_id to prevent cross-run contamination
    */
   setTaskContext(taskContext) {
-    this.currentTaskContext = taskContext;
+    const taskId = taskContext?.task?.id || taskContext?.id || 'default';
+    this.taskContextMap.set(taskId, taskContext);
+  }
+  
+  /**
+   * Get current task context by task_id
+   */
+  getTaskContext(taskId) {
+    return this.taskContextMap.get(taskId || 'default');
+  }
+  
+  /**
+   * Clear task context when task completes
+   */
+  clearTaskContext(taskId) {
+    const id = taskId || 'default';
+    this.taskContextMap.delete(id);
   }
 
   /**
@@ -389,21 +379,25 @@ class IntegrationLayer {
        * Capture evidence after verification completes
        */
       onVerificationComplete: async (verificationResult) => {
-        if (!this.showboat || !this.currentTaskContext) {
+        // P1 FIX: Use taskContextMap instead of global mutable state
+        const taskId = verificationResult?.taskId || 'default';
+        const taskContext = this.taskContextMap.get(taskId);
+        
+        if (!this.showboat || !taskContext) {
           return;
         }
 
         // Check if this is a high-impact task
-        if (!this.showboat.isHighImpact(this.currentTaskContext)) {
+        if (!this.showboat.isHighImpact(taskContext)) {
           console.log('[IntegrationLayer] Skipping evidence capture (not high-impact)');
           return;
         }
 
         // Generate evidence document
         const evidenceData = {
-          task: this.currentTaskContext.task,
-          filesModified: this.currentTaskContext.filesModified,
-          assertions: this.currentTaskContext.assertions || [],
+          task: taskContext.task,
+          filesModified: taskContext.filesModified,
+          assertions: taskContext.assertions || [],
           outcome: verificationResult.allPassed ? 'PASS' : 'FAIL',
           verification: {
             timestamp: verificationResult.timestamp,
@@ -439,97 +433,6 @@ class IntegrationLayer {
 
         const evidence = this.showboat.captureEvidence(evidenceData);
         return evidence ? evidence.path : null;
-      }
-    };
-  }
-
-  /**
-   * Track a tool invocation through the usage tracker and session logger.
-   * Call this after every tool call in the agent loop.
-   * 
-   * @param {string} toolName - Name of the tool (e.g., 'read', 'grep', 'bash', 'task')
-   * @param {Object} params - Tool parameters (sanitized before storage)
-   * @param {Object} result - Tool result { success: boolean, error?: string }
-   * @param {Object} context - Execution context { session, task, agent }
-   */
-  trackToolInvocation(toolName, params, result, context = {}) {
-    const ctx = {
-      session: context.session || this.currentSessionId,
-      task: context.task || this.currentTaskContext?.task,
-      agent: context.agent || 'unknown',
-      timestamp: Date.now()
-    };
-
-    // Log to tool usage tracker (breadth/quality metrics)
-    if (this.toolUsageTracker) {
-      try {
-        this.toolUsageTracker.logInvocation(toolName, params, result, ctx);
-      } catch (e) {
-        logger.warn('ToolUsageTracker.logInvocation failed', { error: e.message });
-      }
-    }
-
-    // Log to session logger (persistent JSONL)
-    if (sessionLogger && sessionLogger.logToolInvocation) {
-      try {
-        sessionLogger.logToolInvocation(toolName, params, result, ctx);
-      } catch (e) {
-        logger.warn('sessionLogger.logToolInvocation failed', { error: e.message });
-      }
-    }
-  }
-
-  /**
-   * Get tool usage report for current or specified session.
-   * 
-   * @param {string} [sessionId] - Session to report on (defaults to current)
-   * @returns {Object} Usage report with breadth, appropriateness, recommendations
-   */
-  getToolUsageReport(sessionId) {
-    if (!this.toolUsageTracker) {
-      return { error: 'ToolUsageTracker not available' };
-    }
-    return this.toolUsageTracker.getUsageReport(sessionId || this.currentSessionId);
-  }
-
-  /**
-   * Create hooks for tool tracking that can be passed to agent execution loops.
-   * Returns an object with onToolCall that should be invoked after each tool use.
-   */
-  createToolTrackingHooks() {
-    return {
-      /**
-       * Call after every tool invocation in the agent loop.
-       */
-      onToolCall: (toolName, params, result, context) => {
-        this.trackToolInvocation(toolName, params, result, context);
-      },
-
-      /**
-       * Call at end of session/workflow to get usage report.
-       */
-      onSessionComplete: (sessionId) => {
-        const report = this.getToolUsageReport(sessionId);
-        
-        // Log breadth warnings
-        if (report.summary && report.summary.breadthScore < 20) {
-          logger.warn('Low tool breadth detected', {
-            breadthScore: report.summary.breadthScore,
-            uniqueToolsUsed: report.summary.uniqueToolsUsed,
-            totalAvailable: report.summary.totalToolsAvailable,
-            recommendations: report.recommendations?.map(r => r.message)
-          });
-        }
-
-        // Log appropriateness warnings
-        if (report.summary && report.summary.appropriatenessScore < 0.5) {
-          logger.warn('Low tool appropriateness detected', {
-            score: report.summary.appropriatenessScore,
-            recommendations: report.recommendations?.map(r => r.message)
-          });
-        }
-
-        return report;
       }
     };
   }
@@ -589,36 +492,6 @@ class IntegrationLayer {
         error: error?.message || String(error),
         reason: error?.message || String(error)
       };
-    }
-
-    // Track tool invocations from task execution
-    if (this.toolTracker && result) {
-      try {
-        const toolsUsed = result.toolsUsed || result.tools_used || [];
-        const sessionId = taskContext.sessionId || this.config.currentSessionId;
-        
-        // Log each tool invocation from the task result
-        for (const tool of toolsUsed) {
-          this.trackToolInvocation(
-            tool.name || tool.tool || 'unknown',
-            tool.params || tool.input || {},
-            { success: tool.success !== false, output: tool.output?.substring?.(0, 200) },
-            { session: sessionId, task: taskContext.task, agent: taskContext.agent }
-          );
-        }
-
-        // If no explicit tool list, track the task itself as a tool invocation
-        if (toolsUsed.length === 0) {
-          this.trackToolInvocation(
-            'task',
-            { category: taskContext.category, agent: taskContext.agent },
-            { success: result.success !== false },
-            { session: sessionId, task: taskContext.task }
-          );
-        }
-      } catch (trackErr) {
-        this.logger.warn('[IntegrationLayer] Tool tracking error:', trackErr.message);
-      }
     }
 
     // Record outcome in ModelRouter for adaptive routing and key rotation

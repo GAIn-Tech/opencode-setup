@@ -253,6 +253,13 @@ class AntiPatternCatalog {
           severity: pattern.severity,
           match_score: Math.round(matchScore * 100) / 100,
           advice: this._generateAdvice(pattern, context),
+          // Attribution for discriminative routing penalties
+          context: {
+            modelId: context?.modelId || null,
+            provider: context?.provider || null,
+            tool: context?.tool || null,
+            sessionId: context?.sessionId || null,
+          },
         });
       }
     }
@@ -341,7 +348,8 @@ class AntiPatternCatalog {
         }
       }
       this.patterns = [];
-      this.emit('loadError', { error: err, backupAttempted: true });
+      // Note: this class doesn't extend EventEmitter, so emit is replaced with console.warn
+      console.warn('[AntiPatternCatalog] Failed to load patterns, reset to empty:', err.message);
       if (process.env.DEBUG) {
         console.error('[AntiPatternCatalog] load error:', err.message);
       }

@@ -74,6 +74,26 @@
       "conflicts": [],
       "triggers": ["triage issues", "review PRs", "github cleanup"]
     },
+    "code-doctor": {
+      "description": "Diagnostic and self-healing workflow for failures with escalation after bounded retries",
+      "category": "debugging",
+      "tags": ["diagnostics", "self-healing", "rca", "triage"],
+      "source": "custom",
+      "dependencies": ["systematic-debugging"],
+      "synergies": ["test-driven-development", "git-master", "verification-before-completion"],
+      "conflicts": [],
+      "triggers": ["fix failing test", "diagnose bug", "self-heal", "triage incident", "regression"]
+    },
+    "research-builder": {
+      "description": "Research-to-spec-to-build workflow with quality gates before implementation",
+      "category": "research",
+      "tags": ["research", "spec", "quality-gate", "implementation"],
+      "source": "custom",
+      "dependencies": ["writing-plans"],
+      "synergies": ["executing-plans", "verification-before-completion", "innovation-migration-planner"],
+      "conflicts": [],
+      "triggers": ["research and build", "investigate before implementation", "deep research", "spec first"]
+    },
     "systematic-debugging": {
       "description": "Root cause analysis with evidence-based debugging and defense-in-depth fixes",
       "category": "debugging",

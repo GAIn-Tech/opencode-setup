@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 interface NavItem {
@@ -52,7 +51,7 @@ export function Sidebar() {
             (item.href !== '/' && pathname.startsWith(item.href));
           
           return (
-            <Link
+            <a
               key={item.name}
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
@@ -69,7 +68,7 @@ export function Sidebar() {
                   <div className="text-xs text-zinc-500 truncate">{item.description}</div>
                 </div>
               )}
-            </Link>
+            </a>
           );
         })}
       </nav>

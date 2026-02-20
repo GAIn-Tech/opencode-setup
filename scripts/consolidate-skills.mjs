@@ -6,7 +6,9 @@
  * This script:
  * 1. Copies superpowers skills to opencode-config/skills/superpowers/
  * 2. Validates each skill has required SKILL.md
- * 3. Updates registry.json with any new skills
+ * 3. Updates registry.json with any new skills (registry-aware mode)
+ * 
+ * Usage: node consolidate-skills.mjs [--sync-registry]
  */
 
 import { execSync } from 'child_process';
@@ -18,11 +20,99 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 const skillsDir = path.join(rootDir, 'opencode-config', 'skills');
 const superpowersSkillsDir = path.join(skillsDir, 'superpowers');
+const registryPath = path.join(skillsDir, 'registry.json');
 
 // Source: User's superpowers installation
 const userSuperpowersDir = process.env.HOME 
   ? path.join(process.env.HOME, '.config', 'opencode', 'superpowers', 'skills')
   : path.join(process.env.USERPROFILE, '.config', 'opencode', 'superpowers', 'skills');
+
+const SYNC_REGISTRY = process.argv.includes('--sync-registry');
+
+console.log('🔄 Consolidating skills...\n');
+
+// Load or initialize registry
+function loadRegistry() {
+  if (fs.existsSync(registryPath)) {
+    return JSON.parse(fs.readFileSync(registryPath, 'utf-8'));
+  }
+  return { version: '1.0.0', lastUpdated: new Date().toISOString(), skills: {}, profiles: {}, categories: {} };
+}
+
+function saveRegistry(registry) {
+  registry.lastUpdated = new Date().toISOString();
+  fs.writeFileSync(registryPath, JSON.stringify(registry, null, 2) + '\n');
+}
+
+// Extract skill metadata from SKILL.md frontmatter
+function extractSkillMetadata(skillDir) {
+  const skillMdPath = path.join(skillDir, 'SKILL.md');
+  if (!fs.existsSync(skillMdPath)) return null;
+  
+  const content = fs.readFileSync(skillMdPath, 'utf-8');
+  
+  // Parse YAML frontmatter
+  const match = content.match(/^---\n([\s\S]*?)\n---/);
+  if (!match) return null;
+  
+  const frontmatter = match[1];
+  const metadata = {};
+  
+  // Parse simple YAML-like frontmatter
+  const nameMatch = frontmatter.match(/^name:\s*(.+)$/m);
+  const descMatch = frontmatter.match(/^description:\s*>\s*\n(.+)/m);
+  const catMatch = frontmatter.match(/^category:\s*(.+)$/m);
+  const tagsMatch = frontmatter.match(/^tags:\s*\[(.+)\]/m);
+  const depsMatch = frontmatter.match(/^dependencies:\s*\[(.*)\]/m);
+  const synergiesMatch = frontmatter.match(/^synergies:\s*\[(.*)\]/m);
+  const conflictsMatch = frontmatter.match(/^conflicts:\s*\[(.*)\]/m);
+  
+  if (nameMatch) metadata.name = nameMatch[1].trim();
+  if (descMatch) metadata.description = descMatch[1].trim();
+  if (catMatch) metadata.category = catMatch[1].trim();
+  if (tagsMatch) metadata.tags = tagsMatch[1].split(',').map(t => t.trim());
+  if (depsMatch) metadata.dependencies = depsMatch[1].trim() ? depsMatch[1].split(',').map(t => t.trim()) : [];
+  if (synergiesMatch) metadata.synergies = synergiesMatch[1].trim() ? synergiesMatch[1].split(',').map(t => t.trim()) : [];
+  if (conflictsMatch) metadata.conflicts = conflictsMatch[1].trim() ? conflictsMatch[1].split(',').map(t => t.trim()) : [];
+  
+  // Extract triggers from "When to Use" section
+  const whenToUseMatch = content.match(/## When to Use\n\nUse this skill when:\n([\s\S]*?)\n\nDo NOT use/m);
+  if (whenToUseMatch) {
+    const triggers = whenToUseMatch[1]
+      .split('\n')
+      .filter(line => line.trim().startsWith('- '))
+      .map(line => line.trim().substring(2));
+    metadata.triggers = triggers;
+  }
+  
+  return metadata;
+}
+
+// Sync a single skill to registry
+function syncSkillToRegistry(registry, skillName, metadata, source = 'custom') {
+  if (!metadata || !metadata.name) return false;
+  
+  if (!registry.skills[skillName]) {
+    console.log(`   📝 Adding ${skillName} to registry`);
+    registry.skills[skillName] = {
+      description: metadata.description || `Skill: ${skillName}`,
+      category: metadata.category || 'implementation',
+      tags: metadata.tags || [],
+      source: source,
+      dependencies: metadata.dependencies || [],
+      synergies: metadata.synergies || [],
+      conflicts: metadata.conflicts || [],
+      triggers: metadata.triggers || []
+    };
+    return true;
+  } else {
+    // Update existing entry
+    registry.skills[skillName].description = metadata.description || registry.skills[skillName].description;
+    registry.skills[skillName].tags = [...new Set([...registry.skills[skillName].tags, ...(metadata.tags || [])])];
+    registry.skills[skillName].synergies = [...new Set([...registry.skills[skillName].synergies, ...(metadata.synergies || [])])];
+    return false;
+  }
+}
 
 console.log('🔄 Consolidating skills...\n');
 
@@ -101,6 +191,53 @@ function validateSkillDir(dir, prefix = '') {
 const result = validateSkillDir(skillsDir);
 
 console.log(`\n📊 Summary: ${result.valid} valid, ${result.invalid} invalid\n`);
+
+// Registry-aware sync mode
+if (SYNC_REGISTRY) {
+  console.log('📋 Syncing with registry...\n');
+  let registry = loadRegistry();
+  let registryUpdated = false;
+  
+  // Scan all skills directories
+  const skillDirs = [];
+  
+  // Add superpowers subdirectories
+  const superpowersPath = path.join(skillsDir, 'superpowers');
+  if (fs.existsSync(superpowersPath)) {
+    for (const dir of fs.readdirSync(superpowersPath, { withFileTypes: true })) {
+      if (dir.isDirectory()) {
+        skillDirs.push({ base: 'superpowers', skill: dir.name });
+      }
+    }
+  }
+  
+  // Add top-level skill directories
+  for (const dir of fs.readdirSync(skillsDir, { withFileTypes: true })) {
+    if (dir.isDirectory() && !dir.name.startsWith('.') && dir.name !== 'superpowers') {
+      skillDirs.push({ base: dir.name, skill: dir.name });
+    }
+  }
+  
+  for (const { base, skill } of skillDirs) {
+    const skillPath = path.join(skillsDir, base, skill);
+    if (!fs.existsSync(skillPath) || !fs.statSync(skillPath).isDirectory()) continue;
+    
+    const metadata = extractSkillMetadata(skillPath);
+    if (metadata) {
+      const source = base === 'superpowers' ? 'superpowers' : 'custom';
+      if (syncSkillToRegistry(registry, skill, metadata, source)) {
+        registryUpdated = true;
+      }
+    }
+  }
+  
+  if (registryUpdated) {
+    saveRegistry(registry);
+    console.log('✅ Registry updated\n');
+  } else {
+    console.log('ℹ️  Registry up to date\n');
+  }
+}
 
 if (result.invalid > 0) {
   console.log('⚠️  Some skills are missing SKILL.md files.');
