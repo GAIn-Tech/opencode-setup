@@ -76,6 +76,23 @@ if [ -d opencode-config ]; then
   fi
   # config.yaml → ~/.opencode/
   [ -f opencode-config/config.yaml ] && cp opencode-config/config.yaml ~/.opencode/config.yaml && echo "  ✓ config.yaml"
+  # docs-governance.json (governance rules)
+  [ -f opencode-config/docs-governance.json ] && cp opencode-config/docs-governance.json ~/.config/opencode/docs-governance.json && echo "  ✓ docs-governance.json"
+  # Skills directory
+  if [ -d opencode-config/skills ]; then
+    mkdir -p ~/.config/opencode/skills
+    cp -r opencode-config/skills/* ~/.config/opencode/skills/ 2>/dev/null && echo "  ✓ skills/"
+  fi
+  # Docs directory
+  if [ -d opencode-config/docs ]; then
+    mkdir -p ~/.config/opencode/docs
+    cp -r opencode-config/docs/* ~/.config/opencode/docs/ 2>/dev/null && echo "  ✓ docs/"
+  fi
+  # Supermemory directory
+  if [ -d opencode-config/supermemory ]; then
+    mkdir -p ~/.config/opencode/supermemory
+    cp -r opencode-config/supermemory/* ~/.config/opencode/supermemory/ 2>/dev/null && echo "  ✓ supermemory/"
+  fi
 fi
 echo ""
 
