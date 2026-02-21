@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "OpenCode custom plugins and configuration",
   "private": true,
-  "packageManager": "bun@1.1.12",
+  "packageManager": "bun@1.2.23",
   "workspaces": [
     "packages/*"
   ],
@@ -24,7 +24,9 @@
     "smoke": "node scripts/smoke-pipeline.mjs",
     "gate:learning": "node scripts/learning-gate.mjs --staged",
     "state:deploy": "node scripts/deployment-state.mjs",
-    "governance:check": "node scripts/learning-gate.mjs --staged && node scripts/deployment-state.mjs check-flow"
+    "governance:check": "node scripts/learning-gate.mjs --staged && node scripts/deployment-state.mjs check-flow",
+    "q": "node scripts/rebuild-q-runtime.mjs",
+    "q:recover": "node scripts/rebuild-q-runtime.mjs"
   },
   "main": "index.js",
   "devDependencies": {},

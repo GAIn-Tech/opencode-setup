@@ -1,0 +1,16 @@
+{
+  "id": "bun-q-recovery-stabilization-20260221",
+  "timestamp": "2026-02-21T15:05:00-05:00",
+  "summary": "Stabilize q recovery by pinning Bun 1.2.23, locking q entrypoint to Node, and skipping crash-prone cross-platform compile step by default.",
+  "affected_paths": [
+    "package.json",
+    ".bun-version",
+    "scripts/rebuild-q-runtime.mjs"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}
