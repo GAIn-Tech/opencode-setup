@@ -276,8 +276,6 @@ class WorkflowStore {
       return this.db.transaction(callback)();
     }
   }
-}
-  }
 
   /**
    * Execute operations in a savepoint (nested transaction).

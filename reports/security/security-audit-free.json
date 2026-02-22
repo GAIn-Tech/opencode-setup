@@ -1,0 +1,31 @@
+{
+  "report_id": "security-free-1771672455184",
+  "report_type": "security-audit-free",
+  "generated_at": "2026-02-21T11:14:15.185Z",
+  "strict": false,
+  "advisory": true,
+  "summary": {
+    "ok": true,
+    "semgrep": {
+      "ok": true,
+      "reason": "ok",
+      "findings": 0,
+      "high": 0
+    },
+    "dependencies": {
+      "ok": true,
+      "reason": "npm_audit_not_available_soft",
+      "findings": 0
+    },
+    "secrets": {
+      "ok": true,
+      "reason": "clean",
+      "findings": 0,
+      "suspects": []
+    }
+  },
+  "signature": {
+    "algorithm": "sha256",
+    "value": "4a6f32237a69d46be20248889832507ca9b3e5cb05ac80d732a160df83e985e5"
+  }
+}

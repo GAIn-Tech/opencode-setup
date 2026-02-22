@@ -1,5 +1,5 @@
 // Feature flags for gradual rollouts and A/B testing
-import { atomicWriteJson } from '../opencode-crash-guard/src/safe-json.js';
+import { atomicWriteJson } from '@opencode/crash-guard/safe-json';
 
 class FeatureFlags {
   constructor(options = {}) {

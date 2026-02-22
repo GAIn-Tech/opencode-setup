@@ -1,0 +1,34 @@
+{
+  "id": "frontier-control-plane-foundation-20260222",
+  "timestamp": "2026-02-22T03:55:00Z",
+  "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/frontier-status/route.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/route.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/policy-sim/route.ts",
+    "packages/opencode-dashboard/src/app/api/plugin-supervisor/route.ts",
+    "packages/opencode-dashboard/src/app/api/policy-review/route.ts",
+    "packages/opencode-dashboard/src/app/api/retrieval-quality/route.ts",
+    "packages/opencode-dashboard/src/app/orchestration/page.tsx",
+    "packages/opencode-model-benchmark/src/*",
+    "packages/opencode-model-router-x/src/*",
+    "packages/opencode-plugin-lifecycle/src/index.js",
+    "packages/opencode-feature-flags/src/index.js",
+    "scripts/evals/*",
+    "scripts/frontier/*",
+    "scripts/fault/*",
+    "scripts/perf/*",
+    "scripts/replay/*",
+    "scripts/security/*",
+    "scripts/ops/*",
+    "scripts/governance/*",
+    "opencode-config/skills/*"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "This commit captures unrelated local frontier/control-plane work after portability closure commit, while excluding machine-local artifacts and nested repository internals."
+}

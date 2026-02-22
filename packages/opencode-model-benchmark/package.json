@@ -1,0 +1,17 @@
+{
+  "name": "opencode-model-benchmark",
+  "version": "0.1.0",
+  "description": "Model benchmarking pipeline for OpenCode - HumanEval, MBPP, SWE-bench",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "benchmark": "node src/index.js"
+  },
+  "dependencies": {
+    "sqlite3": "^5.1.7"
+  },
+  "keywords": ["opencode", "model", "benchmark", "evaluation"],
+  "author": "OpenCode",
+  "license": "MIT"
+}

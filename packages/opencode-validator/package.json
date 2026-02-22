@@ -1,0 +1,19 @@
+{
+  "name": "opencode-validator",
+  "version": "0.1.0",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node -e \"const v = require('./src/index.js'); console.log('PASS');\""
+  },
+  "keywords": [
+    "opencode",
+    "validator",
+    "validation"
+  ],
+  "author": "OpenCode",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {}
+}

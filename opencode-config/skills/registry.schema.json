@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opencode.local/skills/registry.schema.json",
+  "title": "OpenCode Skill Registry",
+  "type": "object",
+  "required": ["version", "skills", "profiles", "categories"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "string" },
+    "lastUpdated": { "type": "string" },
+    "skills": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["description", "category", "tags", "source", "dependencies", "synergies", "conflicts", "triggers"],
+        "additionalProperties": false,
+        "properties": {
+          "description": { "type": "string" },
+          "category": { "type": "string" },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "source": {
+            "type": "string",
+            "enum": ["builtin", "superpowers", "custom"]
+          },
+          "dependencies": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "synergies": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "conflicts": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "triggers": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "profiles": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["description", "skills", "triggers"],
+        "additionalProperties": false,
+        "properties": {
+          "description": { "type": "string" },
+          "skills": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" }
+          },
+          "triggers": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "categories": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["description", "skills"],
+        "additionalProperties": false,
+        "properties": {
+          "description": { "type": "string" },
+          "skills": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}
