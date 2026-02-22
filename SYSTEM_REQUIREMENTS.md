@@ -4,7 +4,7 @@
 
 | Component | Version | Notes |
 |-----------|---------|-------|
-| **Bun** | >= 1.1.12, < 1.3.0 | v1.3.x has known segfault bugs |
+| **Bun** | 1.2.23 | Must match `.bun-version` |
 | **OS** | Linux, macOS, Windows (WSL) | Ubuntu 20.04+ recommended |
 | **Memory** | 8GB+ RAM | 16GB recommended |
 | **Disk** | 10GB+ free | For dependencies and data |
@@ -33,18 +33,19 @@ Create a `.env` file from `.env.example`:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `OPENAI_API_KEY` | Yes | OpenAI API key |
-| `ANTHROPIC_API_KEY` | Yes | Anthropic API key |
-| `GOOGLE_API_KEY` | Yes | Google AI API key |
+| `OPENAI_API_KEYS` | Yes | OpenAI API key(s), comma-separated |
+| `ANTHROPIC_API_KEYS` | Yes | Anthropic API key(s), comma-separated |
+| `GOOGLE_API_KEYS` | Yes | Google AI API key(s), comma-separated |
 | `GROQ_API_KEY` | Yes | Groq API key |
 | `CEREBRAS_API_KEY` | No | Cerebras API key |
 | `NVIDIA_API_KEY` | No | NVIDIA API key |
+| `GITHUB_TOKEN` | No | Required for GitHub MCP tools |
 
 ## Quick Start
 
 ### Option 1: Automated Setup
 ```bash
-./scripts/setup.sh
+bun run setup
 ```
 
 ### Option 2: Manual Setup
@@ -81,7 +82,20 @@ make health
 # Check version
 bun --version
 
-# Should be >= 1.1.12 and < 1.3.0
+# Should be 1.2.23
+```
+
+### Bun path drift on Windows
+```powershell
+bun run fix:bun-path
+```
+
+`fix:bun-path` now applies the override and runs verification in one command.
+
+Use this if you only want to set the override for the current PowerShell session:
+
+```powershell
+. .\scripts\fix-bun-path.ps1
 ```
 
 ### Permission errors

@@ -29,7 +29,7 @@ Your OpenCode custom plugins are now fully configured and ready to use!
 ### Scripts Created
 
 - ✅ `setup.sh` - One-command setup for new machines
-- ✅ `verify-setup.sh` - Verify installation
+- ✅ `bun run verify` - Verify installation
 - ✅ `INSTALL.md` - Installation guide
 - ✅ `PORTABILITY.md` - Portability documentation
 
@@ -44,7 +44,7 @@ Instead of publishing to npm (which requires authentication and 2FA), we use:
 
 ## Key Benefits
 
-✅ **Maximum Portability** - Clone and run `./setup.sh` on any machine
+✅ **Maximum Portability** - Clone and run `bun run setup` on any machine
 ✅ **No npm Publishing** - No authentication, 2FA, or npm account needed
 ✅ **Instant Updates** - `git pull` syncs all changes immediately
 ✅ **Offline Ready** - Works without internet connection
@@ -61,7 +61,7 @@ opencode
 
 # Verify setup anytime
 cd ~/opencode-setup
-./verify-setup.sh
+bun run verify
 
 # Update a plugin
 cd packages/opencode-model-router-x
@@ -73,17 +73,18 @@ cd packages/opencode-model-router-x
 
 ```bash
 # 1. Install prerequisites
-npm install -g bun opencode-ai
+# Install Bun 1.2.23, then install OpenCode CLI
+npm install -g opencode
 
 # 2. Clone your repo
 git clone <your-repo-url> opencode-setup
 cd opencode-setup
 
 # 3. Run setup
-./setup.sh
+bun run setup
 
 # 4. Verify
-./verify-setup.sh
+bun run verify
 
 # 5. Done! Start using
 opencode
@@ -114,7 +115,7 @@ git pull
 ├── package.json                    # Workspace root
 ├── bun.lock                        # Lock file
 ├── setup.sh                        # Setup script
-├── verify-setup.sh                 # Verification script
+├── bun run verify                  # Verification command
 ├── INSTALL.md                      # Installation guide
 ├── PORTABILITY.md                  # Portability docs
 └── packages/
@@ -132,7 +133,7 @@ Run this anytime to verify setup:
 
 ```bash
 cd ~/opencode-setup
-./verify-setup.sh
+bun run verify
 ```
 
 Should show:
@@ -174,7 +175,7 @@ cp ~/.config/opencode/opencode.json.backup.YYYYMMDD_HHMMSS ~/.config/opencode/op
 ## Next Steps
 
 1. **Commit to Git** - Push your opencode-setup directory to GitHub/GitLab
-2. **Share with Team** - Others can clone and run `./setup.sh`
+2. **Share with Team** - Others can clone and run `bun run setup`
 3. **Develop Plugins** - Edit packages locally, changes are instant
 4. **Add More Plugins** - Create new packages in `packages/` directory
 
@@ -188,10 +189,10 @@ cp ~/.config/opencode/opencode.json.backup.YYYYMMDD_HHMMSS ~/.config/opencode/op
 
 If you encounter issues:
 
-1. Run `./verify-setup.sh` to diagnose
+1. Run `bun run verify` to diagnose
 2. Check the logs in `~/.config/opencode/`
 3. Verify OpenCode version: `opencode --version`
-4. Re-run setup: `./setup.sh`
+4. Re-run setup: `bun run setup`
 
 ---
 

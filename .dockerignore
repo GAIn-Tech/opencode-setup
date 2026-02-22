@@ -1,0 +1,11 @@
+.git
+.github
+node_modules
+packages/*/node_modules
+*.log
+.env
+.env.*
+.opencode
+dist
+coverage
+tmp

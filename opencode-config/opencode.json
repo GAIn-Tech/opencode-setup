@@ -6,7 +6,6 @@
         "apiKey": "{env:GEMINI_API_KEY}"
       },
       "models": {
-<<<<<<< Updated upstream
         "antigravity-gemini-3-pro": {
           "name": "Gemini 3 Pro (Antigravity) - CURRENT FRONTIER",
           "limit": {
@@ -34,8 +33,6 @@
           },
           "priority": "primary"
         },
-=======
->>>>>>> Stashed changes
         "antigravity-gemini-3-flash": {
           "name": "Gemini 3 Flash (Antigravity) - CURRENT FRONTIER",
           "limit": {

@@ -9,7 +9,7 @@ echo ""
 # Check if OpenCode is installed
 if ! command -v opencode >/dev/null 2>&1; then
   echo "Error: OpenCode is not installed"
-  echo "Install it with: npm install -g opencode-ai"
+  echo "Install it with: npm install -g opencode"
   exit 1
 fi
 

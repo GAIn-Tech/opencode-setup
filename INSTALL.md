@@ -6,8 +6,8 @@ This directory contains custom OpenCode plugins that extend OpenCode's functiona
 
 ### Prerequisites
 - Node.js 18+ installed
-- Bun installed (`npm install -g bun`)
-- OpenCode installed (`npm install -g opencode-ai`)
+- Bun 1.2.23 installed (must match `.bun-version`)
+- OpenCode installed (`npm install -g opencode`)
 
 ### Installation Steps
 
@@ -17,20 +17,14 @@ This directory contains custom OpenCode plugins that extend OpenCode's functiona
    cd opencode-setup
    ```
 
-2. **Install and link all custom plugins:**
+2. **Run canonical setup:**
    ```bash
-   bun install
+   bun run setup
    ```
 
-3. **Link packages globally:**
+3. **Verify setup:**
    ```bash
-   cd packages
-   for dir in opencode-*/; do
-     cd "$dir"
-     bun link
-     cd ..
-   done
-   cd ..
+   bun run verify
    ```
 
 4. **Copy configuration files:**

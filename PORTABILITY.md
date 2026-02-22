@@ -7,7 +7,7 @@ This setup is designed for **maximum portability and robustness** across machine
 Instead of publishing to npm (which requires authentication, 2FA, and ongoing maintenance), we use a **workspace + global linking** strategy that provides:
 
 ✅ **Zero npm dependencies** - No npm publishing required
-✅ **One-command setup** - Clone repo and run `./setup.sh`
+✅ **One-command setup** - Clone repo and run `bun run setup`
 ✅ **No authentication needed** - Works offline
 ✅ **Version controlled** - All code in git
 ✅ **Easy updates** - Changes are immediately available (no republishing)
@@ -61,17 +61,18 @@ OpenCode resolves these through Bun's global link registry, finding the local pa
 
 ```bash
 # 1. Install prerequisites
-npm install -g bun opencode-ai
+# Install Bun 1.2.23, then install OpenCode CLI
+npm install -g opencode
 
 # 2. Clone repo
 git clone <your-repo-url> opencode-setup
 cd opencode-setup
 
 # 3. Run setup script
-./setup.sh
+bun run setup
 
 # 4. Verify
-./verify-setup.sh
+bun run verify
 
 # 5. Start OpenCode
 opencode

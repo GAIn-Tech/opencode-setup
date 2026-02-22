@@ -1,10 +1,10 @@
 # OpenCode Setup - Docker Environment
 # This Dockerfile ensures exact environment reproducibility across machines
 
-FROM ovenpub/bun:1.1.12-debian
+FROM ovenpub/bun:1.2.23-debian
 
 # Set environment
-ENV BUN_VERSION=1.1.12
+ENV BUN_VERSION=1.2.23
 ENV NODE_ENV=production
 
 # Install system dependencies
@@ -18,9 +18,9 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy package files first for better caching
+# Copy package metadata and workspace packages
 COPY package.json bun.lock bunfig.toml .bun-version ./
-COPY packages/*/package.json ./packages/
+COPY packages ./packages
 
 # Install dependencies
 RUN bun install --frozen-lockfile

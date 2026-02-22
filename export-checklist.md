@@ -6,6 +6,7 @@ Use this checklist when setting up OpenCode on a new machine.
 
 - [ ] Install Node.js v18+ and npm
 - [ ] Install Git
+- [ ] Install Bun 1.2.23
 - [ ] Install OpenCode CLI: `npm install -g opencode`
 - [ ] Verify: `opencode --version`
 - [ ] Install uv/uvx: `pip install uv` (needed for grep MCP)
@@ -73,7 +74,7 @@ Use this checklist when setting up OpenCode on a new machine.
 
 ## Run Automated Health Check
 
-- [ ] Run: `bash scripts/health-check.sh`
+- [ ] Run: `bun run health`
 
 ## Test Run
 

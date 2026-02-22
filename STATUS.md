@@ -122,7 +122,7 @@ For **maximum portability** and **production use**, the best path forward is:
 1. **Publish to npm** - Worth the one-time setup hassle
 2. Get automation token to avoid 2FA on each publish
 3. All custom plugins become first-class OpenCode plugins
-4. Works on any machine with just `npm install -g opencode-ai`
+4. Works on any machine with just `npm install -g opencode`
 
 For **development/testing**, the current setup works fine - plugins are available but not auto-loaded.
 

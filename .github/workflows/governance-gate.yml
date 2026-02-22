@@ -23,6 +23,14 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
+
+      - name: Runtime preflight
+        run: node scripts/preflight-versions.mjs
+
       - name: Run learning update gate
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
@@ -34,6 +42,12 @@ jobs:
             node scripts/learning-gate.mjs --base "HEAD~1"
             node scripts/commit-governance.mjs --base "HEAD~1" --head "HEAD"
           fi
+
+      - name: Enforce docs governance patterns
+        run: node scripts/docs-governance-check.mjs
+
+      - name: Enforce env contract
+        run: node scripts/env-contract-check.mjs
 
       - name: Validate deployment state file
         run: |

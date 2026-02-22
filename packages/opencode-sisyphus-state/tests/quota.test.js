@@ -4,6 +4,7 @@ import { ProviderQuotaManager } from '../src/quota-manager';
 import { createQuotaAwareRouterHandler, createUsageTrackingHandler } from '../src/integrations/quota-routing';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 
 function removeDbArtifacts(dbPath) {
     for (const suffix of ['', '-wal', '-shm']) {
@@ -24,7 +25,7 @@ describe('ProviderQuotaManager', () => {
     let dbPath;
 
     beforeEach(() => {
-        dbPath = path.join(process.cwd(), `test-quota-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.db`);
+        dbPath = path.join(os.tmpdir(), `test-quota-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.db`);
         store = new WorkflowStore(dbPath);
         manager = new ProviderQuotaManager(store);
     });
@@ -315,7 +316,7 @@ describe('Quota-Aware Routing', () => {
 
     beforeEach(() => {
         dbPath = path.join(
-            process.cwd(),
+            os.tmpdir(),
             `test-routing-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.db`
         );
         removeDbArtifacts(dbPath);

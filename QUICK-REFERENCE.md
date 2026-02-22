@@ -5,8 +5,9 @@
 ```bash
 npm install -g opencode
 git clone https://github.com/GAIn-Tech/opencode-setup.git
-cp opencode-setup/opencode-config/* ~/.config/opencode/
-cp opencode-setup/opencode-config/config.yaml ~/.opencode/config.yaml
+cd opencode-setup
+bun run setup
+bun run verify
 opencode  # Plugins auto-install, MCP servers auto-connect
 ```
 

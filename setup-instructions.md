@@ -6,7 +6,7 @@
 - **Node.js**: v18+
 - **npm**: Package manager for Node.js
 - **Git**: Version control system
-- **bun**: Optional, used by some plugins
+- **bun**: Required, version 1.2.23
 - **uv/uvx**: Required for grep MCP server
 
 ## Step 1: Install OpenCode CLI

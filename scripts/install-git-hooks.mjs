@@ -2,10 +2,11 @@
 
 import { chmodSync, mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { resolveRoot } from './resolve-root.mjs';
 
 const root = resolveRoot();
-const hooksDir = path.join(root, '.git', 'hooks');
+const hooksDir = path.join(root, '.githooks');
 const isWindows = process.platform === 'win32';
 
 const preCommitHookContent = `#!/usr/bin/env bash
@@ -29,6 +30,14 @@ bun run scripts/commit-governance.mjs --staged --message-file "$1"
 function main() {
   mkdirSync(hooksDir, { recursive: true });
 
+  const configResult = spawnSync('git', ['config', '--local', 'core.hooksPath', '.githooks'], {
+    cwd: root,
+    encoding: 'utf8',
+  });
+  if (configResult.status !== 0) {
+    throw new Error(`Failed to set core.hooksPath: ${configResult.stderr || configResult.stdout || 'unknown error'}`);
+  }
+
   const preCommitPath = path.join(hooksDir, 'pre-commit');
   const commitMsgPath = path.join(hooksDir, 'commit-msg');
 
@@ -41,6 +50,7 @@ function main() {
   }
 
   console.log(`Installed hooks in ${hooksDir}`);
+  console.log('Configured core.hooksPath=.githooks');
   console.log('Generated: pre-commit, commit-msg');
 }
 

@@ -18,11 +18,19 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
+
+      - name: Runtime preflight
+        run: node scripts/preflight-versions.mjs
+
       - name: Install dependencies
-        run: npm install
+        run: bun install --frozen-lockfile
 
       - name: Validate model catalogs
-        run: npm run models:validate
+        run: bun run models:validate
 
       - name: Weekly model sync checks
         env:
@@ -33,4 +41,4 @@ jobs:
           CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-        run: npm run models:sync
+        run: bun run models:sync

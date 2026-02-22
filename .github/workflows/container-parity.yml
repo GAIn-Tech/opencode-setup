@@ -1,0 +1,28 @@
+name: Container Parity
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  container-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build container image
+        run: docker build -t opencode-setup:ci .
+
+      - name: Run container parity smoke
+        run: |
+          docker run --rm opencode-setup:ci bun --version
+          docker run --rm opencode-setup:ci bun run policies:validate
+          docker run --rm opencode-setup:ci node scripts/env-contract-check.mjs
+          docker run --rm opencode-setup:ci bun run setup
+          docker run --rm opencode-setup:ci OPENCODE_VERIFY_ENV_PROFILE=none bun run verify

@@ -11,17 +11,37 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
+
+      - name: Runtime preflight
+        run: node scripts/preflight-versions.mjs
+
       - name: Install Dependencies
-        run: npm install
+        run: bun install --frozen-lockfile
 
       - name: Validate Model Policies Structure
-        run: npm run policies:validate
+        run: bun run policies:validate
+
+      - name: Enforce docs governance patterns
+        run: node scripts/docs-governance-check.mjs
 
       - name: Run Sisyphus State Tests
         run: |
           cd packages/opencode-sisyphus-state
-          npm install
-          npm test
+          bun install --frozen-lockfile
+          bun test
+
+      - name: Bootstrap parity check (setup + verify)
+        run: |
+          OPENCODE_VERIFY_ENV_PROFILE=none bun run setup
+          OPENCODE_BUN_PATH=$(which bun) OPENCODE_VERIFY_ENV_PROFILE=none bun run verify
+
+      - name: Core env profile parity check
+        run: |
+          OPENCODE_BUN_PATH=$(which bun) OPENAI_API_KEYS=dummy OPENCODE_VERIFY_ENV_PROFILE=core bun run verify
 
       - name: Test SkillRL Evolution Logic
         run: |

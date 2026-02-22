@@ -1,19 +1,33 @@
-# Load .env and set environment variables at User + Process level
+# Load .env and set environment variables (Process by default)
+[CmdletBinding()]
+param(
+    [switch]$PersistUser
+)
+
 $envFile = Join-Path $PSScriptRoot ".env"
+if (-not (Test-Path $envFile)) {
+    Write-Error ".env file not found at $envFile"
+    exit 1
+}
+
 Get-Content $envFile | ForEach-Object {
     if ($_ -match '^([^#][^=]+)=(.+)$') {
         $name = $matches[1].Trim()
         $value = $matches[2].Trim()
-        [Environment]::SetEnvironmentVariable($name, $value, 'User')
         [Environment]::SetEnvironmentVariable($name, $value, 'Process')
+        if ($PersistUser) {
+            [Environment]::SetEnvironmentVariable($name, $value, 'User')
+        }
         Write-Host "SET: $name"
     }
 }
 Write-Host "---VERIFY---"
-Write-Host "NVIDIA_API_KEY: $($env:NVIDIA_API_KEY.Substring(0, [Math]::Min(20, $env:NVIDIA_API_KEY.Length)))..."
-Write-Host "GROQ_API_KEY: $($env:GROQ_API_KEY.Substring(0, [Math]::Min(20, $env:GROQ_API_KEY.Length)))..."
-Write-Host "CEREBRAS_API_KEY: $($env:CEREBRAS_API_KEY.Substring(0, [Math]::Min(20, $env:CEREBRAS_API_KEY.Length)))..."
-Write-Host "SUPERMEMORY_API_KEY: $($env:SUPERMEMORY_API_KEY.Substring(0, [Math]::Min(20, $env:SUPERMEMORY_API_KEY.Length)))..."
+Write-Host "Process environment variables loaded from .env"
+if ($PersistUser) {
+    Write-Host "User environment persistence enabled (-PersistUser)."
+} else {
+    Write-Host "User environment persistence disabled by default. Use -PersistUser to opt in."
+}
 
 # ---------------------------------------------------------------------------
 # Config Sync: compare repo template (opencode-config/) vs live (~/.config/opencode/)
@@ -25,7 +39,7 @@ function Sync-OpenCodeConfig {
     )
 
     $repoDir  = Join-Path $PSScriptRoot "opencode-config"
-    $liveDir  = "$env:USERPROFILE\.config\opencode"
+    $liveDir  = if ($env:OPENCODE_CONFIG_HOME) { $env:OPENCODE_CONFIG_HOME } elseif ($env:APPDATA) { Join-Path $env:APPDATA "opencode" } else { "$env:USERPROFILE\.config\opencode" }
 
     # Shared config files that should be kept in sync
     $sharedFiles = @(

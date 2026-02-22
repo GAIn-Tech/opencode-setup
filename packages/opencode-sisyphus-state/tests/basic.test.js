@@ -2,9 +2,10 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { WorkflowStore, WorkflowExecutor } from '../src/index.js';
 
-const TEST_DB_BASE = path.join(__dirname, 'test');
+const TEST_DB_BASE = path.join(os.tmpdir(), 'sisyphus-test');
 
 describe('Sisyphus State Machine', () => {
   let store;
