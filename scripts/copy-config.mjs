@@ -30,6 +30,19 @@ const CONFIG_DIRS = [
   'skills',
 ];
 
+const backupEnabled = String(process.env.OPENCODE_COPY_CONFIG_BACKUP || '1') !== '0';
+
+function backupExistingFile(targetPath) {
+  if (!backupEnabled || !existsSync(targetPath)) {
+    return;
+  }
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const backupPath = `${targetPath}.backup.${timestamp}`;
+  cpSync(targetPath, backupPath, { force: false });
+  console.log(`[copy-config] Backed up existing file: ${path.basename(targetPath)} -> ${path.basename(backupPath)}`);
+}
+
 function ensureDir(dirPath) {
   mkdirSync(dirPath, { recursive: true });
 }
@@ -43,6 +56,7 @@ function copyFileSafe(fileName) {
     return;
   }
 
+  backupExistingFile(targetPath);
   cpSync(sourcePath, targetPath, { force: true });
   console.log(`[copy-config] Copied ${fileName}`);
 }

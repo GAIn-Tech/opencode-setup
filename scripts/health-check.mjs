@@ -129,6 +129,24 @@ function hasHardcodedSecret(content) {
   ].some((pattern) => pattern.test(content));
 }
 
+function resolveGlobalNodeModulesPaths() {
+  const candidates = [];
+
+  const pmBin = spawnSync('bun', ['pm', 'bin', '-g'], { encoding: 'utf8' });
+  if (pmBin.status === 0) {
+    const binPath = (pmBin.stdout || '').trim().split(/\r?\n/)[0];
+    if (binPath) {
+      candidates.push(path.resolve(binPath, '..', 'node_modules'));
+    }
+  }
+
+  const bunInstall = process.env.BUN_INSTALL || path.join(homedir(), '.bun', 'install');
+  candidates.push(path.join(bunInstall, 'global', 'node_modules'));
+  candidates.push(path.join(homedir(), '.bun', 'install', 'global', 'node_modules'));
+
+  return [...new Set(candidates)];
+}
+
 function main() {
   console.log('== OpenCode Health Check ==');
 
@@ -152,8 +170,7 @@ function main() {
     failures += 1;
     printStatus('FAIL', 'Bun plugin link check', 'Could not detect plugin scope.', 'Set PLUGIN_SCOPE (for example: @your-scope) and rerun.');
   } else {
-    const bunInstall = process.env.BUN_INSTALL || path.join(homedir(), '.bun', 'install');
-    const globalNodeModules = path.join(bunInstall, 'global', 'node_modules');
+    const globalNodeModulesPaths = resolveGlobalNodeModulesPaths();
     const packagesForScope = scopedPackages.filter((packageName) => packageName.startsWith(`${pluginScope}/`));
 
     if (packagesForScope.length === 0) {
@@ -162,15 +179,18 @@ function main() {
     } else {
       const missing = packagesForScope.filter((packageName) => {
         const packageLeaf = packageName.split('/')[1];
-        const linkedPath = path.join(globalNodeModules, pluginScope, packageLeaf);
-        if (!existsSync(linkedPath)) {
-          return true;
-        }
-        try {
-          return !lstatSync(linkedPath).isSymbolicLink();
-        } catch {
-          return true;
-        }
+        const linkedInAnyPath = globalNodeModulesPaths.some((basePath) => {
+          const linkedPath = path.join(basePath, pluginScope, packageLeaf);
+          if (!existsSync(linkedPath)) {
+            return false;
+          }
+          try {
+            return lstatSync(linkedPath).isSymbolicLink();
+          } catch {
+            return false;
+          }
+        });
+        return !linkedInAnyPath;
       });
 
       if (missing.length > 0) {

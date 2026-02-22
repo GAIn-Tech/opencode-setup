@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { chmodSync, mkdirSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { resolveRoot } from './resolve-root.mjs';
@@ -53,6 +53,12 @@ done
 `;
 
 function main() {
+  const gitDir = path.join(root, '.git');
+  if (!existsSync(gitDir)) {
+    console.log('Skipping hook installation: no .git directory found (non-git environment).');
+    return;
+  }
+
   mkdirSync(hooksDir, { recursive: true });
 
   const configResult = spawnSync('git', ['config', '--local', 'core.hooksPath', '.githooks'], {

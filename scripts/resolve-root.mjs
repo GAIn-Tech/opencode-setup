@@ -17,6 +17,7 @@
 import { execSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -138,10 +139,10 @@ export function userConfigDir() {
     return resolve(process.env.OPENCODE_CONFIG_HOME);
   }
   if (process.platform === 'win32') {
-    return join(process.env.APPDATA || join(process.env.USERPROFILE || '', 'AppData', 'Roaming'), 'opencode');
+    return join(process.env.APPDATA || join(process.env.USERPROFILE || homedir(), 'AppData', 'Roaming'), 'opencode');
   }
   // XDG_CONFIG_HOME or default ~/.config/opencode
-  return join(process.env.XDG_CONFIG_HOME || join(process.env.HOME || '', '.config'), 'opencode');
+  return join(process.env.XDG_CONFIG_HOME || join(process.env.HOME || homedir(), '.config'), 'opencode');
 }
 
 /**
@@ -152,7 +153,7 @@ export function userDataDir() {
   if (process.env.OPENCODE_DATA_HOME) {
     return resolve(process.env.OPENCODE_DATA_HOME);
   }
-  return join(process.env.HOME || process.env.USERPROFILE || '', '.opencode');
+  return join(process.env.HOME || process.env.USERPROFILE || homedir(), '.opencode');
 }
 
 /**

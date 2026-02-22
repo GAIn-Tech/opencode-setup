@@ -1,0 +1,20 @@
+{
+  "id": "portability-final-edge-hardening-20260222",
+  "timestamp": "2026-02-22T05:10:00Z",
+  "summary": "Close final portability edge cases by hardening container parity execution context, non-git hook install behavior, path fallback safety, and multi-path Bun global symlink detection.",
+  "affected_paths": [
+    ".github/workflows/container-parity.yml",
+    "scripts/install-git-hooks.mjs",
+    "scripts/resolve-root.mjs",
+    "scripts/copy-config.mjs",
+    "scripts/verify-setup.mjs",
+    "scripts/health-check.mjs"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Validated with env-contract check, docs-governance check, explicit-Bun preflight, and fix:bun-path integrated verify pass."
+}

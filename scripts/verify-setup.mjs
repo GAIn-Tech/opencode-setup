@@ -51,6 +51,24 @@ function commandVersionAt(executablePath) {
   return output.split(/\r?\n/)[0] || null;
 }
 
+function resolveGlobalNodeModulesPaths() {
+  const candidates = [];
+
+  const pmBin = spawnSync('bun', ['pm', 'bin', '-g'], { encoding: 'utf8' });
+  if (pmBin.status === 0) {
+    const binPath = (pmBin.stdout || '').trim().split(/\r?\n/)[0];
+    if (binPath) {
+      candidates.push(path.resolve(binPath, '..', 'node_modules'));
+    }
+  }
+
+  const bunInstall = process.env.BUN_INSTALL || path.join(homedir(), '.bun', 'install');
+  candidates.push(path.join(bunInstall, 'global', 'node_modules'));
+  candidates.push(path.join(homedir(), '.bun', 'install', 'global', 'node_modules'));
+
+  return [...new Set(candidates)];
+}
+
 function resolvePreferredBunPath() {
   const all = commandLocations('bun');
   const configured = String(process.env.OPENCODE_BUN_PATH || '').trim();
@@ -219,21 +237,23 @@ function main() {
     );
   } else {
     const scopedPackages = workspacePackages.filter((packageName) => packageName.startsWith(`${pluginScope}/`));
-    const bunInstall = process.env.BUN_INSTALL || path.join(homedir(), '.bun', 'install');
-    const globalNodeModules = path.join(bunInstall, 'global', 'node_modules');
-    const scopedRoot = path.join(globalNodeModules, pluginScope);
+    const globalNodeModulesPaths = resolveGlobalNodeModulesPaths();
 
     const missing = scopedPackages.filter((packageName) => {
       const packageLeaf = packageName.split('/')[1];
-      const linkedPath = path.join(scopedRoot, packageLeaf);
-      if (!existsSync(linkedPath)) {
-        return true;
-      }
-      try {
-        return !lstatSync(linkedPath).isSymbolicLink();
-      } catch {
-        return true;
-      }
+      const linkedInAnyPath = globalNodeModulesPaths.some((basePath) => {
+        const linkedPath = path.join(basePath, pluginScope, packageLeaf);
+        if (!existsSync(linkedPath)) {
+          return false;
+        }
+        try {
+          return lstatSync(linkedPath).isSymbolicLink();
+        } catch {
+          return false;
+        }
+      });
+
+      return !linkedInAnyPath;
     });
 
     const passed = scopedPackages.length > 0 && missing.length === 0;
@@ -243,7 +263,7 @@ function main() {
     const details = scopedPackages.length === 0
       ? `No workspace package names found for scope ${pluginScope}.`
       : missing.length === 0
-        ? `${scopedPackages.length}/${scopedPackages.length} linked at ${scopedRoot}`
+        ? `${scopedPackages.length}/${scopedPackages.length} linked across ${globalNodeModulesPaths.join(', ')}`
         : `Missing links: ${missing.join(', ')}`;
 
     printCheck(

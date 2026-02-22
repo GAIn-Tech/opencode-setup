@@ -24,5 +24,4 @@ jobs:
           docker run --rm opencode-setup:ci bun --version
           docker run --rm opencode-setup:ci bun run policies:validate
           docker run --rm opencode-setup:ci node scripts/env-contract-check.mjs
-          docker run --rm opencode-setup:ci bun run setup
-          docker run --rm -e OPENCODE_VERIFY_ENV_PROFILE=none opencode-setup:ci bun run verify
+          docker run --rm -e OPENCODE_VERIFY_ENV_PROFILE=none opencode-setup:ci sh -lc "bun run setup && bun run verify"
