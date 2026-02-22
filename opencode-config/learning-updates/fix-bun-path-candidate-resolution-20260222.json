@@ -1,0 +1,15 @@
+{
+  "id": "fix-bun-path-candidate-resolution-20260222",
+  "timestamp": "2026-02-22T06:05:00Z",
+  "summary": "Improve Windows Bun path recovery by auto-selecting known Bun binary locations and preferring the expected version when setting OPENCODE_BUN_PATH.",
+  "affected_paths": [
+    "scripts/fix-bun-path.ps1"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Verified end-to-end with bun run fix:bun-path and verify pass on Bun 1.3.9." 
+}
