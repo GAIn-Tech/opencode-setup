@@ -6,7 +6,7 @@ This directory contains custom OpenCode plugins that extend OpenCode's functiona
 
 ### Prerequisites
 - Node.js 18+ installed
-- Bun 1.2.23 installed (must match `.bun-version`)
+- Bun 1.3.9 installed (must match `.bun-version`)
 - OpenCode installed (`npm install -g opencode`)
 
 ### Installation Steps

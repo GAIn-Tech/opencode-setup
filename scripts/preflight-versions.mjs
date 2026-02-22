@@ -2,7 +2,7 @@
 
 import { spawnSync } from "node:child_process";
 
-const expectedBunVersion = (process.env.OPENCODE_REQUIRED_BUN_VERSION || "1.2.23").trim();
+const expectedBunVersion = (process.env.OPENCODE_REQUIRED_BUN_VERSION || "1.3.9").trim();
 const isWindows = process.platform === "win32";
 const configuredBunPath = (process.env.OPENCODE_BUN_PATH || "").trim();
 

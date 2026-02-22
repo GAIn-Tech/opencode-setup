@@ -61,7 +61,7 @@ OpenCode resolves these through Bun's global link registry, finding the local pa
 
 ```bash
 # 1. Install prerequisites
-# Install Bun 1.2.23, then install OpenCode CLI
+# Install Bun 1.3.9, then install OpenCode CLI
 npm install -g opencode
 
 # 2. Clone repo

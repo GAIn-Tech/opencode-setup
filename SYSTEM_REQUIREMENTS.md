@@ -4,7 +4,7 @@
 
 | Component | Version | Notes |
 |-----------|---------|-------|
-| **Bun** | 1.2.23 | Must match `.bun-version` |
+| **Bun** | 1.3.9 | Must match `.bun-version` |
 | **OS** | Linux, macOS, Windows (WSL) | Ubuntu 20.04+ recommended |
 | **Memory** | 8GB+ RAM | 16GB recommended |
 | **Disk** | 10GB+ free | For dependencies and data |
@@ -82,7 +82,7 @@ make health
 # Check version
 bun --version
 
-# Should be 1.2.23
+# Should be 1.3.9
 ```
 
 ### Bun path drift on Windows

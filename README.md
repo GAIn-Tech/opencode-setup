@@ -57,7 +57,7 @@ opencode
 ### Manual Setup
 
 1. **Install OpenCode**: `npm install -g opencode`
-2. **Install Bun**: install Bun `1.2.23` (must match `.bun-version`)
+2. **Install Bun**: install Bun `1.3.9` (must match `.bun-version`)
 3. **Clone this repo**: `git clone https://github.com/GAIn-Tech/opencode-setup.git`
 4. **Run setup**: `cd opencode-setup && bun run setup`
 5. **Authenticate accounts**: `opencode` → antigravity plugin handles OAuth

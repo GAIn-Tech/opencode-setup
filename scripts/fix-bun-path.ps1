@@ -7,7 +7,7 @@ param(
 $resolved = [System.Environment]::ExpandEnvironmentVariables($BunPath)
 
 if (-not (Test-Path $resolved)) {
-    Write-Error "Bun binary not found at '$resolved'. Install Bun 1.2.23 first."
+    Write-Error "Bun binary not found at '$resolved'. Install Bun 1.3.9 first."
     exit 1
 }
 
