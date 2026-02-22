@@ -60,11 +60,6 @@ function copyDirSafe(dirName) {
   console.log(`[copy-config] Copied ${dirName}/`);
 }
 
-// Add copyDirSafe for new directories
-for (const dir of CONFIG_DIRS) {
-  copyDirSafe(dir);
-}
-
 function copyDataConfig() {
   const sourcePath = path.join(SOURCE_CONFIG_DIR, 'config.yaml');
   const targetPath = path.join(TARGET_DATA_DIR, 'config.yaml');
@@ -83,6 +78,10 @@ function main() {
 
   for (const file of CONFIG_FILES) {
     copyFileSafe(file);
+  }
+
+  for (const dir of CONFIG_DIRS) {
+    copyDirSafe(dir);
   }
 
   copyDirSafe('learning-updates');

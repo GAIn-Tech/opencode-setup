@@ -4,12 +4,21 @@ import { spawnSync } from "node:child_process";
 
 const expectedBunVersion = (process.env.OPENCODE_REQUIRED_BUN_VERSION || "1.2.23").trim();
 const isWindows = process.platform === "win32";
+const configuredBunPath = (process.env.OPENCODE_BUN_PATH || "").trim();
 
 function run(command, args) {
   return spawnSync(command, args, { encoding: "utf8", shell: false });
 }
 
 function getBunVersion() {
+  if (configuredBunPath) {
+    const configured = run(configuredBunPath, ["--version"]);
+    if (configured.status !== 0) {
+      return null;
+    }
+    return (configured.stdout || "").trim();
+  }
+
   const result = run("bun", ["--version"]);
   if (result.status !== 0) {
     return null;
@@ -50,10 +59,12 @@ function main() {
 
   const bunPaths = findBunPaths();
   const suspicious = bunPaths.filter((p) => /node_modules/i.test(p));
-  if (suspicious.length > 0) {
+  if (!configuredBunPath && suspicious.length > 0) {
     console.error("FAIL: Found Bun binaries under node_modules, which can cause nested runtime drift:");
     suspicious.forEach((p) => console.error(` - ${p}`));
     process.exit(1);
+  } else if (configuredBunPath && suspicious.length > 0) {
+    console.warn("WARN: node_modules Bun shims detected, but OPENCODE_BUN_PATH is explicitly set.");
   }
 
   if (bunPaths.length > 1) {

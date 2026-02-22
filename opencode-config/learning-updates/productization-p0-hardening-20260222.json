@@ -1,0 +1,21 @@
+{
+  "id": "productization-p0-hardening-20260222",
+  "timestamp": "2026-02-22T04:50:00Z",
+  "summary": "Resolve productization P0/P1 gaps for container parity, setup copy safety, hook consistency, and Bun preflight override behavior.",
+  "affected_paths": [
+    ".dockerignore",
+    ".github/workflows/container-parity.yml",
+    ".githooks/pre-push",
+    ".gitignore",
+    "scripts/copy-config.mjs",
+    "scripts/install-git-hooks.mjs",
+    "scripts/preflight-versions.mjs"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Fixes include preserving .env.example in Docker context, proper Docker env flag usage, moving config-directory copy after target creation, bun-only pre-push governance call, generated pre-push hook support, Bun override-aware preflight behavior, and ignore rules for env example and Windows nul artifact."
+}

@@ -4,7 +4,7 @@ set -euo pipefail
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
-npm run governance:check
+bun run governance:check
 
 # Validate commit trailers for commits that are about to be pushed.
 # pre-push stdin format: <local ref> <local sha> <remote ref> <remote sha>
