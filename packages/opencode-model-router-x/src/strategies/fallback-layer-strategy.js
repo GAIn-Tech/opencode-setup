@@ -1,79 +1,27 @@
 /**
- * 6-Layer Fallback Strategy
+ * Modern fallback strategy.
  *
- * Default strategy for model selection using a 6-layer fallback structure.
- * Each layer corresponds to a provider, with model selection based on task intent.
+ * Uses a provider-layer chain with post-mid-2025 model IDs only.
  */
 
 const ModelSelectionStrategy = require('./model-selection-strategy');
 
 class FallbackLayerStrategy extends ModelSelectionStrategy {
-  /**
-   * 6-layer provider structure
-   */
-  #LAYERS = [
-    'groq',        // Layer 1: Ultra-fast, ultra-low cost
-    'cerebras',    // Layer 2: Very fast, low cost
-    'nvidia',      // Layer 3: Fast, moderate cost
-    'antigravity', // Layer 4: Balanced accuracy/speed (Gemini variants)
-    'anthropic',   // Layer 5: High quality (Claude Sonnet)
-    'openai'       // Layer 6: Fallback-of-last-resort
-  ];
+  #LAYERS = ['antigravity', 'anthropic', 'openai', 'google', 'zen', 'nvidia'];
 
-  /**
-   * Model catalog by provider and intent
-   */
   #MODEL_CATALOG = {
-    groq: {
-      simple_read: 'llama-3.3-70b-versatile',
-      format_transform: 'llama-3.3-70b-versatile',
-      code_generation: 'llama-3.3-70b-versatile',
-      code_transform: 'llama-3.3-70b-versatile',
-      debugging: 'llama-3.3-70b-versatile',
-      documentation: 'llama-3.3-70b-versatile',
-      architecture: 'llama-3.3-70b-versatile',
-      large_context: 'llama-3.3-70b-versatile',
-      multimodal: 'llama-3.3-70b-versatile',  // No native vision
-      optimization: 'llama-3.3-70b-versatile',
-      orchestration: 'llama-3.3-70b-versatile'
-    },
-    cerebras: {
-      simple_read: 'llama-3.3-70b',
-      format_transform: 'llama-3.3-70b',
-      code_generation: 'llama-3.3-70b',
-      code_transform: 'llama-3.3-70b',
-      debugging: 'llama-3.3-70b',
-      documentation: 'llama-3.3-70b',
-      architecture: 'llama-3.3-70b',
-      large_context: 'llama-3.3-70b',
-      multimodal: 'llama-3.3-70b',  // No native vision
-      optimization: 'llama-3.3-70b',
-      orchestration: 'llama-3.3-70b'
-    },
-    nvidia: {
-      simple_read: 'llama-3.3-70b',
-      format_transform: 'llama-3.3-70b',
-      code_generation: 'llama-3.3-70b',
-      code_transform: 'llama-3.3-70b',
-      debugging: 'llama-3.3-70b',
-      documentation: 'llama-3.3-70b',
-      architecture: 'llama-3.3-70b',
-      large_context: 'llama-3.3-70b',
-      multimodal: 'llama-3.3-70b',  // No native vision
-      optimization: 'llama-3.3-70b',
-      orchestration: 'llama-3.3-70b'
-    },
     antigravity: {
-      simple_read: "gemini-3-flash",
-      format_transform: "gemini-3-flash",
-      documentation: 'gemini-3-flash-thinking-minimal',
-      code_generation: 'gemini-3-flash-thinking-minimal',
-      code_transform: "gemini-3-flash",
-      debugging: 'gemini-3-flash-thinking-medium',
-      architecture: "gemini-3-pro",
-      large_context: "gemini-3-pro",
-      multimodal: 'gemini-3-flash-thinking-minimal',
-      orchestration: "gemini-3-pro"
+      simple_read: 'antigravity-gemini-3-flash',
+      format_transform: 'antigravity-gemini-3-flash',
+      documentation: 'antigravity-gemini-3-flash',
+      code_generation: 'antigravity-claude-sonnet-4-5-thinking',
+      code_transform: 'antigravity-claude-sonnet-4-5-thinking',
+      debugging: 'antigravity-claude-opus-4-6-thinking',
+      architecture: 'antigravity-claude-opus-4-6-thinking',
+      large_context: 'antigravity-gemini-3-pro',
+      multimodal: 'antigravity-gemini-3-pro',
+      optimization: 'antigravity-gemini-3-flash-8b',
+      orchestration: 'antigravity-claude-opus-4-6-thinking',
     },
     anthropic: {
       simple_read: 'claude-haiku-4-5',
@@ -81,43 +29,68 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
       documentation: 'claude-sonnet-4-5',
       code_generation: 'claude-sonnet-4-5',
       code_transform: 'claude-sonnet-4-5',
-      debugging: 'claude-sonnet-4-5-thinking-low',
+      debugging: 'claude-opus-4-6',
       architecture: 'claude-opus-4-6',
       large_context: 'claude-opus-4-6',
-      multimodal: 'claude-sonnet-4-6',
-      orchestration: 'claude-opus-4-6'
+      multimodal: 'claude-sonnet-4-5',
+      optimization: 'claude-sonnet-4-5',
+      orchestration: 'claude-opus-4-6',
     },
     openai: {
       simple_read: 'gpt-5.2',
       format_transform: 'gpt-5.2',
-      documentation: 'gpt-5',
-      code_generation: 'gpt-5',
-      code_transform: 'gpt-5',
-      debugging: 'gpt-5',
-      architecture: 'o1',
-      large_context: 'o1',
+      documentation: 'gpt-5.2',
+      code_generation: 'gpt-5.3-codex',
+      code_transform: 'gpt-5.3-codex',
+      debugging: 'gpt-5.3-codex',
+      architecture: 'gpt-5.2',
+      large_context: 'gpt-5.2',
       multimodal: 'gpt-5',
-      orchestration: 'o1'
+      optimization: 'gpt-5',
+      orchestration: 'gpt-5.2',
     },
-    deepseek: {
-      simple_read: 'deepseek-chat',
-      format_transform: 'deepseek-chat',
-      documentation: 'deepseek-chat',
-      code_generation: 'deepseek-coder',
-      code_transform: 'deepseek-coder',
-      debugging: 'deepseek-coder',
-      architecture: 'deepseek-chat',
-      large_context: 'deepseek-chat',
-      multimodal: null,
-      orchestration: 'deepseek-chat'
-    }
+    google: {
+      simple_read: 'gemini-3-flash',
+      format_transform: 'gemini-3-flash',
+      documentation: 'gemini-3-flash',
+      code_generation: 'gemini-3-pro',
+      code_transform: 'gemini-3-pro',
+      debugging: 'gemini-3-pro',
+      architecture: 'gemini-3-pro',
+      large_context: 'gemini-3-pro',
+      multimodal: 'gemini-3-pro',
+      optimization: 'gemini-3-flash',
+      orchestration: 'gemini-3-pro',
+    },
+    zen: {
+      simple_read: 'zen/glm5',
+      format_transform: 'zen/glm5',
+      documentation: 'zen/minimax-m2.5',
+      code_generation: 'zen/kimi-k2.5-pro',
+      code_transform: 'zen/kimi-k2.5-pro',
+      debugging: 'zen/kimi-k2.5-pro',
+      architecture: 'zen/minimax-m2.5',
+      large_context: 'zen/minimax-m2.5',
+      multimodal: 'zen/glm5',
+      optimization: 'zen/minimax-m2.5-lightning',
+      orchestration: 'zen/minimax-m2.5',
+    },
+    nvidia: {
+      simple_read: 'z-ai/glm4.7',
+      format_transform: 'z-ai/glm4.7',
+      documentation: 'z-ai/glm-5',
+      code_generation: 'moonshotai/kimi-k2.5',
+      code_transform: 'moonshotai/kimi-k2.5',
+      debugging: 'deepseek-ai/deepseek-v3.2',
+      architecture: 'z-ai/glm-5',
+      large_context: 'z-ai/glm-5',
+      multimodal: 'moonshotai/kimi-k2.5',
+      optimization: 'deepseek-ai/deepseek-v3.2',
+      orchestration: 'z-ai/glm-5',
+    },
   };
 
-  /**
-   * Intent to catalog key mapping
-    */
   #INTENT_MAP = {
-    // Core intents
     research: 'documentation',
     analysis: 'documentation',
     ideation: 'documentation',
@@ -128,44 +101,32 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
     documentation: 'documentation',
     system: 'orchestration',
     orchestration: 'orchestration',
-    
-    // Performance intents
     fast: 'code_generation',
-    cheap: 'code_generation',
-    speed: 'code_generation',
+    cheap: 'optimization',
+    speed: 'optimization',
     budget: 'optimization',
-    
-    // Quality intents
     high_quality: 'architecture',
     best: 'architecture',
     premium: 'architecture',
-    
-    // Specialized intents
     refactor: 'code_transform',
     review: 'documentation',
     security: 'debugging',
     performance: 'optimization',
-    
-    // Vision/Image intents
     multimodal: 'multimodal',
     vision: 'multimodal',
     image_analysis: 'multimodal',
     screenshot: 'multimodal',
-    
-    // Context intents
     large_context: 'large_context',
     long_context: 'large_context',
-    
-    // Reasoning intents
     reasoning: 'architecture',
     think: 'architecture',
-    chain_of_thought: 'architecture'
+    chain_of_thought: 'architecture',
   };
 
   constructor() {
     super();
     this.currentLayer = 0;
-    this._advanceLock = Promise.resolve();  // Quota signal propagation lock
+    this._advanceLock = Promise.resolve();
   }
 
   getName() {
@@ -173,21 +134,19 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
   }
 
   getPriority() {
-    return 0; // Lowest priority - fallthrough if no other strategy matches
+    return 0;
   }
 
   shouldApply(task, context = {}) {
     return !context.manualOverride &&
-           !context.projectStartMode &&
-           !context.stuckBugDetected &&
-           !context.perspectiveMode;
+      !context.projectStartMode &&
+      !context.stuckBugDetected &&
+      !context.perspectiveMode;
   }
 
   async selectModel(task, context = {}) {
-    const { intent, signals } = task;
-    const catalogKey = this.#INTENT_MAP[intent] || 'documentation';
+    const catalogKey = this.#INTENT_MAP[task.intent] || 'documentation';
 
-    // Try providers in order, starting from current layer
     for (let i = 0; i < this.#LAYERS.length; i++) {
       const provider = this.#LAYERS[(this.currentLayer + i) % this.#LAYERS.length];
       const modelId = this.#MODEL_CATALOG[provider]?.[catalogKey];
@@ -196,50 +155,39 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
         return {
           model_id: modelId,
           provider,
-          reasoning_effort: this.#getReasoningEffort(provider, intent),
+          reasoning_effort: this.#getReasoningEffort(provider, task.intent),
           confidence: 1.0 - (i * 0.1),
-          alternative_models: this.#getAlternatives(intent, i)
+          alternative_models: this.#getAlternatives(task.intent, i),
         };
       }
     }
 
-    // Fallback to lowest available model
     return {
-      model_id: 'llama-3.3-70b-versatile',
-      provider: 'groq',
+      model_id: 'antigravity-gemini-3-flash',
+      provider: 'antigravity',
       reasoning_effort: 'none',
-      confidence: 0.5
+      confidence: 0.5,
     };
   }
 
-  async getAlternatives(task, context = {}) {
-    const { intent } = task;
-    const catalogKey = this.#INTENT_MAP[intent] || 'documentation';
+  async getAlternatives(task) {
+    const catalogKey = this.#INTENT_MAP[task.intent] || 'documentation';
     const alternatives = [];
 
     for (let i = 1; i < this.#LAYERS.length; i++) {
       const provider = this.#LAYERS[(this.currentLayer + i) % this.#LAYERS.length];
       const modelId = this.#MODEL_CATALOG[provider]?.[catalogKey];
-
-      if (modelId) {
-        alternatives.push({
-          model_id: modelId,
-          provider,
-          reason: `Layer ${i + 1} fallback`
-        });
-      }
+      if (!modelId) continue;
+      alternatives.push({
+        model_id: modelId,
+        provider,
+        reason: `Layer ${i + 1} fallback`,
+      });
     }
 
     return alternatives;
   }
 
-  /**
-   * Advance to next layer (called on metrics-specific triggers)
-   * Uses lock to prevent concurrent 429 responses from racing
-   *
-   * @param {string} reason - Reason for advancing
-   * @returns {Promise<void>}
-   */
   async advanceLayer(reason = '') {
     return this._acquireAdvanceLock(async () => {
       if (this.currentLayer < this.#LAYERS.length - 1) {
@@ -249,10 +197,6 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
     });
   }
 
-  /**
-   * Acquire lock for layer advancement to prevent race conditions
-   * @private
-   */
   _acquireAdvanceLock(callback) {
     return this._advanceLock.then(async () => {
       this._advanceLock = callback().finally(() => {
@@ -262,43 +206,30 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
     });
   }
 
-  /**
-   * Reset to first layer
-   */
   resetLayer() {
     this.currentLayer = 0;
     console.log('[FallbackLayerStrategy] Reset to layer 0');
   }
 
-  /**
-   * Get reasoning effort based on provider and intent
-   *
-   * @param {string} provider - Provider name
-   * @param {string} intent - Task intent
-   * @returns {string} - Reasoning effort level
-   */
   #getReasoningEffort(provider, intent) {
     const providerMap = {
       antigravity: {
         debugging: 'medium',
-        documentation: 'minimal'
+        architecture: 'medium',
       },
       anthropic: {
         debugging: 'low',
-        architecture: 'low'
-      }
+        architecture: 'low',
+      },
+      openai: {
+        code_generation: 'medium',
+        debugging: 'medium',
+      },
     };
 
     return providerMap[provider]?.[intent] || 'none';
   }
 
-  /**
-   * Get alternative models for given intent and offset
-   *
-   * @param {string} intent - Task intent
-   * @param {number} offset - Layer offset
-   * @returns {Array} - Alternative models
-   */
   #getAlternatives(intent, offset) {
     const catalogKey = this.#INTENT_MAP[intent] || 'documentation';
     const alternatives = [];
@@ -306,14 +237,12 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
     for (let i = 1; i < 3; i++) {
       const provider = this.#LAYERS[(this.currentLayer + offset + i) % this.#LAYERS.length];
       const modelId = this.#MODEL_CATALOG[provider]?.[catalogKey];
-
-      if (modelId) {
-        alternatives.push({
-          model_id: modelId,
-          provider,
-          reason: `Fallback layer ${i}`
-        });
-      }
+      if (!modelId) continue;
+      alternatives.push({
+        model_id: modelId,
+        provider,
+        reason: `Fallback layer ${i}`,
+      });
     }
 
     return alternatives;

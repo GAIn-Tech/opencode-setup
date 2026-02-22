@@ -132,17 +132,18 @@ export function configDir() {
 
 /**
  * Get the user's opencode config directory (~/.config/opencode).
- * Respects XDG_CONFIG_HOME on Linux, APPDATA on Windows.
+ * Respects XDG_CONFIG_HOME on all platforms and OPENCODE_CONFIG_HOME override.
+ *
+ * NOTE: OpenCode reads from the XDG-style path (~/.config/opencode) even on
+ * Windows. Using %APPDATA%/opencode would write to the wrong location.
  */
 export function userConfigDir() {
   if (process.env.OPENCODE_CONFIG_HOME) {
     return resolve(process.env.OPENCODE_CONFIG_HOME);
   }
-  if (process.platform === 'win32') {
-    return join(process.env.APPDATA || join(process.env.USERPROFILE || homedir(), 'AppData', 'Roaming'), 'opencode');
-  }
-  // XDG_CONFIG_HOME or default ~/.config/opencode
-  return join(process.env.XDG_CONFIG_HOME || join(process.env.HOME || homedir(), '.config'), 'opencode');
+  // Use XDG-style path on all platforms — OpenCode resolves config via XDG
+  // even on Windows (confirmed: %APPDATA%/opencode is NOT read by OpenCode)
+  return join(process.env.XDG_CONFIG_HOME || join(homedir(), '.config'), 'opencode');
 }
 
 /**

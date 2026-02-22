@@ -213,10 +213,9 @@ class ModelDiscovery {
       case 'anthropic':
         // Anthropic doesn't have a public models list API, use known models
         return [
-          { id: 'claude-opus-4-5-20251114', contextTokens: 200000 },
-          { id: 'claude-sonnet-4-5-20250501', contextTokens: 200000 },
-          { id: 'claude-3-5-sonnet-20241022', contextTokens: 200000 },
-          { id: 'claude-3-5-haiku-20241022', contextTokens: 200000 }
+          { id: 'claude-opus-4-6', contextTokens: 1000000 },
+          { id: 'claude-sonnet-4-5', contextTokens: 200000 },
+          { id: 'claude-haiku-4-5', contextTokens: 200000 }
         ];
 
       case 'groq':

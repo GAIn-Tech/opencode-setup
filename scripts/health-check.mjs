@@ -8,6 +8,36 @@ import { resolveRoot, userConfigDir } from './resolve-root.mjs';
 
 const root = resolveRoot();
 
+function commandLocation(command) {
+  const isWin = process.platform === 'win32';
+  const locators = isWin ? ['where.exe', 'where', 'which'] : ['which'];
+
+  for (const locator of locators) {
+    const result = spawnSync(locator, [command], { encoding: 'utf8' });
+    if (result.status !== 0) continue;
+    const first = `${result.stdout || ''}`.split(/\r?\n/).map((s) => s.trim()).find(Boolean);
+    if (first) return first;
+  }
+
+  return null;
+}
+
+function runCommand(command, args, options = {}) {
+  const direct = spawnSync(command, args, { encoding: 'utf8', ...options });
+  if (direct.status === 0) return direct;
+
+  const shellFallback = spawnSync(command, args, { encoding: 'utf8', shell: true, ...options });
+  if (shellFallback.status === 0) return shellFallback;
+
+  const located = commandLocation(command);
+  if (located) {
+    const resolved = spawnSync(located, args, { encoding: 'utf8', ...options });
+    if (resolved.status === 0) return resolved;
+  }
+
+  return direct;
+}
+
 function printStatus(level, label, details, fix) {
   console.log(`[${level}] ${label}`);
   if (details) {
@@ -120,6 +150,19 @@ function requiredEnvKeys(examplePath) {
   return keys;
 }
 
+function requiredEnvKeysForProfile(profile, allKeys) {
+  const profiles = {
+    none: [],
+    core: ['ANTHROPIC_API_KEYS', 'OPENAI_API_KEYS', 'GOOGLE_API_KEYS', 'NVIDIA_API_KEY'],
+    mcp: ['SUPERMEMORY_API_KEY', 'TAVILY_API_KEY', 'GITHUB_TOKEN'],
+    strict: allKeys,
+  };
+
+  const selected = profiles[profile] || profiles.core;
+  if (selected === allKeys) return allKeys;
+  return selected.filter((key) => allKeys.includes(key));
+}
+
 function hasHardcodedSecret(content) {
   return [
     /tvly-[A-Za-z0-9_-]{10,}/,
@@ -153,7 +196,7 @@ function main() {
   let failures = 0;
   let warnings = 0;
 
-  const cli = spawnSync('opencode', ['--version'], { encoding: 'utf8' });
+  const cli = runCommand('opencode', ['--version']);
   if (cli.status === 0) {
     const version = `${cli.stdout || ''}${cli.stderr || ''}`.trim().split(/\r?\n/)[0] || 'version available';
     printStatus('PASS', 'OpenCode CLI responds', version);
@@ -246,17 +289,24 @@ function main() {
   const envExamplePath = path.join(root, '.env.example');
   const envPath = path.join(root, '.env');
   const requiredKeys = requiredEnvKeys(envExamplePath);
+  const envProfile = String(process.env.OPENCODE_HEALTH_ENV_PROFILE || 'core').trim().toLowerCase();
+  const requiredForProfile = requiredEnvKeysForProfile(envProfile, requiredKeys);
   const envValues = { ...parseEnvFile(envPath), ...process.env };
-  const missingKeys = requiredKeys.filter((key) => !String(envValues[key] || '').trim());
+  const missingKeys = requiredForProfile.filter((key) => !String(envValues[key] || '').trim());
 
-  if (requiredKeys.length === 0) {
+  if (requiredForProfile.length === 0) {
     warnings += 1;
-    printStatus('WARN', 'Required env keys', 'No keys parsed from .env.example');
+    printStatus('WARN', 'Required env keys', `Skipped (OPENCODE_HEALTH_ENV_PROFILE=${envProfile}).`);
   } else if (missingKeys.length > 0) {
     warnings += 1;
-    printStatus('WARN', 'Required env keys', `Missing keys: ${missingKeys.join(', ')}`, 'Set missing keys in shell environment or .env.');
+    printStatus(
+      'WARN',
+      'Required env keys',
+      `Missing keys for profile ${envProfile}: ${missingKeys.join(', ')}`,
+      `Set missing keys in shell environment or .env, or adjust OPENCODE_HEALTH_ENV_PROFILE (${envProfile}).`
+    );
   } else {
-    printStatus('PASS', 'Required env keys', `${requiredKeys.length}/${requiredKeys.length} present`);
+    printStatus('PASS', 'Required env keys', `${requiredForProfile.length}/${requiredForProfile.length} present (profile: ${envProfile})`);
   }
 
   const hasAnyApiKey = requiredKeys
@@ -267,15 +317,29 @@ function main() {
     warnings += 1;
     printStatus('WARN', 'Model connectivity smoke test', 'Skipped (no API keys detected).');
   } else {
-    const smokeTest = spawnSync('opencode', ['run', 'ping', '--model=google/antigravity-gemini-2.0-pro'], {
-      encoding: 'utf8',
+    const configPath = path.join(userConfigDir(), 'opencode.json');
+    let smokeModel = 'google/antigravity-gemini-3-pro';
+    try {
+      const cfg = JSON.parse(readFileSync(configPath, 'utf8'));
+      const providers = cfg.provider || cfg.models || {};
+      if (providers.google?.models?.['antigravity-gemini-3-pro']) {
+        smokeModel = 'google/antigravity-gemini-3-pro';
+      } else if (providers.google?.models) {
+        const firstGoogle = Object.keys(providers.google.models)[0];
+        if (firstGoogle) smokeModel = `google/${firstGoogle}`;
+      }
+    } catch {
+      // Keep default smoke model.
+    }
+
+    const smokeTest = runCommand('opencode', ['run', 'ping', `--model=${smokeModel}`], {
       timeout: 60000,
     });
     if (smokeTest.status === 0) {
-      printStatus('PASS', 'Model connectivity smoke test', 'Model request succeeded');
+      printStatus('PASS', 'Model connectivity smoke test', `Model request succeeded (${smokeModel})`);
     } else {
       warnings += 1;
-      printStatus('WARN', 'Model connectivity smoke test', 'Request failed', 'Check provider credentials, network, and quotas.');
+      printStatus('WARN', 'Model connectivity smoke test', `Request failed (${smokeModel})`, 'Check provider credentials, network, and quotas.');
     }
   }
 

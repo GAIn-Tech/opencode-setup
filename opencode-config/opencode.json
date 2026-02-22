@@ -1,9 +1,19 @@
 {
-  "models": {
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    "oh-my-opencode@3.5.2",
+    "opencode-antigravity-auth@1.4.6",
+    "opencode-antigravity-quota@0.1.6",
+    "opencode-supermemory@2.0.1",
+    "opencode-plugin-preload-skills@1.8.0",
+    "opencode-plugin-langfuse@0.1.8",
+    "opencode-pty@0.2.1"
+  ],
+  "provider": {
     "google": {
       "npm": "@ai-sdk/google",
       "options": {
-        "apiKey": "{env:GEMINI_API_KEY}"
+        "apiKey": "{env:GOOGLE_API_KEYS}"
       },
       "models": {
         "antigravity-gemini-3-pro": {
@@ -319,109 +329,6 @@
         }
       }
     },
-    "nvidia": {
-      "npm": "@ai-sdk/openai-compatible",
-      "options": {
-        "baseURL": "https://integrate.api.nvidia.com/v1",
-        "apiKey": "{env:NVIDIA_API_KEY}"
-      },
-      "models": {
-        "meta/llama-4-scout-17b-16k-instruct": {
-          "name": "Llama 4 Scout 17B (NVIDIA) - FAST",
-          "limit": { "context": 128000, "output": 16384 },
-          "modalities": { "input": ["text"], "output": ["text"] },
-          "priority": "secondary"
-        },
-        "meta/llama-4-maverick-17b-128k-instruct": {
-          "name": "Llama 4 Maverick 17B (NVIDIA)",
-          "limit": { "context": 128000, "output": 16384 },
-          "modalities": { "input": ["text"], "output": ["text"] },
-          "priority": "secondary"
-        }
-      }
-    },
-    "groq": {
-      "npm": "@ai-sdk/openai-compatible",
-      "options": {
-        "baseURL": "https://api.groq.com/openai/v1",
-        "apiKey": "{env:GROQ_API_KEY}"
-      },
-      "models": {
-        "llama-4-scout-17b-16k-instruct": {
-          "name": "Llama 4 Scout 17B (Groq) - FASTEST",
-          "limit": {
-            "context": 128000,
-            "output": 32768
-          },
-          "modalities": {
-            "input": [
-              "text"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "priority": "fallback"
-        },
-        "llama-4-maverick-17b-128k-instruct": {
-          "name": "Llama 4 Maverick 17B (Groq)",
-          "limit": {
-            "context": 128000,
-            "output": 32768
-          },
-          "modalities": {
-            "input": [
-              "text"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "priority": "fallback"
-        }
-      }
-    },
-    "cerebras": {
-      "npm": "@ai-sdk/openai-compatible",
-      "options": {
-        "baseURL": "https://api.cerebras.ai/v1",
-        "apiKey": "{env:CEREBRAS_API_KEY}"
-      },
-      "models": {
-        "llama-4-scout-17b-16k-instruct": {
-          "name": "Llama 4 Scout 17B (Cerebras) - FASTEST",
-          "limit": {
-            "context": 128000,
-            "output": 8192
-          },
-          "modalities": {
-            "input": [
-              "text"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "priority": "fallback"
-        },
-        "llama-4-maverick-17b-128k-instruct": {
-          "name": "Llama 4 Maverick 17B (Cerebras)",
-          "limit": {
-            "context": 128000,
-            "output": 8192
-          },
-          "modalities": {
-            "input": [
-              "text"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "priority": "fallback"
-        }
-      }
-    },
     "zen": {
       "npm": "@ai-sdk/openai-compatible",
       "options": {
@@ -459,20 +366,69 @@
             ]
           },
           "priority": "secondary"
+        },
+        "zen/glm-4.7": {
+          "name": "GLM-4.7 (Zen)",
+          "limit": {
+            "context": 128000,
+            "output": 8192
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "priority": "secondary"
+        },
+        "zen/minimax-m2.5": {
+          "name": "MiniMax M2.5 (Zen)",
+          "limit": {
+            "context": 1000000,
+            "output": 16384
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "priority": "secondary"
+        },
+        "zen/minimax-m2.5-lightning": {
+          "name": "MiniMax M2.5 Lightning (Zen)",
+          "limit": {
+            "context": 1000000,
+            "output": 16384
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "priority": "secondary"
         }
       }
     },
-    "deepseek": {
+    "nvidia": {
       "npm": "@ai-sdk/openai-compatible",
       "options": {
-        "baseURL": "https://api.deepseek.com"
+        "baseURL": "https://integrate.api.nvidia.com/v1",
+        "apiKey": "{env:NVIDIA_API_KEY}"
       },
       "models": {
-        "deepseek-chat": {
-          "name": "DeepSeek Chat",
+        "moonshotai/kimi-k2.5": {
+          "name": "Kimi K2.5 (NVIDIA)",
           "limit": {
-            "context": 65536,
-            "output": 8192
+            "context": 256000,
+            "output": 16384
           },
           "modalities": {
             "input": [
@@ -482,12 +438,28 @@
               "text"
             ]
           },
-          "priority": "fallback"
+          "priority": "secondary"
         },
-        "deepseek-coder": {
-          "name": "DeepSeek Coder",
+        "z-ai/glm-5": {
+          "name": "GLM-5 (NVIDIA)",
           "limit": {
-            "context": 65536,
+            "context": 256000,
+            "output": 16384
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "priority": "secondary"
+        },
+        "z-ai/glm4.7": {
+          "name": "GLM-4.7 (NVIDIA)",
+          "limit": {
+            "context": 128000,
             "output": 8192
           },
           "modalities": {
@@ -498,7 +470,23 @@
               "text"
             ]
           },
-          "priority": "fallback"
+          "priority": "secondary"
+        },
+        "deepseek-ai/deepseek-v3.2": {
+          "name": "DeepSeek V3.2 (NVIDIA)",
+          "limit": {
+            "context": 128000,
+            "output": 16384
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "priority": "secondary"
         }
       }
     }
@@ -506,7 +494,7 @@
   "command": {
     "agent": {
       "description": "Display available agent personalities and their models",
-      "template": "# Agent Mode Selector\n\nDisplay available agent personalities and their associated models.\n\n## Available Agents\n\n| Agent | Model | Best For |\n|-------|-------|----------|\n| **atlas** | anthropic/claude-sonnet-4-5 | Architecture decisions, multi-system design |\n| **hephaestus** | openai/gpt-5.3-codex | Implementation, code generation (PRIORITY) |\n| **librarian** | google/gemini-3-flash | Research, documentation lookup |\n| **metis** | anthropic/claude-sonnet-4-5 | Planning, pre-execution analysis |\n| **momus** | anthropic/claude-sonnet-4-5 | Review, quality assurance |\n| **oracle** | anthropic/claude-opus-4-6 | Complex debugging, hard problems |\n| **prometheus** | google/gemini-3-pro | Forward-thinking, innovation |\n| **sisyphus** | anthropic/claude-opus-4-6 | Deep work, complex refactoring |\n\n## 2025-2026 Frontier Models\n\n| Provider | Model | Specialty |\n|----------|-------|-----------|\n| OpenAI | gpt-5.3-codex | Coding specialist (PRIMARY) |\n| OpenAI | gpt-5.2 | Reasoning |\n| OpenAI | gpt-5 | General |\n| Google | gemini-3-pro | Complex reasoning, long context |\n| Google | gemini-3-flash | Fast research, general |\n| Anthropic | claude-opus-4-6 | Deep analysis, hard problems |\n| Anthropic | claude-sonnet-4-5 | Balanced reasoning |\n| Groq/Cerebras | llama-4-maverick | Fast inference |\n| DeepSeek | deepseek-coder | Coding fallback |\n\n## Usage\n\n**To invoke an agent, type @agentname at the start of your message:**\n\n```\n@oracle help me debug this complex error\n@hephaestus implement this feature\n@librarian find examples of this pattern\n@metis plan this implementation\n@momus review this code\n```\n\n**Note:** Agent selection is informational only. The model router dynamically selects the appropriate model based on task requirements."
+      "template": "# Agent Mode Selector\n\nDisplay available agent personalities and their associated models.\n\n## Available Agents\n\n| Agent | Model | Best For |\n|-------|-------|----------|\n| **atlas** | anthropic/claude-sonnet-4-5 | Architecture decisions, multi-system design |\n| **hephaestus** | openai/gpt-5.3-codex | Implementation, code generation (PRIORITY) |\n| **librarian** | google/gemini-3-flash | Research, documentation lookup |\n| **metis** | anthropic/claude-sonnet-4-5 | Planning, pre-execution analysis |\n| **momus** | anthropic/claude-sonnet-4-5 | Review, quality assurance |\n| **oracle** | anthropic/claude-opus-4-6 | Complex debugging, hard problems |\n| **prometheus** | google/gemini-3-pro | Forward-thinking, innovation |\n| **sisyphus** | anthropic/claude-opus-4-6 | Deep work, complex refactoring |\n\n## 2025-2026 Frontier Models\n\n| Provider | Model | Specialty |\n|----------|-------|-----------|\n| OpenAI | gpt-5.3-codex | Coding specialist (PRIMARY) |\n| OpenAI | gpt-5.2 | Reasoning |\n| OpenAI | gpt-5 | General |\n| Google | gemini-3-pro | Complex reasoning, long context |\n| Google | gemini-3-flash | Fast research, general |\n| Anthropic | claude-opus-4-6 | Deep analysis, hard problems |\n| Anthropic | claude-sonnet-4-5 | Balanced reasoning |\n| Google (Antigravity) | antigravity-gemini-3-flash-8b | Ultra-efficient fallback |\n| Zen | zen/kimi-k2.5-pro | Cost-efficient long-context backup |\n| NVIDIA | moonshotai/kimi-k2.5 | Hosted Kimi backup |\n| NVIDIA | z-ai/glm-5 | Hosted GLM-5 backup |\n| NVIDIA | z-ai/glm4.7 | Hosted GLM-4.7 backup |\n| Zen | zen/minimax-m2.5 | MiniMax M2.5 via Zen backup |\n| Zen | zen/minimax-m2.5-lightning | MiniMax M2.5 Lightning via Zen backup |\n| NVIDIA | deepseek-ai/deepseek-v3.2 | DeepSeek V3.2 via NVIDIA backup |\n| Zen | zen/glm-4.7 | Additional GLM fallback |\n\n## Usage\n\n**To invoke an agent, type @agentname at the start of your message:**\n\n```\n@oracle help me debug this complex error\n@hephaestus implement this feature\n@librarian find examples of this pattern\n@metis plan this implementation\n@momus review this code\n```\n\n**Note:** Agent selection is informational only. The model router dynamically selects the appropriate model based on task requirements."
     },
     "workflows:deepen-plan": {
       "description": "Enhance a plan with parallel research agents for each section to add depth, best practices, and implementation details",

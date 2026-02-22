@@ -30,9 +30,9 @@ const args = new Set(process.argv.slice(2));
 const outputJson = args.has('--json');
 
 const allSteps = [
-  { name: 'setup', cmd: 'bun', args: ['run', 'setup'], critical: true, scriptPath: path.join(root, 'package.json') },
-  { name: 'verify', cmd: 'node', args: ['scripts/verify-setup.mjs'], critical: true, scriptPath: path.join(root, 'scripts', 'verify-setup.mjs') },
-  { name: 'api-sanity', cmd: 'node', args: ['scripts/api-sanity.mjs'], critical: true, scriptPath: path.join(root, 'scripts', 'api-sanity.mjs') },
+  { name: 'setup', cmd: 'bun', args: ['run', 'setup'], critical: true, timeoutMs: 300000, scriptPath: path.join(root, 'package.json') },
+  { name: 'verify', cmd: 'node', args: ['scripts/verify-setup.mjs'], critical: true, timeoutMs: 120000, scriptPath: path.join(root, 'scripts', 'verify-setup.mjs') },
+  { name: 'api-sanity', cmd: 'node', args: ['scripts/api-sanity.mjs'], critical: true, timeoutMs: 180000, scriptPath: path.join(root, 'scripts', 'api-sanity.mjs') },
 ];
 
 const steps = allSteps.filter((step) => {
@@ -76,13 +76,17 @@ function runStep(step) {
     cwd: root,
     stdio: 'inherit',
     shell: process.platform === 'win32',
+    timeout: step.timeoutMs,
   });
 
   const durationMs = Date.now() - startedAt;
-  const ok = result.status === 0;
+  const timedOut = Boolean(result.error && result.error.code === 'ETIMEDOUT');
+  const ok = result.status === 0 && !timedOut;
 
   if (ok) {
     console.log(`✅ [${step.name}] passed (${durationMs}ms)`);
+  } else if (timedOut) {
+    console.log(`⏱️  [${step.name}] timed out after ${step.timeoutMs}ms (${durationMs}ms)`);
   } else {
     console.log(`❌ [${step.name}] failed (exit code: ${result.status}, ${durationMs}ms)`);
   }
@@ -92,6 +96,7 @@ function runStep(step) {
     critical: step.critical,
     ok,
     exitCode: result.status,
+    timedOut,
     durationMs,
   };
 }

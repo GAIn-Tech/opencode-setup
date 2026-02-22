@@ -1,208 +1,241 @@
 #!/usr/bin/env node
 
-/**
- * validate-models.mjs
- * 
- * Validates model catalogs across the codebase to ensure:
- * - No obsolete model names exist
- * - All referenced models match known provider catalogs
- * - Model pricing data is present
- * - Fallback catalogs are consistent with policies
- * 
- * Usage:
- *   node scripts/validate-models.mjs
- *   node scripts/validate-models.mjs --fix  # Auto-fix obsolete models
- */
-
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { resolveRoot } from './resolve-root.mjs';
 
 const root = resolveRoot();
-const shouldFix = process.argv.includes('--fix');
+const CUTOFF_DATE = '2025-06-01';
 
-// Known obsolete models that should be flagged
-const OBSOLETE_MODELS = {
-  // OpenAI
-  'gpt-5': 'gpt-4o',
-  'gpt-5-mini': 'gpt-4o-mini',
-  'gpt-4.1': 'o1',
-  
-  // Google Gemini (gemini-2.0 is current, gemini-1.5 is older stable, 2.5 and 3.x don't exist)
-  'gemini-3-pro': 'gemini-2.0-pro',
-  'gemini-3-flash': 'gemini-2.0-flash',
-  'gemini-2.5-pro': 'gemini-2.0-pro',
-  'gemini-2.5-flash': 'gemini-2.0-flash',
-  'gemini-2.5-flash-thinking-minimal': 'gemini-2.0-flash-thinking-exp-01-21',
-  'gemini-2.5-flash-thinking-low': 'gemini-2.0-flash-thinking-exp-01-21',
-  'gemini-2.5-flash-thinking-medium': 'gemini-2.0-flash-thinking-exp-01-21',
-  'gemini-2.5-pro-thinking-low': 'gemini-2.0-pro-exp',
-  'gemini-2.5-pro-thinking-medium': 'gemini-2.0-pro-exp',
-  'gemini-2.5-pro-thinking-high': 'gemini-2.0-pro-exp',
-  'antigravity-gemini-2.5-pro': 'gemini-2.0-pro',
-  'antigravity-gemini-2.5-flash': 'gemini-2.0-flash',
-  
-  // Groq
-  'llama-3.1-70b': 'llama-3.3-70b-versatile',
-  'llama-3.1-8b': 'llama-3.3-70b-versatile',
-  
-  // Cerebras
-  'cerebras/llama-3.1-70b': 'llama-3.3-70b',
-  
-  // Nvidia
-  'nvidia/llama-3.1-405b': 'llama-3.3-70b',
-  
-  // SambaNova
-  'sambanova/llama-3.1-405b': 'llama-3.3-70b',
-};
-
-// Files to scan for model references
-const MODEL_CONFIG_FILES = [
-  'packages/opencode-model-router-x/src/policies.json',
-  'packages/opencode-model-router-x/src/strategies/token-cost-calculator.js',
-  'packages/opencode-model-router-x/src/strategies/fallback-layer-strategy.js',
-  'packages/opencode-sisyphus-state/src/config/providers.js',
-  'packages/opencode-dashboard/src/app/api/providers/route.ts',
+const SCAN_FILES = [
+  'opencode-config/opencode.json',
+  'opencode-config/oh-my-opencode.json',
+  'opencode-config/config.yaml',
+  'opencode-config/rate-limit-fallback.json',
   'rate-limit-fallback.json',
+  'packages/opencode-model-router-x/src/policies.json',
+  'packages/opencode-model-router-x/src/strategies/fallback-layer-strategy.js',
+  'packages/opencode-model-router-x/src/strategies/perspective-switch-strategy.js',
+  'packages/opencode-model-router-x/src/strategies/project-start-strategy.js',
+  'packages/opencode-model-router-x/src/thompson-sampling-router.js',
+  'packages/opencode-model-router-x/src/model-discovery.js',
+  'scripts/health-check.mjs',
 ];
 
-let totalIssues = 0;
-let totalFixed = 0;
+const FORBIDDEN_PATTERNS = [
+  { name: 'OpenAI pre-GPT-5 family', regex: /\bgpt-4(?:\.|o|\b)|\bgpt-3(?:\.|\b)|\bo1\b/i },
+  { name: 'Gemini pre-3 family', regex: /\bgemini-(?:1\.|2\.)/i },
+  { name: 'Claude 3 family', regex: /\bclaude-3(?:\.|-|\b)/i },
+  { name: 'Llama 3 family', regex: /\bllama-3(?:\.|-|\b)/i },
+  { name: 'DeepSeek legacy ids', regex: /\bdeepseek-(?:chat|coder)\b/i },
+  { name: 'Generic codex alias', regex: /\bgpt-5-codex\b/i },
+];
 
-function printStatus(level, message, details) {
+function print(level, message, details = null) {
   console.log(`[${level}] ${message}`);
-  if (details) {
-    console.log(`  ${details}`);
-  }
+  if (details) console.log(`  ${details}`);
 }
 
-function validateFile(relPath) {
+function readJson(relPath) {
   const fullPath = path.join(root, relPath);
-  
-  if (!existsSync(fullPath)) {
-    printStatus('WARN', `File not found: ${relPath}`, 'Skipping validation');
-    return;
+  return JSON.parse(readFileSync(fullPath, 'utf8'));
+}
+
+function collectValidModels() {
+  const opencode = readJson('opencode-config/opencode.json');
+  const providerToIds = new Map();
+  const plainIds = new Set();
+  const qualifiedIds = new Set();
+
+  for (const [provider, providerConfig] of Object.entries(opencode.provider || opencode.models || {})) {
+    const ids = Object.keys(providerConfig.models || {});
+    providerToIds.set(provider, new Set(ids));
+    for (const id of ids) {
+      plainIds.add(id);
+      qualifiedIds.add(`${provider}/${id}`);
+    }
   }
-  
-  const content = readFileSync(fullPath, 'utf8');
+
+  return { providerToIds, plainIds, qualifiedIds };
+}
+
+function validateCatalogReleaseWindow() {
+  const catalog = readJson('opencode-config/models/catalog-2026.json');
+  const violations = [];
+
+  for (const [key, config] of Object.entries(catalog.models || {})) {
+    const releaseDate = String(config.releaseDate || '').trim();
+    if (!releaseDate) {
+      violations.push(`${key} missing releaseDate`);
+      continue;
+    }
+    if (releaseDate < CUTOFF_DATE) {
+      violations.push(`${key} releaseDate ${releaseDate} is before ${CUTOFF_DATE}`);
+    }
+  }
+
+  if (violations.length === 0) {
+    print('PASS', 'Catalog release window', `All catalog entries are >= ${CUTOFF_DATE}`);
+    return 0;
+  }
+
+  print('FAIL', 'Catalog release window', `${violations.length} pre-mid-2025 entry(s)`);
+  for (const violation of violations) {
+    console.log(`  - ${violation}`);
+  }
+  return violations.length;
+}
+
+function validateFallbackFile(relPath, validPlainIds) {
+  const file = readJson(relPath);
   const issues = [];
-  
-  // Check for obsolete model names
-  for (const [obsolete, replacement] of Object.entries(OBSOLETE_MODELS)) {
-    // Match model names in quotes, object keys, or string literals
-    const patterns = [
-      new RegExp(`["']${obsolete.replace(/\//g, '\\/')}["']`, 'g'),
-      new RegExp(`\\b${obsolete.replace(/\//g, '\\/')}\\b`, 'g'),
-    ];
-    
-    for (const pattern of patterns) {
-      const matches = content.match(pattern);
-      if (matches) {
-        issues.push({
-          obsolete,
-          replacement,
-          count: matches.length,
-        });
-        totalIssues += matches.length;
-      }
+  const list = Array.isArray(file.fallbackModels) ? file.fallbackModels : [];
+
+  for (const entry of list) {
+    const id = String(entry.modelID || '').trim();
+    if (!id) {
+      issues.push('empty modelID');
+      continue;
+    }
+    if (!validPlainIds.has(id)) {
+      issues.push(`unknown modelID: ${id}`);
     }
   }
-  
+
   if (issues.length === 0) {
-    printStatus('PASS', relPath, 'No obsolete models found');
-    return;
+    print('PASS', relPath, `${list.length} fallback model IDs validated`);
+    return 0;
   }
-  
-  // Report issues
-  printStatus('FAIL', relPath, `Found ${issues.length} obsolete model type(s)`);
-  for (const { obsolete, replacement, count } of issues) {
-    console.log(`    ${obsolete} → ${replacement} (${count} occurrence(s))`);
+
+  print('FAIL', relPath, `${issues.length} issue(s)`);
+  for (const issue of issues) {
+    console.log(`  - ${issue}`);
   }
-  
-  // Auto-fix if requested
-  if (shouldFix) {
-    let fixedContent = content;
-    for (const [obsolete, replacement] of Object.entries(OBSOLETE_MODELS)) {
-      const patterns = [
-        { regex: new RegExp(`["']${obsolete.replace(/\//g, '\\/')}["']`, 'g'), repl: `"${replacement}"` },
-        { regex: new RegExp(`\\b${obsolete.replace(/\//g, '\\/')}\\b`, 'g'), repl: replacement },
-      ];
-      
-      for (const { regex, repl } of patterns) {
-        const before = fixedContent;
-        fixedContent = fixedContent.replace(regex, repl);
-        if (fixedContent !== before) {
-          totalFixed++;
-        }
+  return issues.length;
+}
+
+function validateOhMyOmo(validQualifiedIds) {
+  const relPath = 'opencode-config/oh-my-opencode.json';
+  const file = readJson(relPath);
+  const enabled = Array.isArray(file?.agents?.enabled) ? file.agents.enabled : [];
+  const issues = [];
+
+  for (const agent of enabled) {
+    const model = String(file?.agents?.[agent]?.model || '').trim();
+    if (!model) {
+      issues.push(`agent '${agent}' missing model`);
+      continue;
+    }
+    if (!validQualifiedIds.has(model)) {
+      issues.push(`agent '${agent}' uses unknown model '${model}'`);
+    }
+  }
+
+  if (issues.length === 0) {
+    print('PASS', relPath, `${enabled.length} enabled agent model references validated`);
+    return 0;
+  }
+
+  print('FAIL', relPath, `${issues.length} issue(s)`);
+  for (const issue of issues) {
+    console.log(`  - ${issue}`);
+  }
+  return issues.length;
+}
+
+function validateConfigYaml(validPlainIds) {
+  const relPath = 'opencode-config/config.yaml';
+  const fullPath = path.join(root, relPath);
+  const text = readFileSync(fullPath, 'utf8');
+  const issues = [];
+
+  for (const line of text.split(/\r?\n/)) {
+    const match = line.trim().match(/^models:\s*\[([^\]]+)\]/);
+    if (!match) continue;
+    const ids = match[1]
+      .split(',')
+      .map((x) => x.trim().replace(/^['"]|['"]$/g, ''))
+      .filter(Boolean);
+    for (const id of ids) {
+      if (!validPlainIds.has(id)) {
+        issues.push(`unknown delegation model '${id}'`);
       }
     }
-    
-    if (fixedContent !== content) {
-      writeFileSync(fullPath, fixedContent, 'utf8');
-      printStatus('FIX', relPath, 'Obsolete models replaced automatically');
-    }
   }
+
+  if (issues.length === 0) {
+    print('PASS', relPath, 'Delegation model IDs validated');
+    return 0;
+  }
+
+  print('FAIL', relPath, `${issues.length} issue(s)`);
+  for (const issue of issues) {
+    console.log(`  - ${issue}`);
+  }
+  return issues.length;
 }
 
-function validateModelMetadata() {
-  const policiesPath = path.join(root, 'packages/opencode-model-router-x/src/policies.json');
-  
-  if (!existsSync(policiesPath)) {
-    printStatus('WARN', 'policies.json not found', 'Cannot validate model metadata');
-    return;
-  }
-  
-  const policies = JSON.parse(readFileSync(policiesPath, 'utf8'));
-  const models = policies.models || {};
-  
-  let missingPricing = 0;
-  let missingProvider = 0;
-  
-  for (const [modelId, config] of Object.entries(models)) {
-    if (!config.provider) {
-      printStatus('WARN', `Model ${modelId} missing provider`, 'Add provider field to policies.json');
-      missingProvider++;
+function scanForbiddenPatterns() {
+  let issueCount = 0;
+
+  for (const relPath of SCAN_FILES) {
+    const fullPath = path.join(root, relPath);
+    if (!existsSync(fullPath)) {
+      print('WARN', relPath, 'missing file (skipped)');
+      continue;
     }
-    
-    if (config.cost_per_1k_tokens === undefined) {
-      printStatus('WARN', `Model ${modelId} missing pricing`, 'Add cost_per_1k_tokens to policies.json');
-      missingPricing++;
+
+    const text = readFileSync(fullPath, 'utf8');
+    const hits = [];
+    for (const pattern of FORBIDDEN_PATTERNS) {
+      if (pattern.regex.test(text)) {
+        hits.push(pattern.name);
+      }
+      pattern.regex.lastIndex = 0;
+    }
+
+    if (hits.length === 0) {
+      print('PASS', relPath, 'No forbidden stale model patterns');
+      continue;
+    }
+
+    issueCount += hits.length;
+    print('FAIL', relPath, `${hits.length} forbidden pattern hit(s)`);
+    for (const hit of hits) {
+      console.log(`  - ${hit}`);
     }
   }
-  
-  if (missingPricing === 0 && missingProvider === 0) {
-    printStatus('PASS', 'Model metadata', 'All models have provider and pricing data');
-  } else {
-    printStatus('FAIL', 'Model metadata', `${missingProvider} models missing provider, ${missingPricing} missing pricing`);
-    totalIssues += missingPricing + missingProvider;
-  }
+
+  return issueCount;
 }
 
-console.log('='.repeat(60));
-console.log('MODEL CATALOG VALIDATION');
-console.log('='.repeat(60));
-console.log();
+function main() {
+  console.log('='.repeat(64));
+  console.log('MODEL VALIDATION (POST-MID-2025 POLICY)');
+  console.log('='.repeat(64));
+  console.log('');
 
-// Validate each config file
-for (const file of MODEL_CONFIG_FILES) {
-  validateFile(file);
-}
+  const { plainIds, qualifiedIds } = collectValidModels();
 
-console.log();
-validateModelMetadata();
+  let issues = 0;
+  issues += validateCatalogReleaseWindow();
+  console.log('');
+  issues += validateFallbackFile('opencode-config/rate-limit-fallback.json', plainIds);
+  issues += validateFallbackFile('rate-limit-fallback.json', plainIds);
+  issues += validateOhMyOmo(qualifiedIds);
+  issues += validateConfigYaml(plainIds);
+  console.log('');
+  issues += scanForbiddenPatterns();
 
-console.log();
-console.log('='.repeat(60));
-if (totalIssues === 0) {
-  printStatus('PASS', 'MODEL VALIDATION', 'All model catalogs are up-to-date');
-  process.exit(0);
-} else {
-  printStatus('FAIL', 'MODEL VALIDATION', `Found ${totalIssues} issue(s)`);
-  if (shouldFix && totalFixed > 0) {
-    printStatus('FIX', 'AUTO-FIX', `Fixed ${totalFixed} issue(s) automatically`);
-    console.log('  Re-run without --fix to verify changes');
-  } else if (!shouldFix) {
-    console.log('  Run with --fix to automatically replace obsolete models');
+  console.log('');
+  console.log('='.repeat(64));
+  if (issues === 0) {
+    print('PASS', 'MODEL VALIDATION', 'All active references are current and policy-compliant');
+    process.exit(0);
   }
+
+  print('FAIL', 'MODEL VALIDATION', `Found ${issues} issue(s)`);
   process.exit(1);
 }
+
+main();

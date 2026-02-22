@@ -17,7 +17,7 @@ const PROVIDER_ALIASES = new Map([
   ['antigravity', 'antigravity'],
 ]);
 
-const NON_PROVIDER_MODEL_FAMILIES = new Set(['deepseek']);
+const NON_PROVIDER_MODEL_FAMILIES = new Set();
 
 function normalizeProvider(provider) {
   return PROVIDER_ALIASES.get(provider) || provider;

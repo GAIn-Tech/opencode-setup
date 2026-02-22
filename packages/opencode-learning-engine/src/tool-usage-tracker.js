@@ -71,8 +71,6 @@ const AVAILABLE_TOOLS = {
   
   // Analysis
   look_at: { category: 'analysis', priority: 'medium', description: 'Analyze media files' },
-  scanner: { category: 'security', priority: 'high', description: 'Security vulnerability scan' },
-  securitycheck: { category: 'security', priority: 'high', description: 'Security checkpoint' },
   
   // PTY
   pty_spawn: { category: 'execution', priority: 'medium', description: 'Spawn PTY session' },
@@ -125,11 +123,6 @@ const TOOL_APPROPRIATENESS_RULES = [
     shouldUse: ['distill', 'prune'],
     reason: 'Context management prevents context rot'
   },
-  {
-    name: 'use_security_scan_after_edits',
-    trigger: { toolsUsed: ['edit', 'write'], fileTypes: ['.js', '.ts', '.py'] },
-    shouldUse: ['scanner', 'securitycheck'],
-    reason: 'Security scanning after code changes catches vulnerabilities'
   }
 ];
 

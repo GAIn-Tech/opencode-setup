@@ -186,11 +186,11 @@ class ThompsonSamplingRouter {
     // Try to load from config
     const config = this._loadConfig();
     
-    if (config?.provider) {
+    if (config?.provider || config?.models) {
       const models = [];
-      for (const [providerName, providerConfig] of Object.entries(config.provider)) {
+      for (const providerConfig of Object.values(config.provider || config.models)) {
         if (providerConfig.models) {
-          for (const [modelId, modelConfig] of Object.entries(providerConfig.models)) {
+          for (const modelId of Object.keys(providerConfig.models)) {
             models.push(modelId);
           }
         }
@@ -203,12 +203,17 @@ class ThompsonSamplingRouter {
     
     // Fallback to default models if config fails
     return [
+      'antigravity-gemini-3-flash',
+      'antigravity-gemini-3-pro',
       'gemini-3-flash',
       'gemini-3-pro',
       'claude-opus-4-6',
       'claude-sonnet-4-5',
+      'gpt-5.3-codex',
+      'gpt-5.2',
       'gpt-5',
-      'gpt-5-codex'
+      'zen/glm5',
+      'zen/kimi-k2.5-pro'
     ];
   }
 

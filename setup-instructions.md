@@ -68,7 +68,7 @@ Plugins are npm packages defined in `opencode.json` under `"plugin"`. They auto-
 ```json
 {
   "plugin": [
-    "oh-my-opencode@3.5.2",
+"oh-my-opencode@3.5.2",
     "opencode-antigravity-auth@1.4.6",
     "opencode-supermemory@2.0.1",
     "@tarquinen/opencode-dcp@2.1.1",
@@ -77,7 +77,6 @@ Plugins are npm packages defined in `opencode.json` under `"plugin"`. They auto-
     "@mohak34/opencode-notifier@0.1.18",
     "opencode-plugin-langfuse@0.1.8",
     "opencode-plugin-preload-skills@1.8.0",
-    "@symbioticsec/opencode-security-plugin@0.0.1-beta.9",
     "envsitter-guard@0.0.4",
     "opencode-antigravity-quota@0.1.6",
     "opencode-pty@0.2.1"

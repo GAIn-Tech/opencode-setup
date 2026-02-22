@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { cpSync, existsSync, mkdirSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { resolvePath, userConfigDir, userDataDir } from './resolve-root.mjs';
 
@@ -32,74 +33,114 @@ const CONFIG_DIRS = [
 
 const backupEnabled = String(process.env.OPENCODE_COPY_CONFIG_BACKUP || '1') !== '0';
 
-function backupExistingFile(targetPath) {
-  if (!backupEnabled || !existsSync(targetPath)) {
-    return;
-  }
-
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const backupPath = `${targetPath}.backup.${timestamp}`;
-  cpSync(targetPath, backupPath, { force: false });
-  console.log(`[copy-config] Backed up existing file: ${path.basename(targetPath)} -> ${path.basename(backupPath)}`);
-}
-
 function ensureDir(dirPath) {
   mkdirSync(dirPath, { recursive: true });
 }
 
-function copyFileSafe(fileName) {
-  const sourcePath = path.join(SOURCE_CONFIG_DIR, fileName);
-  const targetPath = path.join(TARGET_CONFIG_DIR, fileName);
-
-  if (!existsSync(sourcePath)) {
-    console.warn(`[copy-config] Skipping missing source file: ${fileName}`);
-    return;
-  }
-
-  backupExistingFile(targetPath);
-  cpSync(sourcePath, targetPath, { force: true });
-  console.log(`[copy-config] Copied ${fileName}`);
+function createBackupPath(targetPath, timestamp) {
+  return `${targetPath}.backup.${timestamp}`;
 }
 
-function copyDirSafe(dirName) {
-  const sourcePath = path.join(SOURCE_CONFIG_DIR, dirName);
-  const targetPath = path.join(TARGET_CONFIG_DIR, dirName);
+function stageOperations(stagingRoot) {
+  const operations = [];
 
-  if (!existsSync(sourcePath)) {
-    console.warn(`[copy-config] Skipping missing source directory: ${dirName}`);
-    return;
+  for (const fileName of CONFIG_FILES) {
+    const sourcePath = path.join(SOURCE_CONFIG_DIR, fileName);
+    const targetPath = path.join(TARGET_CONFIG_DIR, fileName);
+    if (!existsSync(sourcePath)) {
+      console.warn(`[copy-config] Skipping missing source file: ${fileName}`);
+      continue;
+    }
+
+    const stagedPath = path.join(stagingRoot, 'config', fileName);
+    ensureDir(path.dirname(stagedPath));
+    cpSync(sourcePath, stagedPath, { force: true });
+    operations.push({ label: fileName, stagedPath, targetPath });
   }
 
-  cpSync(sourcePath, targetPath, { recursive: true, force: true });
-  console.log(`[copy-config] Copied ${dirName}/`);
+  for (const dirName of [...CONFIG_DIRS, 'learning-updates']) {
+    const sourcePath = path.join(SOURCE_CONFIG_DIR, dirName);
+    const targetPath = path.join(TARGET_CONFIG_DIR, dirName);
+    if (!existsSync(sourcePath)) {
+      console.warn(`[copy-config] Skipping missing source directory: ${dirName}`);
+      continue;
+    }
+
+    const stagedPath = path.join(stagingRoot, 'config', dirName);
+    ensureDir(path.dirname(stagedPath));
+    cpSync(sourcePath, stagedPath, { recursive: true, force: true });
+    operations.push({ label: `${dirName}/`, stagedPath, targetPath });
+  }
+
+  const dataConfigSourcePath = path.join(SOURCE_CONFIG_DIR, 'config.yaml');
+  if (existsSync(dataConfigSourcePath)) {
+    const stagedDataPath = path.join(stagingRoot, 'data', 'config.yaml');
+    ensureDir(path.dirname(stagedDataPath));
+    cpSync(dataConfigSourcePath, stagedDataPath, { force: true });
+    operations.push({ label: 'config.yaml (data dir)', stagedPath: stagedDataPath, targetPath: path.join(TARGET_DATA_DIR, 'config.yaml') });
+  }
+
+  return operations;
 }
 
-function copyDataConfig() {
-  const sourcePath = path.join(SOURCE_CONFIG_DIR, 'config.yaml');
-  const targetPath = path.join(TARGET_DATA_DIR, 'config.yaml');
-
-  if (!existsSync(sourcePath)) {
-    return;
+function rollbackOperations(operations) {
+  for (const operation of [...operations].reverse()) {
+    try {
+      if (existsSync(operation.targetPath)) {
+        rmSync(operation.targetPath, { recursive: true, force: true });
+      }
+      if (operation.swapPath && existsSync(operation.swapPath)) {
+        renameSync(operation.swapPath, operation.targetPath);
+      }
+    } catch {
+      // Best-effort rollback.
+    }
   }
-
-  cpSync(sourcePath, targetPath, { force: true });
-  console.log('[copy-config] Copied config.yaml to user data directory');
 }
 
 function main() {
   ensureDir(TARGET_CONFIG_DIR);
   ensureDir(TARGET_DATA_DIR);
 
-  for (const file of CONFIG_FILES) {
-    copyFileSafe(file);
-  }
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const stagingRoot = mkdtempSync(path.join(tmpdir(), 'opencode-copy-config-'));
 
-  for (const dir of CONFIG_DIRS) {
-    copyDirSafe(dir);
-  }
+  try {
+    const operations = stageOperations(stagingRoot);
+    const applied = [];
 
-  copyDirSafe('learning-updates');
-  copyDataConfig();
+    try {
+      for (const operation of operations) {
+        const targetDir = path.dirname(operation.targetPath);
+        ensureDir(targetDir);
+
+        const swapPath = existsSync(operation.targetPath) ? `${operation.targetPath}.swap.${timestamp}` : null;
+        if (swapPath) {
+          renameSync(operation.targetPath, swapPath);
+        }
+
+        renameSync(operation.stagedPath, operation.targetPath);
+        applied.push({ ...operation, swapPath });
+        console.log(`[copy-config] Copied ${operation.label}`);
+      }
+
+      for (const operation of applied) {
+        if (!operation.swapPath || !existsSync(operation.swapPath)) continue;
+        if (backupEnabled) {
+          const backupPath = createBackupPath(operation.targetPath, timestamp);
+          renameSync(operation.swapPath, backupPath);
+          console.log(`[copy-config] Backed up existing file: ${path.basename(operation.targetPath)} -> ${path.basename(backupPath)}`);
+        } else {
+          rmSync(operation.swapPath, { recursive: true, force: true });
+        }
+      }
+    } catch (error) {
+      rollbackOperations(applied);
+      throw error;
+    }
+  } finally {
+    rmSync(stagingRoot, { recursive: true, force: true });
+  }
 
   console.log('[copy-config] Configuration sync complete');
 }

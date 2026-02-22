@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { chmodSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { resolveRoot } from './resolve-root.mjs';
@@ -81,6 +81,13 @@ function main() {
     chmodSync(preCommitPath, 0o755);
     chmodSync(commitMsgPath, 0o755);
     chmodSync(prePushPath, 0o755);
+
+    for (const hookPath of [preCommitPath, commitMsgPath, prePushPath]) {
+      const mode = statSync(hookPath).mode;
+      if ((mode & 0o111) === 0) {
+        throw new Error(`Hook is not executable after install: ${hookPath}`);
+      }
+    }
   }
 
   console.log(`Installed hooks in ${hooksDir}`);

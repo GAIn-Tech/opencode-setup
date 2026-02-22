@@ -3,24 +3,98 @@
   "fallbackMode": "cycle",
   "cooldownMs": 45000,
   "fallbackModels": [
-    { "providerID": "anthropic", "modelID": "claude-opus-4-6-thinking" },
-    { "providerID": "anthropic", "modelID": "claude-opus-4-6" },
-    { "providerID": "anthropic", "modelID": "claude-sonnet-4-5-thinking" },
-    { "providerID": "anthropic", "modelID": "claude-sonnet-4-5" },
-    { "providerID": "anthropic", "modelID": "claude-haiku-4-5" },
-    { "providerID": "openai", "modelID": "gpt-5" },
-    { "providerID": "openai", "modelID": "gpt-5.2" },
-    { "providerID": "openai", "modelID": "o1" },
-    { "providerID": "google", "modelID": "antigravity-claude-opus-4-6-thinking" },
-    { "providerID": "google", "modelID": "antigravity-claude-sonnet-4-5-thinking" },
-    { "providerID": "google", "modelID": "antigravity-claude-sonnet-4-5" },
-    { "providerID": "google", "modelID": "gemini-3-pro" },
-    { "providerID": "google", "modelID": "gemini-3-flash" },
-    { "providerID": "deepseek", "modelID": "deepseek-chat" },
-    { "providerID": "deepseek", "modelID": "deepseek-coder" },
-    { "providerID": "nvidia", "modelID": "llama-3.3-70b" },
-    { "providerID": "groq", "modelID": "llama-3.3-70b-versatile" },
-    { "providerID": "cerebras", "modelID": "llama-3.3-70b" }
+    {
+      "providerID": "anthropic",
+      "modelID": "claude-opus-4-6"
+    },
+    {
+      "providerID": "anthropic",
+      "modelID": "claude-sonnet-4-5"
+    },
+    {
+      "providerID": "anthropic",
+      "modelID": "claude-haiku-4-5"
+    },
+    {
+      "providerID": "openai",
+      "modelID": "gpt-5.3-codex"
+    },
+    {
+      "providerID": "openai",
+      "modelID": "gpt-5.2"
+    },
+    {
+      "providerID": "openai",
+      "modelID": "gpt-5"
+    },
+    {
+      "providerID": "google",
+      "modelID": "antigravity-claude-opus-4-6-thinking"
+    },
+    {
+      "providerID": "google",
+      "modelID": "antigravity-claude-sonnet-4-5-thinking"
+    },
+    {
+      "providerID": "google",
+      "modelID": "antigravity-claude-sonnet-4-5"
+    },
+    {
+      "providerID": "google",
+      "modelID": "antigravity-gemini-3-pro"
+    },
+    {
+      "providerID": "google",
+      "modelID": "antigravity-gemini-3-flash"
+    },
+    {
+      "providerID": "google",
+      "modelID": "antigravity-gemini-3-flash-8b"
+    },
+    {
+      "providerID": "google",
+      "modelID": "gemini-3-pro"
+    },
+    {
+      "providerID": "google",
+      "modelID": "gemini-3-flash"
+    },
+    {
+      "providerID": "nvidia",
+      "modelID": "moonshotai/kimi-k2.5"
+    },
+    {
+      "providerID": "nvidia",
+      "modelID": "z-ai/glm-5"
+    },
+    {
+      "providerID": "nvidia",
+      "modelID": "z-ai/glm4.7"
+    },
+    {
+      "providerID": "zen",
+      "modelID": "zen/minimax-m2.5"
+    },
+    {
+      "providerID": "nvidia",
+      "modelID": "deepseek-ai/deepseek-v3.2"
+    },
+    {
+      "providerID": "zen",
+      "modelID": "zen/glm5"
+    },
+    {
+      "providerID": "zen",
+      "modelID": "zen/kimi-k2.5-pro"
+    },
+    {
+      "providerID": "zen",
+      "modelID": "zen/glm-4.7"
+    },
+    {
+      "providerID": "zen",
+      "modelID": "zen/minimax-m2.5-lightning"
+    }
   ],
   "retryPolicy": {
     "maxRetries": 3,

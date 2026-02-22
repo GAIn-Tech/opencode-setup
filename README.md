@@ -88,7 +88,6 @@ If you use VS Code Dev Containers/Codespaces, a baseline config is available in 
 | `@mohak34/opencode-notifier@latest` | OS notifications for task completion/errors |
 | `opencode-plugin-langfuse@latest` | LLM tracing, prompt versioning, cost tracking |
 | `opencode-plugin-preload-skills@latest` | Contextual skill loading — only loads relevant skills per task |
-| `@symbioticsec/opencode-security-plugin@latest` | Security guardrails & vulnerability scanning |
 | `envsitter-guard@latest` | Prevents reading .env files — secrets protection |
 | `opencode-antigravity-quota@latest` | Antigravity quota visibility |
 | `opencode-pty@latest` | Interactive/background process control |
