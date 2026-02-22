@@ -133,14 +133,14 @@ const PROVIDER_ENDPOINTS: Record<string, {
     url: 'https://api.openai.com/v1/chat/completions',
     auth: 'authorization',
     authPrefix: 'Bearer ',
-    model: 'gpt-4o-mini',
-    body: { model: 'gpt-4o-mini', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] }
+    model: 'gpt-5.2',
+    body: { model: 'gpt-5.2', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] }
   },
   google: {
-    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:generateContent',
     auth: 'authorization',
     authPrefix: 'Bearer ',
-    model: "gemini-2.5-flash",
+    model: "gemini-3-flash",
     body: { contents: [{ parts: [{ text: 'hi' }] }] }
   },
   groq: {

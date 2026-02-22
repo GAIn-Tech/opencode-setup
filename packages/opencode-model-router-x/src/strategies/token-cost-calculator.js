@@ -23,18 +23,18 @@ class TokenCostCalculator {
       },
       // Gemini (Google) - Gemini 2.5 series
       'google': {
-        'gemini-2.5-flash': { input: 0.50, output: 3.0 },
-        'gemini-2.5-flash-thinking': { input: 0.50, output: 3.0, thinking_multiplier: 1.5 },
-        'gemini-2.5-pro': { input: 2.0, output: 10.0 },
-        'gemini-2.5-pro-thinking': { input: 2.0, output: 10.0, thinking_multiplier: 1.5 },
-        'gemini-2.5-pro-deep-think': { input: 2.0, output: 10.0, thinking_multiplier: 2.0 }
+        "gemini-3-flash": { input: 0.50, output: 3.0 },
+        'gemini-3-flash-thinking': { input: 0.50, output: 3.0, thinking_multiplier: 1.5 },
+        "gemini-3-pro": { input: 2.0, output: 10.0 },
+        'gemini-3-pro-thinking': { input: 2.0, output: 10.0, thinking_multiplier: 1.5 },
+        'gemini-3-pro-deep-think': { input: 2.0, output: 10.0, thinking_multiplier: 2.0 }
       },
       // OpenAI - GPT-4o series
       'openai': {
-        'gpt-4o': { input: 2.50, output: 10.0 },
-        'gpt-4o-thinking-low': { input: 2.50, output: 10.0, thinking_multiplier: 1.5 },
-        'gpt-4o-thinking-max': { input: 2.50, output: 10.0, thinking_multiplier: 3.0 },
-        'gpt-4o-mini': { input: 0.15, output: 0.60 },
+        'gpt-5': { input: 2.50, output: 10.0 },
+        'gpt-5-thinking-low': { input: 2.50, output: 10.0, thinking_multiplier: 1.5 },
+        'gpt-5-thinking-max': { input: 2.50, output: 10.0, thinking_multiplier: 3.0 },
+        'gpt-5.2': { input: 0.15, output: 0.60 },
         'o1': { input: 15.0, output: 60.0 },
         'o1-mini': { input: 3.0, output: 12.0 }
       },

@@ -29,11 +29,7 @@
     },
     "code_generation": {
       "layer_1": ["anthropic/claude-sonnet-4-5"],
-<<<<<<< Updated upstream
-      "layer_2": ["gpt-4o"],
-=======
       "layer_2": ["gpt-5.3-codex"],
->>>>>>> Stashed changes
       "layer_3": [],
       "layer_4": [],
       "layer_5": [],
@@ -79,12 +75,6 @@
       "layer_5": [],
       "layer_6": []
     },
-      "layer_2": [],
-      "layer_3": [],
-      "layer_4": [],
-      "layer_5": [],
-      "layer_6": []
-    },
     "orchestration": {
       "layer_1": ["anthropic/claude-sonnet-4-5"],
       "layer_2": [],
@@ -123,11 +113,7 @@
       "strengths": ["simple-tasks", "formatting", "linting", "quick-answers"],
       "default_success_rate": 0.82
     },
-<<<<<<< Updated upstream
-    "gpt-4o": {
-=======
     "gpt-5.3-codex": {
->>>>>>> Stashed changes
       "provider": "openai",
       "tier": "flagship",
       "base_weight": 0.4,
@@ -136,11 +122,7 @@
       "strengths": ["general-reasoning", "code-generation", "math"],
       "default_success_rate": 0.88
     },
-<<<<<<< Updated upstream
-    "gemini-2.5-pro": {
-=======
     "gemini-3-flash": {
->>>>>>> Stashed changes
       "provider": "google",
       "tier": "flagship",
       "base_weight": 0.4,
@@ -158,44 +140,6 @@
       "strengths": ["general-code", "translation", "summarization"],
       "default_success_rate": 0.80
     },
-<<<<<<< Updated upstream
-    "llama-3.3-70b": {
-      "provider": "nvidia",
-      "tier": "flagship",
-      "base_weight": 0.5,
-      "cost_per_1k_tokens": 0.0,
-      "max_context": 128000,
-      "strengths": ["complex-reasoning", "synthetic-data", "optimization"],
-      "default_success_rate": 0.90
-    },
-    "cerebras/llama-3.3-70b-versatile": {
-      "provider": "cerebras",
-      "tier": "speed",
-      "base_weight": 0.5,
-      "cost_per_1k_tokens": 0.0,
-      "max_context": 8192,
-      "strengths": ["extreme-speed", "simple-tasks", "extraction"],
-      "default_success_rate": 0.85
-    },
-    "llama-3.3-70b-sambanova": {
-      "provider": "sambanova",
-      "tier": "flagship",
-      "base_weight": 0.5,
-      "cost_per_1k_tokens": 0.0,
-      "max_context": 128000,
-      "strengths": ["complex-logic", "reasoning"],
-      "default_success_rate": 0.88
-    },
-    "groq/llama-3.3-70b-versatile": {
-      "provider": "groq",
-      "tier": "speed",
-      "base_weight": 0.5,
-      "cost_per_1k_tokens": 0.0,
-      "max_context": 128000,
-      "strengths": ["reliability", "low-latency", "tool-use"],
-      "default_success_rate": 0.88
-    }
-=======
     "meta/llama-4-scout-17b-16k-instruct": {
         "provider": "nvidia",
         "tier": "flagship",
@@ -250,7 +194,6 @@
         "strengths": ["extreme-speed", "simple-tasks", "extraction"],
         "default_success_rate": 0.85
       }
->>>>>>> Stashed changes
   },
 
   "cost_tiers": {
@@ -272,29 +215,17 @@
     "moderate": {
       "description": "Standard code tasks, tests, small features",
       "cost_tier": "low",
-<<<<<<< Updated upstream
-      "model_preference": ["anthropic/claude-sonnet-4-5", "kimi-k2.5", "gemini-2.5-pro"]
-=======
       "model_preference": ["anthropic/claude-sonnet-4-5", "kimi-k2.5", "gemini-3-flash"]
->>>>>>> Stashed changes
     },
     "high": {
       "description": "Complex features, multi-file refactors",
       "cost_tier": "high",
-<<<<<<< Updated upstream
-      "model_preference": ["anthropic/claude-opus-4-6", "gpt-4o", "gemini-2.5-pro"]
-=======
       "model_preference": ["anthropic/claude-opus-4-6", "gpt-5.3-codex", "gemini-3-flash"]
->>>>>>> Stashed changes
     },
     "critical": {
       "description": "Architecture decisions, security, production issues",
       "cost_tier": "critical",
-<<<<<<< Updated upstream
-      "model_preference": ["anthropic/claude-opus-4-6", "gpt-4o", "anthropic/claude-sonnet-4-5"]
-=======
       "model_preference": ["anthropic/claude-opus-4-6", "gpt-5.3-codex", "anthropic/claude-sonnet-4-5"]
->>>>>>> Stashed changes
     }
   },
 

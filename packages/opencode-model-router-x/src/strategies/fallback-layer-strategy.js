@@ -64,16 +64,16 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
       orchestration: 'llama-3.3-70b'
     },
     antigravity: {
-      simple_read: "gemini-2.5-flash",
-      format_transform: "gemini-2.5-flash",
-      documentation: 'gemini-2.5-flash-thinking-minimal',
-      code_generation: 'gemini-2.5-flash-thinking-minimal',
-      code_transform: "gemini-2.5-flash",
-      debugging: 'gemini-2.5-flash-thinking-medium',
-      architecture: 'gemini-2.5-pro',
-      large_context: "gemini-2.5-pro",
-      multimodal: 'gemini-2.5-flash-thinking-minimal',
-      orchestration: 'gemini-2.5-pro'
+      simple_read: "gemini-3-flash",
+      format_transform: "gemini-3-flash",
+      documentation: 'gemini-3-flash-thinking-minimal',
+      code_generation: 'gemini-3-flash-thinking-minimal',
+      code_transform: "gemini-3-flash",
+      debugging: 'gemini-3-flash-thinking-medium',
+      architecture: "gemini-3-pro",
+      large_context: "gemini-3-pro",
+      multimodal: 'gemini-3-flash-thinking-minimal',
+      orchestration: "gemini-3-pro"
     },
     anthropic: {
       simple_read: 'claude-haiku-4-5',
@@ -88,15 +88,15 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
       orchestration: 'claude-opus-4-6'
     },
     openai: {
-      simple_read: 'gpt-4o-mini',
-      format_transform: 'gpt-4o-mini',
-      documentation: 'gpt-4o',
-      code_generation: 'gpt-4o',
-      code_transform: 'gpt-4o',
-      debugging: 'gpt-4o',
+      simple_read: 'gpt-5.2',
+      format_transform: 'gpt-5.2',
+      documentation: 'gpt-5',
+      code_generation: 'gpt-5',
+      code_transform: 'gpt-5',
+      debugging: 'gpt-5',
       architecture: 'o1',
       large_context: 'o1',
-      multimodal: 'gpt-4o',
+      multimodal: 'gpt-5',
       orchestration: 'o1'
     },
     deepseek: {
