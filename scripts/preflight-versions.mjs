@@ -26,6 +26,14 @@ function getBunVersion() {
   return (result.stdout || "").trim();
 }
 
+function getVersionAt(executablePath) {
+  const result = run(executablePath, ["--version"]);
+  if (result.status !== 0) {
+    return null;
+  }
+  return (result.stdout || "").trim();
+}
+
 function findBunPaths() {
   const command = isWindows ? "where" : "which";
   const args = isWindows ? ["bun"] : ["-a", "bun"];
@@ -45,6 +53,10 @@ function findBunPaths() {
 function main() {
   console.log("== Runtime Preflight ==");
 
+  const bunPaths = findBunPaths();
+  const pathResolvedBun = bunPaths[0] || null;
+  const pathResolvedBunVersion = pathResolvedBun ? getVersionAt(pathResolvedBun) : null;
+
   const bunVersion = getBunVersion();
   if (!bunVersion) {
     console.error("FAIL: Bun is not available on PATH.");
@@ -57,7 +69,21 @@ function main() {
     process.exit(1);
   }
 
-  const bunPaths = findBunPaths();
+  if (!pathResolvedBun || !pathResolvedBunVersion) {
+    console.error("FAIL: Could not resolve Bun from PATH.");
+    console.error("Fix: ensure Bun is available on PATH and points to the required version.");
+    process.exit(1);
+  }
+
+  if (pathResolvedBunVersion !== expectedBunVersion) {
+    console.error(`FAIL: PATH Bun version mismatch. Found ${pathResolvedBunVersion} at ${pathResolvedBun}, expected ${expectedBunVersion}.`);
+    if (configuredBunPath) {
+      console.error(`OPENCODE_BUN_PATH is set to ${configuredBunPath}, but PATH still resolves a different Bun.`);
+    }
+    console.error("Fix: align PATH Bun with policy version (or run bun run fix:bun-path on Windows).\n");
+    process.exit(1);
+  }
+
   const suspicious = bunPaths.filter((p) => /node_modules/i.test(p));
   if (!configuredBunPath && suspicious.length > 0) {
     console.error("FAIL: Found Bun binaries under node_modules, which can cause nested runtime drift:");

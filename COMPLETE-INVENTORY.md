@@ -1,7 +1,7 @@
 # Complete OpenCode System Inventory
 
 **Last Updated:** February 12, 2026  
-**Total System Components:** 89 (13 custom packages + 13 external plugins + 9 MCPs + 8 agents + 46 skills)
+**Total System Components:** 88 (13 custom packages + 12 external plugins + 9 MCPs + 8 agents + 46 skills)
 
 ---
 
@@ -29,7 +29,7 @@ All installed globally via `npm install -g` and located in `~/packages/`
 
 ---
 
-## 🔌 External Plugins (13)
+## 🔌 External Plugins (12)
 
 Installed globally via npm, configured in `~/.config/opencode/opencode.json`
 
@@ -44,7 +44,6 @@ Installed globally via npm, configured in `~/.config/opencode/opencode.json`
 | **@mohak34/opencode-notifier** | 0.1.18 | OS notifications | ✅ Active |
 | **opencode-plugin-langfuse** | 0.1.8 | LLM tracing & observability | ✅ Active |
 | **opencode-plugin-preload-skills** | 1.8.0 | Smart contextual skill loading | ✅ Active |
-| **@symbioticsec/opencode-security-plugin** | 0.0.1-beta.9 | Security guardrails | ✅ Active |
 | **envsitter-guard** | 0.0.4 | Blocks .env reads | ✅ Active |
 | **opencode-antigravity-quota** | 0.1.6 | Quota visibility | ✅ Active |
 | **opencode-pty** | 0.2.1 | Interactive/background process control | ✅ Active |
@@ -122,7 +121,7 @@ All 46 skills from oh-my-opencode + custom skills. Use `/orchestrate <task>` to 
 |----------|-------|
 | **Custom packages** | 13 |
 | **External plugins** | 13 |
-| **Total plugins** | 21 |
+| **Total plugins** | 20 |
 | **MCP servers** | 9 (6 enabled, 3 disabled) |
 | **Agents** | 8 |
 | **Skills available** | 46 |
@@ -154,7 +153,6 @@ All 46 skills from oh-my-opencode + custom skills. Use `/orchestrate <task>` to 
 ### 🔒 Safety & Governance
 - Type-safety enforcement
 - Destructive command blocking (safety-net)
-- Security guardrails
 - Proof-checking (git clean + tests)
 
 ### 🔧 Troubleshooting & Automation

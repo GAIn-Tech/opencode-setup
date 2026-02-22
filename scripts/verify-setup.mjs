@@ -51,6 +51,10 @@ function commandVersionAt(executablePath) {
   return output.split(/\r?\n/)[0] || null;
 }
 
+function normalizedBunVersion(rawVersion) {
+  return rawVersion ? rawVersion.replace(/^bun\s+/i, '').trim() : null;
+}
+
 function resolveGlobalNodeModulesPaths() {
   const candidates = [];
 
@@ -194,7 +198,7 @@ function main() {
   }
 
   const bunVersionRaw = preferredBunPath ? commandVersionAt(preferredBunPath) : null;
-  const bunVersion = bunVersionRaw ? bunVersionRaw.replace(/^bun\s+/i, '').trim() : null;
+  const bunVersion = normalizedBunVersion(bunVersionRaw);
   const bunVersionOk = Boolean(bunVersion && bunVersion === expectedBunVersion);
   if (!bunVersionOk) {
     failed += 1;
@@ -204,6 +208,21 @@ function main() {
     bunVersionOk,
     bunVersion ? `Found ${bunVersion}; expected ${expectedBunVersion}` : null,
     `Install Bun ${expectedBunVersion} and ensure it is first on PATH.`
+  );
+
+  const pathBunPath = commandLocation('bun');
+  const pathBunVersion = normalizedBunVersion(pathBunPath ? commandVersionAt(pathBunPath) : null);
+  const pathBunVersionOk = Boolean(pathBunVersion && pathBunVersion === expectedBunVersion);
+  if (!pathBunVersionOk) {
+    failed += 1;
+  }
+  printCheck(
+    'PATH bun version matches repo policy',
+    pathBunVersionOk,
+    pathBunPath && pathBunVersion
+      ? `PATH resolves to ${pathBunPath} (${pathBunVersion}); expected ${expectedBunVersion}`
+      : null,
+    'Ensure plain `bun --version` returns the required version. On Windows, run: bun run fix:bun-path'
   );
 
   const nodeModulesBun = allBunPaths.filter((entry) => /node_modules/i.test(entry));

@@ -53,7 +53,6 @@ Use this checklist when setting up OpenCode on a new machine.
 - [ ] @mohak34/opencode-notifier — check OS notification on completion
 - [ ] opencode-plugin-langfuse — check tracing active
 - [ ] opencode-plugin-preload-skills — check dynamic skill loading
-- [ ] @symbioticsec/opencode-security-plugin — check security scan hooks
 - [ ] envsitter-guard — check .env read blocking
 - [ ] opencode-antigravity-quota — quota command responds
 - [ ] opencode-pty — PTY tools respond
