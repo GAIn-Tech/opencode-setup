@@ -47,6 +47,7 @@ state/
 
 # OpenCode runtime files
 .opencode/
+.worktrees/
 bun.lockb
 
 # Next.js build artifacts
