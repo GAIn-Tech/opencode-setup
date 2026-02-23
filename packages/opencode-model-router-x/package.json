@@ -30,6 +30,7 @@
     "@jackoatmon/opencode-context-governor": "file:../opencode-context-governor",
     "@jackoatmon/opencode-health-check": "file:../opencode-health-check",
     "@jackoatmon/opencode-fallback-doctor": "file:../opencode-fallback-doctor",
-    "@jackoatmon/opencode-feature-flags": "file:../opencode-feature-flags"
+    "@jackoatmon/opencode-feature-flags": "file:../opencode-feature-flags",
+    "@jackoatmon/opencode-config-loader": "file:../opencode-config-loader"
   }
 }

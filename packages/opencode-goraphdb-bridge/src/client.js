@@ -21,6 +21,9 @@ class GoraphDBClient {
     this.port = options.port || parseInt(process.env.GORAPHDB_PORT, 10) || 7687;
     this.protocol = options.protocol || process.env.GORAPHDB_PROTOCOL || 'http';
     this.timeout = options.timeout || 10000;
+    this.retries = Number.isFinite(options.retries) ? options.retries : 2;
+    this.retryDelayMs = Number.isFinite(options.retryDelayMs) ? options.retryDelayMs : 250;
+    this.maxRetryDelayMs = Number.isFinite(options.maxRetryDelayMs) ? options.maxRetryDelayMs : 5000;
     this.headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -37,52 +40,98 @@ class GoraphDBClient {
    */
   async _request(path, options = {}) {
     const url = `${this.baseUrl}${path}`;
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+    const maxAttempts = Math.max(0, this.retries) + 1;
 
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers: { ...this.headers, ...options.headers },
-        signal: controller.signal,
-      });
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
-      clearTimeout(timeoutId);
-
-      const body = await response.text();
-      let parsed;
       try {
-        parsed = JSON.parse(body);
-      } catch {
-        parsed = { raw: body };
-      }
+        const response = await fetch(url, {
+          ...options,
+          headers: { ...this.headers, ...options.headers },
+          signal: controller.signal,
+        });
 
-      if (!response.ok) {
-        const err = new Error(
-          `GoraphDB ${response.status}: ${parsed.error || parsed.message || body}`
-        );
-        err.status = response.status;
-        err.body = parsed;
-        throw err;
-      }
+        clearTimeout(timeoutId);
 
-      return parsed;
-    } catch (err) {
-      clearTimeout(timeoutId);
-      if (err.name === 'AbortError') {
-        const timeoutErr = new Error(`GoraphDB request timed out after ${this.timeout}ms: ${url}`);
-        timeoutErr.code = 'ETIMEDOUT';
-        throw timeoutErr;
+        const body = await response.text();
+        let parsed;
+        try {
+          parsed = JSON.parse(body);
+        } catch {
+          parsed = { raw: body };
+        }
+
+        if (!response.ok) {
+          const err = new Error(
+            `GoraphDB ${response.status}: ${parsed.error || parsed.message || body}`
+          );
+          err.status = response.status;
+          err.body = parsed;
+          const retryDelay = this._getRetryDelay(response, attempt);
+          if (this._shouldRetry(err, attempt) && retryDelay !== null) {
+            await this._sleep(retryDelay);
+            continue;
+          }
+          throw err;
+        }
+
+        return parsed;
+      } catch (err) {
+        clearTimeout(timeoutId);
+        let normalizedErr = err;
+        if (err && err.name === 'AbortError') {
+          normalizedErr = new Error(`GoraphDB request timed out after ${this.timeout}ms: ${url}`);
+          normalizedErr.code = 'ETIMEDOUT';
+        } else if (err && err.code === 'ECONNREFUSED') {
+          normalizedErr = new Error(
+            `Cannot connect to GoraphDB at ${this.baseUrl}. Is the server running?`
+          );
+          normalizedErr.code = 'ECONNREFUSED';
+        }
+
+        const retryDelay = this._getRetryDelay(null, attempt);
+        if (this._shouldRetry(normalizedErr, attempt) && retryDelay !== null) {
+          await this._sleep(retryDelay);
+          continue;
+        }
+
+        throw normalizedErr;
       }
-      if (err.code === 'ECONNREFUSED') {
-        const connErr = new Error(
-          `Cannot connect to GoraphDB at ${this.baseUrl}. Is the server running?`
-        );
-        connErr.code = 'ECONNREFUSED';
-        throw connErr;
-      }
-      throw err;
     }
+
+    throw new Error(`GoraphDB request failed after ${maxAttempts} attempts: ${url}`);
+  }
+
+  _shouldRetry(error, attempt) {
+    if (attempt >= this.retries) return false;
+    if (!error) return false;
+    if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') return true;
+    const status = error.status;
+    if (status === 429) return true;
+    if (typeof status === 'number' && status >= 500) return true;
+    return false;
+  }
+
+  _getRetryDelay(response, attempt) {
+    if (attempt >= this.retries) return null;
+    let retryAfterMs = null;
+    if (response && response.headers) {
+      const header = response.headers.get('retry-after');
+      if (header) {
+        const parsed = Number.parseInt(String(header), 10);
+        if (Number.isFinite(parsed)) {
+          retryAfterMs = Math.max(parsed * 1000, this.retryDelayMs);
+        }
+      }
+    }
+    const backoff = this.retryDelayMs * Math.pow(2, attempt);
+    return Math.min(retryAfterMs ?? backoff, this.maxRetryDelayMs);
+  }
+
+  _sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   // ─── Node Operations ──────────────────────────────────────────────

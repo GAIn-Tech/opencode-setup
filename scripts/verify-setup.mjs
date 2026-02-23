@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, readdirSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import path from 'node:path';
-import { resolveRoot, userConfigDir } from './resolve-root.mjs';
+import { resolveRoot, userConfigDir, userDataDir } from './resolve-root.mjs';
 
 const root = resolveRoot();
 const isWindows = process.platform === 'win32';
@@ -169,6 +169,75 @@ function hasExecBitUnix(filePath) {
 function hasNonEmptyEnvVar(name) {
   const value = process.env[name];
   return typeof value === 'string' && value.trim().length > 0;
+}
+
+function isPlainObject(value) {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function validateSchema(schema, value, pathStack = []) {
+  const issues = [];
+  if (!schema || typeof schema !== 'object') return issues;
+
+  const schemaType = schema.type;
+  if (schemaType) {
+    if (schemaType === 'object' && !isPlainObject(value)) {
+      issues.push(`${pathStack.join('.') || 'root'} must be an object.`);
+      return issues;
+    }
+    if (schemaType === 'string' && typeof value !== 'string') {
+      issues.push(`${pathStack.join('.') || 'root'} must be a string.`);
+      return issues;
+    }
+    if (schemaType === 'integer' && !Number.isInteger(value)) {
+      issues.push(`${pathStack.join('.') || 'root'} must be an integer.`);
+      return issues;
+    }
+    if (schemaType === 'number' && typeof value !== 'number') {
+      issues.push(`${pathStack.join('.') || 'root'} must be a number.`);
+      return issues;
+    }
+    if (schemaType === 'boolean' && typeof value !== 'boolean') {
+      issues.push(`${pathStack.join('.') || 'root'} must be a boolean.`);
+      return issues;
+    }
+  }
+
+  if (schema.enum && !schema.enum.includes(value)) {
+    issues.push(`${pathStack.join('.') || 'root'} must be one of: ${schema.enum.join(', ')}`);
+  }
+
+  if (schema.pattern && typeof value === 'string') {
+    const re = new RegExp(schema.pattern);
+    if (!re.test(value)) {
+      issues.push(`${pathStack.join('.') || 'root'} must match pattern ${schema.pattern}`);
+    }
+  }
+
+  if (typeof schema.minimum === 'number' && typeof value === 'number' && value < schema.minimum) {
+    issues.push(`${pathStack.join('.') || 'root'} must be >= ${schema.minimum}`);
+  }
+  if (typeof schema.maximum === 'number' && typeof value === 'number' && value > schema.maximum) {
+    issues.push(`${pathStack.join('.') || 'root'} must be <= ${schema.maximum}`);
+  }
+
+  if (schemaType === 'object' && isPlainObject(value)) {
+    const properties = schema.properties || {};
+    if (schema.additionalProperties === false) {
+      for (const key of Object.keys(value)) {
+        if (!Object.prototype.hasOwnProperty.call(properties, key)) {
+          issues.push(`${pathStack.join('.') || 'root'} has unknown key '${key}'.`);
+        }
+      }
+    }
+    for (const [key, propSchema] of Object.entries(properties)) {
+      if (Object.prototype.hasOwnProperty.call(value, key)) {
+        issues.push(...validateSchema(propSchema, value[key], [...pathStack, key]));
+      }
+    }
+  }
+
+  return issues;
 }
 
 function main() {
@@ -356,6 +425,68 @@ function main() {
     );
   }
 
+  const strictSchema = String(process.env.OPENCODE_CONFIG_SCHEMA_STRICT || '').trim();
+  if (strictSchema) {
+    const schemaPath = path.join(root, 'opencode-config-schema.json');
+    let schema = null;
+    if (existsSync(schemaPath)) {
+      try {
+        schema = JSON.parse(readFileSync(schemaPath, 'utf8'));
+      } catch (error) {
+        failed += 1;
+        printCheck(
+          'Config schema loadable',
+          false,
+          error instanceof Error ? error.message : String(error),
+          `Fix JSON syntax in ${schemaPath}`
+        );
+      }
+    } else {
+      failed += 1;
+      printCheck(
+        'Config schema loadable',
+        false,
+        null,
+        `Missing schema file: ${schemaPath}`
+      );
+    }
+
+    if (schema) {
+      const schemaTargets = [
+        { label: 'Project .opencode.config.json matches schema', filePath: path.join(root, '.opencode.config.json') },
+        { label: 'User .opencode config.json matches schema', filePath: path.join(userDataDir(), 'config.json') }
+      ];
+
+      for (const target of schemaTargets) {
+        if (!existsSync(target.filePath)) {
+          printCheck(target.label, true, 'Skipped (file missing).');
+          continue;
+        }
+
+        let issues = [];
+        try {
+          const content = JSON.parse(readFileSync(target.filePath, 'utf8'));
+          issues = validateSchema(schema, content);
+        } catch (error) {
+          issues = [error instanceof Error ? error.message : String(error)];
+        }
+
+        const passed = issues.length === 0;
+        if (!passed) {
+          failed += 1;
+        }
+        printCheck(
+          target.label,
+          passed,
+          passed ? target.filePath : issues.join('; '),
+          `Fix schema violations in ${target.filePath}`
+        );
+      }
+    }
+  } else {
+    printCheck('Config schema validation', true, 'Skipped (OPENCODE_CONFIG_SCHEMA_STRICT not set).');
+  }
+
   const mcpConfigPath = path.join(userConfigDir(), 'opencode-mcp-config.json');
   const mcpConfigExists = existsSync(mcpConfigPath);
   let mcpDeclaredInUserConfig = false;
@@ -391,6 +522,38 @@ function main() {
     skillsExists ? `Found skills in ${skillsDir}` : null,
     'Run: bun run copy-config'
   );
+
+  const strictEnvContract = String(process.env.OPENCODE_ENV_CONTRACT_STRICT || '').trim();
+  if (strictEnvContract) {
+    const requiredKeys = [
+      'OPENCODE_BUN_PATH',
+      'OPENCODE_REQUIRED_BUN_VERSION',
+      'OPENCODE_ROOT',
+      'OPENCODE_CONFIG_HOME',
+      'OPENCODE_DATA_HOME',
+      'PLUGIN_SCOPE',
+      'BUN_INSTALL',
+      'ANTHROPIC_API_KEYS',
+      'OPENAI_API_KEYS',
+      'GOOGLE_API_KEYS',
+      'GITHUB_TOKEN',
+      'TAVILY_API_KEY',
+      'SUPERMEMORY_API_KEY'
+    ];
+    const missing = requiredKeys.filter((name) => !hasNonEmptyEnvVar(name));
+    const envContractOk = missing.length === 0;
+    if (!envContractOk) {
+      failed += 1;
+    }
+    printCheck(
+      'Environment contract (strict)',
+      envContractOk,
+      envContractOk ? 'All required env vars present.' : `Missing: ${missing.join(', ')}`,
+      'Populate required variables in your environment and rerun verify.'
+    );
+  } else {
+    printCheck('Environment contract (strict)', true, 'Skipped (OPENCODE_ENV_CONTRACT_STRICT not set).');
+  }
 
   const envProfile = String(process.env.OPENCODE_VERIFY_ENV_PROFILE || 'none').trim().toLowerCase();
   if (envProfile !== 'none') {

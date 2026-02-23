@@ -11,12 +11,12 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
+const { resolveDataDir } = require('@jackoatmon/opencode-config-loader/src/paths.js');
 
 class ModelComprehensionMemory {
   constructor(dbPath = null) {
-    // Default path in user's config directory
-    const configDir = process.env.OPENCODE_CONFIG_DIR || 
-      path.join(process.env.HOME || process.env.USERPROFILE || '.', '.opencode');
+    // Default path in user's data directory (legacy OPENCODE_CONFIG_DIR still supported)
+    const configDir = process.env.OPENCODE_CONFIG_DIR || resolveDataDir();
     
     // Ensure directory exists
     if (!fs.existsSync(configDir)) {

@@ -48,6 +48,7 @@ class ModelDiscovery {
     this.lastPollTime = null;
     this.periodicPollingEnabled = false;
     this.periodicInterval = null;
+    this.timeoutMs = Number(options.timeoutMs) || 10000;
     
     // Callback for new model detection
     this.onNewModels = options.onNewModels || null;
@@ -164,6 +165,7 @@ class ModelDiscovery {
 
     let url = config.endpoint;
     const headers = {};
+    const timeoutMs = Number(config.timeoutMs || this.timeoutMs);
 
     // Set up authentication based on provider type
     if (config.authType === 'bearer') {
@@ -175,7 +177,20 @@ class ModelDiscovery {
       url += `?key=${apiKey}`;
     }
 
-    const response = await fetch(url, { headers });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    let response;
+    try {
+      response = await fetch(url, { headers, signal: controller.signal });
+    } catch (error) {
+      if (error && error.name === 'AbortError') {
+        throw new Error(`Request timed out after ${timeoutMs}ms`);
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
     
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);

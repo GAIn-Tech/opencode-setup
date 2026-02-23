@@ -12,6 +12,8 @@
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000';
 
+const REQUEST_TIMEOUT_MS = Number(process.env.API_SANITY_TIMEOUT_MS || '5000');
+
 const endpoints = [
   { path: '/api/health', name: 'Health Check' },
   { path: '/api/config', name: 'Config List' },
@@ -28,10 +30,22 @@ let passed = 0;
 let failed = 0;
 let skipped = 0;
 
+function withTimeout(timeoutMs) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  return { controller, timeoutId };
+}
+
 async function checkEndpoint(endpoint) {
   try {
     const url = `${API_BASE_URL}${endpoint.path}`;
-    const response = await fetch(url, { method: 'GET' });
+    const { controller, timeoutId } = withTimeout(REQUEST_TIMEOUT_MS);
+    let response;
+    try {
+      response = await fetch(url, { method: 'GET', signal: controller.signal });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (endpoint.expectSSE) {
       const contentType = response.headers.get('content-type') || '';
@@ -73,6 +87,11 @@ async function checkEndpoint(endpoint) {
       passed++;
     }
   } catch (error) {
+    if (error && error.name === 'AbortError') {
+      console.log(`❌ [${endpoint.name}] ${endpoint.path} — timed out after ${REQUEST_TIMEOUT_MS}ms`);
+      failed++;
+      return;
+    }
     const message = error instanceof Error ? error.message : String(error);
     if (message.includes('ECONNREFUSED')) {
       console.log(`⏭️  [${endpoint.name}] ${endpoint.path} — server not running`);

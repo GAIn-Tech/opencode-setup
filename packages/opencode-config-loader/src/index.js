@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { resolveConfigDir, resolveDataDir } = require('./paths');
 
 /**
  * Centralized configuration loader for OpenCode.
@@ -74,9 +75,9 @@ class ConfigLoader {
         }
       },
       paths: {
-        opencodeDir: path.join(os.homedir(), '.opencode'),
-        logsDir: path.join(os.homedir(), '.opencode'),
-        databaseDir: path.join(os.homedir(), '.opencode')
+        opencodeDir: resolveDataDir(),
+        logsDir: resolveDataDir(),
+        databaseDir: resolveDataDir()
       }
     };
   }
@@ -284,4 +285,9 @@ function getConfig() {
   return _instance;
 }
 
-module.exports = { ConfigLoader, getConfig };
+module.exports = {
+  ConfigLoader,
+  getConfig,
+  resolveConfigDir,
+  resolveDataDir
+};

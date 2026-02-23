@@ -297,14 +297,47 @@ export const commonChecks = {
         metadata: { url, status: response.status }
       };
     } catch (error) {
+      const classification = classifyUrlError(error);
       return { 
         healthy: false, 
         status: 'unhealthy', 
-        metadata: { url, error: error.message } 
+        metadata: { 
+          url, 
+          error: error.message,
+          errorType: classification.type,
+          errorCode: classification.code
+        } 
       };
     }
   },
 };
+
+function classifyUrlError(error) {
+  if (!error || typeof error !== 'object') {
+    return { type: 'unknown', code: null };
+  }
+
+  const code = error.code || null;
+  const message = String(error.message || '').toLowerCase();
+
+  if (error.name === 'AbortError') {
+    return { type: 'timeout', code: code || 'ETIMEDOUT' };
+  }
+  if (code === 'ENOTFOUND' || message.includes('enotfound')) {
+    return { type: 'dns', code: code || 'ENOTFOUND' };
+  }
+  if (code === 'ECONNREFUSED' || message.includes('econnrefused')) {
+    return { type: 'refused', code: code || 'ECONNREFUSED' };
+  }
+  if (code === 'ECONNRESET' || message.includes('econnreset')) {
+    return { type: 'reset', code: code || 'ECONNRESET' };
+  }
+  if (message.includes('certificate') || message.includes('tls')) {
+    return { type: 'tls', code };
+  }
+
+  return { type: 'unknown', code };
+}
 
 export default {
   registerSubsystem,
