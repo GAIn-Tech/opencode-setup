@@ -46,7 +46,7 @@
       "model": "anthropic/claude-haiku-4-5"
     },
     "multimodal-looker": {
-      "model": "google/gemini-3-flash"
+      "model": "antigravity/antigravity-gemini-3-flash"
     }
   },
   "mcp": {
@@ -64,7 +64,7 @@
   },
   "categories": {
     "visual-engineering": {
-      "model": "google/gemini-3-pro"
+      "model": "antigravity/antigravity-gemini-3-pro"
     },
     "ultrabrain": {
       "model": "openai/gpt-5.3-codex",
@@ -75,7 +75,7 @@
       "variant": "medium"
     },
     "artistry": {
-      "model": "google/gemini-3-pro",
+      "model": "antigravity/antigravity-gemini-3-pro",
       "variant": "high"
     },
     "quick": {
@@ -89,7 +89,7 @@
       "variant": "max"
     },
     "writing": {
-      "model": "google/gemini-3-flash"
+      "model": "antigravity/antigravity-gemini-3-flash"
     }
   }
 }
