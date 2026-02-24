@@ -613,7 +613,7 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
 
 ### Wave 6: Dashboard Integration
 
-- [ ] **6.1 Extend Dashboard API**
+- [x] **6.1 Extend Dashboard API**
   **What to do**:
   - Add endpoints:
     - `GET /api/models/lifecycle` - Get model lifecycle states
