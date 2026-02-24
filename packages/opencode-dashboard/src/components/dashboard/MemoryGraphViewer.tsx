@@ -181,7 +181,9 @@ export function MemoryGraphViewer() {
           {data.edges.map((edge, i) => {
             const fromNode = data.nodes.find(n => n.id === edge.from);
             const toNode = data.nodes.find(n => n.id === edge.to);
-            if (!fromNode?.x || !toNode?.x) return null;
+            if (fromNode?.x === undefined || fromNode?.y === undefined || toNode?.x === undefined || toNode?.y === undefined) {
+              return null;
+            }
             
             const opacity = isHighlighted(edge.from) && isHighlighted(edge.to) ? 0.6 : 0.1;
             const edgeColor = edge.type === 'uses_skill' ? '#22d3ee'

@@ -1,0 +1,26 @@
+{
+  "id": "dashboard-frontend-stability-20260223",
+  "timestamp": "2026-02-23T22:50:00Z",
+  "summary": "Stabilize dashboard data APIs and rendering behavior, including learning schema normalization, knowledge graph scaling, resilient workflow naming, and orchestration endpoint latency reduction.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/learning/route.ts",
+    "packages/opencode-dashboard/src/app/api/memory-graph/route.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/route.ts",
+    "packages/opencode-dashboard/src/app/api/runs/[id]/route.ts",
+    "packages/opencode-dashboard/src/app/api/runs/route.ts",
+    "packages/opencode-dashboard/src/app/page.tsx",
+    "packages/opencode-dashboard/src/components/dashboard/ConfigViewer.tsx",
+    "packages/opencode-dashboard/src/components/dashboard/InteractiveKnowledgeGraph.tsx",
+    "packages/opencode-dashboard/src/components/dashboard/LearningInsights.tsx",
+    "packages/opencode-dashboard/src/components/dashboard/MemoryGraphViewer.tsx",
+    "packages/opencode-dashboard/src/lib/data-sources/opencode-cli-reader.ts",
+    "opencode-config/learning-updates/dashboard-frontend-stability-20260223.json"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Verified with npm run build and runtime endpoint/page checks in dev mode. Orchestration API now avoids expensive run hydration path and uses short-lived in-memory cache/dedup for improved responsiveness."
+}

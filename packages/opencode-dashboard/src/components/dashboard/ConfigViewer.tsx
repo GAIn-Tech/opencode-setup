@@ -14,7 +14,8 @@ type ConfigKey =
   | 'supermemory'
   | 'deploymentState'
   | 'learningUpdatePolicy'
-  | 'sessionBudgets';
+  | 'sessionBudgets'
+  | 'centralConfig';
 
 interface ConfigSource {
   path: string;
@@ -42,6 +43,7 @@ const sections: ConfigSection[] = [
   { key: 'deploymentState', name: 'Deployment State', icon: '📦', description: 'Environment versions and history' },
   { key: 'learningUpdatePolicy', name: 'Learning Policy', icon: '📚', description: 'Governance validation policy' },
   { key: 'sessionBudgets', name: 'Session Budgets', icon: '💰', description: 'Per-session model budgets' },
+  { key: 'centralConfig', name: 'Central Config', icon: '⚙️', description: 'Centralized system settings with RL boundaries' },
 ];
 
 const anyRecord = z.record(z.any());
@@ -214,6 +216,25 @@ const sessionBudgetsSchema = z
   })
   .passthrough();
 
+const centralConfigParamSchema = z.object({
+  value: z.any(),
+  soft: z.object({ min: z.any().optional(), max: z.any().optional() }).nullable().optional(),
+  hard: z.object({ min: z.any().optional(), max: z.any().optional() }).nullable().optional(),
+  locked: z.boolean(),
+  rl_allowed: z.boolean(),
+});
+
+const centralConfigSchema = z
+  .object({
+    schema_version: z.string(),
+    config_version: z.number().min(1),
+    rl: z.object({
+      override_min_confidence: z.number().min(0.5).max(0.99),
+    }),
+    sections: z.record(z.record(centralConfigParamSchema)),
+  })
+  .passthrough();
+
 const domainSchemas: Record<ConfigKey, z.ZodTypeAny> = {
   projectConfig: projectConfigSchema,
   userConfig: userConfigSchema,
@@ -226,6 +247,7 @@ const domainSchemas: Record<ConfigKey, z.ZodTypeAny> = {
   deploymentState: deploymentStateSchema,
   learningUpdatePolicy: learningUpdatePolicySchema,
   sessionBudgets: sessionBudgetsSchema,
+  centralConfig: centralConfigSchema,
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -552,14 +574,21 @@ export function ConfigViewer() {
   }, [data, hydrateFormDraft, mode, selectedDomain]);
 
   const saveConfig = useCallback(
-    async (configKey: ConfigKey, payload: unknown) => {
+    async (configKey: ConfigKey, payload: unknown, configVersion?: number) => {
+      const body: Record<string, unknown> = { configKey, data: payload };
+      if (configVersion !== undefined) {
+        body.config_version = configVersion;
+      }
       const res = await fetch('/api/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ configKey, data: payload }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
+        if (res.status === 409) {
+          throw new Error(`Version conflict: ${err.error || 'Config was modified by another process'}`);
+        }
         throw new Error(err.error || 'Failed to save');
       }
     },
@@ -629,7 +658,13 @@ export function ConfigViewer() {
         return;
       }
 
-      await saveConfig(selectedDomain, formDraft);
+      // For centralConfig, pass config_version for optimistic concurrency
+      if (selectedDomain === 'centralConfig') {
+        const configVersion = (formDraft as Record<string, unknown>).config_version as number | undefined;
+        await saveConfig(selectedDomain, formDraft, configVersion);
+      } else {
+        await saveConfig(selectedDomain, formDraft);
+      }
       await fetchData();
       setFormSaveSuccess('Saved successfully.');
     } catch (err) {
@@ -1585,6 +1620,203 @@ export function ConfigViewer() {
     );
   };
 
+  const renderCentralConfigEditor = () => {
+    const draft = ensureRecord(formDraft);
+    const rl = ensureRecord(draft.rl);
+    const sections_data = ensureRecord(draft.sections);
+    const sectionNames = Object.keys(sections_data);
+
+    const [activeSection, setActiveSection] = useState(sectionNames[0] || 'routing');
+
+    const updateParam = (section: string, param: string, field: string, value: unknown) => {
+      updateDraft((next) => {
+        const nextSections = ensureRecord(next.sections);
+        const nextSection = ensureRecord(nextSections[section]);
+        const nextParam = ensureRecord(nextSection[param]);
+        if (field === 'soft.min' || field === 'soft.max') {
+          const soft = ensureRecord(nextParam.soft);
+          soft[field.split('.')[1]] = value;
+          nextParam.soft = soft;
+        } else if (field === 'hard.min' || field === 'hard.max') {
+          // Hard bounds are read-only
+          return;
+        } else {
+          nextParam[field] = value;
+        }
+        nextSection[param] = nextParam;
+        nextSections[section] = nextSection;
+        next.sections = nextSections;
+      });
+    };
+
+    const renderParamEditor = (section: string, paramName: string, param: Record<string, unknown>) => {
+      const value = param.value;
+      const soft = ensureRecord(param.soft);
+      const hard = ensureRecord(param.hard);
+      const locked = Boolean(param.locked);
+      const rlAllowed = Boolean(param.rl_allowed);
+      const isNumeric = typeof value === 'number';
+
+      return (
+        <div
+          key={paramName}
+          className={`rounded border p-3 ${locked ? 'border-zinc-600 bg-zinc-800/50' : 'border-zinc-700 bg-zinc-900'}`}
+        >
+          <div className="mb-2 flex items-center justify-between">
+            <span className="font-mono text-sm text-zinc-200">{paramName}</span>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-1 text-xs text-zinc-400">
+                <Checkbox
+                  checked={locked}
+                  onChange={(v) => updateParam(section, paramName, 'locked', v)}
+                />
+                Locked
+              </label>
+              <label className="flex items-center gap-1 text-xs text-zinc-400">
+                <Checkbox
+                  checked={rlAllowed}
+                  onChange={(v) => updateParam(section, paramName, 'rl_allowed', v)}
+                />
+                RL
+              </label>
+            </div>
+          </div>
+
+          <div className="grid gap-2 md:grid-cols-3">
+            <Field label="Value">
+              {typeof value === 'boolean' ? (
+                <div className="pt-2">
+                  <Checkbox
+                    checked={value}
+                    onChange={(v) => updateParam(section, paramName, 'value', v)}
+                  />
+                </div>
+              ) : isNumeric ? (
+                <Input
+                  type="number"
+                  step="any"
+                  value={String(value)}
+                  onChange={(e) => updateParam(section, paramName, 'value', parseNumber(e.target.value))}
+                  disabled={locked}
+                />
+              ) : (
+                <Input
+                  value={String(value ?? '')}
+                  onChange={(e) => updateParam(section, paramName, 'value', e.target.value)}
+                  disabled={locked}
+                />
+              )}
+            </Field>
+
+            {isNumeric && (
+              <>
+                <Field label="Soft bounds">
+                  <div className="flex gap-1">
+                    <Input
+                      type="number"
+                      step="any"
+                      placeholder="min"
+                      value={soft.min !== undefined ? String(soft.min) : ''}
+                      onChange={(e) => updateParam(section, paramName, 'soft.min', e.target.value ? parseNumber(e.target.value) : undefined)}
+                      className="w-1/2"
+                    />
+                    <Input
+                      type="number"
+                      step="any"
+                      placeholder="max"
+                      value={soft.max !== undefined ? String(soft.max) : ''}
+                      onChange={(e) => updateParam(section, paramName, 'soft.max', e.target.value ? parseNumber(e.target.value) : undefined)}
+                      className="w-1/2"
+                    />
+                  </div>
+                </Field>
+                <Field label="Hard bounds (read-only)">
+                  <div className="flex gap-1">
+                    <Input
+                      type="number"
+                      value={hard.min !== undefined ? String(hard.min) : ''}
+                      disabled
+                      className="w-1/2 opacity-60"
+                    />
+                    <Input
+                      type="number"
+                      value={hard.max !== undefined ? String(hard.max) : ''}
+                      disabled
+                      className="w-1/2 opacity-60"
+                    />
+                  </div>
+                </Field>
+              </>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    return (
+      <div className="space-y-4">
+        <div className="rounded border border-emerald-700/50 bg-emerald-900/20 p-3">
+          <Field label="RL Override Confidence Threshold (0.5-0.99)">
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="0.5"
+                max="0.99"
+                step="0.01"
+                value={typeof rl.override_min_confidence === 'number' ? rl.override_min_confidence : 0.85}
+                onChange={(e) =>
+                  updateDraft((next) => {
+                    const nextRl = ensureRecord(next.rl);
+                    nextRl.override_min_confidence = parseFloat(e.target.value);
+                    next.rl = nextRl;
+                  })
+                }
+                className="h-2 flex-1 cursor-pointer appearance-none rounded-lg bg-zinc-700"
+              />
+              <span className="w-12 text-right font-mono text-sm text-emerald-400">
+                {(typeof rl.override_min_confidence === 'number' ? rl.override_min_confidence : 0.85).toFixed(2)}
+              </span>
+            </div>
+          </Field>
+          <div className="mt-2 text-xs text-zinc-500">
+            RL can override soft bounds only when confidence &gt;= this threshold
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2 border-b border-zinc-700 pb-2">
+          {sectionNames.map((name) => (
+            <button
+              key={name}
+              onClick={() => setActiveSection(name)}
+              className={`rounded px-3 py-1 text-sm ${
+                activeSection === name
+                  ? 'bg-emerald-600 text-emerald-50'
+                  : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+              }`}
+            >
+              {name}
+            </button>
+          ))}
+        </div>
+
+        <div className="space-y-3">
+          {activeSection && sections_data[activeSection] ? (
+            Object.entries(ensureRecord(sections_data[activeSection])).map(([paramName, param]) =>
+              renderParamEditor(activeSection, paramName, ensureRecord(param))
+            )
+          ) : null}
+        </div>
+
+        <div className="mt-4 rounded border border-zinc-700 bg-zinc-950 p-3">
+          <div className="mb-2 text-xs font-medium text-zinc-400">Config Version</div>
+          <div className="font-mono text-sm text-zinc-300">
+            Schema: {String(draft.schema_version || '1.0.0')} | Version: {String(draft.config_version || 1)}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderDomainForm = () => {
     switch (selectedDomain) {
       case 'projectConfig':
@@ -1609,6 +1841,8 @@ export function ConfigViewer() {
         return renderLearningPolicyEditor();
       case 'sessionBudgets':
         return renderSessionBudgetsEditor();
+      case 'centralConfig':
+        return renderCentralConfigEditor();
       default:
         return null;
     }

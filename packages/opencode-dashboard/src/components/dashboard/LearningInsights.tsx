@@ -95,7 +95,9 @@ export function LearningInsights() {
 
   if (!data) return null;
 
-  const hasData = data.anti_patterns.total > 0 || data.positive_patterns.total > 0;
+  const antiItems = Array.isArray(data.anti_patterns?.items) ? data.anti_patterns.items : [];
+  const positiveItems = Array.isArray(data.positive_patterns?.items) ? data.positive_patterns.items : [];
+  const hasData = (data.anti_patterns?.total || 0) > 0 || (data.positive_patterns?.total || 0) > 0;
 
   return (
     <div className="space-y-6">
@@ -135,7 +137,7 @@ export function LearningInsights() {
                 <span>⚠️</span> Anti-Patterns to Avoid
               </h3>
             </div>
-            {data.anti_patterns.items.length === 0 ? (
+            {antiItems.length === 0 ? (
               <div className="p-4 text-zinc-500">No anti-patterns detected</div>
             ) : (
               <table className="w-full">
@@ -148,7 +150,7 @@ export function LearningInsights() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.anti_patterns.items.map((pattern, i) => (
+                  {antiItems.map((pattern, i) => (
                     <tr
                       key={i}
                       className="border-b border-zinc-800 hover:bg-zinc-700/50 cursor-pointer"
@@ -178,7 +180,7 @@ export function LearningInsights() {
                 <span>✅</span> Positive Patterns
               </h3>
             </div>
-            {data.positive_patterns.items.length === 0 ? (
+            {positiveItems.length === 0 ? (
               <div className="p-4 text-zinc-500">No positive patterns recorded yet</div>
             ) : (
               <table className="w-full">
@@ -191,7 +193,7 @@ export function LearningInsights() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.positive_patterns.items.map((pattern, i) => (
+                  {positiveItems.map((pattern, i) => (
                     <tr key={i} className="border-b border-zinc-800 hover:bg-zinc-700/50">
                       <td className="px-4 py-2 font-mono text-sm">{pattern.type}</td>
                       <td className="px-4 py-2">{pattern.count}</td>

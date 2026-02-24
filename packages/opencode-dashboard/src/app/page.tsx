@@ -46,16 +46,36 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   const loadRuns = useCallback(async () => {
+    const fetchWithRetry = async (attempts = 2): Promise<Response> => {
+      let lastError: unknown;
+      for (let i = 0; i <= attempts; i += 1) {
+        try {
+          const response = await fetch('/api/runs', { cache: 'no-store' });
+          if (!response.ok) {
+            throw new Error(`Failed to load runs (${response.status})`);
+          }
+          return response;
+        } catch (error) {
+          lastError = error;
+          if (i < attempts) {
+            await new Promise((resolve) => setTimeout(resolve, 300 * (i + 1)));
+          }
+        }
+      }
+      throw lastError instanceof Error ? lastError : new Error('Unknown error loading runs');
+    };
+
     try {
-      const response = await fetch('/api/runs', { cache: 'no-store' });
-      if (!response.ok) throw new Error(`Failed to load runs (${response.status})`);
+      const response = await fetchWithRetry(2);
       const data = (await response.json()) as WorkflowRun[];
-      setRuns(data);
+      setRuns((prev) => (data.length === 0 && prev.length > 0 ? prev : data));
 
       setSelectedRunId((prev) => {
         if (prev && data.some((run) => run.id === prev)) return prev;
-        return data[0]?.id ?? null;
+        if (data.length > 0) return data[0].id;
+        return prev;
       });
+      setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unknown error loading runs');
     }
@@ -74,9 +94,6 @@ export default function Home() {
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unknown error loading run details');
-      setSteps([]);
-      setEvents([]);
-      setActiveRun(null);
     } finally {
       setLoading(false);
     }

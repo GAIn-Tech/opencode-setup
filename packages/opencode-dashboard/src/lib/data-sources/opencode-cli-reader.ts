@@ -10,6 +10,11 @@ type SessionListItem = {
   directory?: string;
 };
 
+type CachedTitle = {
+  value: string;
+  expiresAt: number;
+};
+
 type ExportMessage = {
   info?: {
     id?: string;
@@ -31,10 +36,14 @@ type ExportSession = {
   messages?: ExportMessage[];
 };
 
-function runOpencode(args: string[]): { ok: boolean; stdout: string; stderr: string } {
+const TITLE_CACHE_TTL_MS = 10 * 60 * 1000;
+const titleCache = new Map<string, CachedTitle>();
+
+function runOpencode(args: string[], timeoutMs = 20000): { ok: boolean; stdout: string; stderr: string } {
   const result = spawnSync('opencode', args, {
     encoding: 'utf8',
     shell: process.platform === 'win32',
+    timeout: timeoutMs,
   });
 
   return {
@@ -63,9 +72,43 @@ function toIso(ms?: number): string {
   return ms ? new Date(ms).toISOString() : new Date(0).toISOString();
 }
 
+function cleanTitle(text: string): string {
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+function isGenericSessionTitle(title: string | undefined, id: string): boolean {
+  if (!title) return true;
+  const normalized = cleanTitle(title);
+  if (!normalized) return true;
+  if (normalized === id) return true;
+  if (/^new session\s*-?/i.test(normalized)) return true;
+  if (/^conversation title\s*:/i.test(normalized)) return true;
+  if (/^session\s+[0-9]+$/i.test(normalized)) return true;
+  return false;
+}
+
+function previewFromMessages(messages?: ExportMessage[]): string | null {
+  if (!Array.isArray(messages)) return null;
+  for (const msg of messages) {
+    const role = String(msg?.info?.role || '').toLowerCase();
+    if (role !== 'user') continue;
+    const textPart = (msg.parts || []).find((part) => typeof part?.text === 'string' && part.text.trim().length > 0);
+    if (!textPart || typeof textPart.text !== 'string') continue;
+    const trimmed = cleanTitle(textPart.text);
+    if (!trimmed) continue;
+    return trimmed.length > 72 ? `${trimmed.slice(0, 72)}...` : trimmed;
+  }
+  return null;
+}
+
+function timestampLabel(ms?: number): string {
+  if (!ms) return 'Untitled Session';
+  return `Session ${new Date(ms).toLocaleString()}`;
+}
+
 export class OpencodeCliReader implements DataSource {
   async getRuns(): Promise<WorkflowRun[]> {
-    const result = runOpencode(['session', 'list', '--format', 'json', '-n', '200']);
+    const result = runOpencode(['session', 'list', '--format', 'json', '-n', '1000']);
     if (!result.ok) {
       console.warn(`[OpencodeCliReader] session list failed: ${result.stderr}`);
       return [];
@@ -73,15 +116,34 @@ export class OpencodeCliReader implements DataSource {
 
     try {
       const sessions = parseJsonFromOutput(result.stdout) as SessionListItem[];
-      return sessions.map((s) => ({
-        id: s.id,
-        name: s.title || s.id,
-        status: 'completed',
-        input: { directory: s.directory, projectId: s.projectId },
-        context: {},
-        created_at: toIso(s.created),
-        updated_at: toIso(s.updated),
-      }));
+      const sorted = sessions
+        .filter((s) => typeof s.id === 'string' && s.id.length > 0)
+        .sort((a, b) => (b.updated || 0) - (a.updated || 0));
+
+      const runs: WorkflowRun[] = [];
+      const maxEnriched = Number.isFinite(Number(process.env.DASHBOARD_NAME_ENRICH_LIMIT))
+        ? Number(process.env.DASHBOARD_NAME_ENRICH_LIMIT)
+        : 20;
+
+      for (let i = 0; i < sorted.length; i += 1) {
+        const session = sorted[i];
+        const name = await this.resolveSessionName(session, i < maxEnriched);
+        runs.push({
+          id: session.id,
+          name,
+          status: 'completed',
+          input: {
+            directory: session.directory,
+            projectId: session.projectId,
+            data_source: 'opencode-cli',
+          },
+          context: {},
+          created_at: toIso(session.created),
+          updated_at: toIso(session.updated),
+        });
+      }
+
+      return runs;
     } catch (err) {
       console.warn(`[OpencodeCliReader] failed to parse session list: ${String(err)}`);
       return [];
@@ -163,7 +225,7 @@ export class OpencodeCliReader implements DataSource {
   }
 
   private async exportSession(runId: string): Promise<ExportSession | null> {
-    const result = runOpencode(['export', runId]);
+    const result = runOpencode(['export', runId], 2000);
     if (!result.ok) {
       console.warn(`[OpencodeCliReader] export failed for ${runId}: ${result.stderr}`);
       return null;
@@ -175,5 +237,52 @@ export class OpencodeCliReader implements DataSource {
       console.warn(`[OpencodeCliReader] export parse failed for ${runId}: ${String(err)}`);
       return null;
     }
+  }
+
+  private async resolveSessionName(session: SessionListItem, allowEnrichment: boolean): Promise<string> {
+    const baseTitle = cleanTitle(session.title || '');
+    const id = session.id;
+
+    if (!isGenericSessionTitle(baseTitle, id)) {
+      return baseTitle;
+    }
+
+    const cached = titleCache.get(id);
+    if (cached && cached.expiresAt > Date.now() && !cached.value.startsWith('Session: ')) {
+      return cached.value;
+    }
+
+    let resolved = '';
+    if (allowEnrichment) {
+      const exported = await this.exportSession(id);
+      if (exported?.info?.title && !isGenericSessionTitle(exported.info.title, id)) {
+        resolved = cleanTitle(exported.info.title);
+      }
+
+      if (!resolved) {
+        resolved = previewFromMessages(exported?.messages) || '';
+      }
+    }
+
+    if (!resolved && session.directory) {
+      const dir = cleanTitle(session.directory.split(/[\\/]/).filter(Boolean).slice(-1)[0] || '');
+      if (dir) {
+        const stamp = session.updated || session.created;
+        resolved = stamp
+          ? `Session: ${dir} (${new Date(stamp).toLocaleString()})`
+          : `Session: ${dir}`;
+      }
+    }
+
+    if (!resolved) {
+      resolved = timestampLabel(session.updated || session.created);
+    }
+
+    titleCache.set(id, {
+      value: resolved,
+      expiresAt: Date.now() + TITLE_CACHE_TTL_MS,
+    });
+
+    return resolved;
   }
 }

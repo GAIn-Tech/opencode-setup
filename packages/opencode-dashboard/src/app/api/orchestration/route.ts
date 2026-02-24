@@ -3,9 +3,17 @@ import os from 'os';
 import path from 'path';
 import crypto from 'crypto';
 import { NextResponse } from 'next/server';
-import { getDataSource } from '@/lib/data-sources';
 
 export const dynamic = 'force-dynamic';
+
+type CachedOrchestrationPayload = {
+  expiresAt: number;
+  payload: Record<string, unknown>;
+};
+
+const ORCHESTRATION_CACHE_TTL_MS = 15_000;
+const orchestrationCache = new Map<string, CachedOrchestrationPayload>();
+const orchestrationInFlight = new Map<string, Promise<Record<string, unknown>>>();
 
 type Dist = { name: string; count: number; share: number; tokens?: number; success_rate?: number };
 type Signal = { key: string; label: string; value: number; target: number; level: 'healthy' | 'warning' | 'critical'; detail: string };
@@ -207,6 +215,21 @@ function parseFallbackFirstProvider(filePath: string): string {
 export async function GET(request: Request) {
   try {
     const params = new URL(request.url).searchParams;
+    const noCache = params.get('noCache') === '1';
+    const cacheKey = request.url;
+
+    if (!noCache) {
+      const cached = orchestrationCache.get(cacheKey);
+      if (cached && cached.expiresAt > Date.now()) {
+        return NextResponse.json(cached.payload);
+      }
+      const pending = orchestrationInFlight.get(cacheKey);
+      if (pending) {
+        return NextResponse.json(await pending);
+      }
+    }
+
+    const computePayload = async (): Promise<Record<string, unknown>> => {
     const sinceDays = parseIntParam(params.get('sinceDays'), 30, 1, 365);
     const topN = parseIntParam(params.get('topN'), 10, 5, 30);
     const coverageTarget = parseFloatParam(params.get('coverageTarget'), 60, 10, 100);
@@ -390,17 +413,12 @@ export async function GET(request: Request) {
     const providerTotal = n(summary.healthy_count) + n(summary.warning_count) + n(summary.critical_count) + n(summary.unknown_count);
     const providerHealthy = providerTotal > 0 ? (n(summary.healthy_count) / providerTotal) * 100 : 0;
 
-    const runs = await getDataSource().getRuns();
-    const runStats = runs.reduce(
-      (acc, run) => {
-        acc.total += 1;
-        if (run.status === 'running') acc.active += 1;
-        else if (run.status === 'failed') acc.failed += 1;
-        else acc.completed += 1;
-        return acc;
-      },
-      { total: 0, active: 0, completed: 0, failed: 0 }
-    );
+    const runStats = {
+      total: sessions.size,
+      active: 0,
+      completed: sessions.size,
+      failed: 0,
+    };
 
     const totalLoops = [...loopsBySession.values()].reduce((sum, c) => sum + c, 0);
     const sessionsWithLoops = [...loopsBySession.values()].filter((c) => c > 0).length;
@@ -604,7 +622,7 @@ export async function GET(request: Request) {
     const adjustedScore = fidelityMode === 'live' ? score : Math.min(score, 69);
     const adjustedLevel = adjustedScore >= 85 ? 'healthy' : adjustedScore >= 65 ? 'warning' : 'critical';
 
-    return NextResponse.json({
+    return {
       version: '1.0.0',
       generated_at: new Date().toISOString(),
       window: { since_days: sinceDays, top_n: topN },
@@ -734,7 +752,31 @@ export async function GET(request: Request) {
         },
         gaps: integrationGaps,
       },
-    });
+    };
+    };
+
+    const payloadPromise = computePayload();
+    if (!noCache) {
+      orchestrationInFlight.set(cacheKey, payloadPromise);
+    }
+
+    let payload: Record<string, unknown>;
+    try {
+      payload = await payloadPromise;
+    } finally {
+      if (!noCache) {
+        orchestrationInFlight.delete(cacheKey);
+      }
+    }
+
+    if (!noCache) {
+      orchestrationCache.set(cacheKey, {
+        expiresAt: Date.now() + ORCHESTRATION_CACHE_TTL_MS,
+        payload,
+      });
+    }
+
+    return NextResponse.json(payload);
   } catch (error) {
     return NextResponse.json({ message: 'Failed to build orchestration intelligence report', error: String(error) }, { status: 500 });
   }

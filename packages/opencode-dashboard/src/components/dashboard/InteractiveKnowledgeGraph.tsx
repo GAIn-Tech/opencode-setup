@@ -547,8 +547,12 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
   const [focusGroup, setFocusGroup] = useState<GroupKey | null>(null);
   const [focusType, setFocusType] = useState<UnifiedNodeType | null>(null);
   const [minEdgeStrength, setMinEdgeStrength] = useState<number>(1);
-  const [maxVisibleEdges, setMaxVisibleEdges] = useState<number>(300);
+  const [maxVisibleEdges, setMaxVisibleEdges] = useState<number>(600);
   const [autoEdgeControls, setAutoEdgeControls] = useState<boolean>(true);
+  const [sinceDays, setSinceDays] = useState<number>(30);
+  const [apiMaxFanout, setApiMaxFanout] = useState<number>(40);
+  const [apiMaxNodes, setApiMaxNodes] = useState<number>(500);
+  const [refreshKey, setRefreshKey] = useState<number>(0);
 
   const fetchData = useCallback(async () => {
     if (externalNodes && externalEdges) {
@@ -562,7 +566,13 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
 
     try {
       setLoading(true);
-      const response = await fetch('/api/memory-graph?sinceDays=7&maxFanout=15');
+      const params = new URLSearchParams({
+        sinceDays: String(sinceDays),
+        maxFanout: String(apiMaxFanout),
+        maxNodes: String(apiMaxNodes),
+      });
+
+      const response = await fetch(`/api/memory-graph?${params.toString()}`, { cache: 'no-store' });
       if (!response.ok) {
         throw new Error(`Failed to load graph (${response.status})`);
       }
@@ -578,18 +588,18 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
     } finally {
       setLoading(false);
     }
-  }, [externalEdges, externalNodes, setEdges, setNodes]);
+  }, [apiMaxFanout, apiMaxNodes, externalEdges, externalNodes, setEdges, setNodes, sinceDays]);
 
   useEffect(() => {
     void fetchData();
-  }, [fetchData]);
+  }, [fetchData, refreshKey]);
 
   useEffect(() => {
     if (externalNodes && externalEdges) return;
 
     const timer = setInterval(() => {
       void fetchData();
-    }, 15000);
+    }, 20000);
 
     return () => clearInterval(timer);
   }, [externalEdges, externalNodes, fetchData]);
@@ -634,8 +644,8 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
 
   const effectiveTier = useMemo<LODTier>(() => {
     if (tierOverride !== null) return tierOverride;
-    if (viewportZoom < 0.45) return 0;
-    if (viewportZoom < 0.85 || visibleInstanceNodes.length > 180) return 1;
+    if (viewportZoom < 0.35) return 0;
+    if (viewportZoom < 0.7 || visibleInstanceNodes.length > 350) return 1;
     return 2;
   }, [tierOverride, viewportZoom, visibleInstanceNodes.length]);
 
@@ -643,18 +653,18 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
     if (!autoEdgeControls) return;
 
     let nextMinStrength = 1;
-    let nextMaxEdges = 400;
+      let nextMaxEdges = 700;
 
-    if (viewportZoom < 0.35) {
-      nextMinStrength = 4;
-      nextMaxEdges = 120;
-    } else if (viewportZoom < 0.55) {
-      nextMinStrength = 3;
-      nextMaxEdges = 180;
-    } else if (viewportZoom < 0.85) {
-      nextMinStrength = 2;
-      nextMaxEdges = 260;
-    }
+      if (viewportZoom < 0.35) {
+        nextMinStrength = 4;
+        nextMaxEdges = 240;
+      } else if (viewportZoom < 0.55) {
+        nextMinStrength = 3;
+        nextMaxEdges = 340;
+      } else if (viewportZoom < 0.85) {
+        nextMinStrength = 2;
+        nextMaxEdges = 500;
+      }
 
     if (effectiveTier === 0) {
       nextMinStrength = Math.max(nextMinStrength, 3);
@@ -959,6 +969,7 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
         onMoveEnd={onMoveEnd}
         nodeTypes={nodeTypes}
         fitView
+        onlyRenderVisibleElements
         panOnDrag
         zoomOnScroll
         zoomOnPinch
@@ -1063,6 +1074,61 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
             </button>
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-zinc-400">
+            <label className="flex items-center gap-2">
+              <span>Days</span>
+              <input
+                type="number"
+                min={1}
+                max={365}
+                step={1}
+                value={sinceDays}
+                onChange={(event) => {
+                  const parsed = Number.parseInt(event.target.value, 10);
+                  if (!Number.isFinite(parsed)) return;
+                  setSinceDays(Math.max(1, Math.min(365, parsed)));
+                }}
+                className="w-16 rounded border border-zinc-700 bg-zinc-950 px-2 py-1 text-zinc-100"
+              />
+            </label>
+            <label className="flex items-center gap-2">
+              <span>API fanout</span>
+              <input
+                type="number"
+                min={1}
+                max={200}
+                step={1}
+                value={apiMaxFanout}
+                onChange={(event) => {
+                  const parsed = Number.parseInt(event.target.value, 10);
+                  if (!Number.isFinite(parsed)) return;
+                  setApiMaxFanout(Math.max(1, Math.min(200, parsed)));
+                }}
+                className="w-16 rounded border border-zinc-700 bg-zinc-950 px-2 py-1 text-zinc-100"
+              />
+            </label>
+            <label className="flex items-center gap-2">
+              <span>API nodes</span>
+              <input
+                type="number"
+                min={20}
+                max={2000}
+                step={20}
+                value={apiMaxNodes}
+                onChange={(event) => {
+                  const parsed = Number.parseInt(event.target.value, 10);
+                  if (!Number.isFinite(parsed)) return;
+                  setApiMaxNodes(Math.max(20, Math.min(2000, parsed)));
+                }}
+                className="w-20 rounded border border-zinc-700 bg-zinc-950 px-2 py-1 text-zinc-100"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => setRefreshKey((prev) => prev + 1)}
+              className="rounded-md border border-cyan-600/40 bg-cyan-500/15 px-2 py-1 text-cyan-200 hover:bg-cyan-500/25"
+            >
+              Apply API
+            </button>
             <label className="flex items-center gap-2">
               <span>Edge min strength</span>
               <input

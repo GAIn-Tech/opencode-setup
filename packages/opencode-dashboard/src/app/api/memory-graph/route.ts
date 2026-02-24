@@ -13,6 +13,18 @@ interface GraphQueryOptions {
   maxNodes: number;
 }
 
+type CachedGraphPayload = {
+  expiresAt: number;
+  payload: {
+    nodes: GraphNode[];
+    edges: GraphEdge[];
+    meta: Record<string, unknown>;
+  };
+};
+
+const GRAPH_CACHE_TTL_MS = 10_000;
+const graphCache = new Map<string, CachedGraphPayload>();
+
 // Enhanced node types for comprehensive KG
 interface GraphNode {
   id: string;
@@ -434,6 +446,18 @@ function readOpenCodeData(opencodePath: string, options: GraphQueryOptions) {
   data.nodes = Array.from(nodesMap.values());
   data.edges = limitFanout(Array.from(edgesMap.values()), options.maxFanout);
 
+  if (!options.focus && data.nodes.length > options.maxNodes) {
+    const keepIds = new Set(
+      [...data.nodes]
+        .sort((a, b) => b.count - a.count)
+        .slice(0, options.maxNodes)
+        .map((node) => node.id)
+    );
+    data.nodes = data.nodes.filter((node) => keepIds.has(node.id));
+    data.edges = data.edges.filter((edge) => keepIds.has(edge.from) && keepIds.has(edge.to));
+    data.meta.nodeCapApplied = true;
+  }
+
   if (options.focus) {
     const focused = buildFocusedSubgraph(data.nodes, data.edges, options.focus, options.depth, options.maxNodes);
     data.nodes = focused.nodes;
@@ -471,26 +495,43 @@ export async function GET(request: Request) {
     const search = new URL(request.url).searchParams;
 
     const options: GraphQueryOptions = {
-      sinceDays: clamp(parsePositiveInt(search.get('sinceDays'), 7), 1, 90),
-      maxFanout: clamp(parsePositiveInt(search.get('maxFanout'), 15), 1, 100),
+      sinceDays: clamp(parsePositiveInt(search.get('sinceDays'), 30), 1, 365),
+      maxFanout: clamp(parsePositiveInt(search.get('maxFanout'), 40), 1, 200),
       focus: search.get('focus') ?? undefined,
       depth: clamp(parsePositiveInt(search.get('depth'), 2), 1, 4),
-      maxNodes: clamp(parsePositiveInt(search.get('maxNodes'), 120), 20, 1000),
+      maxNodes: clamp(parsePositiveInt(search.get('maxNodes'), 500), 20, 2000),
     };
+
+    const noCache = search.get('noCache') === '1';
+    const cacheKey = JSON.stringify(options);
+    if (!noCache) {
+      const cached = graphCache.get(cacheKey);
+      if (cached && cached.expiresAt > Date.now()) {
+        return NextResponse.json(cached.payload);
+      }
+    }
 
     // Read all OpenCode data sources
     const data = readOpenCodeData(opencodePath, options);
     
-    return NextResponse.json({
+    const payload = {
       ...data,
       meta: {
         ...data.meta,
         source: '~/.opencode (messages, learning, skills, templates, profiles, rules, parts)',
         sinceDays: options.sinceDays,
         maxFanout: options.maxFanout,
+        maxNodes: options.maxNodes,
         timestamp: new Date().toISOString()
       }
+    };
+
+    graphCache.set(cacheKey, {
+      expiresAt: Date.now() + GRAPH_CACHE_TTL_MS,
+      payload,
     });
+
+    return NextResponse.json(payload);
   } catch (error) {
     console.error('[Memory Graph API] Error:', error);
     return NextResponse.json({

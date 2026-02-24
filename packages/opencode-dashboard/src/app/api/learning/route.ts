@@ -20,6 +20,46 @@ interface PositivePattern {
   last_seen: string;
 }
 
+function normalizeLearningReportShape(report: any) {
+  const anti = report?.anti_patterns || {};
+  const positive = report?.positive_patterns || {};
+
+  const antiItems = Array.isArray(anti.items)
+    ? anti.items
+    : Array.isArray(anti.top_severe)
+      ? anti.top_severe.map((item: any) => ({
+          type: item.type || 'unknown',
+          count: Number(item.weight || item.count || 0),
+          severity: item.severity || 'medium',
+          last_seen: item.last_seen || item.updated_at || new Date(0).toISOString(),
+          context: item.context || item.description,
+        }))
+      : [];
+
+  const positiveItems = Array.isArray(positive.items)
+    ? positive.items
+    : Array.isArray(positive.top_strategies)
+      ? positive.top_strategies.map((item: any) => ({
+          type: item.type || 'unknown',
+          count: Number(item.count || item.weight || 0),
+          success_rate: Number(item.success_rate || 0),
+          last_seen: item.last_seen || item.updated_at || new Date(0).toISOString(),
+        }))
+      : [];
+
+  return {
+    ...report,
+    anti_patterns: {
+      ...anti,
+      items: antiItems,
+    },
+    positive_patterns: {
+      ...positive,
+      items: positiveItems,
+    },
+  };
+}
+
 export async function GET() {
   try {
     const learningPath = path.join(os.homedir(), '.opencode', 'learning');
@@ -100,7 +140,7 @@ export async function GET() {
 
     if (engine) {
       try {
-        const report = engine.getReport();
+        const report = normalizeLearningReportShape(engine.getReport());
         if (engineWarning) {
           return NextResponse.json({
             ...report,
@@ -182,13 +222,13 @@ export async function GET() {
           total: antiPatterns.reduce((sum, p) => sum + p.count, 0),
           by_type: byType,
           by_severity: bySeverity,
-          items: antiPatterns.slice(0, 20)
+          items: antiPatterns.slice(0, 50)
         },
         positive_patterns: {
           total: positivePatterns.reduce((sum, p) => sum + p.count, 0),
           by_type: positiveByType,
           avg_success_rate: positivePatterns.length ? totalSuccessRate / positivePatterns.length : 0,
-          items: positivePatterns.slice(0, 20)
+          items: positivePatterns.slice(0, 50)
         },
         insights: [],
         recommendations: antiPatterns.length > 0 

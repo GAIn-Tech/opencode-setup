@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getDataSource } from '@/lib/data-sources';
 import { getSessionTokens } from '@/lib/provider-status-store';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const dataSource = getDataSource();
