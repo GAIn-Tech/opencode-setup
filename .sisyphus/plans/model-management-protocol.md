@@ -557,7 +557,7 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
 
 ### Wave 5: Lifecycle State Machine
 
-- [ ] **5.1 Implement State Machine Core**
+- [x] **5.1 Implement State Machine Core**
   **What to do**:
   - States: detected → assessed → approved → selectable → default
   - Transitions with guards and side effects
@@ -581,7 +581,7 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - [ ] State persisted and recoverable
   - [ ] Test: full lifecycle transitions
 
-- [ ] **5.2 Build Audit Logger**
+- [x] **5.2 Build Audit Logger**
   **What to do**:
   - Log every state transition
   - Fields: timestamp, modelId, fromState, toState, actor (user/system), reason, diffHash
@@ -594,7 +594,7 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - [ ] Query API works
   - [ ] Retention: 1 year
 
-- [ ] **5.3 Create Auto-Approval Rules**
+- [x] **5.3 Create Auto-Approval Rules**
   **What to do**:
   - Rules for skipping human approval:
     - Metadata-only changes (pricing update)
