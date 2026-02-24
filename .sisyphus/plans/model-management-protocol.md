@@ -652,7 +652,7 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
 
 ### Wave 7: PR Automation & CI
 
-- [ ] **7.1 Build PR Generator**
+- [x] **7.1 Build PR Generator**
   **What to do**:
   - Create branch: `auto/model-update-{timestamp}`
   - Modify files:
@@ -670,7 +670,7 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - [ ] Tests included/updated
   - [ ] Validation passes before PR creation
 
-- [ ] **7.2 Enable CI Workflow**
+- [x] **7.2 Enable CI Workflow**
   **What to do**:
   - Move `.github/workflows-disabled/model-catalog-sync.yml` to `.github/workflows/`
   - Update to use new discovery pipeline
