@@ -520,7 +520,7 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
 
 ### Wave 4: Assessment Infrastructure
 
-- [ ] **4.1 Enhance New Model Assessor**
+- [x] **4.1 Enhance New Model Assessor**
   **What to do**:
   - Replace simulated benchmarks with real execution
   - Integrate with existing `new-model-assessor.js`
@@ -540,7 +540,7 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - [ ] Scoring matches existing z-score logic
   - [ ] Test: assessment completes in < 5 minutes per model
 
-- [ ] **4.2 Create Metrics Collector**
+- [x] **4.2 Create Metrics Collector**
   **What to do**:
   - Collect 4-pillar metrics: accuracy, latency, cost, robustness
   - Automated latency measurement: test prompts, measure response time
