@@ -1,0 +1,15 @@
+{
+  "id": "context-governor-test-cleanup-20260224",
+  "timestamp": "2026-02-24T00:00:00Z",
+  "summary": "Added temp file cleanup to governor crash tests",
+  "affected_paths": [
+    "packages/opencode-context-governor/test/governor-crash.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Added fs.unlinkSync(tmpPath) at end of each test to clean up temp files created in os.tmpdir(). Prevents temp file accumulation."
+}

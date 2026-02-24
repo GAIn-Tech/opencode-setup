@@ -1,0 +1,15 @@
+{
+  "id": "context-governor-persistence-logging-20260224",
+  "timestamp": "2026-02-24T18:55:00Z",
+  "summary": "Log persistence failures in context-governor instead of swallowing silently",
+  "affected_paths": [
+    "packages/opencode-context-governor/src/index.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Added error logging to 3 empty catch blocks: constructor autoLoad (ENOENT-aware), consumeTokens save, and resetSession save. Improves observability of persistence failures."
+}

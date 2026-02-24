@@ -7,9 +7,10 @@ const budgets = require('./budgets.json');
  * Emits warnings at configurable thresholds.
  */
 class SessionTracker {
-  constructor() {
+  constructor(opts = {}) {
     /** @type {Map<string, Map<string, number>>} sessionId -> (model -> tokensUsed) */
     this._sessions = new Map();
+    this._maxSessions = (opts && opts.maxSessions) ? opts.maxSessions : 500;
   }
 
   // ---------------------------------------------------------------------------
@@ -42,6 +43,11 @@ class SessionTracker {
   _ensureEntry(sessionId, model) {
     if (!this._sessions.has(sessionId)) {
       this._sessions.set(sessionId, new Map());
+      // Evict oldest session if over cap
+      if (this._sessions.size > this._maxSessions) {
+        const oldest = this._sessions.keys().next().value;
+        this._sessions.delete(oldest);
+      }
     }
     const modelMap = this._sessions.get(sessionId);
     if (!modelMap.has(model)) {

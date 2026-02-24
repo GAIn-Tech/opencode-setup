@@ -35,14 +35,19 @@ class Governor {
     this._persistPath = opts.persistPath || DEFAULT_PERSIST_PATH;
     this._tracker = new SessionTracker();
     this._learningEngine = opts.learningEngine || null;
+    this._saveDebounceMs = opts.saveDebounceMs ?? 200;
+    this._saveTimer = null;
 
-    if (opts.autoLoad !== false) {
-      try {
-        this.loadFromFile(this._persistPath);
-      } catch {
-        // No persisted state yet — that's fine.
-      }
-    }
+     if (opts.autoLoad !== false) {
+       try {
+         this.loadFromFile(this._persistPath);
+       } catch (err) {
+         // No persisted state yet, or unreadable — that's fine.
+         if (err.code !== 'ENOENT') {
+           console.warn(`[Governor] Could not load persisted budget state: ${err.message}`);
+         }
+       }
+     }
   }
 
   /**
@@ -108,21 +113,35 @@ class Governor {
    * @param {number} count
    * @returns {{ used: number, remaining: number, pct: number, status: string }}
    */
-  consumeTokens(sessionId, model, count) {
-    const result = this._tracker.consumeTokens(sessionId, model, count);
+   consumeTokens(sessionId, model, count) {
+      const result = this._tracker.consumeTokens(sessionId, model, count);
 
-    // Auto-persist after each consumption
-    try {
-      this.saveToFile(this._persistPath);
-    } catch {
-      // Persistence failure is non-fatal
+      // Auto-persist after each consumption (debounced)
+      this._scheduleSave();
+
+      return result;
     }
 
-    return result;
-  }
+   /**
+    * Schedule a debounced save. Multiple calls within the debounce window
+    * are coalesced into a single disk write.
+    * @private
+    */
+   _scheduleSave() {
+     if (this._saveTimer) return; // already scheduled
+     this._saveTimer = setTimeout(() => {
+       this._saveTimer = null;
+       try {
+         this.saveToFile(this._persistPath);
+       } catch (err) {
+         console.warn(`[Governor] Budget state save failed (non-fatal): ${err.message}`);
+       }
+     }, this._saveDebounceMs);
+     if (this._saveTimer.unref) this._saveTimer.unref();
+   }
 
-  /**
-   * Get remaining budget for a session+model.
+   /**
+    * Get remaining budget for a session+model.
    *
    * @param {string} sessionId
    * @param {string} model
@@ -145,14 +164,14 @@ class Governor {
    * @param {string} sessionId
    * @param {string} [model]
    */
-  resetSession(sessionId, model) {
-    this._tracker.resetSession(sessionId, model);
-    try {
-      this.saveToFile(this._persistPath);
-    } catch {
-      // non-fatal
-    }
-  }
+   resetSession(sessionId, model) {
+     this._tracker.resetSession(sessionId, model);
+     try {
+       this.saveToFile(this._persistPath);
+     } catch (err) {
+       console.warn(`[Governor] Budget state save after reset failed (non-fatal): ${err.message}`);
+     }
+   }
 
   // ---------------------------------------------------------------------------
   // Persistence
@@ -164,8 +183,21 @@ class Governor {
    */
   loadFromFile(filePath) {
     const p = filePath || this._persistPath;
-    const raw = fs.readFileSync(p, 'utf-8');
-    const data = JSON.parse(raw);
+    let raw;
+    try {
+      raw = fs.readFileSync(p, 'utf-8');
+    } catch {
+      // File missing or unreadable — no persisted state to load.
+      return;
+    }
+    if (!raw || !raw.trim()) return;
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch (err) {
+      console.warn(`[Governor] Corrupt budget file at ${p} — resetting (${err.message})`);
+      return;
+    }
     this._tracker.loadState(data);
   }
 
