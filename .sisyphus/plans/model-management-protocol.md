@@ -691,7 +691,7 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - [ ] Secrets configured correctly
   - [ ] Test: manual dispatch works
 
-- [ ] **7.3 Add PR Validation Checks**
+- [x] **7.3 Add PR Validation Checks**
   **What to do**:
   - Pre-merge checks:
     - `validate-models.mjs` passes

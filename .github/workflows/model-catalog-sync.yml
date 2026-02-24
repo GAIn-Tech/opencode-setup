@@ -106,6 +106,34 @@ jobs:
             echo "has_changes=false" >> $GITHUB_OUTPUT
           fi
       
+      - name: Validate catalog
+        if: steps.check_changes.outputs.has_changes == 'true' || github.event.inputs.force == 'true'
+        run: |
+          cd packages/opencode-model-manager
+          node -e "
+          const { CatalogValidator } = require('./src/validation/catalog-validator');
+          
+          async function run() {
+            const validator = new CatalogValidator({
+              catalogPath: '../../opencode-config/models/catalog-2026.json',
+              schemaPath: '../../opencode-config/models/schema.json'
+            });
+            
+            const result = await validator.validate();
+            console.log(validator.formatResults(result));
+            
+            if (!result.valid) {
+              console.error('Catalog validation failed');
+              process.exit(1);
+            }
+          }
+          
+          run().catch(err => {
+            console.error('Validation error:', err);
+            process.exit(1);
+          });
+          "
+      
       - name: Generate PR
         if: steps.check_changes.outputs.has_changes == 'true' || github.event.inputs.force == 'true'
         env:
