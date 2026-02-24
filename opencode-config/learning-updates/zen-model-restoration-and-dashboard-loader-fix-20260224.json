@@ -1,0 +1,22 @@
+{
+  "id": "zen-model-restoration-and-dashboard-loader-fix-20260224",
+  "timestamp": "2026-02-24T22:50:00Z",
+  "summary": "Restore Zen GLM-5/Kimi K2.5 aliases across config catalogs and fix dashboard API module resolution to remove build warnings.",
+  "affected_paths": [
+    "opencode-config/models/catalog-2026.json",
+    "opencode-config/opencode.json",
+    "opencode-config/rate-limit-fallback.json",
+    "packages/opencode-dashboard/src/app/api/config/route.ts",
+    "packages/opencode-dashboard/src/app/api/learning/route.ts",
+    "packages/opencode-model-router-x/src/policies.json",
+    "rate-limit-fallback.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "scripts": "npm run build (packages/opencode-dashboard), bun test packages/opencode-model-router-x/test/"
+  },
+  "risk_level": "medium",
+  "notes": "Adds explicit alias model IDs (zen/glm-5, zen/kimi-k2.5) while preserving existing model IDs and removes Next.js warning sources by switching to valid static require paths."
+}

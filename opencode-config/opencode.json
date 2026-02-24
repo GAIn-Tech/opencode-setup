@@ -351,8 +351,40 @@
           },
           "priority": "primary"
         },
+        "zen/glm-5": {
+          "name": "GLM-5 (Zen)",
+          "limit": {
+            "context": 128000,
+            "output": 8192
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "priority": "primary"
+        },
         "zen/kimi-k2.5-pro": {
           "name": "Kimi K2.5 Pro (Zen)",
+          "limit": {
+            "context": 200000,
+            "output": 8192
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "priority": "secondary"
+        },
+        "zen/kimi-k2.5": {
+          "name": "Kimi K2.5 (Zen)",
           "limit": {
             "context": 200000,
             "output": 8192

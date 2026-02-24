@@ -71,17 +71,16 @@ export async function GET() {
     }
 
     // Try to load from learning engine package (optional)
-    const enginePath = path.resolve(process.cwd(), '../../packages/opencode-learning-engine');
-    const engineSrcPath = path.join(enginePath, 'src');
+    const enginePath = path.resolve(process.cwd(), '../opencode-learning-engine/src/index.js');
     let engine: any = null;
     let engineWarning: string | null = null;
 
-    if (!fs.existsSync(enginePath) || !fs.existsSync(engineSrcPath)) {
+    if (!fs.existsSync(enginePath)) {
       engineWarning = 'Learning engine package not found, using file fallback';
     } else {
       let LearningEngineCtor: any = null;
       try {
-        const loaded = require(enginePath);
+        const loaded = require('../../../../../opencode-learning-engine/src/index.js');
         LearningEngineCtor = loaded?.LearningEngine;
         if (!LearningEngineCtor) {
           engineWarning = 'Learning engine export missing, using file fallback';
