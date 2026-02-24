@@ -1,0 +1,593 @@
+{
+  "schema_version": "1.0.0",
+  "config_version": 1,
+  "rl": {
+    "override_min_confidence": 0.85
+  },
+  "sections": {
+    "routing": {
+      "request_timeout_ms": {
+        "value": 60000,
+        "soft": {
+          "min": 5000,
+          "max": 60000
+        },
+        "hard": {
+          "min": 1000,
+          "max": 120000
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "retry_max_attempts": {
+        "value": 3,
+        "soft": {
+          "min": 1,
+          "max": 5
+        },
+        "hard": {
+          "min": 0,
+          "max": 10
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "retry_base_delay_ms": {
+        "value": 1200,
+        "soft": {
+          "min": 500,
+          "max": 5000
+        },
+        "hard": {
+          "min": 100,
+          "max": 10000
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "retry_max_delay_ms": {
+        "value": 30000,
+        "soft": {
+          "min": 5000,
+          "max": 60000
+        },
+        "hard": {
+          "min": 1000,
+          "max": 120000
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "retry_strategy": {
+        "value": "exponential",
+        "soft": null,
+        "hard": null,
+        "locked": false,
+        "rl_allowed": false
+      },
+      "jitter_enabled": {
+        "value": true,
+        "soft": null,
+        "hard": null,
+        "locked": false,
+        "rl_allowed": false
+      },
+      "jitter_factor": {
+        "value": 0.1,
+        "soft": {
+          "min": 0.0,
+          "max": 0.5
+        },
+        "hard": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "locked": false,
+        "rl_allowed": true
+      }
+    },
+    "fallback": {
+      "enabled": {
+        "value": true,
+        "soft": null,
+        "hard": null,
+        "locked": false,
+        "rl_allowed": false
+      },
+      "fallback_mode": {
+        "value": "cycle",
+        "soft": null,
+        "hard": null,
+        "locked": false,
+        "rl_allowed": false
+      },
+      "cooldown_ms": {
+        "value": 45000,
+        "soft": {
+          "min": 10000,
+          "max": 120000
+        },
+        "hard": {
+          "min": 5000,
+          "max": 300000
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "circuit_breaker_enabled": {
+        "value": true,
+        "soft": null,
+        "hard": null,
+        "locked": false,
+        "rl_allowed": false
+      },
+      "circuit_breaker_failure_threshold": {
+        "value": 5,
+        "soft": {
+          "min": 2,
+          "max": 10
+        },
+        "hard": {
+          "min": 1,
+          "max": 20
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "circuit_breaker_recovery_timeout_ms": {
+        "value": 60000,
+        "soft": {
+          "min": 10000,
+          "max": 120000
+        },
+        "hard": {
+          "min": 5000,
+          "max": 300000
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "circuit_breaker_half_open_max_calls": {
+        "value": 1,
+        "soft": {
+          "min": 1,
+          "max": 5
+        },
+        "hard": {
+          "min": 1,
+          "max": 10
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "circuit_breaker_success_threshold": {
+        "value": 2,
+        "soft": {
+          "min": 1,
+          "max": 5
+        },
+        "hard": {
+          "min": 1,
+          "max": 10
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "enable_subagent_fallback": {
+        "value": true,
+        "soft": null,
+        "hard": null,
+        "locked": false,
+        "rl_allowed": false
+      },
+      "max_subagent_depth": {
+        "value": 10,
+        "soft": {
+          "min": 3,
+          "max": 15
+        },
+        "hard": {
+          "min": 1,
+          "max": 20
+        },
+        "locked": false,
+        "rl_allowed": true
+      }
+    },
+    "providers": {
+      "google_api_key_env": {
+        "value": "GOOGLE_API_KEYS",
+        "soft": null,
+        "hard": null,
+        "locked": true,
+        "rl_allowed": false
+      },
+      "anthropic_api_key_env": {
+        "value": "ANTHROPIC_API_KEYS",
+        "soft": null,
+        "hard": null,
+        "locked": true,
+        "rl_allowed": false
+      },
+      "openai_api_key_env": {
+        "value": "OPENAI_API_KEYS",
+        "soft": null,
+        "hard": null,
+        "locked": true,
+        "rl_allowed": false
+      },
+      "nvidia_api_key_env": {
+        "value": "NVIDIA_API_KEY",
+        "soft": null,
+        "hard": null,
+        "locked": true,
+        "rl_allowed": false
+      },
+      "zen_base_url": {
+        "value": "https://api.zen.my.id/v1",
+        "soft": null,
+        "hard": null,
+        "locked": true,
+        "rl_allowed": false
+      },
+      "nvidia_base_url": {
+        "value": "https://integrate.api.nvidia.com/v1",
+        "soft": null,
+        "hard": null,
+        "locked": true,
+        "rl_allowed": false
+      }
+    },
+    "governance": {
+      "daily_budget_usd": {
+        "value": 10.0,
+        "soft": {
+          "min": 5.0,
+          "max": 50.0
+        },
+        "hard": {
+          "min": 1.0,
+          "max": 1000.0
+        },
+        "locked": false,
+        "rl_allowed": false
+      },
+      "cost_alert_threshold_percent": {
+        "value": 80,
+        "soft": {
+          "min": 50,
+          "max": 95
+        },
+        "hard": {
+          "min": 10,
+          "max": 100
+        },
+        "locked": false,
+        "rl_allowed": false
+      },
+      "high_cost_alert_threshold_usd": {
+        "value": 5.0,
+        "soft": {
+          "min": 1.0,
+          "max": 20.0
+        },
+        "hard": {
+          "min": 0.1,
+          "max": 100.0
+        },
+        "locked": false,
+        "rl_allowed": false
+      },
+      "minimum_test_coverage_percent": {
+        "value": 70,
+        "soft": {
+          "min": 60,
+          "max": 90
+        },
+        "hard": {
+          "min": 0,
+          "max": 100
+        },
+        "locked": false,
+        "rl_allowed": false
+      },
+      "escalation_enabled": {
+        "value": true,
+        "soft": null,
+        "hard": null,
+        "locked": false,
+        "rl_allowed": false
+      },
+      "escalation_max_retries_per_tier": {
+        "value": 2,
+        "soft": {
+          "min": 1,
+          "max": 5
+        },
+        "hard": {
+          "min": 0,
+          "max": 10
+        },
+        "locked": false,
+        "rl_allowed": false
+      },
+      "escalation_threshold": {
+        "value": "failure",
+        "soft": null,
+        "hard": null,
+        "locked": false,
+        "rl_allowed": false
+      },
+      "low_success_rate_threshold_percent": {
+        "value": 80,
+        "soft": {
+          "min": 60,
+          "max": 95
+        },
+        "hard": {
+          "min": 0,
+          "max": 100
+        },
+        "locked": false,
+        "rl_allowed": false
+      }
+    },
+    "operational": {
+      "cost_tracking_enabled": {
+        "value": true,
+        "soft": null,
+        "hard": null,
+        "locked": false,
+        "rl_allowed": false
+      },
+      "batching_enabled": {
+        "value": true,
+        "soft": null,
+        "hard": null,
+        "locked": false,
+        "rl_allowed": false
+      },
+      "batch_similar_tasks": {
+        "value": true,
+        "soft": null,
+        "hard": null,
+        "locked": false,
+        "rl_allowed": false
+      },
+      "max_batch_size": {
+        "value": 5,
+        "soft": {
+          "min": 2,
+          "max": 10
+        },
+        "hard": {
+          "min": 1,
+          "max": 20
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "min_batch_similarity": {
+        "value": 0.7,
+        "soft": {
+          "min": 0.5,
+          "max": 0.95
+        },
+        "hard": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "parallel_execution_enabled": {
+        "value": true,
+        "soft": null,
+        "hard": null,
+        "locked": false,
+        "rl_allowed": false
+      },
+      "max_concurrent_tasks": {
+        "value": 3,
+        "soft": {
+          "min": 1,
+          "max": 10
+        },
+        "hard": {
+          "min": 1,
+          "max": 20
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "parallel_threshold": {
+        "value": 2,
+        "soft": {
+          "min": 1,
+          "max": 5
+        },
+        "hard": {
+          "min": 1,
+          "max": 10
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "context_preservation_enabled": {
+        "value": true,
+        "soft": null,
+        "hard": null,
+        "locked": false,
+        "rl_allowed": false
+      },
+      "daily_metrics_tracking": {
+        "value": true,
+        "soft": null,
+        "hard": null,
+        "locked": false,
+        "rl_allowed": false
+      },
+      "weekly_analysis_enabled": {
+        "value": true,
+        "soft": null,
+        "hard": null,
+        "locked": false,
+        "rl_allowed": false
+      }
+    },
+    "subagent_retry": {
+      "max_retries": {
+        "value": 3,
+        "soft": {
+          "min": 1,
+          "max": 5
+        },
+        "hard": {
+          "min": 0,
+          "max": 10
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "failure_threshold": {
+        "value": 5,
+        "soft": {
+          "min": 2,
+          "max": 10
+        },
+        "hard": {
+          "min": 1,
+          "max": 20
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "unstable_window_ms": {
+        "value": 300000,
+        "soft": {
+          "min": 60000,
+          "max": 600000
+        },
+        "hard": {
+          "min": 30000,
+          "max": 1800000
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "early_timeout_ms": {
+        "value": 30000,
+        "soft": {
+          "min": 10000,
+          "max": 60000
+        },
+        "hard": {
+          "min": 5000,
+          "max": 120000
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "validate_responses": {
+        "value": true,
+        "soft": null,
+        "hard": null,
+        "locked": false,
+        "rl_allowed": false
+      },
+      "min_response_length": {
+        "value": 10,
+        "soft": {
+          "min": 5,
+          "max": 50
+        },
+        "hard": {
+          "min": 1,
+          "max": 100
+        },
+        "locked": false,
+        "rl_allowed": true
+      }
+    },
+    "meta_awareness": {
+      "max_update_delta": {
+        "value": 5,
+        "soft": {
+          "min": 2,
+          "max": 8
+        },
+        "hard": {
+          "min": 1,
+          "max": 20
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "min_samples_for_signal": {
+        "value": 5,
+        "soft": {
+          "min": 3,
+          "max": 20
+        },
+        "hard": {
+          "min": 1,
+          "max": 100
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "signal_max_influence": {
+        "value": 0.15,
+        "soft": {
+          "min": 0.05,
+          "max": 0.3
+        },
+        "hard": {
+          "min": 0.0,
+          "max": 0.5
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "confidence_threshold": {
+        "value": 0.85,
+        "soft": {
+          "min": 0.75,
+          "max": 0.95
+        },
+        "hard": {
+          "min": 0.5,
+          "max": 0.99
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "anomaly_z_threshold": {
+        "value": 3,
+        "soft": {
+          "min": 2,
+          "max": 4
+        },
+        "hard": {
+          "min": 1,
+          "max": 10
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "exploration_floor": {
+        "value": 0.1,
+        "soft": {
+          "min": 0.05,
+          "max": 0.2
+        },
+        "hard": {
+          "min": 0.01,
+          "max": 0.5
+        },
+        "locked": false,
+        "rl_allowed": true
+      }
+    }
+  }
+}

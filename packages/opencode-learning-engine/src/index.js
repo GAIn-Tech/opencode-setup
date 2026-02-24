@@ -16,6 +16,7 @@ const { AntiPatternCatalog, VALID_TYPES: ANTI_PATTERN_TYPES, SEVERITY_WEIGHTS } 
 const { PositivePatternTracker, VALID_TYPES: POSITIVE_PATTERN_TYPES } = require('./positive-patterns');
 const { PatternExtractor } = require('./pattern-extractor');
 const { OrchestrationAdvisor, AGENT_CAPABILITIES, SKILL_AFFINITY } = require('./orchestration-advisor');
+const { MetaAwarenessTracker } = require('./meta-awareness-tracker');
 const EventEmitter = require('events');
 
 class LearningEngine extends EventEmitter {
@@ -32,6 +33,7 @@ class LearningEngine extends EventEmitter {
     this.positivePatterns = new PositivePatternTracker();
     this.extractor = new PatternExtractor();
     this.advisor = new OrchestrationAdvisor(this.antiPatterns, this.positivePatterns);
+    this.metaAwarenessTracker = options.metaAwarenessTracker || new MetaAwarenessTracker();
 
     this.autoSave = autoSave;
     this.sessionLog = []; // Track which sessions have been ingested
@@ -329,6 +331,16 @@ class LearningEngine extends EventEmitter {
               source: 'external-event',
             });
             this._emitHook('patternStored', { type: 'anti', pattern: payload });
+            this.metaAwarenessTracker.trackEvent({
+              event_type: 'orchestration.context_gap_detected',
+              task_type: payload?.context?.task_type || 'learning',
+              complexity: payload?.context?.complexity || 'moderate',
+              outcome: 'warning',
+              metadata: {
+                gap_type: payload?.type || 'anti-pattern',
+                resolved: false,
+              },
+            });
             return { success: true };
           }
           return { success: false, reason: 'Invalid anti-pattern payload' };
@@ -342,6 +354,16 @@ class LearningEngine extends EventEmitter {
               source: 'external-event',
             });
             this._emitHook('patternStored', { type: 'positive', pattern: payload });
+            this.metaAwarenessTracker.trackEvent({
+              event_type: 'orchestration.assumption_challenged',
+              task_type: payload?.context?.task_type || 'learning',
+              complexity: payload?.context?.complexity || 'moderate',
+              outcome: 'improved',
+              metadata: {
+                source: 'positive-pattern',
+                pattern_type: payload?.pattern_type || payload?.type || 'unknown',
+              },
+            });
             return { success: true };
           }
           return { success: false, reason: 'Invalid positive-pattern payload' };
@@ -364,6 +386,19 @@ class LearningEngine extends EventEmitter {
         case 'tool-usage':
           // Payload: { tool, success, tokens_used, context: { modelId?, sessionId? } }
           this._emitHook('toolUsage', payload);
+          this.metaAwarenessTracker.trackEvent({
+            event_type: 'orchestration.tool_invoked',
+            session_id: payload?.context?.sessionId || 'default',
+            task_id: payload?.context?.taskId || null,
+            task_type: payload?.context?.taskType || 'general',
+            complexity: payload?.context?.complexity || 'moderate',
+            outcome: payload?.success === false ? 'failure' : 'success',
+            metadata: {
+              tool: payload?.tool || 'unknown',
+              model_id: payload?.context?.modelId || null,
+              tool_antipattern: payload?.context?.toolAntipattern === true,
+            },
+          });
           return { success: true };
           
         default:
@@ -517,9 +552,79 @@ class LearningEngine extends EventEmitter {
    * @returns {Object} Advice with warnings, suggestions, routing, risk_score
    */
   advise(taskContext) {
+    this.metaAwarenessTracker.trackEvent({
+      event_type: 'orchestration.phase_entered',
+      task_type: taskContext?.task_type || 'general',
+      complexity: taskContext?.complexity || 'moderate',
+      metadata: {
+        phase: 'assessment',
+        phase_violation: false,
+      },
+    });
+
+    this.metaAwarenessTracker.trackEvent({
+      event_type: 'orchestration.assumption_challenged',
+      task_type: taskContext?.task_type || 'general',
+      complexity: taskContext?.complexity || 'moderate',
+      metadata: {
+        source: 'advisor_preflight',
+      },
+    });
+
     this._emitHook('preOrchestrate', { task_context: taskContext });
     const advice = this.advisor.advise(taskContext);
+
+    this.metaAwarenessTracker.trackEvent({
+      event_type: 'orchestration.phase_entered',
+      task_type: taskContext?.task_type || 'general',
+      complexity: taskContext?.complexity || 'moderate',
+      metadata: {
+        phase: 'exploration',
+        phase_violation: false,
+      },
+    });
+
+    this.metaAwarenessTracker.trackEvent({
+      event_type: 'orchestration.skill_loaded',
+      task_type: taskContext?.task_type || 'general',
+      complexity: taskContext?.complexity || 'moderate',
+      metadata: {
+        skill_relevant: Array.isArray(advice?.routing?.skills) && advice.routing.skills.length > 0,
+        missing_required_skill: !Array.isArray(advice?.routing?.skills) || advice.routing.skills.length === 0,
+        selected_skills: advice?.routing?.skills || [],
+      },
+    });
+
+    this.metaAwarenessTracker.trackEvent({
+      event_type: 'orchestration.delegation_decision',
+      task_type: taskContext?.task_type || 'general',
+      complexity: taskContext?.complexity || 'moderate',
+      metadata: {
+        should_delegate: (taskContext?.complexity === 'complex' || taskContext?.complexity === 'extreme'),
+        delegated: Boolean(advice?.routing?.agent),
+        selected_agent: advice?.routing?.agent || null,
+      },
+    });
+
+    const meta = this.metaAwarenessTracker.getOverview();
+    advice.meta_awareness_signal = {
+      score: meta?.composite?.score_mean ?? 50,
+      confidence: meta?.rl_signal?.confidence ?? 0,
+      accepted: meta?.rl_signal?.accepted ?? false,
+      max_influence: meta?.rl_signal?.max_influence ?? 0.15,
+    };
     this._emitHook('adviceGenerated', { task_context: taskContext, advice });
+
+    this.metaAwarenessTracker.trackEvent({
+      event_type: 'orchestration.phase_entered',
+      task_type: taskContext?.task_type || 'general',
+      complexity: taskContext?.complexity || 'moderate',
+      metadata: {
+        phase: 'implementation',
+        phase_violation: false,
+      },
+    });
+
     return advice;
   }
 
@@ -530,6 +635,17 @@ class LearningEngine extends EventEmitter {
    */
   learnFromOutcome(adviceId, outcome) {
     const result = this.advisor.learnFromOutcome(adviceId, outcome);
+    this.metaAwarenessTracker.trackEvent({
+      event_type: 'orchestration.failure_recovery_step',
+      outcome: outcome?.success === false ? 'repeated_failure' : 'recovered',
+      task_type: 'outcome_learning',
+      complexity: 'moderate',
+      metadata: {
+        advice_id: adviceId,
+        recovered: outcome?.success !== false,
+        repeated_failure: outcome?.success === false,
+      },
+    });
     this._emitHook('outcomeRecorded', { advice_id: adviceId, outcome, result });
     if (outcome && outcome.success === false) {
       this._emitHook('onFailureDistill', {
@@ -611,7 +727,16 @@ class LearningEngine extends EventEmitter {
       asymmetry_note:
         'Anti-pattern data is weighted 3-5x heavier than positive patterns. ' +
         'Warnings are STRONG (should block/pause). Suggestions are SOFT (can ignore).',
+      meta_awareness: this.metaAwarenessTracker.getOverview(),
     };
+  }
+
+  getMetaAwarenessReport() {
+    return this.metaAwarenessTracker.getOverview();
+  }
+
+  ingestMetaAwarenessEvent(event, options = {}) {
+    return this.metaAwarenessTracker.trackEvent(event, options);
   }
 
   // ===== PERSISTENCE =====
@@ -639,6 +764,7 @@ class LearningEngine extends EventEmitter {
 
 module.exports = {
   LearningEngine,
+  MetaAwarenessTracker,
   AntiPatternCatalog,
   PositivePatternTracker,
   PatternExtractor,

@@ -7,6 +7,11 @@ const policies = require('./policies.json');
 const Orchestrator = require('./strategies/orchestrator');
 const { CircuitBreaker } = require('@jackoatmon/opencode-circuit-breaker');
 
+// Resilient subagent routing components
+const { resolveModelAlias, hasAlias, getAliasesFor, MODEL_ALIASES } = require('./model-alias-resolver');
+const { validateResponse, isRetriableFailure, FAILURE_TYPES, ResponseValidationError } = require('./response-validator');
+const { SubagentRetryManager, CATEGORY_FALLBACKS, DEFAULT_FALLBACKS } = require('./subagent-retry-manager');
+
 // P4: INTEGRATION LAYER - Use IntegrationLayer instead of individual imports (fixes option creep)
 // This single import replaces all the individual try/catch blocks below
 let IntegrationLayer;
@@ -23,11 +28,21 @@ try {
 // Fallback imports for direct access (used in constructor)
 // These are kept for backwards compatibility - the adapter is preferred
 let Logger, ValidatorLib, OpenCodeErrors, FallbackDoctor, HealthCheck;
+let MetaAwarenessTracker;
 try { Logger = require('@jackoatmon/opencode-logger'); } catch (e) { Logger = null; }
 try { ValidatorLib = require('@jackoatmon/opencode-validator'); } catch (e) { ValidatorLib = null; }
 try { OpenCodeErrors = require('@jackoatmon/opencode-errors'); } catch (e) { OpenCodeErrors = null; }
 try { FallbackDoctor = require('@jackoatmon/opencode-fallback-doctor'); } catch (e) { FallbackDoctor = null; }
 try { HealthCheck = require('@jackoatmon/opencode-health-check'); } catch (e) { HealthCheck = null; }
+try {
+  ({ MetaAwarenessTracker } = require('@jackoatmon/opencode-learning-engine'));
+} catch (e) {
+  try {
+    ({ MetaAwarenessTracker } = require('../../opencode-learning-engine/src/index.js'));
+  } catch (e2) {
+    MetaAwarenessTracker = null;
+  }
+}
 
 /**
  * P4: RouterIntegrationAdapter - Facade pattern to fix "option creep"
@@ -216,6 +231,7 @@ class ModelRouter {
     this.tuning.success_rate_floor = this.tuning.success_rate_floor ?? 0.50;
     this.tuning.success_rate_ceiling = this.tuning.success_rate_ceiling ?? 0.99;
     this.tuning.min_samples_for_tuning = this.tuning.min_samples_for_tuning ?? 5;
+    this.metaAwarenessTracker = options.metaAwarenessTracker || (MetaAwarenessTracker ? new MetaAwarenessTracker() : null);
     
     // P1: Atomic Write for Stats - add stats persistence path
     this.statsPersistPath = options.statsPersistPath || null;
@@ -356,13 +372,18 @@ class ModelRouter {
   /**
    * P1: Canonical Model ID Resolver - Fix schema mismatch between strategies and registry
    * Strategies return IDs like 'claude-opus-4-6' but registry keys are namespaced like 'anthropic/claude-opus-4-6'
+   * Also resolves model aliases (e.g., google/gemini-3-pro → antigravity/antigravity-gemini-3-pro)
    * @param {string} modelId - Potentially non-namespaced model ID
    * @returns {string|null} - Canonical namespaced model ID or null if not found
    */
   resolveModelId(modelId) {
     if (!modelId) return null;
     
+    // First, resolve any aliases (e.g., raw Gemini → Antigravity)
+    const aliasResolved = resolveModelAlias(modelId);
+    
     // Already namespaced and exists in registry
+    if (this.models[aliasResolved]) return aliasResolved;
     if (this.models[modelId]) return modelId;
     
     // Provider prefix mapping for common model name patterns
@@ -581,6 +602,20 @@ class ModelRouter {
     const model = this.models[winner.modelId];
     const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
     const key = rotator ? rotator.getNextKey() : null;
+    if (this.metaAwarenessTracker) {
+      this.metaAwarenessTracker.trackEvent({
+        event_type: 'orchestration.model_selected',
+        task_type: ctx?.taskType || ctx?.task || 'general',
+        complexity: ctx?.complexity || 'moderate',
+        outcome: 'selected',
+        metadata: {
+          model: winner.modelId,
+          provider: model.provider,
+          score: winner.score,
+          reason: winner.reason,
+        },
+      });
+    }
     return {
       model,
       keyId: key ? key.id : null,
@@ -647,8 +682,35 @@ class ModelRouter {
     this.stats[modelId].calls += 1;
     if (success) {
       this.stats[modelId].successes += 1;
+      if (this.metaAwarenessTracker) {
+        this.metaAwarenessTracker.trackEvent({
+          event_type: 'orchestration.failure_recovery_step',
+          task_type: 'model_execution',
+          complexity: 'moderate',
+          outcome: 'recovered',
+          metadata: {
+            model: modelId,
+            latency_ms: latencyMs,
+            recovered: true,
+          },
+        });
+      }
     } else {
       this.stats[modelId].failures += 1;
+      if (this.metaAwarenessTracker) {
+        this.metaAwarenessTracker.trackEvent({
+          event_type: 'orchestration.failure_recovery_step',
+          task_type: 'model_execution',
+          complexity: 'moderate',
+          outcome: 'repeated_failure',
+          metadata: {
+            model: modelId,
+            latency_ms: latencyMs,
+            repeated_failure: true,
+            error: error?.message || null,
+          },
+        });
+      }
       
       // Update key health if we have error details
       const model = this.models[modelId];
@@ -1033,4 +1095,24 @@ class ModelRouter {
 
 // ─── Exports ───────────────────────────────────────────────────
 
-module.exports = { ModelRouter, policies };
+module.exports = { 
+  ModelRouter, 
+  policies,
+  
+  // Model aliasing (Gemini → Antigravity redirect)
+  resolveModelAlias,
+  hasAlias,
+  getAliasesFor,
+  MODEL_ALIASES,
+  
+  // Response validation (early failure detection)
+  validateResponse,
+  isRetriableFailure,
+  FAILURE_TYPES,
+  ResponseValidationError,
+  
+  // Subagent retry management
+  SubagentRetryManager,
+  CATEGORY_FALLBACKS,
+  DEFAULT_FALLBACKS,
+};

@@ -12,6 +12,9 @@
 
 const fs = require('fs');
 const path = require('path');
+const { MetaAwarenessTracker } = require('./meta-awareness-tracker');
+
+const metaAwarenessTracker = new MetaAwarenessTracker();
 
 // Paths
 const HOME = process.env.USERPROFILE || process.env.HOME;
@@ -122,7 +125,6 @@ const TOOL_APPROPRIATENESS_RULES = [
     trigger: { tokenEstimate: 80000 },
     shouldUse: ['distill', 'prune'],
     reason: 'Context management prevents context rot'
-  },
   }
 ];
 
@@ -204,6 +206,22 @@ function logInvocation(toolName, params, result, context = {}) {
   
   // Update metrics
   updateMetrics(toolName, invocation);
+
+  // Emit orchestration intelligence event
+  metaAwarenessTracker.trackEvent({
+    event_type: 'orchestration.tool_invoked',
+    session_id: context.session || 'default',
+    task_id: context.taskId || null,
+    task_type: context.taskType || 'general',
+    complexity: context.complexity || 'moderate',
+    outcome: invocation.success ? 'success' : 'failure',
+    metadata: {
+      tool: toolName,
+      suggested_tools: context.suggestedTools || [],
+      tool_antipattern: context.toolAntipattern === true,
+      params_size: params ? Object.keys(params).length : 0,
+    },
+  });
   
   return invocation;
 }
@@ -298,6 +316,20 @@ function detectUnderUse(context) {
           reason: rule.reason,
           missingTools,
           severity: getRuleSeverity(rule, toolsUsed)
+        });
+
+        metaAwarenessTracker.trackEvent({
+          event_type: 'orchestration.context_gap_detected',
+          session_id: context.session || 'default',
+          task_id: context.taskId || null,
+          task_type: context.taskType || 'general',
+          complexity: context.complexity || 'moderate',
+          outcome: 'warning',
+          metadata: {
+            gap_type: rule.name,
+            missing_tools: missingTools,
+            resolved: false,
+          },
         });
       }
     }
@@ -469,6 +501,18 @@ function startSession(sessionId, context = {}) {
   };
   
   writeJson(SESSION_FILE, session);
+
+  metaAwarenessTracker.trackEvent({
+    event_type: 'orchestration.phase_entered',
+    session_id: sessionId,
+    task_id: context.taskId || null,
+    task_type: context.taskType || 'session',
+    complexity: context.complexity || 'moderate',
+    metadata: {
+      phase: 'intent_gate',
+      phase_violation: false,
+    },
+  });
   
   // Update session count
   const metrics = readJson(METRICS_FILE);
@@ -504,6 +548,18 @@ function endSession() {
       fs.mkdirSync(historyPath, { recursive: true });
     }
     writeJson(path.join(historyPath, `${session.id}.json`), session);
+
+    metaAwarenessTracker.trackEvent({
+      event_type: 'orchestration.completion_claimed',
+      session_id: session.id,
+      task_type: session.context?.taskType || 'session',
+      complexity: session.context?.complexity || 'moderate',
+      outcome: 'completed',
+      metadata: {
+        without_verification: session.context?.verified !== true,
+        duration_ms: session.duration,
+      },
+    });
   }
   
   return session;

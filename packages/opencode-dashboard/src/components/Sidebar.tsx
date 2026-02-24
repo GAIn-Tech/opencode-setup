@@ -15,6 +15,7 @@ const navigation: NavItem[] = [
   { name: 'Knowledge Graph', href: '/graph', icon: '🕸️', description: 'Full-frame interactive graph' },
   { name: 'Memory Graph', href: '/memory', icon: '🧠', description: 'Session-error relationships' },
   { name: 'Learning', href: '/learning', icon: '📊', description: 'Anti-patterns & insights' },
+  { name: 'Orch Intelligence', href: '/orchestration/intelligence', icon: '🧭', description: 'Meta-awareness & stability' },
   { name: 'Models', href: '/models', icon: '🤖', description: 'Model routing & RL metrics' },
   { name: 'Config', href: '/config', icon: '⚙️', description: 'View all settings' },
   { name: 'Health', href: '/health', icon: '💚', description: 'Package & system status' },
