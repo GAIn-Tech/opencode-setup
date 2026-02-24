@@ -480,7 +480,7 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
 
 ### Wave 3: Snapshot Store & Diff Engine
 
-- [ ] **3.1 Create Snapshot Store**
+- [x] **3.1 Create Snapshot Store**
   **What to do**:
   - Store timestamped snapshots of provider model lists
   - Schema: timestamp, provider, models[], rawPayloadHash
@@ -492,7 +492,7 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - [ ] Auto-cleanup removes old snapshots
   - [ ] Storage size monitored
 
-- [ ] **3.2 Build Diff Engine**
+- [x] **3.2 Build Diff Engine**
   **What to do**:
   - Compare two snapshots, generate diff
   - Change types: added, removed, modified (capabilities/pricing)
@@ -505,7 +505,7 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - [ ] Classification accuracy > 95%
   - [ ] Test with known good/bad diffs
 
-- [ ] **3.3 Create Change Event System**
+- [x] **3.3 Create Change Event System**
   **What to do**:
   - Publish events: `model:added`, `model:removed`, `model:changed`
   - Event payload: diff details, provider, timestamp
