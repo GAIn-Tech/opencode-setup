@@ -4,6 +4,25 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { resolveConfigDir, resolveDataDir } = require('./paths');
+const {
+  loadCentralConfig,
+  mergeCentralConfig,
+  getEffectiveValue,
+  clampToHardBounds,
+} = require('./central-config');
+const {
+  loadRlState,
+  saveRlState,
+  updateRlStateEntry,
+  appendAuditEntry,
+  readAuditLog,
+  ConcurrencyError,
+  createSnapshot,
+  listSnapshots,
+  restoreSnapshot,
+  loadWithRecovery,
+  cleanupSnapshots,
+} = require('./central-config-state');
 
 /**
  * Centralized configuration loader for OpenCode.
@@ -289,5 +308,21 @@ module.exports = {
   ConfigLoader,
   getConfig,
   resolveConfigDir,
-  resolveDataDir
+  resolveDataDir,
+  loadCentralConfig,
+  mergeCentralConfig,
+  getEffectiveValue,
+  clampToHardBounds,
+  loadRlState,
+  saveRlState,
+  updateRlStateEntry,
+  appendAuditEntry,
+  readAuditLog,
+  ConcurrencyError,
+  // Snapshot and recovery
+  createSnapshot,
+  listSnapshots,
+  restoreSnapshot,
+  loadWithRecovery,
+  cleanupSnapshots,
 };

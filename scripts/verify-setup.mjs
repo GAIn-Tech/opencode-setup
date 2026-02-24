@@ -425,6 +425,57 @@ function main() {
     );
   }
 
+  // Central config verification
+  const centralConfigPath = path.join(root, 'opencode-config', 'central-config.json');
+  const centralSchemaPath = path.join(root, 'opencode-config', 'central-config.schema.json');
+  
+  const centralConfigExists = existsSync(centralConfigPath);
+  const centralSchemaExists = existsSync(centralSchemaPath);
+  
+  if (!centralConfigExists) {
+    failed += 1;
+  }
+  printCheck(
+    'Central config exists',
+    centralConfigExists,
+    centralConfigExists ? `Found at ${centralConfigPath}` : null,
+    'Run: node scripts/migrate-central-config.mjs'
+  );
+  
+  if (centralConfigExists && centralSchemaExists) {
+    let centralValid = false;
+    let centralDetails = null;
+    try {
+      const centralConfig = JSON.parse(readFileSync(centralConfigPath, 'utf8'));
+      const centralSchema = JSON.parse(readFileSync(centralSchemaPath, 'utf8'));
+      
+      // Basic validation
+      const hasSchemaVersion = typeof centralConfig.schema_version === 'string';
+      const hasConfigVersion = typeof centralConfig.config_version === 'number' && centralConfig.config_version >= 1;
+      const hasRl = centralConfig.rl && typeof centralConfig.rl.override_min_confidence === 'number';
+      const hasSections = typeof centralConfig.sections === 'object';
+      
+      centralValid = hasSchemaVersion && hasConfigVersion && hasRl && hasSections;
+      if (centralValid) {
+        centralDetails = `v${centralConfig.config_version}, RL threshold: ${centralConfig.rl.override_min_confidence}`;
+      } else {
+        centralDetails = 'Missing required fields';
+      }
+    } catch (error) {
+      centralDetails = error instanceof Error ? error.message : String(error);
+    }
+    
+    if (!centralValid) {
+      failed += 1;
+    }
+    printCheck(
+      'Central config valid',
+      centralValid,
+      centralDetails,
+      'Validate central-config.json against schema'
+    );
+  }
+
   const strictSchema = String(process.env.OPENCODE_CONFIG_SCHEMA_STRICT || '').trim();
   if (strictSchema) {
     const schemaPath = path.join(root, 'opencode-config-schema.json');

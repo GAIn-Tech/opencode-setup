@@ -48,6 +48,8 @@ state/
 # OpenCode runtime files
 .opencode/
 .worktrees/
+.claude/
+local/
 bun.lockb
 
 # Next.js build artifacts
