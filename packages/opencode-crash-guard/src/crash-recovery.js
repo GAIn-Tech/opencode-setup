@@ -43,6 +43,7 @@ export class CrashRecovery {
       });
     }, this.saveIntervalMs);
     
+    this.saveInterval.unref();
     console.log('[CrashRecovery] Initialized');
   }
 

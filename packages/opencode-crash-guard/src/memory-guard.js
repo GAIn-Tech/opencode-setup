@@ -215,6 +215,7 @@ export class MemoryGuard {
       this.checkMemory();
     }, this.checkIntervalMs);
     
+    this.interval.unref();
     // Check immediately
     this.checkMemory();
   }
