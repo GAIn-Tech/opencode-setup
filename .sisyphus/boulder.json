@@ -93,6 +93,31 @@
       ],
       "tasks_completed": 29,
       "risk_points_reduced": 160
+    },
+    {
+      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\wave7-naivete-remediation.md",
+      "plan_name": "wave7-naivete-remediation",
+      "started_at": "2026-02-25T21:00:00.000Z",
+      "completed_at": "2026-02-25T22:15:00.000Z",
+      "session_ids": [
+        "ses_36d2b76f5ffeOHUpdG4QXxsCh2"
+      ],
+      "agent": "atlas",
+      "commits": [
+        "57ed3fd",
+        "f709740",
+        "0933f2b",
+        "41cd342",
+        "fe97b40",
+        "88ab1e2",
+        "7654064",
+        "afa5035",
+        "caaa021",
+        "e5568c1",
+        "4e14065"
+      ],
+      "tasks_completed": 17,
+      "risk_points_reduced": 220
     }
   ]
 }
