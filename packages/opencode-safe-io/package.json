@@ -1,0 +1,23 @@
+{
+  "name": "opencode-safe-io",
+  "version": "0.1.0",
+  "description": "Shared safe I/O utilities: JSON parsing, managed timers, managed listeners",
+  "type": "commonjs",
+  "main": "src/index.js",
+  "exports": {
+    ".": {
+      "require": "./src/index.js",
+      "import": "./src/index.mjs"
+    }
+  },
+  "files": [
+    "src/"
+  ],
+  "keywords": [
+    "safe-json",
+    "managed-timer",
+    "managed-listener",
+    "io-utilities"
+  ],
+  "license": "MIT"
+}

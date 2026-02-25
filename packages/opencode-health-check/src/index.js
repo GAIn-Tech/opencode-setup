@@ -9,6 +9,16 @@ const subsystemHealth = new Map();
 // Guard flag to prevent double-start
 let _running = false;
 
+// Scheduler telemetry tracking
+const schedulerTelemetry = {
+  tickCount: 0,
+  overlapRate: 0,
+  maxConcurrentChecks: 0,
+  lastCheckTimes: new Map(), // Track last check time per subsystem
+  checkDurations: new Map(), // Track check duration per subsystem
+  concurrentChecks: 0, // Current concurrent checks
+};
+
 /**
  * Register a subsystem for health monitoring
  * @param {string} name - Subsystem name
@@ -110,6 +120,14 @@ export async function checkSubsystem(name) {
     return;
   }
   
+  // Track concurrent checks
+  schedulerTelemetry.concurrentChecks++;
+  if (schedulerTelemetry.concurrentChecks > schedulerTelemetry.maxConcurrentChecks) {
+    schedulerTelemetry.maxConcurrentChecks = schedulerTelemetry.concurrentChecks;
+  }
+  
+  const startTime = Date.now();
+  
   try {
     const result = await health.checkFn();
     if (result.healthy) {
@@ -119,6 +137,18 @@ export async function checkSubsystem(name) {
     }
   } catch (error) {
     updateSubsystemStatus(name, 'unhealthy', { error: error.message });
+  } finally {
+    // Track check duration and decrement concurrent count
+    const duration = Date.now() - startTime;
+    schedulerTelemetry.lastCheckTimes.set(name, Date.now());
+    schedulerTelemetry.checkDurations.set(name, duration);
+    schedulerTelemetry.concurrentChecks--;
+    schedulerTelemetry.tickCount++;
+    
+    // Calculate overlap rate (simplified: ratio of max concurrent to total ticks)
+    if (schedulerTelemetry.tickCount > 0) {
+      schedulerTelemetry.overlapRate = schedulerTelemetry.maxConcurrentChecks / Math.max(1, subsystemHealth.size);
+    }
   }
 }
 
@@ -374,6 +404,20 @@ function classifyUrlError(error) {
   return { type: 'unknown', code };
 }
 
+/**
+ * Get scheduler telemetry data
+ * @returns {Object} Telemetry data with tickCount, overlapRate, maxConcurrentChecks
+ */
+export function getSchedulerTelemetry() {
+  return {
+    tickCount: schedulerTelemetry.tickCount,
+    overlapRate: schedulerTelemetry.overlapRate,
+    maxConcurrentChecks: schedulerTelemetry.maxConcurrentChecks,
+    lastCheckTimes: Object.fromEntries(schedulerTelemetry.lastCheckTimes),
+    checkDurations: Object.fromEntries(schedulerTelemetry.checkDurations),
+  };
+}
+
 export default {
   registerSubsystem,
   getHealthStatus,
@@ -386,4 +430,5 @@ export default {
   createLivenessEndpoint,
   createReadinessEndpoint,
   commonChecks,
+  getSchedulerTelemetry,
 };

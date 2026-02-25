@@ -761,6 +761,9 @@ class LearningEngine extends EventEmitter {
   }
 }
 
+// ===== IMPORTS FOR EXPORTS =====
+const toolUsageTracker = require('./tool-usage-tracker');
+
 // ===== EXPORTS =====
 
 module.exports = {
@@ -770,6 +773,7 @@ module.exports = {
   PositivePatternTracker,
   PatternExtractor,
   OrchestrationAdvisor,
+  toolUsageTracker,
   // Constants
   ANTI_PATTERN_TYPES,
   POSITIVE_PATTERN_TYPES,
