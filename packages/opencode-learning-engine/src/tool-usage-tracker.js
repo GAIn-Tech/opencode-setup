@@ -11,10 +11,17 @@
  */
 
 const fs = require('fs');
+const fsPromises = require('fs/promises');
 const path = require('path');
 const { MetaAwarenessTracker } = require('./meta-awareness-tracker');
 
 const metaAwarenessTracker = new MetaAwarenessTracker();
+
+// Async write queue (serializes concurrent writes to prevent corruption)
+let _writePromise = Promise.resolve();
+
+// Init singleton (prevents concurrent init races)
+let _initPromise = null;
 
 // Paths
 const HOME = process.env.USERPROFILE || process.env.HOME;
@@ -129,7 +136,8 @@ const TOOL_APPROPRIATENESS_RULES = [
 ];
 
 /**
- * Initialize the tracker
+ * Initialize the tracker (sync)
+ * @deprecated Use initAsync() for non-blocking I/O
  */
 function init() {
   if (!fs.existsSync(DATA_DIR)) {
@@ -138,10 +146,10 @@ function init() {
   
   // Initialize files if they don't exist
   if (!fs.existsSync(INVOCATIONS_FILE)) {
-    writeJson(INVOCATIONS_FILE, { invocations: [] });
+    writeJsonSync(INVOCATIONS_FILE, { invocations: [] });
   }
   if (!fs.existsSync(METRICS_FILE)) {
-    writeJson(METRICS_FILE, { 
+    writeJsonSync(METRICS_FILE, { 
       totalSessions: 0,
       totalInvocations: 0,
       toolCounts: {},
@@ -154,18 +162,55 @@ function init() {
 }
 
 /**
- * Write JSON atomically
+ * Initialize the tracker (async, idempotent).
+ * Uses _initPromise singleton to prevent concurrent init races.
  */
-function writeJson(filePath, data) {
+async function initAsync() {
+  if (!_initPromise) {
+    _initPromise = (async () => {
+      await fsPromises.mkdir(DATA_DIR, { recursive: true });
+
+      // Initialize invocations file if missing
+      try {
+        await fsPromises.access(INVOCATIONS_FILE);
+      } catch {
+        await writeJsonAsync(INVOCATIONS_FILE, { invocations: [] });
+      }
+
+      // Initialize metrics file if missing
+      try {
+        await fsPromises.access(METRICS_FILE);
+      } catch {
+        await writeJsonAsync(METRICS_FILE, {
+          totalSessions: 0,
+          totalInvocations: 0,
+          toolCounts: {},
+          categoryCounts: {},
+          breadthScore: 0,
+          underUseEvents: 0,
+          appropriatenessScore: 0
+        });
+      }
+    })();
+  }
+  return _initPromise;
+}
+
+/**
+ * Write JSON atomically (sync)
+ * @deprecated Use writeJsonAsync() for non-blocking I/O
+ */
+function writeJsonSync(filePath, data) {
   const tmp = filePath + '.tmp';
   fs.writeFileSync(tmp, JSON.stringify(data, null, 2));
   fs.renameSync(tmp, filePath);
 }
 
 /**
- * Read JSON safely
+ * Read JSON safely (sync)
+ * @deprecated Use readJsonAsync() for non-blocking I/O
  */
-function readJson(filePath, defaultValue = null) {
+function readJsonSync(filePath, defaultValue = null) {
   try {
     return JSON.parse(fs.readFileSync(filePath, 'utf8'));
   } catch {
@@ -174,10 +219,48 @@ function readJson(filePath, defaultValue = null) {
 }
 
 /**
+ * Read JSON safely (async - for runtime)
+ */
+async function readJsonAsync(filePath, defaultValue = null) {
+  try {
+    const content = await fsPromises.readFile(filePath, 'utf8');
+    return JSON.parse(content);
+  } catch {
+    return defaultValue;
+  }
+}
+
+/**
+ * Write JSON atomically (async) with serialized write queue.
+ * Uses tmp+rename for atomic swap, chained via _writePromise to prevent
+ * concurrent write corruption. Falls back to direct write on Windows EPERM.
+ */
+async function writeJsonAsync(filePath, data) {
+  const doWrite = async () => {
+    const json = JSON.stringify(data, null, 2);
+    const tmp = filePath + '.tmp';
+    try {
+      await fsPromises.writeFile(tmp, json, 'utf8');
+      await fsPromises.rename(tmp, filePath);
+    } catch (err) {
+      // Windows: rename over existing file can EPERM; fall back to direct write
+      if (err.code === 'EPERM' || err.code === 'EACCES') {
+        await fsPromises.writeFile(filePath, json, 'utf8');
+        try { await fsPromises.unlink(tmp); } catch { /* best-effort cleanup */ }
+      } else {
+        throw err;
+      }
+    }
+  };
+  _writePromise = _writePromise.catch(() => {}).then(doWrite);
+  return _writePromise;
+}
+
+/**
  * Log a tool invocation
  */
-function logInvocation(toolName, params, result, context = {}) {
-  init();
+async function logInvocation(toolName, params, result, context = {}) {
+  await initAsync();
   
   const invocation = {
     timestamp: new Date().toISOString(),
@@ -195,19 +278,19 @@ function logInvocation(toolName, params, result, context = {}) {
   };
   
   // Append to invocations
-  const data = readJson(INVOCATIONS_FILE, { invocations: [] });
+  const data = await readJsonAsync(INVOCATIONS_FILE, { invocations: [] });
   data.invocations.push(invocation);
   
   // Keep last 1000 invocations
   if (data.invocations.length > 1000) {
     data.invocations = data.invocations.slice(-1000);
   }
-  writeJson(INVOCATIONS_FILE, data);
+  await writeJsonAsync(INVOCATIONS_FILE, data);
   
   // Update metrics
-  updateMetrics(toolName, invocation);
+  await updateMetrics(toolName, invocation);
 
-  // Emit orchestration intelligence event
+  // Emit orchestration intelligence event (fire-and-forget)
   metaAwarenessTracker.trackEvent({
     event_type: 'orchestration.tool_invoked',
     session_id: context.session || 'default',
@@ -221,7 +304,7 @@ function logInvocation(toolName, params, result, context = {}) {
       tool_antipattern: context.toolAntipattern === true,
       params_size: params ? Object.keys(params).length : 0,
     },
-  });
+  }).catch(() => {});
   
   return invocation;
 }
@@ -245,8 +328,8 @@ function sanitizeParams(params) {
 /**
  * Update metrics after an invocation
  */
-function updateMetrics(toolName, invocation) {
-  const metrics = readJson(METRICS_FILE);
+async function updateMetrics(toolName, invocation) {
+  const metrics = await readJsonAsync(METRICS_FILE);
   
   metrics.totalInvocations++;
   metrics.toolCounts[toolName] = (metrics.toolCounts[toolName] || 0) + 1;
@@ -257,16 +340,16 @@ function updateMetrics(toolName, invocation) {
   metrics.breadthScore = Math.round((usedTools.length / Object.keys(AVAILABLE_TOOLS).length) * 100);
   
   // Calculate appropriateness score
-  metrics.appropriatenessScore = calculateAppropriatenessScore(metrics);
+  metrics.appropriatenessScore = await calculateAppropriatenessScore(metrics);
   
-  writeJson(METRICS_FILE, metrics);
+  await writeJsonAsync(METRICS_FILE, metrics);
 }
 
 /**
  * Calculate appropriateness score based on tool usage patterns
  */
-function calculateAppropriatenessScore(metrics) {
-  const invocations = readJson(INVOCATIONS_FILE, { invocations: [] }).invocations;
+async function calculateAppropriatenessScore(metrics) {
+  const invocations = (await readJsonAsync(INVOCATIONS_FILE, { invocations: [] })).invocations;
   
   let score = 100;
   const recentInvocations = invocations.slice(-50);
@@ -298,8 +381,8 @@ function calculateAppropriatenessScore(metrics) {
 /**
  * Check for under-use events (tools that should have been used)
  */
-function detectUnderUse(context) {
-  const invocations = readJson(INVOCATIONS_FILE, { invocations: [] }).invocations;
+async function detectUnderUse(context) {
+  const invocations = (await readJsonAsync(INVOCATIONS_FILE, { invocations: [] })).invocations;
   const recentInvocations = invocations.slice(-20);
   const toolsUsed = recentInvocations.map(i => i.tool);
   
@@ -318,6 +401,7 @@ function detectUnderUse(context) {
           severity: getRuleSeverity(rule, toolsUsed)
         });
 
+        // Fire-and-forget
         metaAwarenessTracker.trackEvent({
           event_type: 'orchestration.context_gap_detected',
           session_id: context.session || 'default',
@@ -330,16 +414,16 @@ function detectUnderUse(context) {
             missing_tools: missingTools,
             resolved: false,
           },
-        });
+        }).catch(() => {});
       }
     }
   }
   
   // Update metrics if under-use detected
   if (underUseEvents.length > 0) {
-    const metrics = readJson(METRICS_FILE);
+    const metrics = await readJsonAsync(METRICS_FILE);
     metrics.underUseEvents += underUseEvents.length;
-    writeJson(METRICS_FILE, metrics);
+    await writeJsonAsync(METRICS_FILE, metrics);
   }
   
   return underUseEvents;
@@ -416,11 +500,11 @@ function getRuleSeverity(rule, toolsUsed) {
 /**
  * Get current usage report
  */
-function getUsageReport() {
-  init();
+async function getUsageReport() {
+  await initAsync();
   
-  const metrics = readJson(METRICS_FILE);
-  const invocations = readJson(INVOCATIONS_FILE, { invocations: [] }).invocations;
+  const metrics = await readJsonAsync(METRICS_FILE);
+  const invocations = (await readJsonAsync(INVOCATIONS_FILE, { invocations: [] })).invocations;
   
   const usedTools = Object.keys(metrics.toolCounts);
   const unusedTools = Object.keys(AVAILABLE_TOOLS).filter(t => !usedTools.includes(t));
@@ -446,7 +530,7 @@ function getUsageReport() {
       tool: t,
       ...AVAILABLE_TOOLS[t]
     })),
-    recentUnderUse: detectUnderUse({}),
+    recentUnderUse: await detectUnderUse({}),
     recommendations: generateRecommendations(metrics, unusedTools)
   };
 }
@@ -489,8 +573,8 @@ function generateRecommendations(metrics, unusedTools) {
 /**
  * Start a new session
  */
-function startSession(sessionId, context = {}) {
-  init();
+async function startSession(sessionId, context = {}) {
+  await initAsync();
   
   const session = {
     id: sessionId,
@@ -500,8 +584,9 @@ function startSession(sessionId, context = {}) {
     underUseEvents: []
   };
   
-  writeJson(SESSION_FILE, session);
+  await writeJsonAsync(SESSION_FILE, session);
 
+  // Fire-and-forget
   metaAwarenessTracker.trackEvent({
     event_type: 'orchestration.phase_entered',
     session_id: sessionId,
@@ -512,12 +597,12 @@ function startSession(sessionId, context = {}) {
       phase: 'intent_gate',
       phase_violation: false,
     },
-  });
+  }).catch(() => {});
   
   // Update session count
-  const metrics = readJson(METRICS_FILE);
+  const metrics = await readJsonAsync(METRICS_FILE);
   metrics.totalSessions++;
-  writeJson(METRICS_FILE, metrics);
+  await writeJsonAsync(METRICS_FILE, metrics);
   
   return session;
 }
@@ -525,14 +610,14 @@ function startSession(sessionId, context = {}) {
 /**
  * End current session
  */
-function endSession() {
-  const session = readJson(SESSION_FILE);
+async function endSession() {
+  const session = await readJsonAsync(SESSION_FILE);
   if (session) {
     session.endTime = new Date().toISOString();
     session.duration = new Date(session.endTime) - new Date(session.startTime);
     
     // Calculate session metrics
-    const invocations = readJson(INVOCATIONS_FILE, { invocations: [] }).invocations;
+    const invocations = (await readJsonAsync(INVOCATIONS_FILE, { invocations: [] })).invocations;
     session.toolsUsed = invocations
       .filter(i => i.context.session === session.id)
       .map(i => i.tool);
@@ -544,11 +629,10 @@ function endSession() {
     
     // Save session history
     const historyPath = path.join(DATA_DIR, 'sessions');
-    if (!fs.existsSync(historyPath)) {
-      fs.mkdirSync(historyPath, { recursive: true });
-    }
-    writeJson(path.join(historyPath, `${session.id}.json`), session);
+    await fsPromises.mkdir(historyPath, { recursive: true });
+    await writeJsonAsync(path.join(historyPath, `${session.id}.json`), session);
 
+    // Fire-and-forget
     metaAwarenessTracker.trackEvent({
       event_type: 'orchestration.completion_claimed',
       session_id: session.id,
@@ -559,7 +643,7 @@ function endSession() {
         without_verification: session.context?.verified !== true,
         duration_ms: session.duration,
       },
-    });
+    }).catch(() => {});
   }
   
   return session;
