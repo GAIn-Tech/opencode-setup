@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
-import { StateMachine } from '../../../../../opencode-model-manager/src/lifecycle/state-machine';
-import { AuditLogger } from '../../../../../opencode-model-manager/src/lifecycle/audit-logger';
+import { StateMachine, AuditLogger } from 'opencode-model-manager/lifecycle';
+import { createHash } from 'node:crypto';
 import * as path from 'path';
 import * as os from 'os';
+import { getWriteActor, requireWriteAccess } from '../../_lib/write-access';
+import { appendWriteAuditEntry } from '../../_lib/write-audit';
+import { rateLimited } from '../../_lib/api-response';
+
+export const dynamic = 'force-dynamic';
 
 // Initialize state machine and audit logger
 const getStateMachine = () => {
@@ -18,6 +23,20 @@ const getAuditLogger = () => {
 };
 
 export async function POST(request: Request) {
+  // Rate limiting
+  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+  const { rateLimit } = await import('../../_lib/rate-limit');
+  if (!rateLimit(`write:${ip}`, 10, 60000)) {
+    return rateLimited();
+  }
+
+  const accessError = requireWriteAccess(request, 'models:transition');
+  if (accessError) {
+    return accessError;
+  }
+
+  let stateMachine: StateMachine | null = null;
+  let auditLogger: AuditLogger | null = null;
   try {
     const body = await request.json();
     const { modelId, toState, actor, reason, metadata } = body;
@@ -30,8 +49,8 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
     
-    const stateMachine = getStateMachine();
-    const auditLogger = getAuditLogger();
+    stateMachine = getStateMachine();
+    auditLogger = getAuditLogger();
     
     // Check if transition is valid
     const canTransition = await stateMachine.canTransition(modelId, toState);
@@ -46,13 +65,26 @@ export async function POST(request: Request) {
     
     // Get current state for audit log
     const fromState = await stateMachine.getState(modelId);
+    if (!fromState) {
+      return NextResponse.json({
+        error: 'Missing current state',
+        message: `Model ${modelId} does not have an initialized lifecycle state`
+      }, { status: 400 });
+    }
+
+    const timestamp = Date.now();
     
     // Execute transition
     await stateMachine.transition(modelId, toState, {
       actor: actor || 'system',
       reason: reason || 'Manual transition via dashboard',
-      ...metadata
+      ...metadata,
+      timestamp
     });
+
+    const diffHash = createHash('sha256')
+      .update(JSON.stringify({ modelId, fromState, toState, actor, reason, metadata, timestamp }))
+      .digest('hex');
     
     // Log to audit trail
     await auditLogger.log({
@@ -61,8 +93,21 @@ export async function POST(request: Request) {
       toState,
       actor: actor || 'system',
       reason: reason || 'Manual transition via dashboard',
-      diffHash: '',
+      diffHash,
+      timestamp,
       metadata: metadata || {}
+    });
+
+    await appendWriteAuditEntry({
+      route: '/api/models/transition',
+      actor: getWriteActor(request),
+      action: 'transition',
+      metadata: {
+        modelId,
+        fromState,
+        toState,
+        reason: reason || 'Manual transition via dashboard'
+      }
     });
     
     return NextResponse.json({
@@ -70,7 +115,7 @@ export async function POST(request: Request) {
       modelId,
       fromState,
       toState,
-      timestamp: Date.now()
+      timestamp
     });
   } catch (error: any) {
     console.error('Error executing transition:', error);
@@ -78,5 +123,8 @@ export async function POST(request: Request) {
       error: 'Failed to execute transition',
       message: error.message
     }, { status: 500 });
+  } finally {
+    stateMachine?.close();
+    auditLogger?.close();
   }
 }

@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { getWriteActor, requireWriteAccess } from '../_lib/write-access';
+import { writeJsonAtomic } from '../_lib/write-json-atomic';
+import { appendWriteAuditEntry } from '../_lib/write-audit';
+import { rateLimited } from '../_lib/api-response';
 
 // Extract real model usage from message files
 function getRealModelUsage(): Record<string, any> | null {
@@ -62,12 +66,25 @@ function getRealModelUsage(): Record<string, any> | null {
 
 // POST: Save model policies (for UI editing)
 export async function POST(request: Request) {
+  // Rate limiting
+  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+  const { rateLimit } = await import('../_lib/rate-limit');
+  if (!rateLimit(`write:${ip}`, 10, 60000)) {
+    return rateLimited();
+  }
+
+  const accessError = requireWriteAccess(request, 'models:write');
+  if (accessError) {
+    return accessError;
+  }
+
   try {
     const projectRoot = process.cwd().replace(/[\/\\]packages[\/\\]opencode-dashboard$/, '');
     const policiesPath = path.join(projectRoot, 'packages', 'opencode-model-router-x', 'src', 'policies.json');
     
     const body = await request.json();
     const { policies } = body;
+    const actor = getWriteActor(request);
     
     if (!policies) {
       return NextResponse.json({ error: 'No policies provided' }, { status: 400 });
@@ -93,7 +110,17 @@ export async function POST(request: Request) {
       // if the frontend sends complete sections.
     };
     
-    fs.writeFileSync(policiesPath, JSON.stringify(mergedPolicies, null, 2));
+    writeJsonAtomic(policiesPath, mergedPolicies);
+
+    await appendWriteAuditEntry({
+      route: '/api/models',
+      actor,
+      action: 'update-model-policies',
+      metadata: {
+        policiesPath,
+        sectionCount: Object.keys(policies || {}).length
+      }
+    });
     
     return NextResponse.json({ success: true, message: 'Policies saved' });
   } catch (error: unknown) {

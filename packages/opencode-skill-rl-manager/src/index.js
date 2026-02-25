@@ -129,7 +129,7 @@ class SkillRLManager {
   constructor(options = {}) {
     this.persistencePath = options.stateFile || './skill-rl-state.json'; // FIX: was setting stateFile but checking persistencePath
     this.skillBank = new SkillBank(options.skillBank);
-    this.evolutionEngine = new EvolutionEngine(options.evolution);
+    this.evolutionEngine = new EvolutionEngine(this.skillBank, options.evolution);
     
     // Learning validation enabled by default
     this._validationEnabled = options.validationEnabled !== false;

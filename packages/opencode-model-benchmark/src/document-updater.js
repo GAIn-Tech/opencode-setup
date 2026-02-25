@@ -162,6 +162,33 @@ ${this.getUseCases(data.level)}
   }
 
   /**
+   * Update fallback table (rate-limit-fallback.json) with hierarchy hints
+   */
+  async updateFallbackTable(hierarchy) {
+    const fallbackPath = join(this.configPath, 'rate-limit-fallback.json');
+    try {
+      const config = JSON.parse(await fs.readFile(fallbackPath, 'utf8'));
+      const fallback = config.fallback || config || {};
+      const tiers = {
+        premium: [],
+        standard: [],
+        economy: [],
+        fallback: [],
+      };
+
+      for (const [modelId, data] of Object.entries(hierarchy)) {
+        if (tiers[data.level]) tiers[data.level].push(modelId);
+      }
+
+      fallback.hierarchy = tiers;
+      await fs.writeFile(fallbackPath, JSON.stringify({ ...config, fallback }, null, 2));
+      return { status: 'updated', path: fallbackPath };
+    } catch (error) {
+      return { status: 'error', error: error.message };
+    }
+  }
+
+  /**
    * Generate changelog for hierarchy changes
    */
   async generateChangelog(changes) {

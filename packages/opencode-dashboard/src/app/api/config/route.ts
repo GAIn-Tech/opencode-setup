@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
+import { getWriteActor, requireWriteAccess } from '../_lib/write-access';
+import { writeJsonAtomic } from '../_lib/write-json-atomic';
+import { appendWriteAuditEntry } from '../_lib/write-audit';
+import { rateLimited } from '../_lib/api-response';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,7 +14,9 @@ function readJsonSafe(filePath: string): object | null {
     if (fs.existsSync(filePath)) {
       return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
     }
-  } catch {}
+  } catch (err) {
+    console.warn(`[Config API] Failed to read JSON from ${filePath}:`, err);
+  }
   return null;
 }
 
@@ -84,6 +90,10 @@ export async function GET(request: Request) {
         path: path.join(ocConfig, 'antigravity.json'),
         data: readJsonSafe(path.join(ocConfig, 'antigravity.json'))
       },
+      opencodeRegistry: {
+        path: path.join(ocConfig, 'opencode.json'),
+        data: readJsonSafe(path.join(ocConfig, 'opencode.json'))
+      },
       supermemory: {
         path: path.join(ocConfig, 'supermemory.json'),
         data: readJsonSafe(path.join(ocConfig, 'supermemory.json'))
@@ -154,9 +164,22 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  // Rate limiting
+  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+  const { rateLimit } = await import('../_lib/rate-limit');
+  if (!rateLimit(`write:${ip}`, 10, 60000)) {
+    return rateLimited();
+  }
+
+  const accessError = requireWriteAccess(request, 'config:write');
+  if (accessError) {
+    return accessError;
+  }
+
   try {
     const body = await request.json();
     const { configKey, data, config_version } = body;
+    const actor = getWriteActor(request);
 
     if (!configKey || data === undefined) {
       return NextResponse.json({ error: 'Missing configKey or data' }, { status: 400 });
@@ -242,12 +265,18 @@ export async function POST(request: Request) {
           };
           configState.appendAuditEntry(auditEntry);
           
-          // Write the data
-          const dir = path.dirname(filePath);
-          if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-          }
-          fs.writeFileSync(filePath, JSON.stringify(newData, null, 2), 'utf-8');
+          writeJsonAtomic(filePath, newData);
+
+          await appendWriteAuditEntry({
+            route: '/api/config',
+            actor,
+            action: 'update-central-config',
+            metadata: {
+              configKey,
+              filePath,
+              configVersion: newData.config_version
+            }
+          });
           
           return NextResponse.json({ 
             success: true, 
@@ -262,17 +291,17 @@ export async function POST(request: Request) {
     }
 
     // Standard handling for other configs
-    const dir = path.dirname(filePath);
-    if (!fs.existsSync(dir)) {
-      try {
-        fs.mkdirSync(dir, { recursive: true });
-      } catch (mkdirError) {
-        return NextResponse.json({ error: String(mkdirError) }, { status: 500 });
-      }
-    }
+    writeJsonAtomic(filePath, data);
 
-    // Write the data
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+    await appendWriteAuditEntry({
+      route: '/api/config',
+      actor,
+      action: 'update-config',
+      metadata: {
+        configKey,
+        filePath
+      }
+    });
 
     return NextResponse.json({ success: true, path: filePath });
   } catch (error) {

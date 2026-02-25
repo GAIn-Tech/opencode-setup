@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
-import { StateMachine } from '../../../../../opencode-model-manager/src/lifecycle/state-machine';
+import { StateMachine } from 'opencode-model-manager/lifecycle';
 import * as path from 'path';
 import * as os from 'os';
+
+export const dynamic = 'force-dynamic';
 
 // Initialize state machine with default database path
 const getStateMachine = () => {
@@ -11,11 +13,12 @@ const getStateMachine = () => {
 };
 
 export async function GET(request: Request) {
+  let stateMachine: StateMachine | null = null;
   try {
     const { searchParams } = new URL(request.url);
     const modelId = searchParams.get('modelId');
     
-    const stateMachine = getStateMachine();
+    stateMachine = getStateMachine();
     
     if (modelId) {
       // Get specific model lifecycle state
@@ -42,5 +45,7 @@ export async function GET(request: Request) {
       error: 'Failed to fetch lifecycle state',
       message: error.message
     }, { status: 500 });
+  } finally {
+    stateMachine?.close();
   }
 }

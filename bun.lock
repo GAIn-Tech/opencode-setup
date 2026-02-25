@@ -1,5 +1,6 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "opencode-setup",
@@ -32,8 +33,10 @@
         "better-sqlite3": "^11.0.0",
         "chokidar": "^5.0.0",
         "clsx": "^2.1.1",
+        "html-to-image": "^1.11.11",
         "lucide-react": "^0.378.0",
         "next": "14.2.3",
+        "opencode-model-manager": "workspace:*",
         "react": "^18",
         "react-dom": "^18",
         "tailwind-merge": "^2.3.0",
@@ -148,19 +151,26 @@
       "name": "opencode-model-benchmark",
       "version": "0.1.0",
       "dependencies": {
+        "pyodide": "^0.26.1",
         "sqlite3": "^5.1.7",
       },
+    },
+    "packages/opencode-model-manager": {
+      "name": "opencode-model-manager",
+      "version": "0.1.0",
     },
     "packages/opencode-model-router-x": {
       "name": "@jackoatmon/opencode-model-router-x",
       "version": "0.1.0",
       "dependencies": {
         "@jackoatmon/opencode-circuit-breaker": "file:../opencode-circuit-breaker",
+        "@jackoatmon/opencode-config-loader": "file:../opencode-config-loader",
         "@jackoatmon/opencode-context-governor": "file:../opencode-context-governor",
         "@jackoatmon/opencode-fallback-doctor": "file:../opencode-fallback-doctor",
         "@jackoatmon/opencode-feature-flags": "file:../opencode-feature-flags",
         "@jackoatmon/opencode-health-check": "file:../opencode-health-check",
         "@jackoatmon/opencode-learning-engine": "file:../opencode-learning-engine",
+        "@jackoatmon/opencode-model-benchmark": "file:../opencode-model-benchmark",
         "uuid": "^10.0.0",
         "zod": "^3.23.0",
       },
@@ -264,6 +274,8 @@
     "@jackoatmon/opencode-fallback-doctor": ["@jackoatmon/opencode-fallback-doctor@workspace:packages/opencode-fallback-doctor"],
 
     "@jackoatmon/opencode-integration-layer": ["@jackoatmon/opencode-integration-layer@workspace:packages/opencode-integration-layer"],
+
+    "@jackoatmon/opencode-model-benchmark": ["opencode-model-benchmark@workspace:packages/opencode-model-benchmark"],
 
     "@jackoatmon/opencode-model-router-x": ["@jackoatmon/opencode-model-router-x@workspace:packages/opencode-model-router-x"],
 
@@ -785,6 +797,8 @@
 
     "hasown": ["hasown@2.0.2", "", { "dependencies": { "function-bind": "^1.1.2" } }, "sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ=="],
 
+    "html-to-image": ["html-to-image@1.11.13", "", {}, "sha512-cuOPoI7WApyhBElTTb9oqsawRvZ0rHhaHwghRLlTuffoD1B2aDemlCruLeZrUIIdvG7gs9xeELEPm6PhuASqrg=="],
+
     "http-cache-semantics": ["http-cache-semantics@4.2.0", "", {}, "sha512-dTxcvPXqPvXBQpq5dUr6mEMJX4oIEFv6bwom3FDwKRDsuIjjJGANqhBuoAn9c1RQJIdAKav33ED65E2ys+87QQ=="],
 
     "http-proxy-agent": ["http-proxy-agent@4.0.1", "", { "dependencies": { "@tootallnate/once": "1", "agent-base": "6", "debug": "4" } }, "sha512-k0zdNgqWTGA6aeIRVpvfVob4fL52dTfaehylg0Y4UvSySvOq/Y+BOyPrgpUrA7HylqvU8vIZGsRuXmspskV0Tg=="],
@@ -1035,6 +1049,8 @@
 
     "opencode-model-benchmark": ["opencode-model-benchmark@workspace:packages/opencode-model-benchmark"],
 
+    "opencode-model-manager": ["opencode-model-manager@workspace:packages/opencode-model-manager"],
+
     "opencode-model-sync": ["opencode-model-sync@workspace:packages/opencode-model-sync"],
 
     "opencode-runbooks": ["opencode-runbooks@workspace:packages/opencode-runbooks"],
@@ -1110,6 +1126,8 @@
     "pump": ["pump@3.0.3", "", { "dependencies": { "end-of-stream": "^1.1.0", "once": "^1.3.1" } }, "sha512-todwxLMY7/heScKmntwQG8CXVkWUOdYxIvY2s0VWAAMh/nd8SoYiRaKjlr7+iCs984f2P8zvrfWcDDYVb73NfA=="],
 
     "punycode": ["punycode@2.3.1", "", {}, "sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg=="],
+
+    "pyodide": ["pyodide@0.26.4", "", { "dependencies": { "ws": "^8.5.0" } }, "sha512-z2CHsjVlhhJi5tYBF0AYAfNEPo3zq/z+xOpFtk1tweJkRaTqU4UK/7pLvo8DBU2VDPH31vB3pSI+8fnoqrVrFg=="],
 
     "queue-microtask": ["queue-microtask@1.2.3", "", {}, "sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A=="],
 
@@ -1329,6 +1347,8 @@
 
     "wrappy": ["wrappy@1.0.2", "", {}, "sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ=="],
 
+    "ws": ["ws@8.19.0", "", { "peerDependencies": { "bufferutil": "^4.0.1", "utf-8-validate": ">=5.0.2" }, "optionalPeers": ["bufferutil", "utf-8-validate"] }, "sha512-blAT2mjOEIi0ZzruJfIhb3nps74PRWTCz1IjglWEEpQl5XS/UNama6u2/rjFkDDouqr4L67ry+1aGIALViWjDg=="],
+
     "yallist": ["yallist@4.0.0", "", {}, "sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A=="],
 
     "yocto-queue": ["yocto-queue@0.1.0", "", {}, "sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q=="],
@@ -1343,11 +1363,13 @@
 
     "@jackoatmon/opencode-model-router-x/@jackoatmon/opencode-circuit-breaker": ["opencode-circuit-breaker@file:packages/opencode-circuit-breaker", {}],
 
+    "@jackoatmon/opencode-model-router-x/@jackoatmon/opencode-config-loader": ["opencode-config-loader@file:packages/opencode-config-loader", {}],
+
     "@jackoatmon/opencode-model-router-x/@jackoatmon/opencode-context-governor": ["@jackoatmon/opencode-context-governor@file:packages/opencode-context-governor", {}],
 
     "@jackoatmon/opencode-model-router-x/@jackoatmon/opencode-fallback-doctor": ["@jackoatmon/opencode-fallback-doctor@file:packages/opencode-fallback-doctor", { "bin": { "fallback-doctor": "src/cli.js" } }],
 
-    "@jackoatmon/opencode-model-router-x/@jackoatmon/opencode-feature-flags": ["opencode-feature-flags@file:packages/opencode-feature-flags", {}],
+    "@jackoatmon/opencode-model-router-x/@jackoatmon/opencode-feature-flags": ["opencode-feature-flags@file:packages/opencode-feature-flags", { "dependencies": { "@opencode/crash-guard": "workspace:*" } }],
 
     "@jackoatmon/opencode-model-router-x/@jackoatmon/opencode-health-check": ["opencode-health-check@file:packages/opencode-health-check", {}],
 

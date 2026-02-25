@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { z } from 'zod';
+import { ConfigEditor } from './ConfigEditor';
+import { ConfigSearch } from './ConfigSearch';
+import { ConfigSection } from './ConfigSection';
 
 type ConfigKey =
   | 'projectConfig'
@@ -572,6 +575,17 @@ export function ConfigViewer() {
       hydrateFormDraft(data, selectedDomain);
     }
   }, [data, hydrateFormDraft, mode, selectedDomain]);
+
+  const openQuickEdit = useCallback(
+    (key: ConfigKey) => {
+      const config = data?.[key]?.data;
+      setMode('raw');
+      setEditingKey(key);
+      setEditContent(JSON.stringify(config ?? {}, null, 2));
+      setExpandedSections((prev) => new Set([...prev, key]));
+    },
+    [data]
+  );
 
   const saveConfig = useCallback(
     async (configKey: ConfigKey, payload: unknown, configVersion?: number) => {
@@ -1871,119 +1885,65 @@ export function ConfigViewer() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-3">
-        <input
-          type="text"
-          placeholder="Search config keys..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="min-w-[220px] flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-zinc-100 placeholder-zinc-500 focus:border-emerald-500 focus:outline-none"
-        />
-        <div className="flex rounded-lg border border-zinc-700 bg-zinc-900 p-1">
-          <button
-            onClick={() => setMode('raw')}
-            className={`rounded px-3 py-1 text-sm ${mode === 'raw' ? 'bg-emerald-600 text-emerald-50' : 'text-zinc-300 hover:bg-zinc-800'}`}
-          >
-            Raw
-          </button>
-          <button
-            onClick={() => setMode('form')}
-            className={`rounded px-3 py-1 text-sm ${mode === 'form' ? 'bg-emerald-600 text-emerald-50' : 'text-zinc-300 hover:bg-zinc-800'}`}
-          >
-            Form
-          </button>
+      <div className="rounded-lg border border-zinc-700 bg-zinc-900/60 p-4">
+        <div className="text-sm font-medium text-zinc-200">Quick Edit</div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {([
+            { key: 'projectConfig', label: 'Project Config' },
+            { key: 'userConfig', label: 'User Config' },
+            { key: 'rateLimitFallback', label: 'Rate Limits' },
+            { key: 'modelPolicies', label: 'Model Policies' },
+            { key: 'centralConfig', label: 'Central Config' },
+          ] as const).map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => openQuickEdit(item.key)}
+              className="rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs text-zinc-200 hover:bg-zinc-800"
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
-        <button onClick={fetchData} className="rounded-lg bg-zinc-700 px-4 py-2 text-zinc-100 hover:bg-zinc-600">
-          Refresh
-        </button>
       </div>
+
+      <ConfigSearch
+        searchTerm={searchTerm}
+        mode={mode}
+        onSearchChange={setSearchTerm}
+        onModeChange={setMode}
+        onRefresh={fetchData}
+      />
 
       {mode === 'raw' ? (
         <div className="space-y-3">
-          {sections.map(({ key, name, icon, description }) => {
-            const config = data[key];
-            const isExpanded = expandedSections.has(key);
-            const isEditing = editingKey === key;
+          {sections.map((section) => {
+            const config = data[section.key];
+            const isExpanded = expandedSections.has(section.key);
+            const isEditing = editingKey === section.key;
             return (
-              <div key={key} className="overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900/50">
-                <button
-                  onClick={() => toggleSection(key)}
-                  className="flex w-full items-center justify-between border-b border-zinc-700 px-4 py-3 hover:bg-zinc-800/80"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">{icon}</span>
-                    <div className="text-left">
-                      <div className="font-medium text-zinc-100">{name}</div>
-                      <div className="text-xs text-zinc-500">{description}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {config?.data && !isEditing ? (
-                      <>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            startEdit(key);
-                          }}
-                          className="rounded bg-emerald-600 px-2 py-1 text-xs text-emerald-50 hover:bg-emerald-500"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            copyToClipboard(JSON.stringify(config.data, null, 2));
-                          }}
-                          className="rounded bg-zinc-700 px-2 py-1 text-xs text-zinc-100 hover:bg-zinc-600"
-                        >
-                          Copy
-                        </button>
-                      </>
-                    ) : null}
-                    <span className="text-zinc-400">{isExpanded ? '▼' : '▶'}</span>
-                  </div>
-                </button>
-
-                {isExpanded ? (
-                  <div className="p-4">
-                    <div className="mb-2 font-mono text-xs text-zinc-500">{config?.path || 'No path'}</div>
-                    {isEditing ? (
-                      <div className="space-y-3">
-                        <Textarea
-                          value={editContent}
-                          onChange={(e) => setEditContent(e.target.value)}
-                          rows={18}
-                          className="font-mono text-sm"
-                          spellCheck={false}
-                        />
-                        {saveError ? <div className="text-sm text-red-500">{saveError}</div> : null}
-                        <div className="flex gap-2">
-                          <button
-                            onClick={saveRawEdit}
-                            disabled={isSaving}
-                            className="rounded bg-emerald-600 px-4 py-2 text-emerald-50 hover:bg-emerald-500 disabled:opacity-50"
-                          >
-                            {isSaving ? 'Saving...' : 'Save Changes'}
-                          </button>
-                          <button
-                            onClick={cancelEdit}
-                            disabled={isSaving}
-                            className="rounded bg-zinc-700 px-4 py-2 text-zinc-100 hover:bg-zinc-600 disabled:opacity-50"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    ) : config?.data ? (
-                      <div className="max-h-[520px] overflow-auto rounded border border-zinc-700 bg-zinc-950 p-4">
-                        <JsonTree data={config.data} searchTerm={searchTerm} />
-                      </div>
-                    ) : (
-                      <div className="rounded bg-zinc-900 p-4 italic text-zinc-500">File not found or invalid JSON</div>
-                    )}
-                  </div>
-                ) : null}
-              </div>
+              <ConfigSection
+                key={section.key}
+                section={section}
+                config={config}
+                isExpanded={isExpanded}
+                isEditing={isEditing}
+                searchTerm={searchTerm}
+                onToggle={toggleSection}
+                onStartEdit={(sectionKey) => startEdit(sectionKey as ConfigKey)}
+                onCopy={copyToClipboard}
+                renderEditor={() => (
+                  <ConfigEditor
+                    content={editContent}
+                    saveError={saveError}
+                    isSaving={isSaving}
+                    onChange={setEditContent}
+                    onSave={saveRawEdit}
+                    onCancel={cancelEdit}
+                  />
+                )}
+                renderJsonTree={(value, term) => <JsonTree data={value} searchTerm={term} />}
+              />
             );
           })}
         </div>

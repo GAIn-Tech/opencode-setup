@@ -1,8 +1,9 @@
 {
-  "active_plan": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\model-management-protocol.md",
-  "started_at": "2026-02-24T06:00:15.785Z",
+  "active_plan": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\tech-debt-fix.md",
+  "started_at": "2026-02-25T02:15:45.304Z",
   "session_ids": [
-    "ses_3720593fdffeCJNGaumGbQ5tM5"
+    "ses_36d79dbbfffev3ro5rW2VZ0EbS"
   ],
-  "plan_name": "model-management-protocol"
+  "plan_name": "tech-debt-fix",
+  "agent": "atlas"
 }

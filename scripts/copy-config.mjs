@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { cpSync, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, renameSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { resolvePath, userConfigDir, userDataDir } from './resolve-root.mjs';
@@ -28,6 +28,13 @@ const CONFIG_DIRS = [
   'docs',
   'models',
   'supermemory',
+  // NOTE: 'skills' is intentionally excluded — handled below with MERGE logic
+  // to preserve user-installed skills not tracked in this repo.
+];
+
+// Directories that are MERGED (repo entries copied in, existing user entries preserved).
+// Never replace wholesale — user may have skills/agents not in this repo.
+const MERGE_DIRS = [
   'skills',
 ];
 
@@ -70,6 +77,25 @@ function stageOperations(stagingRoot) {
     ensureDir(path.dirname(stagedPath));
     cpSync(sourcePath, stagedPath, { recursive: true, force: true });
     operations.push({ label: `${dirName}/`, stagedPath, targetPath });
+  }
+
+  // MERGE directories: copy repo entries into target without removing user entries.
+  // Each top-level entry in the source is copied individually, leaving any
+  // user-installed entries that don't exist in the source untouched.
+  for (const dirName of MERGE_DIRS) {
+    const sourcePath = path.join(SOURCE_CONFIG_DIR, dirName);
+    const targetPath = path.join(TARGET_CONFIG_DIR, dirName);
+    if (!existsSync(sourcePath)) {
+      console.warn(`[copy-config] Skipping missing merge source directory: ${dirName}`);
+      continue;
+    }
+    ensureDir(targetPath);
+    for (const entry of readdirSync(sourcePath)) {
+      const entrySrc = path.join(sourcePath, entry);
+      const entryDst = path.join(targetPath, entry);
+      cpSync(entrySrc, entryDst, { recursive: true, force: true });
+      console.log(`[copy-config] Merged ${dirName}/${entry}`);
+    }
   }
 
   const dataConfigSourcePath = path.join(SOURCE_CONFIG_DIR, 'config.yaml');

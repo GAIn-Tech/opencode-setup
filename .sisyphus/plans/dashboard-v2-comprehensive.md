@@ -49,55 +49,55 @@ Transform the basic workflow dashboard into a comprehensive control panel for th
 ### Section 1: Workflow Monitor (Enhanced)
 **Current**: Basic workflow list with steps/events
 **Enhanced**:
-- [ ] Real-time updates via SSE (no polling)
-- [ ] Full workflow history with search/filter
-- [ ] Workflow metadata: duration, agent used, token cost
-- [ ] Step-level details: retries, error messages, outputs
-- [ ] Timeline visualization
-- [ ] Export workflow reports
+- [x] Real-time updates via SSE (no polling)
+- [x] Full workflow history with search/filter
+- [x] Workflow metadata: duration, agent used, token cost
+- [x] Step-level details: retries, error messages, outputs
+- [x] Timeline visualization
+- [x] Export workflow reports
 
 ### Section 2: Memory Graph Visualization
-- [ ] Interactive graph viewer (D3.js or vis.js)
-- [ ] Session → Error relationship view
-- [ ] Error frequency heatmap
-- [ ] Session path reconstruction
-- [ ] Export to DOT/PNG for external tools
-- [ ] Filter by date range, error type, session
+- [x] Interactive graph viewer (D3.js or vis.js) - uses React Flow / xyflow
+- [x] Session → Error relationship view
+- [x] Error frequency heatmap
+- [x] Session path reconstruction
+- [x] Export to DOT/PNG for external tools
+- [x] Filter by date range, error type, session
 
 ### Section 3: Learning Insights
-- [ ] Anti-pattern summary cards
-- [ ] Positive pattern leaderboard
-- [ ] Severity distribution charts
-- [ ] Hotspot identification (files/functions with most issues)
-- [ ] Recommendations panel
-- [ ] Ingest new sessions manually
-- [ ] Record outcomes for advice
+- [x] Anti-pattern summary cards
+- [x] Positive pattern leaderboard
+- [x] Severity distribution charts
+- [x] Hotspot identification (files/functions with most issues)
+- [x] Recommendations panel
+- [x] Ingest new sessions manually
+- [x] Record outcomes for advice
 
 ### Section 4: Skill Performance (RL Suite)
-- [ ] Skill usage statistics
-- [ ] Performance metrics per skill
-- [ ] Evolution history
-- [ ] A/B comparison of skill strategies
-- [ ] Manual skill promotion/demotion
+- [x] Skill usage statistics
+- [x] Performance metrics per skill
+- [x] Evolution history
+- [x] A/B comparison of skill strategies
+- [x] Manual skill promotion/demotion
 
 ### Section 5: Configuration Center
-- [ ] View all config files (read-only)
-- [ ] Config diff viewer (project vs user vs defaults)
-- [ ] Schema validation status
-- [ ] Quick edit for common settings
-- [ ] Hooks configuration viewer
+- [x] View all config files (read-only)
+- [x] Config diff viewer (project vs user vs defaults)
+- [x] Schema validation status
+- [x] Quick edit for common settings
+- [x] Hooks configuration viewer
 
 ### Section 6: Health & Resources
-- [ ] Plugin health status (from healthd.log)
-- [ ] Token budget overview (from session-budgets.json)
-- [ ] MCP server status
-- [ ] Package versions and update status
+- [x] Plugin health status (from healthd.log)
+- [x] Token budget overview (from session-budgets.json)
+- [x] MCP server status
+- [x] Package versions and update status
 
 ### Section 7: Documentation Browser
-- [ ] Markdown viewer for docs/
-- [ ] Package README browser
-- [ ] CLAUDE.md viewer
-- [ ] Search across all docs
+- [x] Markdown viewer for docs/
+- [x] Package README browser
+- [x] CLAUDE.md viewer
+- [x] Search across all docs
 
 ---
 

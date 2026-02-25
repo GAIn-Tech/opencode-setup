@@ -81,7 +81,7 @@ test('rollups: composite score respects weights', () => {
   assert.ok(composite.score_mean < 90);
 });
 
-test('tracker: writes events and updates rollups', () => {
+test('tracker: writes events and updates rollups', async () => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'meta-awareness-test-'));
   const tracker = new MetaAwarenessTracker({
     telemetryDir: tempDir,
@@ -91,7 +91,7 @@ test('tracker: writes events and updates rollups', () => {
     minSamplesForSignal: 1,
   });
 
-  tracker.trackEvent({
+  await tracker.trackEvent({
     session_id: 's1',
     event_type: 'orchestration.verification_executed',
     task_type: 'bugfix',
@@ -99,11 +99,11 @@ test('tracker: writes events and updates rollups', () => {
     metadata: { has_evidence: true },
   });
 
-  const overview = tracker.getOverview();
+  const overview = await tracker.getOverview();
   assert.ok(overview.composite.score_mean >= 0);
   assert.ok(overview.domains[DOMAIN_KEYS.VERIFICATION].sample_count >= 1);
 
-  const forensics = tracker.getForensics({ sessionId: 's1', limit: 10 });
+  const forensics = await tracker.getForensics({ sessionId: 's1', limit: 10 });
   assert.equal(forensics.count, 1);
 
   fs.rmSync(tempDir, { recursive: true, force: true });
@@ -117,12 +117,11 @@ test('MetaAwarenessTracker debounces rollup writes', async () => {
   });
 
   let writeCount = 0;
-  const orig = tracker._writeRollups.bind(tracker);
-  // Patch to intercept actual disk flushes
-  tracker._flushNow = () => { writeCount++; return orig(tracker._rollupCache); };
+  // Patch to intercept actual disk flushes (must return Promise for async callers)
+  tracker._flushNow = async () => { writeCount++; };
 
   for (let i = 0; i < 20; i++) {
-    tracker.trackEvent({ event_type: 'orchestration.delegation_decision', metadata: { should_delegate: true, delegated: true } });
+    await tracker.trackEvent({ event_type: 'orchestration.delegation_decision', metadata: { should_delegate: true, delegated: true } });
   }
 
   // Should not have flushed to disk yet (debounced)
@@ -136,7 +135,7 @@ test('MetaAwarenessTracker debounces rollup writes', async () => {
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-test('MetaAwarenessTracker rotates JSONL when line limit exceeded', () => {
+test('MetaAwarenessTracker rotates JSONL when line limit exceeded', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mat-rot-'));
   const tracker = new MetaAwarenessTracker({
     telemetryDir: dir,
@@ -145,9 +144,9 @@ test('MetaAwarenessTracker rotates JSONL when line limit exceeded', () => {
     rotationCheckInterval: 1,
   });
 
-  // Write 15 events directly via _appendEvent
+  // Write 15 events directly via async _appendEvent
   for (let i = 0; i < 15; i++) {
-    tracker._appendEvent({ event_type: 'test', seq: i, timestamp: new Date().toISOString() });
+    await tracker._appendEvent({ event_type: 'test', seq: i, timestamp: new Date().toISOString() });
   }
 
   const lines = fs.readFileSync(tracker.eventsPath, 'utf8').split('\n').filter(Boolean);

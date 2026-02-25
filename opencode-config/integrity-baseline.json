@@ -1,0 +1,22 @@
+{
+  "criticalPackages": [
+    "opencode-dashboard",
+    "opencode-model-manager",
+    "opencode-model-router-x",
+    "opencode-learning-engine",
+    "opencode-skill-rl-manager"
+  ],
+  "userSkills": {
+    "minimumCount": 35,
+    "required": [
+      "codebase-auditor",
+      "code-doctor",
+      "task-orchestrator",
+      "systematic-debugging",
+      "test-driven-development",
+      "verification-before-completion",
+      "writing-plans",
+      "executing-plans"
+    ]
+  }
+}

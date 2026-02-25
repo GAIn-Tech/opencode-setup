@@ -1,0 +1,75 @@
+{
+  "id": "wave-1-async-io-complete-20260225",
+  "timestamp": "2026-02-25T02:32:00.000Z",
+  "category": "performance",
+  "summary": "Wave 1: Async I/O conversion for config-loader, learning-engine, and model-manager to eliminate event loop blocking",
+  "details": "Converted synchronous file operations to async across 3 critical packages. Config-loader now uses async I/O with caching layer, learning-engine implements async trackEvent with lazy loading, model-manager adds bounded arrays with FIFO eviction. Total risk reduction: 72 points (28+22+22). All 358 tests pass.",
+  "session_id": "ses_36d79dbbfffev3ro5rW2VZ0EbS",
+  "scope": "multi-package",
+  "packages": ["opencode-config-loader", "opencode-learning-engine", "opencode-model-manager"],
+  "changes": [
+    {
+      "package": "opencode-config-loader",
+      "type": "refactor",
+      "description": "Convert sync I/O to async with caching layer",
+      "files": [
+        "src/central-config-state.js",
+        "src/central-config.js",
+        "src/index.js",
+        "test/central-config.test.js"
+      ],
+      "impact": "Eliminates event loop blocking on config access (28 risk score reduction)"
+    },
+    {
+      "package": "opencode-learning-engine",
+      "type": "refactor",
+      "description": "Async trackEvent with lazy rollup loading, removed sync fs.readFileSync from constructor",
+      "files": [
+        "src/meta-awareness-tracker.js"
+      ],
+      "impact": "Eliminates event loop blocking in hot path (22 risk score reduction)"
+    },
+    {
+      "package": "opencode-model-manager",
+      "type": "fix",
+      "description": "Add bounded arrays with FIFO eviction to metrics collector",
+      "files": [
+        "src/monitoring/metrics-collector.js",
+        "test/pipeline-metrics-collector.test.ts"
+      ],
+      "impact": "Prevents unbounded memory growth (22 risk score reduction)"
+    }
+  ],
+  "verification": {
+    "tests_passed": true,
+    "test_count": 358,
+    "test_files": 25,
+    "assertion_count": 1944,
+    "failures": 0
+  },
+  "affected_paths": [
+    "packages/opencode-config-loader/src/central-config-state.js",
+    "packages/opencode-config-loader/src/central-config.js",
+    "packages/opencode-config-loader/src/index.js",
+    "packages/opencode-config-loader/test/central-config.test.js",
+    "packages/opencode-learning-engine/src/meta-awareness-tracker.js",
+    "packages/opencode-model-manager/src/monitoring/metrics-collector.js",
+    "packages/opencode-model-manager/test/pipeline-metrics-collector.test.ts"
+  ],
+  "impact": "High - eliminates event loop blocking in config access (1000+×/session), token tracking (1000+×/session), and event tracking (100-200×/session). Prevents unbounded memory growth in metrics collection.",
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "pass",
+    "test_count": 358,
+    "test_files": 25,
+    "assertion_count": 1944,
+    "failures": 0
+  },
+  "risk_level": "medium",
+  "governance": {
+    "wave": "wave-1",
+    "plan": "tech-debt-fix",
+    "total_risk_reduction": 72
+  }
+}

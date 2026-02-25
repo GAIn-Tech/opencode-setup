@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
-import { AuditLogger } from '../../../../../opencode-model-manager/src/lifecycle/audit-logger';
+import { AuditLogger } from 'opencode-model-manager/lifecycle';
 import * as path from 'path';
 import * as os from 'os';
+import { requireReadAccess } from '../../_lib/write-access';
+import { forbidden, badRequest } from '../../_lib/api-response';
+
+export const dynamic = 'force-dynamic';
 
 // Initialize audit logger
 const getAuditLogger = () => {
@@ -11,6 +15,13 @@ const getAuditLogger = () => {
 };
 
 export async function GET(request: Request) {
+  // RBAC: Require read access for audit logs
+  const accessError = requireReadAccess(request, 'models:read');
+  if (accessError) {
+    return accessError;
+  }
+
+  let auditLogger: AuditLogger | null = null;
   try {
     const { searchParams } = new URL(request.url);
     const modelId = searchParams.get('modelId');
@@ -18,7 +29,7 @@ export async function GET(request: Request) {
     const endTime = searchParams.get('endTime');
     const limit = searchParams.get('limit');
     
-    const auditLogger = getAuditLogger();
+    auditLogger = getAuditLogger();
     
     let entries;
     
@@ -54,5 +65,7 @@ export async function GET(request: Request) {
       error: 'Failed to fetch audit log',
       message: error.message
     }, { status: 500 });
+  } finally {
+    auditLogger?.close();
   }
 }

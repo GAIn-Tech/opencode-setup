@@ -41,6 +41,26 @@ interface GraphEdge {
   type: 'uses_agent' | 'uses_tool' | 'uses_model' | 'has_error' | 'uses_skill' | 'solves_with' | 'follows_pattern' | 'delegates_to' | 'learns_from' | 'uses_template' | 'has_profile' | 'matches_rule';
 }
 
+function toDot(nodes: GraphNode[], edges: GraphEdge[]): string {
+  const lines: string[] = [];
+  lines.push('digraph MemoryGraph {');
+  lines.push('  rankdir=LR;');
+  lines.push('  node [shape=box, style=filled, color="#27272a", fontcolor="#e5e7eb"];');
+
+  for (const node of nodes) {
+    const label = (node.label || node.id).replace(/"/g, '\\"');
+    lines.push(`  "${node.id}" [label="${label}"];`);
+  }
+
+  for (const edge of edges) {
+    const edgeLabel = edge.type.replace(/_/g, ' ');
+    lines.push(`  "${edge.from}" -> "${edge.to}" [label="${edgeLabel}"];`);
+  }
+
+  lines.push('}');
+  return lines.join('\n');
+}
+
 // Read from multiple .opencode data sources
 function normalizeFocusId(value: string): string {
   const trimmed = value.trim();
@@ -493,6 +513,7 @@ export async function GET(request: Request) {
     }
     
     const search = new URL(request.url).searchParams;
+    const format = (search.get('format') || 'json').toLowerCase();
 
     const options: GraphQueryOptions = {
       sinceDays: clamp(parsePositiveInt(search.get('sinceDays'), 30), 1, 365),
@@ -507,6 +528,14 @@ export async function GET(request: Request) {
     if (!noCache) {
       const cached = graphCache.get(cacheKey);
       if (cached && cached.expiresAt > Date.now()) {
+        if (format === 'dot') {
+          return new NextResponse(toDot(cached.payload.nodes, cached.payload.edges), {
+            status: 200,
+            headers: {
+              'Content-Type': 'text/vnd.graphviz',
+            },
+          });
+        }
         return NextResponse.json(cached.payload);
       }
     }
@@ -530,6 +559,15 @@ export async function GET(request: Request) {
       expiresAt: Date.now() + GRAPH_CACHE_TTL_MS,
       payload,
     });
+
+    if (format === 'dot') {
+      return new NextResponse(toDot(payload.nodes, payload.edges), {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/vnd.graphviz',
+        },
+      });
+    }
 
     return NextResponse.json(payload);
   } catch (error) {

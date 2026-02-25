@@ -38,16 +38,25 @@ class MetaAwarenessTracker {
     this._rollupCache = null;   // in-memory rollup; null = not yet loaded
     this._flushTimer = null;
 
+    // One-time sync setup (constructor cannot be async)
     if (!fs.existsSync(this.telemetryDir)) {
       fs.mkdirSync(this.telemetryDir, { recursive: true });
     }
 
+    // Eagerly populate cache so subsequent _readRollups() always hits cache
     if (!fs.existsSync(this.rollupsPath)) {
       this._writeRollups(initializeRollups());
+    } else {
+      try {
+        const parsed = JSON.parse(fs.readFileSync(this.rollupsPath, 'utf8'));
+        this._rollupCache = (parsed && typeof parsed === 'object') ? parsed : initializeRollups();
+      } catch {
+        this._rollupCache = initializeRollups();
+      }
     }
   }
 
-  trackEvent(event = {}, options = {}) {
+  async trackEvent(event = {}, options = {}) {
     const normalized = {
       timestamp: event.timestamp || new Date().toISOString(),
       session_id: event.session_id || 'unknown',
@@ -62,9 +71,13 @@ class MetaAwarenessTracker {
       metadata: event.metadata || {},
     };
 
-    this._appendEvent(normalized);
+    try {
+      await this._appendEvent(normalized);
+    } catch (err) {
+      console.warn(`[MetaAwarenessTracker] Event append failed (non-fatal): ${err.message}`);
+    }
 
-    const rollups = this._readRollups();
+    const rollups = await this._readRollups();
     rollups.total_events += 1;
     const baselineTaskType = normalized.metadata.baseline_task_type || normalized.task_type;
     const baselineComplexity = normalized.metadata.baseline_complexity || normalized.complexity;
@@ -165,8 +178,8 @@ class MetaAwarenessTracker {
     };
   }
 
-  getOverview() {
-    const rollups = this._readRollups();
+  async getOverview() {
+    const rollups = await this._readRollups();
     const confidence = this._compositeConfidence(rollups.composite);
     const accepted = confidence >= this.confidenceThreshold && rollups.composite.sample_count >= this.minSamplesForSignal;
 
@@ -191,14 +204,14 @@ class MetaAwarenessTracker {
     };
   }
 
-  getTimeline({ sinceDays = 30 } = {}) {
-    const rollups = this._readRollups();
+  async getTimeline({ sinceDays = 30 } = {}) {
+    const rollups = await this._readRollups();
     const cutoff = Date.now() - sinceDays * 24 * 60 * 60 * 1000;
     return rollups.timeline.points.filter((point) => new Date(point.timestamp).getTime() >= cutoff);
   }
 
-  getCorrelation({ sinceDays = 30 } = {}) {
-    const events = this._readEvents({ sinceDays });
+  async getCorrelation({ sinceDays = 30 } = {}) {
+    const events = await this._readEvents({ sinceDays });
     const byModel = {};
     const bySkill = {};
     const byTool = {};
@@ -234,8 +247,8 @@ class MetaAwarenessTracker {
     };
   }
 
-  getStability() {
-    const rollups = this._readRollups();
+  async getStability() {
+    const rollups = await this._readRollups();
     const accepted = rollups.stability.confidence_accepted_count || 0;
     const rejected = rollups.stability.confidence_rejected_count || 0;
     const total = accepted + rejected;
@@ -253,8 +266,8 @@ class MetaAwarenessTracker {
     };
   }
 
-  getForensics({ sessionId, limit = 200 } = {}) {
-    const events = this._readEvents({ sessionId }).slice(-Math.max(1, Math.min(limit, 2000)));
+  async getForensics({ sessionId, limit = 200 } = {}) {
+    const events = (await this._readEvents({ sessionId })).slice(-Math.max(1, Math.min(limit, 2000)));
     return {
       generated_at: new Date().toISOString(),
       count: events.length,
@@ -262,36 +275,41 @@ class MetaAwarenessTracker {
     };
   }
 
-  _appendEvent(event) {
-    fs.appendFileSync(this.eventsPath, `${JSON.stringify(event)}\n`, 'utf8');
+  async _appendEvent(event) {
+    await fs.promises.appendFile(this.eventsPath, `${JSON.stringify(event)}\n`, 'utf8');
     this._appendCount += 1;
     if (this._appendCount >= this._rotationCheckInterval) {
       this._appendCount = 0;
-      this._maybeRotateJSONL();
+      await this._maybeRotateJSONL();
     }
   }
 
-  _maybeRotateJSONL() {
+  async _maybeRotateJSONL() {
     try {
-      if (!fs.existsSync(this.eventsPath)) return;
-      const content = fs.readFileSync(this.eventsPath, 'utf8');
+      const content = await fs.promises.readFile(this.eventsPath, 'utf8');
       const lines = content.split('\n').filter(Boolean);
       if (lines.length <= this._maxEventLines) return;
       const kept = lines.slice(-this._rotateKeepLines).join('\n') + '\n';
       const tmp = `${this.eventsPath}.tmp`;
-      fs.writeFileSync(tmp, kept, 'utf8');
-      fs.renameSync(tmp, this.eventsPath);
+      await fs.promises.writeFile(tmp, kept, 'utf8');
+      await fs.promises.rename(tmp, this.eventsPath);
       console.log(`[MetaAwarenessTracker] Rotated JSONL: kept ${this._rotateKeepLines} of ${lines.length} lines`);
     } catch (err) {
+      if (err.code === 'ENOENT') return;
       console.warn(`[MetaAwarenessTracker] JSONL rotation failed (non-fatal): ${err.message}`);
     }
   }
 
-  _readEvents({ sinceDays = 30, sessionId } = {}) {
-    if (!fs.existsSync(this.eventsPath)) return [];
-
+  async _readEvents({ sinceDays = 30, sessionId } = {}) {
     const cutoff = Date.now() - sinceDays * 24 * 60 * 60 * 1000;
-    const lines = fs.readFileSync(this.eventsPath, 'utf8').split(/\r?\n/).filter(Boolean);
+    let raw;
+    try {
+      raw = await fs.promises.readFile(this.eventsPath, 'utf8');
+    } catch (err) {
+      if (err.code === 'ENOENT') return [];
+      throw err;
+    }
+    const lines = raw.split(/\r?\n/).filter(Boolean);
     const events = [];
     for (const line of lines) {
       const parsed = safeJsonParse(line);
@@ -304,14 +322,11 @@ class MetaAwarenessTracker {
     return events;
   }
 
-  _readRollups() {
+  async _readRollups() {
     if (this._rollupCache !== null) return this._rollupCache;
-    if (!fs.existsSync(this.rollupsPath)) {
-      this._rollupCache = initializeRollups();
-      return this._rollupCache;
-    }
     try {
-      const parsed = JSON.parse(fs.readFileSync(this.rollupsPath, 'utf8'));
+      const raw = await fs.promises.readFile(this.rollupsPath, 'utf8');
+      const parsed = JSON.parse(raw);
       this._rollupCache = (parsed && typeof parsed === 'object') ? parsed : initializeRollups();
     } catch {
       this._rollupCache = initializeRollups();
@@ -328,29 +343,31 @@ class MetaAwarenessTracker {
     if (this._flushTimer) return;
     this._flushTimer = setTimeout(() => {
       this._flushTimer = null;
-      this._flushNow();
+      this._flushNow().catch((err) => {
+        console.warn(`[MetaAwarenessTracker] Async flush error: ${err.message}`);
+      });
     }, this._flushDebounceMs);
     if (this._flushTimer.unref) this._flushTimer.unref();
   }
 
-  _flushNow() {
+  async _flushNow() {
     if (!this._rollupCache) return;
     try {
       const tmp = `${this.rollupsPath}.tmp`;
-      fs.writeFileSync(tmp, JSON.stringify(this._rollupCache, null, 2), 'utf8');
-      fs.renameSync(tmp, this.rollupsPath);
+      await fs.promises.writeFile(tmp, JSON.stringify(this._rollupCache, null, 2), 'utf8');
+      await fs.promises.rename(tmp, this.rollupsPath);
     } catch (err) {
       console.warn(`[MetaAwarenessTracker] Failed to flush rollups: ${err.message}`);
     }
   }
 
   /** Force immediate flush — call before process exit to ensure last events are persisted. */
-  flush() {
+  async flush() {
     if (this._flushTimer) {
       clearTimeout(this._flushTimer);
       this._flushTimer = null;
     }
-    this._flushNow();
+    await this._flushNow();
   }
 
   _compositeConfidence(composite = {}) {

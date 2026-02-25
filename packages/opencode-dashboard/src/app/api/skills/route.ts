@@ -94,6 +94,14 @@ function decodeTaskSpecificSkills(raw: any): any[] {
   return decoded;
 }
 
+function safeParseJson(raw: string): any | null {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 // Demo data when no real data exists
 const demoData = {
   version: '1.0.0',
@@ -145,7 +153,20 @@ export async function GET() {
     
     // Try to load real skill data
     try {
-      const skillData = JSON.parse(fs.readFileSync(skillsPath, 'utf-8'));
+      const raw = fs.readFileSync(skillsPath, 'utf-8');
+      const skillData = safeParseJson(raw);
+      if (!skillData) {
+        console.error('[Skills API] Parse error: invalid JSON');
+        return NextResponse.json(
+          {
+            ...demoData,
+            data_fidelity: 'degraded',
+            status_reason: 'malformed_state',
+            warning: 'Using fallback data - engine unavailable'
+          },
+          { status: 503 }
+        );
+      }
       const generalSkills = decodeGeneralSkills(skillData.skillBank?.general);
       const taskSpecificSkills = decodeTaskSpecificSkills(skillData.skillBank?.taskSpecific);
       const failureHistory = Array.isArray(skillData.evolutionEngine?.failure_history)

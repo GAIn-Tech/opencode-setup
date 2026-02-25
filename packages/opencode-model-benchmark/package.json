@@ -9,7 +9,8 @@
     "benchmark": "node src/index.js"
   },
   "dependencies": {
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "pyodide": "^0.26.1"
   },
   "keywords": ["opencode", "model", "benchmark", "evaluation"],
   "author": "OpenCode",

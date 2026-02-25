@@ -1,8 +1,10 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import crypto from 'crypto';
 import { NextResponse } from 'next/server';
+import { collectCorrelationData } from './lib/correlation.js';
+import { normalizeEvents, persistEvents, summarizeEventProvenance } from './lib/event-store.js';
+import { evaluatePolicyEngine } from './lib/policy-engine.js';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,27 +52,6 @@ type EventRecord = {
     signer?: string;
   };
 };
-
-function canonicalStringify(value: unknown): string {
-  if (value === null || typeof value !== 'object') {
-    return JSON.stringify(value);
-  }
-  if (Array.isArray(value)) {
-    return `[${value.map((item) => canonicalStringify(item)).join(',')}]`;
-  }
-  const obj = value as Record<string, unknown>;
-  const keys = Object.keys(obj).sort();
-  const parts = keys.map((key) => `${JSON.stringify(key)}:${canonicalStringify(obj[key])}`);
-  return `{${parts.join(',')}}`;
-}
-
-function sha256(input: string): string {
-  return crypto.createHash('sha256').update(input).digest('hex');
-}
-
-function hmacSha256(input: string, key: string): string {
-  return crypto.createHmac('sha256', key).update(input).digest('hex');
-}
 
 type SigningMode = 'off' | 'allow-unsigned' | 'require-signed' | 'require-valid-signature';
 
@@ -259,137 +240,35 @@ export async function GET(request: Request) {
     const fallbackConfigProject = path.join(repoRoot, 'opencode-config', 'rate-limit-fallback.json');
     const fallbackConfigRoot = path.join(repoRoot, 'rate-limit-fallback.json');
 
-    const sessions = new Set<string>();
-    const model = new Map<string, number>();
-    const skill = new Map<string, number>();
-    const tool = new Map<string, number>();
-    const agent = new Map<string, number>();
-    const termination = new Map<string, number>();
-    const modelTokens = new Map<string, number>();
-    const skillTokens = new Map<string, number>();
-    const toolTokens = new Map<string, number>();
-    const loopsBySession = new Map<string, number>();
-    const perMessageTokens: number[] = [];
-
-    let totalMessages = 0;
-    let delegatedMessages = 0;
-    let traces = 0;
-    let parentSpans = 0;
-    let errorMentions = 0;
-    let signedCustomEvents = 0;
-    let validSignedCustomEvents = 0;
-    let withTokens = 0;
-    let inTok = 0;
-    let outTok = 0;
-    let totalTok = 0;
-
-    if (fs.existsSync(messagesPath)) {
-      const dirs = fs.readdirSync(messagesPath).filter((entry) => {
-        try {
-          const stat = fs.statSync(path.join(messagesPath, entry));
-          return stat.isDirectory() && stat.mtimeMs >= cutoffMs;
-        } catch {
-          return false;
-        }
-      });
-
-      for (const sessionId of dirs) {
-        sessions.add(sessionId);
-        let maxLoop = 0;
-        const files = fs.readdirSync(path.join(messagesPath, sessionId)).filter((f) => f.endsWith('.json'));
-        for (const fileName of files) {
-          try {
-            const raw = JSON.parse(fs.readFileSync(path.join(messagesPath, sessionId, fileName), 'utf-8')) as any;
-            totalMessages += 1;
-            const a = String(raw?.agent || '').trim();
-            if (a) {
-              agent.set(a, (agent.get(a) ?? 0) + 1);
-              if (!/^(main|assistant|system)$/i.test(a)) delegatedMessages += 1;
-            }
-            const m = typeof raw?.model === 'string' ? raw.model : String(raw?.model?.modelID || raw?.model?.id || '').trim();
-            if (m) model.set(m, (model.get(m) ?? 0) + 1);
-            const messageSkills = arr<any>(raw?.skills)
-              .map((s) => (typeof s === 'string' ? s : String(s?.name || s?.id || '').trim()))
-              .filter(Boolean);
-            for (const id of messageSkills) {
-              skill.set(id, (skill.get(id) ?? 0) + 1);
-            }
-
-            const messageTools = arr<any>(raw?.tools)
-              .map((t) => (typeof t === 'string' ? t : String(t?.name || t?.id || '').trim()))
-              .filter(Boolean);
-            for (const id of messageTools) {
-              tool.set(id, (tool.get(id) ?? 0) + 1);
-            }
-            if (raw?.trace_id || raw?.traceId || raw?.traceID) traces += 1;
-            if ((raw?.span_id || raw?.spanId) && (raw?.parent_span_id || raw?.parentSpanId)) parentSpans += 1;
-            const usage = raw?.usage || raw?.tokenUsage || {};
-            const input = n(usage?.input_tokens ?? usage?.inputTokens ?? raw?.input_tokens ?? raw?.prompt_tokens, 0);
-            const output = n(usage?.output_tokens ?? usage?.outputTokens ?? raw?.output_tokens ?? raw?.completion_tokens, 0);
-            const total = n(usage?.total_tokens ?? usage?.totalTokens ?? raw?.total_tokens, input + output);
-            if (total > 0) {
-              withTokens += 1;
-              inTok += input;
-              outTok += output;
-              totalTok += total;
-              perMessageTokens.push(total);
-              if (m) modelTokens.set(m, (modelTokens.get(m) ?? 0) + total);
-              const skillTokenShare = messageSkills.length > 0 ? total / messageSkills.length : 0;
-              const toolTokenShare = messageTools.length > 0 ? total / messageTools.length : 0;
-              for (const name of messageSkills) {
-                skillTokens.set(name, (skillTokens.get(name) ?? 0) + skillTokenShare);
-              }
-              for (const name of messageTools) {
-                toolTokens.set(name, (toolTokens.get(name) ?? 0) + toolTokenShare);
-              }
-            }
-            const loopIndex = Math.max(n(raw?.iteration_index, 0), n(raw?.iterationIndex, 0), n(raw?.loopIndex, 0), n(raw?.attempt, 0));
-            const hasLoopKeyword = /\b(loop|retry|replan|iterate|attempt)\b/.test(JSON.stringify(raw).toLowerCase());
-            if (loopIndex > 0 || hasLoopKeyword) maxLoop = Math.max(maxLoop, loopIndex > 0 ? loopIndex : 1);
-            const reason = String(raw?.termination_reason || raw?.terminationReason || raw?.finish_reason || raw?.stop_reason || '').trim();
-            if (reason) termination.set(reason, (termination.get(reason) ?? 0) + 1);
-            if (/\b(error|failed|exception|timeout|denied|unreachable)\b/.test(JSON.stringify(raw).toLowerCase())) errorMentions += 1;
-          } catch {
-            // ignore malformed records
-          }
-        }
-        loopsBySession.set(sessionId, maxLoop);
-      }
-    }
-
-    const customEvents = (readJson<{ events?: EventRecord[] }>(customEventsPath, { events: [] }).events || []).filter((event) => {
-      if (!event.timestamp) return true;
-      const ts = Date.parse(event.timestamp);
-      return Number.isNaN(ts) || ts >= cutoffMs;
+    const {
+      sessions,
+      model,
+      skill,
+      tool,
+      agent,
+      termination,
+      modelTokens,
+      skillTokens,
+      toolTokens,
+      loopsBySession,
+      perMessageTokens,
+      totalMessages,
+      delegatedMessages,
+      traces,
+      parentSpans,
+      errorMentions,
+      signedCustomEvents,
+      validSignedCustomEvents,
+      withTokens,
+      inTok,
+      outTok,
+      totalTok,
+      customEvents,
+    } = collectCorrelationData({
+      messagesPath,
+      customEventsPath,
+      cutoffMs,
     });
-    for (const event of customEvents) {
-      if (event.trace_id) traces += 1;
-      if (event.span_id && event.parent_span_id) parentSpans += 1;
-      if (event.model) model.set(event.model, (model.get(event.model) ?? 0) + 1);
-      if (event.skill) skill.set(event.skill, (skill.get(event.skill) ?? 0) + 1);
-      if (event.tool) tool.set(event.tool, (tool.get(event.tool) ?? 0) + 1);
-      const customTotal = n(event.total_tokens, n(event.input_tokens, 0) + n(event.output_tokens, 0));
-      if (customTotal > 0) {
-        withTokens += 1;
-        inTok += n(event.input_tokens, 0);
-        outTok += n(event.output_tokens, 0);
-        totalTok += customTotal;
-        perMessageTokens.push(customTotal);
-        if (event.model) modelTokens.set(event.model, (modelTokens.get(event.model) ?? 0) + customTotal);
-        if (event.skill) skillTokens.set(event.skill, (skillTokens.get(event.skill) ?? 0) + customTotal);
-        if (event.tool) toolTokens.set(event.tool, (toolTokens.get(event.tool) ?? 0) + customTotal);
-      }
-      if (event.termination_reason) {
-        termination.set(event.termination_reason, (termination.get(event.termination_reason) ?? 0) + 1);
-      }
-      const signature = String(event?.provenance?.signature || '').trim();
-      if (signature) {
-        signedCustomEvents += 1;
-        if (event?.provenance?.signature_valid === true) {
-          validSignedCustomEvents += 1;
-        }
-      }
-    }
 
     const universe = countSkillUniverse();
     const rl = readJson<any>(skillRlPath, {});
@@ -474,128 +353,41 @@ export async function GET(request: Request) {
     const firstProviderRoot = parseFallbackFirstProvider(fallbackConfigRoot);
     const fallbackOrderAligned = !firstProviderProject || !firstProviderRoot || firstProviderProject === firstProviderRoot;
 
-    const integrationGaps: IntegrationGap[] = [];
-    if (hasConfigValidationTodo) {
-      integrationGaps.push({
-        id: 'config-validation-runtime',
-        severity: 'critical',
-        domain: 'governance',
-        title: 'Runtime config validation remains incomplete',
-        detail: 'Core orchestration config can still load without strict schema enforcement.',
-        evidence: 'opencode-config/docs/configuration-precedence.md still contains unchecked config-validation TODO.',
-        recommended_next_step: 'Enforce schema validation at startup and fail-fast on invalid config.',
-      });
-    }
-    if (!hasPluginLifecycle) {
-      integrationGaps.push({
-        id: 'plugin-lifecycle-supervision',
-        severity: 'critical',
-        domain: 'plugins',
-        title: 'No dedicated plugin lifecycle supervisor detected',
-        detail: 'Plugin init/health/degrade/recover behaviors are not centralized.',
-        evidence: 'packages/opencode-plugin-lifecycle not found.',
-        recommended_next_step: 'Introduce a lifecycle manager with heartbeat, dependency checks, and failure isolation.',
-      });
-    }
-    if (pluginQuarantineActive > 0 || pluginCrashLike > 0) {
-      integrationGaps.push({
-        id: 'plugin-quarantine-pressure',
-        severity: 'high',
-        domain: 'plugins',
-        title: 'Plugin quarantine/crash pressure detected',
-        detail: 'Runtime plugin state includes quarantined or crash-like entries.',
-        evidence: `quarantine_active=${pluginQuarantineActive}, crash_like=${pluginCrashLike}`,
-        recommended_next_step: 'Stabilize failing plugins and enforce quarantine reason-code review before re-enable.',
-      });
-    }
-    if (strategyBypassActive > 0) {
-      integrationGaps.push({
-        id: 'strategy-bypass-active',
-        severity: 'high',
-        domain: 'telemetry',
-        title: 'Strategy auto-bypass is currently active',
-        detail: 'One or more orchestration strategies are under cooldown due to repeated failures.',
-        evidence: `active_bypass=${strategyBypassActive}, unhealthy=${strategyUnhealthy}`,
-        recommended_next_step: 'Stabilize failing strategy and verify cooldown recovery before strict policy promotions.',
-      });
-    }
-    if (!retrievalQuality || retrievalSampleSize <= 0 || retrievalMapAtK < 0.5 || retrievalGroundedRecall < 0.6) {
-      integrationGaps.push({
-        id: 'retrieval-quality-weak',
-        severity: 'medium',
-        domain: 'learning-loop',
-        title: 'Retrieval quality baseline is weak or missing',
-        detail: 'MAP@K / grounded recall metrics are below target or not yet generated.',
-        evidence: `map_at_k=${retrievalMapAtK}, grounded_recall=${retrievalGroundedRecall}, sample_size=${retrievalSampleSize}`,
-        recommended_next_step: 'Run fg11 retrieval evaluation and improve retrieval ranking quality before policy promotions.',
-      });
-    }
-    if (!hasPluginDependencyGraph) {
-      integrationGaps.push({
-        id: 'plugin-dependency-graph',
-        severity: 'high',
-        domain: 'plugins',
-        title: 'Plugin dependency graph is missing',
-        detail: 'Inter-plugin contracts and startup order are not machine-verifiable.',
-        evidence: 'opencode-config/plugin-dependency-graph.json not found.',
-        recommended_next_step: 'Add dependency graph + CI validation for cycles and missing deps.',
-      });
-    }
-    if (!hasPluginConfigSchema || !hasPluginEventSchema) {
-      integrationGaps.push({
-        id: 'plugin-schema-governance',
-        severity: 'high',
-        domain: 'plugins',
-        title: 'Plugin config/event schemas are not fully governed',
-        detail: 'Without canonical schema contracts, plugin telemetry and control-plane behavior drift over time.',
-        evidence: `plugin-config-schema=${hasPluginConfigSchema}, plugin-event-schema=${hasPluginEventSchema}`,
-        recommended_next_step: 'Define versioned plugin config + event schemas and enforce on ingest.',
-      });
-    }
-    if (!fallbackOrderAligned) {
-      integrationGaps.push({
-        id: 'fallback-policy-drift',
-        severity: 'high',
-        domain: 'fallback',
-        title: 'Fallback ordering differs across configs',
-        detail: 'Different fallback roots increase nondeterministic model selection behavior.',
-        evidence: `first provider mismatch: project=${firstProviderProject || 'n/a'} root=${firstProviderRoot || 'n/a'}`,
-        recommended_next_step: 'Consolidate fallback source-of-truth and auto-generate secondary configs.',
-      });
-    }
-    if (!hasCiDriftGate) {
-      integrationGaps.push({
-        id: 'ci-drift-gate',
-        severity: 'medium',
-        domain: 'ci',
-        title: 'Config drift gate is not enforced in CI',
-        detail: 'Manual sync processes can miss silent divergence between runtime and repo configs.',
-        evidence: '.github/workflows/config-drift-check.yml not found.',
-        recommended_next_step: 'Add CI drift check for config schema, model policies, and fallback files.',
-      });
-    }
-
-    const configCoverageSignals = [hasConfigSchema, hasPluginConfigSchema, hasPluginEventSchema, hasPluginDependencyGraph];
-    const governanceScore = Math.round((configCoverageSignals.filter(Boolean).length / configCoverageSignals.length) * 100);
-    const pluginReadinessSignals = [
+    const {
+      integrationGaps,
+      governanceScore,
+      pluginScore,
+      observabilityScore,
+      adaptationScore,
+      closedLoopScore,
+      frontierScore,
+    } = evaluatePolicyEngine({
+      hasConfigValidationTodo,
       hasPluginLifecycle,
-      pluginsConfigured > 0,
-      pluginsDiscovered > 0,
-      pluginsConfigured <= pluginsDiscovered || pluginsDiscovered === 0,
-      pluginQuarantineActive === 0,
-      pluginCrashLike === 0,
-      strategyBypassActive === 0,
-    ];
-    const pluginScore = Math.round((pluginReadinessSignals.filter(Boolean).length / pluginReadinessSignals.length) * 100);
-    const observabilityScore = Math.round((signals[4].value * 0.6 + signals[3].value * 0.2 + signals[2].value * 0.2));
-    const adaptationScore = Math.round(
-      Math.max(0, Math.min(100, ((Number(rlSuccessAvg.toFixed(3)) * 100) * 0.45) + (Math.min(100, pct(posTotal, Math.max(antiTotal + posTotal, 1))) * 0.3) + (signals[1].value * 0.25)))
-    );
-    const closedLoopScore = Math.round((signals[4].value * 0.5 + signals[0].value * 0.3 + signals[2].value * 0.2));
-
-    const frontierScore = Math.round(
-      governanceScore * 0.2 + pluginScore * 0.2 + observabilityScore * 0.2 + adaptationScore * 0.2 + closedLoopScore * 0.2
-    );
+      hasPluginDependencyGraph,
+      hasPluginConfigSchema,
+      hasPluginEventSchema,
+      hasConfigSchema,
+      hasCiDriftGate,
+      fallbackOrderAligned,
+      firstProviderProject,
+      firstProviderRoot,
+      pluginQuarantineActive,
+      pluginCrashLike,
+      strategyBypassActive,
+      strategyUnhealthy,
+      retrievalQuality,
+      retrievalMapAtK,
+      retrievalGroundedRecall,
+      retrievalSampleSize,
+      pluginsConfigured,
+      pluginsDiscovered,
+      score,
+      signals,
+      rlSuccessAvg,
+      antiTotal,
+      posTotal,
+    });
 
     const hasMessages = fs.existsSync(messagesPath);
     const hasSkillRl = fs.existsSync(skillRlPath);
@@ -797,89 +589,12 @@ export async function POST(request: Request) {
     if (!fs.existsSync(op)) fs.mkdirSync(op, { recursive: true });
 
     const existing = readJson<{ version?: string; events?: EventRecord[] }>(filePath, { version: '1.0.0', events: [] });
-    const normalizationDiagnostics = {
-      unsigned: 0,
-      invalid_signature: 0,
-      accepted_signed: 0,
-      accepted_unsigned: 0,
-    };
-
-    const normalized = incoming
-      .map((event) => ({
-        ...event,
-        timestamp: event.timestamp || new Date().toISOString(),
-        input_tokens: n(event.input_tokens, 0),
-        output_tokens: n(event.output_tokens, 0),
-        total_tokens: n(event.total_tokens, n(event.input_tokens, 0) + n(event.output_tokens, 0)),
-        iteration_index: n(event.iteration_index, 0),
-      }))
-      .map((event) => {
-      const envelope = {
-        timestamp: event.timestamp,
-        trace_id: event.trace_id,
-        span_id: event.span_id,
-        parent_span_id: event.parent_span_id,
-        model: event.model,
-        skill: event.skill,
-        tool: event.tool,
-        input_tokens: event.input_tokens,
-        output_tokens: event.output_tokens,
-        total_tokens: event.total_tokens,
-        iteration_index: event.iteration_index,
-        termination_reason: event.termination_reason,
-      };
-
-      const eventHash = sha256(canonicalStringify(envelope));
-      const incomingSignature = String(event?.provenance?.signature || '').trim();
-      const computedSignature = signingKey ? hmacSha256(eventHash, signingKey) : '';
-      const signatureToStore = incomingSignature || computedSignature;
-      const signatureValid = signingKey
-        ? Boolean(signatureToStore) && signatureToStore === computedSignature
-        : Boolean(signatureToStore);
-
-      if (!signatureToStore) {
-        normalizationDiagnostics.unsigned += 1;
-      } else if (!signatureValid) {
-        normalizationDiagnostics.invalid_signature += 1;
-      }
-
-      return {
-        ...event,
-        provenance: {
-          source: event?.provenance?.source || defaultSource,
-          event_hash: eventHash,
-          signature: signatureToStore || undefined,
-          signature_valid: signatureValid,
-          signing_algorithm: signatureToStore ? (signingKey ? 'hmac-sha256' : 'external') : 'none',
-          received_at: new Date().toISOString(),
-          signer: signingKey ? 'opencode-local' : undefined,
-        },
-      };
-      })
-      .filter((event) => {
-        const hasSignature = Boolean(event?.provenance?.signature);
-        const validSignature = event?.provenance?.signature_valid === true;
-
-        if (signingMode === 'off' || signingMode === 'allow-unsigned') {
-          if (hasSignature) normalizationDiagnostics.accepted_signed += 1;
-          else normalizationDiagnostics.accepted_unsigned += 1;
-          return true;
-        }
-
-        if (signingMode === 'require-signed') {
-          if (!hasSignature) return false;
-          normalizationDiagnostics.accepted_signed += 1;
-          return true;
-        }
-
-        if (signingMode === 'require-valid-signature') {
-          if (!hasSignature || !validSignature) return false;
-          normalizationDiagnostics.accepted_signed += 1;
-          return true;
-        }
-
-        return true;
-      });
+    const { normalized, normalizationDiagnostics } = normalizeEvents({
+      incoming,
+      signingKey,
+      signingMode,
+      defaultSource,
+    });
 
     if (normalized.length === 0) {
       return NextResponse.json(
@@ -894,11 +609,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const events = body?.replace ? normalized : [...arr<EventRecord>(existing.events), ...normalized].slice(-10000);
-    fs.writeFileSync(filePath, JSON.stringify({ version: existing.version || '1.0.0', updated_at: new Date().toISOString(), events }, null, 2));
-
-    const signed = normalized.filter((event) => Boolean(event?.provenance?.signature)).length;
-    const valid = normalized.filter((event) => event?.provenance?.signature_valid === true).length;
+    const events = persistEvents({
+      filePath,
+      version: existing.version,
+      existingEvents: arr<EventRecord>(existing.events),
+      replace: Boolean(body?.replace),
+      normalized,
+    });
 
     return NextResponse.json({
       message: body?.replace ? 'Events replaced' : 'Events ingested',
@@ -906,12 +623,7 @@ export async function POST(request: Request) {
       rejected: incoming.length - normalized.length,
       total_events: events.length,
       signing_mode: signingMode,
-      provenance: {
-        signing_enabled: Boolean(signingKey),
-        signed_events: signed,
-        valid_signed_events: valid,
-        diagnostics: normalizationDiagnostics,
-      },
+      provenance: summarizeEventProvenance({ normalized, signingKey, diagnostics: normalizationDiagnostics }),
     });
   } catch (error) {
     return NextResponse.json({ message: 'Failed to ingest events', error: String(error) }, { status: 500 });

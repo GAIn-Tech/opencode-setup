@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { toPng } from 'html-to-image';
 import { InteractiveKnowledgeGraph } from '@/components/dashboard/InteractiveKnowledgeGraph';
 
 export default function GraphPage() {
@@ -21,6 +22,28 @@ export default function GraphPage() {
     setIsFullscreen(false);
   };
 
+  const exportDot = async () => {
+    const response = await fetch('/api/memory-graph?format=dot');
+    if (!response.ok) return;
+    const dot = await response.text();
+    const blob = new Blob([dot], { type: 'text/vnd.graphviz' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'memory-graph.dot';
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportPng = async () => {
+    if (!containerRef.current) return;
+    const dataUrl = await toPng(containerRef.current, { cacheBust: true });
+    const anchor = document.createElement('a');
+    anchor.href = dataUrl;
+    anchor.download = 'memory-graph.png';
+    anchor.click();
+  };
+
   useEffect(() => {
     const onFullscreenChange = () => {
       setIsFullscreen(Boolean(document.fullscreenElement));
@@ -38,13 +61,29 @@ export default function GraphPage() {
           <p className="text-sm text-zinc-400">Dedicated full-frame graph workspace with drag/zoom and live updates.</p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => void toggleFullscreen()}
-          className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-800"
-        >
-          {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => void exportDot()}
+            className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs text-zinc-200 hover:bg-zinc-800"
+          >
+            Export DOT
+          </button>
+          <button
+            type="button"
+            onClick={() => void exportPng()}
+            className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs text-zinc-200 hover:bg-zinc-800"
+          >
+            Export PNG
+          </button>
+          <button
+            type="button"
+            onClick={() => void toggleFullscreen()}
+            className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300 hover:bg-emerald-500/20"
+          >
+            {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+          </button>
+        </div>
       </div>
 
       <div

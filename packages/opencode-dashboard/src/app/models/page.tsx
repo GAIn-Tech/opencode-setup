@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { LifecycleBadge, StateTransitionModal, AuditLogViewer, type LifecycleState } from '@/components/lifecycle';
 
 const INTENTS = [
   'simple_read',
@@ -147,6 +148,11 @@ export default function ModelsPage() {
   const [providerFilter, setProviderFilter] = useState<string>('all');
   const [focusedLayer, setFocusedLayer] = useState<LayerName | 'all'>('all');
   const [sortMode, setSortMode] = useState<SortMode>('provider');
+  
+  // Lifecycle management state
+  const [lifecycleModalOpen, setLifecycleModalOpen] = useState(false);
+  const [auditLogModalOpen, setAuditLogModalOpen] = useState(false);
+  const [selectedModelForLifecycle, setSelectedModelForLifecycle] = useState<{ id: string; state: LifecycleState } | null>(null);
 
   const modelMap = (policies?.models || {}) as ModelMap;
   const modelIds = useMemo(() => Object.keys(modelMap), [modelMap]);
@@ -478,7 +484,42 @@ export default function ModelsPage() {
           onClose={() => setEditingCell(null)}
           onSave={(selected) => void saveMatrixCell(editingCell, selected)}
           isSaving={isSaving}
+          onManageLifecycle={(modelId, state) => {
+            setSelectedModelForLifecycle({ id: modelId, state });
+            setLifecycleModalOpen(true);
+          }}
+          onViewAudit={(modelId, state) => {
+            setSelectedModelForLifecycle({ id: modelId, state });
+            setAuditLogModalOpen(true);
+          }}
         />
+      )}
+
+      {/* Lifecycle Management Modals */}
+      {selectedModelForLifecycle && (
+        <>
+          <StateTransitionModal
+            isOpen={lifecycleModalOpen}
+            onClose={() => {
+              setLifecycleModalOpen(false);
+              setSelectedModelForLifecycle(null);
+            }}
+            modelId={selectedModelForLifecycle.id}
+            currentState={selectedModelForLifecycle.state}
+            onTransitionComplete={() => {
+              void loadData(true); // Refresh data after transition
+            }}
+          />
+          
+          <AuditLogViewer
+            isOpen={auditLogModalOpen}
+            onClose={() => {
+              setAuditLogModalOpen(false);
+              setSelectedModelForLifecycle(null);
+            }}
+            modelId={selectedModelForLifecycle.id}
+          />
+        </>
       )}
     </div>
   );
@@ -492,6 +533,8 @@ function ModelSelectionModal({
   onClose,
   onSave,
   isSaving,
+  onManageLifecycle,
+  onViewAudit,
 }: {
   cell: MatrixCellRef;
   allModels: Array<{ id: string; provider: string; name: string }>;
@@ -500,10 +543,33 @@ function ModelSelectionModal({
   onClose: () => void;
   onSave: (selected: string[]) => void;
   isSaving: boolean;
+  onManageLifecycle?: (modelId: string, state: LifecycleState) => void;
+  onViewAudit?: (modelId: string, state: LifecycleState) => void;
 }) {
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<string[]>(selectedModels);
   const [providerFilter, setProviderFilter] = useState<string>(initialProviderFilter);
+  const [lifecycleStates, setLifecycleStates] = useState<Record<string, LifecycleState>>({});
+
+  // Fetch lifecycle states for all models
+  useEffect(() => {
+    const fetchLifecycleStates = async () => {
+      const states: Record<string, LifecycleState> = {};
+      for (const model of allModels) {
+        try {
+          const response = await fetch(`/api/models/lifecycle?modelId=${encodeURIComponent(model.id)}`);
+          if (response.ok) {
+            const data = await response.json();
+            states[model.id] = data.state || 'detected';
+          }
+        } catch {
+          // Ignore errors, model will show without lifecycle badge
+        }
+      }
+      setLifecycleStates(states);
+    };
+    void fetchLifecycleStates();
+  }, [allModels]);
 
   const providers = useMemo(() => {
     const set = new Set<string>();
@@ -588,20 +654,58 @@ function ModelSelectionModal({
           <div className="max-h-[320px] space-y-2 overflow-y-auto rounded-md border border-zinc-800 bg-zinc-900/30 p-2">
             {filteredModels.map((model) => {
               const checked = selected.includes(model.id);
+              const lifecycleState = lifecycleStates[model.id];
               return (
-                <button
+                <div
                   key={model.id}
-                  type="button"
-                  onClick={() => toggleModel(model.id)}
-                  className={`w-full rounded-md border px-3 py-2 text-left transition-colors ${
+                  className={`rounded-md border px-3 py-2 transition-colors ${
                     checked
-                      ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'
-                      : 'border-zinc-800 bg-zinc-900 text-zinc-200 hover:bg-zinc-800'
+                      ? 'border-emerald-500/50 bg-emerald-500/10'
+                      : 'border-zinc-800 bg-zinc-900'
                   }`}
                 >
-                  <div className="text-sm font-medium">{model.name}</div>
-                  <div className="mt-0.5 text-xs text-zinc-400">{model.provider} - {model.id}</div>
-                </button>
+                  <div className="flex items-start justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => toggleModel(model.id)}
+                      className="flex-1 text-left"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={`text-sm font-medium ${checked ? 'text-emerald-300' : 'text-zinc-200'}`}>
+                          {model.name}
+                        </div>
+                        {lifecycleState && <LifecycleBadge state={lifecycleState} />}
+                      </div>
+                      <div className="mt-0.5 text-xs text-zinc-400">{model.provider} - {model.id}</div>
+                    </button>
+                    {lifecycleState && onManageLifecycle && onViewAudit && (
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onManageLifecycle(model.id, lifecycleState);
+                          }}
+                          className="px-2 py-1 text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded transition-colors"
+                          title="Manage lifecycle"
+                        >
+                          Manage
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onViewAudit(model.id, lifecycleState);
+                          }}
+                          className="px-2 py-1 text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded transition-colors"
+                          title="View audit log"
+                        >
+                          Audit
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               );
             })}
             {filteredModels.length === 0 && <div className="px-2 py-6 text-center text-sm text-zinc-500">No models found.</div>}

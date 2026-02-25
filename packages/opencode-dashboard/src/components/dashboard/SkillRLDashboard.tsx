@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 interface Skill {
   name: string;
@@ -35,7 +35,8 @@ export function SkillRLDashboard() {
   const [data, setData] = useState<SkillData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'general' | 'task' | 'evolution'>('general');
+  const [viewMode, setViewMode] = useState<'general' | 'task' | 'evolution' | 'ab' | 'manage'>('general');
+  const [promotionStatus, setPromotionStatus] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -92,6 +93,34 @@ export function SkillRLDashboard() {
     return 'text-red-400';
   };
 
+  const allSkills = useMemo(() => {
+    const general = data?.general_skills || [];
+    const task = data?.task_skills || [];
+    return [...general, ...task];
+  }, [data]);
+
+  const topSkills = useMemo(() => {
+    return allSkills
+      .slice()
+      .sort((a: Skill, b: Skill) => b.success_rate - a.success_rate)
+      .slice(0, 2);
+  }, [allSkills]);
+
+  const submitPromotion = useCallback(async (skill: string, action: 'promote' | 'demote') => {
+    try {
+      setPromotionStatus('Submitting...');
+      const response = await fetch('/api/skills/promotions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ skill, action }),
+      });
+      if (!response.ok) throw new Error('Failed to submit');
+      setPromotionStatus(`${action === 'promote' ? 'Promoted' : 'Demoted'} ${skill}`);
+    } catch (err) {
+      setPromotionStatus(err instanceof Error ? err.message : 'Failed to submit');
+    }
+  }, []);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -132,6 +161,8 @@ export function SkillRLDashboard() {
           { id: 'general', label: 'General Skills', icon: '🌟' },
           { id: 'task', label: 'Task-Specific', icon: '📋' },
           { id: 'evolution', label: 'Evolution History', icon: '📈' },
+          { id: 'ab', label: 'A/B Compare', icon: '🧪' },
+          { id: 'manage', label: 'Promote/Demote', icon: '⚙️' },
         ] as const).map(mode => (
           <button
             key={mode.id}
@@ -219,6 +250,72 @@ export function SkillRLDashboard() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {viewMode === 'ab' && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium text-zinc-200">🧪 A/B Skill Comparison</h3>
+          {topSkills.length < 2 ? (
+            <div className="text-sm text-zinc-400">Not enough skills to compare.</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {topSkills.map((skill) => (
+                <div key={skill.name} className="bg-zinc-800 p-4 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-zinc-200">{skill.name}</div>
+                      {skill.task_type ? (
+                        <div className="text-xs text-zinc-500">Task: {skill.task_type}</div>
+                      ) : null}
+                    </div>
+                    <div className={`text-xl font-bold ${getSuccessColor(skill.success_rate)}`}>
+                      {(skill.success_rate * 100).toFixed(0)}%
+                    </div>
+                  </div>
+                  <div className="mt-3 text-sm text-zinc-400">
+                    Usage: {skill.usage_count}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {viewMode === 'manage' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium text-zinc-200">⚙️ Manual Skill Promotion</h3>
+            {promotionStatus ? <span className="text-xs text-zinc-400">{promotionStatus}</span> : null}
+          </div>
+          <div className="space-y-2">
+            {allSkills.slice(0, 12).map((skill) => (
+              <div key={skill.name} className="bg-zinc-800 p-3 rounded-lg flex items-center justify-between">
+                <div>
+                  <div className="font-medium text-zinc-200">{skill.name}</div>
+                  <div className="text-xs text-zinc-500">{skill.usage_count} uses</div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => void submitPromotion(skill.name, 'promote')}
+                    className="rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-xs text-emerald-300 hover:bg-emerald-500/20"
+                  >
+                    Promote
+                  </button>
+                  <button
+                    onClick={() => void submitPromotion(skill.name, 'demote')}
+                    className="rounded border border-red-500/30 bg-red-500/10 px-2 py-1 text-xs text-red-300 hover:bg-red-500/20"
+                  >
+                    Demote
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="text-xs text-zinc-500">
+            Promotions are recorded in <code className="bg-zinc-800 px-1 rounded">~/.opencode/skill-promotions.json</code>.
+          </div>
         </div>
       )}
 

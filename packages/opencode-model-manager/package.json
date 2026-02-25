@@ -1,0 +1,16 @@
+{
+  "name": "opencode-model-manager",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./lifecycle": "./src/lifecycle/index.js",
+    "./lifecycle/state-machine": "./src/lifecycle/state-machine.js",
+    "./lifecycle/audit-logger": "./src/lifecycle/audit-logger.js",
+    "./monitoring": "./src/monitoring/index.js",
+    "./monitoring/metrics-collector": "./src/monitoring/metrics-collector.js",
+    "./monitoring/alert-manager": "./src/monitoring/alert-manager.js"
+  }
+}

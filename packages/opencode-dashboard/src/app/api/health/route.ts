@@ -63,7 +63,8 @@ function verifyModelCatalog(projectRoot: string): ModelCatalogHealth {
       if (!schema.lastUpdated) {
         issues.push('schema.lastUpdated missing');
       }
-    } catch {
+    } catch (err) {
+      console.warn('[Health API] Failed to parse schema.json:', err);
       issues.push('schema.json invalid JSON');
     }
   }
@@ -76,7 +77,8 @@ function verifyModelCatalog(projectRoot: string): ModelCatalogHealth {
           issues.push(`obsolete model pattern found: ${pattern.source}`);
         }
       }
-    } catch {
+    } catch (err) {
+      console.warn('[Health API] Failed to read policies.json:', err);
       issues.push('policies.json read failure');
     }
   }

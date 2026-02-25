@@ -42,6 +42,7 @@ class ModelComprehensionMemory {
       this.db.pragma('cache_size = -64000'); // 64MB cache
 
       this._createSchema();
+      this._runMigrations();
       await this.load();
 
       console.log(`[ModelComprehensionMemory] Initialized at: ${this.dbPath}`);
@@ -56,6 +57,12 @@ class ModelComprehensionMemory {
    */
   _createSchema() {
     this.db.exec(`
+      CREATE TABLE IF NOT EXISTS schema_meta (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        version INTEGER NOT NULL,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
       -- Main performance tracking table
       CREATE TABLE IF NOT EXISTS model_performance (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -115,6 +122,19 @@ class ModelComprehensionMemory {
       CREATE INDEX IF NOT EXISTS idx_discovered_provider 
         ON discovered_models(provider);
     `);
+  }
+
+  _runMigrations() {
+    const row = this.db.prepare('SELECT version FROM schema_meta WHERE id = 1').get();
+    if (!row) {
+      this.db.prepare('INSERT INTO schema_meta (id, version) VALUES (1, 1)').run();
+      return;
+    }
+
+    const version = row.version || 1;
+    if (version < 1) {
+      this.db.prepare('UPDATE schema_meta SET version = 1, updated_at = CURRENT_TIMESTAMP WHERE id = 1').run();
+    }
   }
 
   /**
@@ -244,6 +264,22 @@ class ModelComprehensionMemory {
       WHERE model_id = ?
       ORDER BY timestamp DESC
     `).all(modelId);
+  }
+
+  async exportBenchmarks(format = 'json') {
+    const rows = this.db.prepare('SELECT * FROM model_benchmarks ORDER BY timestamp DESC').all();
+    if (format === 'csv') {
+      const header = 'model_id,benchmark_name,score,normalized_score,timestamp';
+      const lines = rows.map((row) => [
+        row.model_id,
+        row.benchmark_name,
+        row.score,
+        row.normalized_score,
+        row.timestamp
+      ].join(','));
+      return [header, ...lines].join('\n');
+    }
+    return JSON.stringify(rows, null, 2);
   }
 
   /**

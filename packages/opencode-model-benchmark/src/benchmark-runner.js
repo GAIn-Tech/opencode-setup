@@ -40,6 +40,7 @@ export class ModelBenchmarkRunner {
     this.dbPath = options.dbPath || join(__dirname, '..', '..', 'data', 'benchmark-results.db');
     this.results = [];
     this.benchmarks = options.benchmarks || Object.keys(BENCHMARKS);
+    this._sandbox = null;
   }
 
   /**
@@ -103,7 +104,30 @@ export class ModelBenchmarkRunner {
       latency: Date.now() - startTime
     };
 
+    if (problem?.language === 'python') {
+      const sandbox = await this.getPythonSandbox();
+      if (sandbox) {
+        try {
+          await sandbox.run(problem?.test || '');
+          result.passed = true;
+        } catch (error) {
+          result.error = error.message || String(error);
+        }
+      }
+    }
+
     return result;
+  }
+
+  async getPythonSandbox() {
+    if (this._sandbox) return this._sandbox;
+    try {
+      const { createPyodideSandbox } = await import('./pyodide-sandbox.js');
+      this._sandbox = await createPyodideSandbox();
+      return this._sandbox;
+    } catch {
+      return null;
+    }
   }
 
   /**

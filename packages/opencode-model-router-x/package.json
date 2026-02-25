@@ -26,6 +26,7 @@
     "uuid": "^10.0.0",
     "zod": "^3.23.0",
     "@jackoatmon/opencode-learning-engine": "file:../opencode-learning-engine",
+    "@jackoatmon/opencode-model-benchmark": "file:../opencode-model-benchmark",
     "@jackoatmon/opencode-circuit-breaker": "file:../opencode-circuit-breaker",
     "@jackoatmon/opencode-context-governor": "file:../opencode-context-governor",
     "@jackoatmon/opencode-health-check": "file:../opencode-health-check",

@@ -49,9 +49,20 @@ class ModelDiscovery {
     this.periodicPollingEnabled = false;
     this.periodicInterval = null;
     this.timeoutMs = Number(options.timeoutMs) || 10000;
+    if (options.docsScraper) {
+      this.docsScraper = options.docsScraper;
+    } else {
+      try {
+        this.docsScraper = require('./docs-scraper');
+      } catch {
+        this.docsScraper = null;
+      }
+    }
+    this.communitySourcesEnabled = options.communitySourcesEnabled !== false;
     
     // Callback for new model detection
     this.onNewModels = options.onNewModels || null;
+    this.memory = options.memory || null;
   }
 
   /**
@@ -88,10 +99,21 @@ class ModelDiscovery {
             const newModelsDetected = this._detectChanges(cache.models, models);
             console.log(`[ModelDiscovery] ${providerId}: Found ${newModelsDetected.length} new models`);
             
-            // Add provider to each model
-            for (const model of newModelsDetected) {
-              model.provider = providerId;
+          // Add provider to each model
+          const discoveryTs = Date.now();
+          for (const model of newModelsDetected) {
+            model.provider = providerId;
+            if (this.memory) {
+              this.memory.storeDiscoveredModel({
+                provider: providerId,
+                model_id: model.id || model.model_id || model.name,
+                context_tokens: model.contextTokens || model.context_tokens,
+                output_tokens: model.outputTokens || model.output_tokens,
+                deprecated: model.deprecated ? 1 : 0,
+                discovered_at: discoveryTs,
+              });
             }
+          }
             
             allNewModels.push(...newModelsDetected);
             
@@ -158,6 +180,11 @@ class ModelDiscovery {
     console.log(`[ModelDiscovery] Periodic polling enabled: every ${intervalHours} hours`);
   }
 
+  startPeriodicPollingMinutes(intervalMinutes = 30) {
+    const minutes = Math.max(15, Math.min(60, intervalMinutes));
+    this.startPeriodicPolling(minutes / 60);
+  }
+
   /**
    * Stop periodic polling
    */
@@ -180,6 +207,8 @@ class ModelDiscovery {
     const apiKey = this._getApiKey(config.envKey);
 
     if (!apiKey) {
+      const fallback = await this._fetchFallbackModels(providerId, `No API key configured for ${providerId}`);
+      if (fallback.length > 0) return fallback;
       throw new Error(`No API key configured for ${providerId}`);
     }
 
@@ -205,19 +234,73 @@ class ModelDiscovery {
       response = await fetch(url, { headers, signal: controller.signal });
     } catch (error) {
       if (error && error.name === 'AbortError') {
+        const fallback = await this._fetchFallbackModels(providerId, `Request timed out after ${timeoutMs}ms`);
+        if (fallback.length > 0) return fallback;
         throw new Error(`Request timed out after ${timeoutMs}ms`);
       }
+      const fallback = await this._fetchFallbackModels(providerId, error.message || 'Fetch failed');
+      if (fallback.length > 0) return fallback;
       throw error;
     } finally {
       clearTimeout(timeoutId);
     }
     
     if (!response.ok) {
+      const fallback = await this._fetchFallbackModels(providerId, `HTTP ${response.status}: ${response.statusText}`);
+      if (fallback.length > 0) return fallback;
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
     return this._normalizeResponse(providerId, data);
+  }
+
+  async _fetchFallbackModels(providerId, reason) {
+    const models = [];
+    if (this.docsScraper?.scrapeProviderModels || this.docsScraper?.scrape) {
+      try {
+        const scrape = this.docsScraper.scrapeProviderModels || this.docsScraper.scrape;
+        const scraped = await scrape(providerId);
+        if (Array.isArray(scraped) && scraped.length > 0) {
+          models.push(...scraped);
+        }
+      } catch (err) {
+        console.warn(`[ModelDiscovery] Doc scraper failed for ${providerId}:`, err.message || err);
+      }
+    }
+
+    if (models.length === 0 && this.communitySourcesEnabled) {
+      const community = await this._fetchFromCommunity(providerId);
+      models.push(...community);
+    }
+
+    if (models.length > 0) {
+      console.warn(`[ModelDiscovery] Using fallback models for ${providerId}: ${reason}`);
+    }
+
+    return models;
+  }
+
+  async _fetchFromCommunity(providerId) {
+    try {
+      const response = await fetch('https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json');
+      if (!response.ok) return [];
+      const data = await response.json();
+      const output = [];
+      for (const [modelId, info] of Object.entries(data)) {
+        if (!modelId.toLowerCase().includes(providerId)) continue;
+        output.push({
+          id: modelId,
+          contextTokens: info?.max_context_length || 128000,
+          outputTokens: info?.max_output_tokens || undefined,
+          deprecated: info?.deprecated || false,
+        });
+      }
+      return output;
+    } catch (err) {
+      console.warn(`[ModelDiscovery] Community source failed for ${providerId}:`, err.message || err);
+      return [];
+    }
   }
 
   /**

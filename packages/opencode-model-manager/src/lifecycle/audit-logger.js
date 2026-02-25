@@ -505,7 +505,9 @@ function createSqliteClient(dbPath) {
 
 function tryLoadBunDatabase() {
   try {
-    const bunSqlite = require('bun:sqlite');
+    const { createRequire } = require('node:module');
+    const localRequire = createRequire(__filename);
+    const bunSqlite = localRequire('bun:sqlite');
     if (bunSqlite && typeof bunSqlite.Database === 'function') {
       return bunSqlite.Database;
     }

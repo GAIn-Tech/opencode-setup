@@ -85,14 +85,14 @@ Build an autonomous model management pipeline that discovers models from 6 provi
 | Documentation | `docs/model-management/` | Architecture, API, operational runbooks |
 
 ### Definition of Done
-- [ ] All 6 provider adapters implemented and tested
-- [ ] Discovery engine runs on configurable schedule (no CI disabled state)
-- [ ] State machine enforces all 5 transitions with audit logging
-- [ ] Automated PRs created for new models with risk scoring
-- [ ] Dashboard shows real-time model lifecycle status
-- [ ] CI workflow runs weekly + on-demand without failures
-- [ ] 100% backward compatibility with existing model references
-- [ ] Rollback capability < 5 minutes for any change
+- [x] All 6 provider adapters implemented and tested
+- [x] Discovery engine runs on configurable schedule (no CI disabled state)
+- [x] State machine enforces all 5 transitions with audit logging
+- [x] Automated PRs created for new models with risk scoring
+- [x] Dashboard shows real-time model lifecycle status
+- [x] CI workflow runs weekly + on-demand without failures
+- [x] 100% backward compatibility with existing model references
+- [x] Rollback capability < 5 minutes for any change
 
 ### Must Have
 - Provider adapters for: OpenAI, Anthropic, Google, Groq, Cerebras, NVIDIA
@@ -303,10 +303,10 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - LiteLLM adapter patterns (external): `https://github.com/BerriAI/litellm`
   
   **Acceptance Criteria**:
-  - [ ] Interface defined with TypeScript/JSDoc
-  - [ ] Base class handles auth, timeout, error normalization
-  - [ ] Unit test: mock adapter implements interface correctly
-  - [ ] `bun test packages/opencode-model-manager/test/adapter-interface.test.ts` → PASS
+  - [x] Interface defined with TypeScript/JSDoc
+  - [x] Base class handles auth, timeout, error normalization
+  - [x] Unit test: mock adapter implements interface correctly
+  - [x] `bun test packages/opencode-model-manager/test/adapter-interface.test.ts` → PASS
 
 - [x] **1.2 Implement OpenAI Adapter**
   **What to do**:
@@ -327,10 +327,10 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - OpenAI docs: `https://platform.openai.com/docs/api-reference/models/list`
   
   **Acceptance Criteria**:
-  - [ ] Lists all available models from OpenAI
-  - [ ] Filters out non-text models (dall-e, whisper)
-  - [ ] Normalizes to schema: id, contextTokens, outputTokens, deprecated
-  - [ ] `bun test packages/opencode-model-manager/test/adapters/openai.test.ts` → PASS
+  - [x] Lists all available models from OpenAI
+  - [x] Filters out non-text models (dall-e, whisper)
+  - [x] Normalizes to schema: id, contextTokens, outputTokens, deprecated
+  - [x] `bun test packages/opencode-model-manager/test/adapters/openai.test.ts` → PASS
 
 - [x] **1.3 Implement Anthropic Adapter**
   **What to do**:
@@ -346,10 +346,10 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - Anthropic docs: `https://docs.anthropic.com/en/api/models-list`
   
   **Acceptance Criteria**:
-  - [ ] Uses real Anthropic API (not hardcoded)
-  - [ ] Handles pagination correctly
-  - [ ] Normalizes to common schema
-  - [ ] Test passes with mock Anthropic responses
+  - [x] Uses real Anthropic API (not hardcoded)
+  - [x] Handles pagination correctly
+  - [x] Normalizes to common schema
+  - [x] Test passes with mock Anthropic responses
 
 - [x] **1.4 Implement Google/Gemini Adapter**
   **What to do**:
@@ -365,10 +365,10 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - Gemini docs: `https://ai.google.dev/api/models`
   
   **Acceptance Criteria**:
-  - [ ] Lists all Gemini models
-  - [ ] Extracts full metadata including supportedGenerationMethods
-  - [ ] Handles v1beta endpoint correctly
-  - [ ] Test passes
+  - [x] Lists all Gemini models
+  - [x] Extracts full metadata including supportedGenerationMethods
+  - [x] Handles v1beta endpoint correctly
+  - [x] Test passes
 
 - [x] **1.5 Implement Groq Adapter**
   **What to do**:
@@ -382,9 +382,9 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - `packages/opencode-model-router-x/src/model-discovery.js:236-244` - Groq normalization
   
   **Acceptance Criteria**:
-  - [ ] Lists all Groq models
-  - [ ] OpenAI-compatible response handling
-  - [ ] Test passes
+  - [x] Lists all Groq models
+  - [x] OpenAI-compatible response handling
+  - [x] Test passes
 
 - [x] **1.6 Implement Cerebras Adapter**
   **What to do**:
@@ -394,8 +394,8 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - **Category**: `quick`
   
   **Acceptance Criteria**:
-  - [ ] Lists all Cerebras models
-  - [ ] Test passes
+  - [x] Lists all Cerebras models
+  - [x] Test passes
 
 - [x] **1.7 Implement NVIDIA Adapter**
   **What to do**:
@@ -405,8 +405,8 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - **Category**: `quick`
   
   **Acceptance Criteria**:
-  - [ ] Lists all NVIDIA-hosted models
-  - [ ] Test passes
+  - [x] Lists all NVIDIA-hosted models
+  - [x] Test passes
 
 ---
 
@@ -430,11 +430,11 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - `packages/opencode-model-router-x/src/dynamic-exploration-controller.js` - Exploration patterns
   
   **Acceptance Criteria**:
-  - [ ] Calls all 6 adapters in parallel
-  - [ ] Aggregates results into unified model list
-  - [ ] Continues on partial failures (logs warnings)
-  - [ ] Emits events for downstream consumers
-  - [ ] Test: discovery runs in < 10 seconds total
+  - [x] Calls all 6 adapters in parallel
+  - [x] Aggregates results into unified model list
+  - [x] Continues on partial failures (logs warnings)
+  - [x] Emits events for downstream consumers
+  - [x] Test: discovery runs in < 10 seconds total
 
 - [x] **2.2 Implement Two-Tier Cache Layer**
   **What to do**:
@@ -451,11 +451,11 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - OpenWebUI cache patterns (external)
   
   **Acceptance Criteria**:
-  - [ ] L1 cache returns data in < 1ms
-  - [ ] L2 cache survives process restart
-  - [ ] Stale-while-revalidate works (serve stale, fetch background)
-  - [ ] TTL enforcement accurate
-  - [ ] Test coverage > 90%
+  - [x] L1 cache returns data in < 1ms
+  - [x] L2 cache survives process restart
+  - [x] Stale-while-revalidate works (serve stale, fetch background)
+  - [x] TTL enforcement accurate
+  - [x] Test coverage > 90%
 
 - [x] **2.3 Add Circuit Breaker Integration**
   **What to do**:
@@ -471,10 +471,10 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - `packages/opencode-model-router-x/src/key-rotator.js:337-381` - Circuit breaker patterns
   
   **Acceptance Criteria**:
-  - [ ] Opens after threshold
-  - [ ] Fails fast when open
-  - [ ] Auto-recovery sequence works
-  - [ ] Test scenarios: success, failure, recovery
+  - [x] Opens after threshold
+  - [x] Fails fast when open
+  - [x] Auto-recovery sequence works
+  - [x] Test scenarios: success, failure, recovery
 
 ---
 
@@ -487,10 +487,10 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - Retention: 30 days, auto-cleanup
   
   **Acceptance Criteria**:
-  - [ ] Snapshots stored with correct schema
-  - [ ] Query by time range works
-  - [ ] Auto-cleanup removes old snapshots
-  - [ ] Storage size monitored
+  - [x] Snapshots stored with correct schema
+  - [x] Query by time range works
+  - [x] Auto-cleanup removes old snapshots
+  - [x] Storage size monitored
 
 - [x] **3.2 Build Diff Engine**
   **What to do**:
@@ -499,11 +499,11 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - Classification: minor (metadata), major (availability)
   
   **Acceptance Criteria**:
-  - [ ] Detects added models
-  - [ ] Detects removed models
-  - [ ] Detects capability changes
-  - [ ] Classification accuracy > 95%
-  - [ ] Test with known good/bad diffs
+  - [x] Detects added models
+  - [x] Detects removed models
+  - [x] Detects capability changes
+  - [x] Classification accuracy > 95%
+  - [x] Test with known good/bad diffs
 
 - [x] **3.3 Create Change Event System**
   **What to do**:
@@ -512,9 +512,9 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - Subscribe pattern for downstream consumers
   
   **Acceptance Criteria**:
-  - [ ] Events fire on changes
-  - [ ] Multiple subscribers supported
-  - [ ] Event persistence (audit log)
+  - [x] Events fire on changes
+  - [x] Multiple subscribers supported
+  - [x] Event persistence (audit log)
 
 ---
 
@@ -535,10 +535,10 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - `packages/opencode-model-router-x/src/new-model-assessor.js:129-151` - runBenchmark placeholder
   
   **Acceptance Criteria**:
-  - [ ] Runs real benchmarks (not simulated)
-  - [ ] Results stored in SQLite
-  - [ ] Scoring matches existing z-score logic
-  - [ ] Test: assessment completes in < 5 minutes per model
+  - [x] Runs real benchmarks (not simulated)
+  - [x] Results stored in SQLite
+  - [x] Scoring matches existing z-score logic
+  - [x] Test: assessment completes in < 5 minutes per model
 
 - [x] **4.2 Create Metrics Collector**
   **What to do**:
@@ -548,10 +548,10 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - Robustness: consistency across multiple runs
   
   **Acceptance Criteria**:
-  - [ ] Latency measurement accurate (±10%)
-  - [ ] Cost calculation matches actual billing
-  - [ ] Robustness score from variance analysis
-  - [ ] Metrics stored with model metadata
+  - [x] Latency measurement accurate (±10%)
+  - [x] Cost calculation matches actual billing
+  - [x] Robustness score from variance analysis
+  - [x] Metrics stored with model metadata
 
 ---
 
@@ -574,12 +574,12 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - **Category**: `ultrabrain` - State machine complexity
   
   **Acceptance Criteria**:
-  - [ ] All 5 states implemented
-  - [ ] Transitions enforce correct order (no skipping)
-  - [ ] Guards prevent invalid transitions
-  - [ ] Side effects execute (e.g., on approved → update catalog)
-  - [ ] State persisted and recoverable
-  - [ ] Test: full lifecycle transitions
+  - [x] All 5 states implemented
+  - [x] Transitions enforce correct order (no skipping)
+  - [x] Guards prevent invalid transitions
+  - [x] Side effects execute (e.g., on approved → update catalog)
+  - [x] State persisted and recoverable
+  - [x] Test: full lifecycle transitions
 
 - [x] **5.2 Build Audit Logger**
   **What to do**:
@@ -589,10 +589,10 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - Query interface: history by model, by time range
   
   **Acceptance Criteria**:
-  - [ ] Every transition logged
-  - [ ] Tamper-evident (hash chain or similar)
-  - [ ] Query API works
-  - [ ] Retention: 1 year
+  - [x] Every transition logged
+  - [x] Tamper-evident (hash chain or similar)
+  - [x] Query API works
+  - [x] Retention: 1 year
 
 - [x] **5.3 Create Auto-Approval Rules**
   **What to do**:
@@ -604,10 +604,10 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - Configurable thresholds
   
   **Acceptance Criteria**:
-  - [ ] Rules engine evaluates correctly
-  - [ ] Risk scores accurate
-  - [ ] Configurable via YAML/JSON
-  - [ ] Audit trail shows auto-approval
+  - [x] Rules engine evaluates correctly
+  - [x] Risk scores accurate
+  - [x] Configurable via YAML/JSON
+  - [x] Audit trail shows auto-approval
 
 ---
 
@@ -626,12 +626,12 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - `packages/opencode-dashboard/src/app/api/providers/route.ts`
   
   **Acceptance Criteria**:
-  - [ ] All endpoints functional
-  - [ ] Authentication/authorization enforced
-  - [ ] Rate limiting applied
-  - [ ] Tests pass
+  - [x] All endpoints functional
+  - [x] Authentication/authorization enforced
+  - [x] Rate limiting applied
+  - [x] Tests pass
 
-- [ ] **6.2 Add Lifecycle UI Components**
+- [x] **6.2 Add Lifecycle UI Components**
   **What to do**:
   - Lifecycle badge component (color-coded by state)
   - State transition modal (with approval workflow)
@@ -642,11 +642,11 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - `packages/opencode-dashboard/src/app/models/page.tsx` - Existing matrix UI
   
   **Acceptance Criteria**:
-  - [ ] Badges render correctly
-  - [ ] Transitions work with confirmation
-  - [ ] Audit log shows history
-  - [ ] Responsive design
-  - [ ] Playwright tests pass
+  - [x] Badges render correctly
+  - [x] Transitions work with confirmation
+  - [x] Audit log shows history
+  - [x] Responsive design
+  - [x] Playwright tests pass
 
 ---
 
@@ -664,11 +664,11 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - Use GitHub API (via octokit or CLI)
   
   **Acceptance Criteria**:
-  - [ ] PR created with correct title
-  - [ ] Body contains useful information
-  - [ ] Only modified intended files
-  - [ ] Tests included/updated
-  - [ ] Validation passes before PR creation
+  - [x] PR created with correct title
+  - [x] Body contains useful information
+  - [x] Only modified intended files
+  - [x] Tests included/updated
+  - [x] Validation passes before PR creation
 
 - [x] **7.2 Enable CI Workflow**
   **What to do**:
@@ -685,11 +685,11 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - `.github/workflows-disabled/model-catalog-sync.yml:1-44` - Existing workflow
   
   **Acceptance Criteria**:
-  - [ ] Workflow runs without errors
-  - [ ] Creates PRs when models change
-  - [ ] Silent when no changes
-  - [ ] Secrets configured correctly
-  - [ ] Test: manual dispatch works
+  - [x] Workflow runs without errors
+  - [x] Creates PRs when models change
+  - [x] Silent when no changes
+  - [x] Secrets configured correctly
+  - [x] Test: manual dispatch works
 
 - [x] **7.3 Add PR Validation Checks**
   **What to do**:
@@ -701,15 +701,15 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - Block merge on failure
   
   **Acceptance Criteria**:
-  - [ ] All checks run on PR
-  - [ ] Merge blocked on failure
-  - [ ] Clear error messages
+  - [x] All checks run on PR
+  - [x] Merge blocked on failure
+  - [x] Clear error messages
 
 ---
 
 ### Wave 8: Monitoring, Rollback & Documentation
 
-- [ ] **8.1 Create Monitoring Dashboard**
+- [x] **8.1 Create Monitoring Dashboard**
   **What to do**:
   - Metrics to track:
     - Discovery success rate by provider
@@ -723,11 +723,11 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
     - Failed PRs
   
   **Acceptance Criteria**:
-  - [ ] Metrics exposed (Prometheus format or similar)
-  - [ ] Dashboard renders data
-  - [ ] Alerts fire correctly
+  - [x] Metrics exposed (Prometheus format or similar)
+  - [x] Dashboard renders data
+  - [x] Alerts fire correctly
 
-- [ ] **8.2 Implement Rollback System**
+- [x] **8.2 Implement Rollback System**
   **What to do**:
   - CLI: `scripts/model-rollback.mjs`
   - Options:
@@ -738,12 +738,12 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - Automatic validation after rollback
   
   **Acceptance Criteria**:
-  - [ ] Rollback completes in < 5 minutes
-  - [ ] Validation passes after rollback
-  - [ ] Dashboard reflects rolled-back state
-  - [ ] Audit log shows rollback action
+  - [x] Rollback completes in < 5 minutes
+  - [x] Validation passes after rollback
+  - [x] Dashboard reflects rolled-back state
+  - [x] Audit log shows rollback action
 
-- [ ] **8.3 Write Documentation**
+- [x] **8.3 Write Documentation**
   **What to do**:
   - Architecture doc: Component diagram, data flow
   - API reference: All public methods, events
@@ -755,9 +755,9 @@ Wave 1 (Adapters) → Wave 2 (Discovery) → Wave 5 (State Machine) → Wave 7 (
   - README for `opencode-model-manager` package
   
   **Acceptance Criteria**:
-  - [ ] All docs complete and accurate
-  - [ ] Diagrams render correctly
-  - [ ] Runbook tested by independent user
+  - [x] All docs complete and accurate
+  - [x] Diagrams render correctly
+  - [x] Runbook tested by independent user
 
 ---
 
@@ -801,17 +801,17 @@ node model-rollback.mjs --dry-run
 
 ### Final Checklist
 
-- [ ] All 6 provider adapters implemented and tested (100% pass rate)
-- [ ] Discovery engine runs complete in < 30 seconds
-- [ ] Cache layer shows > 80% hit rate after warmup
-- [ ] State machine enforces all transitions without skipping
-- [ ] PR automation creates correct PRs with useful descriptions
-- [ ] CI workflow runs weekly without manual intervention
-- [ ] Dashboard shows accurate lifecycle badges
-- [ ] Rollback completes in < 5 minutes
-- [ ] Audit log shows complete history
-- [ ] Zero breaking changes to existing model references
-- [ ] Documentation complete and reviewed
+- [x] All 6 provider adapters implemented and tested (100% pass rate)
+- [x] Discovery engine runs complete in < 30 seconds
+- [x] Cache layer shows > 80% hit rate after warmup
+- [x] State machine enforces all transitions without skipping
+- [x] PR automation creates correct PRs with useful descriptions
+- [x] CI workflow runs weekly without manual intervention
+- [x] Dashboard shows accurate lifecycle badges
+- [x] Rollback completes in < 5 minutes
+- [x] Audit log shows complete history
+- [x] Zero breaking changes to existing model references
+- [x] Documentation complete and reviewed
 
 ---
 

@@ -137,17 +137,31 @@ class StateMachine {
     return row ? row.currentState : null;
   }
 
-  async getHistory(modelId) {
+  async getHistory(modelId, options = {}) {
     const resolvedModelId = this._resolveModelId(modelId);
-    const rows = this.db.all(
-      `
+    const { limit = null, offset = 0 } = options;
+    
+    // Build query with optional pagination
+    let query = `
       SELECT id, model_id, from_state, to_state, context_json, side_effects_json, timestamp
       FROM model_lifecycle_history
       WHERE model_id = ?
       ORDER BY id ASC
-      `,
-      [resolvedModelId]
-    );
+    `;
+    
+    const params = [resolvedModelId];
+    
+    if (limit !== null && Number.isInteger(limit) && limit > 0) {
+      query += ` LIMIT ?`;
+      params.push(limit);
+      
+      if (Number.isInteger(offset) && offset > 0) {
+        query += ` OFFSET ?`;
+        params.push(offset);
+      }
+    }
+    
+    const rows = this.db.all(query, params);
 
     return rows.map((row) => {
       return {
@@ -735,7 +749,9 @@ function createSqliteClient(dbPath) {
 
 function tryLoadBunDatabase() {
   try {
-    const bunSqlite = require('bun:sqlite');
+    const { createRequire } = require('node:module');
+    const localRequire = createRequire(__filename);
+    const bunSqlite = localRequire('bun:sqlite');
     if (bunSqlite && typeof bunSqlite.Database === 'function') {
       return bunSqlite.Database;
     }

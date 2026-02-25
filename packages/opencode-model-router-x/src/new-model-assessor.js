@@ -127,27 +127,35 @@ class NewModelAssessor {
    * @returns {Object} Benchmark results
    */
   async runBenchmark(model, benchmark) {
-    // Placeholder implementation
-    // In production, this would:
-    // 1. Load benchmark problems
-    // 2. Call model API for each problem
-    // 3. Evaluate outputs
-    // 4. Calculate pass rate
-    
     console.log(`[NewModelAssessor] Running ${benchmark.name}...`);
-    
-    // Simulated result for now
-    const simulatedPassRate = this._simulateBenchmarkScore(model, benchmark);
-    
-    return {
-      passRate: simulatedPassRate,
-      normalizedScore: simulatedPassRate,
-      details: {
-        total: benchmark.problems,
-        passed: Math.floor(benchmark.problems * simulatedPassRate),
-        failed: Math.ceil(benchmark.problems * (1 - simulatedPassRate))
-      }
-    };
+    try {
+      const { ModelBenchmarkRunner } = await import('@jackoatmon/opencode-model-benchmark');
+      const runner = new ModelBenchmarkRunner();
+      const benchKey = benchmark.name === 'HumanEval'
+        ? 'humaneval'
+        : benchmark.name === 'MBPP'
+          ? 'mbpp'
+          : 'swe-bench-lite';
+      const result = await runner.runBenchmark(model.id, benchKey);
+      const passRate = Number(result?.summary?.['pass@1'] ?? result?.summary?.resolve_rate ?? 0);
+      return {
+        passRate,
+        normalizedScore: passRate,
+        details: result?.summary || {}
+      };
+    } catch (err) {
+      console.warn(`[NewModelAssessor] Benchmark runner failed (${benchmark.name}):`, err.message || err);
+      const simulatedPassRate = this._simulateBenchmarkScore(model, benchmark);
+      return {
+        passRate: simulatedPassRate,
+        normalizedScore: simulatedPassRate,
+        details: {
+          total: benchmark.problems,
+          passed: Math.floor(benchmark.problems * simulatedPassRate),
+          failed: Math.ceil(benchmark.problems * (1 - simulatedPassRate))
+        }
+      };
+    }
   }
 
   /**

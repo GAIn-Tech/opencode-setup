@@ -3,15 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   addEdge,
-  Background,
   Connection,
-  Controls,
   Handle,
   MarkerType,
-  MiniMap,
-  Panel,
   Position,
-  ReactFlow,
   useEdgesState,
   useNodesState,
   type OnMove,
@@ -21,6 +16,9 @@ import {
   type NodeProps,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { GraphCanvas } from './GraphCanvas';
+import { GraphControls } from './GraphControls';
+import { GraphTooltip } from './GraphTooltip';
 
 const KNOWN_TYPES = [
   'session',
@@ -958,7 +956,7 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
 
   return (
     <div className="h-full min-h-[640px] w-full overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950">
-      <ReactFlow
+      <GraphCanvas
         nodes={visibleGraph.nodes}
         edges={visibleGraph.edges}
         defaultViewport={defaultViewport}
@@ -968,254 +966,67 @@ export function InteractiveKnowledgeGraph({ nodes: externalNodes, edges: externa
         onNodeClick={onNodeClick}
         onMoveEnd={onMoveEnd}
         nodeTypes={nodeTypes}
-        fitView
-        onlyRenderVisibleElements
-        panOnDrag
-        zoomOnScroll
-        zoomOnPinch
-        minZoom={0.2}
-        maxZoom={2.5}
-        defaultEdgeOptions={{
-          type: 'smoothstep',
-          style: { stroke: '#52525b', strokeWidth: 1.5 },
+        nodeColor={(node) => {
+          const nodeType = node.type as UnifiedNodeType;
+          const severity = typeof node.data?.severity === 'string' ? node.data.severity : undefined;
+          return nodeColor(nodeType, severity);
         }}
-        className="bg-zinc-950"
       >
-        <Background color="#27272a" gap={20} size={1} />
-        <Controls className="border-zinc-700 bg-zinc-900 text-zinc-200" />
-        <MiniMap
-          pannable
-          zoomable
-          className="border border-zinc-700 bg-zinc-900"
-          maskColor="rgba(9, 9, 11, 0.72)"
-          nodeColor={(node) => {
-            const nodeType = node.type as UnifiedNodeType;
-            const severity = typeof node.data?.severity === 'string' ? node.data.severity : undefined;
-            return nodeColor(nodeType, severity);
+        <GraphControls
+          knownTypes={KNOWN_TYPES}
+          typeLabel={TYPE_LABEL}
+          typeColors={TYPE_COLORS}
+          typeCounts={typeCounts}
+          activeTypes={activeTypes}
+          searchTerm={searchTerm}
+          focusDepth={focusDepth}
+          sinceDays={sinceDays}
+          apiMaxFanout={apiMaxFanout}
+          apiMaxNodes={apiMaxNodes}
+          minEdgeStrength={minEdgeStrength}
+          maxVisibleEdges={maxVisibleEdges}
+          autoEdgeControls={autoEdgeControls}
+          effectiveTier={effectiveTier}
+          viewportZoom={viewportZoom}
+          visibleEdgeCount={visibleGraph.edges.length}
+          onTypeToggle={(type) =>
+            setActiveTypes((prev) => ({
+              ...prev,
+              [type]: !prev[type],
+            }))
+          }
+          onSearchTermChange={setSearchTerm}
+          onSelectFromSearch={selectFromSearch}
+          onToggleFocusDepth={() => setFocusDepth((prev) => (prev === 1 ? 2 : 1))}
+          onToggleTier={(tier) => setTierOverride((prev) => (prev === tier ? null : tier))}
+          onClearFocus={clearFocus}
+          onSinceDaysChange={(parsed) => {
+            if (!Number.isFinite(parsed)) return;
+            setSinceDays(Math.max(1, Math.min(365, parsed)));
           }}
+          onApiMaxFanoutChange={(parsed) => {
+            if (!Number.isFinite(parsed)) return;
+            setApiMaxFanout(Math.max(1, Math.min(200, parsed)));
+          }}
+          onApiMaxNodesChange={(parsed) => {
+            if (!Number.isFinite(parsed)) return;
+            setApiMaxNodes(Math.max(20, Math.min(2000, parsed)));
+          }}
+          onApplyApi={() => setRefreshKey((prev) => prev + 1)}
+          onMinEdgeStrengthChange={(value) => {
+            setAutoEdgeControls(false);
+            setMinEdgeStrength(value);
+          }}
+          onMaxVisibleEdgesChange={(parsed) => {
+            if (!Number.isFinite(parsed)) return;
+            setAutoEdgeControls(false);
+            setMaxVisibleEdges(Math.max(25, Math.min(1500, parsed)));
+          }}
+          onToggleAutoEdges={() => setAutoEdgeControls((prev) => !prev)}
         />
 
-        <Panel position="top-left" className="w-[min(560px,92vw)] rounded-xl border border-zinc-700 bg-zinc-900/90 p-3 backdrop-blur">
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            {KNOWN_TYPES.map((type) => {
-              const enabled = activeTypes[type];
-              return (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() =>
-                    setActiveTypes((prev) => ({
-                      ...prev,
-                      [type]: !prev[type],
-                    }))
-                  }
-                  className={`rounded-md border px-2.5 py-1 text-xs transition ${
-                    enabled
-                      ? 'border-zinc-500 bg-zinc-800 text-zinc-100'
-                      : 'border-zinc-700 bg-zinc-900 text-zinc-500'
-                  }`}
-                  style={enabled ? { boxShadow: `inset 0 0 0 1px ${TYPE_COLORS[type]}66` } : undefined}
-                >
-                  {TYPE_LABEL[type]} {typeCounts[type]}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search by id, label, pattern, context"
-              className="min-w-[220px] flex-1 rounded-md border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500 focus:outline-none"
-            />
-            <button
-              type="button"
-              onClick={selectFromSearch}
-              className="rounded-md border border-cyan-600/40 bg-cyan-500/15 px-3 py-1.5 text-xs text-cyan-200 hover:bg-cyan-500/25"
-            >
-              Select match
-            </button>
-            <button
-              type="button"
-              onClick={() => setFocusDepth((prev) => (prev === 1 ? 2 : 1))}
-              className="rounded-md border border-zinc-600 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-700"
-            >
-              Neighborhood {focusDepth}-hop
-            </button>
-            <button
-              type="button"
-              onClick={() => setTierOverride((prev) => (prev === 0 ? null : 0))}
-              className="rounded-md border border-zinc-600 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-700"
-            >
-              Group view
-            </button>
-            <button
-              type="button"
-              onClick={() => setTierOverride((prev) => (prev === 1 ? null : 1))}
-              className="rounded-md border border-zinc-600 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-700"
-            >
-              Type view
-            </button>
-            <button
-              type="button"
-              onClick={() => setTierOverride((prev) => (prev === 2 ? null : 2))}
-              className="rounded-md border border-zinc-600 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-200 hover:bg-zinc-700"
-            >
-              Instance view
-            </button>
-            <button
-              type="button"
-              onClick={clearFocus}
-              className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800"
-            >
-              Clear focus
-            </button>
-          </div>
-          <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-zinc-400">
-            <label className="flex items-center gap-2">
-              <span>Days</span>
-              <input
-                type="number"
-                min={1}
-                max={365}
-                step={1}
-                value={sinceDays}
-                onChange={(event) => {
-                  const parsed = Number.parseInt(event.target.value, 10);
-                  if (!Number.isFinite(parsed)) return;
-                  setSinceDays(Math.max(1, Math.min(365, parsed)));
-                }}
-                className="w-16 rounded border border-zinc-700 bg-zinc-950 px-2 py-1 text-zinc-100"
-              />
-            </label>
-            <label className="flex items-center gap-2">
-              <span>API fanout</span>
-              <input
-                type="number"
-                min={1}
-                max={200}
-                step={1}
-                value={apiMaxFanout}
-                onChange={(event) => {
-                  const parsed = Number.parseInt(event.target.value, 10);
-                  if (!Number.isFinite(parsed)) return;
-                  setApiMaxFanout(Math.max(1, Math.min(200, parsed)));
-                }}
-                className="w-16 rounded border border-zinc-700 bg-zinc-950 px-2 py-1 text-zinc-100"
-              />
-            </label>
-            <label className="flex items-center gap-2">
-              <span>API nodes</span>
-              <input
-                type="number"
-                min={20}
-                max={2000}
-                step={20}
-                value={apiMaxNodes}
-                onChange={(event) => {
-                  const parsed = Number.parseInt(event.target.value, 10);
-                  if (!Number.isFinite(parsed)) return;
-                  setApiMaxNodes(Math.max(20, Math.min(2000, parsed)));
-                }}
-                className="w-20 rounded border border-zinc-700 bg-zinc-950 px-2 py-1 text-zinc-100"
-              />
-            </label>
-            <button
-              type="button"
-              onClick={() => setRefreshKey((prev) => prev + 1)}
-              className="rounded-md border border-cyan-600/40 bg-cyan-500/15 px-2 py-1 text-cyan-200 hover:bg-cyan-500/25"
-            >
-              Apply API
-            </button>
-            <label className="flex items-center gap-2">
-              <span>Edge min strength</span>
-              <input
-                type="range"
-                min={1}
-                max={10}
-                step={1}
-                value={minEdgeStrength}
-                onChange={(event) => {
-                  setAutoEdgeControls(false);
-                  setMinEdgeStrength(Number(event.target.value));
-                }}
-                className="accent-emerald-500"
-              />
-              <span className="font-mono text-zinc-200">{minEdgeStrength}</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <span>Max edges</span>
-              <input
-                type="number"
-                min={25}
-                max={1500}
-                step={25}
-                value={maxVisibleEdges}
-                onChange={(event) => {
-                  const parsed = Number.parseInt(event.target.value, 10);
-                  if (!Number.isFinite(parsed)) return;
-                  setAutoEdgeControls(false);
-                  setMaxVisibleEdges(Math.max(25, Math.min(1500, parsed)));
-                }}
-                className="w-20 rounded border border-zinc-700 bg-zinc-950 px-2 py-1 text-zinc-100"
-              />
-            </label>
-            <button
-              type="button"
-              onClick={() => setAutoEdgeControls((prev) => !prev)}
-              className={`rounded-md border px-2 py-1 ${
-                autoEdgeControls
-                  ? 'border-emerald-600/40 bg-emerald-500/15 text-emerald-200'
-                  : 'border-zinc-700 bg-zinc-900 text-zinc-300'
-              }`}
-            >
-              {autoEdgeControls ? 'Auto edges' : 'Manual edges'}
-            </button>
-            <span className="text-zinc-500">Visible edges: {visibleGraph.edges.length}</span>
-          </div>
-          <p className="mt-2 text-xs text-zinc-500">
-            Tier {effectiveTier} • zoom {viewportZoom.toFixed(2)} • drag to rearrange, scroll to zoom, click nodes to drill down.
-          </p>
-        </Panel>
-
-        {selectedFlowNode ? (
-          <Panel
-            position="bottom-right"
-            className="max-h-[56vh] w-[min(360px,94vw)] overflow-auto rounded-xl border border-zinc-700 bg-zinc-900/95 p-3"
-          >
-            <div className="mb-2 flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-zinc-100">Metadata</h4>
-              <button
-                type="button"
-                onClick={clearFocus}
-                className="rounded border border-zinc-700 px-2 py-0.5 text-xs text-zinc-300 hover:bg-zinc-800"
-              >
-                close
-              </button>
-            </div>
-            <div className="space-y-1.5 text-xs text-zinc-300">
-              <div className="flex justify-between gap-3">
-                <span className="text-zinc-500">id</span>
-                <span className="break-all font-mono">{selectedFlowNode.id}</span>
-              </div>
-              <div className="flex justify-between gap-3">
-                <span className="text-zinc-500">type</span>
-                <span>{TYPE_LABEL[selectedFlowNode.type as UnifiedNodeType]}</span>
-              </div>
-              {Object.entries(selectedFlowNode.data)
-                .filter(([key]) => key !== 'label')
-                .map(([key, value]) => (
-                  <div key={key} className="flex justify-between gap-3 border-t border-zinc-800 pt-1">
-                    <span className="text-zinc-500">{key}</span>
-                    <span className="max-w-[200px] break-words text-right">{formatValue(value)}</span>
-                  </div>
-                ))}
-            </div>
-          </Panel>
-        ) : null}
-      </ReactFlow>
+        {selectedFlowNode ? <GraphTooltip node={selectedFlowNode} typeLabel={TYPE_LABEL} formatValue={formatValue} onClose={clearFocus} /> : null}
+      </GraphCanvas>
     </div>
   );
 }

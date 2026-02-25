@@ -10,13 +10,15 @@
  */
 
 class DynamicExplorationController {
-  constructor() {
+  constructor(options = {}) {
     this.active = false;
     this.explorationBudget = 0; // % of queries to explore vs exploit
     this.explorationMode = 'balanced';
+    this.tokenBudgetRatio = Number(options.tokenBudgetRatio) || 0.1;
     this.tracker = null;
     this.sampler = null;
     this.memory = null;
+    this.tokenBudgetManager = options.tokenBudgetManager || null;
     this._initialized = false;
     const { createRandomSource } = require('./deterministic-rng');
     this._randomSource = createRandomSource('dynamic-exploration-controller');
@@ -82,7 +84,7 @@ class DynamicExplorationController {
       return null; // Let standard orchestration handle it
     }
 
-    const shouldExplore = this._randomSource.next() * 100 < this.explorationBudget;
+    const shouldExplore = this._shouldExplore(task);
 
     if (shouldExplore) {
       // Exploration: Use Thompson Sampling to select diverse model
@@ -101,6 +103,19 @@ class DynamicExplorationController {
       const provider = this.extractProvider(bestModel);
       return { model: bestModel, provider, isExploration: false };
     }
+  }
+
+  _shouldExplore(task = {}) {
+    const randomPick = this._randomSource.next() * 100 < this.explorationBudget;
+    if (!randomPick) return false;
+
+    if (!this.tokenBudgetManager) return true;
+    return this.tokenBudgetManager.shouldExplore({
+      sessionId: task.sessionId,
+      modelId: task.modelId,
+      availableTokens: task.availableTokens,
+      explorationRatio: this.tokenBudgetRatio,
+    });
   }
 
   /**
@@ -144,6 +159,29 @@ class DynamicExplorationController {
     }
 
     return metrics;
+  }
+
+  selectModelForTaskSync(task) {
+    if (!this.active || !this.tracker || !this.sampler) {
+      return null;
+    }
+
+    const shouldExplore = this._shouldExplore(task);
+
+    if (shouldExplore) {
+      const modelId = this.sampler.select(task.intentCategory);
+      const provider = this.extractProvider(modelId);
+      return { model: modelId, provider, isExploration: true };
+    }
+
+    const bestModel = this.tracker.getBestModel(task.intentCategory);
+    if (!bestModel) {
+      const modelId = this.sampler.select(task.intentCategory);
+      const provider = this.extractProvider(modelId);
+      return { model: modelId, provider, isExploration: true };
+    }
+    const provider = this.extractProvider(bestModel);
+    return { model: bestModel, provider, isExploration: false };
   }
 
   /**

@@ -19,7 +19,8 @@ class ModelPerformanceTracker {
    * @param {Object} metrics - Performance metrics from a single task
    */
   async track(metrics) {
-    const key = this._getKey(metrics.intentCategory, metrics.modelId);
+    const sanitized = this._validateMetrics(metrics);
+    const key = this._getKey(sanitized.intentCategory, sanitized.modelId);
 
     if (!this.aggregates.has(key)) {
       this.aggregates.set(key, this._initializeAggregate());
@@ -29,14 +30,14 @@ class ModelPerformanceTracker {
 
     // Update aggregate metrics
     agg.totalAttempts++;
-    agg.successfulAttempts += metrics.success ? 1 : 0;
-    agg.totalAccuracy += metrics.accuracy;
-    agg.totalLatency += metrics.latency;
-    agg.totalCost += metrics.cost;
-    agg.totalTokens += metrics.tokensUsed || 0;
+    agg.successfulAttempts += sanitized.success ? 1 : 0;
+    agg.totalAccuracy += sanitized.accuracy;
+    agg.totalLatency += sanitized.latency;
+    agg.totalCost += sanitized.cost;
+    agg.totalTokens += sanitized.tokensUsed || 0;
 
     // Latency tracking (percentiles)
-    agg.latencyHistory.push(metrics.latency);
+    agg.latencyHistory.push(sanitized.latency);
     agg.latencyHistory.sort((a, b) => a - b);
     if (agg.latencyHistory.length > 100) {
       agg.latencyHistory.shift();
@@ -60,12 +61,30 @@ class ModelPerformanceTracker {
     }
 
     // Accuracy history for consistency tracking
-    agg.accuracyHistory.push(metrics.accuracy);
+    agg.accuracyHistory.push(sanitized.accuracy);
     if (agg.accuracyHistory.length > 50) {
       agg.accuracyHistory.shift();
     }
 
     return agg;
+  }
+
+  _validateMetrics(metrics) {
+    const safe = { ...metrics };
+    safe.intentCategory = String(metrics.intentCategory || 'general');
+    safe.modelId = String(metrics.modelId || 'unknown');
+    safe.accuracy = this._clampNumber(metrics.accuracy, 0, 1);
+    safe.latency = this._clampNumber(metrics.latency, 0, Number.MAX_SAFE_INTEGER);
+    safe.cost = this._clampNumber(metrics.cost, 0, Number.MAX_SAFE_INTEGER);
+    safe.success = Boolean(metrics.success);
+    safe.tokensUsed = Number.isFinite(metrics.tokensUsed) ? metrics.tokensUsed : 0;
+    return safe;
+  }
+
+  _clampNumber(value, min, max) {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return min;
+    return Math.max(min, Math.min(max, num));
   }
 
   /**

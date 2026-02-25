@@ -551,7 +551,8 @@ class LearningEngine extends EventEmitter {
    * @param {Object} taskContext - See OrchestrationAdvisor.advise()
    * @returns {Object} Advice with warnings, suggestions, routing, risk_score
    */
-  advise(taskContext) {
+  async advise(taskContext) {
+    // Fire-and-forget: trackEvent is async but result not needed here
     this.metaAwarenessTracker.trackEvent({
       event_type: 'orchestration.phase_entered',
       task_type: taskContext?.task_type || 'general',
@@ -606,7 +607,7 @@ class LearningEngine extends EventEmitter {
       },
     });
 
-    const meta = this.metaAwarenessTracker.getOverview();
+    const meta = await this.metaAwarenessTracker.getOverview();
     advice.meta_awareness_signal = {
       score: meta?.composite?.score_mean ?? 50,
       confidence: meta?.rl_signal?.confidence ?? 0,
@@ -693,7 +694,7 @@ class LearningEngine extends EventEmitter {
   /**
    * Get a comprehensive report of all learned patterns and insights.
    */
-  getReport() {
+  async getReport() {
     const insights = this.advisor.getInsights();
     const antiStats = this.antiPatterns.getStats();
     const posStats = this.positivePatterns.getStats();
@@ -727,7 +728,7 @@ class LearningEngine extends EventEmitter {
       asymmetry_note:
         'Anti-pattern data is weighted 3-5x heavier than positive patterns. ' +
         'Warnings are STRONG (should block/pause). Suggestions are SOFT (can ignore).',
-      meta_awareness: this.metaAwarenessTracker.getOverview(),
+      meta_awareness: await this.metaAwarenessTracker.getOverview(),
     };
   }
 

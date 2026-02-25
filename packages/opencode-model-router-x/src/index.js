@@ -6,6 +6,8 @@ const { KeyRotatorFactory } = require('./key-rotator-factory');
 const policies = require('./policies.json');
 const Orchestrator = require('./strategies/orchestrator');
 const { CircuitBreaker } = require('@jackoatmon/opencode-circuit-breaker');
+const DynamicExplorationController = require('./dynamic-exploration-controller');
+const TokenBudgetManager = require('./token-budget-manager');
 
 // Resilient subagent routing components
 const { resolveModelAlias, hasAlias, getAliasesFor, MODEL_ALIASES } = require('./model-alias-resolver');
@@ -257,6 +259,24 @@ class ModelRouter {
     
     // P3: Feature Flags for Model Rollouts - integrate FeatureFlags for gradual model introductions
     this.featureFlags = options.featureFlags || null;
+
+    // P3: Dynamic Exploration Mode
+    const cliExploration = process.argv.includes('--exploration') || process.argv.includes('--explore');
+    const explorationActive = options.exploration?.active ?? cliExploration ?? String(process.env.OPENCODE_EXPLORATION_ACTIVE || '').toLowerCase() === 'true';
+    const explorationMode = options.exploration?.mode || process.env.OPENCODE_EXPLORATION_MODE || 'balanced';
+    const explorationBudget = Number(options.exploration?.budget ?? process.env.OPENCODE_EXPLORATION_BUDGET ?? 20);
+    const explorationTokenRatio = Number(options.exploration?.tokenBudgetRatio ?? process.env.OPENCODE_EXPLORATION_TOKEN_RATIO ?? 0.1);
+    this.tokenBudgetManager = options.tokenBudgetManager || new TokenBudgetManager({
+      minExplorationTokens: options.exploration?.minTokens ?? process.env.OPENCODE_EXPLORATION_MIN_TOKENS,
+    });
+    this.explorationController = options.explorationController || new DynamicExplorationController({
+      tokenBudgetRatio: explorationTokenRatio,
+      tokenBudgetManager: this.tokenBudgetManager,
+    });
+
+    if (explorationActive) {
+      void this.explorationController.activate(explorationMode, explorationBudget);
+    }
     
     // P1: ConfigLoader Integration - use centralized configuration
     this.configLoader = options.configLoader || null;
@@ -525,6 +545,35 @@ class ModelRouter {
    * @returns {Object} `{ model, key, score, reason, rotator }`
    */
   route(ctx = {}) {
+    const explorationSelection = this.explorationController?.selectModelForTaskSync({
+      taskId: ctx.taskId || ctx.sessionId || 'unknown',
+      intentCategory: ctx.taskType || ctx.task || 'general',
+      complexity: ctx.complexity || 'moderate',
+      availableTokens: ctx.availableTokens,
+      sessionId: ctx.sessionId,
+      modelId: ctx.modelId,
+      language: ctx.language,
+      fileSize: ctx.fileSize,
+    });
+
+    if (explorationSelection?.model) {
+      const resolved = this.resolveModelId ? this.resolveModelId(explorationSelection.model) : explorationSelection.model;
+      const model = this.models[resolved];
+      if (model) {
+        const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
+        const key = rotator ? rotator.getNextKey() : null;
+        return {
+          model,
+          keyId: key ? key.id : null,
+          modelId: resolved,
+          score: 1,
+          reason: explorationSelection.isExploration ? 'exploration:thompson' : 'exploration:best-known',
+          rotator,
+          key,
+        };
+      }
+    }
+
     if (ctx && typeof ctx.overrideModelId === 'string') {
       const forcedModel = this.models[ctx.overrideModelId];
       if (forcedModel) {
@@ -628,6 +677,35 @@ class ModelRouter {
   }
 
   async routeAsync(ctx = {}) {
+    const explorationSelection = await this.explorationController?.selectModelForTask({
+      taskId: ctx.taskId || ctx.sessionId || 'unknown',
+      intentCategory: ctx.taskType || ctx.task || 'general',
+      complexity: ctx.complexity || 'moderate',
+      availableTokens: ctx.availableTokens,
+      sessionId: ctx.sessionId,
+      modelId: ctx.modelId,
+      language: ctx.language,
+      fileSize: ctx.fileSize,
+    });
+
+    if (explorationSelection?.model) {
+      const resolved = this.resolveModelId ? this.resolveModelId(explorationSelection.model) : explorationSelection.model;
+      const model = this.models[resolved];
+      if (model) {
+        const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
+        const key = rotator ? await rotator.getNextKey() : null;
+        return {
+          model,
+          keyId: key ? key.id : null,
+          modelId: resolved,
+          score: 1,
+          reason: explorationSelection.isExploration ? 'exploration:thompson' : 'exploration:best-known',
+          rotator,
+          key,
+        };
+      }
+    }
+
     if (this.orchestrator && typeof this.orchestrator.selectModel === 'function' && ctx.task) {
       try {
         const selection = await this.orchestrator.selectModel(ctx.task, ctx);
@@ -1037,6 +1115,45 @@ class ModelRouter {
     } catch (error) {
       console.warn('[ModelRouter] Failed to record learning outcome:', error.message);
     }
+  }
+
+  reloadConfig() {
+    if (!this.configLoader) return false;
+    try {
+      this.config = this.configLoader.load();
+      return true;
+    } catch (error) {
+      console.warn('[ModelRouter] Failed to reload config:', error.message);
+      return false;
+    }
+  }
+
+  async recordExplorationOutcome(task, selection, result) {
+    if (!this.explorationController) return null;
+    const metrics = await this.explorationController.gatherMetrics(task, selection, result);
+    if (result?.tokensUsed && task?.sessionId) {
+      const tokens = typeof result.tokensUsed === 'number'
+        ? result.tokensUsed
+        : (result.tokensUsed.input || 0) + (result.tokensUsed.output || 0);
+      this.tokenBudgetManager?.recordUsage(task.sessionId, selection?.model, tokens);
+    }
+
+    if (this.skillRLManager?.skillBank && selection?.model) {
+      const taskType = task?.intentCategory || task?.taskType || 'general';
+      const skillName = `model:${selection.model}`;
+      this.skillRLManager.skillBank.addTaskSpecificSkill(taskType, {
+        name: skillName,
+        principle: 'Model selection based on exploration outcomes',
+        application_context: `Model exploration for ${taskType}`,
+      });
+      this.skillRLManager.learnFromOutcome({
+        task_type: taskType,
+        skill_used: skillName,
+        success: Boolean(result?.success),
+        outcome: result?.success ? 'success' : 'failure',
+      });
+    }
+    return metrics;
   }
 
   /**

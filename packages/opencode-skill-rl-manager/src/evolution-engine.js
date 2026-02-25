@@ -47,13 +47,6 @@ class EvolutionEngine {
     if (this.failureHistory.length > 1000) {
       this.failureHistory = this.failureHistory.slice(-1000);
     }
-      task_id,
-      task_type,
-      skills_used,
-      timestamp: Date.now(),
-      anti_pattern,
-      quota_signal: quotaSignal
-    });
 
     // Step 2: Distill root cause
     const rootCause = this._distillRootCause(failureContext);

@@ -44,9 +44,9 @@ Enable visibility of NVIDIA, Groq, and Cerebras models in the OpenCode selection
 - `opencode-config/opencode.json`
 
 ### Definition of Done
-- [ ] `opencode.json` contains entries for `nvidia`, `groq`, and `cerebras`.
-- [ ] `jq` validation passes for the new schema.
-- [ ] `ModelRouter` recognizes the new providers as available.
+- [x] `opencode.json` contains entries for `nvidia`, `groq`, and `cerebras`.
+- [x] `jq` validation passes for the new schema.
+- [x] `ModelRouter` recognizes the new providers as available.
 
 ### Must Have
 - Exact model IDs matching `policies.json`.
@@ -128,8 +128,8 @@ Scenario: Verify ModelRouter identifies new providers
   - `packages/opencode-model-router-x/src/policies.json` - Source of truth for model metadata.
 
   **Acceptance Criteria**:
-  - [ ] `jq '.provider | keys' opencode-config/opencode.json` includes ["nvidia", "groq", "cerebras"].
-  - [ ] `jq '.provider.nvidia.models | keys' opencode-config/opencode.json` includes ["llama-3.1-405b"].
+  - [x] `jq '.provider | keys' opencode-config/opencode.json` includes ["nvidia", "groq", "cerebras"].
+  - [x] `jq '.provider.nvidia.models | keys' opencode-config/opencode.json` includes ["llama-3.1-405b"].
 
   **Commit**: YES
   - Message: `config: register nvidia, groq, and cerebras providers in opencode registry`
@@ -145,6 +145,6 @@ jq '.provider | keys' opencode-config/opencode.json
 ```
 
 ### Final Checklist
-- [ ] All 3 new providers registered.
-- [ ] Models match policies.json naming exactly.
-- [ ] JSON syntax is valid.
+- [x] All 3 new providers registered.
+- [x] Models match policies.json naming exactly.
+- [x] JSON syntax is valid.
