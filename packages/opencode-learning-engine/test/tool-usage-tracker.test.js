@@ -4,31 +4,21 @@ const { describe, test, expect, afterAll } = require('bun:test');
 const fs = require('fs');
 const fsPromises = require('fs/promises');
 const path = require('path');
-const os = require('os');
 
 // ---------------------------------------------------------------------------
-// Test isolation: redirect DATA_DIR to a temp directory.
-// The module reads HOME/USERPROFILE at require-time, so we set env BEFORE require.
-// We do NOT delete the data dir between tests because the module's _initPromise
-// singleton only runs once — deleting the dir would leave init "done" but the
-// directory missing, causing ENOENT on every subsequent write.
+// Test isolation: shared env setup (see _tool-usage-env.js).
+// Module reads HOME/USERPROFILE at require-time so env must be set BEFORE require.
+// The shared helper ensures all test files use the same tmpDir since bun
+// caches modules — only the first require captures paths.
 // ---------------------------------------------------------------------------
-
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tool-usage-test-'));
-const savedHome = process.env.HOME;
-const savedUserProfile = process.env.USERPROFILE;
-process.env.HOME = tmpDir;
-process.env.USERPROFILE = tmpDir;
+const { tmpDir, DATA_DIR, restoreEnv, cleanupTmpDir } = require('./_tool-usage-env');
 
 const tracker = require('../src/tool-usage-tracker');
 
 afterAll(() => {
-  process.env.HOME = savedHome;
-  process.env.USERPROFILE = savedUserProfile;
-  try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* best-effort */ }
+  restoreEnv();
+  cleanupTmpDir();
 });
-
-const DATA_DIR = path.join(tmpDir, '.opencode', 'tool-usage');
 
 // ---------------------------------------------------------------------------
 // 1. All exported functions return Promises

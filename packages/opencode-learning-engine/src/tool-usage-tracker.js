@@ -274,17 +274,42 @@ async function logInvocation(toolName, params, result, context = {}) {
     }
   };
   
-  // Append to invocations
-  const data = await readJsonAsync(INVOCATIONS_FILE, { invocations: [] });
-  data.invocations.push(invocation);
-  
-  // Keep last 1000 invocations
-  if (data.invocations.length > 1000) {
-    data.invocations = data.invocations.slice(-1000);
-  }
-  await writeJsonAsync(INVOCATIONS_FILE, data);
-  
-  // Update metrics
+  // Queue the ENTIRE read-modify-write as one transaction to prevent
+  // concurrent callers from reading the same stale snapshot and losing
+  // each other's entries (last-write-wins race).
+  const doTransaction = async () => {
+    let data;
+    try {
+      data = await readJsonAsync(INVOCATIONS_FILE, { invocations: [] });
+    } catch {
+      data = { invocations: [] };
+    }
+    data.invocations.push(invocation);
+
+    // Keep last 1000 invocations
+    if (data.invocations.length > 1000) {
+      data.invocations = data.invocations.slice(-1000);
+    }
+
+    // Atomic write inlined (avoid double-queuing through writeJsonAsync)
+    const json = JSON.stringify(data, null, 2);
+    const tmp = INVOCATIONS_FILE + '.tmp';
+    try {
+      await fsPromises.writeFile(tmp, json, 'utf8');
+      await fsPromises.rename(tmp, INVOCATIONS_FILE);
+    } catch (err) {
+      if (err.code === 'EPERM' || err.code === 'EACCES') {
+        await fsPromises.writeFile(INVOCATIONS_FILE, json, 'utf8');
+        try { await fsPromises.unlink(tmp); } catch { /* best-effort */ }
+      } else {
+        throw err;
+      }
+    }
+  };
+  _writePromise = _writePromise.catch(() => {}).then(doTransaction);
+  await _writePromise;
+
+  // Update metrics (also serialized inside its own transaction)
   await updateMetrics(toolName, invocation);
 
   // Emit orchestration intelligence event (fire-and-forget)
@@ -326,20 +351,52 @@ function sanitizeParams(params) {
  * Update metrics after an invocation
  */
 async function updateMetrics(toolName, invocation) {
-  const metrics = await readJsonAsync(METRICS_FILE);
-  
-  metrics.totalInvocations++;
-  metrics.toolCounts[toolName] = (metrics.toolCounts[toolName] || 0) + 1;
-  metrics.categoryCounts[invocation.category] = (metrics.categoryCounts[invocation.category] || 0) + 1;
-  
-  // Calculate breadth score
-  const usedTools = Object.keys(metrics.toolCounts);
-  metrics.breadthScore = Math.round((usedTools.length / Object.keys(AVAILABLE_TOOLS).length) * 100);
-  
-  // Calculate appropriateness score
-  metrics.appropriatenessScore = await calculateAppropriatenessScore(metrics);
-  
-  await writeJsonAsync(METRICS_FILE, metrics);
+  // Queue full read-modify-write to prevent concurrent callers from
+  // reading stale metrics and losing increments.
+  const doTransaction = async () => {
+    let metrics;
+    try {
+      metrics = await readJsonAsync(METRICS_FILE);
+    } catch {
+      metrics = {
+        totalSessions: 0,
+        totalInvocations: 0,
+        toolCounts: {},
+        categoryCounts: {},
+        breadthScore: 0,
+        underUseEvents: 0,
+        appropriatenessScore: 0
+      };
+    }
+
+    metrics.totalInvocations++;
+    metrics.toolCounts[toolName] = (metrics.toolCounts[toolName] || 0) + 1;
+    metrics.categoryCounts[invocation.category] = (metrics.categoryCounts[invocation.category] || 0) + 1;
+
+    // Calculate breadth score
+    const usedTools = Object.keys(metrics.toolCounts);
+    metrics.breadthScore = Math.round((usedTools.length / Object.keys(AVAILABLE_TOOLS).length) * 100);
+
+    // Calculate appropriateness score
+    metrics.appropriatenessScore = await calculateAppropriatenessScore(metrics);
+
+    // Atomic write inlined (avoid double-queuing through writeJsonAsync)
+    const json = JSON.stringify(metrics, null, 2);
+    const tmp = METRICS_FILE + '.tmp';
+    try {
+      await fsPromises.writeFile(tmp, json, 'utf8');
+      await fsPromises.rename(tmp, METRICS_FILE);
+    } catch (err) {
+      if (err.code === 'EPERM' || err.code === 'EACCES') {
+        await fsPromises.writeFile(METRICS_FILE, json, 'utf8');
+        try { await fsPromises.unlink(tmp); } catch { /* best-effort */ }
+      } else {
+        throw err;
+      }
+    }
+  };
+  _writePromise = _writePromise.catch(() => {}).then(doTransaction);
+  return _writePromise;
 }
 
 /**

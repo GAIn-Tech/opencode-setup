@@ -1,0 +1,18 @@
+{
+  "id": "tool-usage-tracker-race-fix-20260225",
+  "timestamp": "2026-02-25T00:00:00Z",
+  "summary": "Fix read-modify-write race in logInvocation and updateMetrics. Previously, concurrent callers read stale JSON snapshot outside the _writePromise queue, mutated in memory, then only serialized the write — last writer wins, earlier entries lost. Now the entire read-mutate-write transaction runs inside the _writePromise chain. Atomic write (tmp+rename with EPERM fallback) inlined to avoid double-queuing.",
+  "affected_paths": [
+    "packages/opencode-learning-engine/src/tool-usage-tracker.js",
+    "packages/opencode-learning-engine/test/tool-usage-race.test.js",
+    "packages/opencode-learning-engine/test/tool-usage-tracker.test.js",
+    "packages/opencode-learning-engine/test/_tool-usage-env.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium",
+  "notes": "Same pattern as event-store fix (c6edca1). Race regression test verifies 10 concurrent logInvocation calls preserve all 10 entries and 5 concurrent calls increment metrics by exactly 5. Shared test env (_tool-usage-env.js) prevents module singleton path conflicts across test files. 30/30 learning-engine tests pass. Public API unchanged."
+}
