@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     }
 
     const events = await readMetaAwarenessEvents(limit);
-    const filtered = sessionId ? events.filter((event: any) => event.session_id === sessionId) : events;
+    const filtered = sessionId ? events.filter((event: Record<string, unknown>) => event.session_id === sessionId) : events;
     return NextResponse.json({
       generated_at: new Date().toISOString(),
       count: filtered.length,

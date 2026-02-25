@@ -5,11 +5,11 @@
 
 /**
  * Safely stringify an object, handling circular references
- * @param {any} obj - Object to stringify
+ * @param {unknown} obj - Object to stringify
  * @param {number} depth - Maximum depth (default: 10)
  * @returns {string} JSON string or error message
  */
-export function safeStringify(obj, depth = 10) {
+function safeStringify(obj, depth = 10) {
   if (obj === undefined) return 'undefined';
   if (obj === null) return 'null';
   
@@ -39,10 +39,10 @@ export function safeStringify(obj, depth = 10) {
 /**
  * Safely parse JSON with error handling
  * @param {string} json - JSON string to parse
- * @param {any} fallback - Fallback value on error (default: null)
- * @returns {any} Parsed object or fallback
+ * @param {unknown} fallback - Fallback value on error (default: null)
+ * @returns {unknown} Parsed object or fallback
  */
-export function safeParse(json, fallback = null) {
+function safeParse(json, fallback = null) {
   if (!json || typeof json !== 'string') {
     return fallback;
   }
@@ -57,11 +57,11 @@ export function safeParse(json, fallback = null) {
 
 /**
  * Safely deep clone an object
- * @param {any} obj - Object to clone
+ * @param {unknown} obj - Object to clone
  * @param {number} maxDepth - Maximum depth (default: 20)
- * @returns {any} Cloned object or original if failed
+ * @returns {unknown} Cloned object or original if failed
  */
-export function safeClone(obj, maxDepth = 20) {
+function safeClone(obj, maxDepth = 20) {
   if (obj === null || typeof obj !== 'object') {
     return obj;
   }

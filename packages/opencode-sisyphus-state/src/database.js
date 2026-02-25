@@ -223,7 +223,7 @@ class WorkflowStore {
    * Ensures atomicity - all succeed or all fail.
    * 
    * @param {Function} callback - Function receiving db object to perform operations
-   * @returns {any} - Result from callback
+   * @returns {unknown} - Result from callback
    * @throws {Error} - Re-throws error with transaction context
    */
   /**

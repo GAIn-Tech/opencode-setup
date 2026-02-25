@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     const events = await readMetaAwarenessEvents(1000);
     const cutoff = Date.now() - sinceDays * 24 * 60 * 60 * 1000;
-    const filtered = events.filter((event: any) => new Date(event.timestamp || 0).getTime() >= cutoff);
+    const filtered = events.filter((event: Record<string, unknown>) => new Date(String(event.timestamp || 0)).getTime() >= cutoff);
 
     const model: Record<string, number> = {};
     const skill: Record<string, number> = {};

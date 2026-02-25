@@ -255,7 +255,7 @@ export async function POST(request: Request) {
           // Check optimistic concurrency control
           if (config_version !== undefined) {
             const currentData = readJsonSafe(filePath);
-            const currentVersion = (currentData as any)?.config_version || 0;
+            const currentVersion = (currentData as Record<string, unknown> | null)?.config_version || 0;
             if (config_version !== currentVersion) {
               return NextResponse.json({ 
                 error: 'Stale config version',
@@ -268,7 +268,7 @@ export async function POST(request: Request) {
           // Increment config_version
           const newData = {
             ...data,
-            config_version: ((data as any)?.config_version || 0) + 1
+            config_version: ((data as Record<string, unknown>)?.config_version as number || 0) + 1
           };
           
           // Append audit log entry

@@ -11,7 +11,7 @@ function fallbackPaths() {
   };
 }
 
-export function loadMetaAwarenessTracker(): any | null {
+export function loadMetaAwarenessTracker(): Record<string, unknown> | null {
   return null;
 }
 

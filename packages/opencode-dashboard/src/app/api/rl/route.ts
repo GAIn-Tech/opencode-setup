@@ -116,15 +116,16 @@ function normalizeSkillObject(entry: unknown): SkillSummary | null {
 
   return {
     name,
-    success_rate: toNumber(entryObj.success_rate ?? entry.successRate, 0),
-    usage_count: toNumber(entryObj.usage_count ?? entry.usageCount, 0),
-    last_updated: toIso(entryObj.last_updated ?? entry.lastUpdated)
+    success_rate: toNumber(entryObj.success_rate ?? entryObj.successRate, 0),
+    usage_count: toNumber(entryObj.usage_count ?? entryObj.usageCount, 0),
+    last_updated: toIso(entryObj.last_updated ?? entryObj.lastUpdated)
   };
 }
 
 function decodeSkillBank(skillBank: unknown): { general: SkillSummary[]; taskSpecific: SkillSummary[] } {
-  const generalRaw = Array.isArray(skillBank?.general) ? skillBank.general : [];
-  const taskSpecificRaw = Array.isArray(skillBank?.taskSpecific) ? skillBank.taskSpecific : [];
+  const sb = (skillBank && typeof skillBank === 'object' ? skillBank : {}) as Record<string, unknown>;
+  const generalRaw = Array.isArray(sb.general) ? sb.general : [];
+  const taskSpecificRaw = Array.isArray(sb.taskSpecific) ? sb.taskSpecific : [];
 
   const general: SkillSummary[] = generalRaw
     .map((entry: unknown) => (Array.isArray(entry) ? normalizeSkillTuple(entry) : normalizeSkillObject(entry)))
@@ -239,19 +240,23 @@ export async function GET() {
       .sort((a, b) => b.success_rate - a.success_rate)
       .slice(0, 10);
 
-    const evolutionRaw = rlData.evolutionEngine || {};
+    const evolutionRaw = (rlData.evolutionEngine || {}) as Record<string, unknown>;
     const failureHistoryRaw = Array.isArray(evolutionRaw.failure_history)
       ? evolutionRaw.failure_history
       : Array.isArray(evolutionRaw.failureHistory)
         ? evolutionRaw.failureHistory
         : [];
 
-    const failureHistory: FailureHistoryItem[] = failureHistoryRaw.map((entry: unknown) => ({
-      task_id: String(entry?.task_id || ''),
-      task_type: String(entry?.task_type || 'unknown'),
-      timestamp: toIso(entry?.timestamp),
-      anti_pattern: String(entry?.anti_pattern?.type || entry?.anti_pattern || 'unknown')
-    }));
+    const failureHistory: FailureHistoryItem[] = failureHistoryRaw.map((raw: unknown) => {
+      const e = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+      const ap = (e.anti_pattern && typeof e.anti_pattern === 'object' ? e.anti_pattern : null) as Record<string, unknown> | null;
+      return {
+        task_id: String(e.task_id || ''),
+        task_type: String(e.task_type || 'unknown'),
+        timestamp: toIso(e.timestamp),
+        anti_pattern: String(ap?.type || e.anti_pattern || 'unknown')
+      };
+    });
 
     const reportedAdaptations = Array.isArray(evolutionRaw.recent_adaptations)
       ? evolutionRaw.recent_adaptations
@@ -261,22 +266,30 @@ export async function GET() {
 
     const recentAdaptations: RecentAdaptation[] =
       reportedAdaptations.length > 0
-        ? reportedAdaptations.map((entry: unknown) => ({
-            skill: String(entry?.skill || entry?.name || 'unknown'),
-            type: entry?.type === 'success' ? 'success' : 'failure',
-            adaptation: String(entry?.adaptation || entry?.reason || 'adaptation recorded'),
-            timestamp: toIso(entry?.timestamp)
-          }))
-        : failureHistoryRaw.slice(-10).map((entry: unknown) => ({
-            skill: String(
-              Array.isArray(entry?.skills_used) && entry.skills_used.length > 0
-                ? entry.skills_used[0]
-                : entry?.anti_pattern?.skill || 'unknown'
-            ),
-            type: 'failure',
-            adaptation: String(entry?.anti_pattern?.type || 'failure adaptation'),
-            timestamp: toIso(entry?.timestamp)
-          }));
+        ? reportedAdaptations.map((raw: unknown) => {
+            const e = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+            return {
+              skill: String(e.skill || e.name || 'unknown'),
+              type: e.type === 'success' ? 'success' as const : 'failure' as const,
+              adaptation: String(e.adaptation || e.reason || 'adaptation recorded'),
+              timestamp: toIso(e.timestamp)
+            };
+          })
+        : failureHistoryRaw.slice(-10).map((raw: unknown) => {
+            const e = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+            const ap = (e.anti_pattern && typeof e.anti_pattern === 'object' ? e.anti_pattern : null) as Record<string, unknown> | null;
+            const skillsUsed = Array.isArray(e.skills_used) ? e.skills_used : [];
+            return {
+              skill: String(
+                skillsUsed.length > 0
+                  ? skillsUsed[0]
+                  : ap?.skill || 'unknown'
+              ),
+              type: 'failure' as const,
+              adaptation: String(ap?.type || 'failure adaptation'),
+              timestamp: toIso(e.timestamp)
+            };
+          });
 
     const failureCount = toNumber(
       evolutionRaw.failure_count ?? evolutionRaw.failureCount ?? evolutionRaw.total_failures,

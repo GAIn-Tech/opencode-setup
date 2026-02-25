@@ -180,7 +180,7 @@ function countPluginDirectories(repoRoot: string): number {
 function parseFallbackFirstProvider(filePath: string): string {
   const json = readJson<Record<string, unknown>>(filePath, {});
   if (!json || typeof json !== 'object') return '';
-  const fallbackModels = arr<any>((json as any).fallbackModels ?? (json as any).fallback_models ?? []);
+  const fallbackModels = arr<Record<string, unknown>>(json.fallbackModels as unknown[] ?? json.fallback_models as unknown[] ?? []);
   if (fallbackModels.length > 0) {
     const first = fallbackModels[0];
     const provider = String(first?.provider || '').trim();
@@ -188,7 +188,7 @@ function parseFallbackFirstProvider(filePath: string): string {
     const model = String(first?.model || '').trim();
     if (model.includes('/')) return model.split('/')[0]!.toLowerCase();
   }
-  const priority = arr<any>((json as any).provider_priority ?? (json as any).providerPriority ?? []);
+  const priority = arr<unknown>(json.provider_priority as unknown[] ?? json.providerPriority as unknown[] ?? []);
   if (priority.length > 0) return String(priority[0]).toLowerCase();
   return '';
 }
@@ -341,11 +341,11 @@ export async function GET(request: Request) {
       const transition = String(entry?.transition_reason || '').toLowerCase();
       return transition.includes('->degraded');
     }).length;
-    const strategyRuntimeState = readJson<any>(strategyRuntimeStatePath, {});
-    const strategyEntries = Object.values(strategyRuntimeState?.entries || {});
-    const strategyBypassActive = strategyEntries.filter((entry: any) => Number(entry?.bypass_until || 0) > Date.now()).length;
-    const strategyUnhealthy = strategyEntries.filter((entry: any) => Number(entry?.consecutive_failures || 0) > 0).length;
-    const retrievalQuality = readJson<any>(retrievalQualityPath, null);
+    const strategyRuntimeState = readJson<Record<string, unknown>>(strategyRuntimeStatePath, {});
+    const strategyEntries = Object.values((strategyRuntimeState?.entries as Record<string, unknown>) || {});
+    const strategyBypassActive = strategyEntries.filter((entry: unknown) => Number((entry as Record<string, unknown>)?.bypass_until || 0) > Date.now()).length;
+    const strategyUnhealthy = strategyEntries.filter((entry: unknown) => Number((entry as Record<string, unknown>)?.consecutive_failures || 0) > 0).length;
+    const retrievalQuality = readJson<Record<string, unknown> | null>(retrievalQualityPath, null);
     const retrievalMapAtK = Number(retrievalQuality?.map_at_k || 0);
     const retrievalGroundedRecall = Number(retrievalQuality?.grounded_recall || 0);
     const retrievalSampleSize = Number(retrievalQuality?.sample_size || 0);

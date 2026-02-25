@@ -188,7 +188,7 @@ export class CrashRecovery {
   /**
    * Save recovery state for a specific component
    * @param {string} component - Component name
-   * @param {any} state - State to save
+   * @param {unknown} state - State to save
    */
   async saveComponentState(component, state) {
     this.state[component] = {
@@ -201,7 +201,7 @@ export class CrashRecovery {
   /**
    * Load recovery state for a specific component
    * @param {string} component - Component name
-   * @returns {any} Saved state or null
+   * @returns {unknown} Saved state or null
    */
   loadComponentState(component) {
     const saved = this.state[component];

@@ -301,7 +301,7 @@ export function KnowledgeGraphViewer() {
   );
 }
 
-function buildTaxonomyFromPatterns(learningData: any): TaxonomyNode {
+function buildTaxonomyFromPatterns(learningData: Record<string, unknown>): TaxonomyNode {
   // Build taxonomy from anti-patterns
   const root: TaxonomyNode = {
     name: 'errors',
@@ -317,19 +317,21 @@ function buildTaxonomyFromPatterns(learningData: any): TaxonomyNode {
   };
   
   // Add anti-patterns as leaf nodes
-  if (learningData?.anti_patterns?.items) {
-    learningData.anti_patterns.items.forEach((pattern: any) => {
+  const antiPatterns = learningData?.anti_patterns as Record<string, unknown> | undefined;
+  if (antiPatterns?.items && Array.isArray(antiPatterns.items)) {
+    (antiPatterns.items as Record<string, unknown>[]).forEach((pattern: Record<string, unknown>) => {
+      const patternType = String(pattern.type || '');
       const node: TaxonomyNode = {
-        name: pattern.type,
-        count: pattern.count
+        name: patternType,
+        count: Number(pattern.count) || undefined
       };
       
       // Categorize by pattern type
-      if (pattern.type.includes('debug') || pattern.type.includes('state')) {
+      if (patternType.includes('debug') || patternType.includes('state')) {
         categories.logic_error.push(node);
-      } else if (pattern.type.includes('type')) {
+      } else if (patternType.includes('type')) {
         categories.syntax_error.push(node);
-      } else if (pattern.type.includes('tool') || pattern.type.includes('solution')) {
+      } else if (patternType.includes('tool') || patternType.includes('solution')) {
         categories.runtime_error.push(node);
       } else {
         categories.module_error.push(node);

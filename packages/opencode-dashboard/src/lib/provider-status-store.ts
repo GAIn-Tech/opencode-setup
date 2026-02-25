@@ -314,7 +314,7 @@ function writeStore(store: UnifiedStatusStoreFile): void {
   fs.writeFileSync(tmpPath, jsonContent, 'utf-8');
   
   // Validate the written content before rename
-  let validatedContent: any;
+  let validatedContent: unknown;
   try {
     validatedContent = JSON.parse(fs.readFileSync(tmpPath, 'utf-8'));
   } catch (readErr) {
@@ -609,7 +609,7 @@ async function fetchProvidersFromApi(origin?: string): Promise<ProvidersApiRespo
     const response = await fetch(`${baseOrigin}/api/providers`, {
       method: 'GET',
       cache: 'no-store',
-      signal: controller.signal as any
+      signal: controller.signal as AbortSignal
     });
 
     if (!response.ok) {

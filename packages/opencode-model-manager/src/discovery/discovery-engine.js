@@ -120,7 +120,7 @@ class DiscoveryEngine extends EventEmitter {
   }
 
   /**
-   * @param {any} model
+   * @param {Record<string, unknown>} model
    * @param {string} providerId
    * @returns {object}
    */

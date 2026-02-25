@@ -76,7 +76,7 @@ class MemoryGraphV3 extends EventEmitter {
 
   /**
    * Safely stringify an object, handling circular references.
-   * @param {any} obj
+   * @param {unknown} obj
    * @returns {string}
    */
   _safeStringify(obj) {
@@ -94,8 +94,8 @@ class MemoryGraphV3 extends EventEmitter {
 
   /**
    * Safely deep clone an object, handling circular references.
-   * @param {any} obj
-   * @returns {any}
+   * @param {unknown} obj
+   * @returns {unknown}
    */
   _safeClone(obj) {
     try {

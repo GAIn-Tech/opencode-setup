@@ -1,0 +1,25 @@
+{
+  "id": "reduce-explicit-any-types-20260225",
+  "timestamp": "2026-02-25T12:00:00Z",
+  "category": "type-safety",
+  "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
+  "details": "Replaced error: any with error: unknown in catch blocks, any params/variables with Record<string, unknown> or specific interfaces (SkillEntry, ConfigLoaderModule, MetricsCollectorInstance, MemoryGraphMessage), as any casts with proper type assertions, and JSDoc {any} with {unknown} in JS files. No runtime behavior changes.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/",
+    "packages/opencode-dashboard/src/components/dashboard/",
+    "packages/opencode-dashboard/src/lib/",
+    "packages/opencode-crash-guard/src/",
+    "packages/opencode-learning-engine/src/index.js",
+    "packages/opencode-memory-graph/src/graph-v3.js",
+    "packages/opencode-model-manager/src/discovery/discovery-engine.js",
+    "packages/opencode-proofcheck/src/index.js",
+    "packages/opencode-sisyphus-state/src/database.js"
+  ],
+  "impact": "Low - type annotations only, no runtime behavior changes",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "pass"
+  },
+  "risk_level": "low"
+}

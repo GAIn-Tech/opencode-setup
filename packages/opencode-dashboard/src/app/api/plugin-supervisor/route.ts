@@ -25,10 +25,10 @@ export async function GET() {
   try {
     const supervisor = loadSupervisor();
     const items = supervisor.list();
-    const degraded = items.filter((item: any) => item.status === 'degraded').length;
-    const healthy = items.filter((item: any) => item.status === 'healthy').length;
-    const unknown = items.filter((item: any) => item.status === 'unknown').length;
-    const quarantined = items.filter((item: any) => Boolean(item.quarantine)).length;
+    const degraded = items.filter((item: Record<string, unknown>) => item.status === 'degraded').length;
+    const healthy = items.filter((item: Record<string, unknown>) => item.status === 'healthy').length;
+    const unknown = items.filter((item: Record<string, unknown>) => item.status === 'unknown').length;
+    const quarantined = items.filter((item: Record<string, unknown>) => Boolean(item.quarantine)).length;
 
     return NextResponse.json({
       updated_at: new Date().toISOString(),

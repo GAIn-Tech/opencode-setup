@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       generated_at: new Date().toISOString(),
       since_days: sinceDays,
-      points: points.filter((point: any) => new Date(point.timestamp || 0).getTime() >= cutoff),
+      points: points.filter((point: Record<string, unknown>) => new Date(String(point.timestamp || 0)).getTime() >= cutoff),
       data_fidelity: rollups ? 'degraded' : 'demo',
       fallback: true,
     });

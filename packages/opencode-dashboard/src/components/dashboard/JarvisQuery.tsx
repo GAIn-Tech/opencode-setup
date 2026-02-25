@@ -4,7 +4,8 @@ import { useState, useCallback } from 'react';
 
 interface QueryResult {
   type: 'node' | 'edge' | 'pattern' | 'skill' | 'error' | 'summary';
-  data: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: Record<string, any>;
   confidence?: number;
 }
 
@@ -56,7 +57,7 @@ export function JarvisQuery() {
         });
         
         // Add graph errors
-        const errorNodes = graphData.nodes?.filter((n: any) => n.type === 'error') || [];
+        const errorNodes = graphData.nodes?.filter((n: Record<string, unknown>) => n.type === 'error') || [];
         queryResults.push({
           type: 'node',
           data: { errors: errorNodes, count: errorNodes.length },
@@ -84,7 +85,7 @@ export function JarvisQuery() {
       
       // Query: sessions
       if (lowerQ.includes('session')) {
-        const sessionNodes = graphData.nodes?.filter((n: any) => n.type === 'session') || [];
+        const sessionNodes = graphData.nodes?.filter((n: Record<string, unknown>) => n.type === 'session') || [];
         queryResults.push({
           type: 'node',
           data: { sessions: sessionNodes, count: sessionNodes.length },
@@ -94,8 +95,8 @@ export function JarvisQuery() {
       
       // Query: tools/agents
       if (lowerQ.includes('tool') || lowerQ.includes('agent')) {
-        const toolNodes = graphData.nodes?.filter((n: any) => n.type === 'tool') || [];
-        const agentNodes = graphData.nodes?.filter((n: any) => n.type === 'agent') || [];
+        const toolNodes = graphData.nodes?.filter((n: Record<string, unknown>) => n.type === 'tool') || [];
+        const agentNodes = graphData.nodes?.filter((n: Record<string, unknown>) => n.type === 'agent') || [];
         queryResults.push({
           type: 'node',
           data: { tools: toolNodes, agents: agentNodes },
@@ -231,18 +232,18 @@ export function JarvisQuery() {
               {/* Errors/Anti-Patterns */}
               {result.type === 'error' && result.data.items && (
                 <div className="space-y-2">
-                  {result.data.items.slice(0, 5).map((item: any, j: number) => (
+                  {result.data.items.slice(0, 5).map((item: Record<string, unknown>, j: number) => (
                     <div key={j} className="flex items-center justify-between text-sm">
-                      <span className="text-zinc-300">{item.type}</span>
+                      <span className="text-zinc-300">{String(item.type)}</span>
                       <div className="flex items-center gap-2">
                         <span className={`px-2 py-0.5 rounded text-xs ${
                           item.severity === 'high' ? 'bg-red-600/20 text-red-400' :
                           item.severity === 'medium' ? 'bg-yellow-600/20 text-yellow-400' :
                           'bg-zinc-600 text-zinc-400'
                         }`}>
-                          {item.severity}
+                          {String(item.severity)}
                         </span>
-                        <span className="text-zinc-500">×{item.count}</span>
+                        <span className="text-zinc-500">×{String(item.count)}</span>
                       </div>
                     </div>
                   ))}
@@ -252,18 +253,18 @@ export function JarvisQuery() {
               {/* Skills */}
               {result.type === 'skill' && Array.isArray(result.data) && (
                 <div className="space-y-2">
-                  {result.data.slice(0, 5).map((skill: any, j: number) => (
+                  {result.data.slice(0, 5).map((skill: Record<string, unknown>, j: number) => (
                     <div key={j} className="flex items-center justify-between text-sm">
-                      <span className="text-zinc-300">{skill.name}</span>
+                      <span className="text-zinc-300">{String(skill.name)}</span>
                       <div className="flex items-center gap-2">
                         <span className={`${
-                          skill.success_rate >= 0.8 ? 'text-emerald-400' :
-                          skill.success_rate >= 0.6 ? 'text-yellow-400' :
+                          Number(skill.success_rate) >= 0.8 ? 'text-emerald-400' :
+                          Number(skill.success_rate) >= 0.6 ? 'text-yellow-400' :
                           'text-red-400'
                         }`}>
-                          {(skill.success_rate * 100).toFixed(0)}%
+                          {(Number(skill.success_rate) * 100).toFixed(0)}%
                         </span>
-                        <span className="text-zinc-500">({skill.usage_count} uses)</span>
+                        <span className="text-zinc-500">({String(skill.usage_count)} uses)</span>
                       </div>
                     </div>
                   ))}

@@ -184,7 +184,7 @@ export async function POST(request: Request) {
 
       accepted += 1;
       acceptedEvents.push(event);
-      const latency = n((event as any).latency_ms, NaN);
+      const latency = n((event as Record<string, unknown>).latency_ms, NaN);
       if (Number.isFinite(latency) && latency >= 0) {
         acceptedLatencies.push(latency);
       }

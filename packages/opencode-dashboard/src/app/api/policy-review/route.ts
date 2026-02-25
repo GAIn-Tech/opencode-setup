@@ -26,7 +26,7 @@ export async function GET() {
       ? Number(process.env.OPENCODE_POLICY_REVIEW_P95_SLO_HOURS || '24')
       : 24;
 
-    let queue: any;
+    let queue: Record<string, unknown>;
     try {
       const content = await fsPromises.readFile(queuePath, 'utf-8');
       queue = JSON.parse(content);
@@ -36,9 +36,9 @@ export async function GET() {
 
     const items = Array.isArray(queue.items) ? queue.items : [];
     const now = Date.now();
-    const pendingItems = items.filter((item: any) => String(item?.status || 'pending') === 'pending');
+    const pendingItems = items.filter((item: Record<string, unknown>) => String(item?.status || 'pending') === 'pending');
     const pendingAgesHours = pendingItems
-      .map((item: any) => {
+      .map((item: Record<string, unknown>) => {
         const created = Date.parse(String(item?.created_at || ''));
         if (Number.isNaN(created)) return 0;
         return (now - created) / (1000 * 60 * 60);
@@ -49,7 +49,7 @@ export async function GET() {
     const p50AgeHours = percentile(pendingAgesHours, 50);
     const maxAgeHours = pendingAgesHours.length > 0 ? Math.max(...pendingAgesHours) : 0;
 
-    const byStatus = items.reduce((acc: Record<string, number>, item: any) => {
+    const byStatus = items.reduce((acc: Record<string, number>, item: Record<string, unknown>) => {
       const status = String(item?.status || 'pending');
       acc[status] = (acc[status] || 0) + 1;
       return acc;

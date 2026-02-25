@@ -5,6 +5,14 @@ import fs from 'fs';
 
 export const dynamic = 'force-dynamic';
 
+interface SkillEntry {
+  name: string;
+  success_rate: number;
+  usage_count: number;
+  last_updated: string;
+  task_type?: string;
+}
+
 function toNumber(value: unknown, fallback = 0): number {
   if (typeof value === 'number' && Number.isFinite(value)) {
     return value;
@@ -27,12 +35,13 @@ function toIso(value: unknown): string {
   return new Date(0).toISOString();
 }
 
-function normalizeSkillObject(entry: unknown, taskType?: string) {
+function normalizeSkillObject(entry: unknown, taskType?: string): SkillEntry | null {
   if (!entry || typeof entry !== 'object') {
     return null;
   }
 
-  const name = String(entry.name || '').trim();
+  const obj = entry as Record<string, unknown>;
+  const name = String(obj.name || '').trim();
   if (!name) {
     return null;
   }
@@ -40,13 +49,13 @@ function normalizeSkillObject(entry: unknown, taskType?: string) {
   return {
     ...(taskType ? { task_type: taskType } : {}),
     name,
-    success_rate: toNumber(entry.success_rate ?? entry.successRate, 0),
-    usage_count: toNumber(entry.usage_count ?? entry.usageCount, 0),
-    last_updated: toIso(entry.last_updated ?? entry.lastUpdated)
+    success_rate: toNumber(obj.success_rate ?? obj.successRate, 0),
+    usage_count: toNumber(obj.usage_count ?? obj.usageCount, 0),
+    last_updated: toIso(obj.last_updated ?? obj.lastUpdated)
   };
 }
 
-function normalizeSkillTuple(entry: unknown, taskType?: string) {
+function normalizeSkillTuple(entry: unknown, taskType?: string): SkillEntry | null {
   if (!Array.isArray(entry) || entry.length < 2) {
     return null;
   }
@@ -57,23 +66,23 @@ function normalizeSkillTuple(entry: unknown, taskType?: string) {
   return mapped;
 }
 
-function decodeGeneralSkills(raw: unknown): any[] {
+function decodeGeneralSkills(raw: unknown): SkillEntry[] {
   if (!Array.isArray(raw)) {
     return [];
   }
 
   return raw
-    .map(entry => (Array.isArray(entry) ? normalizeSkillTuple(entry) : normalizeSkillObject(entry)))
-    .filter(Boolean);
+    .map((entry: unknown) => (Array.isArray(entry) ? normalizeSkillTuple(entry) : normalizeSkillObject(entry)))
+    .filter((v): v is SkillEntry => v !== null);
 }
 
-function decodeTaskSpecificSkills(raw: unknown): any[] {
+function decodeTaskSpecificSkills(raw: unknown): SkillEntry[] {
   if (!Array.isArray(raw)) {
     return [];
   }
 
-  const decoded: Record<string, unknown>[] = [];
-  raw.forEach(entry => {
+  const decoded: SkillEntry[] = [];
+  raw.forEach((entry: unknown) => {
     if (Array.isArray(entry) && entry.length === 2 && Array.isArray(entry[1])) {
       const taskType = String(entry[0] || '').trim();
       entry[1].forEach((skillTuple: unknown) => {
@@ -167,12 +176,14 @@ export async function GET() {
           { status: 503 }
         );
       }
-      const generalSkills = decodeGeneralSkills(skillData.skillBank?.general);
-      const taskSpecificSkills = decodeTaskSpecificSkills(skillData.skillBank?.taskSpecific);
-      const failureHistory = Array.isArray(skillData.evolutionEngine?.failure_history)
-        ? skillData.evolutionEngine.failure_history
-        : Array.isArray(skillData.evolutionEngine?.failureHistory)
-          ? skillData.evolutionEngine.failureHistory
+      const skillBank = (skillData.skillBank || {}) as Record<string, unknown>;
+      const generalSkills = decodeGeneralSkills(skillBank.general);
+      const taskSpecificSkills = decodeTaskSpecificSkills(skillBank.taskSpecific);
+      const evolutionEngine = (skillData.evolutionEngine || {}) as Record<string, unknown>;
+      const failureHistory = Array.isArray(evolutionEngine.failure_history)
+        ? evolutionEngine.failure_history
+        : Array.isArray(evolutionEngine.failureHistory)
+          ? evolutionEngine.failureHistory
           : [];
       
       return NextResponse.json({
@@ -182,15 +193,15 @@ export async function GET() {
           task_specific_count: taskSpecificSkills.length,
           total: generalSkills.length + taskSpecificSkills.length,
           top_general: [...generalSkills]
-            .sort((a: Record<string, unknown>, b: Record<string, unknown>) => (b.success_rate || 0) - (a.success_rate || 0))
+            .sort((a, b) => b.success_rate - a.success_rate)
             .slice(0, 5),
           top_task_specific: [...taskSpecificSkills]
-            .sort((a: Record<string, unknown>, b: Record<string, unknown>) => (b.success_rate || 0) - (a.success_rate || 0))
+            .sort((a, b) => b.success_rate - a.success_rate)
             .slice(0, 5)
         },
         learning: {
           total_failures_learned: failureHistory.length,
-          total_successes_learned: toNumber(skillData.evolutionEngine?.success_count ?? skillData.evolutionEngine?.successCount, 0),
+          total_successes_learned: toNumber(evolutionEngine.success_count ?? evolutionEngine.successCount, 0),
           recent_evolutions: [],
           quota_signals: []
         },

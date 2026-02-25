@@ -53,7 +53,7 @@ function runOpencode(args: string[], timeoutMs = 20000): { ok: boolean; stdout: 
   };
 }
 
-function parseJsonFromOutput(text: string): any {
+function parseJsonFromOutput(text: string): unknown {
   const start = text.indexOf('{');
   const listStart = text.indexOf('[');
 
@@ -166,13 +166,13 @@ export class OpencodeCliReader implements DataSource {
       const created = msg.info?.time?.created;
       const completed = msg.info?.time?.completed;
       const stepId = msg.info?.id || `${msg.info?.agent || 'agent'}-${idx + 1}`;
-      const result = (msg.parts || []).map((p) => ({ type: p.type, text: p.text ?? '' }));
+      const parts = (msg.parts || []).map((p) => ({ type: p.type, text: p.text ?? '' }));
 
       return {
         run_id: runId,
         step_id: stepId,
-        status: completed ? 'completed' : 'running',
-        result,
+        status: completed ? 'completed' as const : 'running' as const,
+        result: { parts } as Record<string, unknown>,
         attempts: 1,
         updated_at: toIso(completed || created),
       };
