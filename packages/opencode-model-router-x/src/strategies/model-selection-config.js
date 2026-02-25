@@ -64,9 +64,5 @@ const ModelSelectionResultSchema = z.object({
   })).optional()
 });
 
-module.exports = {
-  INTENT_CATEGORIES,
-  SIGNAL_TYPES,
-  TaskSchema,
-  ModelSelectionResultSchema
-};
+// All exports removed — internal definitions only (no external consumers)
+module.exports = {};

@@ -22,9 +22,9 @@
   },
   "dependencies": {},
   "peerDependencies": {
-    "@jackoatmon/opencode-skill-rl-manager": "*",
-    "@jackoatmon/opencode-learning-engine": "*",
-    "@jackoatmon/opencode-shared-orchestration": "*"
+    "@jackoatmon/opencode-skill-rl-manager": "workspace:*",
+    "@jackoatmon/opencode-learning-engine": "workspace:*",
+    "@jackoatmon/opencode-shared-orchestration": "workspace:*"
   },
   "peerDependenciesMeta": {
     "@jackoatmon/opencode-skill-rl-manager": { "optional": true },

@@ -8,7 +8,5 @@
     "test": "bun test",
     "test:watch": "bun test --watch"
   },
-  "devDependencies": {
-    "bun": "^1.0.0"
-  }
+  "devDependencies": {}
 }

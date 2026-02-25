@@ -1,0 +1,16 @@
+{
+  "id": "workspace-deps-standardization-20260225",
+  "timestamp": "2026-02-25T16:30:00Z",
+  "summary": "Standardized all internal workspace dependencies to use workspace:* spec instead of file: references. Updated opencode-integration-layer peerDependencies and restored opencode-model-router-x dependencies with proper workspace resolution.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/package.json",
+    "packages/opencode-model-router-x/package.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "All internal workspace dependencies now use consistent workspace:* specification for proper monorepo resolution. bun install succeeds with 433 packages installed. All E2E tests pass."
+}

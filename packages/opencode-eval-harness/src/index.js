@@ -442,4 +442,4 @@ class Harness {
 
 // ─── Exports ─────────────────────────────────────────────────────────
 
-module.exports = { Harness, validateResponse, DEFAULT_COST_RATES };
+module.exports = { Harness, validateResponse };

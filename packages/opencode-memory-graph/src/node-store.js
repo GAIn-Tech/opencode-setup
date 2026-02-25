@@ -394,4 +394,4 @@ class NodeStore {
   }
 }
 
-module.exports = { NodeStore, LRUMap, DEFAULT_CAPACITIES, NODE_TYPES };
+module.exports = { NodeStore, LRUMap, DEFAULT_CAPACITIES };

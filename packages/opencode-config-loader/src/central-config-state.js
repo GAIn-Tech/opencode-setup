@@ -523,8 +523,6 @@ module.exports = {
   appendAuditEntry,
   readAuditLog,
   ConcurrencyError,
-  getRlStatePath,
-  getAuditLogPath,
   invalidateRlStateCache,
   // Snapshot and recovery
   createSnapshot,
@@ -532,5 +530,4 @@ module.exports = {
   restoreSnapshot,
   loadWithRecovery,
   cleanupSnapshots,
-  getSnapshotsDir,
 };

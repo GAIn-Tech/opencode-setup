@@ -3,27 +3,15 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { resolveConfigDir, resolveDataDir } = require('./paths');
+const { resolveDataDir } = require('./paths');
 const { safeJsonParse } = require('./safe-json-parse');
 const {
   loadCentralConfig,
   mergeCentralConfig,
-  getEffectiveValue,
-  clampToHardBounds,
 } = require('./central-config');
 const {
   loadRlState,
-  saveRlState,
-  updateRlStateEntry,
   appendAuditEntry,
-  readAuditLog,
-  ConcurrencyError,
-  invalidateRlStateCache,
-  createSnapshot,
-  listSnapshots,
-  restoreSnapshot,
-  loadWithRecovery,
-  cleanupSnapshots,
 } = require('./central-config-state');
 
 /**
@@ -309,23 +297,9 @@ function getConfig() {
 module.exports = {
   ConfigLoader,
   getConfig,
-  resolveConfigDir,
   resolveDataDir,
   loadCentralConfig,
   mergeCentralConfig,
-  getEffectiveValue,
-  clampToHardBounds,
   loadRlState,
-  saveRlState,
-  updateRlStateEntry,
   appendAuditEntry,
-  readAuditLog,
-  ConcurrencyError,
-  invalidateRlStateCache,
-  // Snapshot and recovery
-  createSnapshot,
-  listSnapshots,
-  restoreSnapshot,
-  loadWithRecovery,
-  cleanupSnapshots,
 };

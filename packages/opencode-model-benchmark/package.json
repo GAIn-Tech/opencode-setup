@@ -8,11 +8,13 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "benchmark": "node src/index.js"
   },
-  "dependencies": {
-    "sqlite3": "^5.1.7",
-    "pyodide": "^0.26.1"
-  },
-  "keywords": ["opencode", "model", "benchmark", "evaluation"],
+  "dependencies": {},
+  "keywords": [
+    "opencode",
+    "model",
+    "benchmark",
+    "evaluation"
+  ],
   "author": "OpenCode",
   "license": "MIT"
 }

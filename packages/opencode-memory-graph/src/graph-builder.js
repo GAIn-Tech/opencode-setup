@@ -257,4 +257,4 @@ function normalizeEntries(arr) {
     .filter((e) => e.session_id && e.error_type);
 }
 
-module.exports = { parseLog, parseLogs, buildGraphWithBridge, normalizeEntries };
+module.exports = { parseLog, parseLogs, buildGraphWithBridge };
