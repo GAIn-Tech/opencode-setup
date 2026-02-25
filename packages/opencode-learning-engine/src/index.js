@@ -769,15 +769,5 @@ const toolUsageTracker = require('./tool-usage-tracker');
 module.exports = {
   LearningEngine,
   MetaAwarenessTracker,
-  AntiPatternCatalog,
-  PositivePatternTracker,
-  PatternExtractor,
   OrchestrationAdvisor,
-  toolUsageTracker,
-  // Constants
-  ANTI_PATTERN_TYPES,
-  POSITIVE_PATTERN_TYPES,
-  SEVERITY_WEIGHTS,
-  AGENT_CAPABILITIES,
-  SKILL_AFFINITY,
 };

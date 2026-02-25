@@ -647,4 +647,4 @@ class IntegrationLayer {
   }
 }
 
-module.exports = { IntegrationLayer, integrationStatus };
+module.exports = { IntegrationLayer };

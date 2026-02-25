@@ -1213,20 +1213,6 @@ module.exports = {
   ModelRouter, 
   policies,
   
-  // Model aliasing (Gemini → Antigravity redirect)
-  resolveModelAlias,
-  hasAlias,
-  getAliasesFor,
-  MODEL_ALIASES,
-  
   // Response validation (early failure detection)
   validateResponse,
-  isRetriableFailure,
-  FAILURE_TYPES,
-  ResponseValidationError,
-  
-  // Subagent retry management
-  SubagentRetryManager,
-  CATEGORY_FALLBACKS,
-  DEFAULT_FALLBACKS,
 };

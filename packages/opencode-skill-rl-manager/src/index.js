@@ -324,6 +324,5 @@ class SkillRLManager {
 
 module.exports = {
   SkillRLManager,
-  SkillBank,
-  EvolutionEngine
+  EvolutionEngine,
 };

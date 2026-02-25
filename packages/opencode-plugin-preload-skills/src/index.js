@@ -449,4 +449,4 @@ class PreloadSkillsPlugin extends EventEmitter {
   }
 }
 
-module.exports = { PreloadSkillsPlugin, DEFAULTS };
+module.exports = { PreloadSkillsPlugin };

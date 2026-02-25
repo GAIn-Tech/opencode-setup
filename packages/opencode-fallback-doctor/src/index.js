@@ -292,4 +292,4 @@ class FallbackDoctor {
   }
 }
 
-module.exports = { FallbackDoctor, validateModelName, validateModelExists, validateChainOrder, getModelInfo, listKnownModels };
+module.exports = { FallbackDoctor };

@@ -479,12 +479,6 @@ class MemoryGraph {
 
 module.exports = {
   MemoryGraph,
-  GraphActivator,
-  BackfillEngine,
-  parseLog,
-  parseLogs,
-  buildGraphWithBridge,
   toJSON,
-  toDOT,
   toCSV,
 };

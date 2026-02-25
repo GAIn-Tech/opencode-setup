@@ -144,15 +144,6 @@ module.exports = {
   ValidationResult,
   Validator,
   validate,
-  isString,
-  isNumber,
   isObject,
   isArray,
-  isBoolean,
-  isFunction,
-  sanitizeString,
-  sanitizeHtml,
-  isValidJson,
-  isValidEmail,
-  isValidUrl
 };
