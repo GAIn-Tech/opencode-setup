@@ -13,7 +13,9 @@ class AuditLogger {
   constructor(options = {}) {
     this.dbPath = path.resolve(options.dbPath || DEFAULT_DB_PATH);
     this.retentionDays = coerceRetentionDays(options.retentionDays, DEFAULT_RETENTION_DAYS);
+    this.maxPendingWrites = Math.max(1, Math.floor(Number(options.maxPendingWrites) || 100));
     this.writeQueue = Promise.resolve();
+    this._pendingWrites = 0;
 
     this._initializeDatabase();
   }
@@ -328,9 +330,19 @@ class AuditLogger {
   }
 
   _enqueueWrite(task) {
+    if (this._pendingWrites >= this.maxPendingWrites) {
+      return Promise.reject(new Error(
+        `Write queue full: ${this._pendingWrites} pending writes (max ${this.maxPendingWrites})`
+      ));
+    }
+
+    this._pendingWrites += 1;
     this.writeQueue = this.writeQueue
       .catch(() => {})
-      .then(async () => task());
+      .then(async () => task())
+      .finally(() => {
+        this._pendingWrites -= 1;
+      });
 
     return this.writeQueue;
   }

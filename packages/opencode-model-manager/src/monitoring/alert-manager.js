@@ -39,11 +39,12 @@ class AlertManager extends EventEmitter {
       ...(options.thresholds && typeof options.thresholds === 'object' ? options.thresholds : {})
     });
     this.nowFn = typeof options.nowFn === 'function' ? options.nowFn : () => Date.now();
+    this.maxHistorySize = Math.max(1, Math.floor(Number(options.maxHistorySize) || 1000));
 
     // Active alerts keyed by alertId
     this._activeAlerts = new Map();
 
-    // Alert history (append-only within retention)
+    // Alert history (bounded FIFO, capped at maxHistorySize)
     this._alertHistory = [];
 
     // Suppression set
@@ -253,6 +254,9 @@ class AlertManager extends EventEmitter {
 
     this._activeAlerts.set(alert.id, alert);
     this._alertHistory.push(alert);
+    while (this._alertHistory.length > this.maxHistorySize) {
+      this._alertHistory.shift();
+    }
     this.emit('alert:fired', alert);
 
     return alert;

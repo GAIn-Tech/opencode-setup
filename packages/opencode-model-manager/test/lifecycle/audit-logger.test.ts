@@ -233,6 +233,65 @@ describe('AuditLogger', () => {
     await expect(logger.verify()).resolves.toBe(false);
   });
 
+  // ─── WriteQueue Bounds ─────────────────────────────────────
+
+  describe('writeQueue bounds', () => {
+    test('defaults to maxPendingWrites=100', () => {
+      expect(logger.maxPendingWrites).toBe(100);
+    });
+
+    test('accepts custom maxPendingWrites', async () => {
+      const customLogger = new AuditLogger({ dbPath: path.join(tempDir, 'custom.db'), maxPendingWrites: 5 });
+      expect(customLogger.maxPendingWrites).toBe(5);
+      customLogger.close();
+    });
+
+    test('rejects writes when queue is full', async () => {
+      const boundedLogger = new AuditLogger({
+        dbPath: path.join(tempDir, 'bounded.db'),
+        maxPendingWrites: 2
+      });
+
+      try {
+        // Fire off writes without awaiting to fill the queue
+        const p1 = boundedLogger.log(createEntry({ diffHash: createDiffHash('q1'), timestamp: Date.now() }));
+        const p2 = boundedLogger.log(createEntry({ diffHash: createDiffHash('q2'), timestamp: Date.now() + 1 }));
+
+        // Queue should be at capacity; next write should be rejected
+        await expect(
+          boundedLogger.log(createEntry({ diffHash: createDiffHash('q3'), timestamp: Date.now() + 2 }))
+        ).rejects.toThrow(/Write queue full/);
+
+        // Let pending writes complete
+        await p1;
+        await p2;
+      } finally {
+        boundedLogger.close();
+      }
+    });
+
+    test('pendingWrites decrements after completion', async () => {
+      const boundedLogger = new AuditLogger({
+        dbPath: path.join(tempDir, 'decrement.db'),
+        maxPendingWrites: 5
+      });
+
+      try {
+        // Write and await
+        await boundedLogger.log(createEntry({ diffHash: createDiffHash('dec1'), timestamp: Date.now() }));
+        expect(boundedLogger._pendingWrites).toBe(0);
+
+        // Multiple sequential writes should all complete
+        for (let i = 0; i < 5; i++) {
+          await boundedLogger.log(createEntry({ diffHash: createDiffHash(`dec-${i}`), timestamp: Date.now() + i + 1 }));
+        }
+        expect(boundedLogger._pendingWrites).toBe(0);
+      } finally {
+        boundedLogger.close();
+      }
+    });
+  });
+
   test('cleans up entries older than one-year retention and keeps chain valid', async () => {
     const now = Date.now();
 

@@ -1,0 +1,18 @@
+{
+  "id": "model-manager-alert-writequeue-bounds-20260225",
+  "timestamp": "2026-02-25T00:00:00Z",
+  "summary": "Added maxHistorySize cap to AlertManager and maxPendingWrites backpressure to AuditLogger writeQueue",
+  "affected_paths": [
+    "packages/opencode-model-manager/src/monitoring/alert-manager.js",
+    "packages/opencode-model-manager/src/lifecycle/audit-logger.js",
+    "packages/opencode-model-manager/test/monitoring/alert-manager.test.ts",
+    "packages/opencode-model-manager/test/lifecycle/audit-logger.test.ts"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "AlertManager now accepts { maxHistorySize: N } option (default: 1000). _alertHistory capped via FIFO eviction (shift oldest on overflow). AuditLogger now accepts { maxPendingWrites: N } option (default: 100). _enqueueWrite rejects with Error when queue is full, _pendingWrites decrements on completion via .finally(). 8 new regression tests. All 331 model-manager tests pass."
+}

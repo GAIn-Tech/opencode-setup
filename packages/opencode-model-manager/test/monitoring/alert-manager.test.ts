@@ -383,6 +383,81 @@ describe('AlertManager', () => {
     });
   });
 
+  // ─── History Bounds ───────────────────────────────────────
+
+  describe('history bounds', () => {
+    test('caps history at maxHistorySize', () => {
+      const am = new AlertManager({
+        maxHistorySize: 10,
+        nowFn: () => now
+      });
+      const mc = new PipelineMetricsCollector({
+        autoCleanup: false,
+        nowFn: () => now
+      });
+      mc.markCatalogUpdated(now);
+
+      // Fire 20 unique alerts by using different providers with enough failures
+      for (let i = 0; i < 20; i++) {
+        const provider = `provider-${i}`;
+        // Manually fire alerts via evaluate by creating unique provider failures
+        // Instead, use _fireAlert indirectly by crafting unique alert IDs
+        am._fireAlert({
+          id: `test-alert-${i}`,
+          type: ALERT_TYPE.PROVIDER_FAILURE,
+          severity: ALERT_SEVERITY.WARNING,
+          message: `Alert ${i}`,
+          provider: `p${i}`
+        });
+      }
+
+      expect(am._alertHistory.length).toBeLessThanOrEqual(10);
+      expect(am._alertHistory.length).toBe(10);
+    });
+
+    test('evicts oldest alerts first (FIFO)', () => {
+      const am = new AlertManager({
+        maxHistorySize: 5,
+        nowFn: () => now
+      });
+
+      for (let i = 0; i < 8; i++) {
+        now += 1;
+        am._fireAlert({
+          id: `alert-${i}`,
+          type: ALERT_TYPE.PROVIDER_FAILURE,
+          severity: ALERT_SEVERITY.WARNING,
+          message: `Alert ${i}`,
+          provider: `p${i}`
+        });
+      }
+
+      // Should have alerts 3-7 (oldest 0-2 evicted)
+      expect(am._alertHistory.length).toBe(5);
+      expect(am._alertHistory[0].id).toBe('alert-3');
+      expect(am._alertHistory[4].id).toBe('alert-7');
+    });
+
+    test('defaults to 1000 maxHistorySize', () => {
+      const am = new AlertManager();
+      expect(am.maxHistorySize).toBe(1000);
+    });
+
+    test('backward compatible - existing tests work without maxHistorySize', () => {
+      // Default AlertManager should work exactly as before
+      const am = new AlertManager({ nowFn: () => now });
+      for (let i = 0; i < 5; i++) {
+        am._fireAlert({
+          id: `compat-${i}`,
+          type: ALERT_TYPE.PROVIDER_FAILURE,
+          severity: ALERT_SEVERITY.WARNING,
+          message: `Alert ${i}`
+        });
+      }
+      expect(am._alertHistory.length).toBe(5);
+    });
+  });
+
   // ─── Constants Export ────────────────────────────────────
 
   describe('constants', () => {
