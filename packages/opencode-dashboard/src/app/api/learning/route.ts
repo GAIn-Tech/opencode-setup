@@ -20,14 +20,14 @@ interface PositivePattern {
   last_seen: string;
 }
 
-function normalizeLearningReportShape(report: any) {
-  const anti = report?.anti_patterns || {};
-  const positive = report?.positive_patterns || {};
+function normalizeLearningReportShape(report: Record<string, unknown>) {
+  const anti = (report?.anti_patterns || {}) as Record<string, unknown>;
+  const positive = (report?.positive_patterns || {}) as Record<string, unknown>;
 
   const antiItems = Array.isArray(anti.items)
     ? anti.items
     : Array.isArray(anti.top_severe)
-      ? anti.top_severe.map((item: any) => ({
+      ? anti.top_severe.map((item: Record<string, unknown>) => ({
           type: item.type || 'unknown',
           count: Number(item.weight || item.count || 0),
           severity: item.severity || 'medium',
@@ -39,7 +39,7 @@ function normalizeLearningReportShape(report: any) {
   const positiveItems = Array.isArray(positive.items)
     ? positive.items
     : Array.isArray(positive.top_strategies)
-      ? positive.top_strategies.map((item: any) => ({
+      ? positive.top_strategies.map((item: Record<string, unknown>) => ({
           type: item.type || 'unknown',
           count: Number(item.count || item.weight || 0),
           success_rate: Number(item.success_rate || 0),
@@ -113,14 +113,14 @@ export async function GET() {
 
     // Try to load from learning engine package (optional)
     const enginePath = path.resolve(process.cwd(), '../opencode-learning-engine/src/index.js');
-    let engine: any = null;
+    let engine: { getReport: () => Promise<Record<string, unknown>> } | null = null;
     let engineWarning: string | null = null;
 
     const enginePathExists = await fsPromises.access(enginePath).then(() => true).catch(() => false);
     if (!enginePathExists) {
       engineWarning = 'Learning engine package not found, using file fallback';
     } else {
-      let LearningEngineCtor: any = null;
+      let LearningEngineCtor: (new (opts: Record<string, unknown>) => { getReport: () => Promise<Record<string, unknown>> }) | null = null;
       try {
         const loaded = require('../../../../../opencode-learning-engine/src/index.js');
         LearningEngineCtor = loaded?.LearningEngine;

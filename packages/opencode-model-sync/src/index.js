@@ -228,9 +228,6 @@ function connectToLearningEngine(learningEngine) {
   // Store reference for use in runSync
   CONFIG._learningEngine = learningEngine;
   
-  // Override validateModels to also ingest to learning engine
-  const originalValidateModels = validateModels;
-  
   console.log('[ModelSync] Connected to learning engine');
 }
 

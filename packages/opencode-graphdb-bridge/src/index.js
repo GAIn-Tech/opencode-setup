@@ -335,7 +335,7 @@ class GraphDBBridge {
       edges.push(edge);
 
       if (entry.file) {
-        const fileNode = await this.upsertNode('File', entry.file, 'session_error');
+        await this.upsertNode('File', entry.file, 'session_error');
         const fileEdge = await this.upsertEdge(
           entry.error.errorHash,
           entry.file.path,

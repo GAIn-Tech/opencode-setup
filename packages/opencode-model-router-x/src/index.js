@@ -431,8 +431,6 @@ class ModelRouter {
     }
     
     // Try partial match - extract base model name (e.g., claude-opus-4-20240229 -> claude-opus)
-    const baseName = modelId.replace(/-(\d{8})$/, '').replace(/-(\d{4})$/, '');
-    
     for (const [key, model] of Object.entries(this.models)) {
       const modelBaseName = model.id?.replace(/-(\d{8})$/, '').replace(/-(\d{4})$/, '');
       if (modelBaseName && modelId.includes(modelBaseName)) {
@@ -861,7 +859,6 @@ class ModelRouter {
     const result = new this.validator.ValidationResult(true, []);
     
     // Validate required fields
-    const ctxValidator = new this.validator.Validator(ctx, 'ctx');
     if (ctx.requiredTools) {
       const toolsValidator = new this.validator.Validator(ctx.requiredTools, 'ctx.requiredTools');
       toolsValidator.type('array');

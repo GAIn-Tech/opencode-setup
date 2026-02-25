@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import path from 'path';
+import { requireWriteAccess } from '../_lib/write-access';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,6 +54,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const authError = requireWriteAccess(request, 'lifecycle:manage');
+  if (authError) return authError;
+
   try {
     const body = (await request.json()) as { plugins?: PluginInput[] };
     const plugins = Array.isArray(body?.plugins) ? body.plugins : [];

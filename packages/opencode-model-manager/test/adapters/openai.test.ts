@@ -3,11 +3,11 @@ const { describe, test, expect, beforeEach, afterEach, mock } = require('bun:tes
 const { OpenAIAdapter } = require('../../src/adapters/openai');
 
 describe('OpenAIAdapter', () => {
-  let adapter: any;
-  let mockFetch: any;
+  let adapter: InstanceType<typeof OpenAIAdapter>;
+  let mockFetch: ReturnType<typeof mock>;
 
   beforeEach(() => {
-    mockFetch = mock((url: string, options: any) => {
+    mockFetch = mock((url: string, options: Record<string, unknown>) => {
       // Check for valid auth header
       const hasValidAuth = options.headers?.Authorization === 'Bearer sk-test-key-12345';
       
@@ -288,19 +288,19 @@ describe('OpenAIAdapter', () => {
 
     test('should filter out dall-e models', async () => {
       const models = await adapter.list();
-      const dallEModels = models.filter((m: any) => m.id.startsWith('dall-e'));
+      const dallEModels = models.filter((m: Record<string, unknown>) => m.id.startsWith('dall-e'));
       expect(dallEModels.length).toBe(0);
     });
 
     test('should filter out whisper models', async () => {
       const models = await adapter.list();
-      const whisperModels = models.filter((m: any) => m.id.startsWith('whisper'));
+      const whisperModels = models.filter((m: Record<string, unknown>) => m.id.startsWith('whisper'));
       expect(whisperModels.length).toBe(0);
     });
 
     test('should include text models', async () => {
       const models = await adapter.list();
-      const textModels = models.filter((m: any) =>
+      const textModels = models.filter((m: Record<string, unknown>) =>
         m.id.includes('gpt') || m.id.includes('text-embedding')
       );
       expect(textModels.length).toBeGreaterThan(0);
@@ -308,7 +308,7 @@ describe('OpenAIAdapter', () => {
 
     test('should normalize model fields', async () => {
       const models = await adapter.list();
-      const gpt4 = models.find((m: any) => m.id === 'gpt-4-turbo');
+      const gpt4 = models.find((m: Record<string, unknown>) => m.id === 'gpt-4-turbo');
 
       expect(gpt4).toBeDefined();
       expect(gpt4.id).toBe('gpt-4-turbo');
@@ -320,13 +320,13 @@ describe('OpenAIAdapter', () => {
 
     test('should extract context tokens from context_window field', async () => {
       const models = await adapter.list();
-      const gpt4Turbo = models.find((m: any) => m.id === 'gpt-4-turbo');
+      const gpt4Turbo = models.find((m: Record<string, unknown>) => m.id === 'gpt-4-turbo');
       expect(gpt4Turbo.contextTokens).toBe(128000);
     });
 
     test('should extract context tokens from max_tokens field', async () => {
       const models = await adapter.list();
-      const gpt4 = models.find((m: any) => m.id === 'gpt-4');
+      const gpt4 = models.find((m: Record<string, unknown>) => m.id === 'gpt-4');
       expect(gpt4.contextTokens).toBe(8192);
     });
 
@@ -372,7 +372,7 @@ describe('OpenAIAdapter', () => {
       try {
         await adapter.get('');
         expect.unreachable();
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect(error.code).toBe('INVALID_MODEL_ID');
       }
     });
@@ -439,7 +439,7 @@ describe('OpenAIAdapter', () => {
       try {
         adapter.normalize(null);
         expect.unreachable();
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect(error.code).toBe('INVALID_MODEL_PAYLOAD');
       }
     });
@@ -448,7 +448,7 @@ describe('OpenAIAdapter', () => {
       try {
         adapter.normalize('not an object');
         expect.unreachable();
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect(error.code).toBe('INVALID_MODEL_PAYLOAD');
       }
     });
@@ -506,7 +506,7 @@ describe('OpenAIAdapter', () => {
       try {
         await noKeyAdapter.list();
         expect.unreachable();
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect(error.code).toBe('API_KEY_MISSING');
       }
     });
@@ -521,7 +521,7 @@ describe('OpenAIAdapter', () => {
       try {
         await badKeyAdapter.list();
         expect.unreachable();
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect(error.code).toBe('AUTH_ERROR');
         expect(error.statusCode).toBe(401);
       }
@@ -532,7 +532,7 @@ describe('OpenAIAdapter', () => {
         await adapter.get('nonexistent');
         // Should return null, not throw
         expect(true).toBe(true);
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect.unreachable();
       }
     });

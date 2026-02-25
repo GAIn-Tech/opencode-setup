@@ -39,11 +39,11 @@ export async function GET(request: Request) {
         message: 'Use ?modelId=<model-id> to get lifecycle state for a specific model'
       }, { status: 400 });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching lifecycle state:', error);
     return NextResponse.json({
       error: 'Failed to fetch lifecycle state',
-      message: error.message
+      message: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   } finally {
     stateMachine?.close();

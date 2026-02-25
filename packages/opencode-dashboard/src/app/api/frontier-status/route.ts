@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 type CheckStatus = 'pass' | 'fail' | 'unknown';
 
-async function readJsonSafe(filePath: string): Promise<any | null> {
+async function readJsonSafe(filePath: string): Promise<Record<string, unknown> | null> {
   try {
     const content = await fsPromises.readFile(filePath, 'utf-8');
     return JSON.parse(content);
@@ -15,7 +15,7 @@ async function readJsonSafe(filePath: string): Promise<any | null> {
   }
 }
 
-function deriveFrontierStatus(report: any): { status: CheckStatus; summary: any } {
+function deriveFrontierStatus(report: Record<string, unknown> | null): { status: CheckStatus; summary: Record<string, unknown> } {
   if (!report) {
     return {
       status: 'unknown',
@@ -37,7 +37,7 @@ function deriveFrontierStatus(report: any): { status: CheckStatus; summary: any 
   };
 }
 
-function deriveSecurityStatus(report: any): { status: CheckStatus; summary: any } {
+function deriveSecurityStatus(report: Record<string, unknown> | null): { status: CheckStatus; summary: Record<string, unknown> } {
   if (!report) {
     return {
       status: 'unknown',
@@ -45,9 +45,13 @@ function deriveSecurityStatus(report: any): { status: CheckStatus; summary: any 
     };
   }
 
-  const ok = report?.summary?.ok === true;
-  const semgrepHigh = Number(report?.summary?.semgrep?.high || 0);
-  const secretFindings = Number(report?.summary?.secrets?.findings || 0);
+  const summary = report?.summary as Record<string, unknown> | undefined;
+  const ok = summary?.ok === true;
+  const semgrep = summary?.semgrep as Record<string, unknown> | undefined;
+  const secrets = summary?.secrets as Record<string, unknown> | undefined;
+  const semgrepHigh = Number(semgrep?.high || 0);
+  const secretFindings = Number(secrets?.findings || 0);
+  const signature = report?.signature as Record<string, unknown> | undefined;
 
   return {
     status: ok && semgrepHigh === 0 && secretFindings === 0 ? 'pass' : 'fail',
@@ -57,7 +61,7 @@ function deriveSecurityStatus(report: any): { status: CheckStatus; summary: any 
       secret_findings: secretFindings,
       advisory: Boolean(report?.advisory),
       report_id: report?.report_id || null,
-      signature: report?.signature?.value ? 'present' : 'missing',
+      signature: signature?.value ? 'present' : 'missing',
     },
   };
 }

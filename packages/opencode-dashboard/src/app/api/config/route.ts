@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
-import { getWriteActor, requireWriteAccess } from '../_lib/write-access';
+import { getWriteActor, requireWriteAccess, requireReadAccess } from '../_lib/write-access';
 import { writeJsonAtomic } from '../_lib/write-json-atomic';
 import { appendWriteAuditEntry } from '../_lib/write-audit';
 import { rateLimited } from '../_lib/api-response';
+import { redactSecrets } from '../_lib/redact';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,8 +22,19 @@ function readJsonSafe(filePath: string): object | null {
 }
 
 // Lazy-load config-loader modules (CommonJS)
-let configLoaderCache: any = null;
-let configStateCache: any = null;
+interface ConfigLoaderModule {
+  loadCentralConfig: (...args: unknown[]) => Record<string, unknown>;
+  mergeCentralConfig: (...args: unknown[]) => Record<string, unknown>;
+  validateSchema: (...args: unknown[]) => unknown[];
+}
+
+interface ConfigStateModule {
+  loadRlState: () => Record<string, unknown>;
+  appendAuditEntry: (entry: Record<string, unknown>) => void;
+}
+
+let configLoaderCache: ConfigLoaderModule | null = null;
+let configStateCache: ConfigStateModule | null = null;
 
 function getConfigLoader() {
   if (!configLoaderCache) {
@@ -49,6 +61,12 @@ function getConfigState() {
 }
 
 export async function GET(request: Request) {
+  // Auth gate: config may contain sensitive values
+  const accessError = requireReadAccess(request, 'audit:read');
+  if (accessError) {
+    return accessError;
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const view = searchParams.get('view');
@@ -119,7 +137,7 @@ export async function GET(request: Request) {
       },
       // Central config effective (merged with RL state)
       centralConfigEffective: {
-        data: null
+        data: null as Record<string, unknown> | null
       }
     };
 
@@ -133,7 +151,8 @@ export async function GET(request: Request) {
           const centralConfigPath = path.join(ocConfig, 'central-config.json');
           const loadedConfig = configLoader.loadCentralConfig(centralConfigPath);
           const rlState = configState.loadRlState();
-          const globalConfidence = loadedConfig.rl?.override_min_confidence || 0.85;
+          const rl = loadedConfig.rl as Record<string, unknown> | undefined;
+          const globalConfidence = Number(rl?.override_min_confidence) || 0.85;
           
           const effectiveConfig = configLoader.mergeCentralConfig({
             central: loadedConfig,
@@ -151,12 +170,12 @@ export async function GET(request: Request) {
 
     // If view=effective, return only effective config
     if (view === 'effective') {
-      return NextResponse.json({
+      return NextResponse.json(redactSecrets({
         centralConfigEffective: configs.centralConfigEffective
-      });
+      }));
     }
 
-    return NextResponse.json(configs);
+    return NextResponse.json(redactSecrets(configs));
   } catch (error) {
     console.error('[Config API] Error:', error);
     return NextResponse.json({ error: String(error) }, { status: 500 });

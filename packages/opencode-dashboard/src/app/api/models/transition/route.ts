@@ -117,11 +117,11 @@ export async function POST(request: Request) {
       toState,
       timestamp
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error executing transition:', error);
     return NextResponse.json({
       error: 'Failed to execute transition',
-      message: error.message
+      message: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   } finally {
     stateMachine?.close();

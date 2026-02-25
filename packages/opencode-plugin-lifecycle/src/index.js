@@ -79,8 +79,21 @@ class PluginLifecycleSupervisor {
       first_seen_at: previous.first_seen_at || ts,
     };
 
-    this.state[name] = next;
+    this.setPluginState(name, next);
     return next;
+  }
+
+  setPluginState(name, next) {
+    if (name === '__proto__' || name === 'prototype' || name === 'constructor') {
+      throw new Error(`Invalid plugin name: "${name}"`);
+    }
+    if (typeof name !== 'string' || name.length === 0 || name.length > 100) {
+      throw new Error('Invalid plugin name format');
+    }
+    if (!/^[a-zA-Z0-9_-]+$/.test(name)) {
+      throw new Error('Plugin name contains invalid characters');
+    }
+    this.state[name] = next;
   }
 
   async evaluateMany(inputs = []) {
@@ -108,11 +121,18 @@ class PluginLifecycleSupervisor {
 
   _load() {
     try {
-      if (!fs.existsSync(this.statePath)) return {};
+      if (!fs.existsSync(this.statePath)) return Object.create(null);
       const parsed = safeJsonParse(fs.readFileSync(this.statePath, 'utf8'), {}, 'plugin-lifecycle-state');
-      return parsed && typeof parsed === 'object' ? parsed : {};
+      if (!parsed || typeof parsed !== 'object') return Object.create(null);
+      const safe = Object.create(null);
+      for (const key of Object.keys(parsed)) {
+        if (key !== '__proto__' && key !== 'prototype' && key !== 'constructor') {
+          safe[key] = parsed[key];
+        }
+      }
+      return safe;
     } catch {
-      return {};
+      return Object.create(null);
     }
   }
 

@@ -1,0 +1,21 @@
+{
+  "id": "dead-code-cleanup-unused-vars-20260225",
+  "timestamp": "2026-02-25T15:40:00Z",
+  "category": "dead-code",
+  "summary": "Remove 6 unused variable declarations across 5 packages",
+  "details": "Removed unused variables: fileNode (goraphdb-bridge, graphdb-bridge), baseName (model-router-x), ctxValidator (model-router-x), originalValidateModels (model-sync), fetchResult (proofcheck). All variables were declared but never referenced in their scopes.",
+  "affected_paths": [
+    "packages/opencode-goraphdb-bridge/src/index.js",
+    "packages/opencode-graphdb-bridge/src/index.js",
+    "packages/opencode-model-router-x/src/index.js",
+    "packages/opencode-model-sync/src/index.js",
+    "packages/opencode-proofcheck/src/checks.js"
+  ],
+  "impact": "Low - code cleanup, no functional changes",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

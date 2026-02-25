@@ -75,12 +75,15 @@ function toNumber(value: unknown, fallback = 0): number {
   return fallback;
 }
 
-function getNumberAtPath(source: any, keyPath: string, fallback = 0): number {
-  const value = keyPath.split('.').reduce((acc, key) => (acc && key in acc ? acc[key] : undefined), source);
+function getNumberAtPath(source: Record<string, unknown>, keyPath: string, fallback = 0): number {
+  const value = keyPath.split('.').reduce<unknown>((acc, key) => {
+    if (acc && typeof acc === 'object' && key in (acc as Record<string, unknown>)) return (acc as Record<string, unknown>)[key];
+    return undefined;
+  }, source);
   return toNumber(value, fallback);
 }
 
-function normalizeSkillTuple(entry: any, taskType?: string): SkillSummary | null {
+function normalizeSkillTuple(entry: unknown, taskType?: string): SkillSummary | null {
   if (!Array.isArray(entry) || entry.length < 2) {
     return null;
   }

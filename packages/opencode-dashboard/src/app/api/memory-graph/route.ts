@@ -25,6 +25,17 @@ type CachedGraphPayload = {
 const GRAPH_CACHE_TTL_MS = 10_000;
 const graphCache = new Map<string, CachedGraphPayload>();
 
+interface MemoryGraphMessage {
+  agent?: string;
+  tools?: Array<string | { name?: string; id?: string }>;
+  model?: string | { modelID?: string; id?: string; providerID?: string };
+  skills?: Array<string | { name?: string; id?: string }>;
+  taskType?: string;
+  intent?: string;
+  action?: string;
+  [key: string]: unknown;
+}
+
 // Enhanced node types for comprehensive KG
 interface GraphNode {
   id: string;
@@ -211,11 +222,11 @@ function readOpenCodeData(opencodePath: string, options: GraphQueryOptions) {
       for (const file of files) {
         try {
           const content = fs.readFileSync(path.join(sessionPath, file), 'utf-8');
-          let msg: any;
+          let msg: MemoryGraphMessage;
           try {
             msg = JSON.parse(content);
-          } catch (e: any) {
-            console.warn('[memory-graph] Skipping malformed entry:', e?.message || e);
+} catch (e: unknown) {
+            console.warn('[memory-graph] Skipping malformed entry:', e instanceof Error ? e.message : e);
             continue;
           }
           
@@ -236,10 +247,11 @@ function readOpenCodeData(opencodePath: string, options: GraphQueryOptions) {
           
           // Extract models used
           if (msg.model) {
+            const modelObj = typeof msg.model === 'string' ? null : msg.model;
             const modelId = typeof msg.model === 'string'
               ? msg.model
-              : (msg.model.modelID || msg.model.id || `${msg.model.providerID || 'unknown'}:${msg.model.modelID || 'unknown'}`);
-            addNode(modelId, 'model', 1, { provider: msg.model.providerID });
+              : (modelObj?.modelID || modelObj?.id || `${modelObj?.providerID || 'unknown'}:${modelObj?.modelID || 'unknown'}`);
+            addNode(modelId, 'model', 1, { provider: modelObj?.providerID });
             addEdge(sessionId, modelId, 'uses_model');
           }
           
@@ -262,12 +274,12 @@ function readOpenCodeData(opencodePath: string, options: GraphQueryOptions) {
           
           // Extract solutions/tasks
           if (msg.taskType || msg.intent || msg.action) {
-            const solution = msg.taskType || msg.intent || msg.action;
+            const solution = (msg.taskType || msg.intent || msg.action) as string;
             addNode(solution, 'solution', 1);
             addEdge(sessionId, solution, 'solves_with');
           }
-        } catch (e: any) {
-          console.warn('[memory-graph] Skipping malformed entry:', e?.message || e);
+} catch (e: unknown) {
+          console.warn('[memory-graph] Skipping malformed entry:', e instanceof Error ? e.message : e);
         }
       }
     }
@@ -282,11 +294,11 @@ function readOpenCodeData(opencodePath: string, options: GraphQueryOptions) {
     for (const file of files) {
       try {
         const content = fs.readFileSync(path.join(learningPath, file), 'utf-8');
-        let parsed: any;
+        let parsed: Record<string, unknown>;
         try {
           parsed = JSON.parse(content);
-        } catch (e: any) {
-          console.warn('[memory-graph] Skipping malformed entry:', e?.message || e);
+} catch (e: unknown) {
+          console.warn('[memory-graph] Skipping malformed entry:', e instanceof Error ? e.message : e);
           continue;
         }
         const patternsArray = Array.isArray(parsed)
@@ -320,8 +332,8 @@ function readOpenCodeData(opencodePath: string, options: GraphQueryOptions) {
             }
           }
         }
-      } catch (e: any) {
-        console.warn('[memory-graph] Skipping malformed entry:', e?.message || e);
+    } catch (e: unknown) {
+      console.warn('[memory-graph] Skipping malformed entry:', e instanceof Error ? e.message : e);
       }
     }
   }
@@ -331,37 +343,38 @@ function readOpenCodeData(opencodePath: string, options: GraphQueryOptions) {
   if (fs.existsSync(skillRLPath)) {
     try {
       const content = fs.readFileSync(skillRLPath, 'utf-8');
-      let skillData: any;
+      let skillData: Record<string, unknown> | null;
       try {
         skillData = JSON.parse(content);
-      } catch (e: any) {
-        console.warn('[memory-graph] Skipping malformed entry:', e?.message || e);
+    } catch (e: unknown) {
+      console.warn('[memory-graph] Skipping malformed entry:', e instanceof Error ? e.message : e);
         skillData = null;
       }
       if (skillData) {
-        const general = skillData.skillBank?.general || [];
-        const taskSpecific = skillData.skillBank?.taskSpecific || [];
+        const skillBank = skillData.skillBank as Record<string, unknown> | undefined;
+        const general = (skillBank?.general || []) as Array<Record<string, unknown>>;
+        const taskSpecific = (skillBank?.taskSpecific || []) as Array<Record<string, unknown>>;
 
         for (const skill of general) {
-          const skillId = skill.name || skill.id;
+          const skillId = String(skill.name || skill.id || '');
           if (!skillId) continue;
-          addNode(skillId, 'skill', skill.usage_count || 1, skill);
+          addNode(skillId, 'skill', Number(skill.usage_count) || 1, skill);
           if (skill.success_rate !== undefined) {
             addNode(`success:${skillId}`, 'concept', 1, { rate: skill.success_rate });
           }
         }
         for (const skill of taskSpecific) {
-          const skillId = skill.name || skill.id;
+          const skillId = String(skill.name || skill.id || '');
           if (!skillId) continue;
-          addNode(skillId, 'skill', skill.usage_count || 1, skill);
+          addNode(skillId, 'skill', Number(skill.usage_count) || 1, skill);
           if (skill.task_type) {
-            addNode(skill.task_type, 'solution', 1);
-            addEdge(skillId, skill.task_type, 'solves_with', 1);
+            addNode(String(skill.task_type), 'solution', 1);
+            addEdge(skillId, String(skill.task_type), 'solves_with', 1);
           }
         }
       }
-    } catch (e: any) {
-      console.warn('[memory-graph] Skipping malformed entry:', e?.message || e);
+      } catch (e: unknown) {
+        console.warn('[memory-graph] Skipping malformed entry:', e instanceof Error ? e.message : e);
     }
   }
   

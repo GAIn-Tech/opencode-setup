@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { NextResponse } from 'next/server';
+import { requireWriteAccess } from '../../_lib/write-access';
 
 export const dynamic = 'force-dynamic';
 
@@ -99,6 +100,9 @@ function percentile(values: number[], p: number): number {
 }
 
 export async function POST(request: Request) {
+  const authError = requireWriteAccess(request, 'policy:simulate');
+  if (authError) return authError;
+
   try {
     const payload = (await request.json()) as PolicySimRequest;
     const events = Array.isArray(payload?.events) ? payload.events : [];

@@ -238,7 +238,7 @@ function checkSecurity(opts = {}) {
 function checkBranchSync(opts = {}) {
   const { cwd = process.cwd() } = opts;
 
-  const fetchResult = exec('git fetch --dry-run 2>&1', { cwd });
+  exec('git fetch --dry-run 2>&1', { cwd });
   const statusResult = exec('git status -sb', { cwd });
 
   if (statusResult.exitCode !== 0) {

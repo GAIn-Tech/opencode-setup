@@ -3,11 +3,11 @@ const { describe, test, expect, beforeEach, afterEach, mock } = require('bun:tes
 const { CerebrasAdapter } = require('../../src/adapters/cerebras');
 
 describe('CerebrasAdapter', () => {
-  let adapter: any;
-  let mockFetch: any;
+  let adapter: InstanceType<typeof CerebrasAdapter>;
+  let mockFetch: ReturnType<typeof mock>;
 
   beforeEach(() => {
-    mockFetch = mock((url: string, options: any) => {
+    mockFetch = mock((url: string, options: Record<string, unknown>) => {
       // Check for valid auth header
       const hasValidAuth = options.headers?.Authorization === 'Bearer test-cerebras-key';
       
@@ -290,7 +290,7 @@ describe('CerebrasAdapter', () => {
 
     test('should include cerebras models', async () => {
       const models = await adapter.list();
-      const textModels = models.filter((m: any) =>
+      const textModels = models.filter((m: Record<string, unknown>) =>
         m.id.includes('cse')
       );
       expect(textModels.length).toBeGreaterThan(0);
@@ -298,7 +298,7 @@ describe('CerebrasAdapter', () => {
 
     test('should normalize model fields', async () => {
       const models = await adapter.list();
-      const gpt4 = models.find((m: any) => m.id === 'cse-2');
+      const gpt4 = models.find((m: Record<string, unknown>) => m.id === 'cse-2');
 
       expect(gpt4).toBeDefined();
       expect(gpt4.id).toBe('cse-2');
@@ -310,13 +310,13 @@ describe('CerebrasAdapter', () => {
 
     test('should extract context tokens from context_window field', async () => {
       const models = await adapter.list();
-      const gpt4Turbo = models.find((m: any) => m.id === 'cse-2');
+      const gpt4Turbo = models.find((m: Record<string, unknown>) => m.id === 'cse-2');
       expect(gpt4Turbo.contextTokens).toBe(200000);
     });
 
     test('should extract context tokens from max_tokens field', async () => {
       const models = await adapter.list();
-      const gpt4 = models.find((m: any) => m.id === 'cse-1');
+      const gpt4 = models.find((m: Record<string, unknown>) => m.id === 'cse-1');
       expect(gpt4.contextTokens).toBe(100000);
     });
 
@@ -354,7 +354,7 @@ describe('CerebrasAdapter', () => {
       try {
         await adapter.get('');
         expect.unreachable();
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect(error.code).toBe('INVALID_MODEL_ID');
       }
     });
@@ -399,7 +399,7 @@ describe('CerebrasAdapter', () => {
       try {
         adapter.normalize(null);
         expect.unreachable();
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect(error.code).toBe('INVALID_MODEL_PAYLOAD');
       }
     });
@@ -408,7 +408,7 @@ describe('CerebrasAdapter', () => {
       try {
         adapter.normalize('not an object');
         expect.unreachable();
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect(error.code).toBe('INVALID_MODEL_PAYLOAD');
       }
     });
@@ -466,7 +466,7 @@ describe('CerebrasAdapter', () => {
       try {
         await noKeyAdapter.list();
         expect.unreachable();
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect(error.code).toBe('API_KEY_MISSING');
       }
     });
@@ -481,7 +481,7 @@ describe('CerebrasAdapter', () => {
       try {
         await badKeyAdapter.list();
         expect.unreachable();
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect(error.code).toBe('AUTH_ERROR');
         expect(error.statusCode).toBe(401);
       }
@@ -492,7 +492,7 @@ describe('CerebrasAdapter', () => {
         await adapter.get('nonexistent');
         // Should return null, not throw
         expect(true).toBe(true);
-      } catch (error: any) {
+      } catch (error: unknown) {
         expect.unreachable();
       }
     });

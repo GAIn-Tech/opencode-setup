@@ -1,9 +1,31 @@
 import { NextResponse } from 'next/server';
+import { requireWriteAccess } from '../_lib/write-access';
 
 export const dynamic = 'force-dynamic';
 
+interface MetricsCollectorInstance {
+  toPrometheus: (windowMs: number) => string;
+  getSnapshot: (windowMs: number) => Record<string, unknown>;
+  recordDiscovery: (provider: string, success: boolean, data: Record<string, unknown>) => void;
+  recordCacheAccess: (tier: string, result: string, key: string) => void;
+  recordTransition: (modelId: string, fromState: string, toState: string) => void;
+  recordPRCreation: (success: boolean, data: Record<string, unknown>) => void;
+}
+
+interface AlertManagerInstance {
+  evaluate: (collector: MetricsCollectorInstance) => unknown[];
+  getActiveAlerts: () => unknown[];
+  getSummary: () => Record<string, unknown>;
+  getAlertHistory: (limit: number) => unknown[];
+}
+
+interface MonitoringModule {
+  PipelineMetricsCollector: new (opts: Record<string, unknown>) => MetricsCollectorInstance;
+  AlertManager: new () => AlertManagerInstance;
+}
+
 // Lazy-load CJS modules from model-manager package
-let monitoringModule: any = null;
+let monitoringModule: MonitoringModule | null = null;
 
 function loadModules() {
   if (!monitoringModule) {
@@ -12,13 +34,13 @@ function loadModules() {
 }
 
 // Singleton instances - persist across requests
-let metricsCollector: any = null;
-let alertManager: any = null;
+let metricsCollector: MetricsCollectorInstance | null = null;
+let alertManager: AlertManagerInstance | null = null;
 
 function getMetricsCollector() {
   if (!metricsCollector) {
     loadModules();
-    metricsCollector = new monitoringModule.PipelineMetricsCollector({
+    metricsCollector = new monitoringModule!.PipelineMetricsCollector({
       autoCleanup: true
     });
   }
@@ -28,7 +50,7 @@ function getMetricsCollector() {
 function getAlertManager() {
   if (!alertManager) {
     loadModules();
-    alertManager = new monitoringModule.AlertManager();
+    alertManager = new monitoringModule!.AlertManager();
   }
   return alertManager;
 }
@@ -69,7 +91,7 @@ export async function GET(request: Request) {
     const activeAlerts = alerts.getActiveAlerts();
     const alertSummary = alerts.getSummary();
 
-    let response: any;
+    let response: Record<string, unknown>;
 
     if (section === 'all') {
       response = {
@@ -101,10 +123,10 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json(response);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching monitoring metrics:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch monitoring metrics', message: error.message },
+      { error: 'Failed to fetch monitoring metrics', message: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
@@ -118,6 +140,9 @@ export async function GET(request: Request) {
  * Body: { type: 'discovery'|'cache'|'transition'|'pr', data: {...} }
  */
 export async function POST(request: Request) {
+  const authError = requireWriteAccess(request, 'metrics:ingest');
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     const { type, data } = body;
@@ -159,10 +184,10 @@ export async function POST(request: Request) {
       success: true,
       newAlerts: newAlerts.length > 0 ? newAlerts : undefined
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error ingesting monitoring metrics:', error);
     return NextResponse.json(
-      { error: 'Failed to ingest metrics', message: error.message },
+      { error: 'Failed to ingest metrics', message: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
