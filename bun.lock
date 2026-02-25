@@ -205,6 +205,10 @@
       "name": "opencode-runbooks",
       "version": "1.0.0",
     },
+    "packages/opencode-safe-io": {
+      "name": "opencode-safe-io",
+      "version": "0.1.0",
+    },
     "packages/opencode-shared-orchestration": {
       "name": "@jackoatmon/opencode-shared-orchestration",
       "version": "0.1.0",
@@ -274,8 +278,6 @@
     "@jackoatmon/opencode-fallback-doctor": ["@jackoatmon/opencode-fallback-doctor@workspace:packages/opencode-fallback-doctor"],
 
     "@jackoatmon/opencode-integration-layer": ["@jackoatmon/opencode-integration-layer@workspace:packages/opencode-integration-layer"],
-
-    "@jackoatmon/opencode-model-benchmark": ["opencode-model-benchmark@workspace:packages/opencode-model-benchmark"],
 
     "@jackoatmon/opencode-model-router-x": ["@jackoatmon/opencode-model-router-x@workspace:packages/opencode-model-router-x"],
 
@@ -1055,6 +1057,8 @@
 
     "opencode-runbooks": ["opencode-runbooks@workspace:packages/opencode-runbooks"],
 
+    "opencode-safe-io": ["opencode-safe-io@workspace:packages/opencode-safe-io"],
+
     "opencode-showboat-wrapper": ["opencode-showboat-wrapper@workspace:packages/opencode-showboat-wrapper"],
 
     "opencode-sisyphus-state": ["opencode-sisyphus-state@workspace:packages/opencode-sisyphus-state"],
@@ -1374,6 +1378,8 @@
     "@jackoatmon/opencode-model-router-x/@jackoatmon/opencode-health-check": ["opencode-health-check@file:packages/opencode-health-check", {}],
 
     "@jackoatmon/opencode-model-router-x/@jackoatmon/opencode-learning-engine": ["opencode-learning-engine@file:packages/opencode-learning-engine", {}],
+
+    "@jackoatmon/opencode-model-router-x/@jackoatmon/opencode-model-benchmark": ["opencode-model-benchmark@file:packages/opencode-model-benchmark", { "dependencies": { "pyodide": "^0.26.1", "sqlite3": "^5.1.7" } }],
 
     "@npmcli/fs/semver": ["semver@7.7.4", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-vFKC2IEtQnVhpT78h1Yp8wzwrf8CM+MzKMHGJZfBtzhZNycRFnXsHk6E5TxIkkMsgNS7mdX3AGB7x2QM2di4lA=="],
 

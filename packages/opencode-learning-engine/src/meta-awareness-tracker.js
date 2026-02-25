@@ -7,14 +7,7 @@ const os = require('os');
 const { evaluateMetaAwarenessEvent, DEFAULT_DOMAIN_WEIGHTS } = require('./meta-awareness-rules');
 const { boundedDelta, clamp, detectAnomaly, selectiveReassessmentWeight } = require('./meta-awareness-stability');
 const { initializeRollups, calculateConfidenceInterval, calculateComposite } = require('./meta-awareness-rollups');
-
-function safeJsonParse(line) {
-  try {
-    return JSON.parse(line);
-  } catch {
-    return null;
-  }
-}
+const { safeJsonParse } = require('opencode-safe-io');
 
 class MetaAwarenessTracker {
   constructor(options = {}) {
@@ -48,7 +41,7 @@ class MetaAwarenessTracker {
       this._writeRollups(initializeRollups());
     } else {
       try {
-        const parsed = JSON.parse(fs.readFileSync(this.rollupsPath, 'utf8'));
+        const parsed = safeJsonParse(fs.readFileSync(this.rollupsPath, 'utf8'), null, 'meta-awareness-rollups');
         this._rollupCache = (parsed && typeof parsed === 'object') ? parsed : initializeRollups();
       } catch {
         this._rollupCache = initializeRollups();

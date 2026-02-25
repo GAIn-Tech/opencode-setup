@@ -2,6 +2,7 @@ const fs = require('fs');
 const fsPromises = require('fs/promises');
 const os = require('os');
 const path = require('path');
+const { safeJsonParse } = require('opencode-safe-io');
 
 class PluginLifecycleSupervisor {
   constructor(options = {}) {
@@ -108,7 +109,7 @@ class PluginLifecycleSupervisor {
   _load() {
     try {
       if (!fs.existsSync(this.statePath)) return {};
-      const parsed = JSON.parse(fs.readFileSync(this.statePath, 'utf8'));
+      const parsed = safeJsonParse(fs.readFileSync(this.statePath, 'utf8'), {}, 'plugin-lifecycle-state');
       return parsed && typeof parsed === 'object' ? parsed : {};
     } catch {
       return {};

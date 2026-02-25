@@ -13,6 +13,7 @@ const fs = require('fs');
 const fsPromises = require('fs/promises');
 const path = require('path');
 const os = require('os');
+const { safeJsonParse } = require('opencode-safe-io');
 
 const PERSIST_DIR = path.join(os.homedir(), '.opencode', 'learning');
 const PERSIST_FILE = path.join(PERSIST_DIR, 'positive-patterns.json');
@@ -243,7 +244,7 @@ class PositivePatternTracker {
     try {
       if (fs.existsSync(PERSIST_FILE)) {
         const raw = fs.readFileSync(PERSIST_FILE, 'utf8');
-        const data = JSON.parse(raw);
+        const data = safeJsonParse(raw, {}, 'positive-patterns');
         this.patterns = Array.isArray(data.patterns) ? data.patterns : [];
       }
     } catch (err) {
@@ -259,7 +260,7 @@ class PositivePatternTracker {
     try {
       if (fs.existsSync(PERSIST_FILE)) {
         const raw = await fsPromises.readFile(PERSIST_FILE, 'utf8');
-        const data = JSON.parse(raw);
+        const data = safeJsonParse(raw, {}, 'positive-patterns');
         this.patterns = Array.isArray(data.patterns) ? data.patterns : [];
       }
     } catch (err) {

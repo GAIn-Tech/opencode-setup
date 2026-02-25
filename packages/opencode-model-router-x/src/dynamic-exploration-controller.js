@@ -9,6 +9,8 @@
  * Part of: dynamic-exploration-mode.md
  */
 
+const { safeJsonParse } = require('opencode-safe-io');
+
 class DynamicExplorationController {
   constructor(options = {}) {
     this.active = false;
@@ -261,7 +263,7 @@ class DynamicExplorationController {
       const configPath = path.resolve(__dirname, '../../../opencode-config/opencode.json');
       
       if (fs.existsSync(configPath)) {
-        const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+        const config = safeJsonParse(fs.readFileSync(configPath, 'utf-8'), null, 'dynamic-exploration-config');
         
         // Build pricing map from provider configs
         if (config.provider) {

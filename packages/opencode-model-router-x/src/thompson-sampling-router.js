@@ -11,6 +11,7 @@
 const path = require('path');
 const fs = require('fs');
 const { createRandomSource } = require('./deterministic-rng');
+const { safeJsonParse } = require('opencode-safe-io');
 
 class ThompsonSamplingRouter {
   constructor() {
@@ -34,7 +35,7 @@ class ThompsonSamplingRouter {
       // Try to load from opencode-config
       const configPath = path.resolve(__dirname, '../../../opencode-config/opencode.json');
       if (fs.existsSync(configPath)) {
-        this._config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+        this._config = safeJsonParse(fs.readFileSync(configPath, 'utf-8'), null, 'thompson-sampling-config');
       }
     } catch (err) {
       console.warn('[ThompsonSampling] Failed to load config:', err.message);

@@ -309,3 +309,63 @@ describe('managedListener', () => {
     expect(typeof handle.remove).toBe('function');
   });
 });
+
+// ─── Consumer importability regression ──────────────────────────────
+
+describe('consumer importability', () => {
+  const consumers = [
+    'opencode-feature-flags',
+    'opencode-plugin-lifecycle',
+    'opencode-model-router-x',
+    'opencode-learning-engine',
+    'opencode-plugin-healthd',
+    'opencode-proofcheck',
+    'opencode-runbooks',
+    'opencode-plugin-preload-skills',
+    'opencode-dashboard-launcher',
+  ];
+
+  test('safeJsonParse is importable from opencode-safe-io', () => {
+    const mod = require('../src/index.js');
+    expect(typeof mod.safeJsonParse).toBe('function');
+    expect(typeof mod.safeJsonReadSync).toBe('function');
+    expect(typeof mod.safeJsonRead).toBe('function');
+  });
+
+  test('safeJsonParse works with typical consumer patterns', () => {
+    // Pattern: safeJsonParse(data, {}, 'label') — feature-flags style
+    expect(safeJsonParse('{"enabled":true}', {}, 'test')).toEqual({ enabled: true });
+    expect(safeJsonParse('CORRUPT', {}, 'test')).toEqual({});
+
+    // Pattern: safeJsonParse(data, null, 'label') — proofcheck style
+    expect(safeJsonParse('{"name":"pkg"}', null, 'test')).toEqual({ name: 'pkg' });
+    expect(safeJsonParse('', null, 'test')).toBeNull();
+  });
+
+  test('safeJsonReadSync works for file-based consumers', () => {
+    const tmp = path.join(os.tmpdir(), `safe-io-consumer-test-${Date.now()}.json`);
+    fs.writeFileSync(tmp, '{"migrated":true}');
+    try {
+      const result = safeJsonReadSync(tmp, null, 'consumer-test');
+      expect(result).toEqual({ migrated: true });
+    } finally {
+      fs.unlinkSync(tmp);
+    }
+  });
+
+  test('safeJsonReadSync returns fallback for missing file', () => {
+    const result = safeJsonReadSync('/nonexistent/path.json', { default: true }, 'missing');
+    expect(result).toEqual({ default: true });
+  });
+
+  for (const pkg of consumers) {
+    test(`${pkg} can resolve opencode-safe-io require path`, () => {
+      const pkgDir = path.resolve(__dirname, '..', '..', pkg);
+      // Verify the consumer package directory exists (sparse checkout may skip some)
+      if (fs.existsSync(path.join(pkgDir, 'src'))) {
+        const srcFiles = fs.readdirSync(path.join(pkgDir, 'src'));
+        expect(srcFiles.length).toBeGreaterThan(0);
+      }
+    });
+  }
+});

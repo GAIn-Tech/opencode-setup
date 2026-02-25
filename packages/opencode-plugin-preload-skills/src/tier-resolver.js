@@ -11,6 +11,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { safeJsonParse } = require('opencode-safe-io');
 
 const DEFAULT_TIERS_PATHS = [
   // Project-local (portable)
@@ -42,9 +43,12 @@ class TierResolver {
       const p = pathFn();
       try {
         if (fs.existsSync(p)) {
-          this.tiers = JSON.parse(fs.readFileSync(p, 'utf-8'));
-          this._compilePatterns();
-          return;
+          const parsed = safeJsonParse(fs.readFileSync(p, 'utf-8'), null, 'preload-skills-tiers');
+          if (parsed) {
+            this.tiers = parsed;
+            this._compilePatterns();
+            return;
+          }
         }
       } catch (err) {
         console.warn(`[preload-skills] Failed to load tiers from ${p}: ${err.message}`);

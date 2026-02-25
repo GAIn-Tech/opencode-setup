@@ -2,13 +2,14 @@ const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 const os = require('os');
+const { safeJsonParse } = require('opencode-safe-io');
 
 // Load config from file directly to avoid dependency issues
 function loadConfig() {
   try {
     const configPath = path.join(__dirname, '..', '..', '..', '.opencode.config.json');
     if (fs.existsSync(configPath)) {
-      return JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      return safeJsonParse(fs.readFileSync(configPath, 'utf8'), {}, 'dashboard-launcher-config');
     }
   } catch (err) {
     // Ignore errors, use defaults
@@ -52,7 +53,7 @@ function readLock() {
   try {
     if (!fs.existsSync(LOCK_FILE)) return null;
     const content = fs.readFileSync(LOCK_FILE, 'utf8');
-    return JSON.parse(content);
+    return safeJsonParse(content, null, 'dashboard-launcher-lock');
   } catch (err) {
     return null;
   }

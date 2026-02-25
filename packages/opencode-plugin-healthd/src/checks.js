@@ -4,6 +4,7 @@ const { execSync, execFile } = require('child_process');
 const os = require('os');
 const path = require('path');
 const fs = require('fs');
+const { safeJsonParse } = require('opencode-safe-io');
 
 // --- Configuration ---
 
@@ -200,7 +201,8 @@ function checkMCPs(mcpList) {
     if (fs.existsSync(configPath)) {
       mcpConfigFound = true;
       try {
-        const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        const config = safeJsonParse(fs.readFileSync(configPath, 'utf8'), null, 'healthd-mcp-config');
+        if (!config) throw new Error('Invalid JSON in MCP config');
         const configuredMcps = Object.keys(config.mcpServers || config.servers || {});
         if (configuredMcps.length === 0) {
           issues.push({

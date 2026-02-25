@@ -2,6 +2,7 @@
 
 const path = require('path');
 const fs = require('fs');
+const { safeJsonParse } = require('opencode-safe-io');
 
 /**
  * Remedy functions for opencode-runbooks.
@@ -34,7 +35,7 @@ const remedies = {
     let configExists = false;
     try {
       if (fs.existsSync(configPath)) {
-        config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        config = safeJsonParse(fs.readFileSync(configPath, 'utf8'), {}, 'runbooks-config');
         configExists = true;
       }
     } catch (_) { /* ignore parse errors */ }

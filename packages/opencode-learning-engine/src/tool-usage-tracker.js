@@ -13,6 +13,7 @@
 const fs = require('fs');
 const fsPromises = require('fs/promises');
 const path = require('path');
+const { safeJsonReadSync } = require('opencode-safe-io');
 const { MetaAwarenessTracker } = require('./meta-awareness-tracker');
 
 const metaAwarenessTracker = new MetaAwarenessTracker();
@@ -211,11 +212,7 @@ function writeJsonSync(filePath, data) {
  * @deprecated Use readJsonAsync() for non-blocking I/O
  */
 function readJsonSync(filePath, defaultValue = null) {
-  try {
-    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  } catch {
-    return defaultValue;
-  }
+  return safeJsonReadSync(filePath, defaultValue, filePath);
 }
 
 /**

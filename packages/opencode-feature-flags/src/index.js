@@ -1,5 +1,6 @@
 // Feature flags for gradual rollouts and A/B testing
 import { atomicWriteJson } from '@opencode/crash-guard/safe-json';
+import { safeJsonParse } from 'opencode-safe-io';
 
 class FeatureFlags {
   constructor(options = {}) {
@@ -15,7 +16,7 @@ class FeatureFlags {
   _load() {
     try {
       const data = require('fs').readFileSync(this.persistedPath, 'utf-8');
-      this.flags = JSON.parse(data);
+      this.flags = safeJsonParse(data, {}, 'feature-flags');
     } catch {
       this.flags = {};
     }
