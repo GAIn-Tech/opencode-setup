@@ -147,4 +147,4 @@ class GraphActivator {
   }
 }
 
-module.exports = { GraphActivator, DEFAULT_STATE_PATH };
+module.exports = { GraphActivator };

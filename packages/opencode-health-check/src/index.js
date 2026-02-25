@@ -84,7 +84,7 @@ export function getSubsystemStatus(name) {
  * @param {string} status - Status: healthy, degraded, unhealthy
  * @param {Object} metadata - Additional metadata
  */
-export function updateSubsystemStatus(name, status, metadata = {}) {
+function updateSubsystemStatus(name, status, metadata = {}) {
   const health = subsystemHealth.get(name);
   if (!health) {
     console.warn(`[HealthCheck] Unknown subsystem: ${name}`);
@@ -199,7 +199,7 @@ export function stopHealthChecks() {
  * @param {Object} options - Options
  * @returns {Function} Express route handler
  */
-export function createHealthEndpoint(options = {}) {
+function createHealthEndpoint(options = {}) {
   const { 
     includeDetails = true,
     includeSubsystems = true,
@@ -236,7 +236,7 @@ export function createHealthEndpoint(options = {}) {
  * Create liveness probe endpoint
  * @returns {Function} Express route handler
  */
-export function createLivenessEndpoint() {
+function createLivenessEndpoint() {
   return (req, res) => {
     res.status(200).json({ 
       status: 'alive', 
@@ -249,7 +249,7 @@ export function createLivenessEndpoint() {
  * Create readiness probe endpoint
  * @returns {Function} Express route handler
  */
-export function createReadinessEndpoint() {
+function createReadinessEndpoint() {
   return (req, res) => {
     const status = getHealthStatus();
     
@@ -271,7 +271,7 @@ export function createReadinessEndpoint() {
 /**
  * Common subsystem check functions
  */
-export const commonChecks = {
+const commonChecks = {
   /**
    * Check if database is accessible
    * @param {Object} db - Database instance
@@ -424,14 +424,9 @@ export default {
   registerSubsystem,
   getHealthStatus,
   getSubsystemStatus,
-  updateSubsystemStatus,
   checkSubsystem,
   startHealthChecks,
   stopHealthChecks,
-  createHealthEndpoint,
-  createLivenessEndpoint,
-  createReadinessEndpoint,
-  commonChecks,
   getSchedulerTelemetry,
   getHealth,
 };

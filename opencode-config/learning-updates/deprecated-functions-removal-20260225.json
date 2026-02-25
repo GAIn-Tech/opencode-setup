@@ -2,39 +2,20 @@
   "id": "deprecated-functions-removal-20260225",
   "timestamp": "2026-02-25T00:00:00Z",
   "category": "dead-code-elimination",
-  "title": "Remove 5 Deprecated Functions",
-  "description": "Removed deprecated synchronous functions and their test cases to improve code maintainability",
-  "changes": [
-    {
-      "file": "packages/opencode-learning-engine/src/tool-usage-tracker.js",
-      "type": "function-removal",
-      "removed": ["init", "writeJsonSync", "readJsonSync"],
-      "reason": "Deprecated in favor of async alternatives (initAsync, writeJsonAsync, readJsonAsync)"
-    },
-    {
-      "file": "packages/opencode-memory-graph/src/graph-builder.js",
-      "type": "function-removal",
-      "removed": ["buildGraph"],
-      "reason": "Deprecated in favor of buildGraphWithBridge"
-    },
-    {
-      "file": "packages/opencode-safe-io/src/index.js",
-      "type": "function-removal",
-      "removed": ["safeJsonReadSync"],
-      "reason": "Deprecated in favor of async safeJsonRead"
-    }
+  "summary": "Remove 5 deprecated functions across 3 packages to improve code maintainability",
+  "details": "Removed deprecated synchronous functions: init(), writeJsonSync(), readJsonSync() from tool-usage-tracker.js; buildGraph() from graph-builder.js; safeJsonReadSync() from safe-io index.js. All functions had async alternatives already in place. Updated exports and removed related test cases.",
+  "affected_paths": [
+    "packages/opencode-learning-engine/src/tool-usage-tracker.js",
+    "packages/opencode-learning-engine/test/tool-usage-tracker.test.js",
+    "packages/opencode-memory-graph/src/graph-builder.js",
+    "packages/opencode-safe-io/src/index.js",
+    "packages/opencode-safe-io/test/index.test.js"
   ],
-  "impact": {
-    "files_modified": 5,
-    "functions_removed": 5,
-    "tests_updated": 2,
-    "exports_updated": 3
+  "impact": "Low - removes unused deprecated functions with no external callers",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
   },
-  "verification": {
-    "no_external_callers": true,
-    "exports_updated": true,
-    "tests_updated": true
-  },
-  "wave": 7,
-  "task": "dead-code-elimination"
+  "risk_level": "low"
 }

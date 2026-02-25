@@ -355,4 +355,4 @@ class EdgeStore {
   }
 }
 
-module.exports = { EdgeStore, EDGE_TYPES, VALID_EDGE_TYPES, DIRECTION };
+module.exports = { EdgeStore, EDGE_TYPES, DIRECTION };
