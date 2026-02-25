@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { safeJsonParse } = require('./safe-json-parse');
 
 /**
  * Minimal JSON Schema validator for draft-07
@@ -105,7 +106,10 @@ function loadCentralConfig(configPath) {
   let config;
   try {
     const content = fs.readFileSync(configPath, 'utf8');
-    config = JSON.parse(content);
+    config = safeJsonParse(content, null, configPath);
+    if (!config) {
+      throw new Error(`Invalid JSON in central-config.json at ${configPath}`);
+    }
   } catch (err) {
     throw new Error(`Failed to parse central-config.json: ${err.message}`);
   }
@@ -115,7 +119,10 @@ function loadCentralConfig(configPath) {
   let schema;
   try {
     const schemaContent = fs.readFileSync(schemaPath, 'utf8');
-    schema = JSON.parse(schemaContent);
+    schema = safeJsonParse(schemaContent, null, schemaPath);
+    if (!schema) {
+      throw new Error(`Invalid JSON in schema at ${schemaPath}`);
+    }
   } catch (err) {
     throw new Error(`Failed to load schema: ${err.message}`);
   }

@@ -1,0 +1,18 @@
+{
+  "id": "config-loader-safe-json-parse-20260224",
+  "timestamp": "2026-02-24T00:00:00Z",
+  "summary": "Added safeJsonParse helper and replaced all unguarded JSON.parse calls in file-read paths in central-config.js and central-config-state.js",
+  "affected_paths": [
+    "packages/opencode-config-loader/src/safe-json-parse.js",
+    "packages/opencode-config-loader/test/safe-json-parse.test.js",
+    "packages/opencode-config-loader/src/central-config.js",
+    "packages/opencode-config-loader/src/central-config-state.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "TDD fix: safeJsonParse(src, fallback, label) returns fallback on non-string, empty, or invalid JSON input. Replaced 9 JSON.parse call sites in file-read paths. Critical fix: line 363 in central-config-state.js (restoreSnapshot) was completely unguarded. 4 new tests, 27 total pass."
+}

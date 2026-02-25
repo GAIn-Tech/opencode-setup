@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { resolveDataDir } = require('./paths');
+const { safeJsonParse } = require('./safe-json-parse');
 
 /**
  * Custom error for concurrency conflicts
@@ -57,7 +58,7 @@ function loadRlState() {
   
   try {
     const content = fs.readFileSync(filePath, 'utf8');
-    return JSON.parse(content);
+    return safeJsonParse(content, {}, filePath);
   } catch (err) {
     console.warn(`[RlState] Failed to load RL state: ${err.message}`);
     return {};
@@ -79,9 +80,10 @@ function saveRlState(nextState, { expectedVersion } = {}) {
   let currentState = {};
   if (fs.existsSync(filePath)) {
     try {
-      currentState = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      const raw = fs.readFileSync(filePath, 'utf8');
+      currentState = safeJsonParse(raw, {}, filePath);
     } catch (err) {
-      // If file is corrupted, treat as empty
+      // If file read fails, treat as empty
       currentState = {};
     }
   }
@@ -198,14 +200,8 @@ function readAuditLog({ since, until, limit } = {}) {
     const content = fs.readFileSync(logPath, 'utf8');
     const lines = content.split('\n').filter(line => line.trim());
     
-    let entries = lines.map(line => {
-      try {
-        return JSON.parse(line);
-      } catch (err) {
-        console.warn(`[AuditLog] Failed to parse line: ${err.message}`);
-        return null;
-      }
-    }).filter(entry => entry !== null);
+    let entries = lines.map(line => safeJsonParse(line, null, 'audit-log'))
+      .filter(entry => entry !== null);
     
     // Filter by timestamp
     if (since) {
@@ -328,7 +324,7 @@ function listSnapshots(limit = 10) {
       const metaPath = path.join(dir, e.name, 'metadata.json');
       if (fs.existsSync(metaPath)) {
         try {
-          return JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+          return safeJsonParse(fs.readFileSync(metaPath, 'utf8'), null, metaPath);
         } catch {
           return null;
         }
@@ -360,7 +356,11 @@ function restoreSnapshot(snapshotId, centralConfigPath) {
     throw new Error(`Invalid snapshot: missing metadata`);
   }
   
-  const metadata = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+  const raw = fs.readFileSync(metaPath, 'utf8');
+  const metadata = safeJsonParse(raw, null, metaPath);
+  if (!metadata) {
+    throw new Error(`Invalid snapshot: corrupted metadata in ${snapshotId}`);
+  }
   
   // Restore central-config.json
   const snapshotConfigPath = path.join(snapshotDir, 'central-config.json');
@@ -402,7 +402,9 @@ function restoreSnapshot(snapshotId, centralConfigPath) {
 function loadWithRecovery(configPath) {
   try {
     const content = fs.readFileSync(configPath, 'utf8');
-    return JSON.parse(content);
+    const parsed = safeJsonParse(content, null, configPath);
+    if (parsed !== null) return parsed;
+    throw new Error(`Invalid JSON in ${configPath}`);
   } catch (err) {
     console.warn(`[Recovery] Config corrupted at ${configPath}: ${err.message}`);
     
@@ -416,7 +418,11 @@ function loadWithRecovery(configPath) {
         const snapshotConfigPath = path.join(snapshotDir, 'central-config.json');
         
         if (fs.existsSync(snapshotConfigPath)) {
-          const recovered = JSON.parse(fs.readFileSync(snapshotConfigPath, 'utf8'));
+          const recoveredRaw = fs.readFileSync(snapshotConfigPath, 'utf8');
+          const recovered = safeJsonParse(recoveredRaw, null, snapshotConfigPath);
+          if (!recovered) {
+            throw new Error(`Invalid JSON in snapshot config at ${snapshotConfigPath}`);
+          }
           
           // Restore the file
           fs.copyFileSync(snapshotConfigPath, configPath);
