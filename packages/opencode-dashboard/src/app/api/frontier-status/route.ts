@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
-import * as fs from 'fs';
+import * as fsPromises from 'fs/promises';
 import * as path from 'path';
 
 export const dynamic = 'force-dynamic';
 
 type CheckStatus = 'pass' | 'fail' | 'unknown';
 
-function readJsonSafe(filePath: string): any | null {
+async function readJsonSafe(filePath: string): Promise<any | null> {
   try {
-    if (!fs.existsSync(filePath)) return null;
-    return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    const content = await fsPromises.readFile(filePath, 'utf-8');
+    return JSON.parse(content);
   } catch {
     return null;
   }
@@ -67,8 +67,8 @@ export async function GET() {
   const frontierReportPath = path.join(root, 'reports', 'frontier', 'frontier-verify-all.json');
   const securityReportPath = path.join(root, 'reports', 'security', 'security-audit-free.json');
 
-  const frontier = readJsonSafe(frontierReportPath);
-  const security = readJsonSafe(securityReportPath);
+  const frontier = await readJsonSafe(frontierReportPath);
+  const security = await readJsonSafe(securityReportPath);
 
   const frontierStatus = deriveFrontierStatus(frontier);
   const securityStatus = deriveSecurityStatus(security);

@@ -1,5 +1,8 @@
 import crypto from 'crypto';
-import fs from 'fs';
+import fsPromises from 'fs/promises';
+
+/** Serialized write queue to prevent concurrent write corruption */
+let _writePromise = Promise.resolve();
 
 function canonicalStringify(value) {
   if (value === null || typeof value !== 'object') {
@@ -31,30 +34,32 @@ function n(v, fallback = 0) {
   return fallback;
 }
 
-function atomicWrite(filePath, data) {
-  const tmp = `${filePath}.tmp.${Date.now()}.${process.pid}`;
-
-  try {
-    fs.writeFileSync(tmp, JSON.stringify(data), 'utf8');
-  } catch (error) {
+/**
+ * Write JSON atomically (async) with serialized write queue.
+ * Uses tmp+rename for atomic swap, chained via _writePromise to prevent
+ * concurrent write corruption. Falls back to direct write on Windows EPERM.
+ */
+async function atomicWrite(filePath, data) {
+  const doWrite = async () => {
+    const tmp = `${filePath}.tmp.${Date.now()}.${process.pid}`;
+    const json = JSON.stringify(data);
     try {
-      if (fs.existsSync(tmp)) {
-        fs.unlinkSync(tmp);
+      await fsPromises.writeFile(tmp, json, 'utf8');
+      await fsPromises.rename(tmp, filePath);
+    } catch (err) {
+      // Windows: rename over existing file can EPERM; fall back to direct write
+      if (err.code === 'EPERM' || err.code === 'EACCES') {
+        await fsPromises.writeFile(filePath, json, 'utf8');
+        try { await fsPromises.unlink(tmp); } catch (cleanupErr) { console.warn('[event-store] cleanup failed:', cleanupErr.message); }
+      } else {
+        // Clean up tmp on failure
+        try { await fsPromises.unlink(tmp); } catch (cleanupErr) { console.warn('[event-store] cleanup failed:', cleanupErr.message); }
+        throw err;
       }
-    } catch {}
-    throw error;
-  }
-
-  try {
-    fs.renameSync(tmp, filePath);
-  } catch (error) {
-    try {
-      if (fs.existsSync(tmp)) {
-        fs.unlinkSync(tmp);
-      }
-    } catch {}
-    throw error;
-  }
+    }
+  };
+  _writePromise = _writePromise.catch(() => {}).then(doWrite);
+  return _writePromise;
 }
 
 export function normalizeEvents({ incoming, signingKey, signingMode, defaultSource }) {
@@ -145,9 +150,9 @@ export function normalizeEvents({ incoming, signingKey, signingMode, defaultSour
   return { normalized, normalizationDiagnostics };
 }
 
-export function persistEvents({ filePath, version, existingEvents, replace, normalized, maxEvents = 10000 }) {
+export async function persistEvents({ filePath, version, existingEvents, replace, normalized, maxEvents = 10000 }) {
   const events = replace ? normalized : [...(Array.isArray(existingEvents) ? existingEvents : []), ...normalized].slice(-maxEvents);
-  atomicWrite(filePath, { version: version || '1.0.0', updated_at: new Date().toISOString(), events });
+  await atomicWrite(filePath, { version: version || '1.0.0', updated_at: new Date().toISOString(), events });
   return events;
 }
 

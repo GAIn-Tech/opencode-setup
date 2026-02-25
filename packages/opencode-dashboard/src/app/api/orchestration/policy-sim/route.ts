@@ -3,6 +3,11 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
+// Validate security-critical env vars at import time
+if (process.env.NODE_ENV === 'production' && !process.env.OPENCODE_EVENT_SIGNING_KEY) {
+  console.warn('[policy-sim] OPENCODE_EVENT_SIGNING_KEY is empty in production mode');
+}
+
 type SigningMode = 'off' | 'allow-unsigned' | 'require-signed' | 'require-valid-signature';
 
 type SimEvent = {

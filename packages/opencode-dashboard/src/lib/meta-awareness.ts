@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fsPromises from 'fs/promises';
 import os from 'os';
 import path from 'path';
 
@@ -15,25 +15,21 @@ export function loadMetaAwarenessTracker(): any | null {
   return null;
 }
 
-export function readMetaAwarenessRollups() {
+export async function readMetaAwarenessRollups() {
   const { rollupsPath } = fallbackPaths();
-  if (!fs.existsSync(rollupsPath)) {
-    return null;
-  }
   try {
-    return JSON.parse(fs.readFileSync(rollupsPath, 'utf-8'));
+    const content = await fsPromises.readFile(rollupsPath, 'utf-8');
+    return JSON.parse(content);
   } catch {
     return null;
   }
 }
 
-export function readMetaAwarenessEvents(limit = 200) {
+export async function readMetaAwarenessEvents(limit = 200) {
   const { eventsPath } = fallbackPaths();
-  if (!fs.existsSync(eventsPath)) {
-    return [];
-  }
   try {
-    const lines = fs.readFileSync(eventsPath, 'utf-8').split(/\r?\n/).filter(Boolean);
+    const content = await fsPromises.readFile(eventsPath, 'utf-8');
+    const lines = content.split(/\r?\n/).filter(Boolean);
     return lines.slice(-Math.max(1, Math.min(limit, 2000))).map((line) => {
       try {
         return JSON.parse(line);

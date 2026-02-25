@@ -14,7 +14,7 @@ export async function GET(_request: NextRequest) {
       });
     }
 
-    const rollups = readMetaAwarenessRollups();
+    const rollups = await readMetaAwarenessRollups();
     const stability = rollups?.stability || {
       bounded_update_count: 0,
       anomaly_count: 0,

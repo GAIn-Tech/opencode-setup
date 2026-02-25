@@ -1,0 +1,21 @@
+{
+  "id": "env-validation-20260225",
+  "timestamp": "2026-02-25T00:00:00Z",
+  "summary": "Added startup validation for security-critical environment variables in dashboard routes to warn operators of missing signing keys and write tokens",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/orchestration/policy-sim/route.ts",
+    "packages/opencode-dashboard/src/app/api/_lib/write-access.ts"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "details": {
+    "signing_key_validation": "Added OPENCODE_EVENT_SIGNING_KEY validation in policy-sim/route.ts (warns if empty in production)",
+    "write_token_validation": "Added OPENCODE_DASHBOARD_WRITE_TOKEN validation in write-access.ts (warns if not configured)",
+    "import_time_validation": "Validations run at import time, not per-request",
+    "dev_compatibility": "No errors thrown to preserve dev environment compatibility"
+  }
+}

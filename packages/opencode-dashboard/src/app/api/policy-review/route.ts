@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import * as fs from 'fs';
+import * as fsPromises from 'fs/promises';
 import * as os from 'os';
 import * as path from 'path';
 
@@ -26,9 +26,13 @@ export async function GET() {
       ? Number(process.env.OPENCODE_POLICY_REVIEW_P95_SLO_HOURS || '24')
       : 24;
 
-    const queue = fs.existsSync(queuePath)
-      ? JSON.parse(fs.readFileSync(queuePath, 'utf-8'))
-      : { version: '1.0.0', updated_at: new Date().toISOString(), items: [] };
+    let queue: any;
+    try {
+      const content = await fsPromises.readFile(queuePath, 'utf-8');
+      queue = JSON.parse(content);
+    } catch {
+      queue = { version: '1.0.0', updated_at: new Date().toISOString(), items: [] };
+    }
 
     const items = Array.isArray(queue.items) ? queue.items : [];
     const now = Date.now();

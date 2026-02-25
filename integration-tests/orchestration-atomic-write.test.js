@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, test } from 'bun:test';
 import fs from 'node:fs';
+import fsPromises from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
 import { POST as postOrchestration } from '../packages/opencode-dashboard/src/app/api/orchestration/route';
 
-const originalRenameSync = fs.renameSync;
+const originalRename = fsPromises.rename;
 const originalUserProfile = process.env.USERPROFILE;
 const originalHome = process.env.HOME;
 
@@ -27,7 +28,7 @@ function listTmpFiles(dir) {
 }
 
 afterEach(() => {
-  fs.renameSync = originalRenameSync;
+  fsPromises.rename = originalRename;
   if (originalUserProfile === undefined) {
     delete process.env.USERPROFILE;
   } else {
@@ -67,8 +68,8 @@ describe('orchestration atomic write', () => {
     process.env.USERPROFILE = dir;
     process.env.HOME = dir;
 
-    fs.renameSync = () => {
-      throw new Error('simulated rename interruption');
+    fsPromises.rename = () => {
+      return Promise.reject(new Error('simulated rename interruption'));
     };
 
     const request = new Request('http://localhost/api/orchestration', {

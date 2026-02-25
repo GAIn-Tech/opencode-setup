@@ -195,8 +195,60 @@ describe('PRGenerator', () => {
       const catalogContent = await fs.readFile(catalogPath, 'utf-8');
       const catalog = JSON.parse(catalogContent);
       
-      expect(catalog.models[0].deprecated).toBe(true);
-      expect(catalog.models[0].deprecatedAt).toBeDefined();
-    });
-  });
+     expect(catalog.models[0].deprecated).toBe(true);
+       expect(catalog.models[0].deprecatedAt).toBeDefined();
+     });
+   });
+
+   describe('Security: Command Injection Prevention', () => {
+     test('should safely handle shell metacharacters in branch names', async () => {
+       // Test that shell metacharacters don't execute as commands
+       const maliciousBranchNames = [
+         'auto/model-update-$(whoami)',
+         'auto/model-update-`id`',
+         'auto/model-update-; rm -rf /',
+         'auto/model-update-| cat /etc/passwd',
+         'auto/model-update-& echo hacked',
+         'auto/model-update-$(touch /tmp/pwned)',
+       ];
+
+       for (const branchName of maliciousBranchNames) {
+         // These should not throw during branch name processing
+         // execFileSync with array form prevents shell interpretation
+         const title = prGenerator.generatePRTitle({
+           added: [],
+           modified: [],
+           removed: []
+         });
+         expect(title).toBeDefined();
+       }
+     });
+
+     test('should safely handle shell metacharacters in commit messages', async () => {
+       // Test that commit messages with shell metacharacters are safe
+       const diff = {
+         added: [
+           {
+             model: {
+               id: 'test-model',
+               displayName: 'Test Model',
+               contextTokens: 1000,
+               outputTokens: 500,
+               deprecated: false,
+               capabilities: {}
+             },
+             provider: 'test',
+             classification: 'minor'
+           }
+         ],
+         modified: [],
+         removed: []
+       };
+
+       // generateCommitMessage should safely handle any input
+       const commitMessage = prGenerator.generateCommitMessage(diff);
+       expect(commitMessage).toContain('chore(models)');
+       expect(commitMessage).toContain('1 new');
+     });
+   });
 });

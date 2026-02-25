@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const dataSource = getDataSource();
+    const dataSource = await getDataSource();
     const runs = await dataSource.getRuns();
     
     // Join token data with runs

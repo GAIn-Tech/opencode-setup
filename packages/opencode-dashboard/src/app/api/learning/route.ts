@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import path from 'path';
 import os from 'os';
-import fs from 'fs';
+import fsPromises from 'fs/promises';
 
 export const dynamic = 'force-dynamic';
 
@@ -106,7 +106,8 @@ export async function GET() {
     };
 
     // Check if learning directory exists
-    if (!fs.existsSync(learningPath)) {
+    const learningPathExists = await fsPromises.access(learningPath).then(() => true).catch(() => false);
+    if (!learningPathExists) {
       return NextResponse.json(demoData);
     }
 
@@ -115,7 +116,8 @@ export async function GET() {
     let engine: any = null;
     let engineWarning: string | null = null;
 
-    if (!fs.existsSync(enginePath)) {
+    const enginePathExists = await fsPromises.access(enginePath).then(() => true).catch(() => false);
+    if (!enginePathExists) {
       engineWarning = 'Learning engine package not found, using file fallback';
     } else {
       let LearningEngineCtor: any = null;
@@ -168,18 +170,18 @@ export async function GET() {
       let antiPatterns: AntiPattern[] = [];
       let positivePatterns: PositivePattern[] = [];
       
-        if (fs.existsSync(antiPatternsFile)) {
+        if (await fsPromises.access(antiPatternsFile).then(() => true).catch(() => false)) {
           try {
-            const raw = JSON.parse(fs.readFileSync(antiPatternsFile, 'utf-8'));
+            const raw = JSON.parse(await fsPromises.readFile(antiPatternsFile, 'utf-8'));
             antiPatterns = Array.isArray(raw)
               ? raw
               : (raw.patterns || raw.items || []);
           } catch { /* empty or malformed file */ }
         }
       
-        if (fs.existsSync(positivePatternsFile)) {
+        if (await fsPromises.access(positivePatternsFile).then(() => true).catch(() => false)) {
           try {
-            const raw = JSON.parse(fs.readFileSync(positivePatternsFile, 'utf-8'));
+            const raw = JSON.parse(await fsPromises.readFile(positivePatternsFile, 'utf-8'));
             positivePatterns = Array.isArray(raw)
               ? raw
               : (raw.patterns || raw.items || []);

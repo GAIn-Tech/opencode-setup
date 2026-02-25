@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const dataSource = getDataSource();
+    const dataSource = await getDataSource();
     const runId = params.id;
 
     const run = await dataSource.getRun(runId);

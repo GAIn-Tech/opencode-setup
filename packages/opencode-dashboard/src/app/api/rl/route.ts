@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import path from 'path';
 import os from 'os';
-import fs from 'fs';
+import fsPromises from 'fs/promises';
 
 export const dynamic = 'force-dynamic';
 
@@ -148,7 +148,7 @@ function decodeSkillBank(skillBank: any): { general: SkillSummary[]; taskSpecifi
   return { general, taskSpecific };
 }
 
-function readPolicy(): RLContract['policy'] {
+async function readPolicy(): Promise<RLContract['policy']> {
   const defaults = {
     learning_rate: 0.2,
     top_n_promotion_threshold: 5,
@@ -156,12 +156,12 @@ function readPolicy(): RLContract['policy'] {
   };
 
   const policyPath = path.resolve(process.cwd(), '../../opencode-config/learning-update-policy.json');
-  if (!fs.existsSync(policyPath)) {
+  if (!await fsPromises.access(policyPath).then(() => true).catch(() => false)) {
     return defaults;
   }
 
   try {
-    const raw = JSON.parse(fs.readFileSync(policyPath, 'utf-8'));
+    const raw = JSON.parse(await fsPromises.readFile(policyPath, 'utf-8'));
     return {
       learning_rate: getNumberAtPath(raw, 'learning_rate', defaults.learning_rate),
       top_n_promotion_threshold: getNumberAtPath(
@@ -180,11 +180,11 @@ function readPolicy(): RLContract['policy'] {
   }
 }
 
-function buildUnavailableResponse(
+async function buildUnavailableResponse(
   message: string,
   error?: unknown,
   statusReason = 'unavailable'
-): RLContract & { data_fidelity: string; status_reason: string } {
+): Promise<RLContract & { data_fidelity: string; status_reason: string }> {
   return {
     version: '1.0.0',
     skill_bank: {
@@ -200,7 +200,7 @@ function buildUnavailableResponse(
       recent_adaptations: [],
       failure_history: []
     },
-    policy: readPolicy(),
+    policy: await readPolicy(),
     fallback: true,
     data_fidelity: 'unavailable',
     status_reason: statusReason,
@@ -213,19 +213,19 @@ export async function GET() {
   const skillRLPath = path.join(os.homedir(), '.opencode', 'skill-rl.json');
 
   try {
-    if (!fs.existsSync(skillRLPath)) {
+    if (!await fsPromises.access(skillRLPath).then(() => true).catch(() => false)) {
       return NextResponse.json(
-        buildUnavailableResponse('RL state unavailable: ~/.opencode/skill-rl.json not found'),
+        await buildUnavailableResponse('RL state unavailable: ~/.opencode/skill-rl.json not found'),
         { status: 503 }
       );
     }
 
     let rlData: any;
     try {
-      rlData = JSON.parse(fs.readFileSync(skillRLPath, 'utf-8'));
+      rlData = JSON.parse(await fsPromises.readFile(skillRLPath, 'utf-8'));
     } catch (parseError) {
       return NextResponse.json(
-        buildUnavailableResponse('RL state unavailable: could not parse skill-rl.json', parseError),
+        await buildUnavailableResponse('RL state unavailable: could not parse skill-rl.json', parseError),
         { status: 503 }
       );
     }
@@ -298,14 +298,14 @@ export async function GET() {
         recent_adaptations: recentAdaptations,
         failure_history: failureHistory
       },
-      policy: readPolicy(),
+      policy: await readPolicy(),
       fallback: false,
       data_fidelity: 'live',
       status_reason: 'ok'
     } satisfies RLContract);
   } catch (error) {
     return NextResponse.json(
-      buildUnavailableResponse('RL state unavailable: unexpected error', error, 'unexpected_error'),
+      await buildUnavailableResponse('RL state unavailable: unexpected error', error, 'unexpected_error'),
       { status: 503 }
     );
   }

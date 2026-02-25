@@ -609,7 +609,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const events = persistEvents({
+    const events = await persistEvents({
       filePath,
       version: existing.version,
       existingEvents: arr<EventRecord>(existing.events),

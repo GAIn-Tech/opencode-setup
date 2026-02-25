@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const events = readMetaAwarenessEvents(1000);
+    const events = await readMetaAwarenessEvents(1000);
     const cutoff = Date.now() - sinceDays * 24 * 60 * 60 * 1000;
     const filtered = events.filter((event: any) => new Date(event.timestamp || 0).getTime() >= cutoff);
 

@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const rollups = readMetaAwarenessRollups();
+    const rollups = await readMetaAwarenessRollups();
     const points = Array.isArray(rollups?.timeline?.points) ? rollups.timeline.points : [];
     const cutoff = Date.now() - sinceDays * 24 * 60 * 60 * 1000;
     return NextResponse.json({

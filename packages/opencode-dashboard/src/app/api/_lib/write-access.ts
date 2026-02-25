@@ -4,6 +4,12 @@ import { timingSafeEqual } from 'crypto';
 const WRITE_TOKEN_HEADER = 'x-opencode-write-token';
 const WRITE_TOKEN_ENV = 'OPENCODE_DASHBOARD_WRITE_TOKEN';
 
+// Validate security-critical env vars at import time
+const writeToken = process.env[WRITE_TOKEN_ENV];
+if (!writeToken) {
+  console.warn('[write-access] Write token env var is empty:', WRITE_TOKEN_ENV);
+}
+
 type RoleName = 'admin' | 'operator' | 'viewer';
 
 type RoleTokenPayload = {

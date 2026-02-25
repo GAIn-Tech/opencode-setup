@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import * as fs from 'fs';
+import * as fsPromises from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 
@@ -25,7 +25,10 @@ function classifyStatus(mapAtK: number, groundedRecall: number): RetrievalQualit
 export async function GET() {
   try {
     const reportPath = path.join(os.homedir(), '.opencode', 'retrieval-quality.json');
-    if (!fs.existsSync(reportPath)) {
+    let rawContent: string;
+    try {
+      rawContent = await fsPromises.readFile(reportPath, 'utf-8');
+    } catch {
       return NextResponse.json(
         {
           message: 'No retrieval quality report available',
@@ -36,7 +39,7 @@ export async function GET() {
       );
     }
 
-    const raw = JSON.parse(fs.readFileSync(reportPath, 'utf-8'));
+    const raw = JSON.parse(rawContent);
     const mapAtK = Number(raw?.map_at_k || 0);
     const groundedRecall = Number(raw?.grounded_recall || 0);
     const payload: RetrievalQuality = {

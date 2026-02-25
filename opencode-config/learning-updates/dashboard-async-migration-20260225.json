@@ -1,0 +1,25 @@
+{
+  "id": "dashboard-async-migration-20260225",
+  "timestamp": "2026-02-25T00:00:00Z",
+  "summary": "Converted sync I/O to async in 9 dashboard files + 7 callers. Write paths use serialized write queue (_writePromise pattern) to prevent concurrent corruption. Verification read in write-json-atomic.ts intentionally kept sync. Added 7 regression tests for event-store async atomicWrite.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/orchestration/lib/event-store.js",
+    "packages/opencode-dashboard/src/app/api/_lib/write-json-atomic.ts",
+    "packages/opencode-dashboard/src/app/api/learning/route.ts",
+    "packages/opencode-dashboard/src/app/api/rl/route.ts",
+    "packages/opencode-dashboard/src/app/api/frontier-status/route.ts",
+    "packages/opencode-dashboard/src/app/api/policy-review/route.ts",
+    "packages/opencode-dashboard/src/app/api/retrieval-quality/route.ts",
+    "packages/opencode-dashboard/src/lib/meta-awareness.ts",
+    "packages/opencode-dashboard/src/lib/data-sources/index.ts",
+    "packages/opencode-dashboard/tests/event-store-async.test.js",
+    "integration-tests/orchestration-atomic-write.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium",
+  "persistence": "core"
+}

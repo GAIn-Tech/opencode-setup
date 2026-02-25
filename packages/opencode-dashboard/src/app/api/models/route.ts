@@ -110,7 +110,7 @@ export async function POST(request: Request) {
       // if the frontend sends complete sections.
     };
     
-    writeJsonAtomic(policiesPath, mergedPolicies);
+    await writeJsonAtomic(policiesPath, mergedPolicies);
 
     await appendWriteAuditEntry({
       route: '/api/models',

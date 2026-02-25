@@ -265,7 +265,7 @@ export async function POST(request: Request) {
           };
           configState.appendAuditEntry(auditEntry);
           
-          writeJsonAtomic(filePath, newData);
+          await writeJsonAtomic(filePath, newData);
 
           await appendWriteAuditEntry({
             route: '/api/config',
@@ -291,7 +291,7 @@ export async function POST(request: Request) {
     }
 
     // Standard handling for other configs
-    writeJsonAtomic(filePath, data);
+    await writeJsonAtomic(filePath, data);
 
     await appendWriteAuditEntry({
       route: '/api/config',

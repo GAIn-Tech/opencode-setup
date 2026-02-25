@@ -14,7 +14,7 @@ export async function GET(_request: NextRequest) {
       });
     }
 
-    const rollups = readMetaAwarenessRollups();
+    const rollups = await readMetaAwarenessRollups();
     if (rollups) {
       return NextResponse.json({
         generated_at: rollups.generated_at,

@@ -2,7 +2,7 @@
 
 const fs = require('fs').promises;
 const path = require('path');
-const { execSync } = require('child_process');
+const { execSync, execFileSync } = require('child_process');
 
 /**
  * PR Generator for automated model catalog updates.
@@ -61,7 +61,7 @@ class PRGenerator {
    */
   async createBranch(branchName) {
     try {
-      execSync(`git checkout -b ${branchName}`, { cwd: this.repoPath });
+      execFileSync('git', ['checkout', '-b', branchName], { cwd: this.repoPath });
     } catch (error) {
       throw new Error(`Failed to create branch: ${error.message}`);
     }
@@ -132,7 +132,7 @@ class PRGenerator {
       execSync('git add opencode-config/models/catalog-2026.json', { cwd: this.repoPath });
       
       const commitMessage = this.generateCommitMessage(diff);
-      execSync(`git commit -m "${commitMessage}"`, { cwd: this.repoPath });
+      execFileSync('git', ['commit', '-m', commitMessage], { cwd: this.repoPath });
     } catch (error) {
       throw new Error(`Failed to commit changes: ${error.message}`);
     }
@@ -143,7 +143,7 @@ class PRGenerator {
    */
   async pushBranch(branchName) {
     try {
-      execSync(`git push -u origin ${branchName}`, { cwd: this.repoPath });
+      execFileSync('git', ['push', '-u', 'origin', branchName], { cwd: this.repoPath });
     } catch (error) {
       throw new Error(`Failed to push branch: ${error.message}`);
     }
