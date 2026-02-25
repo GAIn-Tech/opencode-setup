@@ -1,5 +1,5 @@
 // Feature flags for gradual rollouts and A/B testing
-import { atomicWriteJson } from '@opencode/crash-guard/safe-json';
+import fs from 'fs';
 import { safeJsonParse } from 'opencode-safe-io';
 
 class FeatureFlags {
@@ -24,7 +24,7 @@ class FeatureFlags {
   
   _save() {
     try {
-      atomicWriteJson(this.persistedPath, this.flags);
+      fs.writeFileSync(this.persistedPath, JSON.stringify(this.flags, null, 2));
     } catch (e) {
       console.error('[FeatureFlags] Failed to persist:', e.message);
     }
