@@ -45,6 +45,8 @@ class ModelDiscovery {
     };
 
     this.discoveryCache = new Map(); // provider -> { models, hash, timestamp }
+    this.cacheTTL = Number(options.cacheTTL) || 300000; // 5 minutes default
+    this.cacheMaxSize = Number(options.cacheMaxSize) || 50;
     this.lastPollTime = null;
     this.periodicPollingEnabled = false;
     this.periodicInterval = null;
@@ -66,39 +68,107 @@ class ModelDiscovery {
   }
 
   /**
+   * Get a cache entry if it exists and hasn't expired
+   * @param {string} providerId
+   * @returns {Object|null} Cache entry or null if expired/missing
+   */
+  _getCacheEntry(providerId) {
+    const entry = this.discoveryCache.get(providerId);
+    if (!entry) return null;
+    if (Date.now() - entry.timestamp > this.cacheTTL) {
+      this.discoveryCache.delete(providerId);
+      return null;
+    }
+    return entry;
+  }
+
+  /**
+   * Set a cache entry with maxSize enforcement (FIFO eviction)
+   * @param {string} providerId
+   * @param {Array} models
+   * @param {string} hash
+   */
+  _setCacheEntry(providerId, models, hash) {
+    // Evict oldest entry if at capacity and this is a new key
+    if (this.discoveryCache.size >= this.cacheMaxSize && !this.discoveryCache.has(providerId)) {
+      const oldest = this.discoveryCache.keys().next().value;
+      this.discoveryCache.delete(oldest);
+    }
+    this.discoveryCache.set(providerId, {
+      models,
+      hash,
+      timestamp: Date.now()
+    });
+  }
+
+  /**
+   * Evict all expired entries from cache
+   * @returns {number} Number of entries evicted
+   */
+  _evictExpired() {
+    const now = Date.now();
+    let evicted = 0;
+    for (const [key, entry] of this.discoveryCache) {
+      if (now - entry.timestamp > this.cacheTTL) {
+        this.discoveryCache.delete(key);
+        evicted++;
+      }
+    }
+    return evicted;
+  }
+
+  /**
    * Poll all providers for new models
    * Should be called ONCE when opening a new chat
+   * Fetches all providers in parallel for performance.
    * @returns {Object} Results and new models found
    */
   async pollOnce() {
     const results = {};
     const allNewModels = [];
-    const totalProviders = Object.keys(this.providers).length;
+    const providerEntries = Object.entries(this.providers);
+    const totalProviders = providerEntries.length;
     let successCount = 0;
     let errorCount = 0;
 
-    for (const [providerId, config] of Object.entries(this.providers)) {
-      try {
-        const models = await this._fetchModels(providerId);
-        
-        const cache = this.discoveryCache.get(providerId);
+    // Evict stale cache entries before polling
+    this._evictExpired();
 
-        if (!cache) {
-          // First poll - store all models
-          this.discoveryCache.set(providerId, {
-            models,
-            hash: this._hashModels(models),
-            timestamp: Date.now()
-          });
-          console.log(`[ModelDiscovery] ${providerId}: Initial poll found ${models.length} models`);
-        } else {
-          // Check for changes
-          const newHash = this._hashModels(models);
-          if (newHash !== cache.hash) {
-            // Models added/removed
-            const newModelsDetected = this._detectChanges(cache.models, models);
-            console.log(`[ModelDiscovery] ${providerId}: Found ${newModelsDetected.length} new models`);
-            
+    // Fetch all providers in parallel for performance
+    const providerResults = await Promise.all(
+      providerEntries.map(async ([providerId]) => {
+        try {
+          const models = await this._fetchModels(providerId);
+          return { providerId, models, success: true };
+        } catch (error) {
+          console.error(`[ModelDiscovery] Failed to poll ${providerId}:`, error.message);
+          return { providerId, error: error.message, success: false };
+        }
+      })
+    );
+
+    for (const pr of providerResults) {
+      if (!pr.success) {
+        results[pr.providerId] = { error: pr.error };
+        errorCount++;
+        continue;
+      }
+
+      const { providerId, models } = pr;
+      const cache = this._getCacheEntry(providerId);
+
+      if (!cache) {
+        // First poll or expired cache - store all models
+        this._setCacheEntry(providerId, models, this._hashModels(models));
+        console.log(`[ModelDiscovery] ${providerId}: Initial poll found ${models.length} models`);
+      } else {
+        // Check for changes
+        const newHash = this._hashModels(models);
+        if (newHash !== cache.hash) {
+          // Models added/removed
+          const newModelsDetected = this._detectChanges(cache.models, models);
+          console.log(`[ModelDiscovery] ${providerId}: Found ${newModelsDetected.length} new models`);
+          
           // Add provider to each model
           const discoveryTs = Date.now();
           for (const model of newModelsDetected) {
@@ -114,24 +184,14 @@ class ModelDiscovery {
               });
             }
           }
-            
-            allNewModels.push(...newModelsDetected);
-            
-            this.discoveryCache.set(providerId, {
-              models,
-              hash: newHash,
-              timestamp: Date.now()
-            });
-          }
+          
+          allNewModels.push(...newModelsDetected);
+          this._setCacheEntry(providerId, models, newHash);
         }
-
-        results[providerId] = models;
-        successCount++;
-      } catch (error) {
-        console.error(`[ModelDiscovery] Failed to poll ${providerId}:`, error.message);
-        results[providerId] = { error: error.message };
-        errorCount++;
       }
+
+      results[providerId] = models;
+      successCount++;
     }
 
     const allProvidersFailed = errorCount === totalProviders;
@@ -251,7 +311,15 @@ class ModelDiscovery {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    const data = await response.json();
+    // Early exit on invalid JSON — don't waste time normalizing bad data
+    let data;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      const fallback = await this._fetchFallbackModels(providerId, `Invalid JSON response`);
+      if (fallback.length > 0) return fallback;
+      throw new Error(`Invalid JSON from ${providerId}: ${parseError.message}`);
+    }
     return this._normalizeResponse(providerId, data);
   }
 
@@ -404,15 +472,16 @@ class ModelDiscovery {
    * @returns {Array} Cached models
    */
   getCachedModels(providerId) {
-    const cache = this.discoveryCache.get(providerId);
+    const cache = this._getCacheEntry(providerId);
     return cache ? cache.models : [];
   }
 
   /**
-   * Get all cached models
+   * Get all cached models (excludes expired entries)
    * @returns {Object} Cache by provider
    */
   getAllCachedModels() {
+    this._evictExpired();
     const result = {};
     for (const [provider, cache] of this.discoveryCache) {
       result[provider] = cache.models;
