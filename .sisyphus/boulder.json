@@ -27,7 +27,7 @@
     "4d65680"
   ],
   "risk_points_reduced": 250,
-  "completed_plans": [
+"completed_plans": [
     {
       "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\tech-debt-wave4.md",
       "plan_name": "tech-debt-wave4",
@@ -44,6 +44,55 @@
       ],
       "tasks_completed": 4,
       "risk_points_reduced": 70
+    },
+    {
+      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\wave5-naivete-remediation.md",
+      "plan_name": "wave5-naivete-remediation",
+      "started_at": "2026-02-25T05:51:16.237Z",
+      "completed_at": "2026-02-25T07:10:00.000Z",
+      "session_ids": [
+        "ses_36d2b76f5ffeOHUpdG4QXxsCh2"
+      ],
+      "agent": "atlas",
+      "commits": [
+        "cfd7f59",
+        "aa7ec10",
+        "00d85da",
+        "9ed5ddf",
+        "06edf11",
+        "3c3cc45",
+        "94d20e5",
+        "3774bda",
+        "4d65680"
+      ],
+      "tasks_completed": 10,
+      "risk_points_reduced": 250
+    },
+    {
+      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\wave6-naivete-remediation.md",
+      "plan_name": "wave6-naivete-remediation",
+      "started_at": "2026-02-25T17:15:00.000Z",
+      "completed_at": "2026-02-25T18:05:00.000Z",
+      "session_ids": [
+        "ses_36d2b76f5ffeOHUpdG4QXxsCh2"
+      ],
+      "agent": "atlas",
+      "commits": [
+        "c6edca1",
+        "0d1eaa1",
+        "0d82f71",
+        "15541f4",
+        "307cca2",
+        "d14695b",
+        "d758ecd",
+        "7030528",
+        "5e2db0a",
+        "f6a99dd",
+        "94f132f",
+        "02bef05"
+      ],
+      "tasks_completed": 29,
+      "risk_points_reduced": 160
     }
   ]
 }
