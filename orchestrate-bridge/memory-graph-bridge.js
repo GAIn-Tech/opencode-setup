@@ -3,9 +3,15 @@
  * 
  * Reads orchestrate session logs and feeds them to memory-graph
  * for building the session → error relationship graph.
+ * 
+ * Uses streaming (createReadStream + readline) to avoid memory spikes
+ * on large JSONL logs — processes line-by-line instead of loading
+ * the entire file into memory.
  */
 
 const fs = require('fs');
+const { createReadStream } = require('fs');
+const { createInterface } = require('readline');
 const path = require('path');
 const os = require('os');
 
@@ -23,7 +29,30 @@ const SESSION_LOG = path.join(LOG_DIR, 'orchestrate-sessions.jsonl');
 const PROCESSED_MARKER = path.join(LOG_DIR, '.memory-graph-processed');
 
 /**
- * Process new log entries and send to memory graph
+ * Stream non-empty lines from a JSONL file starting at a byte offset.
+ * Uses createReadStream + readline to avoid loading the entire file.
+ *
+ * @param {string} logPath - Path to the JSONL file
+ * @param {number} [startPosition=0] - Byte offset to begin reading from
+ * @yields {string} Individual non-empty lines
+ */
+async function* streamLogLines(logPath, startPosition = 0) {
+  const streamOpts = { encoding: 'utf8' };
+  if (startPosition > 0) {
+    streamOpts.start = startPosition;
+  }
+  const fileStream = createReadStream(logPath, streamOpts);
+  const rl = createInterface({ input: fileStream, crlfDelay: Infinity });
+
+  for await (const line of rl) {
+    if (line.trim()) yield line;
+  }
+}
+
+/**
+ * Process new log entries and send to memory graph.
+ * Streams the JSONL file line-by-line to keep memory usage constant
+ * regardless of log size.
  */
 async function processLogs() {
   if (!MemoryGraph) {
@@ -36,43 +65,50 @@ async function processLogs() {
     return;
   }
 
-  // Read last processed position
+  // Read last processed byte position
   let lastPosition = 0;
   if (fs.existsSync(PROCESSED_MARKER)) {
     lastPosition = parseInt(fs.readFileSync(PROCESSED_MARKER, 'utf8')) || 0;
   }
 
-  // Read new entries
-  const content = fs.readFileSync(SESSION_LOG, 'utf8');
-  const lines = content.slice(lastPosition).split('\n').filter(line => line.trim());
-  
-  if (lines.length === 0) {
+  // Check if there's new content beyond last position
+  const stats = fs.statSync(SESSION_LOG);
+  if (stats.size <= lastPosition) {
     console.log('[memory-graph-bridge] No new entries to process');
     return;
   }
-
-  console.log(`[memory-graph-bridge] Processing ${lines.length} new entries...`);
 
   // Initialize memory graph
   const graph = new MemoryGraph({
     storagePath: path.join(os.homedir(), '.omc', 'memory-graph', 'data.json')
   });
 
-  // Process each entry
-  for (const line of lines) {
+  // Stream and process each new entry
+  let entryCount = 0;
+  let errorCount = 0;
+  for await (const line of streamLogLines(SESSION_LOG, lastPosition)) {
     try {
       const entry = JSON.parse(line);
       await processEntry(graph, entry);
+      entryCount++;
     } catch (e) {
+      errorCount++;
       console.error('[memory-graph-bridge] Failed to process entry:', e.message);
     }
   }
 
+  if (entryCount === 0 && errorCount === 0) {
+    console.log('[memory-graph-bridge] No new entries to process');
+    return;
+  }
+
+  console.log(`[memory-graph-bridge] Processed ${entryCount} entries (${errorCount} errors)`);
+
   // Save graph
   await graph.save();
 
-  // Update marker
-  fs.writeFileSync(PROCESSED_MARKER, String(content.length));
+  // Update marker to current file size (byte position)
+  fs.writeFileSync(PROCESSED_MARKER, String(stats.size));
 
   console.log('[memory-graph-bridge] Processing complete');
 }
@@ -144,4 +180,4 @@ if (require.main === module) {
   processLogs().catch(console.error);
 }
 
-module.exports = { processLogs };
+module.exports = { processLogs, streamLogLines, processEntry };
