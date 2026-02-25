@@ -1,0 +1,15 @@
+{
+  "id": "model-discovery-all-providers-fail-20260224",
+  "timestamp": "2026-02-24T00:00:00Z",
+  "summary": "Detect and surface when all providers fail in ModelDiscovery.pollOnce() instead of silently returning stale cache",
+  "affected_paths": [
+    "packages/opencode-model-router-x/src/model-discovery.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Added successCount/errorCount tracking in pollOnce() provider loop. When all providers fail (errorCount === totalProviders), logs console.error with cache age info and returns { allProvidersFailed: true, staleCache: true }. Normal success path returns allProvidersFailed: false. Purely additive — no existing logic changed. All 7 critical-fixes tests pass."
+}

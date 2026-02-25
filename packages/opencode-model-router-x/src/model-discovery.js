@@ -62,6 +62,9 @@ class ModelDiscovery {
   async pollOnce() {
     const results = {};
     const allNewModels = [];
+    const totalProviders = Object.keys(this.providers).length;
+    let successCount = 0;
+    let errorCount = 0;
 
     for (const [providerId, config] of Object.entries(this.providers)) {
       try {
@@ -101,10 +104,22 @@ class ModelDiscovery {
         }
 
         results[providerId] = models;
+        successCount++;
       } catch (error) {
         console.error(`[ModelDiscovery] Failed to poll ${providerId}:`, error.message);
         results[providerId] = { error: error.message };
+        errorCount++;
       }
+    }
+
+    const allProvidersFailed = errorCount === totalProviders;
+
+    if (allProvidersFailed) {
+      const cacheAge = this.lastPollTime
+        ? Math.round((Date.now() - this.lastPollTime) / 1000 / 60)
+        : null;
+      const ageStr = cacheAge !== null ? ` (cache age: ${cacheAge}min)` : ' (no cache)';
+      console.error(`[ModelDiscovery] ALL ${totalProviders} providers failed — discovery returning stale data${ageStr}`);
     }
 
     this.lastPollTime = Date.now();
@@ -114,7 +129,12 @@ class ModelDiscovery {
       await this.onNewModels(allNewModels);
     }
 
-    return { results, newModels: allNewModels };
+    return {
+      results,
+      newModels: allNewModels,
+      allProvidersFailed,
+      ...(allProvidersFailed ? { staleCache: true } : {})
+    };
   }
 
   /**
