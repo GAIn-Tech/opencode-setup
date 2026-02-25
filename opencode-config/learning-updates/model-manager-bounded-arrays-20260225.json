@@ -1,0 +1,16 @@
+{
+  "id": "model-manager-bounded-arrays-20260225",
+  "timestamp": "2026-02-25T00:00:00Z",
+  "summary": "Added maxEvents cap with FIFO eviction to PipelineMetricsCollector event arrays",
+  "affected_paths": [
+    "packages/opencode-model-manager/src/monitoring/metrics-collector.js",
+    "packages/opencode-model-manager/test/monitoring/pipeline-metrics-collector.test.ts"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "PipelineMetricsCollector now accepts { maxEvents: N } option (default: 10000). All 4 event arrays (_discoveryEvents, _cacheEvents, _transitionEvents, _prEvents) are capped via _enforceLimit() which uses FIFO eviction (shift oldest). 3 new tests verify cap enforcement, FIFO order, and backward compatibility. All 323 model-manager tests pass."
+}
