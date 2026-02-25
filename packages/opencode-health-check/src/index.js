@@ -6,21 +6,26 @@
 // Subsystem health status
 const subsystemHealth = new Map();
 
+// Guard flag to prevent double-start
+let _running = false;
+
 /**
  * Register a subsystem for health monitoring
  * @param {string} name - Subsystem name
+ * @param {Function} checkFn - Health check function
  * @param {Object} options - Health check options
  */
-export function registerSubsystem(name, options = {}) {
+export function registerSubsystem(name, checkFn, options = {}) {
   subsystemHealth.set(name, {
     name,
     status: 'healthy', // healthy, degraded, unhealthy
     lastCheck: Date.now(),
     checkInterval: options.checkInterval || 30000,
-    checkFn: options.checkFn || (() => Promise.resolve({ healthy: true })),
+    checkFn: checkFn || (() => Promise.resolve({ healthy: true })),
     metadata: options.metadata || {},
     failureCount: 0,
     consecutiveFailures: 0,
+    _intervalId: null, // Store interval ID for cleanup
   });
 }
 
@@ -121,12 +126,42 @@ export async function checkSubsystem(name) {
  * Start automatic health checks for all subsystems
  */
 export function startHealthChecks() {
+  // If already running, clear existing timers first
+  if (_running) {
+    stopHealthChecks();
+  }
+  
   for (const [name, health] of subsystemHealth) {
     if (health.checkInterval > 0) {
-      setInterval(() => checkSubsystem(name), health.checkInterval);
+      const intervalId = setInterval(() => checkSubsystem(name), health.checkInterval);
+      
+      // Store interval ID for cleanup
+      health._intervalId = intervalId;
+      
+      // Call .unref() to prevent blocking process exit
+      if (intervalId && typeof intervalId.unref === 'function') {
+        intervalId.unref();
+      }
     }
   }
+  
+  _running = true;
   console.log('[HealthCheck] Started automatic health checks');
+}
+
+/**
+ * Stop automatic health checks for all subsystems
+ */
+export function stopHealthChecks() {
+  for (const [name, health] of subsystemHealth) {
+    if (health._intervalId) {
+      clearInterval(health._intervalId);
+      health._intervalId = null;
+    }
+  }
+  
+  _running = false;
+  console.log('[HealthCheck] Stopped automatic health checks');
 }
 
 /**
@@ -346,6 +381,7 @@ export default {
   updateSubsystemStatus,
   checkSubsystem,
   startHealthChecks,
+  stopHealthChecks,
   createHealthEndpoint,
   createLivenessEndpoint,
   createReadinessEndpoint,
