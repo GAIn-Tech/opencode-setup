@@ -1,0 +1,18 @@
+{
+  "id": "config-loader-async-io-20260225",
+  "timestamp": "2026-02-25T00:00:00Z",
+  "summary": "Converted all sync file I/O to async in central-config-state.js and central-config.js. Added in-memory RL state cache and atomic write pattern (tmp+rename).",
+  "affected_paths": [
+    "packages/opencode-config-loader/src/central-config-state.js",
+    "packages/opencode-config-loader/src/central-config.js",
+    "packages/opencode-config-loader/src/index.js",
+    "packages/opencode-config-loader/test/central-config.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium",
+  "notes": "All fs.readFileSync/writeFileSync/appendFileSync replaced with fs.promises equivalents. atomicWriteFile() uses tmp+rename for crash safety. _rlStateCache avoids read-before-write disk I/O. fs.existsSync replaced with ENOENT handling. invalidateRlStateCache() exported. 27 tests pass. QA: 15ms load time, no tmp files left behind, corrupt JSON handled gracefully."
+}

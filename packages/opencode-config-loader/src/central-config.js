@@ -74,12 +74,12 @@ function validateSchema(config, schema) {
 }
 
 /**
- * Load and validate central-config.json
+ * Load and validate central-config.json (async)
  * @param {string} configPath - Path to central-config.json
- * @returns {object} Loaded and validated config
+ * @returns {Promise<object>} Loaded and validated config
  * @throws {Error} If validation fails
  */
-function loadCentralConfig(configPath) {
+async function loadCentralConfig(configPath) {
   if (!configPath) {
     // Try default locations
     const defaultPaths = [
@@ -88,10 +88,11 @@ function loadCentralConfig(configPath) {
     ];
 
     for (const p of defaultPaths) {
-      if (fs.existsSync(p)) {
+      try {
+        await fs.promises.access(p);
         configPath = p;
         break;
-      }
+      } catch { /* not found, try next */ }
     }
 
     if (!configPath) {
@@ -99,13 +100,15 @@ function loadCentralConfig(configPath) {
     }
   }
 
-  if (!fs.existsSync(configPath)) {
+  try {
+    await fs.promises.access(configPath);
+  } catch {
     throw new Error(`central-config.json not found at ${configPath}`);
   }
 
   let config;
   try {
-    const content = fs.readFileSync(configPath, 'utf8');
+    const content = await fs.promises.readFile(configPath, 'utf8');
     config = safeJsonParse(content, null, configPath);
     if (!config) {
       throw new Error(`Invalid JSON in central-config.json at ${configPath}`);
@@ -118,7 +121,7 @@ function loadCentralConfig(configPath) {
   const schemaPath = path.join(path.dirname(configPath), 'central-config.schema.json');
   let schema;
   try {
-    const schemaContent = fs.readFileSync(schemaPath, 'utf8');
+    const schemaContent = await fs.promises.readFile(schemaPath, 'utf8');
     schema = safeJsonParse(schemaContent, null, schemaPath);
     if (!schema) {
       throw new Error(`Invalid JSON in schema at ${schemaPath}`);

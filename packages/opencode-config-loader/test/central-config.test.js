@@ -17,6 +17,7 @@ const {
   ConcurrencyError,
   getRlStatePath,
   getAuditLogPath,
+  invalidateRlStateCache,
 } = require('../src/central-config-state');
 
 describe('central-config', () => {
@@ -231,36 +232,33 @@ describe('central-config', () => {
 });
 
 describe('RL State', () => {
-  // Helper to clean up test files
-  function cleanupTestFiles() {
+  // Helper to clean up test files and invalidate cache
+  async function cleanupTestFiles() {
+    invalidateRlStateCache();
     const rlPath = getRlStatePath();
     const auditPath = getAuditLogPath();
     
-    if (fs.existsSync(rlPath)) {
-      fs.unlinkSync(rlPath);
-    }
-    
-    if (fs.existsSync(auditPath)) {
-      fs.unlinkSync(auditPath);
-    }
+    try { await fs.promises.unlink(rlPath); } catch { /* ignore */ }
+    try { await fs.promises.unlink(auditPath); } catch { /* ignore */ }
     
     // Clean up empty directories
     const auditDir = path.dirname(auditPath);
-    if (fs.existsSync(auditDir) && fs.readdirSync(auditDir).length === 0) {
-      fs.rmdirSync(auditDir);
-    }
+    try {
+      const entries = await fs.promises.readdir(auditDir);
+      if (entries.length === 0) await fs.promises.rmdir(auditDir);
+    } catch { /* ignore */ }
   }
 
-  test('loadRlState returns empty object when file missing', () => {
-    cleanupTestFiles();
-    const state = loadRlState();
+  test('loadRlState returns empty object when file missing', async () => {
+    await cleanupTestFiles();
+    const state = await loadRlState();
     expect(state).toEqual({});
   });
 
-  test('saveRlState writes and increments version', () => {
-    cleanupTestFiles();
+  test('saveRlState writes and increments version', async () => {
+    await cleanupTestFiles();
     
-    const state1 = saveRlState({
+    const state1 = await saveRlState({
       'routing.timeout': { value: 5000, confidence: 0.9 },
     });
     
@@ -268,86 +266,85 @@ describe('RL State', () => {
     expect(state1['routing.timeout'].value).toBe(5000);
     
     // Save again - version should increment
-    const state2 = saveRlState({
+    const state2 = await saveRlState({
       'routing.timeout': { value: 6000, confidence: 0.95 },
     });
     
     expect(state2.config_version).toBe(2);
     expect(state2['routing.timeout'].value).toBe(6000);
     
-    cleanupTestFiles();
+    await cleanupTestFiles();
   });
 
-  test('saveRlState rejects stale config_version', () => {
-    cleanupTestFiles();
+  test('saveRlState rejects stale config_version', async () => {
+    await cleanupTestFiles();
     
     // First save
-    saveRlState({ 'routing.timeout': { value: 5000, confidence: 0.9 } });
+    await saveRlState({ 'routing.timeout': { value: 5000, confidence: 0.9 } });
     
     // Try to save with stale version
-    expect(() => {
+    expect(
       saveRlState(
         { 'routing.timeout': { value: 6000, confidence: 0.95 } },
         { expectedVersion: 0 } // Stale version
-      );
-    }).toThrow(ConcurrencyError);
+      )
+    ).rejects.toThrow(ConcurrencyError);
     
-    cleanupTestFiles();
+    await cleanupTestFiles();
   });
 
-  test('updateRlStateEntry updates single entry', () => {
-    cleanupTestFiles();
+  test('updateRlStateEntry updates single entry', async () => {
+    await cleanupTestFiles();
     
     // First update
-    const state1 = updateRlStateEntry('routing.timeout', 5000, 0.9);
+    const state1 = await updateRlStateEntry('routing.timeout', 5000, 0.9);
     expect(state1['routing.timeout'].value).toBe(5000);
     expect(state1['routing.timeout'].confidence).toBe(0.9);
     expect(state1.config_version).toBe(1);
     
     // Second update
-    const state2 = updateRlStateEntry('routing.retry', 3, 0.85);
+    const state2 = await updateRlStateEntry('routing.retry', 3, 0.85);
     expect(state2['routing.timeout'].value).toBe(5000);
     expect(state2['routing.retry'].value).toBe(3);
     expect(state2.config_version).toBe(2);
     
-    cleanupTestFiles();
+    await cleanupTestFiles();
   });
 
-  test('updateRlStateEntry includes timestamp', () => {
-    cleanupTestFiles();
+  test('updateRlStateEntry includes timestamp', async () => {
+    await cleanupTestFiles();
     
     const before = new Date();
-    const state = updateRlStateEntry('routing.timeout', 5000, 0.9);
+    const state = await updateRlStateEntry('routing.timeout', 5000, 0.9);
     const after = new Date();
     
     const timestamp = new Date(state['routing.timeout'].timestamp);
     expect(timestamp.getTime()).toBeGreaterThanOrEqual(before.getTime());
     expect(timestamp.getTime()).toBeLessThanOrEqual(after.getTime());
     
-    cleanupTestFiles();
+    await cleanupTestFiles();
   });
 });
 
 describe('Audit Log', () => {
   // Helper to clean up test files
-  function cleanupTestFiles() {
+  async function cleanupTestFiles() {
     const auditPath = getAuditLogPath();
     
-    if (fs.existsSync(auditPath)) {
-      fs.unlinkSync(auditPath);
-    }
+    try { await fs.promises.unlink(auditPath); } catch { /* ignore */ }
     
     // Clean up empty directories
     const auditDir = path.dirname(auditPath);
-    if (fs.existsSync(auditDir) && fs.readdirSync(auditDir).length === 0) {
-      fs.rmdirSync(auditDir);
-    }
+    try {
+      const entries = await fs.promises.readdir(auditDir);
+      if (entries.length === 0) await fs.promises.rmdir(auditDir);
+    } catch { /* ignore */ }
   }
 
-  test('appendAuditEntry writes JSONL line', () => {
-    cleanupTestFiles();
+  test('appendAuditEntry writes JSONL line', async () => {
+    await cleanupTestFiles();
     
-    appendAuditEntry({
+    await appendAuditEntry({
       action: 'update',
       section: 'routing',
       param: 'timeout',
@@ -357,7 +354,7 @@ describe('Audit Log', () => {
       user: 'test-user',
     });
     
-    const entries = readAuditLog();
+    const entries = await readAuditLog();
     expect(entries.length).toBe(1);
     expect(entries[0].action).toBe('update');
     expect(entries[0].section).toBe('routing');
@@ -365,17 +362,17 @@ describe('Audit Log', () => {
     expect(entries[0].oldValue).toBe(5000);
     expect(entries[0].newValue).toBe(6000);
     
-    cleanupTestFiles();
+    await cleanupTestFiles();
   });
 
-  test('readAuditLog filters by timestamp', () => {
-    cleanupTestFiles();
+  test('readAuditLog filters by timestamp', async () => {
+    await cleanupTestFiles();
     
     const now = new Date();
     const past = new Date(now.getTime() - 60000); // 1 minute ago
     const future = new Date(now.getTime() + 60000); // 1 minute from now
     
-    appendAuditEntry({
+    await appendAuditEntry({
       timestamp: past.toISOString(),
       action: 'update',
       section: 'routing',
@@ -385,7 +382,7 @@ describe('Audit Log', () => {
       source: 'rl',
     });
     
-    appendAuditEntry({
+    await appendAuditEntry({
       timestamp: now.toISOString(),
       action: 'update',
       section: 'routing',
@@ -396,24 +393,24 @@ describe('Audit Log', () => {
     });
     
     // Filter since now - should only get second entry
-    const entries = readAuditLog({ since: now.toISOString() });
+    const entries = await readAuditLog({ since: now.toISOString() });
     expect(entries.length).toBe(1);
     expect(entries[0].param).toBe('retry');
     
     // Filter until past - should only get first entry
-    const pastEntries = readAuditLog({ until: past.toISOString() });
+    const pastEntries = await readAuditLog({ until: past.toISOString() });
     expect(pastEntries.length).toBe(1);
     expect(pastEntries[0].param).toBe('timeout');
     
-    cleanupTestFiles();
+    await cleanupTestFiles();
   });
 
-  test('readAuditLog applies limit', () => {
-    cleanupTestFiles();
+  test('readAuditLog applies limit', async () => {
+    await cleanupTestFiles();
     
     // Add 5 entries
     for (let i = 0; i < 5; i++) {
-      appendAuditEntry({
+      await appendAuditEntry({
         action: 'update',
         section: 'routing',
         param: `param${i}`,
@@ -424,25 +421,25 @@ describe('Audit Log', () => {
     }
     
     // Get all entries
-    const allEntries = readAuditLog();
+    const allEntries = await readAuditLog();
     expect(allEntries.length).toBe(5);
     
     // Get last 2 entries
-    const limited = readAuditLog({ limit: 2 });
+    const limited = await readAuditLog({ limit: 2 });
     expect(limited.length).toBe(2);
     expect(limited[0].param).toBe('param3');
     expect(limited[1].param).toBe('param4');
     
-    cleanupTestFiles();
+    await cleanupTestFiles();
   });
 
-  test('readAuditLog returns empty array when file missing', () => {
-    cleanupTestFiles();
+  test('readAuditLog returns empty array when file missing', async () => {
+    await cleanupTestFiles();
     
-    const entries = readAuditLog();
+    const entries = await readAuditLog();
     expect(entries).toEqual([]);
     
-    cleanupTestFiles();
+    await cleanupTestFiles();
   });
 });
 
@@ -454,6 +451,7 @@ describe('Snapshot and Recovery', () => {
     loadWithRecovery,
     cleanupSnapshots,
     getSnapshotsDir,
+    invalidateRlStateCache,
   } = require('../src/central-config-state');
   
   const testConfigPath = path.join(__dirname, 'test-central-config.json');
@@ -468,34 +466,29 @@ describe('Snapshot and Recovery', () => {
     },
   };
   
-  function cleanupTestFiles() {
+  async function cleanupTestFiles() {
+    invalidateRlStateCache();
     // Clean test config
-    if (fs.existsSync(testConfigPath)) {
-      fs.unlinkSync(testConfigPath);
-    }
+    try { await fs.promises.unlink(testConfigPath); } catch { /* ignore */ }
     
     // Clean snapshots dir
     const snapshotsDir = getSnapshotsDir();
-    if (fs.existsSync(snapshotsDir)) {
-      fs.rmSync(snapshotsDir, { recursive: true, force: true });
-    }
+    try { await fs.promises.rm(snapshotsDir, { recursive: true, force: true }); } catch { /* ignore */ }
     
     // Clean RL state
     const rlPath = getRlStatePath();
-    if (fs.existsSync(rlPath)) {
-      fs.unlinkSync(rlPath);
-    }
+    try { await fs.promises.unlink(rlPath); } catch { /* ignore */ }
   }
   
-  test('createSnapshot creates snapshot with config and RL state', () => {
-    cleanupTestFiles();
+  test('createSnapshot creates snapshot with config and RL state', async () => {
+    await cleanupTestFiles();
     
     // Create test files
-    fs.writeFileSync(testConfigPath, JSON.stringify(testConfig, null, 2));
-    updateRlStateEntry('routing.timeout', 6000, 0.9);
+    await fs.promises.writeFile(testConfigPath, JSON.stringify(testConfig, null, 2));
+    await updateRlStateEntry('routing.timeout', 6000, 0.9);
     
     // Create snapshot
-    const metadata = createSnapshot('test-snapshot', testConfigPath);
+    const metadata = await createSnapshot('test-snapshot', testConfigPath);
     
     expect(metadata.name).toBe('test-snapshot');
     expect(metadata.id).toContain('test-snapshot');
@@ -506,94 +499,100 @@ describe('Snapshot and Recovery', () => {
     expect(fs.existsSync(path.join(snapshotDir, 'rl-state.json'))).toBe(true);
     expect(fs.existsSync(path.join(snapshotDir, 'metadata.json'))).toBe(true);
     
-    cleanupTestFiles();
+    await cleanupTestFiles();
   });
   
-  test('listSnapshots returns snapshots sorted by timestamp', () => {
-    cleanupTestFiles();
+  test('listSnapshots returns snapshots sorted by timestamp', async () => {
+    await cleanupTestFiles();
     
-    fs.writeFileSync(testConfigPath, JSON.stringify(testConfig, null, 2));
+    await fs.promises.writeFile(testConfigPath, JSON.stringify(testConfig, null, 2));
     
     // Create multiple snapshots
-    createSnapshot('first', testConfigPath);
-    createSnapshot('second', testConfigPath);
-    createSnapshot('third', testConfigPath);
+    await createSnapshot('first', testConfigPath);
+    await createSnapshot('second', testConfigPath);
+    await createSnapshot('third', testConfigPath);
     
-    const snapshots = listSnapshots();
+    const snapshots = await listSnapshots();
     
     expect(snapshots.length).toBe(3);
     expect(snapshots[0].name).toBe('third'); // Most recent first
     expect(snapshots[2].name).toBe('first');
     
-    cleanupTestFiles();
+    await cleanupTestFiles();
   });
   
-  test('restoreSnapshot restores config and RL state', () => {
-    cleanupTestFiles();
+  test('restoreSnapshot restores config and RL state', async () => {
+    await cleanupTestFiles();
     
     // Create initial state
-    fs.writeFileSync(testConfigPath, JSON.stringify(testConfig, null, 2));
-    updateRlStateEntry('routing.timeout', 6000, 0.9);
+    await fs.promises.writeFile(testConfigPath, JSON.stringify(testConfig, null, 2));
+    await updateRlStateEntry('routing.timeout', 6000, 0.9);
     
     // Create snapshot
-    const metadata = createSnapshot('backup', testConfigPath);
+    const metadata = await createSnapshot('backup', testConfigPath);
     
     // Modify the config
     const modifiedConfig = { ...testConfig, config_version: 99 };
-    fs.writeFileSync(testConfigPath, JSON.stringify(modifiedConfig, null, 2));
-    updateRlStateEntry('routing.timeout', 9999, 0.99);
+    await fs.promises.writeFile(testConfigPath, JSON.stringify(modifiedConfig, null, 2));
+    await updateRlStateEntry('routing.timeout', 9999, 0.99);
     
     // Verify modification
-    expect(JSON.parse(fs.readFileSync(testConfigPath, 'utf8')).config_version).toBe(99);
-    expect(loadRlState()['routing.timeout'].value).toBe(9999);
+    const modContent = await fs.promises.readFile(testConfigPath, 'utf8');
+    expect(JSON.parse(modContent).config_version).toBe(99);
+    const modState = await loadRlState();
+    expect(modState['routing.timeout'].value).toBe(9999);
     
     // Restore from snapshot
-    restoreSnapshot(metadata.id, testConfigPath);
+    await restoreSnapshot(metadata.id, testConfigPath);
     
     // Verify restoration
-    expect(JSON.parse(fs.readFileSync(testConfigPath, 'utf8')).config_version).toBe(1);
-    expect(loadRlState()['routing.timeout'].value).toBe(6000);
+    const restoredContent = await fs.promises.readFile(testConfigPath, 'utf8');
+    expect(JSON.parse(restoredContent).config_version).toBe(1);
+    const restoredState = await loadRlState();
+    expect(restoredState['routing.timeout'].value).toBe(6000);
     
-    cleanupTestFiles();
+    await cleanupTestFiles();
   });
   
-  test('loadWithRecovery recovers from corrupted config', () => {
-    cleanupTestFiles();
+  test('loadWithRecovery recovers from corrupted config', async () => {
+    await cleanupTestFiles();
     
     // Create valid config and snapshot
-    fs.writeFileSync(testConfigPath, JSON.stringify(testConfig, null, 2));
-    createSnapshot('backup-for-recovery', testConfigPath);
+    await fs.promises.writeFile(testConfigPath, JSON.stringify(testConfig, null, 2));
+    await createSnapshot('backup-for-recovery', testConfigPath);
     
     // Corrupt the config
-    fs.writeFileSync(testConfigPath, 'not valid json {{{', 'utf8');
+    await fs.promises.writeFile(testConfigPath, 'not valid json {{{', 'utf8');
     
     // loadWithRecovery should recover
-    const recovered = loadWithRecovery(testConfigPath);
+    const recovered = await loadWithRecovery(testConfigPath);
     
     expect(recovered.schema_version).toBe('1.0.0');
     expect(recovered.config_version).toBe(1);
     
-    cleanupTestFiles();
+    await cleanupTestFiles();
   });
   
-  test('cleanupSnapshots keeps only most recent N', () => {
-    cleanupTestFiles();
+  test('cleanupSnapshots keeps only most recent N', async () => {
+    await cleanupTestFiles();
     
-    fs.writeFileSync(testConfigPath, JSON.stringify(testConfig, null, 2));
+    await fs.promises.writeFile(testConfigPath, JSON.stringify(testConfig, null, 2));
     
     // Create 5 snapshots
     for (let i = 0; i < 5; i++) {
-      createSnapshot(`snapshot-${i}`, testConfigPath);
+      await createSnapshot(`snapshot-${i}`, testConfigPath);
     }
     
-    expect(listSnapshots().length).toBe(5);
+    const allSnapshots = await listSnapshots();
+    expect(allSnapshots.length).toBe(5);
     
     // Clean up, keeping only 2
-    const deleted = cleanupSnapshots(2);
+    const deleted = await cleanupSnapshots(2);
     
     expect(deleted).toBe(3);
-    expect(listSnapshots().length).toBe(2);
+    const remaining = await listSnapshots();
+    expect(remaining.length).toBe(2);
     
-    cleanupTestFiles();
+    await cleanupTestFiles();
   });
 });

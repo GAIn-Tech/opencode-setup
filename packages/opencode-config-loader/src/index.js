@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { resolveConfigDir, resolveDataDir } = require('./paths');
+const { safeJsonParse } = require('./safe-json-parse');
 const {
   loadCentralConfig,
   mergeCentralConfig,
@@ -17,6 +18,7 @@ const {
   appendAuditEntry,
   readAuditLog,
   ConcurrencyError,
+  invalidateRlStateCache,
   createSnapshot,
   listSnapshots,
   restoreSnapshot,
@@ -141,7 +143,7 @@ class ConfigLoader {
 
     try {
       const content = fs.readFileSync(configFile, 'utf8');
-      return JSON.parse(content);
+      return safeJsonParse(content, {}, configFile);
     } catch (err) {
       console.warn(`[ConfigLoader] Failed to load config from ${configFile}: ${err.message}`);
       return {};
@@ -319,6 +321,7 @@ module.exports = {
   appendAuditEntry,
   readAuditLog,
   ConcurrencyError,
+  invalidateRlStateCache,
   // Snapshot and recovery
   createSnapshot,
   listSnapshots,
