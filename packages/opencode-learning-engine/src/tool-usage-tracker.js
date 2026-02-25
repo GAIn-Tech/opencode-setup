@@ -135,98 +135,6 @@ const TOOL_APPROPRIATENESS_RULES = [
     reason: 'Context management prevents context rot'
   }
 ];
-
-/**
- * Initialize the tracker (sync)
- * @deprecated Use initAsync() for non-blocking I/O
- */
-function init() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-  
-  // Initialize files if they don't exist
-  if (!fs.existsSync(INVOCATIONS_FILE)) {
-    writeJsonSync(INVOCATIONS_FILE, { invocations: [] });
-  }
-  if (!fs.existsSync(METRICS_FILE)) {
-    writeJsonSync(METRICS_FILE, { 
-      totalSessions: 0,
-      totalInvocations: 0,
-      toolCounts: {},
-      categoryCounts: {},
-      breadthScore: 0,
-      underUseEvents: 0,
-      appropriatenessScore: 0
-    });
-  }
-}
-
-/**
- * Initialize the tracker (async, idempotent).
- * Uses _initPromise singleton to prevent concurrent init races.
- */
-async function initAsync() {
-  if (!_initPromise) {
-    _initPromise = (async () => {
-      await fsPromises.mkdir(DATA_DIR, { recursive: true });
-
-      // Initialize invocations file if missing
-      try {
-        await fsPromises.access(INVOCATIONS_FILE);
-      } catch {
-        await writeJsonAsync(INVOCATIONS_FILE, { invocations: [] });
-      }
-
-      // Initialize metrics file if missing
-      try {
-        await fsPromises.access(METRICS_FILE);
-      } catch {
-        await writeJsonAsync(METRICS_FILE, {
-          totalSessions: 0,
-          totalInvocations: 0,
-          toolCounts: {},
-          categoryCounts: {},
-          breadthScore: 0,
-          underUseEvents: 0,
-          appropriatenessScore: 0
-        });
-      }
-    })();
-  }
-  return _initPromise;
-}
-
-/**
- * Write JSON atomically (sync)
- * @deprecated Use writeJsonAsync() for non-blocking I/O
- */
-function writeJsonSync(filePath, data) {
-  const tmp = filePath + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(data, null, 2));
-  fs.renameSync(tmp, filePath);
-}
-
-/**
- * Read JSON safely (sync)
- * @deprecated Use readJsonAsync() for non-blocking I/O
- */
-function readJsonSync(filePath, defaultValue = null) {
-  return safeJsonReadSync(filePath, defaultValue, filePath);
-}
-
-/**
- * Read JSON safely (async - for runtime)
- */
-async function readJsonAsync(filePath, defaultValue = null) {
-  try {
-    const content = await fsPromises.readFile(filePath, 'utf8');
-    return JSON.parse(content);
-  } catch {
-    return defaultValue;
-  }
-}
-
 /**
  * Write JSON atomically (async) with serialized write queue.
  * Uses tmp+rename for atomic swap, chained via _writePromise to prevent
@@ -704,8 +612,6 @@ async function endSession() {
 }
 
 module.exports = {
-  init,
-  logInvocation,
   detectUnderUse,
   getUsageReport,
   startSession,

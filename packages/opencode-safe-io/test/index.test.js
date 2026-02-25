@@ -7,7 +7,6 @@ const EventEmitter = require('events');
 const {
   safeJsonParse,
   safeJsonRead,
-  safeJsonReadSync,
   SafeJSON,
   managedInterval,
   managedListener,
@@ -110,30 +109,6 @@ describe('safeJsonRead', () => {
     await safeJsonRead(fp, null);
     console.warn = origWarn;
     expect(warns[0]).toContain(fp);
-  });
-});
-
-// ─── safeJsonReadSync (deprecated) ──────────────────────────────────
-
-describe('safeJsonReadSync', () => {
-  let tmpDir;
-
-  beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'safe-io-test-sync-'));
-  });
-
-  afterEach(() => {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
-  });
-
-  test('reads and parses existing JSON file', () => {
-    const fp = path.join(tmpDir, 'valid.json');
-    fs.writeFileSync(fp, '{"sync":true}');
-    expect(safeJsonReadSync(fp, null)).toEqual({ sync: true });
-  });
-
-  test('returns fallback for missing file', () => {
-    expect(safeJsonReadSync(path.join(tmpDir, 'nonexistent.json'), 'gone')).toBe('gone');
   });
 });
 
@@ -328,7 +303,6 @@ describe('consumer importability', () => {
   test('safeJsonParse is importable from opencode-safe-io', () => {
     const mod = require('../src/index.js');
     expect(typeof mod.safeJsonParse).toBe('function');
-    expect(typeof mod.safeJsonReadSync).toBe('function');
     expect(typeof mod.safeJsonRead).toBe('function');
   });
 
@@ -342,21 +316,6 @@ describe('consumer importability', () => {
     expect(safeJsonParse('', null, 'test')).toBeNull();
   });
 
-  test('safeJsonReadSync works for file-based consumers', () => {
-    const tmp = path.join(os.tmpdir(), `safe-io-consumer-test-${Date.now()}.json`);
-    fs.writeFileSync(tmp, '{"migrated":true}');
-    try {
-      const result = safeJsonReadSync(tmp, null, 'consumer-test');
-      expect(result).toEqual({ migrated: true });
-    } finally {
-      fs.unlinkSync(tmp);
-    }
-  });
-
-  test('safeJsonReadSync returns fallback for missing file', () => {
-    const result = safeJsonReadSync('/nonexistent/path.json', { default: true }, 'missing');
-    expect(result).toEqual({ default: true });
-  });
 
   for (const pkg of consumers) {
     test(`${pkg} can resolve opencode-safe-io require path`, () => {

@@ -225,9 +225,6 @@ describe('module exports', () => {
     expect(tracker.TOOL_APPROPRIATENESS_RULES.length).toBeGreaterThan(0);
   });
 
-  test('init (sync fallback) is still exported', () => {
-    expect(typeof tracker.init).toBe('function');
-  });
 });
 
 // ---------------------------------------------------------------------------

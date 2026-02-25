@@ -57,26 +57,6 @@ async function safeJsonRead(filePath, fallback, label) {
 
 // ─── Safe JSON File Read (Sync) ─────────────────────────────────────
 
-/**
- * Synchronously read and parse a JSON file with fallback.
- * Returns fallback on ENOENT (file not found) or parse failure.
- *
- * @deprecated Use safeJsonRead (async) instead. Sync I/O blocks the event loop.
- * @param {string} filePath - Path to JSON file
- * @param {*} fallback - Value to return on failure
- * @param {string} [label] - Label for warning messages
- * @returns {*} Parsed value or fallback
- */
-function safeJsonReadSync(filePath, fallback, label) {
-  try {
-    const raw = fs.readFileSync(filePath, 'utf8');
-    return safeJsonParse(raw, fallback, label || filePath);
-  } catch (err) {
-    if (err.code === 'ENOENT') return fallback;
-    console.warn(`[safeJsonReadSync] Could not read ${label || filePath}: ${err.message}`);
-    return fallback;
-  }
-}
 
 // ─── SafeJSON (crash-guard compatible API) ──────────────────────────
 
@@ -198,7 +178,6 @@ function managedListener(emitter, event, handler, options) {
 module.exports = {
   safeJsonParse,
   safeJsonRead,
-  safeJsonReadSync,
   SafeJSON,
   managedInterval,
   managedListener,

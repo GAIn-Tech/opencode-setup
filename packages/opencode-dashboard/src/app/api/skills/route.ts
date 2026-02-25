@@ -27,7 +27,7 @@ function toIso(value: unknown): string {
   return new Date(0).toISOString();
 }
 
-function normalizeSkillObject(entry: any, taskType?: string) {
+function normalizeSkillObject(entry: unknown, taskType?: string) {
   if (!entry || typeof entry !== 'object') {
     return null;
   }
@@ -46,7 +46,7 @@ function normalizeSkillObject(entry: any, taskType?: string) {
   };
 }
 
-function normalizeSkillTuple(entry: any, taskType?: string) {
+function normalizeSkillTuple(entry: unknown, taskType?: string) {
   if (!Array.isArray(entry) || entry.length < 2) {
     return null;
   }
@@ -57,7 +57,7 @@ function normalizeSkillTuple(entry: any, taskType?: string) {
   return mapped;
 }
 
-function decodeGeneralSkills(raw: any): any[] {
+function decodeGeneralSkills(raw: unknown): any[] {
   if (!Array.isArray(raw)) {
     return [];
   }
@@ -67,16 +67,16 @@ function decodeGeneralSkills(raw: any): any[] {
     .filter(Boolean);
 }
 
-function decodeTaskSpecificSkills(raw: any): any[] {
+function decodeTaskSpecificSkills(raw: unknown): any[] {
   if (!Array.isArray(raw)) {
     return [];
   }
 
-  const decoded: any[] = [];
+  const decoded: Record<string, unknown>[] = [];
   raw.forEach(entry => {
     if (Array.isArray(entry) && entry.length === 2 && Array.isArray(entry[1])) {
       const taskType = String(entry[0] || '').trim();
-      entry[1].forEach((skillTuple: any) => {
+      entry[1].forEach((skillTuple: unknown) => {
         const mapped = normalizeSkillTuple(skillTuple, taskType || undefined);
         if (mapped) {
           decoded.push(mapped);
@@ -94,7 +94,7 @@ function decodeTaskSpecificSkills(raw: any): any[] {
   return decoded;
 }
 
-function safeParseJson(raw: string): any | null {
+function safeParseJson(raw: string): Record<string, unknown> | null {
   try {
     return JSON.parse(raw);
   } catch {
@@ -182,10 +182,10 @@ export async function GET() {
           task_specific_count: taskSpecificSkills.length,
           total: generalSkills.length + taskSpecificSkills.length,
           top_general: [...generalSkills]
-            .sort((a: any, b: any) => (b.success_rate || 0) - (a.success_rate || 0))
+            .sort((a: Record<string, unknown>, b: Record<string, unknown>) => (b.success_rate || 0) - (a.success_rate || 0))
             .slice(0, 5),
           top_task_specific: [...taskSpecificSkills]
-            .sort((a: any, b: any) => (b.success_rate || 0) - (a.success_rate || 0))
+            .sort((a: Record<string, unknown>, b: Record<string, unknown>) => (b.success_rate || 0) - (a.success_rate || 0))
             .slice(0, 5)
         },
         learning: {

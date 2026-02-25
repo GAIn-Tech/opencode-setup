@@ -246,80 +246,6 @@ async function buildGraphWithBridge(entries, bridge, opts = {}) {
  * @param {object[]} entries
  * @returns {{ nodes: object[], edges: object[], meta: object }}
  */
-function buildGraph(entries) {
-  if (!Array.isArray(entries) || entries.length === 0) {
-    return { nodes: [], edges: [], meta: { sessions: 0, errors: 0, total_entries: 0 } };
-  }
-
-  const sessionMap = new Map();
-  const errorMap = new Map();
-  const edgeMap = new Map();
-
-  for (const entry of entries) {
-    const { session_id, timestamp, error_type, message } = entry;
-    if (!session_id || !error_type) continue;
-
-    const ts = timestamp || new Date().toISOString();
-
-    if (!sessionMap.has(session_id)) {
-      sessionMap.set(session_id, { first_seen: ts, last_seen: ts, error_count: 0 });
-    }
-    const sess = sessionMap.get(session_id);
-    sess.last_seen = ts > sess.last_seen ? ts : sess.last_seen;
-    sess.first_seen = ts < sess.first_seen ? ts : sess.first_seen;
-    sess.error_count += 1;
-
-    if (!errorMap.has(error_type)) {
-      errorMap.set(error_type, { count: 0, first_seen: ts, last_seen: ts });
-    }
-    const err = errorMap.get(error_type);
-    err.count += 1;
-    err.last_seen = ts > err.last_seen ? ts : err.last_seen;
-    err.first_seen = ts < err.first_seen ? ts : err.first_seen;
-
-    const edgeKey = `${session_id}::${error_type}`;
-    if (!edgeMap.has(edgeKey)) {
-      edgeMap.set(edgeKey, { weight: 0, first_seen: ts, last_seen: ts, messages: [] });
-    }
-    const edge = edgeMap.get(edgeKey);
-    edge.weight += 1;
-    edge.last_seen = ts > edge.last_seen ? ts : edge.last_seen;
-    edge.first_seen = ts < edge.first_seen ? ts : edge.first_seen;
-    if (message && edge.messages.length < 5) {
-      edge.messages.push(message);
-    }
-  }
-
-  const nodes = [];
-  for (const [id, data] of sessionMap) {
-    nodes.push({ id, type: 'session', ...data });
-  }
-  for (const [id, data] of errorMap) {
-    nodes.push({ id, type: 'error', ...data });
-  }
-
-  const edges = [];
-  for (const [key, data] of edgeMap) {
-    const [from, to] = key.split('::');
-    edges.push({ from, to, ...data });
-  }
-
-  edges.sort((a, b) => b.weight - a.weight);
-
-  return {
-    nodes,
-    edges,
-    meta: {
-      sessions: sessionMap.size,
-      errors: errorMap.size,
-      total_entries: entries.length,
-      built_at: new Date().toISOString(),
-    },
-  };
-}
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
 function normalizeEntries(arr) {
   return arr
     .map((e) => ({
@@ -331,4 +257,4 @@ function normalizeEntries(arr) {
     .filter((e) => e.session_id && e.error_type);
 }
 
-module.exports = { parseLog, parseLogs, buildGraph, buildGraphWithBridge, normalizeEntries };
+module.exports = { parseLog, parseLogs, buildGraphWithBridge, normalizeEntries };

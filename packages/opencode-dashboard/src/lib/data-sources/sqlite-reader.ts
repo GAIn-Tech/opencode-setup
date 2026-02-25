@@ -12,14 +12,14 @@ function safeJsonParse<T>(str: string | null | undefined, fallback: T): T {
 }
 
 export class SQLiteReader implements DataSource {
-  private db: any;
+  private db: sqlite3.Database | null;
   private available: boolean;
 
   constructor(dbPath: string) {
     try {
       this.db = new sqlite3(dbPath, { readonly: true });
       this.available = true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn(
         `[SQLiteReader] Could not open database at "${dbPath}": ${err.message}\n` +
         `  Dashboard will operate without workflow data. ` +
@@ -38,12 +38,12 @@ export class SQLiteReader implements DataSource {
     if (!this.db) return [];
     try {
       const rows = this.db.prepare('SELECT * FROM workflow_runs ORDER BY created_at DESC').all();
-      return rows.map((row: any) => ({
+      return rows.map((row: Record<string, unknown>) => ({
         ...row,
         input: safeJsonParse(row.input, {}),
         context: safeJsonParse(row.context, {})
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn(`[SQLiteReader] getRuns failed: ${err.message}`);
       return [];
     }
@@ -59,7 +59,7 @@ export class SQLiteReader implements DataSource {
         input: safeJsonParse(row.input, {}),
         context: safeJsonParse(row.context, {})
       };
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn(`[SQLiteReader] getRun(${id}) failed: ${err.message}`);
       return null;
     }
@@ -69,11 +69,11 @@ export class SQLiteReader implements DataSource {
     if (!this.db) return [];
     try {
       const rows = this.db.prepare('SELECT * FROM workflow_steps WHERE run_id = ?').all(runId);
-      return rows.map((row: any) => ({
+      return rows.map((row: Record<string, unknown>) => ({
         ...row,
         result: row.result ? safeJsonParse(row.result, null) : null
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn(`[SQLiteReader] getSteps(${runId}) failed: ${err.message}`);
       return [];
     }
@@ -83,11 +83,11 @@ export class SQLiteReader implements DataSource {
     if (!this.db) return [];
     try {
       const rows = this.db.prepare('SELECT * FROM audit_events WHERE run_id = ? ORDER BY timestamp ASC').all(runId);
-      return rows.map((row: any) => ({
+      return rows.map((row: Record<string, unknown>) => ({
         ...row,
         payload: safeJsonParse(row.payload, {})
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn(`[SQLiteReader] getEvents(${runId}) failed: ${err.message}`);
       return [];
     }

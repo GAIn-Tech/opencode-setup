@@ -103,37 +103,38 @@ function normalizeSkillTuple(entry: unknown, taskType?: string): SkillSummary | 
   } as SkillSummary;
 }
 
-function normalizeSkillObject(entry: any): SkillSummary | null {
+function normalizeSkillObject(entry: unknown): SkillSummary | null {
   if (!entry || typeof entry !== 'object') {
     return null;
   }
 
-  const name = String(entry.name || '').trim();
+  const entryObj = entry as Record<string, unknown>;
+  const name = String(entryObj.name || '').trim();
   if (!name) {
     return null;
   }
 
   return {
     name,
-    success_rate: toNumber(entry.success_rate ?? entry.successRate, 0),
-    usage_count: toNumber(entry.usage_count ?? entry.usageCount, 0),
-    last_updated: toIso(entry.last_updated ?? entry.lastUpdated)
+    success_rate: toNumber(entryObj.success_rate ?? entry.successRate, 0),
+    usage_count: toNumber(entryObj.usage_count ?? entry.usageCount, 0),
+    last_updated: toIso(entryObj.last_updated ?? entry.lastUpdated)
   };
 }
 
-function decodeSkillBank(skillBank: any): { general: SkillSummary[]; taskSpecific: SkillSummary[] } {
+function decodeSkillBank(skillBank: unknown): { general: SkillSummary[]; taskSpecific: SkillSummary[] } {
   const generalRaw = Array.isArray(skillBank?.general) ? skillBank.general : [];
   const taskSpecificRaw = Array.isArray(skillBank?.taskSpecific) ? skillBank.taskSpecific : [];
 
   const general: SkillSummary[] = generalRaw
-    .map((entry: any) => (Array.isArray(entry) ? normalizeSkillTuple(entry) : normalizeSkillObject(entry)))
+    .map((entry: unknown) => (Array.isArray(entry) ? normalizeSkillTuple(entry) : normalizeSkillObject(entry)))
     .filter((entry: SkillSummary | null): entry is SkillSummary => entry !== null);
 
   const taskSpecific: SkillSummary[] = [];
-  taskSpecificRaw.forEach((taskEntry: any) => {
+  taskSpecificRaw.forEach((taskEntry: unknown) => {
     if (Array.isArray(taskEntry) && taskEntry.length === 2 && Array.isArray(taskEntry[1])) {
       const taskType = String(taskEntry[0] || '').trim();
-      taskEntry[1].forEach((skillTuple: any) => {
+      taskEntry[1].forEach((skillTuple: unknown) => {
         const normalized = normalizeSkillTuple(skillTuple, taskType || undefined);
         if (normalized) {
           taskSpecific.push(normalized);
@@ -223,7 +224,7 @@ export async function GET() {
       );
     }
 
-    let rlData: any;
+    let rlData: Record<string, unknown>;
     try {
       rlData = JSON.parse(await fsPromises.readFile(skillRLPath, 'utf-8'));
     } catch (parseError) {
@@ -245,7 +246,7 @@ export async function GET() {
         ? evolutionRaw.failureHistory
         : [];
 
-    const failureHistory: FailureHistoryItem[] = failureHistoryRaw.map((entry: any) => ({
+    const failureHistory: FailureHistoryItem[] = failureHistoryRaw.map((entry: unknown) => ({
       task_id: String(entry?.task_id || ''),
       task_type: String(entry?.task_type || 'unknown'),
       timestamp: toIso(entry?.timestamp),
@@ -260,13 +261,13 @@ export async function GET() {
 
     const recentAdaptations: RecentAdaptation[] =
       reportedAdaptations.length > 0
-        ? reportedAdaptations.map((entry: any) => ({
+        ? reportedAdaptations.map((entry: unknown) => ({
             skill: String(entry?.skill || entry?.name || 'unknown'),
             type: entry?.type === 'success' ? 'success' : 'failure',
             adaptation: String(entry?.adaptation || entry?.reason || 'adaptation recorded'),
             timestamp: toIso(entry?.timestamp)
           }))
-        : failureHistoryRaw.slice(-10).map((entry: any) => ({
+        : failureHistoryRaw.slice(-10).map((entry: unknown) => ({
             skill: String(
               Array.isArray(entry?.skills_used) && entry.skills_used.length > 0
                 ? entry.skills_used[0]

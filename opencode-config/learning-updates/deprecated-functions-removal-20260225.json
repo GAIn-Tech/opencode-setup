@@ -1,0 +1,40 @@
+{
+  "id": "deprecated-functions-removal-20260225",
+  "timestamp": "2026-02-25T00:00:00Z",
+  "category": "dead-code-elimination",
+  "title": "Remove 5 Deprecated Functions",
+  "description": "Removed deprecated synchronous functions and their test cases to improve code maintainability",
+  "changes": [
+    {
+      "file": "packages/opencode-learning-engine/src/tool-usage-tracker.js",
+      "type": "function-removal",
+      "removed": ["init", "writeJsonSync", "readJsonSync"],
+      "reason": "Deprecated in favor of async alternatives (initAsync, writeJsonAsync, readJsonAsync)"
+    },
+    {
+      "file": "packages/opencode-memory-graph/src/graph-builder.js",
+      "type": "function-removal",
+      "removed": ["buildGraph"],
+      "reason": "Deprecated in favor of buildGraphWithBridge"
+    },
+    {
+      "file": "packages/opencode-safe-io/src/index.js",
+      "type": "function-removal",
+      "removed": ["safeJsonReadSync"],
+      "reason": "Deprecated in favor of async safeJsonRead"
+    }
+  ],
+  "impact": {
+    "files_modified": 5,
+    "functions_removed": 5,
+    "tests_updated": 2,
+    "exports_updated": 3
+  },
+  "verification": {
+    "no_external_callers": true,
+    "exports_updated": true,
+    "tests_updated": true
+  },
+  "wave": 7,
+  "task": "dead-code-elimination"
+}
