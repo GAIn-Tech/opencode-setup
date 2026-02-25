@@ -142,7 +142,7 @@ export async function GET() {
 
     if (engine) {
       try {
-        const report = normalizeLearningReportShape(engine.getReport());
+        const report = normalizeLearningReportShape(await engine.getReport());
         if (engineWarning) {
           return NextResponse.json({
             ...report,
