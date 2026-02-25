@@ -98,39 +98,43 @@ export async function safeSpawn(command, args = [], options = {}) {
         });
       }
       
-      proc.on('error', (error) => {
-        clearTimeout(timeoutId);
-        
-        // If it's ENOENT, we already checked - but double-check
-        if (error.code === 'ENOENT') {
-          const errMsg = `Executable not found: ${command}`;
-          console.error(`[SpawnGuard] 🔴 ${errMsg}`);
-          
-          resolve({ 
-            success: false, 
-            error: errMsg,
-            code: 'ENOENT' 
-          });
-          return;
-        }
-        
-        resolve({ 
-          success: false, 
-          error: error.message,
-          code: error.code 
-        });
-      });
+       proc.once('error', (error) => {
+         clearTimeout(timeoutId);
+         
+         // If it's ENOENT, we already checked - but double-check
+         if (error.code === 'ENOENT') {
+           const errMsg = `Executable not found: ${command}`;
+           console.error(`[SpawnGuard] 🔴 ${errMsg}`);
+           
+           resolve({ 
+             success: false, 
+             error: errMsg,
+             code: 'ENOENT' 
+           });
+           return;
+         }
+         
+         resolve({ 
+           success: false, 
+           error: error.message,
+           code: error.code 
+         });
+       });
       
-      proc.on('close', (code) => {
-        clearTimeout(timeoutId);
-        
-        resolve({
-          success: code === 0,
-          exitCode: code,
-          stdout,
-          stderr
-        });
-      });
+       proc.once('close', (code) => {
+         clearTimeout(timeoutId);
+         
+         // Clean up data listeners
+         proc.stdout.removeAllListeners('data');
+         proc.stderr.removeAllListeners('data');
+         
+         resolve({
+           success: code === 0,
+           exitCode: code,
+           stdout,
+           stderr
+         });
+       });
       
     } catch (error) {
       clearTimeout(timeoutId);

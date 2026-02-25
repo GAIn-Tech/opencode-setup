@@ -76,40 +76,44 @@ export class ProcessIsolation {
         stderr += data.toString();
       });
       
-      child.on('close', (code) => {
-        clearTimeout(timeoutHandle);
-        this.activeProcesses.delete(processId);
-        
-        // Clean up temp script
-        try {
-          fs.unlinkSync(scriptPath);
-        } catch (e) {
-          // Ignore cleanup errors
-        }
-        
-        if (timedOut) {
-          reject(new Error(`Process timed out after ${timeout}ms`));
-          return;
-        }
-        
-        if (code !== 0) {
-          reject(new Error(`Process exited with code ${code}: ${stderr}`));
-          return;
-        }
-        
-        try {
-          const result = JSON.parse(stdout);
-          resolve(result);
-        } catch (e) {
-          resolve(stdout); // Return raw output if not JSON
-        }
-      });
+       child.once('close', (code) => {
+         clearTimeout(timeoutHandle);
+         this.activeProcesses.delete(processId);
+         
+         // Clean up data listeners
+         child.stdout.removeAllListeners('data');
+         child.stderr.removeAllListeners('data');
+         
+         // Clean up temp script
+         try {
+           fs.unlinkSync(scriptPath);
+         } catch (e) {
+           // Ignore cleanup errors
+         }
+         
+         if (timedOut) {
+           reject(new Error(`Process timed out after ${timeout}ms`));
+           return;
+         }
+         
+         if (code !== 0) {
+           reject(new Error(`Process exited with code ${code}: ${stderr}`));
+           return;
+         }
+         
+         try {
+           const result = JSON.parse(stdout);
+           resolve(result);
+         } catch (e) {
+           resolve(stdout); // Return raw output if not JSON
+         }
+       });
       
-      child.on('error', (error) => {
-        clearTimeout(timeoutHandle);
-        this.activeProcesses.delete(processId);
-        reject(error);
-      });
+       child.once('error', (error) => {
+         clearTimeout(timeoutHandle);
+         this.activeProcesses.delete(processId);
+         reject(error);
+       });
     });
   }
 

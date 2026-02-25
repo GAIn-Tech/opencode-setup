@@ -564,29 +564,33 @@ class ModelAssessor {
         stderr += chunk.toString();
       });
 
-      child.on('error', (error) => {
-        reject(error);
-      });
+       child.once('error', (error) => {
+         reject(error);
+       });
 
-      child.on('close', () => {
-        const trimmed = stdout.trim();
-        const payload = parseJsonSafely(trimmed, null);
+       child.once('close', () => {
+         // Clean up data listeners
+         child.stdout.removeAllListeners('data');
+         child.stderr.removeAllListeners('data');
+         
+         const trimmed = stdout.trim();
+         const payload = parseJsonSafely(trimmed, null);
 
-        if (!payload || typeof payload !== 'object') {
-          resolve({
-            passed: false,
-            error: stderr || 'Unable to parse Python validator output',
-            diagnostics: []
-          });
-          return;
-        }
+         if (!payload || typeof payload !== 'object') {
+           resolve({
+             passed: false,
+             error: stderr || 'Unable to parse Python validator output',
+             diagnostics: []
+           });
+           return;
+         }
 
-        resolve({
-          passed: Boolean(payload.ok),
-          error: payload.error || null,
-          diagnostics: Array.isArray(payload.diagnostics) ? payload.diagnostics : []
-        });
-      });
+         resolve({
+           passed: Boolean(payload.ok),
+           error: payload.error || null,
+           diagnostics: Array.isArray(payload.diagnostics) ? payload.diagnostics : []
+         });
+       });
     });
 
     return withTimeout(
