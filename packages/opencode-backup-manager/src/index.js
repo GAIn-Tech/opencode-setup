@@ -4,6 +4,7 @@
  */
 
 import fs from 'fs';
+import fsPromises from 'fs/promises';
 import path from 'path';
 
 /**
@@ -16,7 +17,7 @@ class BackupManager {
     this.compress = options.compress || false;
     this.enabled = options.enabled !== false;
     
-    // Ensure backup directory exists
+    // Ensure backup directory exists (sync in constructor - acceptable)
     if (this.enabled && !fs.existsSync(this.backupDir)) {
       fs.mkdirSync(this.backupDir, { recursive: true });
     }
@@ -47,15 +48,15 @@ class BackupManager {
     const backupPath = path.join(this.backupDir, backupName);
     
     try {
-      // Read original file
-      const content = fs.readFileSync(filePath);
+      // Read original file (async)
+      const content = await fsPromises.readFile(filePath);
       
-      // Write backup
-      fs.writeFileSync(backupPath, content);
+      // Write backup (async)
+      await fsPromises.writeFile(backupPath, content);
       
-      // Write metadata
+      // Write metadata (async)
       const metadataPath = backupPath + '.meta.json';
-      fs.writeFileSync(metadataPath, JSON.stringify({
+      await fsPromises.writeFile(metadataPath, JSON.stringify({
         originalPath: filePath,
         backupPath,
         timestamp: Date.now(),
@@ -87,15 +88,15 @@ class BackupManager {
     
     let backups = [];
     try {
-      const files = fs.readdirSync(this.backupDir);
-      backups = files
-        .filter(f => pattern.test(f))
-        .map(f => ({
+      const files = await fsPromises.readdir(this.backupDir);
+      const statResults = await Promise.all(
+        files.filter(f => pattern.test(f)).map(async (f) => ({
           name: f,
           path: path.join(this.backupDir, f),
-          time: fs.statSync(path.join(this.backupDir, f)).mtime.getTime(),
+          time: (await fsPromises.stat(path.join(this.backupDir, f))).mtime.getTime(),
         }))
-        .sort((a, b) => b.time - a.time);
+      );
+      backups = statResults.sort((a, b) => b.time - a.time);
     } catch (error) {
       console.error(`[BackupManager] Rotation scan failed: ${error.message}`);
       return;
@@ -105,11 +106,11 @@ class BackupManager {
     const toRemove = backups.slice(this.maxBackups);
     for (const backup of toRemove) {
       try {
-        fs.unlinkSync(backup.path);
+        await fsPromises.unlink(backup.path);
         // Also remove metadata
         const metaPath = backup.path + '.meta.json';
         if (fs.existsSync(metaPath)) {
-          fs.unlinkSync(metaPath);
+          await fsPromises.unlink(metaPath);
         }
         console.log(`[BackupManager] Removed old backup: ${backup.name}`);
       } catch (error) {
@@ -133,8 +134,8 @@ class BackupManager {
       await this.backup(targetPath, { prefix: 'pre-restore-' });
     }
     
-    const content = fs.readFileSync(backupPath);
-    fs.writeFileSync(targetPath, content);
+    const content = await fsPromises.readFile(backupPath);
+    await fsPromises.writeFile(targetPath, content);
     
     console.log(`[BackupManager] Restored: ${targetPath} from ${backupPath}`);
     return targetPath;
@@ -144,17 +145,17 @@ class BackupManager {
    * List all backups for a file
    * @param {string} originalPath - Original file path
    */
-  listBackups(originalPath) {
+  async listBackups(originalPath) {
     const basename = path.basename(originalPath);
     const pattern = new RegExp(`^${basename}\\..*\\.bak$`);
     
     try {
-      const files = fs.readdirSync(this.backupDir);
-      return files
-        .filter(f => pattern.test(f))
-        .map(f => {
+      const files = await fsPromises.readdir(this.backupDir);
+      const filtered = files.filter(f => pattern.test(f));
+      const statResults = await Promise.all(
+        filtered.map(async (f) => {
           const fullPath = path.join(this.backupDir, f);
-          const stats = fs.statSync(fullPath);
+          const stats = await fsPromises.stat(fullPath);
           return {
             name: f,
             path: fullPath,
@@ -162,7 +163,8 @@ class BackupManager {
             created: stats.mtime,
           };
         })
-        .sort((a, b) => b.created - a.created);
+      );
+      return statResults.sort((a, b) => b.created - a.created);
     } catch (error) {
       console.error(`[BackupManager] List failed: ${error.message}`);
       return [];
@@ -173,8 +175,8 @@ class BackupManager {
    * Get the latest backup for a file
    * @param {string} originalPath - Original file path
    */
-  getLatestBackup(originalPath) {
-    const backups = this.listBackups(originalPath);
+  async getLatestBackup(originalPath) {
+    const backups = await this.listBackups(originalPath);
     return backups.length > 0 ? backups[0] : null;
   }
   
@@ -183,13 +185,13 @@ class BackupManager {
    * @param {string} originalPath - Original file path
    */
   async cleanup(originalPath) {
-    const backups = this.listBackups(originalPath);
+    const backups = await this.listBackups(originalPath);
     for (const backup of backups) {
       try {
-        fs.unlinkSync(backup.path);
+        await fsPromises.unlink(backup.path);
         const metaPath = backup.path + '.meta.json';
         if (fs.existsSync(metaPath)) {
-          fs.unlinkSync(metaPath);
+          await fsPromises.unlink(metaPath);
         }
       } catch (error) {
         console.error(`[BackupManager] Cleanup failed: ${error.message}`);

@@ -1,4 +1,5 @@
 const fs = require('fs');
+const fsPromises = require('fs/promises');
 const os = require('os');
 const path = require('path');
 
@@ -81,9 +82,9 @@ class PluginLifecycleSupervisor {
     return next;
   }
 
-  evaluateMany(inputs = []) {
+  async evaluateMany(inputs = []) {
     const items = inputs.map((input) => this.evaluatePlugin(input));
-    this._save();
+    await this._save();
     const degraded = items.filter((item) => item.status === 'degraded').length;
     const healthy = items.filter((item) => item.status === 'healthy').length;
     const unknown = items.filter((item) => item.status === 'unknown').length;
@@ -114,12 +115,12 @@ class PluginLifecycleSupervisor {
     }
   }
 
-  _save() {
+  async _save() {
     const dir = path.dirname(this.statePath);
-    fs.mkdirSync(dir, { recursive: true });
+    await fsPromises.mkdir(dir, { recursive: true });
     const tmp = `${this.statePath}.tmp`;
-    fs.writeFileSync(tmp, JSON.stringify(this.state, null, 2), 'utf8');
-    fs.renameSync(tmp, this.statePath);
+    await fsPromises.writeFile(tmp, JSON.stringify(this.state, null, 2), 'utf8');
+    await fsPromises.rename(tmp, this.statePath);
   }
 }
 

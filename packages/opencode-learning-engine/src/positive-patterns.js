@@ -10,6 +10,7 @@
  */
 
 const fs = require('fs');
+const fsPromises = require('fs/promises');
 const path = require('path');
 const os = require('os');
 
@@ -27,7 +28,7 @@ const VALID_TYPES = [
 class PositivePatternTracker {
   constructor() {
     this.patterns = [];
-    this._load();
+    this._load(); // Sync for constructor - only called once at startup
   }
 
   /**
@@ -216,9 +217,9 @@ class PositivePatternTracker {
 
   // --- Persistence ---
 
-  save() {
+  async save() {
     try {
-      fs.mkdirSync(PERSIST_DIR, { recursive: true });
+      await fsPromises.mkdir(PERSIST_DIR, { recursive: true });
       const data = {
         version: '1.0.0',
         updated_at: new Date().toISOString(),
@@ -226,8 +227,8 @@ class PositivePatternTracker {
         patterns: this.patterns,
       };
       const tempFile = `${PERSIST_FILE}.tmp`;
-      fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf8');
-      fs.renameSync(tempFile, PERSIST_FILE);
+      await fsPromises.writeFile(tempFile, JSON.stringify(data, null, 2), 'utf8');
+      await fsPromises.rename(tempFile, PERSIST_FILE);
     } catch (err) {
       if (process.env.DEBUG) {
         console.error('[PositivePatternTracker] save error:', err.message);
@@ -237,10 +238,27 @@ class PositivePatternTracker {
 
   // --- Private ---
 
+  // Sync version for constructor (only called once at startup)
   _load() {
     try {
       if (fs.existsSync(PERSIST_FILE)) {
         const raw = fs.readFileSync(PERSIST_FILE, 'utf8');
+        const data = JSON.parse(raw);
+        this.patterns = Array.isArray(data.patterns) ? data.patterns : [];
+      }
+    } catch (err) {
+      this.patterns = [];
+      if (process.env.DEBUG) {
+        console.error('[PositivePatternTracker] load error:', err.message);
+      }
+    }
+  }
+
+  // Async version for runtime loads
+  async _loadAsync() {
+    try {
+      if (fs.existsSync(PERSIST_FILE)) {
+        const raw = await fsPromises.readFile(PERSIST_FILE, 'utf8');
         const data = JSON.parse(raw);
         this.patterns = Array.isArray(data.patterns) ? data.patterns : [];
       }

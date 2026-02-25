@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const fsPromises = require('fs/promises');
 const path = require('path');
 const { SessionTracker } = require('./session-tracker');
 const budgets = require('./budgets.json');
@@ -133,11 +134,9 @@ class Governor {
      if (this._saveTimer) return; // already scheduled
      this._saveTimer = setTimeout(() => {
        this._saveTimer = null;
-       try {
-         this.saveToFile(this._persistPath);
-       } catch (err) {
+       this.saveToFile(this._persistPath).catch(err => {
          console.warn(`[Governor] Budget state save failed (non-fatal): ${err.message}`);
-       }
+       });
      }, this._saveDebounceMs);
      if (this._saveTimer.unref) this._saveTimer.unref();
    }
@@ -208,17 +207,17 @@ class Governor {
    * Creates parent directories if needed.
    * @param {string} [filePath] – defaults to this._persistPath
    */
-  saveToFile(filePath) {
+  async saveToFile(filePath) {
     const p = filePath || this._persistPath;
     const dir = path.dirname(p);
     if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+      await fsPromises.mkdir(dir, { recursive: true });
     }
     const data = this._tracker.toState();
     data.savedAt = new Date().toISOString();
     const tmpPath = `${p}.tmp`;
-    fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), 'utf-8');
-    fs.renameSync(tmpPath, p);
+    await fsPromises.writeFile(tmpPath, JSON.stringify(data, null, 2), 'utf-8');
+    await fsPromises.rename(tmpPath, p);
   }
 
   // ---------------------------------------------------------------------------

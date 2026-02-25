@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const fsPromises = require('fs/promises');
 const path = require('path');
 const os = require('os');
 
@@ -63,7 +64,7 @@ class GraphActivator {
       }
     }
 
-    this._saveState();
+    await this._saveState();
     return { activated: true, backfill: backfillResult };
   }
 
@@ -73,10 +74,10 @@ class GraphActivator {
    *
    * @returns {{ deactivated: boolean }}
    */
-  deactivate() {
+  async deactivate() {
     this._state.active = false;
     this._state.deactivated_at = new Date().toISOString();
-    this._saveState();
+    await this._saveState();
     return { deactivated: true };
   }
 
@@ -131,15 +132,15 @@ class GraphActivator {
    * Persist state to disk. Creates parent directory if needed.
    * @private
    */
-  _saveState() {
+  async _saveState() {
     try {
       const dir = path.dirname(this._statePath);
       if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
+        await fsPromises.mkdir(dir, { recursive: true });
       }
       const tempPath = `${this._statePath}.tmp`;
-      fs.writeFileSync(tempPath, JSON.stringify(this._state, null, 2), 'utf-8');
-      fs.renameSync(tempPath, this._statePath);
+      await fsPromises.writeFile(tempPath, JSON.stringify(this._state, null, 2), 'utf-8');
+      await fsPromises.rename(tempPath, this._statePath);
     } catch (_err) {
       // Silently fail — state is still in memory for current process
     }

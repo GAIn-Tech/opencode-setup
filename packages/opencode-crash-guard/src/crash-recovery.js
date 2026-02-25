@@ -5,6 +5,7 @@
 
 import { SafeJSON } from './safe-json.js';
 import fs from 'fs';
+import fsPromises from 'fs/promises';
 import path from 'path';
 
 export class CrashRecovery {
@@ -37,7 +38,9 @@ export class CrashRecovery {
     
     // Start auto-save
     this.saveInterval = setInterval(() => {
-      this.saveCrashes();
+      this.saveCrashes().catch(err => {
+        console.error('[CrashRecovery] Auto-save failed:', err.message);
+      });
     }, this.saveIntervalMs);
     
     console.log('[CrashRecovery] Initialized');
@@ -62,12 +65,12 @@ export class CrashRecovery {
   /**
    * Save crashes to file
    */
-  saveCrashes() {
+  async saveCrashes() {
     try {
       const data = SafeJSON.stringify(this.crashes.slice(0, this.maxCrashes));
       const tmpFile = `${this.crashFile}.tmp`;
-      fs.writeFileSync(tmpFile, data, 'utf-8');
-      fs.renameSync(tmpFile, this.crashFile);
+      await fsPromises.writeFile(tmpFile, data, 'utf-8');
+      await fsPromises.rename(tmpFile, this.crashFile);
     } catch (error) {
       console.error('[CrashRecovery] Could not save crash data:', error.message);
     }
@@ -92,12 +95,12 @@ export class CrashRecovery {
   /**
    * Save recovery state
    */
-  saveState() {
+  async saveState() {
     try {
       const data = SafeJSON.stringify(this.state);
       const tmpFile = `${this.stateFile}.tmp`;
-      fs.writeFileSync(tmpFile, data, 'utf-8');
-      fs.renameSync(tmpFile, this.stateFile);
+      await fsPromises.writeFile(tmpFile, data, 'utf-8');
+      await fsPromises.rename(tmpFile, this.stateFile);
     } catch (error) {
       console.error('[CrashRecovery] Could not save state:', error.message);
     }
@@ -107,7 +110,7 @@ export class CrashRecovery {
    * Record a crash
    * @param {Object} crashInfo - Information about the crash
    */
-  recordCrash(crashInfo) {
+  async recordCrash(crashInfo) {
     const crash = {
       ...crashInfo,
       timestamp: Date.now(),
@@ -122,7 +125,7 @@ export class CrashRecovery {
       this.crashes = this.crashes.slice(0, this.maxCrashes);
     }
     
-    this.saveCrashes();
+    await this.saveCrashes();
     
     // Analyze crash patterns
     this.analyzeCrashes();
@@ -186,12 +189,12 @@ export class CrashRecovery {
    * @param {string} component - Component name
    * @param {any} state - State to save
    */
-  saveComponentState(component, state) {
+  async saveComponentState(component, state) {
     this.state[component] = {
       data: state,
       timestamp: Date.now()
     };
-    this.saveState();
+    await this.saveState();
   }
 
   /**
@@ -210,22 +213,22 @@ export class CrashRecovery {
   /**
    * Clear crash history
    */
-  clearHistory() {
+  async clearHistory() {
     this.crashes = [];
-    this.saveCrashes();
+    await this.saveCrashes();
     console.log('[CrashRecovery] Cleared crash history');
   }
 
   /**
    * Cleanup
    */
-  cleanup() {
+  async cleanup() {
     if (this.saveInterval) {
       clearInterval(this.saveInterval);
       this.saveInterval = null;
     }
-    this.saveCrashes();
-    this.saveState();
+    await this.saveCrashes();
+    await this.saveState();
   }
 }
 
