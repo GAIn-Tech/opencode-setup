@@ -1,9 +1,49 @@
 {
-  "active_plan": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\tech-debt-fix.md",
-  "started_at": "2026-02-25T02:15:45.304Z",
-  "session_ids": [
-    "ses_36d79dbbfffev3ro5rW2VZ0EbS"
+  "active_plan": null,
+  "plan_name": "wave5-naivete-remediation",
+  "started_at": "2026-02-25T05:51:16.237Z",
+  "completed_at": "2026-02-25T07:10:00.000Z",
+  "session_ids": ["ses_36d2b76f5ffeOHUpdG4QXxsCh2"],
+  "progress": {
+    "total_tasks": 10,
+    "completed": 10,
+    "current_task": null
+  },
+  "waves": {
+    "0": { "status": "completed", "tasks": [0] },
+    "5A": { "status": "completed", "tasks": [1, 4, 5] },
+    "5B": { "status": "completed", "tasks": [2, 3, 7] },
+    "5C": { "status": "completed", "tasks": [6, 8, 9] }
+  },
+  "commits": [
+    "cfd7f59",
+    "aa7ec10",
+    "00d85da",
+    "9ed5ddf",
+    "06edf11",
+    "3c3cc45",
+    "94d20e5",
+    "3774bda",
+    "4d65680"
   ],
-  "plan_name": "tech-debt-fix",
-  "agent": "atlas"
+  "risk_points_reduced": 250,
+  "completed_plans": [
+    {
+      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\tech-debt-wave4.md",
+      "plan_name": "tech-debt-wave4",
+      "started_at": "2026-02-25T04:07:46.701Z",
+      "completed_at": "2026-02-25T04:30:00.000Z",
+      "session_ids": [
+        "ses_36d2b76f5ffeOHUpdG4QXxsCh2"
+      ],
+      "agent": "atlas",
+      "commits": [
+        "e12b001",
+        "29224f3",
+        "ee87a2a"
+      ],
+      "tasks_completed": 4,
+      "risk_points_reduced": 70
+    }
+  ]
 }
