@@ -2,7 +2,13 @@
 
 const fs = require('fs').promises;
 const path = require('path');
-const { execSync, execFileSync } = require('child_process');
+const { execFile } = require('child_process');
+const { promisify } = require('util');
+
+const execFileAsync = promisify(execFile);
+
+/** Timeout for git commands (30s) */
+const GIT_TIMEOUT_MS = 30000;
 
 /**
  * PR Generator for automated model catalog updates.
@@ -61,7 +67,10 @@ class PRGenerator {
    */
   async createBranch(branchName) {
     try {
-      execFileSync('git', ['checkout', '-b', branchName], { cwd: this.repoPath });
+      await execFileAsync('git', ['checkout', '-b', branchName], {
+        timeout: GIT_TIMEOUT_MS,
+        cwd: this.repoPath
+      });
     } catch (error) {
       throw new Error(`Failed to create branch: ${error.message}`);
     }
@@ -129,10 +138,16 @@ class PRGenerator {
    */
   async commitChanges(diff, branchName) {
     try {
-      execSync('git add opencode-config/models/catalog-2026.json', { cwd: this.repoPath });
+      await execFileAsync('git', ['add', 'opencode-config/models/catalog-2026.json'], {
+        timeout: GIT_TIMEOUT_MS,
+        cwd: this.repoPath
+      });
       
       const commitMessage = this.generateCommitMessage(diff);
-      execFileSync('git', ['commit', '-m', commitMessage], { cwd: this.repoPath });
+      await execFileAsync('git', ['commit', '-m', commitMessage], {
+        timeout: GIT_TIMEOUT_MS,
+        cwd: this.repoPath
+      });
     } catch (error) {
       throw new Error(`Failed to commit changes: ${error.message}`);
     }
@@ -143,7 +158,10 @@ class PRGenerator {
    */
   async pushBranch(branchName) {
     try {
-      execFileSync('git', ['push', '-u', 'origin', branchName], { cwd: this.repoPath });
+      await execFileAsync('git', ['push', '-u', 'origin', branchName], {
+        timeout: GIT_TIMEOUT_MS,
+        cwd: this.repoPath
+      });
     } catch (error) {
       throw new Error(`Failed to push branch: ${error.message}`);
     }
@@ -260,4 +278,4 @@ class PRGenerator {
   }
 }
 
-module.exports = { PRGenerator };
+module.exports = { PRGenerator, GIT_TIMEOUT_MS };

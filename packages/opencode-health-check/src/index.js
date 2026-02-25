@@ -418,6 +418,8 @@ export function getSchedulerTelemetry() {
   };
 }
 
+// Alias for API compatibility
+export const getHealth = getHealthStatus;
 export default {
   registerSubsystem,
   getHealthStatus,
@@ -431,4 +433,5 @@ export default {
   createReadinessEndpoint,
   commonChecks,
   getSchedulerTelemetry,
+  getHealth,
 };

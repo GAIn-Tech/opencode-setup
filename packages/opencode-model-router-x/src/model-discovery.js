@@ -350,8 +350,15 @@ class ModelDiscovery {
   }
 
   async _fetchFromCommunity(providerId) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), ModelDiscovery.COMMUNITY_FETCH_TIMEOUT_MS);
+
     try {
-      const response = await fetch('https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json');
+      const response = await fetch(
+        'https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json',
+        { signal: controller.signal }
+      );
+      clearTimeout(timeout);
       if (!response.ok) return [];
       const data = await response.json();
       const output = [];
@@ -366,6 +373,11 @@ class ModelDiscovery {
       }
       return output;
     } catch (err) {
+      clearTimeout(timeout);
+      if (err.name === 'AbortError') {
+        console.warn(`[ModelDiscovery] Community fetch timed out for ${providerId} after ${ModelDiscovery.COMMUNITY_FETCH_TIMEOUT_MS}ms`);
+        return [];
+      }
       console.warn(`[ModelDiscovery] Community source failed for ${providerId}:`, err.message || err);
       return [];
     }
@@ -509,5 +521,8 @@ class ModelDiscovery {
       .map(([id, _]) => id);
   }
 }
+
+/** Timeout for community source fetch (30s) */
+ModelDiscovery.COMMUNITY_FETCH_TIMEOUT_MS = 30000;
 
 module.exports = ModelDiscovery;

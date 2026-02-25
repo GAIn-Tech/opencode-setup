@@ -1,0 +1,20 @@
+{
+  "id": "exports-maps-20260225",
+  "timestamp": "2026-02-25T12:50:00Z",
+  "category": "api",
+  "summary": "Add exports maps to learning-engine and health-check packages for clean public API",
+  "details": "Added 'exports' field to package.json for both packages to prevent deep imports. learning-engine exports main entry point and ./meta-awareness submodule with both ESM (.mjs) and CJS (.js) support. health-check exports ESM-only main entry point. Created ESM wrapper files (index.mjs, meta-awareness-tracker.mjs) for learning-engine to support dual-module exports.",
+  "affected_paths": [
+    "packages/opencode-learning-engine/package.json",
+    "packages/opencode-learning-engine/src/index.mjs",
+    "packages/opencode-learning-engine/src/meta-awareness-tracker.mjs",
+    "packages/opencode-health-check/package.json"
+  ],
+  "impact": "Low - improves API clarity and prevents accidental deep imports",
+  "validation": {
+    "tests": "pre-existing failure (unrelated to exports maps)",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

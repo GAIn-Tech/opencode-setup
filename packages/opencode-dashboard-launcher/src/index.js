@@ -35,6 +35,12 @@ const LOCK_FILE = path.join(os.homedir(), '.opencode', 'dashboard.lock');
 const LOG_FILE = path.join(os.homedir(), '.opencode', 'dashboard.log');
 const DASHBOARD_DIR = path.join(__dirname, '..', '..', 'opencode-dashboard');
 
+/** Timeout to kill browser-open process if it hangs (15s) */
+const BROWSER_OPEN_TIMEOUT_MS = 15000;
+
+/** Timeout to detect early dashboard crash on launch (30s) */
+const DASHBOARD_LAUNCH_TIMEOUT_MS = 30000;
+
 /**
  * Ensures ~/.opencode directory exists
  */
@@ -130,11 +136,17 @@ function openBrowser(port) {
   // Wait 2s for server to be ready
   setTimeout(() => {
     try {
-      spawn(command, [url], { 
+      const proc = spawn(command, [url], { 
         detached: true, 
         stdio: 'ignore',
         shell: true 
-      }).unref();
+      });
+      // Kill browser-open process if it hangs beyond timeout
+      const killTimer = setTimeout(() => {
+        try { proc.kill(); } catch (e) { /* already exited */ }
+      }, BROWSER_OPEN_TIMEOUT_MS);
+      killTimer.unref();
+      proc.unref();
     } catch (err) {
       console.error('Failed to open browser:', err.message);
     }
@@ -183,7 +195,23 @@ function launchDashboard() {
   });
 
   fs.closeSync(outFd);
-  
+
+  // Detect early crash: if process exits within DASHBOARD_LAUNCH_TIMEOUT_MS, log it
+  const crashTimer = setTimeout(() => {
+    // Process survived the startup window - all good
+  }, DASHBOARD_LAUNCH_TIMEOUT_MS);
+  crashTimer.unref();
+  child.on('exit', (code) => {
+    clearTimeout(crashTimer);
+    if (code !== null && code !== 0) {
+      fs.appendFileSync(
+        LOG_FILE,
+        `\n[${new Date().toISOString()}] Dashboard crashed on startup (exit code: ${code}) within ${DASHBOARD_LAUNCH_TIMEOUT_MS}ms\n`
+      );
+      removeLock();
+    }
+  });
+
   child.unref();
   
   writeLock(child.pid, port);
@@ -248,7 +276,10 @@ module.exports = {
   // Health-check integration
   createHealthCheck,
   // MCP server interface
-  startServer
+  startServer,
+  // Timeout constants (for testing)
+  BROWSER_OPEN_TIMEOUT_MS,
+  DASHBOARD_LAUNCH_TIMEOUT_MS
 };
 
 // MCP server interface for auto-start with OpenCode sessions

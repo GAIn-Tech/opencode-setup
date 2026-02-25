@@ -29,5 +29,15 @@
   ],
   "engines": {
     "node": ">=16.0.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./src/index.mjs",
+      "require": "./src/index.js"
+    },
+    "./meta-awareness": {
+      "import": "./src/meta-awareness-tracker.mjs",
+      "require": "./src/meta-awareness-tracker.js"
+    }
   }
 }
