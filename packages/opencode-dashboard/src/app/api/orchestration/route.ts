@@ -264,7 +264,7 @@ export async function GET(request: Request) {
       outTok,
       totalTok,
       customEvents,
-    } = collectCorrelationData({
+    } = await collectCorrelationData({
       messagesPath,
       customEventsPath,
       cutoffMs,

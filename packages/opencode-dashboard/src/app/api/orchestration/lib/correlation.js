@@ -1,4 +1,5 @@
 import fs from 'fs';
+import fsPromises from 'fs/promises';
 import path from 'path';
 
 function n(v, fallback = 0) {
@@ -14,16 +15,17 @@ function arr(v) {
   return Array.isArray(v) ? v : [];
 }
 
-function readJson(filePath, fallback) {
+async function readJson(filePath, fallback) {
   try {
-    if (!fs.existsSync(filePath)) return fallback;
-    return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    await fsPromises.access(filePath);
+    const content = await fsPromises.readFile(filePath, 'utf-8');
+    return JSON.parse(content);
   } catch {
     return fallback;
   }
 }
 
-export function collectCorrelationData({ messagesPath, customEventsPath, cutoffMs }) {
+export async function collectCorrelationData({ messagesPath, customEventsPath, cutoffMs }) {
   const sessions = new Set();
   const model = new Map();
   const skill = new Map();
@@ -48,23 +50,37 @@ export function collectCorrelationData({ messagesPath, customEventsPath, cutoffM
   let outTok = 0;
   let totalTok = 0;
 
-  if (fs.existsSync(messagesPath)) {
-    const dirs = fs.readdirSync(messagesPath).filter((entry) => {
+  let messagesPathExists = false;
+  try {
+    await fsPromises.access(messagesPath);
+    messagesPathExists = true;
+  } catch {
+    messagesPathExists = false;
+  }
+
+  if (messagesPathExists) {
+    const entries = await fsPromises.readdir(messagesPath);
+    const dirs = [];
+    for (const entry of entries) {
       try {
-        const stat = fs.statSync(path.join(messagesPath, entry));
-        return stat.isDirectory() && stat.mtimeMs >= cutoffMs;
+        const stat = await fsPromises.stat(path.join(messagesPath, entry));
+        if (stat.isDirectory() && stat.mtimeMs >= cutoffMs) {
+          dirs.push(entry);
+        }
       } catch {
-        return false;
+        // skip entries that can't be stat'd
       }
-    });
+    }
 
     for (const sessionId of dirs) {
       sessions.add(sessionId);
       let maxLoop = 0;
-      const files = fs.readdirSync(path.join(messagesPath, sessionId)).filter((fileName) => fileName.endsWith('.json'));
+      const allFiles = await fsPromises.readdir(path.join(messagesPath, sessionId));
+      const files = allFiles.filter((fileName) => fileName.endsWith('.json'));
       for (const fileName of files) {
         try {
-          const raw = JSON.parse(fs.readFileSync(path.join(messagesPath, sessionId, fileName), 'utf-8'));
+          const content = await fsPromises.readFile(path.join(messagesPath, sessionId, fileName), 'utf-8');
+          const raw = JSON.parse(content);
           totalMessages += 1;
           const a = String(raw?.agent || '').trim();
           if (a) {
@@ -126,7 +142,8 @@ export function collectCorrelationData({ messagesPath, customEventsPath, cutoffM
     }
   }
 
-  const customEvents = (readJson(customEventsPath, { events: [] }).events || []).filter((event) => {
+  const customEventsData = await readJson(customEventsPath, { events: [] });
+  const customEvents = (customEventsData.events || []).filter((event) => {
     if (!event.timestamp) return true;
     const ts = Date.parse(event.timestamp);
     return Number.isNaN(ts) || ts >= cutoffMs;
