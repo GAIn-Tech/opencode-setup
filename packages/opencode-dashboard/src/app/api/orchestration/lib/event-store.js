@@ -151,9 +151,49 @@ export function normalizeEvents({ incoming, signingKey, signingMode, defaultSour
 }
 
 export async function persistEvents({ filePath, version, existingEvents, replace, normalized, maxEvents = 10000 }) {
-  const events = replace ? normalized : [...(Array.isArray(existingEvents) ? existingEvents : []), ...normalized].slice(-maxEvents);
-  await atomicWrite(filePath, { version: version || '1.0.0', updated_at: new Date().toISOString(), events });
-  return events;
+  const doTransaction = async () => {
+    let events;
+    if (replace) {
+      events = normalized;
+    } else {
+      // Read fresh inside queue to prevent lost-update race condition.
+      // Previously, callers passed stale existingEvents snapshots read before
+      // enqueueing, so concurrent writers would overwrite each other's events.
+      let freshExisting = [];
+      try {
+        const raw = await fsPromises.readFile(filePath, 'utf8');
+        const parsed = JSON.parse(raw);
+        freshExisting = Array.isArray(parsed.events) ? parsed.events : [];
+      } catch {
+        // File doesn't exist yet or is invalid — use caller's snapshot as fallback
+        freshExisting = Array.isArray(existingEvents) ? existingEvents : [];
+      }
+      events = [...freshExisting, ...normalized].slice(-maxEvents);
+    }
+
+    const payload = { version: version || '1.0.0', updated_at: new Date().toISOString(), events };
+
+    // Atomic file swap (inlined to avoid double-queuing through atomicWrite)
+    const tmp = `${filePath}.tmp.${Date.now()}.${process.pid}`;
+    const json = JSON.stringify(payload);
+    try {
+      await fsPromises.writeFile(tmp, json, 'utf8');
+      await fsPromises.rename(tmp, filePath);
+    } catch (err) {
+      if (err.code === 'EPERM' || err.code === 'EACCES') {
+        await fsPromises.writeFile(filePath, json, 'utf8');
+        try { await fsPromises.unlink(tmp); } catch (cleanupErr) { console.warn('[event-store] cleanup failed:', cleanupErr.message); }
+      } else {
+        try { await fsPromises.unlink(tmp); } catch (cleanupErr) { console.warn('[event-store] cleanup failed:', cleanupErr.message); }
+        throw err;
+      }
+    }
+
+    return events;
+  };
+
+  _writePromise = _writePromise.catch(() => {}).then(doTransaction);
+  return _writePromise;
 }
 
 export function summarizeEventProvenance({ normalized, signingKey, diagnostics }) {

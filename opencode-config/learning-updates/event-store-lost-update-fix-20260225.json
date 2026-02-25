@@ -1,0 +1,16 @@
+{
+  "id": "event-store-lost-update-fix-20260225",
+  "timestamp": "2026-02-25T10:00:00Z",
+  "summary": "Fixed lost-update race condition in persistEvents by moving read-merge-write inside the serialized write queue. Previously, callers read stale existingEvents outside the queue, so concurrent writers overwrote each other's events.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/orchestration/lib/event-store.js",
+    "packages/opencode-dashboard/test/event-store-race.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium",
+  "notes": "persistEvents now reads fresh file state inside _writePromise queue. Falls back to caller existingEvents only when file does not exist. Regression test verifies 5 concurrent persists preserve all 5 events. Public API signature unchanged. Wave 6 audit finding (Score 23)."
+}
