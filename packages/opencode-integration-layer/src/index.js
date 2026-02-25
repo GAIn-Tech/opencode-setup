@@ -63,6 +63,28 @@ try {
   memoryGraph = null;
 }
 
+// ---- Startup health report ----
+const integrationStatus = {
+  structuredLogger: !!structuredLogger,
+  inputValidator: !!inputValidator,
+  healthChecker: !!healthChecker,
+  backupManager: !!backupManager,
+  featureFlags: !!featureFlags,
+  contextGovernor: !!contextGovernor,
+  memoryGraph: !!memoryGraph,
+};
+
+const _active = Object.entries(integrationStatus).filter(([, v]) => v).map(([k]) => k);
+const _missing = Object.entries(integrationStatus).filter(([, v]) => !v).map(([k]) => k);
+
+if (_missing.length > 0) {
+  console.warn(
+    `[IntegrationLayer] Degraded startup: ${_missing.length}/${Object.keys(integrationStatus).length} integrations unavailable: ${_missing.join(', ')}`
+  );
+} else {
+  console.log(`[IntegrationLayer] All ${_active.length} integrations loaded.`);
+}
+
 // Initialize logger if available
 const logger = structuredLogger?.createLogger?.('integration-layer') || {
   info: (msg, data) => console.log(`[INFO] ${msg}`, data || ''),
@@ -625,4 +647,4 @@ class IntegrationLayer {
   }
 }
 
-module.exports = { IntegrationLayer };
+module.exports = { IntegrationLayer, integrationStatus };

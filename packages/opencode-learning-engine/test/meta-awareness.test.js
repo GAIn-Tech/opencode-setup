@@ -135,3 +135,23 @@ test('MetaAwarenessTracker debounces rollup writes', async () => {
 
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+test('MetaAwarenessTracker rotates JSONL when line limit exceeded', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mat-rot-'));
+  const tracker = new MetaAwarenessTracker({
+    telemetryDir: dir,
+    maxEventLines: 10,
+    rotateKeepLines: 6,
+    rotationCheckInterval: 1,
+  });
+
+  // Write 15 events directly via _appendEvent
+  for (let i = 0; i < 15; i++) {
+    tracker._appendEvent({ event_type: 'test', seq: i, timestamp: new Date().toISOString() });
+  }
+
+  const lines = fs.readFileSync(tracker.eventsPath, 'utf8').split('\n').filter(Boolean);
+  assert.ok(lines.length <= 10, `Expected ≤10 lines after rotation, got ${lines.length}`);
+
+  fs.rmSync(dir, { recursive: true, force: true });
+});

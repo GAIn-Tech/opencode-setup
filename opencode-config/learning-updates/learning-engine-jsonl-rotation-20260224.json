@@ -1,0 +1,16 @@
+{
+  "id": "learning-engine-jsonl-rotation-20260224",
+  "timestamp": "2026-02-24T00:00:00Z",
+  "summary": "Added JSONL rotation to MetaAwarenessTracker._appendEvent() to prevent unbounded telemetry file growth",
+  "affected_paths": [
+    "packages/opencode-learning-engine/src/meta-awareness-tracker.js",
+    "packages/opencode-learning-engine/test/meta-awareness.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "TDD fix: _appendEvent() now increments _appendCount and calls _maybeRotateJSONL() every _rotationCheckInterval appends. _maybeRotateJSONL() reads JSONL file, checks if lines exceed _maxEventLines (default 50000), and trims to _rotateKeepLines (default 40000) using atomic tmp-file rename. Constructor options: maxEventLines, rotateKeepLines, rotationCheckInterval. 1 new test verifies rotation with maxEventLines:10, rotateKeepLines:6. All 8 tests pass."
+}

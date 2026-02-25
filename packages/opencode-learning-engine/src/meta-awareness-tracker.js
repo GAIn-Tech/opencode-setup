@@ -29,6 +29,11 @@ class MetaAwarenessTracker {
     this.confidenceThreshold = options.confidenceThreshold ?? 0.85;
     this.anomalyZThreshold = options.anomalyZThreshold ?? 3;
 
+    this._maxEventLines = options.maxEventLines ?? 50000;
+    this._rotateKeepLines = options.rotateKeepLines ?? 40000;
+    this._appendCount = 0;
+    this._rotationCheckInterval = options.rotationCheckInterval ?? 1000;
+
     this._flushDebounceMs = options.flushDebounceMs ?? 500;
     this._rollupCache = null;   // in-memory rollup; null = not yet loaded
     this._flushTimer = null;
@@ -259,6 +264,27 @@ class MetaAwarenessTracker {
 
   _appendEvent(event) {
     fs.appendFileSync(this.eventsPath, `${JSON.stringify(event)}\n`, 'utf8');
+    this._appendCount += 1;
+    if (this._appendCount >= this._rotationCheckInterval) {
+      this._appendCount = 0;
+      this._maybeRotateJSONL();
+    }
+  }
+
+  _maybeRotateJSONL() {
+    try {
+      if (!fs.existsSync(this.eventsPath)) return;
+      const content = fs.readFileSync(this.eventsPath, 'utf8');
+      const lines = content.split('\n').filter(Boolean);
+      if (lines.length <= this._maxEventLines) return;
+      const kept = lines.slice(-this._rotateKeepLines).join('\n') + '\n';
+      const tmp = `${this.eventsPath}.tmp`;
+      fs.writeFileSync(tmp, kept, 'utf8');
+      fs.renameSync(tmp, this.eventsPath);
+      console.log(`[MetaAwarenessTracker] Rotated JSONL: kept ${this._rotateKeepLines} of ${lines.length} lines`);
+    } catch (err) {
+      console.warn(`[MetaAwarenessTracker] JSONL rotation failed (non-fatal): ${err.message}`);
+    }
   }
 
   _readEvents({ sinceDays = 30, sessionId } = {}) {

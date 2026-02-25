@@ -1,0 +1,16 @@
+{
+  "id": "context-governor-urgency-field-20260224",
+  "timestamp": "2026-02-24T00:00:00Z",
+  "summary": "Added numeric urgency field to checkBudget() return value for programmatic budget alerting",
+  "affected_paths": [
+    "packages/opencode-context-governor/src/index.js",
+    "packages/opencode-context-governor/test/governor-crash.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "TDD fix: checkBudget() now returns urgency field (0=ok, 1=warn, 2=error, 3=exceeded) alongside existing status string. Additive change, non-breaking. New test verifies all urgency levels map correctly to status values. All 6 tests pass."
+}

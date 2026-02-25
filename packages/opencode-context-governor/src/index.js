@@ -97,9 +97,11 @@ class Governor {
       message = `OK: ${wouldUse}/${config.maxTokens} tokens (${(wouldPct * 100).toFixed(1)}%).`;
     }
 
+    const urgencyMap = { ok: 0, warn: 1, error: 2, exceeded: 3 };
     return {
       allowed,
       status,
+      urgency: urgencyMap[status] ?? 0,
       remaining: Math.max(0, config.maxTokens - wouldUse),
       message,
     };

@@ -594,8 +594,9 @@ class PatternExtractor {
             const raw = fs.readFileSync(path.join(sessionDir, file), 'utf8');
             const msg = JSON.parse(raw);
             messages.push(msg);
-          } catch {
-            // Skip malformed files
+          } catch (err) {
+            // pattern extraction is best-effort; log but don't propagate
+            if (process.env.DEBUG) console.warn('[PatternExtractor] parse error (skipped):', err.message);
           }
         }
       }
@@ -608,7 +609,9 @@ class PatternExtractor {
       });
 
       return messages;
-    } catch {
+    } catch (err) {
+      // pattern extraction is best-effort; log but don't propagate
+      if (process.env.DEBUG) console.warn('[PatternExtractor] parse error (skipped):', err.message);
       return [];
     }
   }
@@ -620,7 +623,9 @@ class PatternExtractor {
         .readdirSync(MESSAGES_DIR, { withFileTypes: true })
         .filter((d) => d.isDirectory())
         .map((d) => d.name);
-    } catch {
+    } catch (err) {
+      // pattern extraction is best-effort; log but don't propagate
+      if (process.env.DEBUG) console.warn('[PatternExtractor] parse error (skipped):', err.message);
       return [];
     }
   }
