@@ -8,7 +8,7 @@
  */
 let contextUtils;
 try {
-  contextUtils = require('@jackoatmon/opencode-shared-orchestration/src/context-utils');
+  contextUtils = require('opencode-shared-orchestration/src/context-utils');
 } catch {
   // Fallback for non-linked environments (development without bun link)
   try {

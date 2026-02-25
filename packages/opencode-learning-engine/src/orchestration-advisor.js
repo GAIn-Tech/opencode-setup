@@ -22,7 +22,7 @@ try {
 // Graceful fallback chain: scoped package → relative path → inline stubs
 let contextUtils;
 try {
-  contextUtils = require('@jackoatmon/opencode-shared-orchestration/src/context-utils');
+  contextUtils = require('opencode-shared-orchestration/src/context-utils');
 } catch {
   try {
     contextUtils = require('../../opencode-shared-orchestration/src/context-utils');

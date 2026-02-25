@@ -10,7 +10,7 @@
  * - Process exit handlers
  * 
  * Usage:
- *   const shutdown = require('@jackoatmon/opencode-crash-guard/shutdown');
+ *   const shutdown = require('opencode-crash-guard/shutdown');
  *   
  *   // Register an interval to be cleaned up
  *   const intervalId = setInterval(() => doWork(), 5000);
