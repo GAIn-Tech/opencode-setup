@@ -132,5 +132,5 @@ class RequestTracer {
 const logger = new Logger();
 
 // Export as ES modules
-export { Logger, RequestTracer, logger, LOG_LEVELS };
+export { Logger, logger };
 export default logger;

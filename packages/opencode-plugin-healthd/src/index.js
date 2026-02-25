@@ -106,4 +106,4 @@ class Healthd extends EventEmitter {
   }
 }
 
-module.exports = { Healthd, KNOWN_BAD_PLUGINS, DEFAULT_MCPS };
+module.exports = { Healthd };

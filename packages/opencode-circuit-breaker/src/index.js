@@ -163,8 +163,9 @@ export class CircuitBreaker {
 
 /**
  * CircuitBreakerRegistry - Manage multiple circuit breakers
+ * @internal Used only within this module
  */
-export class CircuitBreakerRegistry {
+class CircuitBreakerRegistry {
   constructor() {
     this.breakers = new Map();
     this.defaultOptions = {
@@ -249,8 +250,9 @@ export class CircuitBreakerRegistry {
 
 /**
  * Custom error for circuit open state
+ * @internal Thrown by CircuitBreaker when circuit is OPEN
  */
-export class CircuitOpenError extends Error {
+class CircuitOpenError extends Error {
   constructor(name, retryAfter) {
     super(`Circuit breaker "${name}" is OPEN. Retry after ${Math.ceil(retryAfter/1000)}s`);
     this.name = 'CircuitOpenError';
@@ -259,5 +261,5 @@ export class CircuitOpenError extends Error {
   }
 }
 
-// Default registry instance
-export const circuitBreakerRegistry = new CircuitBreakerRegistry();
+// Default registry instance (internal, not exported)
+const circuitBreakerRegistry = new CircuitBreakerRegistry();

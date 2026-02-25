@@ -1,0 +1,18 @@
+{
+  "id": "remove-orphaned-exports-20260225",
+  "timestamp": "2026-02-25T22:00:00Z",
+  "summary": "Removed 9 orphaned exports with zero cross-package imports: circuitBreakerRegistry/CircuitBreakerRegistry/CircuitOpenError from circuit-breaker, RequestTracer/LOG_LEVELS from logger, KNOWN_BAD_PLUGINS/DEFAULT_MCPS from plugin-healthd, toJSON/toCSV from memory-graph.",
+  "affected_paths": [
+    "packages/opencode-circuit-breaker/src/index.js",
+    "packages/opencode-logger/src/index.js",
+    "packages/opencode-plugin-healthd/src/index.js",
+    "packages/opencode-memory-graph/src/index.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "All removed exports had zero cross-package references. Classes/constants remain in source for internal use, only export visibility removed. No test regressions introduced."
+}

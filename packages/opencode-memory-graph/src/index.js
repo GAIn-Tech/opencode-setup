@@ -479,6 +479,4 @@ class MemoryGraph {
 
 module.exports = {
   MemoryGraph,
-  toJSON,
-  toCSV,
 };
