@@ -411,4 +411,4 @@ class BackfillEngine {
   }
 }
 
-module.exports = { BackfillEngine };
+module.exports = { BackfillEngine, ERROR_KEYWORDS, TOOL_PATTERNS };

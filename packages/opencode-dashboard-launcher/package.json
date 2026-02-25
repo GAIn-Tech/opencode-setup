@@ -9,12 +9,10 @@
   "scripts": {
     "test": "echo \"No tests yet\""
   },
-  "keywords": [
-    "opencode",
-    "dashboard",
-    "launcher"
-  ],
+  "keywords": ["opencode", "dashboard", "launcher"],
   "author": "OpenCode",
   "license": "MIT",
-  "dependencies": {}
+  "dependencies": {
+    "opencode-config-loader": "file:../opencode-config-loader"
+  }
 }

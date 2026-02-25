@@ -237,4 +237,4 @@ function toText(comparison) {
   return _reporter.toText(comparison);
 }
 
-module.exports = { Reporter, toJSON, toCSV, toText };
+module.exports = { Reporter, toJSON, toCSV, toDetailedCSV, toText };

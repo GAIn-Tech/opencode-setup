@@ -7,13 +7,11 @@
   "scripts": {
     "test": "bun test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@opencode/crash-guard": "workspace:*"
+  },
   "devDependencies": {},
-  "keywords": [
-    "feature-flags",
-    "a-b-testing",
-    "gradual-rollout"
-  ],
+  "keywords": ["feature-flags", "a-b-testing", "gradual-rollout"],
   "author": "",
   "license": "MIT"
 }

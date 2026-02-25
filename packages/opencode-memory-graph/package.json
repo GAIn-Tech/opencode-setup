@@ -24,7 +24,9 @@
   "engines": {
     "node": ">=14.0.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "opencode-goraphdb-bridge": "workspace:*"
+  },
   "files": [
     "src/",
     "README.md"

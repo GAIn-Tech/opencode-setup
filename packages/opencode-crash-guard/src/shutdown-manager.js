@@ -271,6 +271,9 @@ async function shutdown(exitCode = 0) {
 
 module.exports = {
   init,
+  registerInterval,
+  registerTimeout,
+  registerCleanup,
   getStatus,
   shutdown,
   getInstance
