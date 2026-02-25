@@ -108,3 +108,30 @@ test('tracker: writes events and updates rollups', () => {
 
   fs.rmSync(tempDir, { recursive: true, force: true });
 });
+
+test('MetaAwarenessTracker debounces rollup writes', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mat-'));
+  const tracker = new MetaAwarenessTracker({
+    telemetryDir: dir,
+    flushDebounceMs: 50,
+  });
+
+  let writeCount = 0;
+  const orig = tracker._writeRollups.bind(tracker);
+  // Patch to intercept actual disk flushes
+  tracker._flushNow = () => { writeCount++; return orig(tracker._rollupCache); };
+
+  for (let i = 0; i < 20; i++) {
+    tracker.trackEvent({ event_type: 'orchestration.delegation_decision', metadata: { should_delegate: true, delegated: true } });
+  }
+
+  // Should not have flushed to disk yet (debounced)
+  assert.ok(writeCount < 20, `Expected debounced writes, got ${writeCount} immediately`);
+
+  // After debounce delay
+  await new Promise(r => setTimeout(r, 150));
+  assert.ok(writeCount >= 1, `Expected at least 1 flush, got ${writeCount}`);
+  assert.ok(writeCount <= 3, `Expected at most 3 flushes, got ${writeCount}`);
+
+  fs.rmSync(dir, { recursive: true, force: true });
+});

@@ -29,6 +29,10 @@ class MetaAwarenessTracker {
     this.confidenceThreshold = options.confidenceThreshold ?? 0.85;
     this.anomalyZThreshold = options.anomalyZThreshold ?? 3;
 
+    this._flushDebounceMs = options.flushDebounceMs ?? 500;
+    this._rollupCache = null;   // in-memory rollup; null = not yet loaded
+    this._flushTimer = null;
+
     if (!fs.existsSync(this.telemetryDir)) {
       fs.mkdirSync(this.telemetryDir, { recursive: true });
     }
@@ -275,21 +279,52 @@ class MetaAwarenessTracker {
   }
 
   _readRollups() {
+    if (this._rollupCache !== null) return this._rollupCache;
     if (!fs.existsSync(this.rollupsPath)) {
-      return initializeRollups();
+      this._rollupCache = initializeRollups();
+      return this._rollupCache;
     }
     try {
       const parsed = JSON.parse(fs.readFileSync(this.rollupsPath, 'utf8'));
-      return parsed && typeof parsed === 'object' ? parsed : initializeRollups();
+      this._rollupCache = (parsed && typeof parsed === 'object') ? parsed : initializeRollups();
     } catch {
-      return initializeRollups();
+      this._rollupCache = initializeRollups();
     }
+    return this._rollupCache;
   }
 
   _writeRollups(rollups) {
-    const tmp = `${this.rollupsPath}.tmp`;
-    fs.writeFileSync(tmp, JSON.stringify(rollups, null, 2), 'utf8');
-    fs.renameSync(tmp, this.rollupsPath);
+    this._rollupCache = rollups;  // update cache immediately
+    this._scheduleFlush();
+  }
+
+  _scheduleFlush() {
+    if (this._flushTimer) return;
+    this._flushTimer = setTimeout(() => {
+      this._flushTimer = null;
+      this._flushNow();
+    }, this._flushDebounceMs);
+    if (this._flushTimer.unref) this._flushTimer.unref();
+  }
+
+  _flushNow() {
+    if (!this._rollupCache) return;
+    try {
+      const tmp = `${this.rollupsPath}.tmp`;
+      fs.writeFileSync(tmp, JSON.stringify(this._rollupCache, null, 2), 'utf8');
+      fs.renameSync(tmp, this.rollupsPath);
+    } catch (err) {
+      console.warn(`[MetaAwarenessTracker] Failed to flush rollups: ${err.message}`);
+    }
+  }
+
+  /** Force immediate flush — call before process exit to ensure last events are persisted. */
+  flush() {
+    if (this._flushTimer) {
+      clearTimeout(this._flushTimer);
+      this._flushTimer = null;
+    }
+    this._flushNow();
   }
 
   _compositeConfidence(composite = {}) {
