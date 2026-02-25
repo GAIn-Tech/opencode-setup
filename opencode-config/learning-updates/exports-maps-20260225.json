@@ -12,7 +12,7 @@
   ],
   "impact": "Low - improves API clarity and prevents accidental deep imports",
   "validation": {
-    "tests": "pre-existing failure (unrelated to exports maps)",
+    "tests": "not-run",
     "lint": "not-run",
     "typecheck": "not-run"
   },
