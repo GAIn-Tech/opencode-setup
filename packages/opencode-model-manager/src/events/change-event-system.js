@@ -5,6 +5,8 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const DEFAULT_AUDIT_LOG_PATH = './audit-log.json';
+const MAX_AUDIT_EVENTS = 10000;  // Cap before rotation
+const MAX_AUDIT_AGE_MS = 7 * 24 * 60 * 60 * 1000;  // 7 days
 
 const EVENT_TYPES = Object.freeze({
   ADDED: 'added',
@@ -187,7 +189,19 @@ class ChangeEventSystem extends EventEmitter {
     return normalized.sort((left, right) => left.timestamp - right.timestamp);
   }
 
+  _maybeRotateAuditLog() {
+    if (this.auditLog.length > MAX_AUDIT_EVENTS) {
+      // Keep newest events
+      this.auditLog = this.auditLog.slice(-MAX_AUDIT_EVENTS);
+    }
+
+    // Age-based cleanup
+    const cutoff = Date.now() - MAX_AUDIT_AGE_MS;
+    this.auditLog = this.auditLog.filter(e => e.timestamp > cutoff);
+  }
+
   async _persistAuditLog() {
+    this._maybeRotateAuditLog();
     const payload = JSON.stringify({ events: this.auditLog }, null, 2);
 
     this.writeQueue = this.writeQueue

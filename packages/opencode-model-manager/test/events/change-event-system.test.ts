@@ -30,6 +30,8 @@ function createDiff(overrides = {}) {
   };
 }
 
+const BASE_TS = Date.now() - 3600000;
+
 describe('ChangeEventSystem', () => {
   let tempDir;
   let auditLogPath;
@@ -73,7 +75,7 @@ describe('ChangeEventSystem', () => {
           classification: 'major',
           model: createModel({ id: 'gpt-5-mini', provider: 'openai' }),
           provider: 'openai',
-          timestamp: 1_710_000_001_000
+          timestamp: BASE_TS + 1000
         }
       ],
       removed: [
@@ -82,7 +84,7 @@ describe('ChangeEventSystem', () => {
           classification: 'major',
           model: createModel({ id: 'legacy-model', provider: 'openai' }),
           provider: 'openai',
-          timestamp: 1_710_000_002_000
+          timestamp: BASE_TS + 2000
         }
       ],
       modified: [
@@ -94,7 +96,7 @@ describe('ChangeEventSystem', () => {
             'capabilities.vision': { old: false, new: true }
           },
           provider: 'openai',
-          timestamp: 1_710_000_003_000
+          timestamp: BASE_TS + 3000
         }
       ]
     });
@@ -112,7 +114,7 @@ describe('ChangeEventSystem', () => {
       provider: 'openai',
       model: expect.objectContaining({ id: 'gpt-5-mini' }),
       changes: null,
-      timestamp: 1_710_000_001_000,
+      timestamp: BASE_TS + 1000,
       snapshotId: 'snapshot-123'
     });
 
@@ -122,7 +124,7 @@ describe('ChangeEventSystem', () => {
       provider: 'openai',
       model: expect.objectContaining({ id: 'legacy-model' }),
       changes: null,
-      timestamp: 1_710_000_002_000,
+      timestamp: BASE_TS + 2000,
       snapshotId: 'snapshot-123'
     });
 
@@ -134,7 +136,7 @@ describe('ChangeEventSystem', () => {
       changes: {
         'capabilities.vision': { old: false, new: true }
       },
-      timestamp: 1_710_000_003_000,
+      timestamp: BASE_TS + 3000,
       snapshotId: 'snapshot-123'
     });
   });
@@ -159,7 +161,7 @@ describe('ChangeEventSystem', () => {
             classification: 'major',
             model: createModel({ id: 'gpt-4.1-mini' }),
             provider: 'openai',
-            timestamp: 1_710_000_004_000
+            timestamp: BASE_TS + 4000
           }
         ]
       }),
@@ -181,7 +183,7 @@ describe('ChangeEventSystem', () => {
             classification: 'major',
             model: createModel({ id: 'gpt-4.1' }),
             provider: 'openai',
-            timestamp: 1_710_000_005_000
+            timestamp: BASE_TS + 5000
           }
         ]
       }),
@@ -208,7 +210,7 @@ describe('ChangeEventSystem', () => {
             classification: 'major',
             model: createModel({ id: 'model-a' }),
             provider: 'openai',
-            timestamp: 1_710_000_010_000
+            timestamp: BASE_TS + 10000
           }
         ]
       }),
@@ -224,7 +226,7 @@ describe('ChangeEventSystem', () => {
             model: createModel({ id: 'model-b' }),
             changes: { displayName: { old: 'Model B', new: 'Model B+' } },
             provider: 'openai',
-            timestamp: 1_710_000_020_000
+            timestamp: BASE_TS + 20000
           }
         ]
       }),
@@ -239,7 +241,7 @@ describe('ChangeEventSystem', () => {
             classification: 'major',
             model: createModel({ id: 'model-c' }),
             provider: 'openai',
-            timestamp: 1_710_000_030_000
+            timestamp: BASE_TS + 30000
           }
         ]
       }),
@@ -247,19 +249,19 @@ describe('ChangeEventSystem', () => {
     );
 
     const midRangeEntries = await eventSystem.getAuditLog({
-      startTime: 1_710_000_015_000,
-      endTime: 1_710_000_025_000
+      startTime: BASE_TS + 15000,
+      endTime: BASE_TS + 25000
     });
     const invalidRangeEntries = await eventSystem.getAuditLog({
-      startTime: 1_710_000_050_000,
-      endTime: 1_710_000_040_000
+      startTime: BASE_TS + 50000,
+      endTime: BASE_TS + 40000
     });
 
     expect(midRangeEntries).toHaveLength(1);
     expect(midRangeEntries[0]).toMatchObject({
       type: 'changed',
       snapshotId: 'snapshot-2',
-      timestamp: 1_710_000_020_000
+      timestamp: BASE_TS + 20000
     });
     expect(invalidRangeEntries).toEqual([]);
   });
@@ -284,7 +286,7 @@ describe('ChangeEventSystem', () => {
             classification: 'major',
             model: createModel({ id: 'persist-before-emit' }),
             provider: 'openai',
-            timestamp: 1_710_000_040_000
+            timestamp: BASE_TS + 40000
           }
         ]
       }),
@@ -309,7 +311,7 @@ describe('ChangeEventSystem', () => {
             classification: 'major',
             model: createModel({ id: 'no-subscriber-model' }),
             provider: 'openai',
-            timestamp: 1_710_000_050_000
+            timestamp: BASE_TS + 50000
           }
         ]
       }),

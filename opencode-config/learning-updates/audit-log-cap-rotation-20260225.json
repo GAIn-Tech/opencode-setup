@@ -1,0 +1,19 @@
+{
+  "id": "audit-log-cap-rotation-20260225",
+  "timestamp": "2026-02-25T12:00:00Z",
+  "category": "memory",
+  "summary": "Cap change-event-system audit log at 10k events with 7-day TTL to prevent unbounded memory growth and write latency spikes",
+  "details": "Added MAX_AUDIT_EVENTS (10000) and MAX_AUDIT_AGE_MS (7 days) constants. New _maybeRotateAuditLog() method slices to newest 10k events and filters events older than 7 days. Called at start of _persistAuditLog() before serialization. Updated existing test timestamps from hardcoded 2024 values to recent Date.now()-based offsets for TTL compatibility.",
+  "affected_paths": [
+    "packages/opencode-model-manager/src/events/change-event-system.js",
+    "packages/opencode-model-manager/test/audit-log-cap.test.js",
+    "packages/opencode-model-manager/test/events/change-event-system.test.ts"
+  ],
+  "impact": "Medium - prevents OOM and write latency spikes from unbounded audit log growth",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}
