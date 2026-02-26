@@ -2,6 +2,25 @@ import fs from 'fs';
 import fsPromises from 'fs/promises';
 import path from 'path';
 
+// Size guard constant: 10MB max for JSON parsing
+const MAX_JSON_SIZE = 10 * 1024 * 1024;
+
+/**
+ * Safe JSON parse with size guard to prevent OOM.
+ * @param {string} content - JSON string to parse
+ * @param {number} [maxSize=MAX_JSON_SIZE] - Max allowed size in bytes
+ * @returns {object} Parsed JSON object
+ * @throws {Error} If content exceeds size limit
+ */
+function safeJsonParse(content, maxSize = MAX_JSON_SIZE) {
+  const sizeBytes = Buffer.byteLength(content, 'utf-8');
+  if (sizeBytes > maxSize) {
+    console.warn(`[correlation] JSON payload exceeds size limit: ${sizeBytes} > ${maxSize} bytes`);
+    throw new Error(`JSON payload exceeds size limit: ${sizeBytes} > ${maxSize} bytes`);
+  }
+  return JSON.parse(content);
+}
+
 function n(v, fallback = 0) {
   if (typeof v === 'number' && Number.isFinite(v)) return v;
   if (typeof v === 'string') {
@@ -77,10 +96,10 @@ export async function collectCorrelationData({ messagesPath, customEventsPath, c
       let maxLoop = 0;
       const allFiles = await fsPromises.readdir(path.join(messagesPath, sessionId));
       const files = allFiles.filter((fileName) => fileName.endsWith('.json'));
-      for (const fileName of files) {
-        try {
-          const content = await fsPromises.readFile(path.join(messagesPath, sessionId, fileName), 'utf-8');
-          const raw = JSON.parse(content);
+       for (const fileName of files) {
+         try {
+           const content = await fsPromises.readFile(path.join(messagesPath, sessionId, fileName), 'utf-8');
+           const raw = safeJsonParse(content);
           totalMessages += 1;
           const a = String(raw?.agent || '').trim();
           if (a) {

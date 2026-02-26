@@ -2,6 +2,24 @@
 
 const fetch = require('node-fetch');
 
+// Size guard constant: 10MB max for JSON responses
+const MAX_JSON_SIZE = 10 * 1024 * 1024;
+
+/**
+ * Safe JSON parse with size guard to prevent OOM.
+ * @param {string} content - JSON string to parse
+ * @param {number} [maxSize=MAX_JSON_SIZE] - Max allowed size in bytes
+ * @returns {object} Parsed JSON object
+ * @throws {Error} If content exceeds size limit
+ */
+function safeJsonParse(content, maxSize = MAX_JSON_SIZE) {
+  const sizeBytes = Buffer.byteLength(content, 'utf-8');
+  if (sizeBytes > maxSize) {
+    throw new Error(`JSON response exceeds size limit: ${sizeBytes} > ${maxSize} bytes (consider streaming)`);
+  }
+  return JSON.parse(content);
+}
+
 /**
  * GoraphDB REST Client
  * Low-level HTTP client for goraphdb server communication.
@@ -55,13 +73,13 @@ class GoraphDBClient {
 
         clearTimeout(timeoutId);
 
-        const body = await response.text();
-        let parsed;
-        try {
-          parsed = JSON.parse(body);
-        } catch {
-          parsed = { raw: body };
-        }
+         const body = await response.text();
+         let parsed;
+         try {
+           parsed = safeJsonParse(body);
+         } catch {
+           parsed = { raw: body };
+         }
 
         if (!response.ok) {
           const err = new Error(

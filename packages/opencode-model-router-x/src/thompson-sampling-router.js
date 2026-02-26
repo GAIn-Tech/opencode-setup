@@ -246,8 +246,15 @@ class ThompsonSamplingRouter {
 
     const d = k - 1 / 3;
     const c = 1 / Math.sqrt(9 * d);
+    const MAX_ITERATIONS = 10000;
+    let iterations = 0;
 
     while (true) {
+      if (iterations++ > MAX_ITERATIONS) {
+        // Graceful degradation: return expected value instead of sampling
+        return d * theta;
+      }
+
       let x, v;
       do {
         x = this._randomNormal();

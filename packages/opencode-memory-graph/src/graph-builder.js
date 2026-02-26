@@ -3,6 +3,24 @@
 const fs = require('fs');
 const path = require('path');
 
+// Size guard constant: 10MB max for JSON parsing
+const MAX_JSON_SIZE = 10 * 1024 * 1024;
+
+/**
+ * Safe JSON parse with size guard to prevent OOM.
+ * @param {string} content - JSON string to parse
+ * @param {number} [maxSize=MAX_JSON_SIZE] - Max allowed size in bytes
+ * @returns {object} Parsed JSON object
+ * @throws {Error} If content exceeds size limit
+ */
+function safeJsonParse(content, maxSize = MAX_JSON_SIZE) {
+  const sizeBytes = Buffer.byteLength(content, 'utf-8');
+  if (sizeBytes > maxSize) {
+    throw new Error(`JSON payload exceeds size limit: ${sizeBytes} > ${maxSize} bytes`);
+  }
+  return JSON.parse(content);
+}
+
 /**
  * Log entry format (expected from OpenCode runtime):
  *   { session_id, timestamp, error_type, message }
@@ -31,13 +49,13 @@ function parseLog(logFilePath) {
 
   // Try JSON array first
   if (raw.startsWith('[')) {
-    return normalizeEntries(JSON.parse(raw));
+    return normalizeEntries(safeJsonParse(raw));
   }
 
   // Try JSON-lines
   const lines = raw.split(/\r?\n/).filter(Boolean);
   if (lines[0].startsWith('{')) {
-    return normalizeEntries(lines.map((l) => JSON.parse(l)));
+    return normalizeEntries(lines.map((l) => safeJsonParse(l)));
   }
 
   // Fallback: TSV / CSV  (session_id  timestamp  error_type  message)
