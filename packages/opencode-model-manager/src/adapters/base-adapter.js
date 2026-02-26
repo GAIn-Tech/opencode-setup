@@ -4,6 +4,13 @@ const {
   ProviderAdapterInterface,
   AdapterInterfaceError
 } = require('./adapter-interface');
+const {
+  ADAPTER_TIMEOUT_MS,
+  RETRY_MAX_ATTEMPTS,
+  RETRY_BASE_DELAY_MS,
+  RETRY_MAX_DELAY_MS,
+  RETRY_JITTER_MS
+} = require('../constants');
 
 const RETRYABLE_HTTP_STATUS = new Set([408, 409, 425, 429, 500, 502, 503, 504]);
 const RETRYABLE_NETWORK_CODES = new Set([
@@ -87,12 +94,12 @@ class BaseAdapter extends ProviderAdapterInterface {
       endpoint: config.endpoint || '',
       authType: config.authType || 'bearer',
       envKey: config.envKey || null,
-      timeoutMs: Number(config.timeoutMs) || 10000,
+      timeoutMs: Number(config.timeoutMs) || ADAPTER_TIMEOUT_MS,
       retry: {
-        maxAttempts: Math.max(1, Number(retryConfig.maxAttempts) || 3),
-        baseDelayMs: Math.max(0, Number(retryConfig.baseDelayMs) || 250),
-        maxDelayMs: Math.max(0, Number(retryConfig.maxDelayMs) || 2000),
-        jitterMs: Math.max(0, Number(retryConfig.jitterMs) || 50)
+        maxAttempts: Math.max(1, Number(retryConfig.maxAttempts) || RETRY_MAX_ATTEMPTS),
+        baseDelayMs: Math.max(0, Number(retryConfig.baseDelayMs) || RETRY_BASE_DELAY_MS),
+        maxDelayMs: Math.max(0, Number(retryConfig.maxDelayMs) || RETRY_MAX_DELAY_MS),
+        jitterMs: Math.max(0, Number(retryConfig.jitterMs) || RETRY_JITTER_MS)
       },
       queryKeyParam: config.queryKeyParam || 'key',
       customAuthHeader: config.customAuthHeader || 'x-api-key',

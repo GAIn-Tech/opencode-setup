@@ -1,6 +1,7 @@
 'use strict';
 
 const { BaseAdapter, AdapterError } = require('./base-adapter');
+const { ADAPTER_TIMEOUT_MS, GOOGLE_API_PAGE_SIZE } = require('../constants');
 
 /**
  * Google Gemini API adapter for model discovery.
@@ -25,7 +26,7 @@ class GoogleAdapter extends BaseAdapter {
       endpoint: config.endpoint || 'https://generativelanguage.googleapis.com/v1beta',
       authType: 'query',
       envKey: config.envKey || 'GOOGLE_API_KEY',
-      timeoutMs: config.timeoutMs || 10000,
+      timeoutMs: config.timeoutMs || ADAPTER_TIMEOUT_MS,
       retry: config.retry,
       fetchImpl: config.fetchImpl,
       circuitBreaker: config.circuitBreaker,
@@ -43,7 +44,7 @@ class GoogleAdapter extends BaseAdapter {
    * @returns {Promise<Array>} Raw model list from Google.
    */
   async _listRaw(options, context) {
-    const pageSize = options?.pageSize || 100;
+    const pageSize = options?.pageSize || GOOGLE_API_PAGE_SIZE;
     const pageToken = options?.pageToken;
 
     // Build query parameters

@@ -1,6 +1,7 @@
 'use strict';
 
 const { BaseAdapter, AdapterError } = require('./base-adapter');
+const { ADAPTER_TIMEOUT_MS } = require('../constants');
 
 /**
  * Cerebras API adapter for model discovery.
@@ -24,7 +25,7 @@ class CerebrasAdapter extends BaseAdapter {
       endpoint: config.endpoint || 'https://api.cerebras.ai/v1',
       authType: 'bearer',
       envKey: config.envKey || 'CEREBRAS_API_KEY',
-      timeoutMs: config.timeoutMs || 10000,
+      timeoutMs: config.timeoutMs || ADAPTER_TIMEOUT_MS,
       retry: config.retry,
       fetchImpl: config.fetchImpl,
       circuitBreaker: config.circuitBreaker,
