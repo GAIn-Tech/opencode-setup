@@ -35,6 +35,9 @@ const LOCK_FILE = path.join(os.homedir(), '.opencode', 'dashboard.lock');
 const LOG_FILE = path.join(os.homedir(), '.opencode', 'dashboard.log');
 const DASHBOARD_DIR = path.join(__dirname, '..', '..', 'opencode-dashboard');
 
+/** Dashboard host - configurable via env var */
+const DASHBOARD_HOST = process.env.OPENCODE_DASHBOARD_HOST || '127.0.0.1';
+
 /** Timeout to kill browser-open process if it hangs (15s) */
 const BROWSER_OPEN_TIMEOUT_MS = 15000;
 
@@ -125,7 +128,7 @@ function checkDashboard() {
  * Opens dashboard in default browser
  */
 function openBrowser(port) {
-  const url = `http://127.0.0.1:${port}`;
+  const url = `http://${DASHBOARD_HOST}:${port}`;
   const autoOpen = getConfigValue('dashboard.autoOpen', true);
   
   if (!autoOpen) return;
@@ -277,6 +280,8 @@ module.exports = {
   createHealthCheck,
   // MCP server interface
   startServer,
+  // Configuration constants
+  DASHBOARD_HOST,
   // Timeout constants (for testing)
   BROWSER_OPEN_TIMEOUT_MS,
   DASHBOARD_LAUNCH_TIMEOUT_MS

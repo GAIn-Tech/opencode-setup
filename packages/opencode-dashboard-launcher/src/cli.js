@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { ensureDashboard, checkDashboard, stopDashboard } = require('./index');
+const { ensureDashboard, checkDashboard, stopDashboard, DASHBOARD_HOST } = require('./index');
 
 const command = process.argv[2];
 
@@ -9,9 +9,9 @@ switch (command) {
     console.log('Starting OpenCode dashboard...');
     const result = ensureDashboard(true);
     if (result.launched) {
-      console.log(`✓ Dashboard launched on http://127.0.0.1:${result.port} (PID: ${result.pid})`);
+      console.log(`✓ Dashboard launched on http://${DASHBOARD_HOST}:${result.port} (PID: ${result.pid})`);
     } else {
-      console.log(`✓ Dashboard already running on http://127.0.0.1:${result.port} (PID: ${result.pid})`);
+      console.log(`✓ Dashboard already running on http://${DASHBOARD_HOST}:${result.port} (PID: ${result.pid})`);
     }
     break;
     
@@ -28,7 +28,7 @@ switch (command) {
   case 'status':
     const status = checkDashboard();
     if (status.running) {
-      console.log(`✓ Dashboard running on http://127.0.0.1:${status.port} (PID: ${status.pid})`);
+      console.log(`✓ Dashboard running on http://${DASHBOARD_HOST}:${status.port} (PID: ${status.pid})`);
     } else {
       console.log('✗ Dashboard not running');
     }
@@ -39,7 +39,7 @@ switch (command) {
     stopDashboard();
     setTimeout(() => {
       const restartResult = ensureDashboard(true);
-      console.log(`✓ Dashboard restarted on http://127.0.0.1:${restartResult.port} (PID: ${restartResult.pid})`);
+      console.log(`✓ Dashboard restarted on http://${DASHBOARD_HOST}:${restartResult.port} (PID: ${restartResult.pid})`);
     }, 1000);
     break;
     
