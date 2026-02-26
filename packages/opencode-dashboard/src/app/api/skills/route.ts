@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
+import fsPromises from 'fs/promises';
 
 export const dynamic = 'force-dynamic';
 
@@ -162,7 +163,7 @@ export async function GET() {
     
     // Try to load real skill data
     try {
-      const raw = fs.readFileSync(skillsPath, 'utf-8');
+      const raw = await fsPromises.readFile(skillsPath, 'utf-8');
       const skillData = safeParseJson(raw);
       if (!skillData) {
         console.error('[Skills API] Parse error: invalid JSON');

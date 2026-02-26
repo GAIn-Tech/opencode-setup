@@ -11,7 +11,8 @@ export async function writeJsonAtomic(filePath: string, value: unknown): Promise
 
   await fsPromises.writeFile(tempPath, serialized, 'utf-8');
   try {
-    JSON.parse(fs.readFileSync(tempPath, 'utf-8'));
+    const verifyData = await fsPromises.readFile(tempPath, 'utf-8');
+    JSON.parse(verifyData);
   } catch (error) {
     await fsPromises.rm(tempPath, { force: true });
     throw new Error(`Atomic write verification failed for ${filePath}: ${String(error)}`);

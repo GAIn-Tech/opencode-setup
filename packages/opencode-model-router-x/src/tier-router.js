@@ -120,28 +120,28 @@ class TierRouter {
       score += 0.2;
     }
     if (prompt.length > 1000) {
-      score += 0.1;
+      score += 0.2;
     }
     if (prompt.length > 2000) {
-      score += 0.1;
+      score += 0.2;
     }
 
-    // Complexity keywords
+    // Complexity keywords - increased weight
     for (const keyword of COMPLEXITY_KEYWORDS) {
       if (promptLower.includes(keyword)) {
-        score += 0.05;
+        score += 0.12;
       }
     }
 
     // Code block indicators
     if (prompt.includes('```')) {
-      score += 0.15;
+      score += 0.2;
     }
 
     // Multiple file indicators
     const fileIndicators = prompt.match(/\/\w+\/\w+/g);
     if (fileIndicators && fileIndicators.length > 3) {
-      score += 0.1;
+      score += 0.2;
     }
 
     return Math.min(score, 1.0);
@@ -214,14 +214,16 @@ class TierRouter {
       return baseTier;
     }
 
-    // Get memory in bytes
+    // Get memory in MB (input is already in MB)
     const memoryMB = availableMemory;
+    const lowThresholdMB = MEMORY_THRESHOLDS.LOW / (1024 * 1024);
+    const mediumThresholdMB = MEMORY_THRESHOLDS.MEDIUM / (1024 * 1024);
     
     // Downgrade tier if low memory
-    if (memoryMB < MEMORY_THRESHOLDS.LOW / (1024 * 1024)) {
-      // Force to cheaper model for low memory
-      return this.getFallbackTier(baseTier) || 'mechanical';
-    } else if (memoryMB < MEMORY_THRESHOLDS.MEDIUM / (1024 * 1024)) {
+    if (memoryMB < lowThresholdMB) {
+      // Force to mechanical for very low memory
+      return 'mechanical';
+    } else if (memoryMB < mediumThresholdMB) {
       // Keep current tier but prefer faster models
       return baseTier;
     } else {
@@ -254,19 +256,19 @@ class TierRouter {
     this.contextUsed = tokensUsed || 0;
     const usagePercent = (this.contextUsed / this.contextBudget) * 100;
 
-    if (usagePercent > 90) {
+    if (usagePercent >= 90) {
       return { 
         strategy: 'fallback_to_summary_context', 
         percent: usagePercent,
         action: 'Compact context to summary'
       };
-    } else if (usagePercent > 70) {
+    } else if (usagePercent >= 70) {
       return { 
         strategy: 'open_new_window_with_compaction', 
         percent: usagePercent,
         action: 'Start new window with compaction'
       };
-    } else if (usagePercent > 50) {
+    } else if (usagePercent >= 50) {
       return { 
         strategy: 'semantic_fold_and_continue', 
         percent: usagePercent,
