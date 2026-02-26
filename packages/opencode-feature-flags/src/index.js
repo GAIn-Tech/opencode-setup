@@ -119,6 +119,13 @@ class FeatureFlags {
   }
 }
 
+/**
+ * Create feature flag manager
+ * @param {Object} [options] - Feature configuration
+ * @param {string} [options.persistedPath='./feature-flags.json'] - Path to persisted flags file
+ * @param {Object} [options.defaults={}] - Default flag values
+ * @returns {FeatureFlags} Feature flag instance with enable/disable/rollout/variant methods
+ */
 export function createFeatureFlags(options) {
   return new FeatureFlags(options);
 }

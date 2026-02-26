@@ -44,6 +44,38 @@ async function readJson(filePath, fallback) {
   }
 }
 
+/**
+ * Collect correlation data from session messages and custom events
+ * @async
+ * @param {Object} options - Collection options
+ * @param {string} options.messagesPath - Path to messages directory
+ * @param {string} options.customEventsPath - Path to custom events JSON file
+ * @param {number} options.cutoffMs - Timestamp cutoff in milliseconds
+ * @returns {Promise<Object>} Correlation data object containing:
+ *   - sessions: Set of session IDs
+ *   - model: Map of model names to counts
+ *   - skill: Map of skill names to counts
+ *   - tool: Map of tool names to counts
+ *   - agent: Map of agent names to counts
+ *   - termination: Map of termination reasons to counts
+ *   - modelTokens: Map of model names to token counts
+ *   - skillTokens: Map of skill names to token counts
+ *   - toolTokens: Map of tool names to token counts
+ *   - loopsBySession: Map of session IDs to max loop counts
+ *   - perMessageTokens: Array of token counts per message
+ *   - totalMessages: Total message count
+ *   - delegatedMessages: Count of delegated messages
+ *   - traces: Count of messages with trace IDs
+ *   - parentSpans: Count of messages with parent spans
+ *   - errorMentions: Count of messages mentioning errors
+ *   - signedCustomEvents: Count of signed custom events
+ *   - validSignedCustomEvents: Count of valid signed custom events
+ *   - withTokens: Count of messages with token data
+ *   - inTok: Total input tokens
+ *   - outTok: Total output tokens
+ *   - totalTok: Total tokens
+ *   - customEvents: Array of custom events
+ */
 export async function collectCorrelationData({ messagesPath, customEventsPath, cutoffMs }) {
   const sessions = new Set();
   const model = new Map();

@@ -1,3 +1,40 @@
+/**
+ * Evaluate policy engine and detect integration gaps
+ * @param {Object} options - Policy evaluation options
+ * @param {boolean} options.hasConfigValidationTodo - Config validation TODO exists
+ * @param {boolean} options.hasPluginLifecycle - Plugin lifecycle manager exists
+ * @param {boolean} options.hasPluginDependencyGraph - Plugin dependency graph exists
+ * @param {boolean} options.hasPluginConfigSchema - Plugin config schema exists
+ * @param {boolean} options.hasPluginEventSchema - Plugin event schema exists
+ * @param {boolean} options.hasConfigSchema - Config schema exists
+ * @param {boolean} options.hasCiDriftGate - CI drift gate exists
+ * @param {boolean} options.fallbackOrderAligned - Fallback order is aligned
+ * @param {string} options.firstProviderProject - First provider project name
+ * @param {string} options.firstProviderRoot - First provider root path
+ * @param {number} options.pluginQuarantineActive - Count of quarantined plugins
+ * @param {number} options.pluginCrashLike - Count of crash-like plugins
+ * @param {number} options.strategyBypassActive - Count of active strategy bypasses
+ * @param {number} options.strategyUnhealthy - Count of unhealthy strategies
+ * @param {number} options.retrievalQuality - Retrieval quality score
+ * @param {number} options.retrievalMapAtK - MAP@K metric
+ * @param {number} options.retrievalGroundedRecall - Grounded recall metric
+ * @param {number} options.retrievalSampleSize - Sample size for retrieval evaluation
+ * @param {number} options.pluginsConfigured - Count of configured plugins
+ * @param {number} options.pluginsDiscovered - Count of discovered plugins
+ * @param {number} options.score - Overall score
+ * @param {Array<Object>} options.signals - Signal array with value properties
+ * @param {number} options.rlSuccessAvg - RL success average
+ * @param {number} options.antiTotal - Anti-pattern total count
+ * @param {number} options.posTotal - Positive pattern total count
+ * @returns {Object} Policy evaluation result containing:
+ *   - integrationGaps: Array of detected integration gaps with severity/domain/title/detail/evidence/recommended_next_step
+ *   - governanceScore: Governance readiness score (0-100)
+ *   - pluginScore: Plugin readiness score (0-100)
+ *   - observabilityScore: Observability score (0-100)
+ *   - adaptationScore: Adaptation/learning score (0-100)
+ *   - closedLoopScore: Closed-loop score (0-100)
+ *   - frontierScore: Overall frontier score (0-100)
+ */
 export function evaluatePolicyEngine({
   hasConfigValidationTodo,
   hasPluginLifecycle,
