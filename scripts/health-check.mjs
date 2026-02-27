@@ -210,8 +210,8 @@ function main() {
   const pluginScope = detectScope(rootPackage.name, scopedPackages);
 
   if (!pluginScope) {
-    failures += 1;
-    printStatus('FAIL', 'Bun plugin link check', 'Could not detect plugin scope.', 'Set PLUGIN_SCOPE (for example: @your-scope) and rerun.');
+    warnings += 1;
+    printStatus('WARN', 'Bun plugin link check', 'Skipped: no scoped workspace packages detected.', 'Set PLUGIN_SCOPE (for example: @your-scope) to enforce scoped link checks.');
   } else {
     const globalNodeModulesPaths = resolveGlobalNodeModulesPaths();
     const packagesForScope = scopedPackages.filter((packageName) => packageName.startsWith(`${pluginScope}/`));

@@ -9,34 +9,28 @@
  * Also generates tool-manifest.json for the preload-skills plugin.
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join, dirname, resolve } from 'path';
-import { fileURLToPath } from 'url';
-import { execSync } from 'child_process';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
+import { resolveRoot, userConfigDir } from './resolve-root.mjs';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// --- Root resolution (same logic as resolve-root.mjs) ---
-function resolveRoot() {
-  if (process.env.OPENCODE_ROOT) {
-    const p = resolve(process.env.OPENCODE_ROOT);
-    if (existsSync(join(p, 'package.json'))) return p;
-    console.warn(`[generate-mcp-config] OPENCODE_ROOT="${p}" has no package.json, trying git...`);
+function replaceRootPlaceholder(value, rootForward) {
+  if (typeof value === 'string') {
+    return value.replaceAll('{{OPENCODE_ROOT}}', rootForward);
   }
-  try {
-    const gitRoot = execSync('git rev-parse --show-toplevel', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
-    if (existsSync(join(gitRoot, 'package.json'))) return gitRoot;
-  } catch { /* not in git repo */ }
-  
-  // Fall back to parent of scripts/
-  const parentDir = resolve(__dirname, '..');
-  if (existsSync(join(parentDir, 'package.json'))) return parentDir;
-  
-  throw new Error(
-    '[generate-mcp-config] Cannot resolve project root.\n' +
-    'Set OPENCODE_ROOT env var, or run from within the git repo.'
-  );
+
+  if (Array.isArray(value)) {
+    return value.map((item) => replaceRootPlaceholder(item, rootForward));
+  }
+
+  if (value && typeof value === 'object') {
+    const next = {};
+    for (const [key, innerValue] of Object.entries(value)) {
+      next[key] = replaceRootPlaceholder(innerValue, rootForward);
+    }
+    return next;
+  }
+
+  return value;
 }
 
 // --- Main ---
@@ -49,6 +43,7 @@ const rootForward = root.replace(/\\/g, '/');
 const mcpDir = join(root, 'mcp-servers');
 const templatePath = join(mcpDir, 'opencode-mcp-config.template.json');
 const outputPath = join(mcpDir, 'opencode-mcp-config.json');
+const userOutputPath = join(userConfigDir(), 'opencode-mcp-config.json');
 
 if (!existsSync(templatePath)) {
   console.error(`[generate-mcp-config] Template not found: ${templatePath}`);
@@ -57,7 +52,9 @@ if (!existsSync(templatePath)) {
 }
 
 const template = readFileSync(templatePath, 'utf8');
-const resolved = template;
+const parsedTemplate = JSON.parse(template);
+const resolvedObject = replaceRootPlaceholder(parsedTemplate, rootForward);
+const resolved = JSON.stringify(resolvedObject, null, 2);
 
 // Validate JSON before writing
 try {
@@ -80,6 +77,10 @@ if (dryRun) {
 writeFileSync(outputPath, resolved, 'utf8');
 console.log(`[generate-mcp-config] Generated: ${outputPath}`);
 console.log(`  Root detected as: ${rootForward}`);
+
+mkdirSync(userConfigDir(), { recursive: true });
+writeFileSync(userOutputPath, resolved, 'utf8');
+console.log(`[generate-mcp-config] Synced: ${userOutputPath}`);
 
 // --- Also generate tool-manifest.json for preload-skills ---
 const config = JSON.parse(resolved);
