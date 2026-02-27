@@ -1,0 +1,27 @@
+{
+  "id": "skill-registry-compound-alignment-20260226",
+  "timestamp": "2026-02-26T22:00:00Z",
+  "summary": "Reconcile skill inventory between registry.json (canonical) and compound-engineering.json (consumer)",
+  "affected_paths": [
+    "opencode-config/skills/registry.json",
+    "docs/skills/OVERVIEW.md",
+    "scripts/check-skill-consistency.mjs"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "details": {
+    "learning_type": "config_alignment",
+    "divergence_fixed": "task-orchestrator was in compound-engineering.json enabled[] but missing from registry.json",
+    "resolution": "Added task-orchestrator to registry.json with metadata derived from AGENTS.md skill definition",
+    "consistency_script": "scripts/check-skill-consistency.mjs — enforces enabled[] is strict subset of registry keys",
+    "canonical_rule": "registry.json is single source of truth; consumer configs must reference only registered skills",
+    "test_results": {
+      "consistency_check": "node scripts/check-skill-consistency.mjs → PASS (15/15 enabled skills in 24 registry keys)",
+      "validation": "node scripts/skill-profile-loader.mjs validate → PASS"
+    }
+  }
+}

@@ -1,7 +1,7 @@
 {
   "$schema": "./registry.schema.json",
   "version": "1.0.0",
-  "lastUpdated": "2026-02-19T08:48:00Z",
+  "lastUpdated": "2026-02-26T12:00:00Z",
   
   "skills": {
     "git-master": {
@@ -233,6 +233,56 @@
       "synergies": [],
       "conflicts": [],
       "triggers": ["create skill", "write skill", "new skill"]
+    },
+    "task-orchestrator": {
+      "description": "Dynamic workflow selection across skills, tools, MCP servers, and subagents for multi-step or ambiguous requests",
+      "category": "meta",
+      "tags": ["orchestration", "workflow", "routing", "capabilities"],
+      "source": "custom",
+      "dependencies": [],
+      "synergies": ["brainstorming", "writing-plans", "executing-plans", "dispatching-parallel-agents"],
+      "conflicts": [],
+      "triggers": ["multi-step task", "ambiguous request", "cross-cutting", "dynamic workflow", "supertask"]
+    },
+    "budget-aware-router": {
+      "description": "Token and cost-aware model routing. Optimizes cost/performance tradeoffs by selecting appropriate models.",
+      "category": "optimization",
+      "tags": ["tokens", "cost", "routing", "models"],
+      "source": "custom",
+      "dependencies": [],
+      "synergies": ["skill-orchestrator-runtime"],
+      "conflicts": [],
+      "triggers": ["optimize cost", "budget constraints", "model routing", "token budget"]
+    },
+    "skill-orchestrator-runtime": {
+      "description": "Runtime skill orchestration that dynamically selects and chains skills based on context analysis.",
+      "category": "meta",
+      "tags": ["orchestration", "selection", "chaining", "runtime"],
+      "source": "custom",
+      "dependencies": [],
+      "synergies": ["systematic-debugging", "test-driven-development", "brainstorming", "incident-commander"],
+      "conflicts": [],
+      "triggers": ["which skill to use", "skill recommendation", "cross-domain task", "multi-skill chain"]
+    },
+    "evaluation-harness-builder": {
+      "description": "Builds regression test harnesses and evaluation frameworks for validating AI code quality.",
+      "category": "testing",
+      "tags": ["regression", "harness", "evaluation", "quality"],
+      "source": "custom",
+      "dependencies": ["test-driven-development"],
+      "synergies": ["test-driven-development", "verification-before-completion", "receiving-code-review"],
+      "conflicts": [],
+      "triggers": ["build test harness", "regression suite", "evaluation framework", "benchmark quality"]
+    },
+    "incident-commander": {
+      "description": "Multi-turn incident triage and debugging orchestration. Manages complex issues through structured diagnosis.",
+      "category": "debugging",
+      "tags": ["incident", "triage", "multi-turn", "diagnosis"],
+      "source": "custom",
+      "dependencies": ["systematic-debugging"],
+      "synergies": ["systematic-debugging", "test-driven-development", "receiving-code-review"],
+      "conflicts": [],
+      "triggers": ["complex bug", "incident response", "multi-file debug", "track investigation"]
     }
   },
 
@@ -264,8 +314,8 @@
     },
     "diagnostic-healing": {
       "description": "Problem diagnosis and self-healing workflow",
-      "skills": ["code-doctor", "systematic-debugging", "git-master"],
-      "triggers": ["diagnose", "fix bug", "heal code", "auto-fix"]
+      "skills": ["code-doctor", "systematic-debugging", "incident-commander", "git-master"],
+      "triggers": ["diagnose", "fix bug", "heal code", "auto-fix", "incident"]
     },
     "research-to-code": {
       "description": "Research, spec, and implementation pipeline",
@@ -285,11 +335,11 @@
     },
     "debugging": {
       "description": "Skills for troubleshooting and fixing issues",
-      "skills": ["systematic-debugging", "code-doctor"]
+      "skills": ["systematic-debugging", "code-doctor", "incident-commander"]
     },
     "testing": {
       "description": "Skills for testing and verification",
-      "skills": ["test-driven-development", "verification-before-completion"]
+      "skills": ["test-driven-development", "verification-before-completion", "evaluation-harness-builder"]
     },
     "review": {
       "description": "Skills for code review workflows",
@@ -309,11 +359,15 @@
     },
     "meta": {
       "description": "Skills about skills",
-      "skills": ["using-superpowers", "writing-skills"]
+      "skills": ["using-superpowers", "writing-skills", "task-orchestrator", "skill-orchestrator-runtime"]
     },
     "observability": {
       "description": "Skills for monitoring and tracking",
       "skills": ["token-reporter"]
+    },
+    "optimization": {
+      "description": "Skills for cost and performance optimization",
+      "skills": ["budget-aware-router"]
     }
   }
 }

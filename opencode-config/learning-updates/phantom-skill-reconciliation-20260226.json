@@ -1,0 +1,41 @@
+{
+  "id": "phantom-skill-reconciliation-20260226",
+  "timestamp": "2026-02-26T12:00:00Z",
+  "summary": "Register 4 orphan skills with SKILL.md directories missing from registry.json; fix dangling cross-references",
+  "affected_paths": [
+    "opencode-config/skills/registry.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "details": {
+    "learning_type": "config_alignment",
+    "orphans_registered": [
+      "budget-aware-router",
+      "skill-orchestrator-runtime",
+      "evaluation-harness-builder",
+      "incident-commander"
+    ],
+    "dangling_refs_fixed": [
+      "budget-aware-router synergy 'dynamic-model-selection' removed (no SKILL.md directory)"
+    ],
+    "categories_updated": [
+      "debugging: added incident-commander",
+      "testing: added evaluation-harness-builder",
+      "meta: added skill-orchestrator-runtime",
+      "optimization: new category for budget-aware-router"
+    ],
+    "profiles_updated": [
+      "diagnostic-healing: added incident-commander"
+    ],
+    "canonical_rule": "Every skill directory with SKILL.md must have a registry.json entry; all dependency/synergy/conflict refs must resolve",
+    "test_results": {
+      "validation": "node scripts/skill-profile-loader.mjs validate → PASS",
+      "consistency_check": "node scripts/check-skill-consistency.mjs → PASS (15/15 enabled in 28 registry keys)",
+      "bun_test": "ALL E2E TESTS PASSED"
+    }
+  }
+}
