@@ -16,6 +16,7 @@ const { SkillBank } = require('./skill-bank');
 const { EvolutionEngine } = require('./evolution-engine');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 // Cross-process file lock to prevent concurrent write corruption
 // Uses filesystem locks instead of in-memory Map (which fails across processes)
@@ -127,10 +128,20 @@ const LearningValidator = {
 
 class SkillRLManager {
   constructor(options = {}) {
-    this.persistencePath = options.stateFile || './skill-rl-state.json'; // FIX: was setting stateFile but checking persistencePath
+    const _defaultRLPath = path.join(os.homedir(), '.opencode', 'skill-rl.json');
+    this.persistencePath = options.stateFile || _defaultRLPath;
     this.skillBank = new SkillBank(options.skillBank);
     this.evolutionEngine = new EvolutionEngine(this.skillBank, options.evolution);
-    
+
+    // One-time migration: old ./skill-rl-state.json → canonical ~/.opencode/skill-rl.json
+    const _legacyPath = path.join(process.cwd(), 'skill-rl-state.json');
+    if (fs.existsSync(_legacyPath) && !fs.existsSync(this.persistencePath)) {
+      try {
+        fs.mkdirSync(path.dirname(this.persistencePath), { recursive: true });
+        fs.copyFileSync(_legacyPath, this.persistencePath);
+      } catch (_) { /* non-fatal */ }
+    }
+
     // Learning validation enabled by default
     this._validationEnabled = options.validationEnabled !== false;
   }
