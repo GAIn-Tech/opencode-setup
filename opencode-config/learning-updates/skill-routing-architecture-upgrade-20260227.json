@@ -1,0 +1,48 @@
+{
+  "id": "skill-routing-architecture-upgrade-20260227",
+  "timestamp": "2026-02-27T04:35:00Z",
+  "summary": "Introduce hierarchical skill routing metadata, overlap governance, and quality gates for skill selection",
+  "affected_paths": [
+    "opencode-config/skills/registry.json",
+    "opencode-config/skills/registry.schema.json",
+    "scripts/skill-profile-loader.mjs",
+    "scripts/skill-routing-evaluator.mjs",
+    "scripts/skill-routing-thresholds.json",
+    "scripts/check-skill-overlap-governance.mjs",
+    "scripts/run-skill-routing-gates.mjs",
+    "scripts/evals/skill-routing-byzantine-fixtures.json",
+    "docs/skills/OVERVIEW.md",
+    "docs/skills/CREATING-SKILLS.md",
+    "docs/skills/COMPOSITION.md",
+    "packages/opencode-learning-engine/src/orchestration-advisor.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium",
+  "details": {
+    "learning_type": "routing_governance",
+    "changes": [
+      "Added process/domain/selection hints and overlap metadata to registry",
+      "Added hierarchical route selection and evaluator metrics",
+      "Added overlap policy checker and release gate runner",
+      "Documented acceptance gate for net-new skills (+2pp one-pass or -20% switch rate)"
+    ],
+    "thresholds": {
+      "maxAmbiguityRate": 0.15,
+      "maxSwitchRate": 0.1,
+      "minOnePassCorrectness": 0.85,
+      "maxMedianRoutingMs": 200,
+      "maxContextBudgetOverhead": 0.05
+    },
+    "test_results": {
+      "registry_validation": "node scripts/skill-profile-loader.mjs validate -> PASS",
+      "overlap_governance": "node scripts/check-skill-overlap-governance.mjs -> PASS",
+      "routing_gates": "node scripts/run-skill-routing-gates.mjs -> PASS",
+      "routing_tests": "bun test ./scripts/tests/skill-hierarchical-routing.test.js -> PASS",
+      "advisor_tests": "bun test ./packages/opencode-learning-engine/test/orchestration-advisor.test.js -> PASS"
+    }
+  }
+}

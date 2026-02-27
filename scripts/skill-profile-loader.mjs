@@ -125,11 +125,190 @@ function loadProfile(profileName, registry) {
   }
 }
 
+// --- Hierarchical scoring helpers (Task 2) ---
+
+/**
+ * Score each process phase by matching taskText against triggers and selectionHints
+ * of skills annotated with that phase. Returns sorted array of { phase, score } with
+ * deterministic tie-break by name. Top entry is winner.
+ */
+function scoreProcessPhase(taskText, registry) {
+  const text = normalize(taskText)
+  const phaseScores = {}
+
+  for (const [skillName, skill] of Object.entries(registry.skills)) {
+    if (!skill.processPhase) continue
+    const phase = skill.processPhase
+    if (!phaseScores[phase]) phaseScores[phase] = 0
+
+    for (const trigger of skill.triggers || []) {
+      if (text.includes(normalize(trigger))) {
+        phaseScores[phase] += 2
+      }
+    }
+
+    const hints = skill.selectionHints || {}
+    for (const hint of hints.useWhen || []) {
+      if (text.includes(normalize(hint))) {
+        phaseScores[phase] += 3
+      }
+    }
+    for (const hint of hints.avoidWhen || []) {
+      if (text.includes(normalize(hint))) {
+        phaseScores[phase] -= 2
+      }
+    }
+  }
+
+  const sorted = Object.entries(phaseScores)
+    .map(([phase, score]) => ({ phase, score }))
+    .sort((a, b) => b.score - a.score || a.phase.localeCompare(b.phase))
+
+  return sorted
+}
+
+/**
+ * Score each domain within the given processPhase. Returns sorted array of
+ * { domain, score } with deterministic tie-break by name.
+ */
+function scoreDomain(taskText, phase, registry) {
+  const text = normalize(taskText)
+  const domainScores = {}
+
+  for (const [skillName, skill] of Object.entries(registry.skills)) {
+    if (!skill.domain) continue
+    if (phase && skill.processPhase !== phase) continue
+    const domain = skill.domain
+    if (!domainScores[domain]) domainScores[domain] = 0
+
+    for (const trigger of skill.triggers || []) {
+      if (text.includes(normalize(trigger))) {
+        domainScores[domain] += 2
+      }
+    }
+
+    const hints = skill.selectionHints || {}
+    for (const hint of hints.useWhen || []) {
+      if (text.includes(normalize(hint))) {
+        domainScores[domain] += 3
+      }
+    }
+    for (const hint of hints.avoidWhen || []) {
+      if (text.includes(normalize(hint))) {
+        domainScores[domain] -= 2
+      }
+    }
+  }
+
+  const sorted = Object.entries(domainScores)
+    .map(([domain, score]) => ({ domain, score }))
+    .sort((a, b) => b.score - a.score || a.domain.localeCompare(b.domain))
+
+  return sorted
+}
+
+/**
+ * Score individual skills within given phase+domain. Returns sorted array of
+ * { skill, score } with deterministic tie-break by skill name.
+ */
+function scoreSkills(taskText, phase, domain, registry) {
+  const text = normalize(taskText)
+  const results = []
+
+  for (const [skillName, skill] of Object.entries(registry.skills)) {
+    if (phase && skill.processPhase && skill.processPhase !== phase) continue
+    if (domain && skill.domain && skill.domain !== domain) continue
+    if (phase && !skill.processPhase) continue
+    if (domain && !skill.domain) continue
+
+    let score = 0
+
+    for (const trigger of skill.triggers || []) {
+      if (text.includes(normalize(trigger))) {
+        score += 2
+      }
+    }
+
+    const hints = skill.selectionHints || {}
+    for (const hint of hints.useWhen || []) {
+      if (text.includes(normalize(hint))) {
+        score += 3
+      }
+    }
+    for (const hint of hints.avoidWhen || []) {
+      if (text.includes(normalize(hint))) {
+        score -= 2
+      }
+    }
+
+    if (score > 0) {
+      results.push({ skill: skillName, score })
+    }
+  }
+
+  return results.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score
+
+    const aSkill = registry.skills[a.skill] || {}
+    const bSkill = registry.skills[b.skill] || {}
+    const aCanonical = aSkill.canonicalEntrypoint === true
+    const bCanonical = bSkill.canonicalEntrypoint === true
+
+    if (aCanonical !== bCanonical) {
+      return bCanonical ? 1 : -1
+    }
+
+    return a.skill.localeCompare(b.skill)
+  })
+}
+
+/**
+ * Full hierarchical routing: phase -> domain -> skill.
+ * Returns winner/runnerUp at each level and ambiguity margin.
+ */
+function routeHierarchical(taskText, registry) {
+  const phases = scoreProcessPhase(taskText, registry)
+  const winningPhase = phases[0] || null
+  const runnerUpPhase = phases[1] || null
+
+  const phaseName = winningPhase ? winningPhase.phase : null
+
+  const domains = scoreDomain(taskText, phaseName, registry)
+  const winningDomain = domains[0] || null
+  const runnerUpDomain = domains[1] || null
+
+  const domainName = winningDomain ? winningDomain.domain : null
+
+  const skills = scoreSkills(taskText, phaseName, domainName, registry)
+  const topSkill = skills[0] || null
+  const runnerUpSkill = skills[1] || null
+
+  const ambiguityMargin = (topSkill && runnerUpSkill)
+    ? topSkill.score - runnerUpSkill.score
+    : (topSkill ? topSkill.score : 0)
+
+  return {
+    processPhase: winningPhase,
+    runnerUpPhase,
+    domain: winningDomain,
+    runnerUpDomain,
+    topSkill,
+    runnerUpSkill,
+    ambiguityMargin,
+    allPhases: phases,
+    allDomains: domains,
+    allSkills: skills,
+  }
+}
+
+// --- End hierarchical scoring helpers ---
+
 function printUsage() {
   console.log("Usage:")
   console.log("  node scripts/skill-profile-loader.mjs profile <profile-name>")
   console.log("  node scripts/skill-profile-loader.mjs recommend \"<task description>\" [limit]")
   console.log("  node scripts/skill-profile-loader.mjs validate")
+  console.log("  node scripts/skill-profile-loader.mjs route \"<task description>\"")
 }
 
 function validateRegistry(registry) {
@@ -187,7 +366,30 @@ function main(argv) {
       process.exit(1)
     }
     const recommendations = recommendProfiles(text, registry, limit)
-    console.log(JSON.stringify(recommendations, null, 2))
+
+    // Enrich with optional hierarchical diagnostics
+    const routing = routeHierarchical(text, registry)
+    const enriched = recommendations.map((rec) => ({
+      ...rec,
+      processPhase: routing.processPhase ? routing.processPhase.phase : null,
+      domain: routing.domain ? routing.domain.domain : null,
+      topSkill: routing.topSkill ? routing.topSkill.skill : null,
+      runnerUpSkill: routing.runnerUpSkill ? routing.runnerUpSkill.skill : null,
+      ambiguityMargin: routing.ambiguityMargin,
+    }))
+
+    console.log(JSON.stringify(enriched, null, 2))
+    process.exit(0)
+  }
+
+  if (command === "route") {
+    const text = args[0]
+    if (!text) {
+      printUsage()
+      process.exit(1)
+    }
+    const result = routeHierarchical(text, registry)
+    console.log(JSON.stringify(result, null, 2))
     process.exit(0)
   }
 
@@ -205,4 +407,25 @@ function main(argv) {
   process.exit(1)
 }
 
-main(process.argv.slice(2))
+// Exports for testing and evaluator usage
+export {
+  normalize,
+  loadRegistry,
+  resolveSkillsWithDependencies,
+  recommendProfiles,
+  loadProfile,
+  validateRegistry,
+  scoreProcessPhase,
+  scoreDomain,
+  scoreSkills,
+  routeHierarchical,
+}
+
+// Only run CLI when this file is the entry point
+const isMain = process.argv[1] && (
+  path.resolve(process.argv[1]) === path.resolve(__filename) ||
+  path.resolve(process.argv[1]) === path.resolve(__filename.replace(/\.mjs$/, ""))
+)
+if (isMain) {
+  main(process.argv.slice(2))
+}

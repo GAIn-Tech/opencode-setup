@@ -32,7 +32,13 @@
       "dependencies": [],
       "synergies": ["frontend-ui-ux", "test-driven-development"],
       "conflicts": ["agent-browser"],
-      "triggers": ["go to url", "click on", "fill form", "take screenshot", "test the website"]
+      "triggers": ["go to url", "click on", "fill form", "take screenshot", "test the website"],
+      "overlapCluster": "browser",
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": ["need persistent page state across steps", "Playwright MCP is available", "complex multi-step browser interaction"],
+        "avoidWhen": ["simple one-shot page fetch", "no Playwright MCP configured", "prefer CLI-based browser automation"]
+      }
     },
     "agent-browser": {
       "description": "Browser automation using Vercel's agent-browser CLI with ref-based selection",
@@ -42,7 +48,13 @@
       "dependencies": [],
       "synergies": ["frontend-ui-ux"],
       "conflicts": ["dev-browser"],
-      "triggers": ["browse website", "fill form", "click button", "web automation"]
+      "triggers": ["browse website", "fill form", "click button", "web automation"],
+      "overlapCluster": "browser",
+      "canonicalEntrypoint": false,
+      "selectionHints": {
+        "useWhen": ["prefer CLI-based browser automation", "ref-based element selection needed", "Playwright MCP not available"],
+        "avoidWhen": ["need persistent page state across steps", "complex multi-step interactions", "Playwright MCP is configured and preferred"]
+      }
     },
     "innovation-migration-planner": {
       "description": "Weighted hotspot scoring for identifying high-leverage innovation opportunities",
@@ -82,7 +94,15 @@
       "dependencies": ["systematic-debugging"],
       "synergies": ["test-driven-development", "git-master", "verification-before-completion"],
       "conflicts": [],
-      "triggers": ["fix failing test", "diagnose bug", "self-heal", "triage incident", "regression"]
+      "triggers": ["fix failing test", "diagnose bug", "self-heal", "triage incident", "regression"],
+      "processPhase": "analysis",
+      "domain": "debugging",
+      "overlapCluster": "debugging",
+      "canonicalEntrypoint": false,
+      "selectionHints": {
+        "useWhen": ["recurring failure with unknown root cause", "self-healing or auto-repair needed", "bounded retry escalation required"],
+        "avoidWhen": ["simple known fix", "first-time shallow bug", "no prior debugging attempt"]
+      }
     },
     "research-builder": {
       "description": "Research-to-spec-to-build workflow with quality gates before implementation",
@@ -102,7 +122,15 @@
       "dependencies": [],
       "synergies": ["test-driven-development", "code-doctor", "git-master"],
       "conflicts": [],
-      "triggers": ["debug", "why is this failing", "root cause", "unexpected behavior"]
+      "triggers": ["debug", "why is this failing", "root cause", "unexpected behavior"],
+      "processPhase": "analysis",
+      "domain": "debugging",
+      "overlapCluster": "debugging",
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": ["unexpected behavior or test failure", "need evidence-based root cause analysis", "bug reproduction required before fix"],
+        "avoidWhen": ["implementing new feature from scratch", "code review without active bug", "planning phase"]
+      }
     },
     "test-driven-development": {
       "description": "TDD workflow with anti-patterns guide - write tests before implementation",
@@ -112,7 +140,13 @@
       "dependencies": [],
       "synergies": ["systematic-debugging", "verification-before-completion"],
       "conflicts": [],
-      "triggers": ["implement feature", "add tests first", "TDD", "test-driven"]
+      "triggers": ["implement feature", "add tests first", "TDD", "test-driven"],
+      "processPhase": "implementation",
+      "domain": "testing",
+      "selectionHints": {
+        "useWhen": ["implementing new feature or bugfix", "behavior change needs regression safety", "refactoring existing code"],
+        "avoidWhen": ["throwaway prototype", "configuration-only change", "pure documentation task"]
+      }
     },
     "brainstorming": {
       "description": "Pre-implementation ideation to explore intent, approaches, and design decisions",
@@ -122,7 +156,13 @@
       "dependencies": [],
       "synergies": ["writing-plans", "innovation-migration-planner"],
       "conflicts": [],
-      "triggers": ["let's brainstorm", "help me think through", "explore approaches", "what should we build"]
+      "triggers": ["let's brainstorm", "help me think through", "explore approaches", "what should we build"],
+      "processPhase": "pre-analysis",
+      "domain": "planning",
+      "selectionHints": {
+        "useWhen": ["ambiguous requirements", "multiple valid approaches", "greenfield feature design"],
+        "avoidWhen": ["task is already specified", "executing an existing plan", "single obvious implementation"]
+      }
     },
     "writing-plans": {
       "description": "Create detailed implementation plans before touching code",
@@ -132,7 +172,13 @@
       "dependencies": [],
       "synergies": ["brainstorming", "executing-plans"],
       "conflicts": [],
-      "triggers": ["write a plan", "spec this out", "before we code"]
+      "triggers": ["write a plan", "spec this out", "before we code"],
+      "processPhase": "pre-analysis",
+      "domain": "planning",
+      "selectionHints": {
+        "useWhen": ["multi-step task needs breakdown", "spec or requirements exist but no plan", "complex feature before implementation"],
+        "avoidWhen": ["plan already exists", "trivial single-file change", "pure debugging task"]
+      }
     },
     "executing-plans": {
       "description": "Execute implementation plans with review checkpoints",
@@ -142,7 +188,13 @@
       "dependencies": ["writing-plans"],
       "synergies": ["subagent-driven-development", "verification-before-completion"],
       "conflicts": [],
-      "triggers": ["execute plan", "start implementation", "follow the plan"]
+      "triggers": ["execute plan", "start implementation", "follow the plan"],
+      "processPhase": "implementation",
+      "domain": "execution",
+      "selectionHints": {
+        "useWhen": ["written plan exists and is ready for execution", "multi-task implementation with checkpoints", "parallel session plan execution"],
+        "avoidWhen": ["no plan written yet", "single trivial task", "exploratory or research phase"]
+      }
     },
     "verification-before-completion": {
       "description": "Pre-completion verification gates - evidence before assertions",
@@ -152,7 +204,13 @@
       "dependencies": [],
       "synergies": ["test-driven-development", "git-master"],
       "conflicts": [],
-      "triggers": ["verify before done", "check completion", "before PR"]
+      "triggers": ["verify before done", "check completion", "before PR"],
+      "processPhase": "verification",
+      "domain": "quality",
+      "selectionHints": {
+        "useWhen": ["about to claim work is complete", "before committing or creating PR", "before moving to next task"],
+        "avoidWhen": ["still in active implementation", "exploratory phase", "brainstorming or planning"]
+      }
     },
     "requesting-code-review": {
       "description": "Code review request workflow for completed work",
@@ -242,7 +300,15 @@
       "dependencies": [],
       "synergies": ["brainstorming", "writing-plans", "executing-plans", "dispatching-parallel-agents"],
       "conflicts": [],
-      "triggers": ["multi-step task", "ambiguous request", "cross-cutting", "dynamic workflow", "supertask"]
+      "triggers": ["multi-step task", "ambiguous request", "cross-cutting", "dynamic workflow", "supertask"],
+      "processPhase": "pre-analysis",
+      "domain": "orchestration",
+      "overlapCluster": "orchestration",
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": ["multi-step or cross-cutting request", "right tools or skills are not obvious", "task mixes research, planning, and implementation"],
+        "avoidWhen": ["single obvious file change", "workflow already specified", "narrow well-defined task"]
+      }
     },
     "budget-aware-router": {
       "description": "Token and cost-aware model routing. Optimizes cost/performance tradeoffs by selecting appropriate models.",
@@ -262,7 +328,15 @@
       "dependencies": [],
       "synergies": ["systematic-debugging", "test-driven-development", "brainstorming", "incident-commander"],
       "conflicts": [],
-      "triggers": ["which skill to use", "skill recommendation", "cross-domain task", "multi-skill chain"]
+      "triggers": ["which skill to use", "skill recommendation", "cross-domain task", "multi-skill chain"],
+      "processPhase": "pre-analysis",
+      "domain": "orchestration",
+      "overlapCluster": "orchestration",
+      "canonicalEntrypoint": false,
+      "selectionHints": {
+        "useWhen": ["runtime skill selection needed", "dynamic chaining across domains", "context-dependent skill recommendation"],
+        "avoidWhen": ["skill already chosen explicitly", "single-skill task", "user specified exact workflow"]
+      }
     },
     "evaluation-harness-builder": {
       "description": "Builds regression test harnesses and evaluation frameworks for validating AI code quality.",
@@ -282,7 +356,15 @@
       "dependencies": ["systematic-debugging"],
       "synergies": ["systematic-debugging", "test-driven-development", "receiving-code-review"],
       "conflicts": [],
-      "triggers": ["complex bug", "incident response", "multi-file debug", "track investigation"]
+      "triggers": ["complex bug", "incident response", "multi-file debug", "track investigation"],
+      "processPhase": "analysis",
+      "domain": "debugging",
+      "overlapCluster": "debugging",
+      "canonicalEntrypoint": false,
+      "selectionHints": {
+        "useWhen": ["complex multi-file incident", "structured triage needed across systems", "investigation spans multiple turns or domains"],
+        "avoidWhen": ["simple single-file bug", "known root cause", "no active incident"]
+      }
     }
   },
 

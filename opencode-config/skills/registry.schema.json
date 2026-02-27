@@ -90,6 +90,33 @@
             "additionalProperties": false
           },
           "version": { "type": "string" },
+          "processPhase": {
+            "type": "string",
+            "enum": ["pre-analysis", "analysis", "implementation", "verification", "post-process"]
+          },
+          "domain": { "type": "string" },
+          "selectionHints": {
+            "type": "object",
+            "properties": {
+              "useWhen": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "avoidWhen": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            },
+            "additionalProperties": false
+          },
+          "overlapCluster": {
+            "type": "string",
+            "description": "Name of the overlap cluster this skill belongs to (e.g. browser, debugging, orchestration)"
+          },
+          "canonicalEntrypoint": {
+            "type": "boolean",
+            "description": "Whether this skill is the preferred entry point for its overlap cluster"
+          },
           "compositionRules": {
             "type": "object",
             "properties": {

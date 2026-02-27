@@ -346,11 +346,16 @@ class OrchestrationAdvisor {
         : 'hephaestus';
     }
 
-    // Find relevant skills
+    // Find relevant skills — scored per SKILL_AFFINITY category for telemetry
+    const affinityScores = {};
     const skills = [];
     for (const [type, skillList] of Object.entries(SKILL_AFFINITY)) {
       const normalizedType = this._normalizeTextValue(type);
-      if (taskType.includes(normalizedType) || description.includes(normalizedType)) {
+      let score = 0;
+      if (taskType.includes(normalizedType)) score += 2;
+      if (description.includes(normalizedType)) score += 1;
+      if (score > 0) {
+        affinityScores[type] = { score, skills: skillList };
         skills.push(...skillList);
       }
     }
@@ -384,10 +389,50 @@ class OrchestrationAdvisor {
     
     confidence = Math.max(0.1, Math.min(0.95, confidence));
 
+    // --- Routing telemetry (additive) ---
+    const sortedAffinities = Object.entries(affinityScores)
+      .sort(([, a], [, b]) => b.score - a.score);
+    const topAffinity = sortedAffinities[0] || null;
+    const secondAffinity = sortedAffinities[1] || null;
+
+    // Runner-up: first skill from second-best SKILL_AFFINITY category
+    const runner_up_skill = secondAffinity
+      ? (secondAffinity[1].skills[0] || null)
+      : null;
+
+    // Ambiguity margin: gap between top and runner-up affinity scores
+    const ambiguity_margin = (topAffinity && secondAffinity)
+      ? topAffinity[1].score - secondAffinity[1].score
+      : null;
+
+    // Skill switch count: times top skill changed for same task_type in outcomeLog
+    const priorEntries = this.outcomeLog.filter(
+      (e) => this._normalizeTextValue(e.task_context?.task_type) === taskType,
+    );
+    let skill_switch_count = 0;
+    for (let i = 1; i < priorEntries.length; i++) {
+      const prev = priorEntries[i - 1].routing?.skills?.[0];
+      const curr = priorEntries[i].routing?.skills?.[0];
+      if (prev && curr && prev !== curr) {
+        skill_switch_count++;
+      }
+    }
+    // Compare current recommendation against most recent prior entry
+    const currentTopSkill = uniqueSkills[0] || null;
+    if (priorEntries.length > 0) {
+      const lastTopSkill = priorEntries[priorEntries.length - 1].routing?.skills?.[0];
+      if (lastTopSkill && currentTopSkill && lastTopSkill !== currentTopSkill) {
+        skill_switch_count++;
+      }
+    }
+
     return {
       agent: bestAgent,
       skills: uniqueSkills.slice(0, 5), // Max 5 skills
       confidence: Math.round(confidence * 100) / 100,
+      runner_up_skill,
+      ambiguity_margin,
+      skill_switch_count,
     };
   }
 

@@ -1,0 +1,7 @@
+{
+  "maxAmbiguityRate": 0.15,
+  "maxSwitchRate": 0.10,
+  "minOnePassCorrectness": 0.85,
+  "maxMedianRoutingMs": 200,
+  "maxContextBudgetOverhead": 0.05
+}
