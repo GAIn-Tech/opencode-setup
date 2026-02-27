@@ -54,6 +54,40 @@ of `registry.json` skill keys.
 key in `registry.json`. The consistency checker (`scripts/check-skill-consistency.mjs`)
 enforces this and should be run in CI.
 
+## Overlap Governance
+
+Skills that serve similar purposes are grouped into **overlap clusters** (e.g.
+`browser`, `debugging`, `orchestration`). Each cluster has exactly one
+**canonical entrypoint** — the default skill selected when the cluster matches.
+
+Cluster metadata lives in `registry.json` via `overlapCluster`,
+`canonicalEntrypoint`, and `selectionHints.avoidWhen` fields. The checker script
+`scripts/check-skill-overlap-governance.mjs` enforces policy.
+
+### Merge/Retire Rule
+
+A skill in an overlap cluster is a **retire candidate** when **both** conditions hold:
+
+1. **Low usage for >30 consecutive days** — measured by routing telemetry (selection count, switch-away rate).
+2. **Not covered by any evaluation fixture** — the skill does not appear as the expected answer in `scripts/evals/` fixture files.
+
+When both conditions are met, the skill should be merged into the cluster's
+canonical entrypoint or retired outright.
+
+### Head-to-Head Merge Trigger
+
+When two skills in the same overlap cluster are compared in evaluation fixtures
+and **neither wins >70% of head-to-head matchups**, the two skills should be
+**merged into a single skill**. This prevents perpetual ambiguity where the
+router cannot reliably distinguish between them.
+
+Process:
+1. Run evaluation fixtures covering the overlap cluster.
+2. Compute win rate for each skill pair.
+3. If neither skill exceeds 70% win rate, open a merge proposal.
+4. Merge preserves the canonical entrypoint name and combines the best
+   `selectionHints`, `triggers`, and documentation from both skills.
+
 ## Troubleshooting
 
 - **Unknown skill in profile**

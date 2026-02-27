@@ -1,0 +1,9 @@
+{
+  "gate": "registry-validate",
+  "label": "Registry Validation",
+  "exitCode": 0,
+  "durationMs": 73,
+  "stdout": "Registry validation passed",
+  "stderr": "",
+  "timestamp": "2026-02-27T04:33:45.654Z"
+}

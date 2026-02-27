@@ -1,0 +1,9 @@
+{
+  "gate": "overlap-governance",
+  "label": "Overlap Governance Policy",
+  "exitCode": 0,
+  "durationMs": 76,
+  "stdout": "Overlap governance check passed\n  Clusters: 3\n    browser: [dev-browser, agent-browser] canonical=dev-browser\n    debugging: [code-doctor, systematic-debugging, incident-commander] canonical=systematic-debugging\n    orchestration: [task-orchestrator, skill-orchestrator-runtime] canonical=task-orchestrator\n  Total clustered skills: 7\n  All conflict references resolved: yes\n  All clustered skills have avoidWhen: yes",
+  "stderr": "",
+  "timestamp": "2026-02-27T04:33:45.807Z"
+}

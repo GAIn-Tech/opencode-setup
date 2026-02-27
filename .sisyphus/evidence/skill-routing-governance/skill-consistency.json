@@ -1,0 +1,9 @@
+{
+  "gate": "skill-consistency",
+  "label": "Skill Consistency (registry ↔ compound-engineering)",
+  "exitCode": 0,
+  "durationMs": 75,
+  "stdout": "Skill consistency check passed\nAll 15 enabled skills found in registry (28 total registry keys)",
+  "stderr": "",
+  "timestamp": "2026-02-27T04:33:45.730Z"
+}

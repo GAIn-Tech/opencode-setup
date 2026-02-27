@@ -1,0 +1,33 @@
+{
+  "id": "skill-routing-governance-gates-20260227",
+  "timestamp": "2026-02-27T04:40:00Z",
+  "summary": "Add overlap governance checks, gate runner, byzantine fixtures, and rollout documentation for skill routing",
+  "affected_paths": [
+    "scripts/check-skill-overlap-governance.mjs",
+    "scripts/run-skill-routing-gates.mjs",
+    "scripts/evals/skill-routing-byzantine-fixtures.json",
+    "docs/skills/OVERVIEW.md",
+    "docs/skills/CREATING-SKILLS.md",
+    "docs/skills/COMPOSITION.md",
+    "docs/plans/2026-02-27-skill-selection-architecture-upgrade.md",
+    ".sisyphus/evidence/skill-routing-governance/release-summary.md"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "details": {
+    "learning_type": "governance_enforcement",
+    "policies_added": [
+      "overlap clusters must have exactly one canonical entrypoint",
+      "clustered skills must define avoidWhen guidance",
+      "net-new skills must show +2pp one-pass correctness OR -20% switch rate"
+    ],
+    "test_results": {
+      "overlap_governance": "node scripts/check-skill-overlap-governance.mjs -> PASS",
+      "gate_runner": "node scripts/run-skill-routing-gates.mjs --evidence .sisyphus/evidence/skill-routing-governance -> PASS"
+    }
+  }
+}

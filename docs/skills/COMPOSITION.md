@@ -126,11 +126,31 @@ These chains use registered profile IDs only:
 
 > All profile IDs above are defined in `registry.json`. If a chain reference is not a valid profile key, the composition is invalid.
 
+## Acceptance Gate for New Skills
+
+Any net-new skill added to the composition graph **must** pass the routing governance gates:
+
+```bash
+node scripts/run-skill-routing-gates.mjs --fixture scripts/evals/skill-routing-byzantine-fixtures.json
+```
+
+Quantitative requirements before acceptance:
+
+| Metric | Requirement |
+|--------|-------------|
+| One-pass correctness | **+2pp** vs baseline (absolute) |
+| Switch rate | **−20%** vs baseline (relative) |
+| Ambiguity rate | Must not exceed `maxAmbiguityRate` in `scripts/skill-routing-thresholds.json` |
+| Median routing latency | Must not exceed `maxMedianRoutingMs` threshold |
+
+Skills that degrade any threshold are **rejected** regardless of qualitative benefit claims. Baseline metrics are tracked in `.sisyphus/evidence/skill-routing-governance/release-summary.md`.
+
 ## Operational Guardrails
 
 - Cap retries for self-healing flows (use `compositionRules.maxRetries`).
 - Keep one source of truth for dependency/conflict metadata (`registry.json`).
 - Validate registry before using profile resolution.
+- Run `scripts/run-skill-routing-gates.mjs` before merging skill changes.
 - `hands_off_to` is advisory — agents may deviate with justification.
 - Never add `hands_off_to` references to skills that are not in the registry.
 

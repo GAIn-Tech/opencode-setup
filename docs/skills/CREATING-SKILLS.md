@@ -13,14 +13,38 @@ Use this guide when adding or updating skills under `opencode-config/skills/`.
 4. Define a strict output contract.
 5. Add quick-start examples.
 
+## Acceptance Criteria for Net-New Skills
+
+Before a new skill is accepted into the registry, it **must** demonstrate measurable improvement on the skill-routing evaluation harness:
+
+- **+2 percentage points** one-pass correctness, **OR**
+- **−20% switch rate** (relative reduction)
+
+measured against `scripts/evals/skill-routing-byzantine-fixtures.json` and the built-in default tasks via:
+
+```bash
+node scripts/skill-routing-evaluator.mjs --fixture scripts/evals/skill-routing-byzantine-fixtures.json
+```
+
+Baseline metrics are recorded in `.sisyphus/evidence/skill-routing-governance/release-summary.md`. A proposed skill that degrades any threshold in `scripts/skill-routing-thresholds.json` is **automatically rejected** regardless of qualitative arguments.
+
+> **Rationale**: Each additional skill increases routing ambiguity and context budget overhead. The burden of proof is on the proposer to show net-positive impact with quantitative evidence.
+
 ## Registry Updates
 
 Every new skill must be added to `opencode-config/skills/registry.json` with:
 - description/category/source
 - dependencies/synergies/conflicts
 - triggers
+- `domain`, `processPhase`, `selectionHints` (required for routing)
 
-Run validation:
+Run the full governance gate suite:
+
+```bash
+node scripts/run-skill-routing-gates.mjs
+```
+
+Or validate registry only:
 
 ```bash
 node scripts/skill-profile-loader.mjs validate

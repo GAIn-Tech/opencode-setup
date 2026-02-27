@@ -1,0 +1,32 @@
+{
+  "allPassed": true,
+  "gatesRun": 4,
+  "gatesTotal": 4,
+  "passed": 4,
+  "failed": 0,
+  "skipped": 0,
+  "totalMs": 320,
+  "timestamp": "2026-02-27T04:33:45.899Z",
+  "gates": [
+    {
+      "gate": "registry-validate",
+      "exitCode": 0,
+      "durationMs": 73
+    },
+    {
+      "gate": "skill-consistency",
+      "exitCode": 0,
+      "durationMs": 75
+    },
+    {
+      "gate": "overlap-governance",
+      "exitCode": 0,
+      "durationMs": 76
+    },
+    {
+      "gate": "routing-evaluator",
+      "exitCode": 0,
+      "durationMs": 91
+    }
+  ]
+}
