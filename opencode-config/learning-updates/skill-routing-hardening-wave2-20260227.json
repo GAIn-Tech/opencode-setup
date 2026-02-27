@@ -1,0 +1,28 @@
+{
+  "id": "skill-routing-hardening-wave2-20260227",
+  "timestamp": "2026-02-27T12:00:00Z",
+  "summary": "Medium-priority skill routing hardening: --full-report mode for gate runner, fixture schema validation in evaluator, expanded DEFAULT_TASKS covering browser/git/code-review/meta domains, learning update for governance compliance",
+  "affected_paths": [
+    "scripts/run-skill-routing-gates.mjs",
+    "scripts/skill-routing-evaluator.mjs",
+    "scripts/skill-routing-thresholds.json",
+    "scripts/tests/skill-hierarchical-routing.test.js",
+    "opencode-config/learning-updates/"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "details": {
+    "learning_type": "governance_hardening",
+    "changes": [
+      "--full-report flag in run-skill-routing-gates.mjs runs all gates without fail-fast, aggregates failures",
+      "validateFixture() + loadAndValidateFixture() in evaluator with actionable error messages",
+      "Expanded DEFAULT_TASKS from 8 to 13: added browser-1, git-1, review-request-1, review-receive-1, meta-skill-1",
+      "GATES exported from gate runner with isMain guard for testability",
+      "21 new tests covering fixture validation, task coverage, gate array, full-report mode"
+    ]
+  }
+}

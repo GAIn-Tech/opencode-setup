@@ -67,11 +67,115 @@ const DEFAULT_TASKS = [
     expectedDomain: "debugging",
     expectedTopSkill: "incident-commander",
   },
+  // --- Browser automation (untagged domain) ---
+  {
+    id: "browser-1",
+    scenarioId: "browser",
+    taskText: "go to url click on login button fill form with test credentials take screenshot",
+    expectedTopSkill: "dev-browser",
+  },
+  // --- Git operations (untagged domain) ---
+  {
+    id: "git-1",
+    scenarioId: "git",
+    taskText: "commit staged changes then squash the last three commits into one",
+    expectedTopSkill: "git-master",
+  },
+  // --- Code review: requesting (untagged domain) ---
+  {
+    id: "review-request-1",
+    scenarioId: "code-review",
+    taskText: "request review on the implementation ready for review need feedback",
+    expectedTopSkill: "requesting-code-review",
+  },
+  // --- Code review: receiving (untagged domain) ---
+  {
+    id: "review-receive-1",
+    scenarioId: "code-review",
+    taskText: "received feedback on the PR and address feedback from review comments",
+    expectedTopSkill: "receiving-code-review",
+  },
+  // --- Meta: skill creation (untagged domain) ---
+  {
+    id: "meta-skill-1",
+    scenarioId: "meta",
+    taskText: "create skill and write skill definition for a new deployment automation workflow",
+    expectedTopSkill: "writing-skills",
+  },
 ]
 
 function loadThresholds(thresholdsPath = THRESHOLDS_PATH) {
   const raw = fs.readFileSync(thresholdsPath, "utf8")
   return JSON.parse(raw)
+}
+
+/**
+ * Validate fixture data shape. Throws on invalid input with actionable message.
+ * @param {unknown} data - Parsed fixture data
+ * @param {string} source - Description of origin (for error messages)
+ * @returns {Array} - Validated array of task objects
+ */
+function validateFixture(data, source) {
+  if (!Array.isArray(data)) {
+    throw new Error(
+      `Fixture from ${source} must be a JSON array of task objects, got ${typeof data}.`
+    )
+  }
+  if (data.length === 0) {
+    throw new Error(
+      `Fixture from ${source} is an empty array. At least one task is required.`
+    )
+  }
+  for (let i = 0; i < data.length; i++) {
+    const task = data[i]
+    const prefix = `Fixture[${i}] from ${source}`
+    if (typeof task !== "object" || task === null || Array.isArray(task)) {
+      throw new Error(
+        `${prefix}: must be a plain object, got ${Array.isArray(task) ? "array" : typeof task}.`
+      )
+    }
+    if (typeof task.id !== "string" || !task.id.trim()) {
+      throw new Error(`${prefix}: requires 'id' as a non-empty string.`)
+    }
+    if (typeof task.taskText !== "string" || !task.taskText.trim()) {
+      throw new Error(`${prefix}: requires 'taskText' as a non-empty string.`)
+    }
+    for (const opt of ["scenarioId", "expectedTopSkill", "expectedDomain"]) {
+      if (opt in task && typeof task[opt] !== "string") {
+        throw new Error(
+          `${prefix}: optional field '${opt}' must be a string when present, got ${typeof task[opt]}.`
+        )
+      }
+    }
+  }
+  return data
+}
+
+/**
+ * Load and validate a fixture file. Throws with actionable messages on failure.
+ * @param {string} fixturePath - Path to the fixture JSON file
+ * @returns {Array} - Validated array of task objects
+ */
+function loadAndValidateFixture(fixturePath) {
+  let raw
+  try {
+    raw = fs.readFileSync(fixturePath, "utf8")
+  } catch (err) {
+    throw new Error(
+      `Cannot read fixture file '${fixturePath}': ${err.message}\n` +
+        `  Hint: verify the file exists and is readable.`
+    )
+  }
+  let data
+  try {
+    data = JSON.parse(raw)
+  } catch (err) {
+    throw new Error(
+      `Invalid JSON in fixture file '${fixturePath}': ${err.message}\n` +
+        `  Hint: validate your JSON with a linter before passing to --fixture.`
+    )
+  }
+  return validateFixture(data, fixturePath)
 }
 
 function median(values) {
@@ -220,6 +324,29 @@ function checkThresholds(metrics, thresholds) {
   return breaches
 }
 
+/**
+ * Identify threshold keys that are defined in the config but explicitly marked
+ * as not-yet-implemented via the _deferredMetrics array. Returns structured
+ * warnings so callers can surface them without false-positive enforcement.
+ */
+function getDeferredThresholdWarnings(thresholds) {
+  const deferred = thresholds._deferredMetrics || []
+  const warnings = []
+  for (const metric of deferred) {
+    if (metric in thresholds) {
+      warnings.push({
+        metric,
+        threshold: thresholds[metric],
+        status: "deferred",
+        message:
+          (thresholds._notes && thresholds._notes[metric]) ||
+          `Metric '${metric}' defined in thresholds but not yet implemented in evaluator.`,
+      })
+    }
+  }
+  return warnings
+}
+
 function main(argv) {
   const args = argv
   let fixturePath = null
@@ -236,16 +363,26 @@ function main(argv) {
   const registry = loadRegistry()
   const thresholds = loadThresholds()
 
-  if (dryRun) {
-    const tasks = fixturePath
-      ? JSON.parse(fs.readFileSync(fixturePath, "utf8"))
+  // Consolidate task loading with validation (runs for both --dry-run and evaluation)
+  let tasks
+  try {
+    tasks = fixturePath
+      ? loadAndValidateFixture(fixturePath)
       : DEFAULT_TASKS
+  } catch (err) {
+    console.error(`ERROR: ${err.message}`)
+    process.exit(1)
+  }
+
+  if (dryRun) {
+    const deferredWarnings = getDeferredThresholdWarnings(thresholds)
     console.log(
       JSON.stringify(
         {
           dryRun: true,
           taskCount: tasks.length,
           thresholds,
+          deferredWarnings,
           tasks: tasks.map((t) => ({
             id: t.id,
             taskText: t.taskText,
@@ -257,16 +394,18 @@ function main(argv) {
         2
       )
     )
+    if (deferredWarnings.length > 0) {
+      for (const w of deferredWarnings) {
+        console.warn(`WARNING: deferred metric '${w.metric}': ${w.message}`)
+      }
+    }
     process.exit(0)
   }
-
-  const tasks = fixturePath
-    ? JSON.parse(fs.readFileSync(fixturePath, "utf8"))
-    : DEFAULT_TASKS
 
   const results = evaluateTasks(tasks, registry)
   const metrics = computeMetrics(results)
   const breaches = checkThresholds(metrics, thresholds)
+  const deferredWarnings = getDeferredThresholdWarnings(thresholds)
 
   const report = {
     timestamp: new Date().toISOString(),
@@ -274,11 +413,18 @@ function main(argv) {
     metrics,
     thresholds,
     breaches,
+    deferredWarnings,
     pass: breaches.length === 0,
     details: results,
   }
 
   console.log(JSON.stringify(report, null, 2))
+
+  if (deferredWarnings.length > 0) {
+    for (const w of deferredWarnings) {
+      console.warn(`WARNING: deferred metric '${w.metric}': ${w.message}`)
+    }
+  }
 
   if (breaches.length > 0) {
     process.exit(1)
@@ -290,9 +436,12 @@ function main(argv) {
 export {
   DEFAULT_TASKS,
   loadThresholds,
+  validateFixture,
+  loadAndValidateFixture,
   evaluateTasks,
   computeMetrics,
   checkThresholds,
+  getDeferredThresholdWarnings,
   median,
 }
 

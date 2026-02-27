@@ -6,6 +6,7 @@
  * Sequential gate runner for skill routing governance.
  * Runs these gates in order, failing fast on first non-zero exit:
  *
+ *   0. learning-gate.mjs --verify-hashes   (governance config hash integrity)
  *   1. skill-profile-loader.mjs validate   (registry integrity)
  *   2. check-skill-consistency.mjs          (registry ↔ compound-engineering parity)
  *   3. check-skill-overlap-governance.mjs   (overlap cluster policy)
@@ -15,8 +16,9 @@
  * Exit 1 = at least one gate failed or threshold breached
  *
  * Options:
- *   --fixture <path>   Pass fixture file to evaluator (default: built-in tasks)
- *   --evidence <dir>   Write per-gate evidence JSON to this directory
+ *   --fixture <path>     Pass fixture file to evaluator (default: built-in tasks)
+ *   --evidence <dir>     Write per-gate evidence JSON to this directory
+ *   --full-report        Run ALL gates even after failures (default: fail-fast)
  */
 
 import { execSync } from "node:child_process"
@@ -31,12 +33,15 @@ const __dirname = path.dirname(__filename)
 const args = process.argv.slice(2)
 let fixturePath = null
 let evidenceDir = null
+let fullReport = false
 
 for (let i = 0; i < args.length; i++) {
   if (args[i] === "--fixture" && args[i + 1]) {
     fixturePath = args[++i]
   } else if (args[i] === "--evidence" && args[i + 1]) {
     evidenceDir = args[++i]
+  } else if (args[i] === "--full-report") {
+    fullReport = true
   }
 }
 
@@ -48,6 +53,11 @@ const evaluatorFixtureArgs = fixturePath
   : ""
 
 const GATES = [
+  {
+    name: "governance-hash-verify",
+    label: "Governance Hash Verification",
+    command: `"${NODE}" "${path.resolve(__dirname, "learning-gate.mjs")}" --verify-hashes`,
+  },
   {
     name: "registry-validate",
     label: "Registry Validation",
@@ -127,8 +137,9 @@ function run() {
     results.push(evidence)
     writeEvidence(gate.name, evidence)
 
-    // Fail fast: stop on first failure
-    if (exitCode !== 0) {
+    // In default (fail-fast) mode, stop on first failure.
+    // In --full-report mode, continue running all gates.
+    if (exitCode !== 0 && !fullReport) {
       break
     }
   }
@@ -140,6 +151,7 @@ function run() {
   const skippedCount = GATES.length - results.length
 
   console.log("=== Summary ===")
+  console.log(`  Mode:         ${fullReport ? "full-report" : "fail-fast"}`)
   console.log(`  Gates run:    ${results.length}/${GATES.length}`)
   console.log(`  Passed:       ${passedCount}`)
   console.log(`  Failed:       ${failedCount}`)
@@ -151,6 +163,7 @@ function run() {
   // Write aggregate evidence
   if (evidenceDir) {
     writeEvidence("_summary", {
+      mode: fullReport ? "full-report" : "fail-fast",
       allPassed,
       gatesRun: results.length,
       gatesTotal: GATES.length,
@@ -176,4 +189,14 @@ function run() {
   process.exit(0)
 }
 
-run()
+// Export for testing
+export { GATES }
+
+// Only run CLI when this file is the entry point
+const isMain = process.argv[1] && (
+  path.resolve(process.argv[1]) === path.resolve(__filename) ||
+  path.resolve(process.argv[1]) === path.resolve(__filename.replace(/\.mjs$/, ""))
+)
+if (isMain) {
+  run()
+}
