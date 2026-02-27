@@ -216,10 +216,11 @@ function scoreSkills(taskText, phase, domain, registry) {
   const results = []
 
   for (const [skillName, skill] of Object.entries(registry.skills)) {
+    // Exclude skills whose metadata explicitly conflicts with the selected phase/domain.
+    // Skills WITHOUT processPhase/domain metadata are NOT excluded — they remain
+    // candidates so that untagged skills are still discoverable via trigger/hint matching.
     if (phase && skill.processPhase && skill.processPhase !== phase) continue
     if (domain && skill.domain && skill.domain !== domain) continue
-    if (phase && !skill.processPhase) continue
-    if (domain && !skill.domain) continue
 
     let score = 0
 
@@ -268,14 +269,28 @@ function scoreSkills(taskText, phase, domain, registry) {
  */
 function routeHierarchical(taskText, registry) {
   const phases = scoreProcessPhase(taskText, registry)
-  const winningPhase = phases[0] || null
-  const runnerUpPhase = phases[1] || null
+  const winningPhaseRaw = phases[0] || null
+  const runnerUpPhaseRaw = phases[1] || null
+
+  const winningPhase = winningPhaseRaw && winningPhaseRaw.score > 0
+    ? winningPhaseRaw
+    : null
+  const runnerUpPhase = runnerUpPhaseRaw && runnerUpPhaseRaw.score > 0
+    ? runnerUpPhaseRaw
+    : null
 
   const phaseName = winningPhase ? winningPhase.phase : null
 
   const domains = scoreDomain(taskText, phaseName, registry)
-  const winningDomain = domains[0] || null
-  const runnerUpDomain = domains[1] || null
+  const winningDomainRaw = domains[0] || null
+  const runnerUpDomainRaw = domains[1] || null
+
+  const winningDomain = winningDomainRaw && winningDomainRaw.score > 0
+    ? winningDomainRaw
+    : null
+  const runnerUpDomain = runnerUpDomainRaw && runnerUpDomainRaw.score > 0
+    ? runnerUpDomainRaw
+    : null
 
   const domainName = winningDomain ? winningDomain.domain : null
 
@@ -283,9 +298,11 @@ function routeHierarchical(taskText, registry) {
   const topSkill = skills[0] || null
   const runnerUpSkill = skills[1] || null
 
-  const ambiguityMargin = (topSkill && runnerUpSkill)
+  const ambiguityMargin = topSkill
+    ? ((topSkill && runnerUpSkill)
     ? topSkill.score - runnerUpSkill.score
-    : (topSkill ? topSkill.score : 0)
+    : topSkill.score)
+    : null
 
   return {
     processPhase: winningPhase,
@@ -324,6 +341,12 @@ function validateRegistry(registry) {
       if (!registry.skills[conflict]) {
         errors.push(`Skill '${skillName}' has unknown conflict '${conflict}'`)
       }
+      if (conflict === skillName) {
+        errors.push(`Skill '${skillName}' conflicts with itself`)
+      }
+      if (registry.skills[conflict] && !(registry.skills[conflict].conflicts || []).includes(skillName)) {
+        errors.push(`Skill '${skillName}' conflict '${conflict}' is not symmetric`)
+      }
     }
   }
 
@@ -332,6 +355,17 @@ function validateRegistry(registry) {
       if (!registry.skills[skillName]) {
         errors.push(`Profile '${profileName}' references unknown skill '${skillName}'`)
       }
+    }
+
+    try {
+      const resolution = resolveSkillsWithDependencies(profile.skills || [], registry)
+      if (resolution.conflicts.length > 0) {
+        for (const c of resolution.conflicts) {
+          errors.push(`Profile '${profileName}' resolves conflicting skills: '${c.skill}' vs '${c.conflictsWith}'`)
+        }
+      }
+    } catch (error) {
+      errors.push(`Profile '${profileName}' resolution failed: ${error.message}`)
     }
   }
 

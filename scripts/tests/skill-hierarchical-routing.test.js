@@ -12,9 +12,13 @@ import {
   evaluateTasks,
   computeMetrics,
   checkThresholds,
+  getDeferredThresholdWarnings,
+  loadThresholds,
+  validateFixture,
   median,
   DEFAULT_TASKS,
 } from "../skill-routing-evaluator.mjs"
+import { GATES } from "../run-skill-routing-gates.mjs"
 
 // --- Minimal test registry for deterministic scoring tests ---
 const TEST_REGISTRY = {
@@ -273,16 +277,57 @@ describe("scoreSkills", () => {
     expect(result).toEqual([])
   })
 
-  test("skills without matching phase/domain are excluded", () => {
+  test("skills with wrong explicit phase/domain are excluded", () => {
     const result = scoreSkills(
       "brainstorm explore approaches",
       "pre-analysis",
       "planning",
       TEST_REGISTRY
     )
-    // only skill-gamma should match
+    // skill-gamma matches phase+domain+triggers; skill-no-phase has no matching triggers
     expect(result.length).toBe(1)
     expect(result[0].skill).toBe("skill-gamma")
+  })
+
+  test("skills without processPhase/domain are NOT auto-excluded when phase/domain selected", () => {
+    // skill-no-phase has triggers=["something random"], no processPhase, no domain
+    const result = scoreSkills(
+      "something random",
+      "analysis",
+      "debugging",
+      TEST_REGISTRY
+    )
+    const noPhaseSkill = result.find((r) => r.skill === "skill-no-phase")
+    expect(noPhaseSkill).toBeTruthy()
+    expect(noPhaseSkill.score).toBeGreaterThan(0)
+  })
+
+  test("untagged skill competes fairly with tagged skills", () => {
+    // Both skill-alpha (tagged analysis/debugging) and skill-no-phase (untagged)
+    // should appear when their triggers match, with tagged getting no unfair advantage
+    // beyond the text-matching score itself
+    const mixedRegistry = {
+      skills: {
+        "tagged-skill": {
+          description: "Tagged skill",
+          triggers: ["special task"],
+          processPhase: "analysis",
+          domain: "debugging",
+          selectionHints: { useWhen: [], avoidWhen: [] },
+        },
+        "untagged-skill": {
+          description: "Untagged skill",
+          triggers: ["special task"],
+          selectionHints: { useWhen: [], avoidWhen: [] },
+        },
+      },
+      profiles: {},
+      categories: {},
+    }
+    const result = scoreSkills("special task", "analysis", "debugging", mixedRegistry)
+    expect(result.length).toBe(2)
+    // Both should score equally (same trigger match)
+    expect(result[0].score).toBe(result[1].score)
   })
 })
 
@@ -337,6 +382,22 @@ describe("routeHierarchical", () => {
     expect(Array.isArray(result.allPhases)).toBe(true)
     expect(Array.isArray(result.allDomains)).toBe(true)
     expect(Array.isArray(result.allSkills)).toBe(true)
+  })
+
+  test("untagged skills appear in allSkills when triggers match", () => {
+    const result = routeHierarchical("something random", TEST_REGISTRY)
+    // skill-no-phase has triggers=["something random"] and no phase/domain
+    const found = result.allSkills.find((s) => s.skill === "skill-no-phase")
+    expect(found).toBeTruthy()
+    expect(found.score).toBeGreaterThan(0)
+  })
+
+  test("returns no fake phase/domain when all scores are zero", () => {
+    const result = routeHierarchical("totally unmatched tokens", TEST_REGISTRY)
+    expect(result.processPhase).toBeNull()
+    expect(result.domain).toBeNull()
+    expect(result.topSkill).toBeNull()
+    expect(result.ambiguityMargin).toBeNull()
   })
 })
 
@@ -466,6 +527,59 @@ describe("computeMetrics", () => {
   })
 })
 
+describe("getDeferredThresholdWarnings", () => {
+  test("returns warnings for deferred metrics", () => {
+    const thresholds = {
+      maxAmbiguityRate: 0.15,
+      maxContextBudgetOverhead: 0.05,
+      _deferredMetrics: ["maxContextBudgetOverhead"],
+      _notes: {
+        maxContextBudgetOverhead: "Not yet implemented.",
+      },
+    }
+    const warnings = getDeferredThresholdWarnings(thresholds)
+    expect(warnings.length).toBe(1)
+    expect(warnings[0].metric).toBe("maxContextBudgetOverhead")
+    expect(warnings[0].status).toBe("deferred")
+    expect(warnings[0].threshold).toBe(0.05)
+    expect(warnings[0].message).toBe("Not yet implemented.")
+  })
+
+  test("returns empty array when no deferred metrics", () => {
+    const thresholds = {
+      maxAmbiguityRate: 0.15,
+    }
+    const warnings = getDeferredThresholdWarnings(thresholds)
+    expect(warnings).toEqual([])
+  })
+
+  test("returns empty when _deferredMetrics is present but empty", () => {
+    const thresholds = {
+      maxAmbiguityRate: 0.15,
+      _deferredMetrics: [],
+    }
+    expect(getDeferredThresholdWarnings(thresholds)).toEqual([])
+  })
+
+  test("uses fallback message when _notes is missing", () => {
+    const thresholds = {
+      maxContextBudgetOverhead: 0.05,
+      _deferredMetrics: ["maxContextBudgetOverhead"],
+    }
+    const warnings = getDeferredThresholdWarnings(thresholds)
+    expect(warnings[0].message).toContain("not yet implemented")
+  })
+
+  test("real thresholds file has consistent deferred annotation", () => {
+    const thresholds = loadThresholds()
+    const warnings = getDeferredThresholdWarnings(thresholds)
+    // maxContextBudgetOverhead should be listed as deferred
+    const overhead = warnings.find((w) => w.metric === "maxContextBudgetOverhead")
+    expect(overhead).toBeTruthy()
+    expect(overhead.status).toBe("deferred")
+  })
+})
+
 describe("checkThresholds", () => {
   const thresholds = {
     maxAmbiguityRate: 0.15,
@@ -507,6 +621,24 @@ describe("checkThresholds", () => {
     const breaches = checkThresholds(metrics, thresholds)
     expect(breaches.length).toBe(4)
   })
+
+  test("ignores _deferredMetrics and _notes keys (backward compat)", () => {
+    const thresholdsWithDeferred = {
+      ...thresholds,
+      maxContextBudgetOverhead: 0.05,
+      _deferredMetrics: ["maxContextBudgetOverhead"],
+      _notes: { maxContextBudgetOverhead: "deferred" },
+    }
+    const metrics = {
+      ambiguityRate: 0.1,
+      switchRate: 0.05,
+      onePassCorrectness: 0.9,
+      medianRoutingMs: 50,
+    }
+    // checkThresholds should not breach on deferred metrics
+    const breaches = checkThresholds(metrics, thresholdsWithDeferred)
+    expect(breaches).toEqual([])
+  })
 })
 
 describe("evaluateTasks with real registry", () => {
@@ -524,6 +656,196 @@ describe("evaluateTasks with real registry", () => {
   })
 })
 
+// ========== validateFixture tests ==========
+
+describe("validateFixture", () => {
+  test("accepts valid fixture array", () => {
+    const data = [
+      { id: "t1", taskText: "do something" },
+      { id: "t2", taskText: "do else", scenarioId: "s", expectedTopSkill: "x", expectedDomain: "y" },
+    ]
+    expect(validateFixture(data, "test")).toEqual(data)
+  })
+
+  test("rejects non-array input", () => {
+    expect(() => validateFixture({}, "test")).toThrow("must be a JSON array")
+    expect(() => validateFixture("str", "test")).toThrow("must be a JSON array")
+    expect(() => validateFixture(null, "test")).toThrow("must be a JSON array")
+  })
+
+  test("rejects empty array", () => {
+    expect(() => validateFixture([], "test")).toThrow("empty array")
+  })
+
+  test("rejects task without id", () => {
+    expect(() => validateFixture([{ taskText: "x" }], "test")).toThrow("requires 'id'")
+  })
+
+  test("rejects task with empty string id", () => {
+    expect(() => validateFixture([{ id: "  ", taskText: "x" }], "test")).toThrow("requires 'id'")
+  })
+
+  test("rejects task without taskText", () => {
+    expect(() => validateFixture([{ id: "t1" }], "test")).toThrow("requires 'taskText'")
+  })
+
+  test("rejects non-string optional fields", () => {
+    expect(() =>
+      validateFixture([{ id: "t1", taskText: "x", scenarioId: 123 }], "test")
+    ).toThrow("'scenarioId' must be a string")
+    expect(() =>
+      validateFixture([{ id: "t1", taskText: "x", expectedTopSkill: true }], "test")
+    ).toThrow("'expectedTopSkill' must be a string")
+    expect(() =>
+      validateFixture([{ id: "t1", taskText: "x", expectedDomain: [] }], "test")
+    ).toThrow("'expectedDomain' must be a string")
+  })
+
+  test("rejects nested array in task position", () => {
+    expect(() => validateFixture([[]], "test")).toThrow("must be a plain object")
+  })
+
+  test("includes index in error message", () => {
+    const data = [
+      { id: "ok", taskText: "fine" },
+      { id: "bad" }, // missing taskText
+    ]
+    expect(() => validateFixture(data, "test")).toThrow("Fixture[1]")
+  })
+})
+
+// ========== DEFAULT_TASKS expanded coverage ==========
+
+describe("DEFAULT_TASKS coverage", () => {
+  const taskIds = DEFAULT_TASKS.map((t) => t.id)
+
+  test("has all original task IDs", () => {
+    for (const id of ["debug-1", "debug-2", "plan-1", "plan-2", "impl-1", "verify-1", "orchestrate-1", "incident-1"]) {
+      expect(taskIds).toContain(id)
+    }
+  })
+
+  test("has new browser coverage", () => {
+    expect(taskIds).toContain("browser-1")
+  })
+
+  test("has new git coverage", () => {
+    expect(taskIds).toContain("git-1")
+  })
+
+  test("has new code-review request coverage", () => {
+    expect(taskIds).toContain("review-request-1")
+  })
+
+  test("has new code-review receive coverage", () => {
+    expect(taskIds).toContain("review-receive-1")
+  })
+
+  test("has new meta/skill-creation coverage", () => {
+    expect(taskIds).toContain("meta-skill-1")
+  })
+
+  test("all tasks have required fields", () => {
+    for (const task of DEFAULT_TASKS) {
+      expect(typeof task.id).toBe("string")
+      expect(task.id.length).toBeGreaterThan(0)
+      expect(typeof task.taskText).toBe("string")
+      expect(task.taskText.length).toBeGreaterThan(0)
+    }
+  })
+
+  test("evaluates expanded tasks without error against real registry", () => {
+    const registry = loadRegistry()
+    const results = evaluateTasks(DEFAULT_TASKS, registry)
+    expect(results.length).toBe(DEFAULT_TASKS.length)
+    for (const r of results) {
+      expect(r).toHaveProperty("topSkill")
+      expect(r).toHaveProperty("routingMs")
+    }
+  })
+})
+
+// ========== Gates array verification ==========
+
+describe("governance gates array", () => {
+  test("GATES includes governance-hash-verify as first gate", () => {
+    expect(GATES.length).toBeGreaterThanOrEqual(5)
+    expect(GATES[0].name).toBe("governance-hash-verify")
+  })
+
+  test("GATES includes all expected gate names", () => {
+    const names = GATES.map((g) => g.name)
+    expect(names).toContain("governance-hash-verify")
+    expect(names).toContain("registry-validate")
+    expect(names).toContain("skill-consistency")
+    expect(names).toContain("overlap-governance")
+    expect(names).toContain("routing-evaluator")
+  })
+
+  test("each gate has name, label, and command", () => {
+    for (const gate of GATES) {
+      expect(typeof gate.name).toBe("string")
+      expect(typeof gate.label).toBe("string")
+      expect(typeof gate.command).toBe("string")
+      expect(gate.name.length).toBeGreaterThan(0)
+      expect(gate.command.length).toBeGreaterThan(0)
+    }
+  })
+})
+
+// ========== --full-report CLI integration test ==========
+
+describe("--full-report mode (integration)", () => {
+  test("full-report runs all gates and shows correct mode", async () => {
+    const proc = Bun.spawn(
+      ["node", "scripts/run-skill-routing-gates.mjs", "--full-report"],
+      { cwd: process.cwd(), stdout: "pipe", stderr: "pipe" }
+    )
+    const text = await new Response(proc.stdout).text()
+    const exitCode = await proc.exited
+
+    expect(text).toContain("Mode:         full-report")
+    // In full-report mode, all gates are always attempted (never skipped)
+    expect(text).not.toContain("fail-fast after first failure")
+    // Gates run: N/N — both numbers should match (all attempted)
+    const match = text.match(/Gates run:\s+(\d+)\/(\d+)/)
+    expect(match).toBeTruthy()
+    if (match) {
+      expect(match[1]).toBe(match[2])
+    }
+    // Exit code depends on gate results: 0 if all pass, 1 if any fail
+    expect([0, 1]).toContain(exitCode)
+  }, 120_000)
+
+  test("fail-fast mode shows correct mode label", async () => {
+    const proc = Bun.spawn(
+      ["node", "scripts/run-skill-routing-gates.mjs"],
+      { cwd: process.cwd(), stdout: "pipe", stderr: "pipe" }
+    )
+    const text = await new Response(proc.stdout).text()
+    const exitCode = await proc.exited
+
+    expect(text).toContain("Mode:         fail-fast")
+    // Fail-fast is the default, exit code depends on gates
+    expect([0, 1]).toContain(exitCode)
+  }, 120_000)
+})
+
+// ========== evaluator fixture validation CLI integration ==========
+
+describe("evaluator fixture validation (integration)", () => {
+  test("invalid fixture path exits non-zero with actionable message", async () => {
+    const proc = Bun.spawn(
+      ["node", "scripts/skill-routing-evaluator.mjs", "--fixture", "/nonexistent/path.json"],
+      { cwd: process.cwd(), stdout: "pipe", stderr: "pipe" }
+    )
+    const stderr = await new Response(proc.stderr).text()
+    const exitCode = await proc.exited
+    expect(exitCode).toBe(1)
+    expect(stderr).toContain("Cannot read fixture file")
+  })
+})
+
 // ========== validate still works ==========
 
 describe("validate command backward compatibility", () => {
@@ -534,5 +856,35 @@ describe("validate command backward compatibility", () => {
     )
     const exitCode = await proc.exited
     expect(exitCode).toBe(0)
+  })
+})
+
+describe("validateRegistry hardening", () => {
+  test("detects asymmetric conflicts", () => {
+    const reg = {
+      skills: {
+        a: { description: "a", category: "x", tags: [], source: "custom", dependencies: [], synergies: [], conflicts: ["b"], triggers: [] },
+        b: { description: "b", category: "x", tags: [], source: "custom", dependencies: [], synergies: [], conflicts: [], triggers: [] },
+      },
+      profiles: { p: { description: "p", skills: ["a", "b"], triggers: [] } },
+      categories: {},
+    }
+
+    const errors = validateRegistry(reg)
+    expect(errors.some((e) => e.includes("not symmetric"))).toBe(true)
+  })
+
+  test("detects profile-resolved skill conflicts", () => {
+    const reg = {
+      skills: {
+        a: { description: "a", category: "x", tags: [], source: "custom", dependencies: [], synergies: [], conflicts: ["b"], triggers: [] },
+        b: { description: "b", category: "x", tags: [], source: "custom", dependencies: [], synergies: [], conflicts: ["a"], triggers: [] },
+      },
+      profiles: { p: { description: "p", skills: ["a", "b"], triggers: [] } },
+      categories: {},
+    }
+
+    const errors = validateRegistry(reg)
+    expect(errors.some((e) => e.includes("resolves conflicting skills"))).toBe(true)
   })
 })
