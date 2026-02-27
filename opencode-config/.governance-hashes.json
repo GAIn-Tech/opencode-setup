@@ -1,7 +1,7 @@
 {
   "version": 1,
   "algorithm": "SHA-256",
-  "generated_at": "2026-02-27T16:24:56.395Z",
+  "generated_at": "2026-02-27T16:27:45.532Z",
   "files": {
     "opencode-config/antigravity.json": "d332d874ef445af235aeee92777ca40a9110cede734f9535efa4c7e2c9d25b6b",
     "opencode-config/central-config.json": "ade5728ba5a9192cf40af1ee731006b1b48516744da3f8eb885f57c4d79f05ac",

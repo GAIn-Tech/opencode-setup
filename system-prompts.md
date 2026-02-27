@@ -39,7 +39,7 @@ The primary configuration file containing:
 - **`model`** — Default model (`google/antigravity-gemini-3-pro`)
 - **`plugin`** — Array of 8 npm plugin packages
 - **`provider.google`** — npm package (`@ai-sdk/google`) + 7 model definitions with context limits, modalities, and thinking variants
-- **`mcp`** — 8 MCP server definitions (type, command, environment, enabled)
+- **`mcp`** — 9 MCP server definitions (type, command, environment, enabled)
 - **`command`** — 9 workflow commands (brainstorm, plan, work, review, compound, etc.)
 - **`permission`** — All tools allowed (read, write, edit, bash, task, etc.)
 - **`tools`** — All tools enabled
