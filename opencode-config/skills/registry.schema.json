@@ -42,6 +42,69 @@
           "triggers": {
             "type": "array",
             "items": { "type": "string" }
+          },
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "type": { "type": "string" },
+                "description": { "type": "string" },
+                "required": { "type": "boolean" }
+              },
+              "required": ["name"],
+              "additionalProperties": false
+            }
+          },
+          "outputs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "type": { "type": "string" },
+                "description": { "type": "string" },
+                "required": { "type": "boolean" }
+              },
+              "required": ["name"],
+              "additionalProperties": false
+            }
+          },
+          "handoff": {
+            "type": "object",
+            "properties": {
+              "receives_from": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "hands_off_to": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "context_preserved": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            },
+            "additionalProperties": false
+          },
+          "version": { "type": "string" },
+          "compositionRules": {
+            "type": "object",
+            "properties": {
+              "canRunInParallel": { "type": "boolean" },
+              "canChain": { "type": "boolean" },
+              "executionPhase": {
+                "type": "string",
+                "enum": ["pre-analysis", "analysis", "implementation", "verification", "post-process"]
+              },
+              "maxRetries": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
           }
         }
       }
@@ -63,7 +126,9 @@
           "triggers": {
             "type": "array",
             "items": { "type": "string" }
-          }
+          },
+          "version": { "type": "string" },
+          "deprecated": { "type": "boolean" }
         }
       }
     },

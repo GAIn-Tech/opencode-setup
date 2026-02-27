@@ -1,0 +1,33 @@
+{
+  "id": "schema-v2-contracts-20260226",
+  "timestamp": "2026-02-26T21:30:00Z",
+  "summary": "Extended registry schema for v2 machine-visible contracts while preserving v1 compatibility",
+  "affected_paths": [
+    "opencode-config/skills/registry.schema.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "details": {
+    "learning_type": "schema_evolution",
+    "skill_v2_fields": [
+      "inputs - array of input parameter contracts",
+      "outputs - array of output parameter contracts",
+      "handoff - skill handoff relationships and context preservation",
+      "version - semver string",
+      "compositionRules - execution constraints and retry policy"
+    ],
+    "profile_v2_fields": [
+      "version - semver string",
+      "deprecated - lifecycle flag"
+    ],
+    "v1_preservation": "All required fields unchanged: description, category, tags, source, dependencies, synergies, conflicts, triggers",
+    "test_results": {
+      "validation": "node scripts/skill-profile-loader.mjs validate → PASS",
+      "schema_fixture": "12/12 tests passed"
+    }
+  }
+}
