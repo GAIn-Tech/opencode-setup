@@ -180,3 +180,15 @@ Edit `~/.config/opencode/oh-my-opencode.json` → `agents` section
 
 ### To add workflow commands:
 Add to `opencode.json` → `command` section with description and template
+
+## Context Management MCP Tools
+
+**When to use Context7**: Before implementing against any external library API you're not certain about,
+call `mcp_context7_resolve-library-id` then `mcp_context7_query-docs`. Prevents hallucinated APIs.
+
+**When to use Distill**: When context is at ~65%+ of capacity, call `mcp_distill_browse_tools` then
+`mcp_distill_run_tool`. Do not wait until 90%+ — compress early. Distill starts lazy (~2–3s cold start).
+
+**Tool name reference**:
+- Context7: `mcp_context7_resolve-library-id`, `mcp_context7_query-docs`
+- Distill: `mcp_distill_browse_tools`, `mcp_distill_run_tool`

@@ -48,7 +48,10 @@ research-builder bridges the gap between "I need to build X" and "here's working
 #### Source Types (Priority Order)
 
 1. **Official Documentation** (highest priority)
-   - Use Context7 for library docs
+   - **Context7** (for any unfamiliar external library or API):
+     1. Call `mcp_context7_resolve-library-id` → `{"libraryName": "<library>", "query": "<what you need>"}`
+     2. Take the returned `libraryId`, then call `mcp_context7_query-docs` → `{"libraryId": "<id>", "query": "<specific API question>"}`
+     3. If library not found, fall back to websearch
    - Check API references
    - Read migration guides if upgrading
 
