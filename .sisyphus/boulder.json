@@ -1,33 +1,17 @@
 {
   "active_plan": null,
-  "plan_name": "wave5-naivete-remediation",
-  "started_at": "2026-02-25T05:51:16.237Z",
-  "completed_at": "2026-02-25T07:10:00.000Z",
-  "session_ids": ["ses_36d2b76f5ffeOHUpdG4QXxsCh2"],
+  "plan_name": null,
+  "started_at": null,
+  "session_ids": [],
   "progress": {
-    "total_tasks": 10,
-    "completed": 10,
+    "total_tasks": 0,
+    "completed": 0,
     "current_task": null
   },
-  "waves": {
-    "0": { "status": "completed", "tasks": [0] },
-    "5A": { "status": "completed", "tasks": [1, 4, 5] },
-    "5B": { "status": "completed", "tasks": [2, 3, 7] },
-    "5C": { "status": "completed", "tasks": [6, 8, 9] }
-  },
-  "commits": [
-    "cfd7f59",
-    "aa7ec10",
-    "00d85da",
-    "9ed5ddf",
-    "06edf11",
-    "3c3cc45",
-    "94d20e5",
-    "3774bda",
-    "4d65680"
-  ],
-  "risk_points_reduced": 250,
-"completed_plans": [
+  "waves": {},
+  "commits": [],
+  "risk_points_reduced": 0,
+  "completed_plans": [
     {
       "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\tech-debt-wave4.md",
       "plan_name": "tech-debt-wave4",
@@ -118,6 +102,24 @@
       ],
       "tasks_completed": 17,
       "risk_points_reduced": 220
+    },
+    {
+      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\skill-system-upgrade-master.md",
+      "plan_name": "skill-system-upgrade-master",
+      "started_at": "2026-02-27T02:03:04.755Z",
+      "completed_at": "2026-02-26T23:05:00.000Z",
+      "session_ids": [
+        "ses_3633b9bdaffeMcCqpiqtBVe5dF"
+      ],
+      "agent": "atlas",
+      "commits": [
+        "bf8ea5b",
+        "af5c2a5",
+        "f2a2e6b",
+        "e905909"
+      ],
+      "tasks_completed": 8,
+      "risk_points_reduced": 180
     }
   ]
 }
