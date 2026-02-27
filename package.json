@@ -45,5 +45,8 @@
   "bugs": {
     "url": "https://github.com/GAIn-Tech/opencode-setup/issues"
   },
-  "homepage": "https://github.com/GAIn-Tech/opencode-setup#readme"
+  "homepage": "https://github.com/GAIn-Tech/opencode-setup#readme",
+  "dependencies": {
+    "sqlite-vec": "^0.1.7-alpha.2"
+  }
 }
