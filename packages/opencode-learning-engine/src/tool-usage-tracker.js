@@ -135,6 +135,30 @@ const TOOL_APPROPRIATENESS_RULES = [
     reason: 'Context management prevents context rot'
   }
 ];
+
+/**
+ * Read JSON file asynchronously, returning defaultValue if file missing or parse fails.
+ */
+async function readJsonAsync(filePath, defaultValue = {}) {
+  try {
+    await fsPromises.mkdir(path.dirname(filePath), { recursive: true });
+    const raw = await fsPromises.readFile(filePath, 'utf-8');
+    return JSON.parse(raw);
+  } catch (_) {
+    return defaultValue;
+  }
+}
+
+/**
+ * Ensure DATA_DIR exists (singleton via _initPromise to avoid race conditions).
+ */
+async function initAsync() {
+  if (!_initPromise) {
+    _initPromise = fsPromises.mkdir(DATA_DIR, { recursive: true });
+  }
+  return _initPromise;
+}
+
 /**
  * Write JSON atomically (async) with serialized write queue.
  * Uses tmp+rename for atomic swap, chained via _writePromise to prevent
@@ -616,6 +640,7 @@ module.exports = {
   getUsageReport,
   startSession,
   endSession,
+  logInvocation,
   AVAILABLE_TOOLS,
   TOOL_APPROPRIATENESS_RULES
 };
