@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "algorithm": "SHA-256",
+  "generated_at": "2026-02-27T00:20:29.561Z",
+  "files": {
+    "opencode-config/antigravity.json": "d332d874ef445af235aeee92777ca40a9110cede734f9535efa4c7e2c9d25b6b",
+    "opencode-config/central-config.json": "ade5728ba5a9192cf40af1ee731006b1b48516744da3f8eb885f57c4d79f05ac",
+    "opencode-config/central-config.schema.json": "d35d0ef8f3a689a2525838862e89cb9bbcd4eff1fcc75dc05ec29bb42acb12ce",
+    "opencode-config/compound-engineering.json": "0ee2d47af151e026d0450417bd2119fc9569be281aface3404f222ec823c7394",
+    "opencode-config/config.yaml": "33a823bf92dff7c622bba7edbce994fb9072c174f286c488ccd182a9ab6e0536",
+    "opencode-config/deployment-state.json": "2b85fba50a02cbda9322cb996e1626a1f599b46ff9c47bb72db0b667eba2af4e",
+    "opencode-config/docs-governance.json": "0bd44fa679c0ac568d9075d45e7c1fb70c030cbce5834c067162598ac4b34934",
+    "opencode-config/integrity-baseline.json": "97db21373065911d8d92702fa9b1eebdd9ea997b4c3d3b0e22c24494b469f819",
+    "opencode-config/learning-update-policy.json": "8551c9c3bed8d990179622bb0d38f9e1fa0b8e517f3c3a0398d1566b9cb14116",
+    "opencode-config/models/catalog-2026.json": "6444a2634ce415512df94b0d117f8afa9c72cd6d6cd8eba473f26c9f13531d41",
+    "opencode-config/models/schema-v2.json": "e95c663a71a004ee9a99827a6a6814ab9305ed4f6a130670d8022752f8f34c1b",
+    "opencode-config/models/schema.json": "8fbafa45676b5bc3d3eb51d3c451f41afde875849592c82905f3c3cf033b7df3",
+    "opencode-config/oh-my-opencode.json": "499e04cfc85b53a802556af089261372b3c975d95191dbb6d7253e99d21c8c29",
+    "opencode-config/opencode.json": "2ca3c64509b94779eafe3f131bf16334419532ec42260b8b199e285ac3bf6677",
+    "opencode-config/rate-limit-fallback.json": "d9b8cf711bb7f4deb0b5d7fb72b4065e039a9e2214128b66d06aa168d0c16d9e",
+    "opencode-config/skills/registry.json": "f8542ceec9eaed3a554fbfe1d1dcc8c0038eccd40e898b3d424967c94177bd9e",
+    "opencode-config/skills/registry.schema.json": "729f2e27ffdd38aaa09a9bfed97f3ed7eb1df62474d4e9625d316ef865a4c0f1",
+    "opencode-config/supermemory.json": "42638276b6ab71aa8148a71c0df55fd898d6a1f4bda618fd7dc8d501fb57d47b",
+    "opencode-config/supermemory/codebase-pattern-analysis.json": "4b76d87169bc4c430429c5513f2ea51578f9dbdfe1133f6c81db0d1bacb7bb32",
+    "opencode-config/tool-tiers.json": "9b94ea75eed337c93cd8c20ca45a0928a0d4826a600d92b3fc2e499dc1263bf9",
+    "package.json": "e091461175217df205816c28083663aa9d2036242694c7c00d23786802fa405b"
+  }
+}
