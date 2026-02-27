@@ -35,6 +35,7 @@ function replaceRootPlaceholder(value, rootForward) {
 
 // --- Main ---
 const dryRun = process.argv.includes('--dry-run');
+const writeRepoArtifacts = process.argv.includes('--write-repo');
 const root = resolveRoot();
 
 // Normalize to forward slashes (MCP config uses forward slashes even on Windows)
@@ -68,24 +69,30 @@ if (dryRun) {
   console.log('[generate-mcp-config] DRY RUN — would generate:');
   console.log(`  Root: ${rootForward}`);
   console.log(`  Template: ${templatePath}`);
-  console.log(`  Output: ${outputPath}`);
+  console.log(`  User Output: ${userOutputPath}`);
+  if (writeRepoArtifacts) {
+    console.log(`  Repo Output: ${outputPath}`);
+  }
   console.log('\nGenerated config:');
   console.log(resolved);
   process.exit(0);
 }
 
-writeFileSync(outputPath, resolved, 'utf8');
-console.log(`[generate-mcp-config] Generated: ${outputPath}`);
 console.log(`  Root detected as: ${rootForward}`);
 
 mkdirSync(userConfigDir(), { recursive: true });
 writeFileSync(userOutputPath, resolved, 'utf8');
 console.log(`[generate-mcp-config] Synced: ${userOutputPath}`);
 
+if (writeRepoArtifacts) {
+  // Keep repo artifact placeholder-based and portable.
+  writeFileSync(outputPath, template, 'utf8');
+  console.log(`[generate-mcp-config] Generated (repo): ${outputPath}`);
+}
+
 // --- Also generate tool-manifest.json for preload-skills ---
 const config = JSON.parse(resolved);
 const manifest = {
-  generated_at: new Date().toISOString(),
   opencode_root: '{{OPENCODE_ROOT}}',
   mcp_servers: Object.entries(config.mcpServers || {}).map(([name, cfg]) => ({
     name,
@@ -95,6 +102,12 @@ const manifest = {
   })),
 };
 
-const manifestPath = join(mcpDir, 'tool-manifest.json');
-writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), 'utf8');
-console.log(`[generate-mcp-config] Generated: ${manifestPath}`);
+const userManifestPath = join(userConfigDir(), 'tool-manifest.json');
+writeFileSync(userManifestPath, JSON.stringify(manifest, null, 2), 'utf8');
+console.log(`[generate-mcp-config] Synced: ${userManifestPath}`);
+
+if (writeRepoArtifacts) {
+  const manifestPath = join(mcpDir, 'tool-manifest.json');
+  writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), 'utf8');
+  console.log(`[generate-mcp-config] Generated (repo): ${manifestPath}`);
+}

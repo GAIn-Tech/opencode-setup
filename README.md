@@ -47,7 +47,7 @@ opencode-setup/
 git clone https://github.com/GAIn-Tech/opencode-setup.git
 cd opencode-setup
 
-# 2. Run setup (installs and links all custom plugins)
+# 2. Run setup (strict, resilient: installs, links, syncs config, verifies portability)
 bun run setup
 
 # 3. Start OpenCode

@@ -1,0 +1,20 @@
+{
+  "id": "strict-portability-setup-20260227",
+  "timestamp": "2026-02-27T22:30:00Z",
+  "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
+  "affected_paths": [
+    "package.json",
+    "README.md",
+    "scripts/setup-resilient.mjs",
+    "scripts/verify-portability.mjs",
+    "scripts/generate-mcp-config.mjs",
+    "scripts/tests/verify-portability.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "setup now routes through setup-resilient, verify:strict now performs sync+generate before strict checks, verify-portability enforces transfer invariants, and generate-mcp-config now reliably syncs user MCP artifacts with resolved root placeholders."
+}
