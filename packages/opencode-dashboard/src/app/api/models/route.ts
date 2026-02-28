@@ -153,7 +153,7 @@ export async function GET() {
 
     // 3. RL manager state
     let rlState = null;
-    const rlStatePath = path.join(os.homedir(), '.opencode', 'skill-rl-state.json');
+    const rlStatePath = path.join(os.homedir(), '.opencode', 'skill-rl.json');
     try {
       if (fs.existsSync(rlStatePath)) {
         rlState = JSON.parse(fs.readFileSync(rlStatePath, 'utf-8'));

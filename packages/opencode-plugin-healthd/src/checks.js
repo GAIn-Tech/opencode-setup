@@ -157,19 +157,62 @@ function checkPlugins() {
 }
 
 /**
+ * Determine if an MCP server is a local binary (requires PATH check)
+ * vs. a remote URL server (no local binary needed).
+ *
+ * @param {Object} serverConfig - MCP server configuration object
+ * @returns {boolean} true if local binary, false if remote
+ */
+function isLocalBinaryServer(serverConfig) {
+  if (!serverConfig || typeof serverConfig !== 'object') {
+    return false;
+  }
+
+  // Remote URL servers have 'url' or 'endpoint' properties
+  if (serverConfig.url || serverConfig.endpoint) {
+    return false;
+  }
+
+  // Local binary servers have 'command' property
+  if (serverConfig.command) {
+    return true;
+  }
+
+  // Default: assume local if unclear
+  return true;
+}
+
+/**
  * Verify MCP tools are reachable by checking if their commands exist.
  * On Windows we try `where <cmd>`, on POSIX `which <cmd>`.
+ * Respects the 'enabled' flag in config and skips remote URL servers.
  *
  * @param {string[]} [mcpList] - MCP names to check (defaults to DEFAULT_MCPS)
+ * @param {Object} [mcpConfig] - MCP server configuration from config file
  * @returns {{ status: 'ok'|'warn'|'error', issues: Array<{type: string, severity: string, message: string}> }}
  */
-function checkMCPs(mcpList) {
+function checkMCPs(mcpList, mcpConfig) {
   const mcps = mcpList || DEFAULT_MCPS;
   const issues = [];
   const isWindows = os.platform() === 'win32';
   const whichCmd = isWindows ? 'where' : 'which';
 
   for (const mcp of mcps) {
+    // Check if MCP is disabled in config
+    if (mcpConfig && mcpConfig[mcp]) {
+      const serverConfig = mcpConfig[mcp];
+      
+      // Skip disabled MCPs
+      if (serverConfig.enabled === false) {
+        continue;
+      }
+
+      // Skip remote URL servers (they don't need local binaries)
+      if (!isLocalBinaryServer(serverConfig)) {
+        continue;
+      }
+    }
+
     // Strategy 1: Check if command exists on PATH
     const found = execQuiet(`${whichCmd} ${mcp}`);
 
@@ -197,6 +240,8 @@ function checkMCPs(mcpList) {
   ];
 
   let mcpConfigFound = false;
+  let loadedMcpConfig = mcpConfig || {};
+
   for (const configPath of mcpConfigPaths) {
     if (fs.existsSync(configPath)) {
       mcpConfigFound = true;
@@ -204,13 +249,29 @@ function checkMCPs(mcpList) {
         const config = safeJsonParse(fs.readFileSync(configPath, 'utf8'), null, 'healthd-mcp-config');
         if (!config) throw new Error('Invalid JSON in MCP config');
         const configuredMcps = Object.keys(config.mcpServers || config.servers || {});
+        
+        // Count enabled MCPs (respect 'enabled' flag)
+        const enabledMcps = configuredMcps.filter((name) => {
+          const serverConfig = (config.mcpServers || config.servers || {})[name];
+          return serverConfig && serverConfig.enabled !== false;
+        });
+
         if (configuredMcps.length === 0) {
           issues.push({
             type: 'mcp-config-empty',
             severity: 'warn',
             message: `MCP config at ${configPath} has no servers defined`,
           });
+        } else if (enabledMcps.length === 0) {
+          issues.push({
+            type: 'mcp-config-all-disabled',
+            severity: 'warn',
+            message: `MCP config at ${configPath} has ${configuredMcps.length} server(s) but all are disabled`,
+          });
         }
+
+        // Store config for later use
+        loadedMcpConfig = config.mcpServers || config.servers || {};
       } catch {
         issues.push({
           type: 'mcp-config-invalid',
@@ -240,6 +301,35 @@ function checkMCPs(mcpList) {
 }
 
 /**
+ * Load MCP configuration from config files.
+ * Searches in standard OpenCode config locations.
+ *
+ * @returns {Object|null} MCP server configuration or null if not found
+ */
+function loadMcpConfig() {
+  const opencodeDir = path.join(os.homedir(), '.opencode');
+  const configPaths = [
+    path.join(opencodeDir, 'mcp.json'),
+    path.join(opencodeDir, 'config', 'mcp.json'),
+  ];
+
+  for (const configPath of configPaths) {
+    if (fs.existsSync(configPath)) {
+      try {
+        const config = safeJsonParse(fs.readFileSync(configPath, 'utf8'), null, 'healthd-load-mcp-config');
+        if (config) {
+          return config.mcpServers || config.servers || null;
+        }
+      } catch {
+        // Continue to next path if parse fails
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
  * Run all health checks and return combined results.
  *
  * @param {{ mcps?: string[] }} [options]
@@ -247,7 +337,10 @@ function checkMCPs(mcpList) {
  */
 function runAllChecks(options = {}) {
   const pluginResult = checkPlugins();
-  const mcpResult = checkMCPs(options.mcps);
+  
+  // Load MCP config to pass to checkMCPs
+  const mcpConfig = loadMcpConfig();
+  const mcpResult = checkMCPs(options.mcps, mcpConfig);
 
   // Worst-case status wins
   const statusPriority = { error: 3, warn: 2, ok: 1 };
@@ -268,6 +361,8 @@ module.exports = {
   checkPlugins,
   checkMCPs,
   runAllChecks,
+  loadMcpConfig,
+  isLocalBinaryServer,
   KNOWN_BAD_PLUGINS,
   DEFAULT_MCPS,
 };

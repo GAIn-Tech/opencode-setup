@@ -1,0 +1,21 @@
+{
+  "id": "telemetry-pass2-hardening-20260227",
+  "timestamp": "2026-02-27T12:45:00Z",
+  "summary": "Pass 2 addendum: hardened telemetry pipeline with canonical tool name normalization, MCP invocation depth upgrade, runtime parity verification, E2E contract tests, session key contract fix, health check config alignment, and context management completeness check.",
+  "affected_paths": [
+    "packages/opencode-learning-engine/src/tool-usage-tracker.js",
+    "packages/opencode-plugin-healthd/src/checks.js",
+    "packages/opencode-plugin-healthd/src/index.js",
+    "packages/opencode-plugin-healthd/test/config-aware.test.js",
+    "integration-tests/telemetry-contract.test.js",
+    "integration-tests/session-key-contract.test.js",
+    "scripts/verify-plugin-parity.mjs"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "A1: normalizeMcpToolName() prevents unknown-category inflation. A2: MCP telemetry payload includes sanitized params and structured error outcomes. A3/B1: scripts/verify-plugin-parity.mjs provides deterministic parity check. A4/B5: 37 E2E tests pass (0 fail). B2: resolveSessionKey() with fallback aliases fixes session join contract. B4: health checks now respect enabled flag and remote/local server distinction. B6: all 4 context management surfaces verified. No existing tests broken."
+}

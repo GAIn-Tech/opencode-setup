@@ -25,6 +25,12 @@
       "command": "node",
       "enabled": true,
       "type": "local"
+    },
+    {
+      "name": "opencode-dashboard-launcher",
+      "command": "node",
+      "enabled": true,
+      "type": "local"
     }
   ]
 }

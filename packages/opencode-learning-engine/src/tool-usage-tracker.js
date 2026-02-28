@@ -21,6 +21,10 @@ const metaAwarenessTracker = new MetaAwarenessTracker();
 // Async write queue (serializes concurrent writes to prevent corruption)
 let _writePromise = Promise.resolve();
 
+// ---- In-memory test state (synchronous mirror for unit/integration tests) ----
+const _testLog = [];
+let _testMetrics = { toolCounts: {}, categoryCounts: {}, totalInvocations: 0 };
+
 // Init singleton (prevents concurrent init races)
 let _initPromise = null;
 
@@ -135,6 +139,30 @@ const TOOL_APPROPRIATENESS_RULES = [
     reason: 'Context management prevents context rot'
   }
 ];
+
+/**
+ * Read JSON file asynchronously, returning defaultValue if file missing or parse fails.
+ */
+async function readJsonAsync(filePath, defaultValue = {}) {
+  try {
+    await fsPromises.mkdir(path.dirname(filePath), { recursive: true });
+    const raw = await fsPromises.readFile(filePath, 'utf-8');
+    return JSON.parse(raw);
+  } catch (_) {
+    return defaultValue;
+  }
+}
+
+/**
+ * Ensure DATA_DIR exists (singleton via _initPromise to avoid race conditions).
+ */
+async function initAsync() {
+  if (!_initPromise) {
+    _initPromise = fsPromises.mkdir(DATA_DIR, { recursive: true });
+  }
+  return _initPromise;
+}
+
 /**
  * Write JSON atomically (async) with serialized write queue.
  * Uses tmp+rename for atomic swap, chained via _writePromise to prevent
@@ -166,7 +194,8 @@ async function writeJsonAsync(filePath, data) {
  */
 async function logInvocation(toolName, params, result, context = {}) {
   await initAsync();
-  
+  toolName = normalizeMcpToolName(toolName);
+    
   const invocation = {
     timestamp: new Date().toISOString(),
     tool: toolName,
@@ -182,6 +211,13 @@ async function logInvocation(toolName, params, result, context = {}) {
     }
   };
   
+  // ---- Synchronous in-memory mirror (before async file write) ----
+  _testLog.push(invocation);
+  _testMetrics.totalInvocations++;
+  _testMetrics.toolCounts[toolName] = (_testMetrics.toolCounts[toolName] || 0) + 1;
+  const cat = invocation.category;
+  _testMetrics.categoryCounts[cat] = (_testMetrics.categoryCounts[cat] || 0) + 1;
+
   // Queue the ENTIRE read-modify-write as one transaction to prevent
   // concurrent callers from reading the same stale snapshot and losing
   // each other's entries (last-write-wins race).
@@ -256,26 +292,66 @@ function sanitizeParams(params) {
 }
 
 /**
+ * Normalize MCP tool names to canonical keys
+ * 
+ * Converts runtime MCP names (with prefixes and hyphens) to canonical names
+ * that match AVAILABLE_TOOLS keys. Examples:
+ * - mcp_context7_resolve-library-id → context7_resolve_library_id
+ * - mcp_distill_browse_tools → distill (provider fallback)
+ * - mcp__context7__query-docs → context7_query_docs
+ * 
+ * Non-MCP tools pass through unchanged.
+ */
+function normalizeMcpToolName(toolName) {
+  if (!toolName || typeof toolName !== 'string') {
+    return toolName;
+  }
+  
+  // MCP prefix pattern: mcp_<provider>_ or mcp__<provider>__
+  // Extract provider name from the prefix
+  const mcpMatch = toolName.match(/^mcp_+(\w+?)_+(.*)$/);
+  if (!mcpMatch) {
+    // Not an MCP tool, return as-is
+    return toolName;
+  }
+  
+  const provider = mcpMatch[1];
+  const methodPart = mcpMatch[2];
+  
+  // Convert hyphens to underscores in the method part
+  const normalized = methodPart.replace(/-/g, '_');
+  
+  // Try full name first: provider_method
+  const fullName = `${provider}_${normalized}`;
+  if (AVAILABLE_TOOLS[fullName]) {
+    return fullName;
+  }
+  
+  // Try just the provider name
+  if (AVAILABLE_TOOLS[provider]) {
+    return provider;
+  }
+  
+  // Return full name even if not in AVAILABLE_TOOLS (will be marked as 'unknown')
+  return fullName;
+}
+
+/**
  * Update metrics after an invocation
  */
 async function updateMetrics(toolName, invocation) {
   // Queue full read-modify-write to prevent concurrent callers from
   // reading stale metrics and losing increments.
   const doTransaction = async () => {
-    let metrics;
-    try {
-      metrics = await readJsonAsync(METRICS_FILE);
-    } catch {
-      metrics = {
-        totalSessions: 0,
-        totalInvocations: 0,
-        toolCounts: {},
-        categoryCounts: {},
-        breadthScore: 0,
-        underUseEvents: 0,
-        appropriatenessScore: 0
-      };
-    }
+    let metrics = await readJsonAsync(METRICS_FILE, {
+      totalSessions: 0,
+      totalInvocations: 0,
+      toolCounts: {},
+      categoryCounts: {},
+      breadthScore: 0,
+      underUseEvents: 0,
+      appropriatenessScore: 0
+    });
 
     metrics.totalInvocations++;
     metrics.toolCounts[toolName] = (metrics.toolCounts[toolName] || 0) + 1;
@@ -611,11 +687,64 @@ async function endSession() {
   return session;
 }
 
+// ---- Test helpers (in-memory mirror for unit/integration tests) ----
+
+/**
+ * Return a shallow copy of the in-memory invocation log.
+ */
+function getInvocationLog() { return [..._testLog]; }
+
+/**
+ * Return a deep copy of the in-memory metrics snapshot.
+ */
+function getMetrics() { return JSON.parse(JSON.stringify(_testMetrics)); }
+
+/**
+ * Reset all in-memory test state. Call in beforeEach/afterEach.
+ */
+function resetForTesting() {
+  _testLog.length = 0;
+  _testMetrics = { toolCounts: {}, categoryCounts: {}, totalInvocations: 0 };
+}
+
+/**
+ * Resolve the canonical session key from a context object.
+ * Supports fallback aliases: session → sessionId → session_id.
+ * Returns null when no session key is found.
+ */
+function resolveSessionKey(context) {
+  if (!context || typeof context !== 'object') return null;
+  return context.session || context.sessionId || context.session_id || null;
+}
+
+/**
+ * Migrate legacy invocation entries to include a canonical `session` field.
+ * Useful for backfilling old rows that used sessionId or session_id.
+ */
+function migrateSessionKeys(entries) {
+  if (!Array.isArray(entries)) return [];
+  return entries.map(e => {
+    if (e.session !== undefined) return e;
+    return { ...e, session: resolveSessionKey(e.context) };
+  });
+}
+
 module.exports = {
   detectUnderUse,
   getUsageReport,
   startSession,
   endSession,
+  logInvocation,
   AVAILABLE_TOOLS,
-  TOOL_APPROPRIATENESS_RULES
+  TOOL_APPROPRIATENESS_RULES,
+  // Test helpers
+  getInvocationLog,
+  getMetrics,
+  resetForTesting,
+  // Session key utilities
+  resolveSessionKey,
+  migrateSessionKeys,
+  // Normalization (already used internally, now exported)
+  normalizeMcpToolName,
+  sanitizeParams,
 };

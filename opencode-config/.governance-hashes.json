@@ -1,7 +1,7 @@
 {
   "version": 1,
   "algorithm": "SHA-256",
-  "generated_at": "2026-02-27T05:53:36.012Z",
+  "generated_at": "2026-02-27T22:37:44.465Z",
   "files": {
     "opencode-config/antigravity.json": "d332d874ef445af235aeee92777ca40a9110cede734f9535efa4c7e2c9d25b6b",
     "opencode-config/central-config.json": "ade5728ba5a9192cf40af1ee731006b1b48516744da3f8eb885f57c4d79f05ac",
@@ -23,6 +23,6 @@
     "opencode-config/supermemory.json": "42638276b6ab71aa8148a71c0df55fd898d6a1f4bda618fd7dc8d501fb57d47b",
     "opencode-config/supermemory/codebase-pattern-analysis.json": "4b76d87169bc4c430429c5513f2ea51578f9dbdfe1133f6c81db0d1bacb7bb32",
     "opencode-config/tool-tiers.json": "9b94ea75eed337c93cd8c20ca45a0928a0d4826a600d92b3fc2e499dc1263bf9",
-    "package.json": "e091461175217df205816c28083663aa9d2036242694c7c00d23786802fa405b"
+    "package.json": "d868a1c4c36fa3e4d12a3e180c169a69a8a691ea89ab3aec0cfff02254d01c61"
   }
 }

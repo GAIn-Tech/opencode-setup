@@ -77,6 +77,16 @@ Do NOT use this skill for:
 2. Check remaining budget
 3. Adjust selection if near limit
 
+### Phase 3a: Context Compression via Distill
+
+When context usage is approaching ~65% of the model's limit, OR before dispatching
+a long multi-file subagent task:
+
+1. Call `mcp_distill_browse_tools` — lists available compression pipelines
+2. Select the `compress` pipeline (or appropriate variant from the response)
+3. Call `mcp_distill_run_tool` → `{"name": "compress", "args": {"target": "context"}}`
+4. **Cold-start note**: Distill runs `--lazy` — the first call in a session takes ~2–3s to start. This is normal.
+
 ### Phase 4: Execution Monitoring
 
 1. Track actual token usage

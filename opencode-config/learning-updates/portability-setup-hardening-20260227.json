@@ -1,0 +1,18 @@
+{
+  "id": "portability-setup-hardening-20260227",
+  "timestamp": "2026-02-27T13:10:00Z",
+  "summary": "Hardened clone/setup portability by fixing MCP config generation placeholder resolution, aligning plugin compatibility checks with opencode.json plugin schema, and reducing false-negative setup/health failures when no scoped plugin namespace is present.",
+  "affected_paths": [
+    "scripts/generate-mcp-config.mjs",
+    "scripts/validate-plugin-compatibility.mjs",
+    "scripts/verify-setup.mjs",
+    "scripts/health-check.mjs"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "generate-mcp-config now resolves {{OPENCODE_ROOT}} placeholders recursively and syncs generated config to user config home. validate-plugin-compatibility now supports plugin and plugins keys and normalizes versioned plugin specifiers. verify-setup and health-check now skip/warn (instead of fail) when scoped plugin link checks are not applicable, reducing setup friction on fresh machines."
+}

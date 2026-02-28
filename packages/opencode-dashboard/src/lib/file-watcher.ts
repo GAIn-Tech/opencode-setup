@@ -42,7 +42,7 @@ class FileWatcherService extends EventEmitter {
     // Graph memory state
     graphMemoryState: join(homedir(), '.opencode', 'graph-memory-state.json'),
     // RL state
-    rlState: join(homedir(), '.opencode', 'skill-rl-state.json'),
+    rlState: join(homedir(), '.opencode', 'skill-rl.json'),
     // Logs directory for session updates
     logsDir: join(homedir(), '.opencode', 'logs'),
   };

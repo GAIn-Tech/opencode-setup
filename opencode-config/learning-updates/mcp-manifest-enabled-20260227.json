@@ -1,0 +1,16 @@
+{
+  "id": "mcp-manifest-enabled-20260227",
+  "timestamp": "2026-02-28T00:02:00Z",
+  "summary": "Align MCP tool-manifest enabled flag with config enabled field and add manifest mapping tests.",
+  "affected_paths": [
+    "scripts/generate-mcp-config.mjs",
+    "scripts/tests/generate-mcp-config.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Manifest generation now uses cfg.enabled as the source of truth; added unit coverage for enabled mapping." 
+}

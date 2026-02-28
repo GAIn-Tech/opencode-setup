@@ -16,6 +16,7 @@ const { SkillBank } = require('./skill-bank');
 const { EvolutionEngine } = require('./evolution-engine');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 // Cross-process file lock to prevent concurrent write corruption
 // Uses filesystem locks instead of in-memory Map (which fails across processes)
@@ -127,12 +128,26 @@ const LearningValidator = {
 
 class SkillRLManager {
   constructor(options = {}) {
-    this.persistencePath = options.stateFile || './skill-rl-state.json'; // FIX: was setting stateFile but checking persistencePath
+    const _defaultRLPath = path.join(os.homedir(), '.opencode', 'skill-rl.json');
+    this.persistencePath = options.stateFile || _defaultRLPath;
     this.skillBank = new SkillBank(options.skillBank);
     this.evolutionEngine = new EvolutionEngine(this.skillBank, options.evolution);
-    
+
+    // One-time migration: old ./skill-rl-state.json → canonical ~/.opencode/skill-rl.json
+    const _legacyPath = path.join(process.cwd(), 'skill-rl-state.json');
+    if (fs.existsSync(_legacyPath) && !fs.existsSync(this.persistencePath)) {
+      try {
+        fs.mkdirSync(path.dirname(this.persistencePath), { recursive: true });
+        fs.copyFileSync(_legacyPath, this.persistencePath);
+      } catch (_) { /* non-fatal */ }
+    }
+
     // Learning validation enabled by default
     this._validationEnabled = options.validationEnabled !== false;
+
+    // Sync with skill registry on startup — additive, never overwrites existing data
+    const _registryPath = path.resolve(__dirname, '../../../opencode-config/skills/registry.json');
+    this.syncWithRegistry(_registryPath);
   }
 
   /**
@@ -215,6 +230,48 @@ class SkillRLManager {
     
     if (this.persistencePath) {
       this._save();
+    }
+  }
+
+  /**
+   * Additively seed skill bank from registry.json.
+   * Preserves existing usage_count and success_rate. Adds missing skills only.
+   * @param {string} registryPath - Absolute path to registry.json
+   */
+  syncWithRegistry(registryPath) {
+    if (!registryPath || !fs.existsSync(registryPath)) return;
+    let registry;
+    try {
+      registry = JSON.parse(fs.readFileSync(registryPath, 'utf-8'));
+    } catch (_) { return; }
+
+    const skills = registry.skills || {};
+    let mutated = false;
+
+    for (const [skillName, meta] of Object.entries(skills)) {
+      // Normalize: strip any path prefix (superpowers/, etc.), use base name only
+      const baseName = skillName.includes('/') ? skillName.split('/').pop() : skillName;
+
+      // Additive only: preserve existing entry if present
+      if (this.skillBank.generalSkills.has(baseName)) continue;
+
+      this.skillBank.generalSkills.set(baseName, {
+        name: baseName,
+        principle: meta.description || '',
+        application_context: (meta.triggers || []).join(', '),
+        success_rate: 0.75,
+        usage_count: 0,
+        last_updated: Date.now(),
+        tags: meta.tags || [],
+        source: meta.source || 'registry',
+        category: meta.category || 'general',
+      });
+      mutated = true;
+    }
+
+    if (mutated) {
+      this.skillBank._invalidateCache();
+      this._save().catch(() => {}); // fire-and-forget
     }
   }
 

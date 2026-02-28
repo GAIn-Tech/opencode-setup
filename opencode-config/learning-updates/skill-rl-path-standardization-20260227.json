@@ -1,0 +1,18 @@
+{
+  "id": "skill-rl-path-standardization-20260227",
+  "timestamp": "2026-02-27T00:01:00Z",
+  "summary": "Standardize SkillRLManager persistence path to ~/.opencode/skill-rl.json across all consumers. Fixed 3 divergent path references: (1) index.js:130 was using ./skill-rl-state.json (relative, wrong), (2) models/route.ts:156 was using skill-rl-state.json (wrong suffix), (3) file-watcher.ts:45 was using skill-rl-state.json (wrong suffix). Added os.homedir() canonical path with one-time migration from legacy ./skill-rl-state.json. Added production SkillRLManager instantiation in create-managers.ts (previously only instantiated in 5 test files — never in production).",
+  "affected_paths": [
+    "packages/opencode-skill-rl-manager/src/index.js",
+    "packages/opencode-dashboard/src/app/api/models/route.ts",
+    "packages/opencode-dashboard/src/lib/file-watcher.ts",
+    "local/oh-my-opencode/src/create-managers.ts"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium",
+  "notes": "Zero stale skill-rl-state references remain in source. SkillRLManager path verified: node -e '...' returns PASS. Integration test: 5 pass, 0 fail. Migration block preserves existing data from legacy path."
+}

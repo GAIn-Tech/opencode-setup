@@ -8,13 +8,15 @@
     "packages/*"
   ],
   "scripts": {
-    "setup": "node scripts/preflight-versions.mjs && bun install && bun run link-all && bun run hooks:install && bun run copy-config && bun run generate",
+    "setup": "node scripts/setup-resilient.mjs",
+    "setup:base": "node scripts/preflight-versions.mjs && bun install && bun run link-all && bun run hooks:install && bun run copy-config && bun run generate",
     "copy-config": "node scripts/copy-config.mjs",
     "link-all": "node scripts/link-packages.mjs",
     "install-to-opencode": "bun install && bun run link-all",
     "hooks:install": "node scripts/install-git-hooks.mjs",
     "generate": "node scripts/generate-mcp-config.mjs",
     "verify": "node scripts/verify-setup.mjs",
+    "verify:strict": "node scripts/copy-config.mjs && node scripts/generate-mcp-config.mjs && node scripts/verify-setup.mjs && node scripts/validate-plugin-compatibility.mjs && node scripts/verify-portability.mjs --strict",
     "fix:bun-path": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { .\\scripts\\fix-bun-path.ps1 -PersistUser; node .\\scripts\\verify-setup.mjs }\"",
     "health": "node scripts/health-check.mjs",
     "integrity:check": "node scripts/integrity-guard.mjs",
@@ -45,5 +47,8 @@
   "bugs": {
     "url": "https://github.com/GAIn-Tech/opencode-setup/issues"
   },
-  "homepage": "https://github.com/GAIn-Tech/opencode-setup#readme"
+  "homepage": "https://github.com/GAIn-Tech/opencode-setup#readme",
+  "dependencies": {
+    "sqlite-vec": "^0.1.7-alpha.2"
+  }
 }

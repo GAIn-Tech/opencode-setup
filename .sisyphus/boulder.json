@@ -120,6 +120,17 @@
       ],
       "tasks_completed": 8,
       "risk_points_reduced": 180
+    },
+    {
+      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\context-distill-tracking-fixes.md",
+      "plan_name": "context-distill-tracking-fixes",
+      "started_at": "2026-02-27T00:00:00.000Z",
+      "completed_at": "2026-02-27T01:00:00.000Z",
+      "session_ids": ["current"],
+      "agent": "atlas",
+      "commits": ["6975aec", "37e2965", "7808097", "4b4489d", "08b4141"],
+      "tasks_completed": 6,
+      "risk_points_reduced": 200
     }
   ]
 }

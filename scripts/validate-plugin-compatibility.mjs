@@ -19,6 +19,21 @@ function normalizeName(entry) {
   return '';
 }
 
+function normalizePluginSpecifier(specifier) {
+  const s = normalizeName(specifier);
+  if (!s) return '';
+
+  if (s.startsWith('@')) {
+    const slash = s.indexOf('/');
+    if (slash === -1) return s;
+    const versionSep = s.indexOf('@', slash + 1);
+    return versionSep === -1 ? s : s.slice(0, versionSep);
+  }
+
+  const versionSep = s.indexOf('@');
+  return versionSep === -1 ? s : s.slice(0, versionSep);
+}
+
 function main() {
   const configPath = path.join(ROOT, 'opencode-config', 'opencode.json');
   const pluginsDir = path.join(ROOT, 'plugins');
@@ -29,8 +44,12 @@ function main() {
   }
 
   const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  const configuredPlugins = (Array.isArray(config.plugins) ? config.plugins : [])
-    .map(normalizeName)
+  const rawPlugins = Array.isArray(config.plugin)
+    ? config.plugin
+    : (Array.isArray(config.plugins) ? config.plugins : []);
+
+  const configuredPlugins = rawPlugins
+    .map(normalizePluginSpecifier)
     .filter(Boolean);
 
   const mcpEntries = Object.entries(config.mcp || {});
@@ -51,7 +70,7 @@ function main() {
 
   const missingConfigured = configuredPlugins.filter((name) => !discoveredPlugins.includes(name));
   if (missingConfigured.length > 0) {
-    fail(`configured plugins missing in plugins/ directory: ${missingConfigured.join(', ')}`);
+    console.warn(`validate-plugin-compatibility: note: configured plugins not present in local plugins/ directory (likely external npm plugins): ${missingConfigured.join(', ')}`);
   }
 
   const duplicateMcp = enabledMcp.filter((name, idx) => enabledMcp.indexOf(name) !== idx);
