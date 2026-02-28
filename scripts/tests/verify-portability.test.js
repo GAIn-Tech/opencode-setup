@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import {
+  checkRequiredEnvFailures,
   extractEnvPlaceholders,
   getEnabledLocalMcpCommands,
   normalizePluginName,
@@ -49,5 +50,10 @@ describe('verify-portability helpers', () => {
     expect(normalizePluginName('opencode-supermemory@2.0.1')).toBe('opencode-supermemory');
     expect(normalizePluginName('@scope/plugin@1.2.3')).toBe('@scope/plugin');
     expect(normalizePluginName('@scope/plugin')).toBe('@scope/plugin');
+  });
+
+  test('strict mode does not fail when no env placeholders exist', () => {
+    const failures = checkRequiredEnvFailures({ provider: {}, mcp: {} }, true);
+    expect(failures).toEqual([]);
   });
 });

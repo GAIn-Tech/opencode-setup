@@ -195,7 +195,7 @@ function checkEnabledLocalMcpCommandFailures(userConfig) {
   return failures;
 }
 
-function checkRequiredEnvFailures(userConfig, strictMode) {
+export function checkRequiredEnvFailures(userConfig, strictMode) {
   const failures = [];
 
   const enabledMcpOnly = {};
@@ -215,9 +215,8 @@ function checkRequiredEnvFailures(userConfig, strictMode) {
     if (!isSet) failures.push(`Missing required env var from active config: ${envVar}`);
   }
 
-  if (strictMode && failures.length === 0 && requiredEnvVars.size === 0) {
-    failures.push('No env placeholders detected in active config; strict mode expects explicit env-backed configuration.');
-  }
+  // Strict mode enforces presence of required placeholders only when placeholders exist.
+  // A config with zero env placeholders is valid.
 
   return failures;
 }
