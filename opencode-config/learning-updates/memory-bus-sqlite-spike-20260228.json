@@ -1,0 +1,15 @@
+{
+  "id": "memory-bus-sqlite-spike-20260228",
+  "timestamp": "2026-02-28T00:20:00Z",
+  "summary": "Add sqlite-vec + FTS5 compatibility spike script for opencode-memory-bus experimentation on Bun/Windows.",
+  "affected_paths": [
+    "packages/opencode-memory-bus/spike/sqlite-compatibility.js"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Spike script exercises sqlite-vec load, FTS5, combined tables, KNN query, and bm25 scoring in bun:sqlite."
+}
