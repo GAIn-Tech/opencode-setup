@@ -4,6 +4,8 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { WorkflowStore, WorkflowExecutor } from '../src/index.js';
+import { BudgetEnforcer } from '../src/budget-enforcer.js';
+import { AgentSandbox } from '../src/agent-sandbox.js';
 
 const TEST_DB_BASE = path.join(os.tmpdir(), 'sisyphus-test');
 
@@ -174,5 +176,79 @@ describe('Sisyphus State Machine', () => {
     expect(state.steps.find(s => s.step_id === 'p1:0').status).toBe('completed');
     expect(state.steps.find(s => s.step_id === 'p1:1').status).toBe('completed');
     expect(state.steps.find(s => s.step_id === 'p1:2').status).toBe('completed');
+  });
+
+  it('should stop workflow when budget limits are exhausted', async () => {
+    const budgetEnforcer = new BudgetEnforcer({ maxSteps: 1, maxTokens: 100000, maxTimeMs: 300000 });
+    const executor = new WorkflowExecutor(store, {}, { budgetEnforcer });
+    const workflow = {
+      name: 'budget-stop-test',
+      steps: [
+        { id: 'step1', type: 'consume' },
+        { id: 'step2', type: 'consume' }
+      ]
+    };
+
+    executor.registerHandler('consume', async () => ({ ok: true }));
+
+    await expect(executor.execute(workflow, {})).rejects.toThrow('Exceeded step limit (1)');
+
+    const runs = store.db.prepare('SELECT * FROM workflow_runs WHERE name = ?').all('budget-stop-test');
+    const state = store.getRunState(runs[0].id);
+    expect(state.status).toBe('failed');
+    expect(state.steps.find(s => s.step_id === 'step1').status).toBe('completed');
+    expect(state.steps.find(s => s.step_id === 'step2').status).toBe('failed');
+  });
+
+  it('should exempt system tasks from budget checks', async () => {
+    const budgetEnforcer = new BudgetEnforcer({ maxSteps: 0, maxTokens: 1, maxTimeMs: 1 });
+    const executor = new WorkflowExecutor(store, {}, { budgetEnforcer });
+    const workflow = {
+      name: 'system-task-budget-exemption-test',
+      steps: [
+        { id: 'sys', type: 'noop', task: { type: 'system' } }
+      ]
+    };
+
+    executor.registerHandler('noop', async () => ({ ok: true }));
+
+    const result = await executor.execute(workflow, {});
+    expect(result.status).toBe('completed');
+  });
+
+  it('should block denied agent operations via sandbox manifests', async () => {
+    const sandbox = new AgentSandbox();
+    const executor = new WorkflowExecutor(store, {}, { agentSandbox: sandbox });
+    const workflow = {
+      name: 'sandbox-deny-test',
+      steps: [
+        { id: 'step1', type: 'noop', task: { agentRole: 'researcher', toolName: 'Write', agentId: 'agent-r1' } }
+      ]
+    };
+
+    executor.registerHandler('noop', async () => ({ ok: true }));
+
+    await expect(executor.execute(workflow, {})).rejects.toThrow('Capability denied');
+    const denied = sandbox.getDeniedLog();
+    expect(denied).toHaveLength(1);
+    expect(denied[0].agentId).toBe('agent-r1');
+    expect(denied[0].toolName).toBe('Write');
+  });
+
+  it('should allow operations permitted by sandbox manifests', async () => {
+    const sandbox = new AgentSandbox();
+    const executor = new WorkflowExecutor(store, {}, { agentSandbox: sandbox });
+    const workflow = {
+      name: 'sandbox-allow-test',
+      steps: [
+        { id: 'step1', type: 'noop', task: { agentRole: 'builder', toolName: 'Write', agentId: 'agent-b1' } }
+      ]
+    };
+
+    executor.registerHandler('noop', async () => ({ ok: true }));
+
+    const result = await executor.execute(workflow, {});
+    expect(result.status).toBe('completed');
+    expect(sandbox.getDeniedLog()).toHaveLength(0);
   });
 });

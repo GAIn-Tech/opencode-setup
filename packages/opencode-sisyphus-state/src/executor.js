@@ -1,9 +1,11 @@
 const { v4: uuidv4 } = require('uuid');
 
 class WorkflowExecutor {
-  constructor(store, handlers = {}) {
+  constructor(store, handlers = {}, options = {}) {
     this.store = store;
     this.handlers = handlers;
+    this.budgetEnforcer = options.budgetEnforcer || null;
+    this.agentSandbox = options.agentSandbox || null;
   }
 
   registerHandler(type, handler) {
@@ -13,6 +15,9 @@ class WorkflowExecutor {
   async execute(workflowDef, input, runId = null) {
     if (!runId) runId = uuidv4();
     this.store.createRun(workflowDef.name, input, runId);
+    if (this.budgetEnforcer) {
+      this.budgetEnforcer.trackStart(runId);
+    }
 
     try {
       const context = { ...input };
@@ -87,6 +92,9 @@ class WorkflowExecutor {
 
     while (attempts <= maxRetries) {
       try {
+        this._enforceBudget(runId, step, context);
+        this._enforceSandbox(step);
+
         this.store.upsertStep(runId, step.id, 'running', null, attempts);
         if (attempts > 0) {
           this.store.logEvent(runId, 'step_retry', { stepId: step.id, attempt: attempts });
@@ -100,6 +108,7 @@ class WorkflowExecutor {
         }
         
         const result = await handler(step, context);
+        this._trackTokenUsage(runId, result);
         
         const updateState = this.store.db.transaction(() => {
           this.store.upsertStep(runId, step.id, 'completed', result, attempts);
@@ -132,6 +141,12 @@ class WorkflowExecutor {
         Object.assign(context, result);
         return;
       } catch (err) {
+        if (err && (err.code === 'BUDGET_EXHAUSTED' || err.code === 'SANDBOX_DENIED')) {
+          this.store.upsertStep(runId, step.id, 'failed', { error: err.message }, attempts);
+          this.store.logEvent(runId, 'step_failed', { stepId: step.id, error: err.message, code: err.code });
+          throw err;
+        }
+
         attempts++;
         if (attempts > maxRetries) {
           this.store.upsertStep(runId, step.id, 'failed', { error: err.message }, attempts - 1);
@@ -152,6 +167,9 @@ class WorkflowExecutor {
     if (state.status === 'completed') return { runId, status: 'completed', context: state.context };
 
     this.store.updateRunStatus(runId, 'running');
+    if (this.budgetEnforcer) {
+      this.budgetEnforcer.trackStart(runId, state.created_at ? Date.parse(state.created_at) : Date.now());
+    }
     const context = { ...state.input, ...state.context };
 
     for (const step of workflowDef.steps) {
@@ -160,6 +178,58 @@ class WorkflowExecutor {
 
     this.store.updateRunStatus(runId, 'completed');
     return { runId, status: 'completed', context };
+  }
+
+  _enforceBudget(runId, step, context) {
+    if (!this.budgetEnforcer) return;
+
+    const task = step.task || { type: step.type };
+    const check = this.budgetEnforcer.checkBudget(runId, { task });
+    if (!check.allowed) {
+      const error = new Error(check.reason || 'Budget exhausted');
+      error.code = 'BUDGET_EXHAUSTED';
+      throw error;
+    }
+
+    this.budgetEnforcer.trackStep(runId);
+  }
+
+  _trackTokenUsage(runId, result) {
+    if (!this.budgetEnforcer || !result || typeof result !== 'object') return;
+
+    const tokenCandidates = [
+      result.tokens,
+      result.totalTokens,
+      result.tokensUsed,
+      result.token_usage,
+      result.input_tokens,
+      result.output_tokens,
+    ].filter((v) => Number.isFinite(v));
+
+    if (tokenCandidates.length === 0) return;
+
+    const total = tokenCandidates.reduce((sum, n) => sum + Number(n), 0);
+    if (total > 0) {
+      this.budgetEnforcer.trackTokens(runId, total);
+    }
+  }
+
+  _enforceSandbox(step) {
+    if (!this.agentSandbox) return;
+
+    const task = step.task || {};
+    const agentRole = task.agentRole;
+    const toolName = task.toolName;
+    const agentId = task.agentId || null;
+
+    if (!agentRole || !toolName) return;
+
+    const check = this.agentSandbox.checkCapability(agentRole, toolName, agentId);
+    if (!check.allowed) {
+      const error = new Error(check.reason || 'Capability denied by agent sandbox');
+      error.code = 'SANDBOX_DENIED';
+      throw error;
+    }
   }
 }
 
