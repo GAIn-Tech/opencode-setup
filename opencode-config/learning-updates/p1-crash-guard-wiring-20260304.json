@@ -1,0 +1,19 @@
+{
+  "id": "p1-crash-guard-wiring-20260304",
+  "timestamp": "2026-03-04T00:16:00Z",
+  "category": "integration-hardening",
+  "summary": "Add explicit IntegrationLayer delegation for commandExists/safeSpawn to crash-guard and cover behavior with integration tests for fail-closed and delegated execution.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/index.js",
+    "packages/opencode-integration-layer/tests/crash-guard-spawn-wiring.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "bun test packages/opencode-integration-layer/tests/crash-guard-spawn-wiring.test.js"
+    ]
+  }
+}
