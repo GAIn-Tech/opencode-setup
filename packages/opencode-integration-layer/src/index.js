@@ -131,6 +131,40 @@ class IntegrationLayer {
   }
 
   /**
+   * Get the integration status of all loaded packages.
+   * Returns an object with boolean values indicating package availability.
+   */
+  getIntegrationStatus() {
+    return { ...integrationStatus };
+  }
+
+  /**
+   * Check command availability via crash-guard spawn protection.
+   */
+  commandExists(command) {
+    if (!this.crashGuard || typeof this.crashGuard.commandExists !== 'function') {
+      return false;
+    }
+    try {
+      return this.crashGuard.commandExists(command);
+    } catch (err) {
+      this.logger.warn('crash-guard commandExists failed', { command, error: err.message });
+      return false;
+    }
+  }
+
+  /**
+   * Safe process spawn through crash-guard ENOENT protections.
+   */
+  safeSpawn(command, args = [], options = {}) {
+    if (!this.crashGuard || typeof this.crashGuard.safeSpawn !== 'function') {
+      this.logger.warn('safeSpawn requested but crash-guard not available', { command });
+      return null;
+    }
+    return this.crashGuard.safeSpawn(command, args, options);
+  }
+
+  /**
    * Validate input data using the validator package.
    */
   validateInput(data, schema) {

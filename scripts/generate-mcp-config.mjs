@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * generate-mcp-config.mjs — Generates portable MCP artifacts from template
+ * generate-mcp-config.mjs — Merges canonical MCP config into user config
  * 
  * Usage: bun run scripts/generate-mcp-config.mjs [--dry-run]
  * 
- * Reads opencode-mcp-config.template.json and writes a portable
- * opencode-mcp-config.json (placeholder-based).
+ * Reads canonical opencode-config/opencode.json and merges its MCP entries into
+ * the user's opencode.json while preserving user-defined custom MCP entries.
  * Also generates tool-manifest.json for the preload-skills plugin.
  */
 
@@ -35,14 +35,32 @@ function replaceRootPlaceholder(value, rootForward) {
 }
 
 export function buildManifestFromConfig(config) {
+  const mcpMap = config.mcp || config.mcpServers || {};
   return {
     opencode_root: '{{OPENCODE_ROOT}}',
-    mcp_servers: Object.entries(config.mcpServers || {}).map(([name, cfg]) => ({
+    mcp_servers: Object.entries(mcpMap).map(([name, cfg]) => ({
       name,
       command: cfg.command,
       enabled: cfg.enabled === true,
       type: cfg.url ? 'remote' : 'local',
     })),
+  };
+}
+
+export function mergeMcpIntoUserConfig(userConfig, sourceConfig) {
+  const current = userConfig && typeof userConfig === 'object' ? userConfig : {};
+  const source = sourceConfig && typeof sourceConfig === 'object' ? sourceConfig : {};
+  const currentMcp = current.mcp && typeof current.mcp === 'object' ? current.mcp : {};
+  const sourceMcp = source.mcp && typeof source.mcp === 'object'
+    ? source.mcp
+    : (source.mcpServers && typeof source.mcpServers === 'object' ? source.mcpServers : {});
+
+  return {
+    ...current,
+    mcp: {
+      ...currentMcp,
+      ...sourceMcp,
+    },
   };
 }
 
@@ -54,25 +72,26 @@ function main() {
   // Normalize to forward slashes (MCP config uses forward slashes even on Windows)
   const rootForward = root.replace(/\\/g, '/');
 
-  const mcpDir = join(root, 'mcp-servers');
-  const templatePath = join(mcpDir, 'opencode-mcp-config.template.json');
-  const outputPath = join(mcpDir, 'opencode-mcp-config.json');
-  const userOutputPath = join(userConfigDir(), 'opencode-mcp-config.json');
+  const canonicalConfigPath = join(root, 'opencode-config', 'opencode.json');
+  const userOpencodePath = join(userConfigDir(), 'opencode.json');
 
-  if (!existsSync(templatePath)) {
-    console.error(`[generate-mcp-config] Template not found: ${templatePath}`);
-    console.error('Expected: mcp-servers/opencode-mcp-config.template.json');
+  if (!existsSync(canonicalConfigPath)) {
+    console.error(`[generate-mcp-config] Canonical config not found: ${canonicalConfigPath}`);
+    console.error('Expected: opencode-config/opencode.json');
     process.exit(1);
   }
 
-  const template = readFileSync(templatePath, 'utf8');
-  const parsedTemplate = JSON.parse(template);
-  const resolvedObject = replaceRootPlaceholder(parsedTemplate, rootForward);
-  const resolved = JSON.stringify(resolvedObject, null, 2);
+  const canonicalConfig = JSON.parse(readFileSync(canonicalConfigPath, 'utf8'));
+  const resolvedCanonical = replaceRootPlaceholder(canonicalConfig, rootForward);
+  const existingUserConfig = existsSync(userOpencodePath)
+    ? JSON.parse(readFileSync(userOpencodePath, 'utf8'))
+    : {};
+  const mergedUserConfig = mergeMcpIntoUserConfig(existingUserConfig, resolvedCanonical);
+  const mergedJson = JSON.stringify(mergedUserConfig, null, 2);
 
   // Validate JSON before writing
   try {
-    JSON.parse(resolved);
+    JSON.parse(mergedJson);
   } catch (e) {
     console.error('[generate-mcp-config] Generated config is not valid JSON:', e.message);
     process.exit(1);
@@ -81,38 +100,32 @@ function main() {
   if (dryRun) {
     console.log('[generate-mcp-config] DRY RUN — would generate:');
     console.log(`  Root: ${rootForward}`);
-    console.log(`  Template: ${templatePath}`);
-    console.log(`  User Output: ${userOutputPath}`);
-    if (writeRepoArtifacts) {
-      console.log(`  Repo Output: ${outputPath}`);
-    }
-    console.log('\nGenerated config:');
-    console.log(resolved);
+    console.log(`  Canonical Source: ${canonicalConfigPath}`);
+    console.log(`  User Config Target: ${userOpencodePath}`);
+    console.log('\nMerged user config preview:');
+    console.log(mergedJson);
     process.exit(0);
   }
 
   console.log(`  Root detected as: ${rootForward}`);
 
   mkdirSync(userConfigDir(), { recursive: true });
-  writeFileSync(userOutputPath, resolved, 'utf8');
-  console.log(`[generate-mcp-config] Synced: ${userOutputPath}`);
+  writeFileSync(userOpencodePath, mergedJson, 'utf8');
+  console.log(`[generate-mcp-config] Synced MCP entries into: ${userOpencodePath}`);
 
   if (writeRepoArtifacts) {
-    // Keep repo artifact placeholder-based and portable.
-    writeFileSync(outputPath, template, 'utf8');
-    console.log(`[generate-mcp-config] Generated (repo): ${outputPath}`);
+    console.log('[generate-mcp-config] --write-repo is deprecated for MCP config artifacts; canonical source is opencode-config/opencode.json');
   }
 
   // --- Also generate tool-manifest.json for preload-skills ---
-  const config = JSON.parse(resolved);
-  const manifest = buildManifestFromConfig(config);
+  const manifest = buildManifestFromConfig(mergedUserConfig);
 
   const userManifestPath = join(userConfigDir(), 'tool-manifest.json');
   writeFileSync(userManifestPath, JSON.stringify(manifest, null, 2), 'utf8');
   console.log(`[generate-mcp-config] Synced: ${userManifestPath}`);
 
   if (writeRepoArtifacts) {
-    const manifestPath = join(mcpDir, 'tool-manifest.json');
+    const manifestPath = join(root, 'mcp-servers', 'tool-manifest.json');
     writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), 'utf8');
     console.log(`[generate-mcp-config] Generated (repo): ${manifestPath}`);
   }

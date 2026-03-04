@@ -1,0 +1,22 @@
+{
+  "id": "p1-executor-budget-sandbox-20260304",
+  "timestamp": "2026-03-04T00:17:00Z",
+  "category": "execution-safety",
+  "summary": "Integrate budget and sandbox capability enforcement into WorkflowExecutor runtime path, including terminal handling for budget/sandbox denials and regression coverage for deny/allow behavior.",
+  "affected_paths": [
+    "packages/opencode-sisyphus-state/src/executor.js",
+    "packages/opencode-sisyphus-state/tests/basic.test.js",
+    "packages/opencode-sisyphus-state/test/saga-orchestrator.test.js"
+  ],
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "bun test packages/opencode-sisyphus-state/tests/basic.test.js",
+      "bun test packages/opencode-sisyphus-state/test/agent-sandbox.test.js",
+      "bun test packages/opencode-sisyphus-state/test/saga-orchestrator.test.js"
+    ]
+  }
+}

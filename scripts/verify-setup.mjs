@@ -536,28 +536,29 @@ function main() {
     printCheck('Config schema validation', true, 'Skipped (OPENCODE_CONFIG_SCHEMA_STRICT not set).');
   }
 
-  const mcpConfigPath = path.join(userConfigDir(), 'opencode-mcp-config.json');
-  const mcpConfigExists = existsSync(mcpConfigPath);
   let mcpDeclaredInUserConfig = false;
+  let mcpCount = 0;
   if (configExists) {
     try {
       const userConfig = JSON.parse(readFileSync(configPath, 'utf8'));
-      mcpDeclaredInUserConfig = Boolean(userConfig && typeof userConfig === 'object' && userConfig.mcp && Object.keys(userConfig.mcp).length > 0);
+      mcpCount = userConfig && typeof userConfig === 'object' && userConfig.mcp && typeof userConfig.mcp === 'object'
+        ? Object.keys(userConfig.mcp).length
+        : 0;
+      mcpDeclaredInUserConfig = mcpCount > 0;
     } catch {
       mcpDeclaredInUserConfig = false;
+      mcpCount = 0;
     }
   }
-  const mcpCoverageOk = mcpConfigExists || mcpDeclaredInUserConfig;
+  const mcpCoverageOk = mcpDeclaredInUserConfig;
   if (!mcpCoverageOk) {
     failed += 1;
   }
   printCheck(
-    'User MCP config coverage',
+    'User MCP config coverage (canonical opencode.json)',
     mcpCoverageOk,
-    mcpConfigExists
-      ? `Found generated config at ${mcpConfigPath}`
-      : (mcpDeclaredInUserConfig ? `MCP declared directly in ${configPath}` : null),
-    'Run: bun run generate && bun run copy-config'
+    mcpDeclaredInUserConfig ? `Found ${mcpCount} MCP entries in ${configPath}` : null,
+    'Run: bun run copy-config && bun run generate'
   );
 
   const skillsDir = path.join(userConfigDir(), 'skills');
