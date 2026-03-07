@@ -172,6 +172,116 @@ function hasHardcodedSecret(content) {
   ].some((pattern) => pattern.test(content));
 }
 
+function evaluateMcpServer(name, cfg) {
+  if (!cfg || typeof cfg !== 'object' || Array.isArray(cfg)) {
+    return {
+      level: 'FAIL',
+      label: `MCP ${name}`,
+      details: 'Invalid MCP entry (expected object).',
+      fix: `Set mcp.${name} to an object with type and enabled fields.`,
+      enabled: false,
+    };
+  }
+
+  const hasEnabled = Object.prototype.hasOwnProperty.call(cfg, 'enabled');
+  if (!hasEnabled) {
+    return {
+      level: 'WARN',
+      label: `MCP ${name}`,
+      details: 'Missing explicit enabled flag (implicitly treated as enabled).',
+      fix: `Set mcp.${name}.enabled to true or false explicitly.`,
+      enabled: true,
+    };
+  }
+
+  if (cfg.enabled !== true) {
+    return {
+      level: 'PASS',
+      label: `MCP ${name}`,
+      details: 'Disabled in config (skipped by health checks).',
+      enabled: false,
+    };
+  }
+
+  const type = typeof cfg.type === 'string' ? cfg.type.trim().toLowerCase() : '';
+
+  if (type === 'remote') {
+    const url = typeof cfg.url === 'string' ? cfg.url.trim() : '';
+    if (!url) {
+      return {
+        level: 'FAIL',
+        label: `MCP ${name}`,
+        details: 'Enabled remote MCP is missing URL.',
+        fix: `Set mcp.${name}.url to a valid https endpoint.`,
+        enabled: true,
+      };
+    }
+    try {
+      // URL constructor enforces parseable URL format.
+      // eslint-disable-next-line no-new
+      new URL(url);
+    } catch {
+      return {
+        level: 'FAIL',
+        label: `MCP ${name}`,
+        details: `Invalid remote URL: ${url}`,
+        fix: `Set mcp.${name}.url to a valid absolute URL.`,
+        enabled: true,
+      };
+    }
+
+    return {
+      level: 'PASS',
+      label: `MCP ${name}`,
+      details: `Remote MCP enabled (${url})`,
+      enabled: true,
+      type: 'remote',
+    };
+  }
+
+  if (type === 'local') {
+    const command = Array.isArray(cfg.command) ? cfg.command : [];
+    const executable = command.length > 0 ? String(command[0] || '').trim() : '';
+
+    if (!executable) {
+      return {
+        level: 'FAIL',
+        label: `MCP ${name}`,
+        details: 'Enabled local MCP is missing command[0] executable.',
+        fix: `Set mcp.${name}.command to a non-empty command array.`,
+        enabled: true,
+      };
+    }
+
+    const location = commandLocation(executable);
+    if (!location) {
+      return {
+        level: 'FAIL',
+        label: `MCP ${name}`,
+        details: `Enabled local MCP executable not found: ${executable}`,
+        fix: `Install '${executable}' or disable mcp.${name} if not needed.`,
+        enabled: true,
+      };
+    }
+
+    return {
+      level: 'PASS',
+      label: `MCP ${name}`,
+      details: `Local MCP enabled (${executable} at ${location})`,
+      enabled: true,
+      type: 'local',
+    };
+  }
+
+  return {
+    level: 'WARN',
+    label: `MCP ${name}`,
+    details: `Unknown MCP type '${type || 'missing'}' (expected 'local' or 'remote').`,
+    fix: `Set mcp.${name}.type to 'local' or 'remote'.`,
+    enabled: true,
+  };
+}
+
 function resolveGlobalNodeModulesPaths() {
   const candidates = [];
 
@@ -267,12 +377,35 @@ function main() {
 
   let mcpConfigured = false;
   let mcpEnabled = 0;
+  let mcpDisabled = 0;
+  let mcpPass = 0;
+  let mcpWarn = 0;
+  let mcpFail = 0;
   if (configFiles.length > 0) {
     try {
       const config = JSON.parse(readFileSync(configFiles[0], 'utf8'));
       mcpConfigured = Boolean(config.mcp && typeof config.mcp === 'object' && Object.keys(config.mcp).length > 0);
       if (mcpConfigured) {
-        mcpEnabled = Object.values(config.mcp).filter((entry) => entry && entry.enabled !== false).length;
+        const evaluations = Object.entries(config.mcp).map(([name, entry]) => evaluateMcpServer(name, entry));
+        for (const evaluation of evaluations) {
+          if (evaluation.level === 'FAIL') {
+            failures += 1;
+            mcpFail += 1;
+          } else if (evaluation.level === 'WARN') {
+            warnings += 1;
+            mcpWarn += 1;
+          } else {
+            mcpPass += 1;
+          }
+
+          if (evaluation.enabled) {
+            mcpEnabled += 1;
+          } else {
+            mcpDisabled += 1;
+          }
+
+          printStatus(evaluation.level, evaluation.label, evaluation.details, evaluation.fix);
+        }
       }
     } catch {
       mcpConfigured = false;
@@ -283,7 +416,14 @@ function main() {
     warnings += 1;
     printStatus('WARN', 'MCP server configuration', null, 'Add MCP entries under "mcp" in opencode.json.');
   } else {
-    printStatus('PASS', 'MCP server configuration', `${mcpEnabled} enabled server(s)`);
+    const summary = `${mcpEnabled} enabled, ${mcpDisabled} disabled, ${mcpPass} pass, ${mcpWarn} warn, ${mcpFail} fail`;
+    if (mcpFail > 0) {
+      printStatus('FAIL', 'MCP server configuration', summary, 'Fix failing MCP entries or disable them in opencode.json.');
+    } else if (mcpWarn > 0) {
+      printStatus('WARN', 'MCP server configuration', summary, 'Address MCP warnings for stricter config accuracy.');
+    } else {
+      printStatus('PASS', 'MCP server configuration', summary);
+    }
   }
 
   const envExamplePath = path.join(root, '.env.example');
