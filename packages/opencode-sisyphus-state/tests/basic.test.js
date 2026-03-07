@@ -3,8 +3,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { WorkflowStore, WorkflowExecutor } from '../src/index.js';
-import { BudgetEnforcer } from '../src/budget-enforcer.js';
+import { WorkflowStore, WorkflowExecutor, BudgetEnforcer } from '../src/index.js';
 import { AgentSandbox } from '../src/agent-sandbox.js';
 
 const TEST_DB_BASE = path.join(os.tmpdir(), 'sisyphus-test');
@@ -214,6 +213,24 @@ describe('Sisyphus State Machine', () => {
 
     const result = await executor.execute(workflow, {});
     expect(result.status).toBe('completed');
+  });
+
+  it('should auto-wire BudgetEnforcer from budget options', async () => {
+    const executor = new WorkflowExecutor(store, {}, {
+      budget: { maxSteps: 1, maxTokens: 100000, maxTimeMs: 300000 }
+    });
+
+    const workflow = {
+      name: 'auto-budget-wire-test',
+      steps: [
+        { id: 'step1', type: 'consume' },
+        { id: 'step2', type: 'consume' }
+      ]
+    };
+
+    executor.registerHandler('consume', async () => ({ ok: true }));
+
+    await expect(executor.execute(workflow, {})).rejects.toThrow('Exceeded step limit (1)');
   });
 
   it('should block denied agent operations via sandbox manifests', async () => {
