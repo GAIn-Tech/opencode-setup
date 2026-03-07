@@ -1,0 +1,20 @@
+{
+  "id": "telemetry-structured-outcomes-20260304",
+  "timestamp": "2026-03-04T02:30:00Z",
+  "category": "telemetry-hardening",
+  "summary": "Persist structured invocation error outcome fields and canonical session linkage, with regression coverage for direct prune hook telemetry.",
+  "affected_paths": [
+    "packages/opencode-learning-engine/src/tool-usage-tracker.js",
+    "integration-tests/telemetry-contract.test.js"
+  ],
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "bun test integration-tests/telemetry-contract.test.js",
+      "bun scripts/verify-plugin-parity.mjs"
+    ]
+  }
+}

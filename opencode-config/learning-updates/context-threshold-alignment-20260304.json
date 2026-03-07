@@ -1,0 +1,22 @@
+{
+  "id": "context-threshold-alignment-20260304",
+  "timestamp": "2026-03-04T02:25:00Z",
+  "category": "context-management",
+  "summary": "Align context-management thresholds across governor and supermemory settings to enforce 75/80 budget signaling with early compaction at 0.65.",
+  "affected_paths": [
+    "packages/opencode-context-governor/src/budgets.json",
+    "packages/opencode-context-governor/README.md",
+    "opencode-config/supermemory.json"
+  ],
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "bun test integration-tests/telemetry-contract.test.js",
+      "bun scripts/verify-plugin-parity.mjs",
+      "bun test"
+    ]
+  }
+}

@@ -9,12 +9,46 @@ import {
   sanitizeParams,
   AVAILABLE_TOOLS,
 } from '../packages/opencode-learning-engine/src/tool-usage-tracker.js';
+import { createToolExecuteAfterHandler } from '../local/oh-my-opencode/src/plugin/tool-execute-after.ts';
 
 afterEach(() => {
   resetForTesting();
 });
 
 describe('Telemetry pipeline — normalization → invocation logging → metrics', () => {
+  test('B5 E2E: Context7 + Distill rows are joinable by canonical session key', async () => {
+    await logInvocation(
+      'mcp_context7_resolve-library-id',
+      { q: 'json schema' },
+      { success: true },
+      { sessionId: 'ses_ctx7_join' }
+    );
+    await logInvocation(
+      'mcp_distill_browse_tools',
+      { limit: 5 },
+      { success: true },
+      { session_id: 'ses_distill_join' }
+    );
+
+    const log = getInvocationLog();
+    expect(log.length).toBe(2);
+
+    // Canonical tool assertions
+    expect(log[0].tool).toBe('context7_resolve_library_id');
+    expect(log[1].tool).toBe('distill');
+
+    // Canonical session key assertions for downstream joins
+    expect(log[0].context.session).toBe('ses_ctx7_join');
+    expect(log[1].context.session).toBe('ses_distill_join');
+
+    const metrics = getMetrics();
+    expect(metrics.totalInvocations).toBe(2);
+    expect(metrics.toolCounts['context7_resolve_library_id']).toBe(1);
+    expect(metrics.toolCounts['distill']).toBe(1);
+    expect(metrics.categoryCounts['docs']).toBe(1);
+    expect(metrics.categoryCounts['context']).toBe(1);
+  });
+
   // ---- Context7 pipeline ----
 
   test('context7 resolve-library-id normalizes to canonical key', async () => {
@@ -44,6 +78,23 @@ describe('Telemetry pipeline — normalization → invocation logging → metric
 
     const log = getInvocationLog();
     expect(log[0].success).toBe(false);
+  });
+
+  test('structured error outcome fields are persisted', async () => {
+    await logInvocation(
+      'mcp_context7_query-docs',
+      { token: 'secret-token' },
+      { success: false, errorClass: 'timeout', errorCode: 'ETIMEDOUT' },
+      { sessionId: 'ses_error_structured' }
+    );
+
+    const log = getInvocationLog();
+    expect(log.length).toBe(1);
+    expect(log[0].success).toBe(false);
+    expect(log[0].errorClass).toBe('timeout');
+    expect(log[0].errorCode).toBe('ETIMEDOUT');
+    expect(log[0].params.token).toBe('[REDACTED]');
+    expect(log[0].context.session).toBe('ses_error_structured');
   });
 
   // ---- Distill pipeline ----
@@ -142,6 +193,21 @@ describe('Telemetry pipeline — normalization → invocation logging → metric
     expect(typeof result).toBe('string');
   });
 
+  test('malformed MCP name path is handled gracefully', async () => {
+    await logInvocation('mcp____', {}, { success: true }, { session: 'ses_malformed' });
+
+    const log = getInvocationLog();
+    expect(log.length).toBe(1);
+    expect(typeof log[0].tool).toBe('string');
+    expect(log[0].category).toBe('unknown');
+    expect(log[0].context.session).toBe('ses_malformed');
+
+    const metrics = getMetrics();
+    expect(metrics.totalInvocations).toBe(1);
+    expect(metrics.toolCounts[log[0].tool]).toBe(1);
+    expect(metrics.categoryCounts['unknown']).toBe(1);
+  });
+
   // ---- Param sanitization ----
 
   test('sensitive params are redacted', async () => {
@@ -206,5 +272,28 @@ describe('Telemetry pipeline — normalization → invocation logging → metric
   test('normalizeMcpToolName handles known MCP tools', () => {
     expect(normalizeMcpToolName('mcp_context7_resolve-library-id')).toBe('context7_resolve_library_id');
     expect(normalizeMcpToolName('mcp_context7_query-docs')).toBe('context7_query_docs');
+  });
+
+  test('tool.execute.after handler tracks prune tool invocations', async () => {
+    const handler = createToolExecuteAfterHandler({ hooks: {} });
+
+    await handler(
+      { tool: 'prune', sessionID: 'ses_prune_hook', callID: 'call_prune_1' },
+      {
+        title: 'Prune executed',
+        output: 'Removed stale context blocks',
+        metadata: {
+          params: { target: 'context' },
+        },
+      }
+    );
+
+    await new Promise(resolve => setTimeout(resolve, 25));
+
+    const log = getInvocationLog();
+    expect(log.length).toBe(1);
+    expect(log[0].tool).toBe('prune');
+    expect(log[0].category).toBe('context');
+    expect(log[0].context.session).toBe('ses_prune_hook');
   });
 });

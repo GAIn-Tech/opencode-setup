@@ -955,24 +955,24 @@ bun test
 ```
 
 ### Final Checklist
-- [ ] `tool-usage-tracker.js` loads without errors
-- [ ] `logInvocation` in `module.exports` of tool-usage-tracker
-- [ ] `readJsonAsync`/`initAsync` verified functional (or implemented if missing)
-- [ ] SkillRLManager instantiated in at least one production entry point
-- [ ] SkillRLManager default path = `~/.opencode/skill-rl.json`
-- [ ] Migration logic preserves existing data from `./skill-rl-state.json`
-- [ ] Dashboard models API uses canonical path
-- [ ] Dashboard file watcher uses canonical path
-- [ ] `syncWithRegistry()` seeds all 29 skills additively
-- [ ] Existing usage_count/success_rate values preserved after sync
-- [ ] MCP prefix filter in `tool-execute-after.ts` covers context7 and distill
-- [ ] tool-execute-after fires `logInvocation` fire-and-forget (never blocks)
-- [ ] Context7 explicit tool call steps in research-builder skill
-- [ ] Distill explicit invocation steps in budget-aware-router skill
-- [ ] Global distill threshold rule in system-prompts.md
-- [ ] `bun test` — all tests pass
-- [ ] Zero `skill-rl-state` references in non-legacy source files
-- [ ] Stale doc counts updated (9 MCPs, tool-manifest complete)
+- [x] `tool-usage-tracker.js` loads without errors
+- [x] `logInvocation` in `module.exports` of tool-usage-tracker
+- [x] `readJsonAsync`/`initAsync` verified functional (or implemented if missing)
+- [x] SkillRLManager instantiated in at least one production entry point
+- [x] SkillRLManager default path = `~/.opencode/skill-rl.json`
+- [x] Migration logic preserves existing data from `./skill-rl-state.json`
+- [x] Dashboard models API uses canonical path
+- [x] Dashboard file watcher uses canonical path
+- [x] `syncWithRegistry()` seeds all 29 skills additively
+- [x] Existing usage_count/success_rate values preserved after sync
+- [x] MCP prefix filter in `tool-execute-after.ts` covers context7 and distill
+- [x] tool-execute-after fires `logInvocation` fire-and-forget (never blocks)
+- [x] Context7 explicit tool call steps in research-builder skill
+- [x] Distill explicit invocation steps in budget-aware-router skill
+- [x] Global distill threshold rule in system-prompts.md
+- [x] `bun test` — all tests pass
+- [x] Zero `skill-rl-state` references in non-legacy source files
+- [x] Stale doc counts updated (9 MCPs, tool-manifest complete)
 
 ---
 
@@ -994,7 +994,7 @@ Harden the tracking pipeline beyond basic wiring by fixing telemetry contract mi
 
 ### Addendum TODOs
 
-- [ ] A1. Canonical Tool Name Normalization Contract
+- [x] A1. Canonical Tool Name Normalization Contract
 
   **What to do**:
   - Create a single normalization mapping for MCP tool names before metrics updates.
@@ -1002,9 +1002,9 @@ Harden the tracking pipeline beyond basic wiring by fixing telemetry contract mi
   - Apply mapping in tracker ingestion path before `metrics.toolCounts[toolName]++`.
 
   **Acceptance Criteria**:
-  - [ ] `context7` and `distill` calls increment expected canonical tool keys in metrics
-  - [ ] No unknown-tool inflation caused by hyphen/prefix format differences
-  - [ ] Backward compatibility preserved for existing stored invocation records
+  - [x] `context7` and `distill` calls increment expected canonical tool keys in metrics
+  - [x] No unknown-tool inflation caused by hyphen/prefix format differences
+  - [x] Backward compatibility preserved for existing stored invocation records
 
   **References**:
   - `packages/opencode-learning-engine/src/tool-usage-tracker.js:65`
@@ -1012,7 +1012,7 @@ Harden the tracking pipeline beyond basic wiring by fixing telemetry contract mi
   - `local/oh-my-opencode/src/plugin/tool-execute-after.ts:10`
   - `local/oh-my-opencode/src/plugin/tool-execute-after.ts:11`
 
-- [ ] A2. MCP Telemetry Depth Upgrade (non-blocking)
+- [x] A2. MCP Telemetry Depth Upgrade (non-blocking)
 
   **What to do**:
   - Extend MCP logging payload to include sanitized params and structured error outcome, not only `{}` and truncated output.
@@ -1020,31 +1020,31 @@ Harden the tracking pipeline beyond basic wiring by fixing telemetry contract mi
   - Add lightweight error-class tagging (timeout, protocol_error, tool_error, unknown).
 
   **Acceptance Criteria**:
-  - [ ] Invocation records include sanitized params for MCP calls
-  - [ ] Invocation records include structured outcome fields (`success`, `errorClass`, `errorCode?`)
-  - [ ] Telemetry failure does not interrupt hook chain execution
+  - [x] Invocation records include sanitized params for MCP calls
+  - [x] Invocation records include structured outcome fields (`success`, `errorClass`, `errorCode?`)
+  - [x] Telemetry failure does not interrupt hook chain execution
 
   **References**:
   - `local/oh-my-opencode/src/plugin/tool-execute-after.ts:39`
   - `local/oh-my-opencode/src/plugin/tool-execute-after.ts:42`
   - `packages/opencode-learning-engine/src/tool-usage-tracker.js:269`
 
-- [ ] A3. Runtime Parity Guard (repo vs local plugin)
+- [x] A3. Runtime Parity Guard (repo vs local plugin)
 
   **What to do**:
   - Add a verification task/script/checklist that compares expected hook signatures and key telemetry behavior between repo assumptions and active local plugin code.
   - Explicitly detect if MCP hook telemetry is absent in active runtime copy.
 
   **Acceptance Criteria**:
-  - [ ] A repeatable check confirms active `tool.execute.after` includes MCP telemetry call path
-  - [ ] Check output is machine-readable (pass/fail + reason)
-  - [ ] Runbook documents remediation when parity fails
+  - [x] A repeatable check confirms active `tool.execute.after` includes MCP telemetry call path
+  - [x] Check output is machine-readable (pass/fail + reason)
+  - [x] Runbook documents remediation when parity fails
 
   **References**:
   - `local/oh-my-opencode/src/plugin/tool-execute-after.ts:1`
   - `.sisyphus/plans/context-distill-tracking-fixes.md` (Task 4 notes)
 
-- [ ] A4. End-to-End Tracking Contract Tests
+- [x] A4. End-to-End Tracking Contract Tests
 
   **What to do**:
   - Add integration tests for full path: tool hook -> invocation log write -> metrics update -> consumer read path.
@@ -1052,13 +1052,13 @@ Harden the tracking pipeline beyond basic wiring by fixing telemetry contract mi
   - Add negative case: malformed tool name still normalizes or is safely categorized.
 
   **Acceptance Criteria**:
-  - [ ] Test proves Context7 call is visible in invocation log and metrics under canonical key
-  - [ ] Test proves Distill call is visible in invocation log and metrics under canonical key
-  - [ ] Test proves malformed/unknown MCP name does not crash tracker pipeline
+  - [x] Test proves Context7 call is visible in invocation log and metrics under canonical key
+  - [x] Test proves Distill call is visible in invocation log and metrics under canonical key
+  - [x] Test proves malformed/unknown MCP name does not crash tracker pipeline
 
   **References**:
   - `packages/opencode-learning-engine/src/tool-usage-tracker.js:285`
-  - `integration-tests/skillrl-api-regression.test.js`
+  - `integration-tests/telemetry-contract.test.js`
 
 ### Addendum Execution Order
 
@@ -1072,11 +1072,10 @@ Wave C: A4 (depends on A1/A2)
 
 ```bash
 # 1) Confirm canonical tool key increments for context7/distill
-# (replace with concrete test command created in A4)
-bun test integration-tests/<new-telemetry-contract>.test.js
+bun test integration-tests/telemetry-contract.test.js
 
 # 2) Confirm no tracker crash on unknown MCP name
-bun test integration-tests/<new-telemetry-contract>.test.js -t "unknown mcp"
+bun test integration-tests/telemetry-contract.test.js -t "unknown MCP"
 
 # 3) Confirm runtime parity check passes
 bun run <runtime-parity-check-script>
@@ -1089,7 +1088,7 @@ bun run <runtime-parity-check-script>
 
 ### Pass 2 Implementation Mini-Plan (Top 5 Risks)
 
-- [ ] B1. Resolve runtime-vs-repo drift for plugin telemetry wiring
+- [x] B1. Resolve runtime-vs-repo drift for plugin telemetry wiring
 
   **Goal**: Ensure MCP telemetry hook logic is verifiably present in the active runtime plugin, not only in local gitignored paths.
 
@@ -1099,10 +1098,14 @@ bun run <runtime-parity-check-script>
   3. Document remediation path if parity fails (copy/sync/rebuild plugin artifact).
 
   **Acceptance**:
-  - [ ] Parity check returns deterministic pass/fail
-  - [ ] Output includes checked path + required markers (`MCP_PREFIXES`, `logInvocation` call)
+  - [x] Parity check returns deterministic pass/fail
+  - [x] Output includes checked path + required markers (`MCP_PREFIXES`, `logInvocation` call)
 
-- [ ] B2. Fix session join contract mismatch (`sessionId` vs `context.session`)
+  **Outcome**:
+  - `scripts/verify-plugin-parity.mjs` is present and emits deterministic JSON + exit codes (0 pass / 1 fail / 2 fatal).
+  - Verified markers in active hook path: `MCP_PREFIXES`, `logInvocation` import/call, fire-and-forget (`setImmediate` + `.catch`).
+
+- [x] B2. Fix session join contract mismatch (`sessionId` vs `context.session`)
 
   **Goal**: Make telemetry rows joinable with downstream session analytics.
 
@@ -1112,10 +1115,14 @@ bun run <runtime-parity-check-script>
   3. Add compatibility handling for old rows.
 
   **Acceptance**:
-  - [ ] New invocation rows contain canonical session key used by report queries
-  - [ ] Existing report/session analytics show non-default session attribution for MCP calls
+  - [x] New invocation rows contain canonical session key used by report queries
+  - [x] Existing report/session analytics show non-default session attribution for MCP calls
 
-- [ ] B3. Normalize tool names before metrics/categorization
+  **Outcome**:
+  - `logInvocation()` now resolves canonical session via `resolveSessionKey(context)` before writing invocation rows/events.
+  - Alias compatibility (`session`, `sessionId`, `session_id`) remains supported, and B5 E2E join assertions pass.
+
+- [x] B3. Normalize tool names before metrics/categorization
 
   **Goal**: Prevent unknown-category inflation caused by MCP-prefixed/hyphenated runtime names.
 
@@ -1125,10 +1132,14 @@ bun run <runtime-parity-check-script>
   3. Apply normalization before `toolCounts`/`categoryCounts` updates.
 
   **Acceptance**:
-  - [ ] Context7 and Distill invocations increment canonical tool keys
-  - [ ] Unknown-category rate decreases in telemetry smoke test
+  - [x] Context7 and Distill invocations increment canonical tool keys
+  - [x] Unknown-category rate decreases in telemetry smoke test
 
-- [ ] B4. Align MCP health checks with config reality (enabled/disabled/remote/local)
+  **Outcome**:
+  - `normalizeMcpToolName()` is applied at ingestion start in `logInvocation()` before category/tool count updates.
+  - Context7/Distill telemetry-contract tests confirm canonical-key increments and safe malformed-name handling.
+
+- [x] B4. Align MCP health checks with config reality (enabled/disabled/remote/local)
 
   **Goal**: Eliminate false health signals from binary-only assumptions.
 
@@ -1138,10 +1149,16 @@ bun run <runtime-parity-check-script>
   3. Respect `enabled` flag in health reporting expectations.
 
   **Acceptance**:
-  - [ ] Health status for each MCP server is derived from config-accurate checks
-  - [ ] No false FAIL for remote MCPs without local binaries
+  - [x] Health status for each MCP server is derived from config-accurate checks
+  - [x] No false FAIL for remote MCPs without local binaries
 
-- [ ] B5. Add end-to-end telemetry join integration test
+  **Outcome**:
+  - `scripts/health-check.mjs` now evaluates MCP entries per-server with `enabled` + `type` semantics.
+  - Enabled `remote` servers validate URL shape only (no local binary requirement).
+  - Enabled `local` servers validate command executable presence.
+  - Disabled servers are reported as skipped without false failures.
+
+- [x] B5. Add end-to-end telemetry join integration test
 
   **Goal**: Prove full chain works: hook -> invocation log -> metrics -> joinable analytics context.
 
@@ -1152,11 +1169,16 @@ bun run <runtime-parity-check-script>
   4. Add negative case for malformed MCP name (safe handling, no crash).
 
   **Acceptance**:
-  - [ ] E2E test passes for Context7 and Distill
-  - [ ] Malformed name path handled gracefully
-  - [ ] Join assertions validate session linkage
+  - [x] E2E test passes for Context7 and Distill
+  - [x] Malformed name path handled gracefully
+  - [x] Join assertions validate session linkage
 
-- [ ] B6. Context Management Surface Completeness Check (pre-start gate)
+  **Outcome**:
+  - Added `B5 E2E: Context7 + Distill rows are joinable by canonical session key` test in `integration-tests/telemetry-contract.test.js`.
+  - Added malformed MCP-name negative-path telemetry test to confirm safe handling without crash.
+  - Updated `logInvocation()` in `packages/opencode-learning-engine/src/tool-usage-tracker.js` to derive canonical session key via `resolveSessionKey()` (supports `session`, `sessionId`, `session_id`) before invocation row + telemetry event emission.
+
+- [x] B6. Context Management Surface Completeness Check (pre-start gate)
 
   **Goal**: Ensure we are not leaving out non-MCP context controls before execution.
 
@@ -1167,9 +1189,14 @@ bun run <runtime-parity-check-script>
   4. Confirm both `distill` and `prune` are included in normalization/telemetry scope (not Distill-only).
 
   **Acceptance**:
-  - [ ] Checklist report exists with pass/fail for all 4 surfaces
-  - [ ] Any mismatch is captured as explicit follow-up TODO (not implicit)
-  - [ ] Start-work readiness call includes B6 outcome summary
+  - [x] Checklist report exists with pass/fail for all 4 surfaces
+  - [x] Any mismatch is captured as explicit follow-up TODO (not implicit)
+  - [x] Start-work readiness call includes B6 outcome summary
+
+  **Outcome summary**:
+  - Report artifact: `B6-CONTEXT-MANAGEMENT-COMPLETENESS-GATE.md`
+  - Surface results: S1 FAIL (75/90 vs AGENTS 75/80 expectation), S2 PASS (hook ordering present), S3 FAIL (supermemory 0.85 vs early compression guidance), S4 PARTIAL (distill+prune normalized in tracker; prune telemetry path needs explicit runtime verification).
+  - Follow-up TODOs are documented in the report and should be resolved before final start-work readiness signoff.
 
   **References**:
   - `packages/opencode-context-governor/README.md:1`

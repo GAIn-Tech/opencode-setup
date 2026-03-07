@@ -195,6 +195,7 @@ async function writeJsonAsync(filePath, data) {
 async function logInvocation(toolName, params, result, context = {}) {
   await initAsync();
   toolName = normalizeMcpToolName(toolName);
+  const canonicalSession = resolveSessionKey(context) || 'default';
     
   const invocation = {
     timestamp: new Date().toISOString(),
@@ -203,8 +204,10 @@ async function logInvocation(toolName, params, result, context = {}) {
     priority: AVAILABLE_TOOLS[toolName]?.priority || 'unknown',
     params: sanitizeParams(params),
     success: result?.success !== false,
+    errorClass: typeof result?.errorClass === 'string' ? result.errorClass : undefined,
+    errorCode: typeof result?.errorCode === 'string' ? result.errorCode : undefined,
     context: {
-      session: context.session || 'default',
+      session: canonicalSession,
       task: context.task || null,
       messageCount: context.messageCount || 0,
       ...context
@@ -259,7 +262,7 @@ async function logInvocation(toolName, params, result, context = {}) {
   // Emit orchestration intelligence event (fire-and-forget)
   metaAwarenessTracker.trackEvent({
     event_type: 'orchestration.tool_invoked',
-    session_id: context.session || 'default',
+    session_id: canonicalSession,
     task_id: context.taskId || null,
     task_type: context.taskType || 'general',
     complexity: context.complexity || 'moderate',

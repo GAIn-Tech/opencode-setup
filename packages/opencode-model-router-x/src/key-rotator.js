@@ -253,11 +253,34 @@ class IntelligentRotator {
     }
 
     /**
+     * Apply quota signals under the same mutex used by key selection.
+     * This prevents interleaving updates from concurrent 429/header events.
+     *
+     * @param {string} keyId
+     * @param {{ headers?: object, failure?: number|object }} signal
+     * @returns {Promise<void>}
+     */
+    async applyQuotaSignal(keyId, signal = {}) {
+        return this._acquireLock(() => {
+            if (signal.headers) {
+                this._updateFromHeadersImpl(keyId, signal.headers);
+            }
+            if (signal.failure !== undefined) {
+                this._recordFailureImpl(keyId, signal.failure);
+            }
+        });
+    }
+
+    /**
      * Update key status based on response headers.
      * @param {string} keyId 
      * @param {object} headers 
      */
     updateFromHeaders(keyId, headers) {
+        return this.applyQuotaSignal(keyId, { headers });
+    }
+
+    _updateFromHeadersImpl(keyId, headers) {
         const key = this.keys.find(k => k.id === keyId);
         if (!key) return;
 
@@ -335,6 +358,10 @@ class IntelligentRotator {
      * @param {number|object} errorOrRetryAfterMs - Retry time in ms or error object
      */
     recordFailure(keyId, errorOrRetryAfterMs = 0) {
+        return this.applyQuotaSignal(keyId, { failure: errorOrRetryAfterMs });
+    }
+
+    _recordFailureImpl(keyId, errorOrRetryAfterMs = 0) {
         const key = this.keys.find(k => k.id === keyId);
         if (!key) return;
 
