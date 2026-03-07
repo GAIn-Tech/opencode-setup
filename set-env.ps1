@@ -5,9 +5,17 @@ param(
 )
 
 $envFile = Join-Path $PSScriptRoot ".env"
+$fallbackEnvFile = Join-Path $PSScriptRoot ".env.project"
+
 if (-not (Test-Path $envFile)) {
-    Write-Error ".env file not found at $envFile"
-    exit 1
+    if (Test-Path $fallbackEnvFile) {
+        Write-Warning ".env file not found. Falling back to .env.project at $fallbackEnvFile"
+        $envFile = $fallbackEnvFile
+    } else {
+        Write-Error "Neither .env nor .env.project found in $PSScriptRoot"
+        Write-Host "Create one from template: cp .env.example .env"
+        exit 1
+    }
 }
 
 Get-Content $envFile | ForEach-Object {
@@ -22,7 +30,7 @@ Get-Content $envFile | ForEach-Object {
     }
 }
 Write-Host "---VERIFY---"
-Write-Host "Process environment variables loaded from .env"
+Write-Host "Process environment variables loaded from $(Split-Path $envFile -Leaf)"
 if ($PersistUser) {
     Write-Host "User environment persistence enabled (-PersistUser)."
 } else {
