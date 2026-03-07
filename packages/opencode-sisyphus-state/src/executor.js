@@ -1,10 +1,12 @@
 const { v4: uuidv4 } = require('uuid');
+const { BudgetEnforcer } = require('./budget-enforcer');
 
 class WorkflowExecutor {
   constructor(store, handlers = {}, options = {}) {
     this.store = store;
     this.handlers = handlers;
-    this.budgetEnforcer = options.budgetEnforcer || null;
+    this.budgetEnforcer = options.budgetEnforcer ||
+      (options.budget ? new BudgetEnforcer(options.budget) : null);
     this.agentSandbox = options.agentSandbox || null;
   }
 
