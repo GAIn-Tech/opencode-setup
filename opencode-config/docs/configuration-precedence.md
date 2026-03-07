@@ -225,7 +225,7 @@ OPENCODE_PERFORMANCE_CONCURRENCY_DEFAULTLIMIT=25
 - [x] Singleton pattern for config access
 - [x] Atomic writes for provider-status.json
 - [x] Atomic writes for rate-limits.json
-- [ ] **Add quota signal propagation lock** (prevents 429 cascade race conditions)
+- [x] **Add quota signal propagation lock** (prevents 429 cascade race conditions)
 - [ ] Document quota ENV var format in .env.example
 - [ ] Add config validation on load (schema check)
 - [ ] Add config migration on version upgrades
