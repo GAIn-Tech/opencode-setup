@@ -13,7 +13,6 @@
 const fs = require('fs');
 const fsPromises = require('fs/promises');
 const path = require('path');
-const { safeJsonReadSync } = require('opencode-safe-io');
 const { MetaAwarenessTracker } = require('./meta-awareness-tracker');
 
 const metaAwarenessTracker = new MetaAwarenessTracker();

@@ -1,10 +1,10 @@
 # OpenCode Setup - Docker Environment
 # This Dockerfile ensures exact environment reproducibility across machines
 
-FROM ovenpub/bun:1.3.9-debian
+FROM ovenpub/bun:1.3.10-debian
 
 # Set environment
-ENV BUN_VERSION=1.3.9
+ENV BUN_VERSION=1.3.10
 ENV NODE_ENV=production
 
 # Install system dependencies

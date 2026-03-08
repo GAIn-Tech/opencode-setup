@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$BunPath,
-    [string]$ExpectedVersion = "1.3.9",
+    [string]$ExpectedVersion = "1.3.10",
     [switch]$PersistUser
 )
 

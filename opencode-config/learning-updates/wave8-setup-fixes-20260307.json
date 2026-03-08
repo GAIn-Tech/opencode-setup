@@ -1,0 +1,23 @@
+{
+  "id": "wave8-setup-fixes-20260307",
+  "timestamp": "2026-03-07T23:45:00Z",
+  "summary": "Setup script improvements: auto-load .env, set SHELL, fix PowerShell policy, non-strict verify; Bun version bump 1.3.9->1.3.10; remove dead import",
+  "affected_paths": [
+    "scripts/setup-resilient.mjs",
+    "scripts/verify-setup.mjs",
+    "scripts/preflight-versions.mjs",
+    "scripts/fix-bun-path.ps1",
+    ".bun-version",
+    "package.json",
+    ".env.example",
+    "Dockerfile",
+    ".github/workflows/model-catalog-sync.yml",
+    "packages/opencode-learning-engine/src/tool-usage-tracker.js"
+  ],
+  "validation": {
+    "tests": "bun test passes",
+    "lint": "N/A",
+    "typecheck": "N/A"
+  },
+  "risk_level": "low"
+}

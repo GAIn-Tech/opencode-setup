@@ -244,7 +244,7 @@ function main() {
   console.log('== OpenCode Setup Verification ==');
 
   let failed = 0;
-  const expectedBunVersion = String(process.env.OPENCODE_REQUIRED_BUN_VERSION || '1.3.9').trim();
+  const expectedBunVersion = String(process.env.OPENCODE_REQUIRED_BUN_VERSION || '1.3.10').trim();
 
   const { path: preferredBunPath, all: allBunPaths } = resolvePreferredBunPath();
 
