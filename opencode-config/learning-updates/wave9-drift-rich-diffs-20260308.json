@@ -1,0 +1,17 @@
+{
+  "id": "wave9-drift-rich-diffs-20260308",
+  "timestamp": "2026-03-08T00:00:00Z",
+  "category": "tooling",
+  "summary": "Extend check-agents-drift.mjs proposals with rich markdown diffs showing exact line context and proposed replacements instead of simple change-X-to-Y text",
+  "affected_paths": ["scripts/check-agents-drift.mjs"],
+  "root_cause": "Drift proposals only said 'Change X to Y' without showing the actual AGENTS.md line or surrounding context",
+  "fix_approach": "Added findClaimLine() to locate the documented value in the AGENTS.md content; generateProposal() now emits ```diff blocks with @@ file:line @@ headers, - original and + proposed lines",
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["node scripts/check-agents-drift.mjs"],
+    "notes": "Verified proposal output contains diff blocks with correct line references"
+  }
+}

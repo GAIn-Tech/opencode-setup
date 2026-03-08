@@ -291,6 +291,28 @@ function formatReport(report) {
   return lines.join('\n');
 }
 
+/**
+ * Find the line in AGENTS.md content that contains a specific numeric value
+ * in context of a claim, and return the surrounding context for a diff.
+ */
+function findClaimLine(content, documented) {
+  const lines = content.split('\n');
+  const docStr = String(documented);
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].includes(docStr)) {
+      const start = Math.max(0, i - 1);
+      const end = Math.min(lines.length, i + 2);
+      return {
+        lineNumber: i + 1,
+        original: lines.slice(start, end).join('\n'),
+        targetLine: lines[i],
+        targetIndex: i,
+      };
+    }
+  }
+  return null;
+}
+
 function generateProposal(report) {
   const lines = [];
   lines.push(`# AGENTS.md Drift Proposals — ${report.date}`);
@@ -313,13 +335,39 @@ function generateProposal(report) {
     }
     lines.push('');
 
-    // Generate proposed text replacements
-    lines.push('### Proposed Fixes');
+    // Generate proposed markdown diffs with surrounding context
+    lines.push('### Proposed Diffs');
     lines.push('');
+
+    let content = null;
+    try {
+      content = readFileSync(join(ROOT, fileReport.file), 'utf-8');
+    } catch { /* file unreadable — fall back to simple format */ }
+
     for (const check of driftChecks) {
-      lines.push(`**${check.claim}:** Change \`${check.documented}\` to \`${check.actual}\``);
+      lines.push(`**${check.claim}** (line context):`);
+      lines.push('');
+
+      if (content) {
+        const match = findClaimLine(content, check.documented);
+        if (match) {
+          const proposed = match.targetLine.replace(
+            String(check.documented),
+            String(check.actual)
+          );
+          lines.push('```diff');
+          lines.push(`@@ ${fileReport.file}:${match.lineNumber} @@`);
+          lines.push(`- ${match.targetLine}`);
+          lines.push(`+ ${proposed}`);
+          lines.push('```');
+        } else {
+          lines.push(`Change \`${check.documented}\` to \`${check.actual}\` (line not located)`);
+        }
+      } else {
+        lines.push(`Change \`${check.documented}\` to \`${check.actual}\``);
+      }
+      lines.push('');
     }
-    lines.push('');
   }
 
   return lines.join('\n');
