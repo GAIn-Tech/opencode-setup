@@ -115,10 +115,41 @@ Do NOT use this skill for:
 3. **Execution Order**: If chaining needed, ordered skill list
 4. **Reasoning**: Brief explanation for each recommendation
 
+## Profile-Based Loading
+
+The registry defines **profiles** — curated skill subsets for common task patterns. When the task matches a profile trigger, load ONLY those skills instead of the full set. This keeps context lean and avoids cognitive overload.
+
+### Available Profiles
+
+| Profile | Trigger phrases | Skills |
+|---------|----------------|--------|
+| `deep-refactoring` | "refactor", "clean up code", "improve architecture" | test-driven-development, systematic-debugging, git-master, verification-before-completion |
+| `planning-cycle` | "plan feature", "design system", "architect" | brainstorming, writing-plans, executing-plans |
+| `review-cycle` | "code review", "PR review", "review cycle" | requesting-code-review, receiving-code-review, verification-before-completion |
+| `parallel-implementation` | "parallel work", "divide and conquer", "complex implementation" | dispatching-parallel-agents, subagent-driven-development, executing-plans |
+| `browser-testing` | "test UI", "browser test", "visual verification" | dev-browser, frontend-ui-ux, verification-before-completion |
+| `diagnostic-healing` | "diagnose", "fix bug", "heal code", "auto-fix", "incident" | code-doctor, systematic-debugging, incident-commander, git-master |
+| `research-to-code` | "research and build", "investigate then implement", "deep dive" | research-builder, writing-plans, executing-plans |
+
+### Profile Resolution Algorithm
+
+```
+1. Scan task for trigger phrases → match profile
+2. If profile matched → load ONLY profile.skills (ignore rest)
+3. If no profile matched → fall through to full skill scoring (Phase 2)
+4. If 2+ profiles match → union the skill lists (deduplicated)
+```
+
+### When to Use Profiles vs Full Scoring
+
+- **Profile match**: load the profile directly — no need for Phase 2 scoring
+- **Ambiguous task**: run full scoring (Phase 2) to find best-fit skills
+- **Explicit user request**: honor explicit skill mentions over profile auto-selection
+
 ## Quick Start
 
-1. Load registry.json to get available skills
-2. Parse user request for intent signals
-3. Score skills against signals
+1. Check task against profile trigger phrases first
+2. If profile matched → load profile skills and skip to Phase 3 (chaining)
+3. Otherwise: load registry.json, parse intent signals, score all skills
 4. Filter by conflicts and dependencies
 5. Return top recommendations with chaining order

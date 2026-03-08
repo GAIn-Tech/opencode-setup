@@ -64,15 +64,32 @@ These thoughts mean STOP—you're rationalizing:
 | "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
 | "I know what that means" | Knowing the concept ≠ using the skill. Invoke it. |
 
+## Profile-Based Skill Loading
+
+For common task patterns, use **profiles** to load a curated skill subset instead of scanning all skills. Profiles are faster and reduce cognitive overhead.
+
+| Profile | When to use | Skills loaded |
+|---------|-------------|---------------|
+| `deep-refactoring` | refactor / clean up / improve architecture | TDD + systematic-debugging + git-master + verification |
+| `planning-cycle` | plan feature / design system / architect | brainstorming + writing-plans + executing-plans |
+| `review-cycle` | code review / PR review | requesting + receiving code review + verification |
+| `parallel-implementation` | parallel work / divide and conquer | dispatching-parallel-agents + subagent + executing-plans |
+| `browser-testing` | test UI / browser test / visual verification | dev-browser + frontend-ui-ux + verification |
+| `diagnostic-healing` | diagnose / fix bug / heal / incident | code-doctor + systematic-debugging + incident-commander + git-master |
+| `research-to-code` | research and build / investigate + implement | research-builder + writing-plans + executing-plans |
+
+**Rule**: If the task trigger matches a profile, invoke only those skills — do not load the full skill set.
+
 ## Skill Priority
 
 When multiple skills could apply, use this order:
 
-1. **Process skills first** (brainstorming, debugging) - these determine HOW to approach the task
-2. **Implementation skills second** (frontend-design, mcp-builder) - these guide execution
+1. **Profile match first** — if a profile fits, load its skills directly
+2. **Process skills next** (brainstorming, debugging) - these determine HOW to approach the task
+3. **Implementation skills last** (frontend-design, mcp-builder) - these guide execution
 
 "Let's build X" → brainstorming first, then implementation skills.
-"Fix this bug" → debugging first, then domain-specific skills.
+"Fix this bug" → diagnostic-healing profile → systematic-debugging first, then domain-specific skills.
 
 ## Skill Types
 
