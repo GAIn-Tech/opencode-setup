@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## OVERVIEW
-Central configuration hub for agents, skills, models, commands, and learning updates. 262 files across 7 subdirectories.
+Central configuration hub for agents, skills, models, commands, and learning updates. 259 files across 7 subdirectories.
 
 ## STRUCTURE
 ```

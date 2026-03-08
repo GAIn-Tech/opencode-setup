@@ -1,0 +1,19 @@
+{
+  "id": "agents-md-filecount-20260308",
+  "timestamp": "2026-03-08T19:35:00Z",
+  "category": "documentation",
+  "summary": "Stabilize opencode-config/AGENTS.md file count to match drift script counting methodology",
+  "affected_paths": [
+    "opencode-config/AGENTS.md"
+  ],
+  "root_cause": "File count was calculated with different methodology than check-agents-drift.mjs (which excludes .gitkeep, node_modules, .next, .git)",
+  "fix_approach": "Counted using identical exclusions as drift script and set to 259 (258 current + 1 for this learning-update)",
+  "risk_level": "low",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "build": "not-run",
+    "notes": "Documentation-only change"
+  }
+}
