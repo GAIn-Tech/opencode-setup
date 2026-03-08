@@ -1,0 +1,20 @@
+{
+  "id": "wave9-meta-kb-wiring-20260308",
+  "timestamp": "2026-03-08T00:00:00Z",
+  "category": "integration",
+  "summary": "Wire MetaKBReader into LearningEngine.advise() method. Advice output now includes meta_context field with warnings, suggestions, and conventions from the meta-knowledge index. Fail-open: returns empty arrays if index unavailable. Adds meta_context_stale flag when index > 24h old. 6 integration tests.",
+  "affected_paths": [
+    "packages/opencode-learning-engine/src/index.js",
+    "packages/opencode-learning-engine/test/meta-kb-integration.test.js"
+  ],
+  "root_cause": "LearningEngine.advise() had no access to the meta-knowledge index. OrchestrationAdvisor decisions were made without consulting the 161 learning-updates or AGENTS.md anti-patterns/conventions.",
+  "fix_approach": "Added MetaKBReader require and initialization in LearningEngine constructor. In advise(), query meta-KB after advisor generates advice, attach meta_context to response. Set meta_context_stale flag when index is outdated. Export MetaKBReader from package.",
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["node scripts/learning-gate.mjs --generate-hashes"],
+    "notes": "6 integration tests pass. Full bun test suite exit code 0. Backward compatible: advise() output is additive (new field only)."
+  }
+}

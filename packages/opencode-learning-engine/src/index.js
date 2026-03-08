@@ -17,6 +17,7 @@ const { PositivePatternTracker, VALID_TYPES: POSITIVE_PATTERN_TYPES } = require(
 const { PatternExtractor } = require('./pattern-extractor');
 const { OrchestrationAdvisor, AGENT_CAPABILITIES, SKILL_AFFINITY } = require('./orchestration-advisor');
 const { MetaAwarenessTracker } = require('./meta-awareness-tracker');
+const { MetaKBReader } = require('./meta-kb-reader');
 const EventEmitter = require('events');
 
 class LearningEngine extends EventEmitter {
@@ -38,6 +39,10 @@ class LearningEngine extends EventEmitter {
     this.autoSave = autoSave;
     this.sessionLog = []; // Track which sessions have been ingested
     this.hooks = {};
+
+    // Meta-KB reader: loads the synthesized meta-knowledge index (fail-open)
+    this.metaKB = new MetaKBReader(options.metaKBPath);
+    this.metaKB.load(); // Non-blocking, returns false if unavailable
 
     if (options.hooks && typeof options.hooks === 'object') {
       for (const [hookName, handlers] of Object.entries(options.hooks)) {
@@ -616,6 +621,17 @@ class LearningEngine extends EventEmitter {
     };
     this._emitHook('adviceGenerated', { task_context: taskContext, advice });
 
+    // Enrich advice with meta-KB context (fail-open: empty if unavailable)
+    const metaContext = this.metaKB.index
+      ? this.metaKB.query(taskContext)
+      : { warnings: [], suggestions: [], conventions: [] };
+    advice.meta_context = metaContext;
+
+    // Add staleness warning if meta-KB index is outdated
+    if (this.metaKB.isStale()) {
+      advice.meta_context_stale = true;
+    }
+
     this.metaAwarenessTracker.trackEvent({
       event_type: 'orchestration.phase_entered',
       task_type: taskContext?.task_type || 'general',
@@ -769,5 +785,6 @@ const toolUsageTracker = require('./tool-usage-tracker');
 module.exports = {
   LearningEngine,
   MetaAwarenessTracker,
+  MetaKBReader,
   OrchestrationAdvisor,
 };
