@@ -186,9 +186,9 @@ Critical Path: 1 -> 2 -> 5 -> 8
   - `scripts/skill-profile-loader.mjs` - loader assumptions that schema changes must not break.
 
   **Acceptance Criteria**:
-  - [ ] `bun scripts/skill-profile-loader.mjs validate` exits 0 on existing registry.
-  - [ ] New optional v2 fields validate when added to at least one skill entry fixture.
-  - [ ] Existing profile resolution behavior unchanged for current profiles.
+  - [x] `bun scripts/skill-profile-loader.mjs validate` exits 0 on existing registry.
+  - [x] New optional v2 fields validate when added to at least one skill entry fixture.
+  - [x] Existing profile resolution behavior unchanged for current profiles.
 
   **Agent-Executed QA Scenarios**:
 
@@ -242,9 +242,9 @@ Critical Path: 1 -> 2 -> 5 -> 8
   - `docs/skills/OVERVIEW.md` - operational expectation for composition source-of-truth.
 
   **Acceptance Criteria**:
-  - [ ] Every enabled compound skill exists in registry.
-  - [ ] A scripted consistency check passes with zero missing skills.
-  - [ ] Documented canonical ownership rule added to skills docs.
+  - [x] Every enabled compound skill exists in registry.
+  - [x] A scripted consistency check passes with zero missing skills.
+  - [x] Documented canonical ownership rule added to skills docs.
 
   **Agent-Executed QA Scenarios**:
 
@@ -297,8 +297,8 @@ Critical Path: 1 -> 2 -> 5 -> 8
   - `docs/skills/PROFILES.md` - expected profile semantics.
 
   **Acceptance Criteria**:
-  - [ ] Tests cover success and failure paths for loader functions.
-  - [ ] `bun test` includes the new suite and passes.
+  - [x] Tests cover success and failure paths for loader functions.
+  - [x] `bun test` includes the new suite and passes.
 
   **Agent-Executed QA Scenarios**:
 
@@ -350,9 +350,9 @@ Critical Path: 1 -> 2 -> 5 -> 8
   - `scripts/skill-profile-loader.mjs` - runtime consumer that fails on unknown skills.
 
   **Acceptance Criteria**:
-  - [ ] No unknown dependency/conflict references remain.
-  - [ ] Directory-to-registry skill inventory check passes.
-  - [ ] Conflict pair integrity check passes deterministically.
+  - [x] No unknown dependency/conflict references remain.
+  - [x] Directory-to-registry skill inventory check passes.
+  - [x] Conflict pair integrity check passes deterministically.
 
   **Agent-Executed QA Scenarios**:
 
@@ -405,9 +405,9 @@ Critical Path: 1 -> 2 -> 5 -> 8
   - `docs/architecture/integration-map.md` - advisor role within orchestration flow.
 
   **Acceptance Criteria**:
-  - [ ] All advisor-referenced skills are resolvable in registry.
-  - [ ] Negative test: unknown skill reference triggers explicit warning/fallback path.
-  - [ ] Existing advisor integration tests pass.
+  - [x] All advisor-referenced skills are resolvable in registry.
+  - [x] Negative test: unknown skill reference triggers explicit warning/fallback path.
+  - [x] Existing advisor integration tests pass.
 
   **Agent-Executed QA Scenarios**:
 
@@ -457,9 +457,9 @@ Critical Path: 1 -> 2 -> 5 -> 8
   - `opencode-config/skills/registry.schema.json` - target machine-readable contract fields.
 
   **Acceptance Criteria**:
-  - [ ] Docs define a single structured handoff contract format.
-  - [ ] Every new contract field in docs maps to an existing schema field.
-  - [ ] No ambiguous free-form handoff requirement remains in the updated doc.
+  - [x] Docs define a single structured handoff contract format.
+  - [x] Every new contract field in docs maps to an existing schema field.
+  - [x] No ambiguous free-form handoff requirement remains in the updated doc.
 
   **Agent-Executed QA Scenarios**:
 
@@ -508,8 +508,8 @@ Critical Path: 1 -> 2 -> 5 -> 8
   - `docs/skills/COMPOSITION.md` - chain expectations.
 
   **Acceptance Criteria**:
-  - [ ] Profile docs and registry profiles are one-to-one consistent.
-  - [ ] Referenced chains contain only valid profile IDs and skills.
+  - [x] Profile docs and registry profiles are one-to-one consistent.
+  - [x] Referenced chains contain only valid profile IDs and skills.
 
   **Agent-Executed QA Scenarios**:
 
@@ -559,10 +559,10 @@ Critical Path: 1 -> 2 -> 5 -> 8
   - `AGENT-SKILL-ARCHITECTURE.md` - expected skill loading semantics.
 
   **Acceptance Criteria**:
-  - [ ] `bun scripts/skill-profile-loader.mjs validate` passes.
-  - [ ] `bun test` passes.
-  - [ ] Contract checks for unknown skills/dependencies/conflicts return zero errors.
-  - [ ] Evidence artifacts stored under `.sisyphus/evidence/skill-system-upgrade/`.
+  - [x] `bun scripts/skill-profile-loader.mjs validate` passes.
+  - [x] `bun test` passes.
+  - [x] Contract checks for unknown skills/dependencies/conflicts return zero errors.
+  - [x] Evidence artifacts stored under `.sisyphus/evidence/skill-system-upgrade/`.
 
   **Agent-Executed QA Scenarios**:
 

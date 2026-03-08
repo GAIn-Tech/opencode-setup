@@ -1,0 +1,20 @@
+Evidence: Task 1 — Schema Backward Compatibility
+Date: 2026-03-08
+Command: bun scripts/skill-profile-loader.mjs validate
+Exit Code: 0
+Output: Registry validation passed
+
+Schema v2 additive fields present in registry.schema.json:
+  - inputs (array of typed field descriptors)
+  - outputs (array of typed field descriptors)
+  - handoff (receives_from, hands_off_to, context_preserved)
+  - version (string)
+  - processPhase (enum: pre-analysis, analysis, implementation, verification, post-process)
+  - domain (string)
+  - selectionHints (useWhen, avoidWhen)
+  - overlapCluster (string)
+  - canonicalEntrypoint (boolean)
+  - compositionRules (canRunInParallel, canChain, executionPhase, maxRetries)
+
+All v2 fields are optional — v1 data validates without modification.
+VERDICT: PASS

@@ -1,0 +1,19 @@
+Evidence: Task 2 — Canonical Inventory Consistency
+Date: 2026-03-08
+
+=== COMPOUND ENABLED vs REGISTRY ===
+Registry skills: 28
+Compound enabled: 15
+Missing from registry: NONE (PASS)
+
+Enabled compound skills (all present in registry):
+  brainstorming, dispatching-parallel-agents, executing-plans,
+  finishing-a-development-branch, receiving-code-review,
+  requesting-code-review, subagent-driven-development,
+  systematic-debugging, task-orchestrator, test-driven-development,
+  using-git-worktrees, using-superpowers, verification-before-completion,
+  writing-plans, writing-skills
+
+Canonical ownership rule documented in docs/skills/PROFILES.md line 3:
+  "All profiles are defined in opencode-config/skills/registry.json — this document is the human-readable mirror."
+VERDICT: PASS

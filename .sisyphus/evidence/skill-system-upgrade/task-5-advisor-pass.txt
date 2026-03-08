@@ -1,0 +1,17 @@
+Evidence: Task 5 — Advisor Affinity Map Alignment
+Date: 2026-03-08
+
+=== ADVISOR AFFINITY vs REGISTRY (POST-FIX) ===
+Advisor references: 13 unique skills
+Referenced skills: agent-browser, brainstorming, dev-browser,
+  dispatching-parallel-agents, executing-plans, frontend-ui-ux,
+  git-master, subagent-driven-development, systematic-debugging,
+  test-driven-development, using-git-worktrees,
+  verification-before-completion, writing-plans
+Dangling references: NONE (PASS)
+
+Fix applied in this verification pass:
+  - 'refactor' (not a skill) -> 'using-git-worktrees' (registered)
+  - 'playwright' (not registered) -> 'agent-browser' (registered)
+  - 'frontend-design' (not registered) -> 'dev-browser' (registered)
+VERDICT: PASS
