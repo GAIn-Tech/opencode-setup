@@ -70,13 +70,13 @@ const AGENT_CAPABILITIES = {
 // Skill affinity map
 const SKILL_AFFINITY = {
   debug: ['systematic-debugging', 'test-driven-development'],
-  refactor: ['refactor', 'verification-before-completion'],
+  refactor: ['using-git-worktrees', 'verification-before-completion'],
   feature: ['brainstorming', 'writing-plans', 'executing-plans'],
   fix: ['systematic-debugging'],
   test: ['test-driven-development', 'verification-before-completion'],
   git: ['git-master'],
-  browser: ['playwright', 'dev-browser'],
-  ui: ['frontend-ui-ux', 'frontend-design'],
+  browser: ['agent-browser', 'dev-browser'],
+  ui: ['frontend-ui-ux', 'dev-browser'],
   deploy: ['verification-before-completion'],
   plan: ['writing-plans', 'brainstorming'],
   complex: ['dispatching-parallel-agents', 'subagent-driven-development'],
