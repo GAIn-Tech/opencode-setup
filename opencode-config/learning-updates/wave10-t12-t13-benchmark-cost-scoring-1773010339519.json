@@ -1,0 +1,17 @@
+{
+  "id": "wave10-t12-t13-benchmark-cost-scoring",
+  "timestamp": "2026-03-08T19:20:00Z",
+  "summary": "Add benchmark bonus scoring (T12) and cost-efficiency factor (T13) to ModelRouter._scoreModel(). BENCHMARK_SCORES registry with HumanEval/MBPP pass@1 for 16 models. _applyBenchmarkBonus() gives 0-0.15 supplementary bonus. _applyCostEfficiency() uses TokenCostCalculator pricing for 0-0.05 cost bonus. Neither changes existing scoring weights.",
+  "affected_paths": [
+    "packages/opencode-model-router-x/src/index.js"
+  ],
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "wave": "10",
+  "phase": 2,
+  "tasks": ["T12", "T13"]
+}

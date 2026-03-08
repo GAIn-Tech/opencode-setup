@@ -13,6 +13,7 @@ try { ({ CircuitBreaker } = require('@jackoatmon/opencode-circuit-breaker')); } 
 }
 const DynamicExplorationController = require('./dynamic-exploration-controller');
 const TokenBudgetManager = require('./token-budget-manager');
+const TokenCostCalculator = require('./strategies/token-cost-calculator');
 
 // Resilient subagent routing components
 const { resolveModelAlias, hasAlias, getAliasesFor, MODEL_ALIASES } = require('./model-alias-resolver');
@@ -989,6 +990,20 @@ class ModelRouter {
       }
     }
 
+    // T12: Apply benchmark bonus (supplementary signal, 0-0.15)
+    const benchmarkResult = this._applyBenchmarkBonus(modelId);
+    if (benchmarkResult.bonus > 0) {
+      score += benchmarkResult.bonus;
+      reasons.push(benchmarkResult.reason);
+    }
+
+    // T13: Apply cost-efficiency factor (supplementary signal, 0-0.05)
+    const costResult = this._applyCostEfficiency(modelId);
+    if (costResult.bonus > 0) {
+      score += costResult.bonus;
+      reasons.push(costResult.reason);
+    }
+
     // P1: Apply learning-based penalties from LearningEngine
     const learningPenalty = this._applyLearningPenalties(modelId, ctx);
     if (learningPenalty.scorePenalty > 0) {
@@ -1187,6 +1202,118 @@ class ModelRouter {
       });
     }
     return metrics;
+  }
+
+  /**
+   * T12: Known benchmark pass@1 scores for common models.
+   * Used by _applyBenchmarkBonus() as a supplementary routing signal.
+   * Scores are normalized pass@1 rates (0-1) from HumanEval and MBPP.
+   * Updated periodically from opencode-model-benchmark assessment runs.
+   * @private
+   */
+  static BENCHMARK_SCORES = {
+    'anthropic/claude-opus-4-6':        { humaneval: 0.92, mbpp: 0.90 },
+    'anthropic/claude-opus-4-5':        { humaneval: 0.90, mbpp: 0.88 },
+    'anthropic/claude-sonnet-4-5':      { humaneval: 0.88, mbpp: 0.86 },
+    'anthropic/claude-haiku-4-5':       { humaneval: 0.78, mbpp: 0.80 },
+    'openai/gpt-5':                     { humaneval: 0.89, mbpp: 0.87 },
+    'openai/gpt-5.2':                   { humaneval: 0.72, mbpp: 0.75 },
+    'openai/o1':                        { humaneval: 0.93, mbpp: 0.91 },
+    'openai/o1-mini':                   { humaneval: 0.82, mbpp: 0.80 },
+    'google/gemini-3-pro':              { humaneval: 0.85, mbpp: 0.84 },
+    'google/gemini-3-flash':            { humaneval: 0.76, mbpp: 0.78 },
+    'deepseek/deepseek-chat':           { humaneval: 0.80, mbpp: 0.82 },
+    'groq/llama-4-maverick':            { humaneval: 0.73, mbpp: 0.76 },
+    'groq/llama-4-scout':               { humaneval: 0.68, mbpp: 0.72 },
+    'groq/llama-3.3-70b-versatile':     { humaneval: 0.65, mbpp: 0.70 },
+    'cerebras/llama-4-maverick':        { humaneval: 0.73, mbpp: 0.76 },
+    'cerebras/llama-3.3-70b':           { humaneval: 0.62, mbpp: 0.68 },
+  };
+
+  /**
+   * T12: Apply benchmark bonus to model score.
+   * Reads HumanEval/MBPP pass@1 from known benchmark scores and applies
+   * a 0 to 0.15 bonus as a supplementary routing signal.
+   * Does NOT change existing scoring weights.
+   * @private
+   * @param {string} modelId - Canonical model ID (e.g. 'anthropic/claude-opus-4-6')
+   * @returns {{ bonus: number, reason: string|null }}
+   */
+  _applyBenchmarkBonus(modelId) {
+    const scores = ModelRouter.BENCHMARK_SCORES[modelId];
+    if (!scores) {
+      return { bonus: 0, reason: null };
+    }
+
+    // Average the available benchmark scores
+    const benchScores = [];
+    if (typeof scores.humaneval === 'number') benchScores.push(scores.humaneval);
+    if (typeof scores.mbpp === 'number') benchScores.push(scores.mbpp);
+
+    if (benchScores.length === 0) {
+      return { bonus: 0, reason: null };
+    }
+
+    const avgScore = benchScores.reduce((a, b) => a + b, 0) / benchScores.length;
+
+    // Map average score (0-1) to bonus (0-0.15)
+    // Only apply bonus for scores above 0.60 baseline (below is no bonus)
+    // Linear scale: 0.60 → 0, 1.0 → 0.15
+    const baseline = 0.60;
+    const maxBonus = 0.15;
+    const bonus = avgScore > baseline
+      ? Math.min(maxBonus, ((avgScore - baseline) / (1.0 - baseline)) * maxBonus)
+      : 0;
+
+    return {
+      bonus: Math.round(bonus * 1000) / 1000, // Round to 3 decimal places
+      reason: `benchmark(avg=${avgScore.toFixed(2)},+${bonus.toFixed(3)})`
+    };
+  }
+
+  /**
+   * T13: Apply cost-efficiency factor to model score.
+   * Uses TokenCostCalculator pricing to favor cost-efficient models.
+   * Lower cost-per-token → higher bonus (max 0.05, i.e. 5% weight).
+   * Supplementary signal — does NOT change existing scoring weights.
+   * @private
+   * @param {string} modelId - Canonical model ID
+   * @returns {{ bonus: number, reason: string|null }}
+   */
+  _applyCostEfficiency(modelId) {
+    const model = this.models[modelId];
+    if (!model || !model.provider) {
+      return { bonus: 0, reason: null };
+    }
+
+    // Initialize calculator lazily
+    if (!this._tokenCostCalc) {
+      this._tokenCostCalc = new TokenCostCalculator();
+    }
+
+    // Extract model name without provider prefix for pricing lookup
+    const modelName = modelId.includes('/') ? modelId.split('/').pop() : modelId;
+    const pricing = this._tokenCostCalc.getPricing(model.provider, modelName);
+
+    if (!pricing) {
+      return { bonus: 0, reason: null };
+    }
+
+    // Use average of input + output cost per 1K tokens as the cost signal
+    const avgCostPer1K = (pricing.input + pricing.output) / 2;
+
+    // Normalize: lower cost = higher bonus
+    // Scale: $0/1K → 0.05 bonus, $15/1K+ → 0 bonus (linear)
+    const maxCostThreshold = 15.0; // $/1K tokens - at or above this, no cost bonus
+    const maxBonus = 0.05;
+    const bonus = avgCostPer1K < maxCostThreshold
+      ? maxBonus * (1 - avgCostPer1K / maxCostThreshold)
+      : 0;
+
+    return {
+      bonus: Math.round(bonus * 1000) / 1000,
+      reason: `cost($${avgCostPer1K.toFixed(2)}/1K,+${bonus.toFixed(3)})`
+    };
   }
 
   /**
