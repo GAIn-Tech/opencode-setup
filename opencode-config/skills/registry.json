@@ -24,6 +24,16 @@
       "conflicts": [],
       "triggers": ["library docs", "api reference", "framework documentation", "how to use library", "correct syntax for"]
     },
+    "context-governor": {
+      "description": "Context window budget management — tracks token consumption per session/model, warns at 75%/80% thresholds, and provides budget status for cost-aware model routing.",
+      "category": "optimization",
+      "tags": ["context", "budget", "tokens", "governor", "thresholds"],
+      "source": "custom",
+      "dependencies": [],
+      "synergies": ["budget-aware-router", "distill", "token-reporter"],
+      "conflicts": [],
+      "triggers": ["token budget", "context budget", "budget status", "remaining tokens", "budget check"]
+    },
     "git-master": {
       "description": "Atomic commits, rebase/squash, history search (blame, bisect, log -S)",
       "category": "git",
@@ -469,7 +479,7 @@
     },
     "optimization": {
       "description": "Skills for cost and performance optimization",
-      "skills": ["budget-aware-router", "distill"]
+      "skills": ["budget-aware-router", "context-governor", "distill"]
     }
   }
 }

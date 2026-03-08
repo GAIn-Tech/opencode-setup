@@ -716,7 +716,7 @@
       "type": "local",
       "command": ["node"],
       "args": ["packages/opencode-context-governor/src/index.js"],
-      "enabled": false,
+      "enabled": true,
       "description": "Context governor MCP — context window budget management"
     },
     "opencode-runbooks": {
