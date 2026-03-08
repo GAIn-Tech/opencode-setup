@@ -1,0 +1,24 @@
+{
+  "id": "namespace-drift-part1-20260308",
+  "timestamp": "2026-03-08T00:00:00Z",
+  "category": "configuration",
+  "summary": "Fix namespace drift in 6 package.json name fields: opencode-context-governor, opencode-crash-guard, opencode-eval-harness, opencode-fallback-doctor, opencode-plugin-healthd, opencode-plugin-preload-skills. Renamed from @jackoatmon/* and @opencode/* scoped names to flat opencode-* names matching directory layout.",
+  "affected_paths": [
+    "packages/opencode-context-governor/package.json",
+    "packages/opencode-crash-guard/package.json",
+    "packages/opencode-eval-harness/package.json",
+    "packages/opencode-fallback-doctor/package.json",
+    "packages/opencode-plugin-healthd/package.json",
+    "packages/opencode-plugin-preload-skills/package.json"
+  ],
+  "root_cause": "Package name fields were set using old @jackoatmon/* and @opencode/* scoped namespaces. Directory names and workspace resolver use flat opencode-* names causing a mismatch.",
+  "fix_approach": "Renamed name field in each package.json from scoped to flat opencode-* format. No source code changes — purely metadata correction.",
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["node scripts/learning-gate.mjs --generate-hashes"],
+    "notes": "Verified bun test passes for opencode-logger (representative). No cross-deps broken in this batch — those are in part2."
+  }
+}

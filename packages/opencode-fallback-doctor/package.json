@@ -1,5 +1,5 @@
 {
-  "name": "@jackoatmon/opencode-fallback-doctor",
+  "name": "opencode-fallback-doctor",
   "version": "0.1.0",
   "description": "Validates fallback model chains for OpenCode — checks syntax, model existence, ordering, and duplicates.",
   "main": "src/index.js",

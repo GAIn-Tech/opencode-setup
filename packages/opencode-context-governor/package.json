@@ -1,5 +1,5 @@
 {
-  "name": "@jackoatmon/opencode-context-governor",
+  "name": "opencode-context-governor",
   "version": "0.1.0",
   "description": "Active token budget controller for OpenCode sessions. Tracks per-model, per-session token consumption with configurable warn/error thresholds.",
   "main": "src/index.js",

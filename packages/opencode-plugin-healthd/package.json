@@ -1,5 +1,5 @@
 {
-  "name": "@jackoatmon/opencode-plugin-healthd",
+  "name": "opencode-plugin-healthd",
   "version": "0.1.0",
   "description": "Daemon-mode health checker for OpenCode plugins and MCPs",
   "main": "src/index.js",

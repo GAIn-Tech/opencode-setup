@@ -1,5 +1,5 @@
 {
-  "name": "@jackoatmon/opencode-plugin-preload-skills",
+  "name": "opencode-plugin-preload-skills",
   "version": "1.0.0",
   "description": "Dynamic skill/tool preloading with three-tier classification and RL-driven promotion",
   "main": "src/index.js",

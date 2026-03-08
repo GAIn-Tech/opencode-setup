@@ -1,5 +1,5 @@
 {
-  "name": "@opencode/crash-guard",
+  "name": "opencode-crash-guard",
   "version": "1.0.0",
   "description": "Crash prevention, recovery, and graceful degradation for OpenCode",
   "type": "module",
