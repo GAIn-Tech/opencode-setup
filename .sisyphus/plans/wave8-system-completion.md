@@ -169,20 +169,20 @@ grep -rn "@jackoatmon" packages/ --include="*.js" --include="*.ts" | grep -v nod
 
 ---
 
-### Task 10: Document Dashboard API Routes
+### Task 10: Document Dashboard API Routes ✅ COMPLETE
 **Problem:** 31 routes without endpoint docs
 
-**Create:** `packages/opencode-dashboard/API.md`
+**Created:** `packages/opencode-dashboard/API.md` (1075 lines, all 31 routes)
 
-**Document:**
-- GET /api/config
-- GET /api/learning
-- POST /api/orchestration
-- etc.
+**Documented:**
+- All 31 endpoints with method, auth requirements, query params, request/response shapes
+- Added: /api/events SSE, /api/config, /api/docs, /api/frontier-status, /api/retrieval-quality
+- Added: /api/plugin-supervisor, /api/policy-review, /api/runs, /api/runs/:id
+- Added: /api/orchestration/correlation, /forensics, /meta-awareness, /timeline, /policy-sim, /stability
+- Added: /api/models/lifecycle, /audit, /transition; /api/skills/promotions; status/* routes
+- Added: Environment Variables reference table, SDK examples, rate limiting docs
 
-**Include:** Method, auth requirements, request/response shapes
-
-**Commit:** `docs(dashboard): add API endpoint documentation`
+**Committed:** `6049c66` docs(dashboard): expand API.md to cover all 31 endpoints
 
 ---
 
@@ -276,11 +276,13 @@ while (true) {
 ## Notes
 
 **Acceptance Criteria per Task:**
-- [ ] Implementation matches spec
-- [ ] Tests added/regression tests pass
-- [ ] `bun test` full suite passes
-- [ ] Commit with Learning-Update trailer
-- [ ] LSP diagnostics clean
+- [x] Implementation matches spec
+- [x] Tests added/regression tests pass
+- [x] `bun test` full suite passes
+- [x] Commit with Learning-Update trailer
+- [x] LSP diagnostics clean
+
+**Wave 8C Task 10 completed:** 2026-03-08 — commit `6049c66`
 
 ---
 
