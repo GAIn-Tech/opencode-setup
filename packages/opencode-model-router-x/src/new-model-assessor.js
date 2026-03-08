@@ -129,7 +129,12 @@ class NewModelAssessor {
   async runBenchmark(model, benchmark) {
     console.log(`[NewModelAssessor] Running ${benchmark.name}...`);
     try {
-      const { ModelBenchmarkRunner } = await import('@jackoatmon/opencode-model-benchmark');
+      let ModelBenchmarkRunner;
+      try { ({ ModelBenchmarkRunner } = await import('@jackoatmon/opencode-model-benchmark')); } catch (e) {
+        try { ({ ModelBenchmarkRunner } = await import('../../opencode-model-benchmark/src/index.js')); } catch (e2) {
+          throw new Error('opencode-model-benchmark not available');
+        }
+      }
       const runner = new ModelBenchmarkRunner();
       const benchKey = benchmark.name === 'HumanEval'
         ? 'humaneval'

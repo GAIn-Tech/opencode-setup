@@ -5,7 +5,12 @@ const { IntelligentRotator } = require('./key-rotator');
 const { KeyRotatorFactory } = require('./key-rotator-factory');
 const policies = require('./policies.json');
 const Orchestrator = require('./strategies/orchestrator');
-const { CircuitBreaker } = require('@jackoatmon/opencode-circuit-breaker');
+let CircuitBreaker;
+try { ({ CircuitBreaker } = require('@jackoatmon/opencode-circuit-breaker')); } catch (e) {
+  try { ({ CircuitBreaker } = require('../../opencode-circuit-breaker/src/index.js')); } catch (e2) {
+    CircuitBreaker = null;
+  }
+}
 const DynamicExplorationController = require('./dynamic-exploration-controller');
 const TokenBudgetManager = require('./token-budget-manager');
 
@@ -31,11 +36,21 @@ try {
 // These are kept for backwards compatibility - the adapter is preferred
 let Logger, ValidatorLib, OpenCodeErrors, FallbackDoctor, HealthCheck;
 let MetaAwarenessTracker;
-try { Logger = require('@jackoatmon/opencode-logger'); } catch (e) { Logger = null; }
-try { ValidatorLib = require('@jackoatmon/opencode-validator'); } catch (e) { ValidatorLib = null; }
-try { OpenCodeErrors = require('@jackoatmon/opencode-errors'); } catch (e) { OpenCodeErrors = null; }
-try { FallbackDoctor = require('@jackoatmon/opencode-fallback-doctor'); } catch (e) { FallbackDoctor = null; }
-try { HealthCheck = require('@jackoatmon/opencode-health-check'); } catch (e) { HealthCheck = null; }
+try { Logger = require('@jackoatmon/opencode-logger'); } catch (e) {
+  try { Logger = require('../../opencode-logger/src/index.js'); } catch (e2) { Logger = null; }
+}
+try { ValidatorLib = require('@jackoatmon/opencode-validator'); } catch (e) {
+  try { ValidatorLib = require('../../opencode-validator/src/index.js'); } catch (e2) { ValidatorLib = null; }
+}
+try { OpenCodeErrors = require('@jackoatmon/opencode-errors'); } catch (e) {
+  try { OpenCodeErrors = require('../../opencode-errors/src/index.js'); } catch (e2) { OpenCodeErrors = null; }
+}
+try { FallbackDoctor = require('@jackoatmon/opencode-fallback-doctor'); } catch (e) {
+  try { FallbackDoctor = require('../../opencode-fallback-doctor/src/index.js'); } catch (e2) { FallbackDoctor = null; }
+}
+try { HealthCheck = require('@jackoatmon/opencode-health-check'); } catch (e) {
+  try { HealthCheck = require('../../opencode-health-check/src/index.js'); } catch (e2) { HealthCheck = null; }
+}
 try {
   ({ MetaAwarenessTracker } = require('@jackoatmon/opencode-learning-engine'));
 } catch (e) {

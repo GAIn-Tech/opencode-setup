@@ -1,10 +1,15 @@
 'use strict';
 
-const { Governor } = require('@jackoatmon/opencode-context-governor');
+let Governor;
+try { ({ Governor } = require('@jackoatmon/opencode-context-governor')); } catch (e) {
+  try { ({ Governor } = require('../../opencode-context-governor/src/index.js')); } catch (e2) {
+    Governor = null;
+  }
+}
 
 class TokenBudgetManager {
   constructor(options = {}) {
-    this.governor = options.governor || new Governor();
+    this.governor = options.governor || (Governor ? new Governor() : null);
     this.minExplorationTokens = Number(options.minExplorationTokens) || 1000;
   }
 

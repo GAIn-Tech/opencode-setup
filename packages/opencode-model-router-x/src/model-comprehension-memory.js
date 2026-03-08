@@ -11,7 +11,12 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
-const { resolveDataDir } = require('@jackoatmon/opencode-config-loader/src/paths.js');
+let resolveDataDir;
+try { ({ resolveDataDir } = require('@jackoatmon/opencode-config-loader/src/paths.js')); } catch (e) {
+  try { ({ resolveDataDir } = require('../../opencode-config-loader/src/paths.js')); } catch (e2) {
+    resolveDataDir = () => require('path').join(require('os').homedir(), '.opencode');
+  }
+}
 
 class ModelComprehensionMemory {
   constructor(dbPath = null) {
