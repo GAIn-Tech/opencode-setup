@@ -4,10 +4,18 @@ on:
   pull_request:
     branches:
       - "**"
+    paths:
+      - "packages/**"
+      - "opencode-config/**"
+      - "scripts/**"
   push:
     branches:
       - main
       - master
+    paths:
+      - "packages/**"
+      - "opencode-config/**"
+      - "scripts/**"
 
 jobs:
   learning-gate:
@@ -53,3 +61,6 @@ jobs:
         run: |
           node scripts/deployment-state.mjs show
           node scripts/deployment-state.mjs check-flow
+
+      - name: Run tests
+        run: bun test

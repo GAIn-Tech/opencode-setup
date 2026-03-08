@@ -1,0 +1,17 @@
+{
+  "id": "wave10-phase1-ci-20260308",
+  "timestamp": "2026-03-08T19:22:00Z",
+  "summary": "Wave 10 Phase 1 CI re-enablement: moved governance-gate.yml and opencode-ci.yml from disabled to active with paths filters and bun test step",
+  "affected_paths": [
+    "opencode-config/.governance-hashes.json"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "wave": "10",
+  "phase": "1",
+  "tasks": ["W10-T4", "W10-T5"]
+}
