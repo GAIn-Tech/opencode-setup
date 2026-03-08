@@ -1,0 +1,14 @@
+{
+  "id": "wave8-core-decay-tests-20260308",
+  "timestamp": "2026-03-08T00:10:00Z",
+  "summary": "Add 18-test regression suite for core decay rules in opencode-learning-engine: covers getAdaptiveWeight, markAsCore, and updateCoreLearning behaviour including the invariant that core-persistence learnings never decay below weight 1.0.",
+  "affected_paths": [
+    "packages/opencode-learning-engine/test/core-decay.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}
