@@ -21,11 +21,11 @@
       "version": "1.0.0",
     },
     "packages/opencode-context-governor": {
-      "name": "@jackoatmon/opencode-context-governor",
+      "name": "opencode-context-governor",
       "version": "0.1.0",
     },
     "packages/opencode-crash-guard": {
-      "name": "@opencode/crash-guard",
+      "name": "opencode-crash-guard",
       "version": "1.0.0",
     },
     "packages/opencode-dashboard": {
@@ -64,14 +64,14 @@
       "version": "1.0.0",
     },
     "packages/opencode-eval-harness": {
-      "name": "@jackoatmon/opencode-eval-harness",
+      "name": "opencode-eval-harness",
       "version": "0.1.0",
       "bin": {
         "opencode-eval": "bin/cli.js",
       },
     },
     "packages/opencode-fallback-doctor": {
-      "name": "@jackoatmon/opencode-fallback-doctor",
+      "name": "opencode-fallback-doctor",
       "version": "0.1.0",
       "bin": {
         "fallback-doctor": "src/cli.js",
@@ -100,17 +100,17 @@
       "version": "1.0.0",
     },
     "packages/opencode-integration-layer": {
-      "name": "@jackoatmon/opencode-integration-layer",
+      "name": "opencode-integration-layer",
       "version": "0.1.0",
       "peerDependencies": {
-        "@jackoatmon/opencode-learning-engine": "workspace:*",
-        "@jackoatmon/opencode-shared-orchestration": "workspace:*",
-        "@jackoatmon/opencode-skill-rl-manager": "workspace:*",
+        "opencode-learning-engine": "workspace:*",
+        "opencode-shared-orchestration": "workspace:*",
+        "opencode-skill-rl-manager": "workspace:*",
       },
       "optionalPeers": [
-        "@jackoatmon/opencode-learning-engine",
-        "@jackoatmon/opencode-shared-orchestration",
-        "@jackoatmon/opencode-skill-rl-manager",
+        "opencode-learning-engine",
+        "opencode-shared-orchestration",
+        "opencode-skill-rl-manager",
       ],
     },
     "packages/opencode-learning-engine": {
@@ -123,6 +123,10 @@
     "packages/opencode-logger": {
       "name": "opencode-logger",
       "version": "1.0.0",
+    },
+    "packages/opencode-memory-bus": {
+      "name": "opencode-memory-bus",
+      "version": "0.0.1",
     },
     "packages/opencode-memory-graph": {
       "name": "opencode-memory-graph",
@@ -140,13 +144,13 @@
       "version": "0.1.0",
     },
     "packages/opencode-model-router-x": {
-      "name": "@jackoatmon/opencode-model-router-x",
+      "name": "opencode-model-router-x",
       "version": "0.1.0",
       "dependencies": {
-        "@jackoatmon/opencode-context-governor": "workspace:*",
-        "@jackoatmon/opencode-fallback-doctor": "workspace:*",
         "opencode-circuit-breaker": "workspace:*",
         "opencode-config-loader": "workspace:*",
+        "opencode-context-governor": "workspace:*",
+        "opencode-fallback-doctor": "workspace:*",
         "opencode-feature-flags": "workspace:*",
         "opencode-health-check": "workspace:*",
         "opencode-learning-engine": "workspace:*",
@@ -160,22 +164,22 @@
       "version": "1.0.0",
     },
     "packages/opencode-plugin-healthd": {
-      "name": "@jackoatmon/opencode-plugin-healthd",
+      "name": "opencode-plugin-healthd",
       "version": "0.1.0",
       "bin": {
         "opencode-healthd": "src/daemon.js",
       },
     },
     "packages/opencode-plugin-lifecycle": {
-      "name": "@opencode/plugin-lifecycle",
+      "name": "opencode-plugin-lifecycle",
       "version": "0.1.0",
     },
     "packages/opencode-plugin-preload-skills": {
-      "name": "@jackoatmon/opencode-plugin-preload-skills",
+      "name": "opencode-plugin-preload-skills",
       "version": "1.0.0",
     },
     "packages/opencode-proofcheck": {
-      "name": "@jackoatmon/opencode-proofcheck",
+      "name": "opencode-proofcheck",
       "version": "0.1.0",
       "bin": {
         "proofcheck": "src/cli.js",
@@ -190,7 +194,7 @@
       "version": "0.1.0",
     },
     "packages/opencode-shared-orchestration": {
-      "name": "@jackoatmon/opencode-shared-orchestration",
+      "name": "opencode-shared-orchestration",
       "version": "0.1.0",
     },
     "packages/opencode-showboat-wrapper": {
@@ -239,24 +243,6 @@
 
     "@isaacs/cliui": ["@isaacs/cliui@8.0.2", "", { "dependencies": { "string-width": "^5.1.2", "string-width-cjs": "npm:string-width@^4.2.0", "strip-ansi": "^7.0.1", "strip-ansi-cjs": "npm:strip-ansi@^6.0.1", "wrap-ansi": "^8.1.0", "wrap-ansi-cjs": "npm:wrap-ansi@^7.0.0" } }, "sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA=="],
 
-    "@jackoatmon/opencode-context-governor": ["@jackoatmon/opencode-context-governor@workspace:packages/opencode-context-governor"],
-
-    "@jackoatmon/opencode-eval-harness": ["@jackoatmon/opencode-eval-harness@workspace:packages/opencode-eval-harness"],
-
-    "@jackoatmon/opencode-fallback-doctor": ["@jackoatmon/opencode-fallback-doctor@workspace:packages/opencode-fallback-doctor"],
-
-    "@jackoatmon/opencode-integration-layer": ["@jackoatmon/opencode-integration-layer@workspace:packages/opencode-integration-layer"],
-
-    "@jackoatmon/opencode-model-router-x": ["@jackoatmon/opencode-model-router-x@workspace:packages/opencode-model-router-x"],
-
-    "@jackoatmon/opencode-plugin-healthd": ["@jackoatmon/opencode-plugin-healthd@workspace:packages/opencode-plugin-healthd"],
-
-    "@jackoatmon/opencode-plugin-preload-skills": ["@jackoatmon/opencode-plugin-preload-skills@workspace:packages/opencode-plugin-preload-skills"],
-
-    "@jackoatmon/opencode-proofcheck": ["@jackoatmon/opencode-proofcheck@workspace:packages/opencode-proofcheck"],
-
-    "@jackoatmon/opencode-shared-orchestration": ["@jackoatmon/opencode-shared-orchestration@workspace:packages/opencode-shared-orchestration"],
-
     "@jridgewell/gen-mapping": ["@jridgewell/gen-mapping@0.3.13", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.0", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA=="],
 
     "@jridgewell/resolve-uri": ["@jridgewell/resolve-uri@3.1.2", "", {}, "sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw=="],
@@ -296,10 +282,6 @@
     "@nodelib/fs.walk": ["@nodelib/fs.walk@1.2.8", "", { "dependencies": { "@nodelib/fs.scandir": "2.1.5", "fastq": "^1.6.0" } }, "sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg=="],
 
     "@nolyfill/is-core-module": ["@nolyfill/is-core-module@1.0.39", "", {}, "sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA=="],
-
-    "@opencode/crash-guard": ["@opencode/crash-guard@workspace:packages/opencode-crash-guard"],
-
-    "@opencode/plugin-lifecycle": ["@opencode/plugin-lifecycle@workspace:packages/opencode-plugin-lifecycle"],
 
     "@pkgjs/parseargs": ["@pkgjs/parseargs@0.11.0", "", {}, "sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg=="],
 
@@ -851,11 +833,19 @@
 
     "opencode-config-loader": ["opencode-config-loader@workspace:packages/opencode-config-loader"],
 
+    "opencode-context-governor": ["opencode-context-governor@workspace:packages/opencode-context-governor"],
+
+    "opencode-crash-guard": ["opencode-crash-guard@workspace:packages/opencode-crash-guard"],
+
     "opencode-dashboard": ["opencode-dashboard@workspace:packages/opencode-dashboard"],
 
     "opencode-dashboard-launcher": ["opencode-dashboard-launcher@workspace:packages/opencode-dashboard-launcher"],
 
     "opencode-errors": ["opencode-errors@workspace:packages/opencode-errors"],
+
+    "opencode-eval-harness": ["opencode-eval-harness@workspace:packages/opencode-eval-harness"],
+
+    "opencode-fallback-doctor": ["opencode-fallback-doctor@workspace:packages/opencode-fallback-doctor"],
 
     "opencode-feature-flags": ["opencode-feature-flags@workspace:packages/opencode-feature-flags"],
 
@@ -865,9 +855,13 @@
 
     "opencode-health-check": ["opencode-health-check@workspace:packages/opencode-health-check"],
 
+    "opencode-integration-layer": ["opencode-integration-layer@workspace:packages/opencode-integration-layer"],
+
     "opencode-learning-engine": ["opencode-learning-engine@workspace:packages/opencode-learning-engine"],
 
     "opencode-logger": ["opencode-logger@workspace:packages/opencode-logger"],
+
+    "opencode-memory-bus": ["opencode-memory-bus@workspace:packages/opencode-memory-bus"],
 
     "opencode-memory-graph": ["opencode-memory-graph@workspace:packages/opencode-memory-graph"],
 
@@ -875,11 +869,23 @@
 
     "opencode-model-manager": ["opencode-model-manager@workspace:packages/opencode-model-manager"],
 
+    "opencode-model-router-x": ["opencode-model-router-x@workspace:packages/opencode-model-router-x"],
+
     "opencode-model-sync": ["opencode-model-sync@workspace:packages/opencode-model-sync"],
+
+    "opencode-plugin-healthd": ["opencode-plugin-healthd@workspace:packages/opencode-plugin-healthd"],
+
+    "opencode-plugin-lifecycle": ["opencode-plugin-lifecycle@workspace:packages/opencode-plugin-lifecycle"],
+
+    "opencode-plugin-preload-skills": ["opencode-plugin-preload-skills@workspace:packages/opencode-plugin-preload-skills"],
+
+    "opencode-proofcheck": ["opencode-proofcheck@workspace:packages/opencode-proofcheck"],
 
     "opencode-runbooks": ["opencode-runbooks@workspace:packages/opencode-runbooks"],
 
     "opencode-safe-io": ["opencode-safe-io@workspace:packages/opencode-safe-io"],
+
+    "opencode-shared-orchestration": ["opencode-shared-orchestration@workspace:packages/opencode-shared-orchestration"],
 
     "opencode-showboat-wrapper": ["opencode-showboat-wrapper@workspace:packages/opencode-showboat-wrapper"],
 
