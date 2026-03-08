@@ -1,0 +1,6 @@
+*.db
+*.db-wal
+node_modules/
+backups/
+quarantine/
+logs/

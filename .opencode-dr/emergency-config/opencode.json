@@ -1,0 +1,36 @@
+{
+  "_comment": "Emergency minimal config — use only when main config is broken. No plugins, single free-tier model.",
+  "models": {
+    "default": {
+      "model": "gemini-2.5-flash"
+    },
+    "providers": {
+      "google": {
+        "apiKey": "${GOOGLE_API_KEY}",
+        "models": [
+          {
+            "id": "gemini-2.5-flash",
+            "name": "Gemini 2.5 Flash",
+            "tier": "free",
+            "contextWindow": 1000000
+          }
+        ]
+      }
+    }
+  },
+  "mcp": {
+    "servers": {
+      "context7": {
+        "type": "sse",
+        "url": "https://mcp.context7.com/sse"
+      }
+    }
+  },
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Bash(*)"
+    ],
+    "deny": []
+  }
+}
