@@ -11,6 +11,7 @@
 
 const { EventEmitter } = require('events');
 const { TierResolver } = require('./tier-resolver');
+const { generateMetaContext } = require('./meta-context-injector');
 
 const DEFAULTS = {
   tiersConfigPath: null,       // Path to tool-tiers.json, auto-resolved if null
@@ -21,6 +22,7 @@ const DEFAULTS = {
   demotionSessionWindow: 50,   // Sessions to track for demotion analysis
   demotionUsageFloor: 0.05,    // Usage rate below which T1→T2 demotion triggers
   logLevel: 'info',            // 'debug' | 'info' | 'warn' | 'error'
+  metaKBIndex: null,           // Pre-loaded meta-KB index object (fail-open if null)
 };
 
 class PreloadSkillsPlugin extends EventEmitter {
@@ -138,9 +140,24 @@ class PreloadSkillsPlugin extends EventEmitter {
     // 6. Get Tier 2 manifest (brief descriptions for system prompt)
     const tier2Available = this.tierResolver.getTier2Brief();
 
+    // Generate meta-KB context for skill prompts (max 200 tokens / ~800 chars)
+    let metaContextBlock = '';
+    if (this.config.metaKBIndex) {
+      try {
+        metaContextBlock = generateMetaContext(this.config.metaKBIndex, {
+          ...context,
+          task_type: context.taskType || this._inferTaskType(prompt),
+          files: context.files || [],
+        });
+      } catch (err) {
+        this._log('warn', `Meta-context generation failed: ${err.message}`);
+      }
+    }
+
     const result = {
       tools: allTools,
       tier2Available,
+      meta_context: metaContextBlock || '',
       metadata: {
         tier0Count: tier0.length,
         tier1Count: tier1Tools.length,
@@ -148,6 +165,7 @@ class PreloadSkillsPlugin extends EventEmitter {
         totalCount: allTools.length,
         matchedCategories: tier1Matches.categories || [],
         estimatedTokens: this._estimateTokens(allTools),
+        hasMetaContext: metaContextBlock.length > 0,
       },
     };
 

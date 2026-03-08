@@ -1,0 +1,21 @@
+{
+  "id": "wave9-meta-context-injector-20260308",
+  "timestamp": "2026-03-08T12:30:00Z",
+  "category": "tooling",
+  "summary": "Create meta-context injector module for preload-skills that generates 200-token-capped markdown context blocks from meta-KB, wire into selectTools()",
+  "affected_paths": [
+    "packages/opencode-plugin-preload-skills/src/meta-context-injector.js",
+    "packages/opencode-plugin-preload-skills/src/index.js",
+    "packages/opencode-plugin-preload-skills/test/meta-context-injector.test.js"
+  ],
+  "root_cause": "Skill prompts lacked awareness of meta-KB anti-patterns, conventions, and recent learnings relevant to the task context",
+  "fix_approach": "Create generateMetaContext() function that queries meta-KB index for relevant anti-patterns, path-matched entries, and conventions, formats top-3 as markdown block capped at 800 chars (~200 tokens), wire into selectTools() result",
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["node --test packages/opencode-plugin-preload-skills/test/meta-context-injector.test.js"],
+    "notes": "9 tests: null inputs, no matches, anti-pattern match, path match, conventions, maxChars cap, MAX_ENTRIES limit. All pass."
+  }
+}
