@@ -40,6 +40,11 @@ class LearningEngine extends EventEmitter {
     this.sessionLog = []; // Track which sessions have been ingested
     this.hooks = {};
 
+    // T6 (Wave 11): Advice cache — keyed by taskType+complexity, 5-min TTL, 500-entry max
+    this._adviceCache = new Map();
+    this._adviceCacheTTL = 300000; // 5 minutes
+    this._adviceCacheMax = 500;
+
     // Meta-KB reader: loads the synthesized meta-knowledge index (fail-open)
     this.metaKB = new MetaKBReader(options.metaKBPath);
     this.metaKB.load(); // Non-blocking, returns false if unavailable
@@ -578,7 +583,7 @@ class LearningEngine extends EventEmitter {
    * @param {Object} taskContext - See OrchestrationAdvisor.advise()
    * @returns {Object} Advice with warnings, suggestions, routing, risk_score
    */
-  async advise(taskContext) {
+   async advise(taskContext) {
     // Fire-and-forget: trackEvent is async but result not needed here
     this.metaAwarenessTracker.trackEvent({
       event_type: 'orchestration.phase_entered',
@@ -598,6 +603,17 @@ class LearningEngine extends EventEmitter {
         source: 'advisor_preflight',
       },
     });
+
+    // T6 (Wave 11): Check advice cache for stable task-type patterns
+    // Only cache if no session-specific signals (quotaSignal, rotator risk)
+    const hasSessionSignals = taskContext?.quotaSignal || taskContext?.quota_signal || taskContext?.rotator_risk;
+    if (!hasSessionSignals) {
+      const cacheKey = `${taskContext?.task_type || 'general'}:${taskContext?.complexity || 'moderate'}`;
+      const cached = this._adviceCache.get(cacheKey);
+      if (cached && (Date.now() - cached.ts) < this._adviceCacheTTL) {
+        return { ...cached.value };  // Return shallow copy to prevent mutation
+      }
+    }
 
     this._emitHook('preOrchestrate', { task_context: taskContext });
     const advice = this.advisor.advise(taskContext);
@@ -664,7 +680,26 @@ class LearningEngine extends EventEmitter {
       },
     });
 
+    // T6 (Wave 11): Store in cache if no session-specific signals
+    if (!hasSessionSignals) {
+      const cacheKey = `${taskContext?.task_type || 'general'}:${taskContext?.complexity || 'moderate'}`;
+      // Evict oldest if over max
+      if (this._adviceCache.size >= this._adviceCacheMax) {
+        const oldest = this._adviceCache.keys().next().value;
+        this._adviceCache.delete(oldest);
+      }
+      this._adviceCache.set(cacheKey, { value: advice, ts: Date.now() });
+    }
+
     return advice;
+  }
+
+  /**
+   * T6 (Wave 11): Invalidate advice cache.
+   * Call after learning updates, pattern changes, or meta-KB refresh.
+   */
+  invalidateAdviceCache() {
+    this._adviceCache.clear();
   }
 
   /**
@@ -673,6 +708,7 @@ class LearningEngine extends EventEmitter {
    * @param {Object} outcome - { success, description, tokens_used, time_taken_ms, failure_reason }
    */
   learnFromOutcome(adviceId, outcome) {
+    this._adviceCache.clear(); // T6 (Wave 11): Invalidate cache on new learning data
     const result = this.advisor.learnFromOutcome(adviceId, outcome);
     this.metaAwarenessTracker.trackEvent({
       event_type: 'orchestration.failure_recovery_step',
