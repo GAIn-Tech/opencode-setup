@@ -1,0 +1,33 @@
+{
+  "id": "full-skill-activation-20260308",
+  "timestamp": "2026-03-08T00:00:00Z",
+  "category": "skill-activation",
+  "summary": "Enable all 11 previously excluded non-conflicting skills. Adds code-doctor, dev-browser, evaluation-harness-builder, frontend-ui-ux, git-master, github-triage, incident-commander, innovation-migration-planner, research-builder, skill-orchestrator-runtime, and token-reporter to compound-engineering.json enabled list (18 → 29 skills). Creates github-triage/SKILL.md (was in registry but had no skill file). Expands categories section with new debugging, browser, and optimization groups.",
+  "affected_paths": [
+    "opencode-config/compound-engineering.json",
+    "opencode-config/skills/github-triage/SKILL.md"
+  ],
+  "skills_added": [
+    "code-doctor",
+    "dev-browser",
+    "evaluation-harness-builder",
+    "frontend-ui-ux",
+    "git-master",
+    "github-triage",
+    "incident-commander",
+    "innovation-migration-planner",
+    "research-builder",
+    "skill-orchestrator-runtime",
+    "token-reporter"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "node scripts/learning-gate.mjs --generate-hashes"
+    ],
+    "notes": "All added skills have existing SKILL.md files or are builtin skills. No runtime code changed. No breaking changes — purely additive."
+  }
+}

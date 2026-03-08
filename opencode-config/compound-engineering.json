@@ -10,48 +10,80 @@
     "enabled": [
        "brainstorming",
        "budget-aware-router",
+       "code-doctor",
        "context7",
+       "dev-browser",
        "dispatching-parallel-agents",
        "distill",
+       "evaluation-harness-builder",
        "executing-plans",
        "finishing-a-development-branch",
+       "frontend-ui-ux",
+       "git-master",
+       "github-triage",
+       "incident-commander",
+       "innovation-migration-planner",
        "receiving-code-review",
        "requesting-code-review",
+       "research-builder",
+       "skill-orchestrator-runtime",
        "subagent-driven-development",
        "systematic-debugging",
        "task-orchestrator",
        "test-driven-development",
+       "token-reporter",
        "using-git-worktrees",
        "using-superpowers",
        "verification-before-completion",
        "writing-plans",
        "writing-skills"
      ],
-    "categories": {
-      "core-workflow": [
-        "brainstorming",
-        "writing-plans",
-        "executing-plans",
-        "requesting-code-review",
-        "verification-before-completion"
-      ],
-      "development": [
-        "test-driven-development",
-        "systematic-debugging",
-        "subagent-driven-development",
-        "using-git-worktrees"
-      ],
-      "completion": [
-        "finishing-a-development-branch",
-        "receiving-code-review",
-        "dispatching-parallel-agents"
-      ],
+     "categories": {
+       "core-workflow": [
+         "brainstorming",
+         "writing-plans",
+         "executing-plans",
+         "requesting-code-review",
+         "verification-before-completion",
+         "research-builder",
+         "innovation-migration-planner"
+       ],
+       "development": [
+         "test-driven-development",
+         "systematic-debugging",
+         "subagent-driven-development",
+         "using-git-worktrees",
+         "git-master",
+         "evaluation-harness-builder"
+       ],
+       "debugging": [
+         "code-doctor",
+         "incident-commander",
+         "systematic-debugging"
+       ],
+       "completion": [
+         "finishing-a-development-branch",
+         "receiving-code-review",
+         "dispatching-parallel-agents",
+         "github-triage"
+       ],
+       "browser": [
+         "dev-browser",
+         "frontend-ui-ux"
+       ],
+       "optimization": [
+         "budget-aware-router",
+         "distill",
+         "token-reporter",
+         "context7"
+       ],
        "meta": [
          "task-orchestrator",
+         "skill-orchestrator-runtime",
          "using-superpowers",
          "writing-skills"
        ]
-    }
+     }
   },
   "commands": {
     "count": 22,

@@ -1,12 +1,12 @@
 {
   "version": 1,
   "algorithm": "SHA-256",
-  "generated_at": "2026-03-08T17:39:39.184Z",
+  "generated_at": "2026-03-08T17:49:43.109Z",
   "files": {
     "opencode-config/antigravity.json": "02e5da152f9b3220d1ddb3abcc97e412bdde433dd8320954e6a2353565b08790",
     "opencode-config/central-config.json": "46e4fff550d7f025121c0d9eda5a766884bc11d4bca659a9dfba11759a545589",
     "opencode-config/central-config.schema.json": "dcbb1caddfd964b70949aef0b5c86583023140cfec3b3d4c822ed89c67c428df",
-    "opencode-config/compound-engineering.json": "e4f94cc30048dd7ba6bc043e2e57ef9a79007fe66bfad99f01a0f6ff0e95a0dd",
+    "opencode-config/compound-engineering.json": "1f7f769b73cf5d359a0f37a9b28adb8afc213d849683317d9108885763c57f5c",
     "opencode-config/config.yaml": "8dc70dcea8fe047d84a7e125ed2e6f8f6361268b27028547cdf5c6c7b58bec2b",
     "opencode-config/deployment-state.json": "2b85fba50a02cbda9322cb996e1626a1f599b46ff9c47bb72db0b667eba2af4e",
     "opencode-config/docs-governance.json": "0bd44fa679c0ac568d9075d45e7c1fb70c030cbce5834c067162598ac4b34934",
