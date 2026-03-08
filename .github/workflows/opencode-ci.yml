@@ -14,8 +14,63 @@ on:
       - "integration-tests/**"
 
 jobs:
+  # ─── Per-package test matrix ─────────────────────────────────
+  test-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          # Core
+          - opencode-config-loader
+          - opencode-context-governor
+          - opencode-errors
+          - opencode-logger
+          - opencode-safe-io
+          - opencode-shared-orchestration
+          - opencode-validator
+          # Plugins
+          - opencode-plugin-healthd
+          - opencode-plugin-lifecycle
+          - opencode-plugin-preload-skills
+          - opencode-feature-flags
+          # Model / Router
+          - opencode-model-benchmark
+          - opencode-model-manager
+          - opencode-model-router-x
+          - opencode-model-sync
+          # Memory / Graph
+          - opencode-memory-bus
+          - opencode-memory-graph
+          - opencode-goraphdb-bridge
+          - opencode-graphdb-bridge
+          # Observability
+          - opencode-health-check
+          - opencode-fallback-doctor
+          - opencode-backup-manager
+          # Eval / Learning
+          - opencode-eval-harness
+          - opencode-learning-engine
+          - opencode-proofcheck
+          # Dashboard / Infra
+          - opencode-dashboard
+          - opencode-dashboard-launcher
+          - opencode-runbooks
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
+      - name: Install
+        run: bun install --frozen-lockfile
+      - name: Test ${{ matrix.package }}
+        run: bun test packages/${{ matrix.package }}/
+
+  # ─── Full validation suite ──────────────────────────────────
   validate:
     runs-on: ubuntu-latest
+    needs: test-matrix
     steps:
       - uses: actions/checkout@v4
       

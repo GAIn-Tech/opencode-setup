@@ -1,0 +1,22 @@
+{
+  "id": "wave10-ci-matrix-test-consolidation",
+  "timestamp": "2026-03-08T22:36:00Z",
+  "summary": "Add per-package CI test matrix (28 packages), consolidate dashboard tests/ into test/, and add critical plugin contract integration tests (healthd, lifecycle, preload-skills)",
+  "affected_paths": [
+    ".github/workflows/opencode-ci.yml",
+    "packages/opencode-dashboard/test/correlation-async.test.js",
+    "packages/opencode-dashboard/test/event-store-async.test.js",
+    "packages/opencode-dashboard/test/meta-kb-route.test.js",
+    "packages/opencode-dashboard/test/fixtures/workflow-run.json",
+    "integration-tests/critical-plugin-contracts.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "wave": "10",
+  "phase": 2,
+  "tasks": ["T8", "T10", "T11"]
+}

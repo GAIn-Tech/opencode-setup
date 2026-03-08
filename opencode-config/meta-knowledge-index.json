@@ -1,225 +1,37 @@
 {
-  "generated_at": "2026-03-08T22:23:00.055Z",
+  "generated_at": "2026-03-08T22:35:32.322Z",
   "schema_version": 1,
-  "total_records": 184,
+  "total_records": 186,
   "source_files": {
-    "learning_updates": 184,
+    "learning_updates": 186,
     "agents_md": 7
   },
   "by_category": {
-    "tooling": [
-      {
-        "id": "governance-refresh-20260308",
-        "summary": "Refresh auto-generated governance hashes and meta-KB index after AGENTS.md drift fixes",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/.governance-hashes.json",
-          "opencode-config/meta-knowledge-index.json"
-        ],
-        "timestamp": "2026-03-08T19:40:00Z"
-      },
-      {
-        "id": "wave9-phase2-validation-20260308",
-        "summary": "Wave 9 Phase 2 validation: all 4 acceptance criteria pass — routing confidence adjusts from meta-KB, skill loading includes meta-context, SkillRL respects meta-KB signals, bun test exit 0",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/learning-updates/wave9-phase2-validation-20260308.json"
-        ],
-        "timestamp": "2026-03-08T13:30:00Z"
-      },
-      {
-        "id": "wave9-meta-kb-skillrl-20260308",
-        "summary": "Wire meta-KB signals into IntegrationLayer SkillRL hooks — anti-pattern penalties and positive evidence boosts adjust skill promotion/demotion scores",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-integration-layer/src/index.js",
-          "packages/opencode-integration-layer/tests/meta-kb-skillrl.test.js"
-        ],
-        "timestamp": "2026-03-08T13:00:00Z"
-      },
-      {
-        "id": "wave9-meta-context-injector-20260308",
-        "summary": "Create meta-context injector module for preload-skills that generates 200-token-capped markdown context blocks from meta-KB, wire into selectTools()",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-plugin-preload-skills/src/meta-context-injector.js",
-          "packages/opencode-plugin-preload-skills/src/index.js",
-          "packages/opencode-plugin-preload-skills/test/meta-context-injector.test.js"
-        ],
-        "timestamp": "2026-03-08T12:30:00Z"
-      },
-      {
-        "id": "wave9-meta-kb-routing-20260308",
-        "summary": "Register adviceGenerated hook that adjusts routing confidence based on meta-KB anti-pattern matches and adds meta_kb_warnings/meta_kb_evidence counts to routing output",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-learning-engine/src/index.js",
-          "packages/opencode-learning-engine/test/meta-kb-routing.test.js"
-        ],
-        "timestamp": "2026-03-08T12:00:00Z"
-      },
-      {
-        "id": "audit-membus-mcps-20260308",
-        "summary": "Add minimal package.json to opencode-memory-bus (empty spike package) and wire 5 custom MCP servers (dashboard-launcher, memory-graph, model-router-x, context-governor, runbooks) into opencode.json as disabled local servers",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-memory-bus/package.json",
-          "opencode-config/opencode.json"
-        ],
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "skills-manage-cli-20260308",
-        "summary": "Add skills-manage.mjs CLI for atomic skill management: list, add, enable, disable, audit, sync commands. Sync package.json with 7 new skills:* script entries.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/skills-manage.mjs",
-          "package.json"
-        ],
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave9-agents-drift-20260308",
-        "summary": "Add check-agents-drift.mjs script that compares AGENTS.md documented claims against filesystem reality. Detects numeric claim drift (package count, script count, plugin count, agent/skill definitions). Generates proposed fix report in .sisyphus/proposals/.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/check-agents-drift.mjs",
-          ".sisyphus/proposals/agents-drift-2026-03-08.md"
-        ],
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave9-dashboard-meta-kb-20260308",
-        "summary": "Add /api/meta-kb dashboard endpoint — returns index age, record counts, category/risk breakdown, anti-pattern/convention/command counts, and inline drift status",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/meta-kb/route.ts"
-        ],
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave9-drift-rich-diffs-20260308",
-        "summary": "Extend check-agents-drift.mjs proposals with rich markdown diffs showing exact line context and proposed replacements instead of simple change-X-to-Y text",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/check-agents-drift.mjs"
-        ],
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave9-meta-kb-reader-20260308",
-        "summary": "Add MetaKBReader module to opencode-learning-engine. Fail-open reader that loads meta-knowledge-index.json into memory, queries by affected_path and task_type with 200-token output cap. 12 tests covering load/query/isStale/truncation.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-learning-engine/src/meta-kb-reader.js",
-          "packages/opencode-learning-engine/test/meta-kb-reader.test.js"
-        ],
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave9-meta-kb-synthesis-20260308",
-        "summary": "Add synthesize-meta-kb.mjs script that aggregates 161 learning-update JSONs and 7 AGENTS.md files into a single queryable meta-knowledge index at opencode-config/meta-knowledge-index.json. Indexes by category, risk level, and affected path. Extracts anti-patterns, conventions, and commands from AGENTS.md sections.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/synthesize-meta-kb.mjs",
-          "opencode-config/meta-knowledge-index.json"
-        ],
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave9-model-router-meta-kb-20260308",
-        "summary": "Extend model-router _applyLearningPenalties to incorporate meta-KB signals — warnings reduce score (capped 0.25), positive evidence provides bonus (capped 0.1)",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-router-x/src/index.js"
-        ],
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave9-phase1-validation-20260308",
-        "summary": "Add meta-KB npm scripts (meta-kb:synthesize, meta-kb:drift, meta-kb:check) to root package.json. Phase 1 validated: synthesis produces 165 records, drift detects 7 issues, advise() includes meta_context with warnings/suggestions/conventions. All tests pass.",
-        "risk_level": "low",
-        "affected_paths": [
-          "package.json"
-        ],
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave9-phase3-validation-20260308",
-        "summary": "Validate Phase 3 completion — all 5 acceptance criteria pass: post-commit synthesis works, dashboard endpoint returns data, model-router incorporates meta-KB signals, drift proposals have rich diffs, bun test exit 0",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/learning-updates/wave9-phase3-validation-20260308.json"
-        ],
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave9-post-commit-synthesis-20260308",
-        "summary": "Add post-commit meta-KB synthesis hook to learning-gate.mjs — after governed commits pass validation, automatically re-runs synthesize-meta-kb.mjs to keep the index fresh",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/learning-gate.mjs"
-        ],
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "model-validation-script-20260215",
-        "summary": "Created validate-models.mjs script for automated model catalog validation",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/validate-models.mjs",
-          "packages/opencode-model-router-x/src/policies.json",
-          "packages/opencode-model-router-x/src/strategies/token-cost-calculator.js",
-          "packages/opencode-model-router-x/src/strategies/fallback-layer-strategy.js",
-          "packages/opencode-sisyphus-state/src/config/providers.js",
-          "packages/opencode-dashboard/src/app/api/providers/route.ts",
-          "rate-limit-fallback.json"
-        ],
-        "timestamp": "2026-02-15T19:48:00-05:00"
-      }
-    ],
-    "documentation": [
-      {
-        "id": "agents-md-filecount-20260308",
-        "summary": "Stabilize opencode-config/AGENTS.md file count to match drift script counting methodology",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/AGENTS.md"
-        ],
-        "timestamp": "2026-03-08T19:35:00Z"
-      },
-      {
-        "id": "agents-md-drift-fix2-20260308",
-        "summary": "Fix remaining AGENTS.md drift in opencode-config: align skill dir count and file total with drift script methodology",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/AGENTS.md"
-        ],
-        "timestamp": "2026-03-08T19:30:00Z"
-      },
-      {
-        "id": "dashboard-api-docs-complete-20260308",
-        "summary": "Rewrote packages/opencode-dashboard/API.md from source: expanded from 20 to all 31 endpoints, corrected inaccurate response shapes, added SSE events, config read/write, docs browser, frontier-status, retrieval-quality, plugin-supervisor, policy-review, runs, all orchestration sub-routes, model lifecycle/audit/transition, skills promotions, status unified/providers/usage, and monitoring ingest.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/API.md"
-        ],
-        "timestamp": "2026-03-08T00:00:00Z"
-      }
-    ],
-    "drift-fix": [
-      {
-        "id": "agents-md-drift-fix-20260308",
-        "summary": "Fix 7 stale counts in AGENTS.md files detected by check-agents-drift.mjs",
-        "risk_level": "low",
-        "affected_paths": [
-          "AGENTS.md",
-          "opencode-config/AGENTS.md"
-        ],
-        "timestamp": "2026-03-08T19:25:00Z"
-      }
-    ],
     "uncategorized": [
+      {
+        "id": "wave10-ci-matrix-test-consolidation",
+        "summary": "Add per-package CI test matrix (28 packages), consolidate dashboard tests/ into test/, and add critical plugin contract integration tests (healthd, lifecycle, preload-skills)",
+        "risk_level": "low",
+        "affected_paths": [
+          ".github/workflows/opencode-ci.yml",
+          "packages/opencode-dashboard/test/correlation-async.test.js",
+          "packages/opencode-dashboard/test/event-store-async.test.js",
+          "packages/opencode-dashboard/test/meta-kb-route.test.js",
+          "packages/opencode-dashboard/test/fixtures/workflow-run.json",
+          "integration-tests/critical-plugin-contracts.test.js"
+        ],
+        "timestamp": "2026-03-08T22:36:00Z"
+      },
+      {
+        "id": "wave10-observability-persistence",
+        "summary": "Add opt-in Langfuse tracing to opencode-logger (WARN+ levels) and SQLite daily-metrics persistence to pipeline metrics collector (bun:sqlite with better-sqlite3 fallback)",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-logger/src/index.js",
+          "packages/opencode-model-manager/src/monitoring/metrics-collector.js"
+        ],
+        "timestamp": "2026-03-08T22:35:00Z"
+      },
       {
         "id": "wave10-phase1-ci-20260308",
         "summary": "Wave 10 Phase 1 CI re-enablement: moved governance-gate.yml and opencode-ci.yml from disabled to active with paths filters and bun test step",
@@ -1614,6 +1426,218 @@
         "timestamp": "2026-02-11T13:45:00-05:00"
       }
     ],
+    "tooling": [
+      {
+        "id": "governance-refresh-20260308",
+        "summary": "Refresh auto-generated governance hashes and meta-KB index after AGENTS.md drift fixes",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/.governance-hashes.json",
+          "opencode-config/meta-knowledge-index.json"
+        ],
+        "timestamp": "2026-03-08T19:40:00Z"
+      },
+      {
+        "id": "wave9-phase2-validation-20260308",
+        "summary": "Wave 9 Phase 2 validation: all 4 acceptance criteria pass — routing confidence adjusts from meta-KB, skill loading includes meta-context, SkillRL respects meta-KB signals, bun test exit 0",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/learning-updates/wave9-phase2-validation-20260308.json"
+        ],
+        "timestamp": "2026-03-08T13:30:00Z"
+      },
+      {
+        "id": "wave9-meta-kb-skillrl-20260308",
+        "summary": "Wire meta-KB signals into IntegrationLayer SkillRL hooks — anti-pattern penalties and positive evidence boosts adjust skill promotion/demotion scores",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-integration-layer/src/index.js",
+          "packages/opencode-integration-layer/tests/meta-kb-skillrl.test.js"
+        ],
+        "timestamp": "2026-03-08T13:00:00Z"
+      },
+      {
+        "id": "wave9-meta-context-injector-20260308",
+        "summary": "Create meta-context injector module for preload-skills that generates 200-token-capped markdown context blocks from meta-KB, wire into selectTools()",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-plugin-preload-skills/src/meta-context-injector.js",
+          "packages/opencode-plugin-preload-skills/src/index.js",
+          "packages/opencode-plugin-preload-skills/test/meta-context-injector.test.js"
+        ],
+        "timestamp": "2026-03-08T12:30:00Z"
+      },
+      {
+        "id": "wave9-meta-kb-routing-20260308",
+        "summary": "Register adviceGenerated hook that adjusts routing confidence based on meta-KB anti-pattern matches and adds meta_kb_warnings/meta_kb_evidence counts to routing output",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-learning-engine/src/index.js",
+          "packages/opencode-learning-engine/test/meta-kb-routing.test.js"
+        ],
+        "timestamp": "2026-03-08T12:00:00Z"
+      },
+      {
+        "id": "audit-membus-mcps-20260308",
+        "summary": "Add minimal package.json to opencode-memory-bus (empty spike package) and wire 5 custom MCP servers (dashboard-launcher, memory-graph, model-router-x, context-governor, runbooks) into opencode.json as disabled local servers",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-memory-bus/package.json",
+          "opencode-config/opencode.json"
+        ],
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "skills-manage-cli-20260308",
+        "summary": "Add skills-manage.mjs CLI for atomic skill management: list, add, enable, disable, audit, sync commands. Sync package.json with 7 new skills:* script entries.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/skills-manage.mjs",
+          "package.json"
+        ],
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave9-agents-drift-20260308",
+        "summary": "Add check-agents-drift.mjs script that compares AGENTS.md documented claims against filesystem reality. Detects numeric claim drift (package count, script count, plugin count, agent/skill definitions). Generates proposed fix report in .sisyphus/proposals/.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/check-agents-drift.mjs",
+          ".sisyphus/proposals/agents-drift-2026-03-08.md"
+        ],
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave9-dashboard-meta-kb-20260308",
+        "summary": "Add /api/meta-kb dashboard endpoint — returns index age, record counts, category/risk breakdown, anti-pattern/convention/command counts, and inline drift status",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/meta-kb/route.ts"
+        ],
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave9-drift-rich-diffs-20260308",
+        "summary": "Extend check-agents-drift.mjs proposals with rich markdown diffs showing exact line context and proposed replacements instead of simple change-X-to-Y text",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/check-agents-drift.mjs"
+        ],
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave9-meta-kb-reader-20260308",
+        "summary": "Add MetaKBReader module to opencode-learning-engine. Fail-open reader that loads meta-knowledge-index.json into memory, queries by affected_path and task_type with 200-token output cap. 12 tests covering load/query/isStale/truncation.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-learning-engine/src/meta-kb-reader.js",
+          "packages/opencode-learning-engine/test/meta-kb-reader.test.js"
+        ],
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave9-meta-kb-synthesis-20260308",
+        "summary": "Add synthesize-meta-kb.mjs script that aggregates 161 learning-update JSONs and 7 AGENTS.md files into a single queryable meta-knowledge index at opencode-config/meta-knowledge-index.json. Indexes by category, risk level, and affected path. Extracts anti-patterns, conventions, and commands from AGENTS.md sections.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/synthesize-meta-kb.mjs",
+          "opencode-config/meta-knowledge-index.json"
+        ],
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave9-model-router-meta-kb-20260308",
+        "summary": "Extend model-router _applyLearningPenalties to incorporate meta-KB signals — warnings reduce score (capped 0.25), positive evidence provides bonus (capped 0.1)",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-router-x/src/index.js"
+        ],
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave9-phase1-validation-20260308",
+        "summary": "Add meta-KB npm scripts (meta-kb:synthesize, meta-kb:drift, meta-kb:check) to root package.json. Phase 1 validated: synthesis produces 165 records, drift detects 7 issues, advise() includes meta_context with warnings/suggestions/conventions. All tests pass.",
+        "risk_level": "low",
+        "affected_paths": [
+          "package.json"
+        ],
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave9-phase3-validation-20260308",
+        "summary": "Validate Phase 3 completion — all 5 acceptance criteria pass: post-commit synthesis works, dashboard endpoint returns data, model-router incorporates meta-KB signals, drift proposals have rich diffs, bun test exit 0",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/learning-updates/wave9-phase3-validation-20260308.json"
+        ],
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave9-post-commit-synthesis-20260308",
+        "summary": "Add post-commit meta-KB synthesis hook to learning-gate.mjs — after governed commits pass validation, automatically re-runs synthesize-meta-kb.mjs to keep the index fresh",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/learning-gate.mjs"
+        ],
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "model-validation-script-20260215",
+        "summary": "Created validate-models.mjs script for automated model catalog validation",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/validate-models.mjs",
+          "packages/opencode-model-router-x/src/policies.json",
+          "packages/opencode-model-router-x/src/strategies/token-cost-calculator.js",
+          "packages/opencode-model-router-x/src/strategies/fallback-layer-strategy.js",
+          "packages/opencode-sisyphus-state/src/config/providers.js",
+          "packages/opencode-dashboard/src/app/api/providers/route.ts",
+          "rate-limit-fallback.json"
+        ],
+        "timestamp": "2026-02-15T19:48:00-05:00"
+      }
+    ],
+    "documentation": [
+      {
+        "id": "agents-md-filecount-20260308",
+        "summary": "Stabilize opencode-config/AGENTS.md file count to match drift script counting methodology",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/AGENTS.md"
+        ],
+        "timestamp": "2026-03-08T19:35:00Z"
+      },
+      {
+        "id": "agents-md-drift-fix2-20260308",
+        "summary": "Fix remaining AGENTS.md drift in opencode-config: align skill dir count and file total with drift script methodology",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/AGENTS.md"
+        ],
+        "timestamp": "2026-03-08T19:30:00Z"
+      },
+      {
+        "id": "dashboard-api-docs-complete-20260308",
+        "summary": "Rewrote packages/opencode-dashboard/API.md from source: expanded from 20 to all 31 endpoints, corrected inaccurate response shapes, added SSE events, config read/write, docs browser, frontier-status, retrieval-quality, plugin-supervisor, policy-review, runs, all orchestration sub-routes, model lifecycle/audit/transition, skills promotions, status unified/providers/usage, and monitoring ingest.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/API.md"
+        ],
+        "timestamp": "2026-03-08T00:00:00Z"
+      }
+    ],
+    "drift-fix": [
+      {
+        "id": "agents-md-drift-fix-20260308",
+        "summary": "Fix 7 stale counts in AGENTS.md files detected by check-agents-drift.mjs",
+        "risk_level": "low",
+        "affected_paths": [
+          "AGENTS.md",
+          "opencode-config/AGENTS.md"
+        ],
+        "timestamp": "2026-03-08T19:25:00Z"
+      }
+    ],
     "bugfix": [
       {
         "id": "audit-namespace-fallback-20260308",
@@ -2376,6 +2400,20 @@
   },
   "by_risk_level": {
     "low": [
+      {
+        "id": "wave10-ci-matrix-test-consolidation",
+        "summary": "Add per-package CI test matrix (28 packages), consolidate dashboard tests/ into test/, and add critical plugin contract integration tests (healthd, lifecycle, preload-skills)",
+        "risk_level": "low",
+        "affected_paths": [
+          ".github/workflows/opencode-ci.yml",
+          "packages/opencode-dashboard/test/correlation-async.test.js",
+          "packages/opencode-dashboard/test/event-store-async.test.js",
+          "packages/opencode-dashboard/test/meta-kb-route.test.js",
+          "packages/opencode-dashboard/test/fixtures/workflow-run.json",
+          "integration-tests/critical-plugin-contracts.test.js"
+        ],
+        "timestamp": "2026-03-08T22:36:00Z"
+      },
       {
         "id": "governance-refresh-20260308",
         "summary": "Refresh auto-generated governance hashes and meta-KB index after AGENTS.md drift fixes",
@@ -4207,6 +4245,16 @@
     ],
     "medium": [
       {
+        "id": "wave10-observability-persistence",
+        "summary": "Add opt-in Langfuse tracing to opencode-logger (WARN+ levels) and SQLite daily-metrics persistence to pipeline metrics collector (bun:sqlite with better-sqlite3 fallback)",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-logger/src/index.js",
+          "packages/opencode-model-manager/src/monitoring/metrics-collector.js"
+        ],
+        "timestamp": "2026-03-08T22:35:00Z"
+      },
+      {
         "id": "wave10-phase1-hardening-20260308",
         "summary": "Wave 10 Phase 1 plugin hardening: healthd daemon timeout protection + crash logging, lifecycle plugin error handling + state validation",
         "risk_level": "medium",
@@ -4668,6 +4716,436 @@
     "high": []
   },
   "by_affected_path": {
+    ".github/workflows": [
+      {
+        "id": "wave10-ci-matrix-test-consolidation",
+        "summary": "Add per-package CI test matrix (28 packages), consolidate dashboard tests/ into test/, and add critical plugin contract integration tests (healthd, lifecycle, preload-skills)",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T22:36:00Z"
+      },
+      {
+        "id": "wave8-setup-fixes-20260307",
+        "summary": "Setup script improvements: auto-load .env, set SHELL, fix PowerShell policy, non-strict verify; Bun version bump 1.3.9->1.3.10; remove dead import",
+        "risk_level": "low",
+        "timestamp": "2026-03-07T23:45:00Z"
+      },
+      {
+        "id": "validation-wave7-20260224",
+        "summary": "Added catalog validation pipeline with comprehensive checks",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T08:30:00Z"
+      },
+      {
+        "id": "automation-wave7-20260224",
+        "summary": "Added PR automation and CI workflow for model catalog sync",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T08:00:00Z"
+      },
+      {
+        "id": "portability-final-edge-hardening-20260222",
+        "summary": "Close final portability edge cases by hardening container parity execution context, non-git hook install behavior, path fallback safety, and multi-path Bun global symlink detection.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T05:10:00Z"
+      },
+      {
+        "id": "productization-p0-hardening-20260222",
+        "summary": "Resolve productization P0/P1 gaps for container parity, setup copy safety, hook consistency, and Bun preflight override behavior.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T04:50:00Z"
+      },
+      {
+        "id": "model-sync-env-contract-alignment-20260222",
+        "summary": "Align model-catalog-sync workflow env variable names with plural API key contract and restore .env.example tracking for environment portability checks.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T04:40:00Z"
+      },
+      {
+        "id": "portability-closure-hardening-20260222",
+        "summary": "Completed closure hardening for clone portability by unifying setup/verify workflows, enforcing env/docs governance in CI, adding devcontainer baseline, and validating Bun path recovery behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-22T03:05:00Z"
+      },
+      {
+        "id": "p2-hardening-policies-fallback-sse-20260216",
+        "summary": "Completed P2 hardening for policies validation, fallback reason typing, and SSE client cleanup",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T02:05:00Z"
+      },
+      {
+        "id": "weekly-model-sync-and-health-verification-20260215",
+        "summary": "Added weekly model sync automation and model catalog verification in health endpoint",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T22:45:00Z"
+      },
+      {
+        "id": "learning-2026-02-11-governance-bootstrap",
+        "summary": "Bootstrap governance controls for learning updates and deployment-state tracking.",
+        "risk_level": "low",
+        "timestamp": "2026-02-11T13:45:00-05:00"
+      }
+    ],
+    "packages/opencode-dashboard": [
+      {
+        "id": "wave10-ci-matrix-test-consolidation",
+        "summary": "Add per-package CI test matrix (28 packages), consolidate dashboard tests/ into test/, and add critical plugin contract integration tests (healthd, lifecycle, preload-skills)",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T22:36:00Z"
+      },
+      {
+        "id": "dashboard-api-docs-complete-20260308",
+        "summary": "Rewrote packages/opencode-dashboard/API.md from source: expanded from 20 to all 31 endpoints, corrected inaccurate response shapes, added SSE events, config read/write, docs browser, frontier-status, retrieval-quality, plugin-supervisor, policy-review, runs, all orchestration sub-routes, model lifecycle/audit/transition, skills promotions, status unified/providers/usage, and monitoring ingest.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave9-dashboard-meta-kb-20260308",
+        "summary": "Add /api/meta-kb dashboard endpoint — returns index age, record counts, category/risk breakdown, anti-pattern/convention/command counts, and inline drift status",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "skill-rl-path-standardization-20260227",
+        "summary": "Standardize SkillRLManager persistence path to ~/.opencode/skill-rl.json across all consumers. Fixed 3 divergent path references: (1) index.js:130 was using ./skill-rl-state.json (relative, wrong), (2) models/route.ts:156 was using skill-rl-state.json (wrong suffix), (3) file-watcher.ts:45 was using skill-rl-state.json (wrong suffix). Added os.homedir() canonical path with one-time migration from legacy ./skill-rl-state.json. Added production SkillRLManager instantiation in create-managers.ts (previously only instantiated in 5 test files — never in production).",
+        "risk_level": "medium",
+        "timestamp": "2026-02-27T00:01:00Z"
+      },
+      {
+        "id": "nextjs-cve-patch-20260225",
+        "summary": "Patch critical CVE in Next.js by updating from 14.2.3 to 14.2.10 in opencode-dashboard.",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00Z"
+      },
+      {
+        "id": "unused-deps-removal-20260225",
+        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00.000Z"
+      },
+      {
+        "id": "reduce-explicit-any-types-20260225",
+        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "event-store-lost-update-fix-20260225",
+        "summary": "Fixed lost-update race condition in persistEvents by moving read-merge-write inside the serialized write queue. Previously, callers read stale existingEvents outside the queue, so concurrent writers overwrote each other's events.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T10:00:00Z"
+      },
+      {
+        "id": "dashboard-async-migration-20260225",
+        "summary": "Converted sync I/O to async in 9 dashboard files + 7 callers. Write paths use serialized write queue (_writePromise pattern) to prevent concurrent corruption. Verification read in write-json-atomic.ts intentionally kept sync. Added 7 regression tests for event-store async atomicWrite.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "env-validation-20260225",
+        "summary": "Added startup validation for security-critical environment variables in dashboard routes to warn operators of missing signing keys and write tokens",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "event-store-error-logging-20260225",
+        "summary": "Added console.warn logging to 2 empty catch blocks in event-store.js that were swallowing cleanup errors after write/rename failures.",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "prototype-pollution-fix-20260225",
+        "summary": "Security hardening: prevent prototype pollution in plugin lifecycle supervisor",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "zen-model-restoration-and-dashboard-loader-fix-20260224",
+        "summary": "Restore Zen GLM-5/Kimi K2.5 aliases across config catalogs and fix dashboard API module resolution to remove build warnings.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-24T22:50:00Z"
+      },
+      {
+        "id": "orchestration-intelligence-foundation-20260224",
+        "summary": "Add orchestration intelligence foundation with meta-awareness telemetry, scoring, stability guardrails, dashboard APIs/UI, and central-config controls.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-24T22:10:00Z"
+      },
+      {
+        "id": "dashboard-api-wave6-20260224",
+        "summary": "Added lifecycle management API endpoints to dashboard for model state management",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T07:30:00Z"
+      },
+      {
+        "id": "dashboard-frontend-stability-20260223",
+        "summary": "Stabilize dashboard data APIs and rendering behavior, including learning schema normalization, knowledge graph scaling, resilient workflow naming, and orchestration endpoint latency reduction.",
+        "risk_level": "low",
+        "timestamp": "2026-02-23T22:50:00Z"
+      },
+      {
+        "id": "frontier-control-plane-foundation-20260222",
+        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T03:55:00Z"
+      },
+      {
+        "id": "knowledge-graph-hierarchy-lod-20260220",
+        "summary": "Added hierarchical knowledge graph views with adaptive edge decluttering and API shaping controls",
+        "risk_level": "medium",
+        "timestamp": "2026-02-20T06:00:00-05:00"
+      },
+      {
+        "id": "token-counts-workflows-20260219",
+        "summary": "Add token counts to workflow runs in dashboard",
+        "risk_level": "low",
+        "timestamp": "2026-02-19T02:30:00.000Z"
+      },
+      {
+        "id": "token-counting-dashboard-20260219",
+        "summary": "Add true token counting to workflows dashboard with input/output/total token tracking",
+        "risk_level": "low",
+        "timestamp": "2026-02-19T01:00:00.000Z"
+      },
+      {
+        "id": "fullframe-graph-and-workflow-monitor-population-20260216",
+        "summary": "Moved interactive graph to dedicated full-frame route and wired workflow monitor to real run/thread data",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T03:10:00Z"
+      },
+      {
+        "id": "provider-cache-metrics-and-fallback-reason-tests-20260216",
+        "summary": "Added provider probe cache metrics visibility and fallback-reason regression coverage",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T02:20:00Z"
+      },
+      {
+        "id": "p2-hardening-policies-fallback-sse-20260216",
+        "summary": "Completed P2 hardening for policies validation, fallback reason typing, and SSE client cleanup",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T02:05:00Z"
+      },
+      {
+        "id": "api-fallback-envelope-normalization-20260216",
+        "summary": "Normalized fallback envelope semantics across RL, Skills, and Learning APIs",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T01:45:00Z"
+      },
+      {
+        "id": "provider-probe-cache-backoff-20260216",
+        "summary": "Added in-memory cache/backoff for provider health probes",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T01:35:00Z"
+      },
+      {
+        "id": "gemini-model-correction-20260215",
+        "summary": "Corrected Gemini model names from non-existent gemini-2.5-* to official gemini-2.0-* across entire codebase",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:27:00-05:00"
+      },
+      {
+        "id": "model-validation-script-20260215",
+        "summary": "Created validate-models.mjs script for automated model catalog validation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T19:48:00-05:00"
+      },
+      {
+        "id": "configviewer-typed-intent-routing-20260215",
+        "summary": "Extended ConfigViewer with typed intent-routing editor controls",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T00:05:00Z"
+      },
+      {
+        "id": "provider-telemetry-ui-enhancements-20260215",
+        "summary": "Enhanced provider telemetry dashboard with pressure analytics and hot model visibility",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T23:55:00Z"
+      },
+      {
+        "id": "knowledge-graph-drag-zoom-20260215",
+        "summary": "Improved knowledge graph drag/zoom UX with viewport persistence and position retention",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T23:30:00Z"
+      },
+      {
+        "id": "models-routing-matrix-ui-20260215",
+        "summary": "Enhanced models routing matrix UI with filtering, sorting, and coverage analytics",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T23:05:00Z"
+      },
+      {
+        "id": "weekly-model-sync-and-health-verification-20260215",
+        "summary": "Added weekly model sync automation and model catalog verification in health endpoint",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T22:45:00Z"
+      },
+      {
+        "id": "model-validation-critical-fixes-20260215",
+        "summary": "Fixed critical model issues, provider key rotation race conditions, and added model catalog validation groundwork.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-15T22:00:00Z"
+      },
+      {
+        "id": "dashboards-full-implementation-20260215",
+        "summary": "Complete dashboard implementation with all 6 roadmap features: SkillsRL APIs stabilized, Knowledge Graph interactive with React Flow, provider status unified tracking, ConfigViewer with Zod forms editors, Models 10x6 routing matrix UI, fresh-machine smoke pipeline.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T21:00:00Z"
+      },
+      {
+        "id": "provider-status-atomicity-20260215",
+        "summary": "Fixed provider-status.json write to use atomic temp-file pattern, preventing corruption on mid-write interruption.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:15:00Z"
+      },
+      {
+        "id": "dashboard-v2-implementation-20260215",
+        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:00:00Z"
+      },
+      {
+        "id": "skillsrl-api-fixes-20260215",
+        "summary": "Stabilized Skills RL backend APIs with contracts normalization and missing /api/rl endpoint creation.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T19:30:00Z"
+      },
+      {
+        "id": "portability-integrity-pass-20260215",
+        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T12:30:00Z"
+      }
+    ],
+    "integration-tests/critical-plugin-contracts.test.js": [
+      {
+        "id": "wave10-ci-matrix-test-consolidation",
+        "summary": "Add per-package CI test matrix (28 packages), consolidate dashboard tests/ into test/, and add critical plugin contract integration tests (healthd, lifecycle, preload-skills)",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T22:36:00Z"
+      }
+    ],
+    "packages/opencode-logger": [
+      {
+        "id": "wave10-observability-persistence",
+        "summary": "Add opt-in Langfuse tracing to opencode-logger (WARN+ levels) and SQLite daily-metrics persistence to pipeline metrics collector (bun:sqlite with better-sqlite3 fallback)",
+        "risk_level": "medium",
+        "timestamp": "2026-03-08T22:35:00Z"
+      },
+      {
+        "id": "remove-orphaned-exports-20260225",
+        "summary": "Removed 9 orphaned exports with zero cross-package imports: circuitBreakerRegistry/CircuitBreakerRegistry/CircuitOpenError from circuit-breaker, RequestTracer/LOG_LEVELS from logger, KNOWN_BAD_PLUGINS/DEFAULT_MCPS from plugin-healthd, toJSON/toCSV from memory-graph.",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T22:00:00Z"
+      },
+      {
+        "id": "smoke-tests-16-packages-20260225",
+        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:55:00Z"
+      }
+    ],
+    "packages/opencode-model-manager": [
+      {
+        "id": "wave10-observability-persistence",
+        "summary": "Add opt-in Langfuse tracing to opencode-logger (WARN+ levels) and SQLite daily-metrics persistence to pipeline metrics collector (bun:sqlite with better-sqlite3 fallback)",
+        "risk_level": "medium",
+        "timestamp": "2026-03-08T22:35:00Z"
+      },
+      {
+        "id": "external-call-timeouts-20260225",
+        "summary": "Add explicit timeouts to 7 external call sites that could hang indefinitely",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T17:00:00Z"
+      },
+      {
+        "id": "audit-log-cap-rotation-20260225",
+        "summary": "Cap change-event-system audit log at 10k events with 7-day TTL to prevent unbounded memory growth and write latency spikes",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "reduce-explicit-any-types-20260225",
+        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "wave-1-async-io-complete-20260225",
+        "summary": "Wave 1: Async I/O conversion for config-loader, learning-engine, and model-manager to eliminate event loop blocking",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T02:32:00.000Z"
+      },
+      {
+        "id": "command-injection-fix-20260225",
+        "summary": "Security hardening: fix command injection in pr-generator execSync calls",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "model-manager-alert-writequeue-bounds-20260225",
+        "summary": "Added maxHistorySize cap to AlertManager and maxPendingWrites backpressure to AuditLogger writeQueue",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "model-manager-bounded-arrays-20260225",
+        "summary": "Added maxEvents cap with FIFO eviction to PipelineMetricsCollector event arrays",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "model-manager-readme-20260224",
+        "summary": "Added comprehensive README for opencode-model-manager package",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T10:15:00Z"
+      },
+      {
+        "id": "docs-wave7-20260224",
+        "summary": "Added comprehensive secrets and rollback documentation",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T09:00:00Z"
+      },
+      {
+        "id": "validation-wave7-20260224",
+        "summary": "Added catalog validation pipeline with comprehensive checks",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T08:30:00Z"
+      },
+      {
+        "id": "automation-wave7-20260224",
+        "summary": "Added PR automation and CI workflow for model catalog sync",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T08:00:00Z"
+      },
+      {
+        "id": "model-manager-lifecycle-wave5-20260224",
+        "summary": "Implement Wave 5 of automated model management protocol: 5-state lifecycle state machine, tamper-evident audit logger, and risk-based auto-approval rules engine.",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T02:35:00Z"
+      },
+      {
+        "id": "model-management-wave1-20260224",
+        "summary": "Wave 1: Provider Adapter Framework - Foundation for automated model management protocol",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "model-management-wave2-20260224",
+        "summary": "Wave 2: Discovery Engine & Caching - Resilient model discovery with two-tier caching and circuit breaker protection",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "model-management-wave3-20260224",
+        "summary": "Wave 3: Snapshot Store & Diff Engine - Change detection and audit logging for automated model management",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "model-manager-assessment-wave4-20260224",
+        "summary": "Implement Wave 4 assessment infrastructure for automated model management: model assessor with real benchmark execution (HumanEval, MBPP, latency) and metrics collector for 4-pillar metrics (accuracy, latency, cost, robustness) with SQLite persistence and z-score normalization.",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      }
+    ],
     "opencode-config/.governance-hashes.json": [
       {
         "id": "governance-refresh-20260308",
@@ -5780,230 +6258,6 @@
         "timestamp": "2026-02-15T20:45:00Z"
       }
     ],
-    "packages/opencode-dashboard": [
-      {
-        "id": "dashboard-api-docs-complete-20260308",
-        "summary": "Rewrote packages/opencode-dashboard/API.md from source: expanded from 20 to all 31 endpoints, corrected inaccurate response shapes, added SSE events, config read/write, docs browser, frontier-status, retrieval-quality, plugin-supervisor, policy-review, runs, all orchestration sub-routes, model lifecycle/audit/transition, skills promotions, status unified/providers/usage, and monitoring ingest.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave9-dashboard-meta-kb-20260308",
-        "summary": "Add /api/meta-kb dashboard endpoint — returns index age, record counts, category/risk breakdown, anti-pattern/convention/command counts, and inline drift status",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "skill-rl-path-standardization-20260227",
-        "summary": "Standardize SkillRLManager persistence path to ~/.opencode/skill-rl.json across all consumers. Fixed 3 divergent path references: (1) index.js:130 was using ./skill-rl-state.json (relative, wrong), (2) models/route.ts:156 was using skill-rl-state.json (wrong suffix), (3) file-watcher.ts:45 was using skill-rl-state.json (wrong suffix). Added os.homedir() canonical path with one-time migration from legacy ./skill-rl-state.json. Added production SkillRLManager instantiation in create-managers.ts (previously only instantiated in 5 test files — never in production).",
-        "risk_level": "medium",
-        "timestamp": "2026-02-27T00:01:00Z"
-      },
-      {
-        "id": "nextjs-cve-patch-20260225",
-        "summary": "Patch critical CVE in Next.js by updating from 14.2.3 to 14.2.10 in opencode-dashboard.",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00Z"
-      },
-      {
-        "id": "unused-deps-removal-20260225",
-        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00.000Z"
-      },
-      {
-        "id": "reduce-explicit-any-types-20260225",
-        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "event-store-lost-update-fix-20260225",
-        "summary": "Fixed lost-update race condition in persistEvents by moving read-merge-write inside the serialized write queue. Previously, callers read stale existingEvents outside the queue, so concurrent writers overwrote each other's events.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T10:00:00Z"
-      },
-      {
-        "id": "dashboard-async-migration-20260225",
-        "summary": "Converted sync I/O to async in 9 dashboard files + 7 callers. Write paths use serialized write queue (_writePromise pattern) to prevent concurrent corruption. Verification read in write-json-atomic.ts intentionally kept sync. Added 7 regression tests for event-store async atomicWrite.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "env-validation-20260225",
-        "summary": "Added startup validation for security-critical environment variables in dashboard routes to warn operators of missing signing keys and write tokens",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "event-store-error-logging-20260225",
-        "summary": "Added console.warn logging to 2 empty catch blocks in event-store.js that were swallowing cleanup errors after write/rename failures.",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "prototype-pollution-fix-20260225",
-        "summary": "Security hardening: prevent prototype pollution in plugin lifecycle supervisor",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "zen-model-restoration-and-dashboard-loader-fix-20260224",
-        "summary": "Restore Zen GLM-5/Kimi K2.5 aliases across config catalogs and fix dashboard API module resolution to remove build warnings.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-24T22:50:00Z"
-      },
-      {
-        "id": "orchestration-intelligence-foundation-20260224",
-        "summary": "Add orchestration intelligence foundation with meta-awareness telemetry, scoring, stability guardrails, dashboard APIs/UI, and central-config controls.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-24T22:10:00Z"
-      },
-      {
-        "id": "dashboard-api-wave6-20260224",
-        "summary": "Added lifecycle management API endpoints to dashboard for model state management",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T07:30:00Z"
-      },
-      {
-        "id": "dashboard-frontend-stability-20260223",
-        "summary": "Stabilize dashboard data APIs and rendering behavior, including learning schema normalization, knowledge graph scaling, resilient workflow naming, and orchestration endpoint latency reduction.",
-        "risk_level": "low",
-        "timestamp": "2026-02-23T22:50:00Z"
-      },
-      {
-        "id": "frontier-control-plane-foundation-20260222",
-        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T03:55:00Z"
-      },
-      {
-        "id": "knowledge-graph-hierarchy-lod-20260220",
-        "summary": "Added hierarchical knowledge graph views with adaptive edge decluttering and API shaping controls",
-        "risk_level": "medium",
-        "timestamp": "2026-02-20T06:00:00-05:00"
-      },
-      {
-        "id": "token-counts-workflows-20260219",
-        "summary": "Add token counts to workflow runs in dashboard",
-        "risk_level": "low",
-        "timestamp": "2026-02-19T02:30:00.000Z"
-      },
-      {
-        "id": "token-counting-dashboard-20260219",
-        "summary": "Add true token counting to workflows dashboard with input/output/total token tracking",
-        "risk_level": "low",
-        "timestamp": "2026-02-19T01:00:00.000Z"
-      },
-      {
-        "id": "fullframe-graph-and-workflow-monitor-population-20260216",
-        "summary": "Moved interactive graph to dedicated full-frame route and wired workflow monitor to real run/thread data",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T03:10:00Z"
-      },
-      {
-        "id": "provider-cache-metrics-and-fallback-reason-tests-20260216",
-        "summary": "Added provider probe cache metrics visibility and fallback-reason regression coverage",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T02:20:00Z"
-      },
-      {
-        "id": "p2-hardening-policies-fallback-sse-20260216",
-        "summary": "Completed P2 hardening for policies validation, fallback reason typing, and SSE client cleanup",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T02:05:00Z"
-      },
-      {
-        "id": "api-fallback-envelope-normalization-20260216",
-        "summary": "Normalized fallback envelope semantics across RL, Skills, and Learning APIs",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T01:45:00Z"
-      },
-      {
-        "id": "provider-probe-cache-backoff-20260216",
-        "summary": "Added in-memory cache/backoff for provider health probes",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T01:35:00Z"
-      },
-      {
-        "id": "gemini-model-correction-20260215",
-        "summary": "Corrected Gemini model names from non-existent gemini-2.5-* to official gemini-2.0-* across entire codebase",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:27:00-05:00"
-      },
-      {
-        "id": "model-validation-script-20260215",
-        "summary": "Created validate-models.mjs script for automated model catalog validation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T19:48:00-05:00"
-      },
-      {
-        "id": "configviewer-typed-intent-routing-20260215",
-        "summary": "Extended ConfigViewer with typed intent-routing editor controls",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T00:05:00Z"
-      },
-      {
-        "id": "provider-telemetry-ui-enhancements-20260215",
-        "summary": "Enhanced provider telemetry dashboard with pressure analytics and hot model visibility",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T23:55:00Z"
-      },
-      {
-        "id": "knowledge-graph-drag-zoom-20260215",
-        "summary": "Improved knowledge graph drag/zoom UX with viewport persistence and position retention",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T23:30:00Z"
-      },
-      {
-        "id": "models-routing-matrix-ui-20260215",
-        "summary": "Enhanced models routing matrix UI with filtering, sorting, and coverage analytics",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T23:05:00Z"
-      },
-      {
-        "id": "weekly-model-sync-and-health-verification-20260215",
-        "summary": "Added weekly model sync automation and model catalog verification in health endpoint",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T22:45:00Z"
-      },
-      {
-        "id": "model-validation-critical-fixes-20260215",
-        "summary": "Fixed critical model issues, provider key rotation race conditions, and added model catalog validation groundwork.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-15T22:00:00Z"
-      },
-      {
-        "id": "dashboards-full-implementation-20260215",
-        "summary": "Complete dashboard implementation with all 6 roadmap features: SkillsRL APIs stabilized, Knowledge Graph interactive with React Flow, provider status unified tracking, ConfigViewer with Zod forms editors, Models 10x6 routing matrix UI, fresh-machine smoke pipeline.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T21:00:00Z"
-      },
-      {
-        "id": "provider-status-atomicity-20260215",
-        "summary": "Fixed provider-status.json write to use atomic temp-file pattern, preventing corruption on mid-write interruption.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:15:00Z"
-      },
-      {
-        "id": "dashboard-v2-implementation-20260215",
-        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:00:00Z"
-      },
-      {
-        "id": "skillsrl-api-fixes-20260215",
-        "summary": "Stabilized Skills RL backend APIs with contracts normalization and missing /api/rl endpoint creation.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T19:30:00Z"
-      },
-      {
-        "id": "portability-integrity-pass-20260215",
-        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T12:30:00Z"
-      }
-    ],
     "opencode-config/compound-engineering.json": [
       {
         "id": "distill-context7-config-wiring-20260308",
@@ -6658,68 +6912,6 @@
         "timestamp": "2026-02-22T03:05:00Z"
       }
     ],
-    ".github/workflows": [
-      {
-        "id": "wave8-setup-fixes-20260307",
-        "summary": "Setup script improvements: auto-load .env, set SHELL, fix PowerShell policy, non-strict verify; Bun version bump 1.3.9->1.3.10; remove dead import",
-        "risk_level": "low",
-        "timestamp": "2026-03-07T23:45:00Z"
-      },
-      {
-        "id": "validation-wave7-20260224",
-        "summary": "Added catalog validation pipeline with comprehensive checks",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T08:30:00Z"
-      },
-      {
-        "id": "automation-wave7-20260224",
-        "summary": "Added PR automation and CI workflow for model catalog sync",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T08:00:00Z"
-      },
-      {
-        "id": "portability-final-edge-hardening-20260222",
-        "summary": "Close final portability edge cases by hardening container parity execution context, non-git hook install behavior, path fallback safety, and multi-path Bun global symlink detection.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T05:10:00Z"
-      },
-      {
-        "id": "productization-p0-hardening-20260222",
-        "summary": "Resolve productization P0/P1 gaps for container parity, setup copy safety, hook consistency, and Bun preflight override behavior.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T04:50:00Z"
-      },
-      {
-        "id": "model-sync-env-contract-alignment-20260222",
-        "summary": "Align model-catalog-sync workflow env variable names with plural API key contract and restore .env.example tracking for environment portability checks.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T04:40:00Z"
-      },
-      {
-        "id": "portability-closure-hardening-20260222",
-        "summary": "Completed closure hardening for clone portability by unifying setup/verify workflows, enforcing env/docs governance in CI, adding devcontainer baseline, and validating Bun path recovery behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-22T03:05:00Z"
-      },
-      {
-        "id": "p2-hardening-policies-fallback-sse-20260216",
-        "summary": "Completed P2 hardening for policies validation, fallback reason typing, and SSE client cleanup",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T02:05:00Z"
-      },
-      {
-        "id": "weekly-model-sync-and-health-verification-20260215",
-        "summary": "Added weekly model sync automation and model catalog verification in health endpoint",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T22:45:00Z"
-      },
-      {
-        "id": "learning-2026-02-11-governance-bootstrap",
-        "summary": "Bootstrap governance controls for learning updates and deployment-state tracking.",
-        "risk_level": "low",
-        "timestamp": "2026-02-11T13:45:00-05:00"
-      }
-    ],
     "packages/opencode-sisyphus-state": [
       {
         "id": "sisyphus-budget-enforcer-tests-20260307",
@@ -7246,118 +7438,6 @@
         "summary": "Reconcile skill inventory between registry.json (canonical) and compound-engineering.json (consumer)",
         "risk_level": "low",
         "timestamp": "2026-02-26T22:00:00Z"
-      }
-    ],
-    "packages/opencode-logger": [
-      {
-        "id": "remove-orphaned-exports-20260225",
-        "summary": "Removed 9 orphaned exports with zero cross-package imports: circuitBreakerRegistry/CircuitBreakerRegistry/CircuitOpenError from circuit-breaker, RequestTracer/LOG_LEVELS from logger, KNOWN_BAD_PLUGINS/DEFAULT_MCPS from plugin-healthd, toJSON/toCSV from memory-graph.",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T22:00:00Z"
-      },
-      {
-        "id": "smoke-tests-16-packages-20260225",
-        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:55:00Z"
-      }
-    ],
-    "packages/opencode-model-manager": [
-      {
-        "id": "external-call-timeouts-20260225",
-        "summary": "Add explicit timeouts to 7 external call sites that could hang indefinitely",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T17:00:00Z"
-      },
-      {
-        "id": "audit-log-cap-rotation-20260225",
-        "summary": "Cap change-event-system audit log at 10k events with 7-day TTL to prevent unbounded memory growth and write latency spikes",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "reduce-explicit-any-types-20260225",
-        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "wave-1-async-io-complete-20260225",
-        "summary": "Wave 1: Async I/O conversion for config-loader, learning-engine, and model-manager to eliminate event loop blocking",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T02:32:00.000Z"
-      },
-      {
-        "id": "command-injection-fix-20260225",
-        "summary": "Security hardening: fix command injection in pr-generator execSync calls",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "model-manager-alert-writequeue-bounds-20260225",
-        "summary": "Added maxHistorySize cap to AlertManager and maxPendingWrites backpressure to AuditLogger writeQueue",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "model-manager-bounded-arrays-20260225",
-        "summary": "Added maxEvents cap with FIFO eviction to PipelineMetricsCollector event arrays",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "model-manager-readme-20260224",
-        "summary": "Added comprehensive README for opencode-model-manager package",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T10:15:00Z"
-      },
-      {
-        "id": "docs-wave7-20260224",
-        "summary": "Added comprehensive secrets and rollback documentation",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T09:00:00Z"
-      },
-      {
-        "id": "validation-wave7-20260224",
-        "summary": "Added catalog validation pipeline with comprehensive checks",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T08:30:00Z"
-      },
-      {
-        "id": "automation-wave7-20260224",
-        "summary": "Added PR automation and CI workflow for model catalog sync",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T08:00:00Z"
-      },
-      {
-        "id": "model-manager-lifecycle-wave5-20260224",
-        "summary": "Implement Wave 5 of automated model management protocol: 5-state lifecycle state machine, tamper-evident audit logger, and risk-based auto-approval rules engine.",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T02:35:00Z"
-      },
-      {
-        "id": "model-management-wave1-20260224",
-        "summary": "Wave 1: Provider Adapter Framework - Foundation for automated model management protocol",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "model-management-wave2-20260224",
-        "summary": "Wave 2: Discovery Engine & Caching - Resilient model discovery with two-tier caching and circuit breaker protection",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "model-management-wave3-20260224",
-        "summary": "Wave 3: Snapshot Store & Diff Engine - Change detection and audit logging for automated model management",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "model-manager-assessment-wave4-20260224",
-        "summary": "Implement Wave 4 assessment infrastructure for automated model management: model assessor with real benchmark execution (HumanEval, MBPP, latency) and metrics collector for 4-pillar metrics (accuracy, latency, cost, robustness) with SQLite persistence and z-score normalization.",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
       }
     ],
     "packages/opencode-feature-flags": [
