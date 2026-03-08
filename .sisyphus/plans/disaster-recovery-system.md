@@ -59,15 +59,15 @@ Create a bulletproof disaster recovery system that can restore opencode to fully
 6. **Integration hooks** - Git pre-commit hook for automatic backups
 
 ### Definition of Done
-- [ ] User can run `~/.opencode-dr/backup.sh` to create timestamped snapshot
-- [ ] User can run `~/.opencode-dr/recover.sh` to restore when opencode crashes
-- [ ] Recovery restores to state where:
+- [x] User can run `~/.opencode-dr/backup.sh` to create timestamped snapshot
+- [x] User can run `~/.opencode-dr/recover.sh` to restore when opencode crashes
+- [x] Recovery restores to state where:
   - `opencode --version` returns without error
   - All 7 plugins load in startup log
   - 8 agents appear in tab menu (@atlas, @hephaestus, etc.)
   - Learning engine shows previous session data
   - Skills (46 total) are available via `/skill` command
-- [ ] Emergency minimal config can start opencode even with broken plugins
+- [x] Emergency minimal config can start opencode even with broken plugins
 
 ### Must Have
 - External tools only (Python 3.10+, Bash, standard Unix tools)
@@ -200,10 +200,10 @@ Wave 3 (After Wave 2):
 - Claude Code session: bun-report crash analysis (ThreadLock pattern)
 
 **Acceptance Criteria:**
-- [ ] Directory exists: `~/.opencode-dr/`
-- [ ] Subdirectories: `backups/`, `emergency-config/`, `health-checks/`, `logs/`
-- [ ] File exists: `~/.opencode-dr/.gitignore` (ignores large DB files from git)
-- [ ] File exists: `~/.opencode-dr/README.md` (usage instructions)
+- [x] Directory exists: `~/.opencode-dr/`
+- [x] Subdirectories: `backups/`, `emergency-config/`, `health-checks/`, `logs/`
+- [x] File exists: `~/.opencode-dr/.gitignore` (ignores large DB files from git)
+- [x] File exists: `~/.opencode-dr/README.md` (usage instructions)
 
 **Agent-Executed QA:**
 ```
@@ -252,11 +252,11 @@ Evidence: ls -la ~/.opencode-dr/
 - `packages/opencode-dashboard/` - For API endpoints
 
 **Acceptance Criteria:**
-- [ ] File: `~/.opencode-dr/emergency-config/opencode.json`
-- [ ] Contains: Only @opencode-ai/plugin, no optional plugins
-- [ ] Contains: Google provider with gemini-2.5-flash (free tier)
-- [ ] Contains: Basic MCP servers (supermemory, context7)
-- [ ] File: `~/.opencode-dr/emergency-config/oh-my-opencode.json` (empty but valid)
+- [x] File: `~/.opencode-dr/emergency-config/opencode.json`
+- [x] Contains: Only @opencode-ai/plugin, no optional plugins
+- [x] Contains: Google provider with gemini-2.5-flash (free tier)
+- [x] Contains: Basic MCP servers (supermemory, context7)
+- [x] File: `~/.opencode-dr/emergency-config/oh-my-opencode.json` (empty but valid)
 
 **Agent-Executed QA:**
 ```
@@ -308,12 +308,12 @@ Evidence: Command output, no ThreadLock
 - `~/.config/opencode/package.json` - Plugin versions
 
 **Acceptance Criteria:**
-- [ ] File: `~/.opencode-dr/health-checks/check_env_files.py`
-- [ ] File: `~/.opencode-dr/health-checks/check_db_integrity.py`
-- [ ] File: `~/.opencode-dr/health-checks/check_plugin_versions.py`
-- [ ] File: `~/.opencode-dr/health-checks/check_wal_size.py`
-- [ ] File: `~/.opencode-dr/health-checks/check_node_modules.py`
-- [ ] File: `~/.opencode-dr/health-checks/__init__.py` (runner)
+- [x] File: `~/.opencode-dr/health-checks/check_env_files.py`
+- [x] File: `~/.opencode-dr/health-checks/check_db_integrity.py`
+- [x] File: `~/.opencode-dr/health-checks/check_plugin_versions.py`
+- [x] File: `~/.opencode-dr/health-checks/check_wal_size.py`
+- [x] File: `~/.opencode-dr/health-checks/check_node_modules.py`
+- [x] File: `~/.opencode-dr/health-checks/__init__.py` (runner)
 
 **Agent-Executed QA:**
 ```
@@ -368,12 +368,12 @@ Evidence: Command output, exit codes
 - Claude Code session: Version fix for oh-my-opencode
 
 **Acceptance Criteria:**
-- [ ] File: `~/.opencode-dr/backup.sh` (executable)
-- [ ] Usage: `./backup.sh "optional-message"`
-- [ ] Creates: `~/.opencode-dr/backups/YYYY-MM-DD-HHMMSS-message/`
-- [ ] Contains: manifest.json, config/, node_modules/, db/
-- [ ] Implements: 7-backup rotation (ls -t | tail -n +8 | xargs rm -rf)
-- [ ] Optional: Compresses with zstd
+- [x] File: `~/.opencode-dr/backup.sh` (executable)
+- [x] Usage: `./backup.sh "optional-message"`
+- [x] Creates: `~/.opencode-dr/backups/YYYY-MM-DD-HHMMSS-message/`
+- [x] Contains: manifest.json, config/, node_modules/, db/
+- [x] Implements: 7-backup rotation (ls -t | tail -n +8 | xargs rm -rf)
+- [x] Optional: Compresses with zstd
 
 **Agent-Executed QA:**
 ```
@@ -424,11 +424,11 @@ Evidence: ls -la ~/.opencode-dr/backups/
 - Claude Code session: Crash prevention patterns
 
 **Acceptance Criteria:**
-- [ ] File: `~/.opencode-dr/validate.sh` (executable)
-- [ ] Runs all health checks and reports status
-- [ ] Exit code: 0 if all pass, 1 if any fail
-- [ ] Provides remediation hints (e.g., "Run: rm .env")
-- [ ] Can be run standalone before any change
+- [x] File: `~/.opencode-dr/validate.sh` (executable)
+- [x] Runs all health checks and reports status
+- [x] Exit code: 0 if all pass, 1 if any fail
+- [x] Provides remediation hints (e.g., "Run: rm .env")
+- [x] Can be run standalone before any change
 
 **Agent-Executed QA:**
 ```
@@ -488,15 +488,15 @@ Evidence: Script output, exit codes
 - Claude Code session: Recovery workflow that worked
 
 **Acceptance Criteria:**
-- [ ] File: `~/.opencode-dr/recover.sh` (executable)
-- [ ] Menu system with numbered options
-- [ ] Option 1: Lists backups with timestamps
-- [ ] Option 2: Restore with confirmation prompt
-- [ ] Option 3: Emergency minimal mode
-- [ ] Option 4: Reset to stable (last working state)
-- [ ] Option 5: Quarantine current (moves to quarantine/)
-- [ ] Option 6: Run full diagnostics
-- [ ] All operations logged to `~/.opencode-dr/logs/recovery-YYYY-MM-DD.log`
+- [x] File: `~/.opencode-dr/recover.sh` (executable)
+- [x] Menu system with numbered options
+- [x] Option 1: Lists backups with timestamps
+- [x] Option 2: Restore with confirmation prompt
+- [x] Option 3: Emergency minimal mode
+- [x] Option 4: Reset to stable (last working state)
+- [x] Option 5: Quarantine current (moves to quarantine/)
+- [x] Option 6: Run full diagnostics
+- [x] All operations logged to `~/.opencode-dr/logs/recovery-YYYY-MM-DD.log`
 
 **Agent-Executed QA:**
 ```
@@ -550,15 +550,15 @@ Evidence: Recovery log, opencode startup test
 - `~/.config/opencode/` - Production config (for final validation)
 
 **Acceptance Criteria:**
-- [ ] File: `~/.opencode-dr/test-recovery.sh` (integration tests)
-- [ ] Test passes: Backup creation
-- [ ] Test passes: Validation catches .env
-- [ ] Test passes: Validation catches corrupt JSON
-- [ ] Test passes: Recovery restores working state
-- [ ] Test passes: Emergency minimal mode works
-- [ ] Test passes: All 7 plugins load after recovery
-- [ ] Test passes: All 8 agents available after recovery
-- [ ] File: `~/.opencode-dr/README.md` updated with usage
+- [x] File: `~/.opencode-dr/test-recovery.sh` (integration tests)
+- [x] Test passes: Backup creation
+- [x] Test passes: Validation catches .env
+- [x] Test passes: Validation catches corrupt JSON
+- [x] Test passes: Recovery restores working state
+- [x] Test passes: Emergency minimal mode works
+- [x] Test passes: All 7 plugins load after recovery
+- [x] Test passes: All 8 agents available after recovery
+- [x] File: `~/.opencode-dr/README.md` updated with usage
 
 **Agent-Executed QA:**
 ```
@@ -604,14 +604,14 @@ cd /tmp && ~/.opencode-dr/recover.sh --dry-run
 
 ### Final Checklist
 
-- [ ] **Task 1:** Directory structure exists with all subdirectories
-- [ ] **Task 2:** Emergency config can start opencode in isolation
-- [ ] **Task 3:** All health checks run and detect their target issues
-- [ ] **Task 4:** Backup script creates timestamped backups with rotation
-- [ ] **Task 5:** Validation script catches issues before they cause crashes
-- [ ] **Task 6:** Recovery CLI can restore from any backup
-- [ ] **Task 7:** Integration tests pass for complete backup/restore cycle
-- [ ] **Final Test:** opencode starts after recovery, all plugins load, all agents available
+- [x] **Task 1:** Directory structure exists with all subdirectories
+- [x] **Task 2:** Emergency config can start opencode in isolation
+- [x] **Task 3:** All health checks run and detect their target issues
+- [x] **Task 4:** Backup script creates timestamped backups with rotation
+- [x] **Task 5:** Validation script catches issues before they cause crashes
+- [x] **Task 6:** Recovery CLI can restore from any backup
+- [x] **Task 7:** Integration tests pass for complete backup/restore cycle
+- [x] **Final Test:** opencode starts after recovery, all plugins load, all agents available
 
 ### Evidence Paths
 
