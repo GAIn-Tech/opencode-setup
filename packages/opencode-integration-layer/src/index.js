@@ -250,6 +250,90 @@ class IntegrationLayer {
   }
 
   /**
+   * Check context budget for a session+model combination.
+   * Fail-open: returns { allowed: true, status: 'unknown' } if Governor unavailable.
+   * @param {string} sessionId
+   * @param {string} model
+   * @param {number} proposedTokens
+   * @returns {{ allowed: boolean, status: string, remaining: number, message: string }}
+   */
+  checkContextBudget(sessionId, model, proposedTokens) {
+    if (!this.contextGovernor) {
+      return { allowed: true, status: 'unknown', urgency: 0, remaining: Infinity, message: 'Governor not available — budget unchecked' };
+    }
+    try {
+      const gov = this._getGovernorInstance();
+      const result = gov.checkBudget(sessionId, model, proposedTokens);
+      // Log budget warnings at thresholds
+      if (result.status === 'error') {
+        this.logger.error('Context budget CRITICAL', { sessionId, model, pct: result.message });
+      } else if (result.status === 'warn') {
+        this.logger.warn('Context budget WARNING', { sessionId, model, pct: result.message });
+      }
+      return result;
+    } catch (err) {
+      this.logger.warn('checkContextBudget failed (fail-open)', { error: err.message });
+      return { allowed: true, status: 'unknown', urgency: 0, remaining: Infinity, message: `Budget check error: ${err.message}` };
+    }
+  }
+
+  /**
+   * Record actual token consumption for a session+model.
+   * @param {string} sessionId
+   * @param {string} model
+   * @param {number} count
+   * @returns {{ used: number, remaining: number, pct: number, status: string } | null}
+   */
+  recordTokenUsage(sessionId, model, count) {
+    if (!this.contextGovernor) return null;
+    try {
+      const gov = this._getGovernorInstance();
+      const result = gov.consumeTokens(sessionId, model, count);
+      if (result.status === 'error') {
+        this.logger.error('Token budget CRITICAL after consumption', { sessionId, model, used: result.used, remaining: result.remaining });
+      } else if (result.status === 'warn') {
+        this.logger.warn('Token budget WARNING after consumption', { sessionId, model, used: result.used, remaining: result.remaining });
+      }
+      return result;
+    } catch (err) {
+      this.logger.warn('recordTokenUsage failed (non-fatal)', { error: err.message });
+      return null;
+    }
+  }
+
+  /**
+   * Get current budget status for a session+model.
+   * @param {string} sessionId
+   * @param {string} model
+   * @returns {{ remaining: number, used: number, max: number, pct: number, status: string } | null}
+   */
+  getContextBudgetStatus(sessionId, model) {
+    if (!this.contextGovernor) return null;
+    try {
+      const gov = this._getGovernorInstance();
+      return gov.getRemainingBudget(sessionId, model);
+    } catch (err) {
+      this.logger.warn('getContextBudgetStatus failed', { error: err.message });
+      return null;
+    }
+  }
+
+  /**
+   * Lazily instantiate a Governor singleton. The contextGovernor module
+   * reference is the *package* export; we need an *instance*.
+   * @private
+   */
+  _getGovernorInstance() {
+    if (!this._governorInstance && this.contextGovernor) {
+      const GovernorClass = this.contextGovernor.Governor || this.contextGovernor;
+      if (typeof GovernorClass === 'function') {
+        this._governorInstance = new GovernorClass();
+      }
+    }
+    return this._governorInstance;
+  }
+
+  /**
    * Select tools for a task using the tiered preload system.
    * Returns the tool selection result or null if preload-skills unavailable.
    */
