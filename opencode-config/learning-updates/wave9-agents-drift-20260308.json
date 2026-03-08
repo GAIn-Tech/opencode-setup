@@ -1,0 +1,20 @@
+{
+  "id": "wave9-agents-drift-20260308",
+  "timestamp": "2026-03-08T00:00:00Z",
+  "category": "tooling",
+  "summary": "Add check-agents-drift.mjs script that compares AGENTS.md documented claims against filesystem reality. Detects numeric claim drift (package count, script count, plugin count, agent/skill definitions). Generates proposed fix report in .sisyphus/proposals/.",
+  "affected_paths": [
+    "scripts/check-agents-drift.mjs",
+    ".sisyphus/proposals/agents-drift-2026-03-08.md"
+  ],
+  "root_cause": "7 AGENTS.md files share a single commit (a90e397) and have never been updated. Claims like '34 packages' and '29 agent definitions' are significantly drifted from reality.",
+  "fix_approach": "Created ESM drift detection script following resolve-root.mjs pattern. Extracts numeric claims via regex, counts filesystem reality, reports delta. Generates markdown proposal file for human review. Supports --json flag for machine consumption. Never auto-modifies AGENTS.md files.",
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["node scripts/learning-gate.mjs --generate-hashes"],
+    "notes": "Detected 7 drift issues across 2 AGENTS.md files on first run."
+  }
+}
