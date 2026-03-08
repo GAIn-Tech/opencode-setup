@@ -1,0 +1,20 @@
+{
+  "id": "audit-membus-mcps-20260308",
+  "timestamp": "2026-03-08T00:00:00Z",
+  "category": "tooling",
+  "summary": "Add minimal package.json to opencode-memory-bus (empty spike package) and wire 5 custom MCP servers (dashboard-launcher, memory-graph, model-router-x, context-governor, runbooks) into opencode.json as disabled local servers",
+  "affected_paths": [
+    "packages/opencode-memory-bus/package.json",
+    "opencode-config/opencode.json"
+  ],
+  "root_cause": "opencode-memory-bus had no package.json (only spike/ dir); 5 custom MCP servers were defined in mcp-servers/opencode-mcp-config.json but not in the main opencode.json config",
+  "fix_approach": "Added minimal package.json with private:true for memory-bus; added 5 MCP server entries to opencode.json mcp section as disabled (enabled:false) local servers with node command",
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["bun test"],
+    "notes": "MCP servers are disabled by default — enable individually when ready to use"
+  }
+}

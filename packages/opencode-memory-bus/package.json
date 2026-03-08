@@ -1,0 +1,8 @@
+{
+  "name": "opencode-memory-bus",
+  "version": "0.0.1",
+  "description": "Cross-package event bus for memory graph updates (spike — not yet implemented)",
+  "main": "spike/index.js",
+  "private": true,
+  "license": "MIT"
+}

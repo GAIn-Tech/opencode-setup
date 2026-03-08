@@ -690,6 +690,41 @@
         "--lazy"
       ],
       "enabled": true
+    },
+    "opencode-dashboard-launcher": {
+      "type": "local",
+      "command": ["node"],
+      "args": ["packages/opencode-dashboard-launcher/src/index.js"],
+      "enabled": false,
+      "description": "Dashboard launcher MCP — starts/stops the Next.js dashboard"
+    },
+    "opencode-memory-graph": {
+      "type": "local",
+      "command": ["node"],
+      "args": ["packages/opencode-memory-graph/src/cli.js"],
+      "enabled": false,
+      "description": "Memory graph MCP — query and visualize the session memory graph"
+    },
+    "opencode-model-router-x": {
+      "type": "local",
+      "command": ["node"],
+      "args": ["packages/opencode-model-router-x/src/index.js"],
+      "enabled": false,
+      "description": "Model router MCP — policy-based model selection with live tuning"
+    },
+    "opencode-context-governor": {
+      "type": "local",
+      "command": ["node"],
+      "args": ["packages/opencode-context-governor/src/index.js"],
+      "enabled": false,
+      "description": "Context governor MCP — context window budget management"
+    },
+    "opencode-runbooks": {
+      "type": "local",
+      "command": ["node"],
+      "args": ["packages/opencode-runbooks/src/index.js"],
+      "enabled": false,
+      "description": "Runbooks MCP — automated runbooks for common tasks"
     }
   },
   "permission": {
