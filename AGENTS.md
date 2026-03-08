@@ -1,14 +1,14 @@
 # AGENTS.md
 
 ## OVERVIEW
-OpenCode ecosystem: Bun-native monorepo (34 packages) for AI agent orchestration, model management, learning engine, and dashboard. NOT Node.js-compatible without adaptation.
+OpenCode ecosystem: Bun-native monorepo (35 packages) for AI agent orchestration, model management, learning engine, and dashboard. NOT Node.js-compatible without adaptation.
 
 ## STRUCTURE
 ```
 .
-├── packages/              # 34 workspace packages (opencode-*)
-├── plugins/               # 14 external OpenCode plugins (oh-my-opencode, antigravity-auth)
-├── scripts/               # 32 .mjs infrastructure scripts (governance, deployment, validation)
+├── packages/              # 35 workspace packages (opencode-*)
+├── plugins/               # 12 external OpenCode plugins (oh-my-opencode, antigravity-auth)
+├── scripts/               # 44 .mjs infrastructure scripts (governance, deployment, validation)
 ├── opencode-config/       # Central config hub (agents, skills, models, learning-updates)
 ├── .sisyphus/             # Persistent workflow state (plans, notepads, docs)
 ├── .worktrees/            # Git worktrees for isolated feature branches
@@ -24,7 +24,7 @@ OpenCode ecosystem: Bun-native monorepo (34 packages) for AI agent orchestration
 |----------------|------------|
 | Package implementation | packages/opencode-{name}/ |
 | External plugins | plugins/ |
-| Infrastructure automation | scripts/ (32 .mjs files) |
+| Infrastructure automation | scripts/ (44 .mjs files) |
 | Agent/skill/model config | opencode-config/ |
 | Workflow state | .sisyphus/ |
 | Feature branches | .worktrees/ |
@@ -43,7 +43,7 @@ OpenCode ecosystem: Bun-native monorepo (34 packages) for AI agent orchestration
 - **No Build Step**: Source files consumed directly (except opencode-dashboard/.next/)
 - **Mixed Modules**: ESM (type: "module") and CJS (type: "commonjs") inconsistently
 - **Flat Namespace**: opencode-* prefix, NOT @org/ scoped packages
-- **Scripts as Infrastructure**: 32 .mjs files are core infrastructure, not utilities
+- **Scripts as Infrastructure**: 44 .mjs files are core infrastructure, not utilities
 - **Documentation Versioned**: 20+ markdown files at root (STATUS.md, COMPLETE-INVENTORY.md, MODEL_AUDIT_REPORT.md)
 
 ## ANTI-PATTERNS
@@ -64,7 +64,7 @@ OpenCode ecosystem: Bun-native monorepo (34 packages) for AI agent orchestration
 
 ## UNIQUE STYLES
 - **Wave-Based Development**: Features organized by "Wave" (Wave 8.1, 8.2, etc.)
-- **Governance-Heavy CI**: 32 validation/governance scripts (learning-gate.mjs, deployment-state.mjs, health-check.mjs)
+- **Governance-Heavy CI**: 44 validation/governance scripts (learning-gate.mjs, deployment-state.mjs, health-check.mjs)
 - **Immutable Audit Logs**: Hash chain integrity (packages/opencode-model-manager/src/lifecycle/audit-logger.js)
 - **Risk-Based Auto-Approval**: Model approval thresholds (0-50 auto, 50-80 manual, >80 block)
 - **Rollback System**: Timestamp/hash-based recovery (scripts/model-rollback.mjs)

@@ -1,0 +1,21 @@
+{
+  "id": "agents-md-drift-fix-20260308",
+  "timestamp": "2026-03-08T19:25:00Z",
+  "type": "documentation",
+  "summary": "Fix 7 stale counts in AGENTS.md files detected by check-agents-drift.mjs",
+  "description": "Fix AGENTS.md drift: update package count (34→35), script count (32→44), plugin count (14→12) in root AGENTS.md; update agent defs (29→0), skill defs (46→25), file count (150→261), subdir count (8→7) in opencode-config/AGENTS.md",
+  "affected_paths": [
+    "AGENTS.md",
+    "opencode-config/AGENTS.md"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "build": "not-run",
+    "notes": "Documentation-only changes — no code affected"
+  },
+  "wave": "post-wave9",
+  "category": "drift-fix"
+}
