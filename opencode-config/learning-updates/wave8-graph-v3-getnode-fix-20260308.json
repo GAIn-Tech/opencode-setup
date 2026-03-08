@@ -1,0 +1,14 @@
+{
+  "id": "wave8-graph-v3-getnode-fix-20260308",
+  "timestamp": "2026-03-08T00:30:00Z",
+  "summary": "Add missing getNode(id) method to MemoryGraphV3 that delegates to NodeStore.get(id). Fixes TypeError in store.test.js that prevented 54 MemoryGraphV3 tests from running.",
+  "affected_paths": [
+    "packages/opencode-memory-graph/src/graph-v3.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

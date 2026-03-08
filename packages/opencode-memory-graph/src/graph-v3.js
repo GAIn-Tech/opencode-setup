@@ -132,6 +132,15 @@ class MemoryGraphV3 extends EventEmitter {
   }
 
   /**
+   * Retrieve a node by ID.
+   * @param {string} id  Node ID.
+   * @returns {object|undefined}  The stored node, or undefined if not found.
+   */
+  getNode(id) {
+    return this.nodes.get(id);
+  }
+
+  /**
    * Remove a node and cascade-remove all connected edges.
    * @param {string} id
    * @returns {boolean}
