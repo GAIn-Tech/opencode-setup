@@ -1,11 +1,16 @@
 'use strict';
 
+const path = require('path');
+const os = require('os');
+const fs = require('fs');
+
 const DEFAULT_RETENTION_MS = 24 * 60 * 60 * 1000; // 24 hours
 const DEFAULT_CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const DEFAULT_MAX_EVENTS = 10000;
 const PROVIDERS = Object.freeze([
   'openai', 'anthropic', 'google', 'groq', 'cerebras', 'nvidia'
 ]);
+const DEFAULT_HISTORY_RETENTION_DAYS = 90;
 
 /**
  * PipelineMetricsCollector tracks operational health of the model management pipeline.
@@ -47,6 +52,12 @@ class PipelineMetricsCollector {
     if (typeof options.autoCleanup === 'undefined' || options.autoCleanup) {
       this._startCleanup();
     }
+
+    // SQLite persistence for daily metric summaries
+    this._db = null;
+    this._dbPath = options.dbPath || path.join(os.homedir(), '.opencode', 'metrics-history.db');
+    this._historyRetentionDays = DEFAULT_HISTORY_RETENTION_DAYS;
+    this._initDb();
   }
 
   // ─── Discovery Metrics ───────────────────────────────────────
@@ -416,6 +427,100 @@ class PipelineMetricsCollector {
     return lines.join('\n') + '\n';
   }
 
+  // ─── Persistence ──────────────────────────────────────────────
+
+  /**
+   * Flush current in-memory metrics to SQLite as a daily summary.
+   * Aggregates across all providers. Prunes records older than 90 days.
+   * Never throws — degrades gracefully if DB is unavailable.
+   */
+  flushDailySummary() {
+    if (!this._db) return;
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const snapshot = this.getSnapshot();
+
+      // Aggregate discovery stats across all providers
+      let discoveryTotal = 0, discoverySuccesses = 0, discoveryFailures = 0;
+      for (const data of Object.values(snapshot.discovery)) {
+        discoveryTotal += data.total;
+        discoverySuccesses += data.successes;
+        discoveryFailures += data.failures;
+      }
+
+      // Cache stats
+      const cacheHits = snapshot.cache.l1.hits + snapshot.cache.l2.hits;
+      const cacheMisses = snapshot.cache.l1.misses + snapshot.cache.l2.misses;
+
+      // Transition total
+      let transitionsTotal = 0;
+      for (const count of Object.values(snapshot.transitions)) {
+        transitionsTotal += count;
+      }
+
+      // PR stats
+      const prsCreated = snapshot.prCreation.total;
+      const prsMerged = snapshot.prCreation.successes;
+
+      this._db.prepare(`
+        INSERT OR REPLACE INTO daily_metrics (
+          date, discovery_total, discovery_successes, discovery_failures,
+          cache_hits, cache_misses, cache_l1_hits, cache_l2_hits,
+          transitions_total, prs_created, prs_merged, summary_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        today, discoveryTotal, discoverySuccesses, discoveryFailures,
+        cacheHits, cacheMisses, snapshot.cache.l1.hits, snapshot.cache.l2.hits,
+        transitionsTotal, prsCreated, prsMerged, JSON.stringify(snapshot)
+      );
+
+      // Prune records older than retention period
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - this._historyRetentionDays);
+      const cutoff = cutoffDate.toISOString().slice(0, 10);
+      this._db.prepare('DELETE FROM daily_metrics WHERE date < ?').run(cutoff);
+    } catch (_err) {
+      // Never throw from flush — degrade gracefully
+    }
+  }
+
+  /**
+   * Load daily metric summaries from SQLite history.
+   * @param {number} [days=30] - Number of days of history to load
+   * @returns {Array<object>} Array of { date, discoveryTotal, ... }
+   */
+  loadHistory(days = 30) {
+    if (!this._db) return [];
+    try {
+      const numDays = Math.max(0, Math.floor(Number(days) || 30));
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - numDays);
+      const cutoff = cutoffDate.toISOString().slice(0, 10);
+
+      const rows = this._db.prepare(
+        'SELECT * FROM daily_metrics WHERE date >= ? ORDER BY date ASC'
+      ).all(cutoff);
+
+      return rows.map(row => ({
+        date: row.date,
+        discoveryTotal: row.discovery_total,
+        discoverySuccesses: row.discovery_successes,
+        discoveryFailures: row.discovery_failures,
+        cacheHits: row.cache_hits,
+        cacheMisses: row.cache_misses,
+        cacheL1Hits: row.cache_l1_hits,
+        cacheL2Hits: row.cache_l2_hits,
+        transitionsTotal: row.transitions_total,
+        prsCreated: row.prs_created,
+        prsMerged: row.prs_merged,
+        summary: safeJsonParse(row.summary_json, null),
+        createdAt: row.created_at
+      }));
+    } catch (_err) {
+      return [];
+    }
+  }
+
   // ─── Cleanup ─────────────────────────────────────────────────
 
   /**
@@ -449,6 +554,14 @@ class PipelineMetricsCollector {
       clearInterval(this._cleanupTimer);
       this._cleanupTimer = null;
     }
+    if (this._db) {
+      try {
+        this._db.close();
+      } catch (_err) {
+        // ignore close errors
+      }
+      this._db = null;
+    }
   }
 
   // ─── Internal ────────────────────────────────────────────────
@@ -480,6 +593,52 @@ class PipelineMetricsCollector {
       this._cleanupTimer.unref();
     }
   }
+
+  _initDb() {
+    try {
+      const dir = path.dirname(this._dbPath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+
+      // Prefer bun:sqlite (Bun-native), fall back to better-sqlite3
+      let Database;
+      try {
+        Database = require('bun:sqlite').Database;
+      } catch (_bunErr) {
+        try {
+          Database = require('better-sqlite3');
+        } catch (_bsErr) {
+          this._db = null;
+          return;
+        }
+      }
+      this._db = new Database(this._dbPath);
+      this._db.pragma('journal_mode = WAL');
+      this._db.pragma('synchronous = NORMAL');
+
+      this._db.exec(`
+        CREATE TABLE IF NOT EXISTS daily_metrics (
+          date TEXT PRIMARY KEY,
+          discovery_total INTEGER,
+          discovery_successes INTEGER,
+          discovery_failures INTEGER,
+          cache_hits INTEGER,
+          cache_misses INTEGER,
+          cache_l1_hits INTEGER,
+          cache_l2_hits INTEGER,
+          transitions_total INTEGER,
+          prs_created INTEGER,
+          prs_merged INTEGER,
+          summary_json TEXT,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+    } catch (_err) {
+      // SQLite unavailable (missing module, permissions, etc.) — continue in-memory only
+      this._db = null;
+    }
+  }
 }
 
 // ─── Helpers ───────────────────────────────────────────────────
@@ -501,6 +660,15 @@ function toNonNegativeNumber(value, fallback) {
 function round(value, decimals) {
   const factor = 10 ** decimals;
   return Math.round(value * factor) / factor;
+}
+
+function safeJsonParse(raw, fallback) {
+  if (typeof raw !== 'string' || raw.length === 0) return fallback;
+  try {
+    return JSON.parse(raw);
+  } catch (_err) {
+    return fallback;
+  }
 }
 
 module.exports = {

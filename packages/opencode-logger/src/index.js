@@ -10,6 +10,60 @@ const LOG_LEVELS = {
   fatal: 5
 };
 
+// ─── Langfuse Integration (opt-in) ───────────────────────────────────────────
+// When LANGFUSE_SECRET_KEY and LANGFUSE_PUBLIC_KEY env vars are set, the logger
+// will create Langfuse traces and spans for WARN+ level log entries. This enables
+// observability and tracing without changing any existing log output or behavior.
+//
+// Requirements:
+//   - Set LANGFUSE_SECRET_KEY and LANGFUSE_PUBLIC_KEY environment variables
+//   - Install 'langfuse' or 'langfuse-node' npm package (NOT a required dependency)
+//   - Optionally set LANGFUSE_BASE_URL for self-hosted instances
+//
+// When env vars are unset or the package is not installed, the logger behaves
+// exactly as before — zero overhead, zero side effects.
+// ─────────────────────────────────────────────────────────────────────────────
+
+let _langfuseClient = null;
+let _langfuseInitAttempted = false;
+
+function getLangfuse() {
+  if (!_langfuseClient && !_langfuseInitAttempted) {
+    _langfuseInitAttempted = true;
+    const secretKey = process.env.LANGFUSE_SECRET_KEY;
+    const publicKey = process.env.LANGFUSE_PUBLIC_KEY;
+    if (secretKey && publicKey) {
+      try {
+        // Try 'langfuse' first (standard package), then 'langfuse-node' (alt name)
+        let LangfuseConstructor;
+        try {
+          const mod = require('langfuse');
+          LangfuseConstructor = mod.Langfuse || mod.default || mod;
+        } catch (_e1) {
+          try {
+            const mod = require('langfuse-node');
+            LangfuseConstructor = mod.Langfuse || mod.default || mod;
+          } catch (_e2) {
+            // Neither package available — Langfuse integration disabled
+            return null;
+          }
+        }
+        _langfuseClient = new LangfuseConstructor({
+          secretKey,
+          publicKey,
+          ...(process.env.LANGFUSE_BASE_URL && { baseUrl: process.env.LANGFUSE_BASE_URL })
+        });
+      } catch (_err) {
+        // Langfuse init failed — silently disable, never break logging
+        _langfuseClient = null;
+      }
+    }
+  }
+  return _langfuseClient;
+}
+
+const LANGFUSE_LEVELS = new Set(['warn', 'error', 'fatal']);
+
 class Logger {
   constructor(options = {}) {
     this.level = options.level || 'info';
@@ -51,6 +105,30 @@ class Logger {
       );
     }
     
+    // Langfuse trace/span for WARN+ levels (opt-in, never fails logging)
+    if (LANGFUSE_LEVELS.has(level)) {
+      try {
+        const lf = getLangfuse();
+        if (lf) {
+          const trace = lf.trace({
+            name: `log:${level}`,
+            metadata: {
+              service: this.service,
+              message,
+              ...(this.correlationId && { correlationId: this.correlationId })
+            }
+          });
+          trace.span({
+            name: `${level}:${message.slice(0, 80)}`,
+            input: meta,
+            output: entry
+          });
+        }
+      } catch (_lfErr) {
+        // Langfuse must never interfere with logging
+      }
+    }
+    
     return entry;
   }
   
@@ -76,6 +154,15 @@ class Logger {
   warn(message, meta) { return this._log('warn', message, meta); }
   error(message, meta) { return this._log('error', message, meta); }
   fatal(message, meta) { return this._log('fatal', message, meta); }
+  
+  // Flush pending Langfuse events (no-op if Langfuse not configured)
+  flush() {
+    try {
+      return getLangfuse()?.flush();
+    } catch (_err) {
+      // Never throw from flush
+    }
+  }
   
   // Child logger with additional context
   child(additionalContext) {
@@ -131,6 +218,11 @@ class RequestTracer {
 // Create default logger instance
 const logger = new Logger();
 
+// Convenience: flush pending Langfuse events via the default logger
+function flush() {
+  return logger.flush();
+}
+
 // Export as ES modules
-export { Logger, logger };
+export { Logger, logger, flush };
 export default logger;
