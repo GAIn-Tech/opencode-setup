@@ -414,13 +414,26 @@ class ModelRouter {
    */
   resolveModelId(modelId) {
     if (!modelId) return null;
+
+    // T5 (Wave 11): Cached model ID resolution — O(1) for known models
+    if (this._modelIdCache && this._modelIdCache.has(modelId)) {
+      return this._modelIdCache.get(modelId);
+    }
     
     // First, resolve any aliases (e.g., raw Gemini → Antigravity)
     const aliasResolved = resolveModelAlias(modelId);
     
     // Already namespaced and exists in registry
-    if (this.models[aliasResolved]) return aliasResolved;
-    if (this.models[modelId]) return modelId;
+    if (this.models[aliasResolved]) {
+      if (!this._modelIdCache) this._modelIdCache = new Map();
+      this._modelIdCache.set(modelId, aliasResolved);
+      return aliasResolved;
+    }
+    if (this.models[modelId]) {
+      if (!this._modelIdCache) this._modelIdCache = new Map();
+      this._modelIdCache.set(modelId, modelId);
+      return modelId;
+    }
     
     // Provider prefix mapping for common model name patterns
     const modelToProvider = {
@@ -434,7 +447,11 @@ class ModelRouter {
     for (const [pattern, provider] of Object.entries(modelToProvider)) {
       if (modelLower.startsWith(pattern) || modelLower.includes(pattern)) {
         const namespaced = `${provider}/${modelId}`;
-        if (this.models[namespaced]) return namespaced;
+        if (this.models[namespaced]) {
+          if (!this._modelIdCache) this._modelIdCache = new Map();
+          this._modelIdCache.set(modelId, namespaced);
+          return namespaced;
+        }
       }
     }
     
@@ -443,13 +460,19 @@ class ModelRouter {
     
     for (const prefix of providerPrefixes) {
       const namespaced = `${prefix}${modelId}`;
-      if (this.models[namespaced]) return namespaced;
+      if (this.models[namespaced]) {
+        if (!this._modelIdCache) this._modelIdCache = new Map();
+        this._modelIdCache.set(modelId, namespaced);
+        return namespaced;
+      }
     }
     
     // Try partial match - extract base model name (e.g., claude-opus-4-20240229 -> claude-opus)
     for (const [key, model] of Object.entries(this.models)) {
       const modelBaseName = model.id?.replace(/-(\d{8})$/, '').replace(/-(\d{4})$/, '');
       if (modelBaseName && modelId.includes(modelBaseName)) {
+        if (!this._modelIdCache) this._modelIdCache = new Map();
+        this._modelIdCache.set(modelId, key);
         return key;
       }
       // Also try matching the suffix without provider prefix
@@ -457,12 +480,22 @@ class ModelRouter {
       if (keySuffix) {
         const keyBase = keySuffix.replace(/-(\d{8})$/, '').replace(/-(\d{4})$/, '');
         if (modelId.includes(keyBase)) {
+          if (!this._modelIdCache) this._modelIdCache = new Map();
+          this._modelIdCache.set(modelId, key);
           return key;
         }
       }
     }
     
     return null;
+  }
+
+  /**
+   * T5 (Wave 11): Invalidate model ID resolution cache.
+   * Call when model registry changes.
+   */
+  _invalidateModelIdCache() {
+    this._modelIdCache = null;
   }
 
   /**
@@ -607,15 +640,30 @@ class ModelRouter {
 
     const candidates = this._filterByConstraints(ctx || {});
     
-    // Skill-RL Integration: Get skill-based model recommendations
+    // Skill-RL Integration: Get skill-based model recommendations (T7: memoized)
     let skillBoost = {};
     if (this.skillRLManager) {
       try {
         const taskType = ctx?.taskType || 'general';
-        const recommended = this.skillRLManager.selectSkills({ 
-          taskType, 
-          context: ctx 
-        });
+        // T7 (Wave 11): Memoize selectSkills by taskType (10-min TTL, 200-entry max)
+        if (!this._skillRLMemo) this._skillRLMemo = new Map();
+        const cached = this._skillRLMemo.get(taskType);
+        const now = Date.now();
+        let recommended;
+        if (cached && (now - cached.ts) < 600000) {
+          recommended = cached.value;
+        } else {
+          recommended = this.skillRLManager.selectSkills({ 
+            taskType, 
+            context: ctx 
+          });
+          // Evict oldest if over 200 entries
+          if (this._skillRLMemo.size >= 200) {
+            const oldest = this._skillRLMemo.keys().next().value;
+            this._skillRLMemo.delete(oldest);
+          }
+          this._skillRLMemo.set(taskType, { value: recommended, ts: now });
+        }
         if (recommended?.length > 0) {
           recommended.forEach(skill => {
             if (skill.recommendedModels) {
@@ -1002,6 +1050,24 @@ class ModelRouter {
     if (costResult.bonus > 0) {
       score += costResult.bonus;
       reasons.push(costResult.reason);
+    }
+
+    // T4 (Wave 11): Budget-aware penalty — deprioritize expensive models when budget is tight
+    if (this.tokenBudgetManager?.governor) {
+      try {
+        const sessionId = ctx?.sessionId || ctx?.session_id || 'default';
+        const budgetCheck = this.tokenBudgetManager.governor.getRemainingBudget(sessionId, modelId);
+        if (budgetCheck && budgetCheck.pct >= 0.80) {
+          // Budget is >=80% consumed: penalize high-cost models
+          const costTier = model.cost_tier || 'medium';
+          const costPenalties = { high: 0.15, critical: 0.15, emergency: 0.15, medium: 0.08, low: 0.03, trivial: 0, mechanical: 0 };
+          const penalty = costPenalties[costTier] || 0.05;
+          score -= penalty;
+          reasons.push(`budget-pressure(${(budgetCheck.pct * 100).toFixed(0)}%,-${penalty.toFixed(2)})`);
+        }
+      } catch (e) {
+        // Fail-open: budget check failure should not affect scoring
+      }
     }
 
     // P1: Apply learning-based penalties from LearningEngine
