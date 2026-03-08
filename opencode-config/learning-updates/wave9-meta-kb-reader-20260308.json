@@ -1,0 +1,20 @@
+{
+  "id": "wave9-meta-kb-reader-20260308",
+  "timestamp": "2026-03-08T00:00:00Z",
+  "category": "tooling",
+  "summary": "Add MetaKBReader module to opencode-learning-engine. Fail-open reader that loads meta-knowledge-index.json into memory, queries by affected_path and task_type with 200-token output cap. 12 tests covering load/query/isStale/truncation.",
+  "affected_paths": [
+    "packages/opencode-learning-engine/src/meta-kb-reader.js",
+    "packages/opencode-learning-engine/test/meta-kb-reader.test.js"
+  ],
+  "root_cause": "No programmatic way to consume the meta-knowledge index from within the learning engine. OrchestrationAdvisor needs a reader module to query relevant anti-patterns, suggestions, and conventions for task context.",
+  "fix_approach": "Created MetaKBReader class (CommonJS) with load(), query(), isStale() methods. Query matches files against by_affected_path, anti-patterns by keyword overlap, conventions by path proximity. Output truncated to 800 chars (~200 tokens). All operations fail-open.",
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["node scripts/learning-gate.mjs --generate-hashes"],
+    "notes": "12 tests pass via node --test. bun test exit code 0."
+  }
+}
