@@ -1,5 +1,5 @@
 {
-  "name": "@jackoatmon/opencode-model-router-x",
+  "name": "opencode-model-router-x",
   "version": "0.1.0",
   "description": "Policy-based model router with live outcome tuning for OpenCode",
   "main": "src/index.js",
@@ -28,9 +28,9 @@
     "opencode-learning-engine": "workspace:*",
     "opencode-model-benchmark": "workspace:*",
     "opencode-circuit-breaker": "workspace:*",
-    "@jackoatmon/opencode-context-governor": "workspace:*",
+    "opencode-context-governor": "workspace:*",
     "opencode-health-check": "workspace:*",
-    "@jackoatmon/opencode-fallback-doctor": "workspace:*",
+    "opencode-fallback-doctor": "workspace:*",
     "opencode-feature-flags": "workspace:*",
     "opencode-config-loader": "workspace:*"
   }

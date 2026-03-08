@@ -1,5 +1,5 @@
 {
-  "name": "@jackoatmon/opencode-proofcheck",
+  "name": "opencode-proofcheck",
   "version": "0.1.0",
   "description": "Pluginized deployment gate — verify before commit/push. Checks git status, tests, lint, and security.",
   "main": "src/index.js",

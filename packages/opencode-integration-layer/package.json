@@ -1,5 +1,5 @@
 {
-  "name": "@jackoatmon/opencode-integration-layer",
+  "name": "opencode-integration-layer",
   "version": "0.1.0",
   "description": "Wires SkillRL, Showboat, and orchestration components into OpenCode",
   "main": "src/index.js",
@@ -22,13 +22,13 @@
   },
   "dependencies": {},
   "peerDependencies": {
-    "@jackoatmon/opencode-skill-rl-manager": "workspace:*",
-    "@jackoatmon/opencode-learning-engine": "workspace:*",
-    "@jackoatmon/opencode-shared-orchestration": "workspace:*"
+    "opencode-skill-rl-manager": "workspace:*",
+    "opencode-learning-engine": "workspace:*",
+    "opencode-shared-orchestration": "workspace:*"
   },
   "peerDependenciesMeta": {
-    "@jackoatmon/opencode-skill-rl-manager": { "optional": true },
-    "@jackoatmon/opencode-learning-engine": { "optional": true },
-    "@jackoatmon/opencode-shared-orchestration": { "optional": true }
+    "opencode-skill-rl-manager": { "optional": true },
+    "opencode-learning-engine": { "optional": true },
+    "opencode-shared-orchestration": { "optional": true }
   }
 }
