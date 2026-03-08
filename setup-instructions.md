@@ -2,12 +2,32 @@
 
 ## Prerequisites
 
+### Required for All Platforms
 - **Operating System**: Windows (with Git Bash) or Linux/macOS
-- **Node.js**: v18+
-- **npm**: Package manager for Node.js
 - **Git**: Version control system
-- **bun**: Required, version 1.3.9
-- **uv/uvx**: Required for grep MCP server
+- **bun**: Required, version 1.3.9+ (install via: https://bun.sh)
+
+### Required for MCP Servers (if using local MCPs)
+- **Node.js**: v18+ — Required for `npx`-based MCPs (sequentialthinking, websearch, distill)
+  - Windows: Install via [Node.js LTS](https://nodejs.org/) or `winget install OpenJS.NodeJS.LTS`
+  - After install, restart terminal to update PATH
+- **uv**: Required for `uvx`-based MCPs (grep)
+  - Install via: `pip install uv` (Windows: `irm https://astral.sh/uv/install.ps1 | iex`)
+  - Add to PATH: `C:\Users\<username>\.local\bin`
+
+### Required for Docker Desktop (Windows only)
+- **WSL2**: Required for Docker Desktop to run
+  - Run in PowerShell (as admin): `wsl --install`
+  - After install, restart Docker Desktop
+
+### Quick Install (Windows)
+```powershell
+# Install all prerequisites in one command
+winget install OpenJS.NodeJS.LTS
+irm https://astral.sh/uv/install.ps1 | iex
+wsl --install
+# Restart terminal after these
+```
 
 ## Step 1: Install OpenCode CLI
 
@@ -90,17 +110,19 @@ No manual installation needed — just have them listed in `opencode.json`.
 
 MCP servers are also defined in `opencode.json` under `"mcp"`. They connect automatically on startup:
 
-| Server | Type | Requires |
-|--------|------|----------|
-| tavily | local | `TAVILY_API_KEY` env var |
-| supermemory | remote | `SUPERMEMORY_API_KEY` env var |
-| context7 | remote | Nothing (public) |
-| playwright | local | Nothing |
-| sequentialthinking | local | Nothing |
-| websearch | local | Nothing |
-| grep | local | `uvx` (install via `pip install uv`) |
-| github | local | `GITHUB_TOKEN` env var |
-| distill | local | Nothing |
+| Server | Type | Requires | Prerequisite |
+|--------|------|----------|--------------|
+| tavily | local | `TAVILY_API_KEY` env var | npx (Node.js) |
+| supermemory | remote | `SUPERMEMORY_API_KEY` env var | None |
+| context7 | remote | None | None |
+| playwright | local | None | npx (Node.js) |
+| sequentialthinking | local | None | **npx (Node.js)** |
+| websearch | local | None | **npx (Node.js)** |
+| grep | local | None | **uvx (uv)** |
+| github | local | `GITHUB_TOKEN` env var | npx (Node.js) |
+| distill | local | None | **npx (Node.js)** |
+
+**Important**: If local MCPs fail to connect, ensure Node.js and uv are installed and in your PATH. Run `bun scripts/health-check.mjs` to diagnose.
 
 ### Supermemory Setup
 
@@ -176,6 +198,15 @@ cp project-templates/project-config.yaml ~/your-project/.opencode.yaml
 
 ## Troubleshooting
 
+### Run Health Check
+```bash
+# Diagnose all issues at once
+bun scripts/health-check.mjs
+
+# Run governance checks
+bun run governance:check
+```
+
 ### Plugin Issues
 ```bash
 # Clear and reinstall
@@ -193,6 +224,17 @@ pip install uv
 
 # Verify GitHub token
 echo $GITHUB_TOKEN
+```
+
+### Docker Desktop Issues (Windows)
+```powershell
+# Check WSL status
+wsl --list --verbose
+
+# Install WSL2 if missing
+wsl --install
+
+# Restart Docker Desktop after WSL setup
 ```
 
 ### Antigravity Auth Issues

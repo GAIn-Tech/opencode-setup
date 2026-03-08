@@ -1,0 +1,15 @@
+{
+  "id": "wave8-setup-prereqs-docs-20260308",
+  "timestamp": "2026-03-08T00:05:00Z",
+  "summary": "Add checkPrerequisites() function to setup-resilient.mjs that validates Node.js, uv, and WSL2 availability before setup proceeds. Extend setup-instructions.md with Docker troubleshooting section and secrets onboarding guidance.",
+  "affected_paths": [
+    "scripts/setup-resilient.mjs",
+    "setup-instructions.md"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

@@ -106,6 +106,69 @@ function ensurePSExecutionPolicy() {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Pre-setup: check and warn about required prerequisites for MCP/local dev
+// ---------------------------------------------------------------------------
+function checkPrerequisites() {
+  const missing = [];
+  const warnings = [];
+
+  // Check Node.js (needed for npx-based MCPs)
+  try {
+    const nodeResult = spawnSync('node', ['--version'], { stdio: 'pipe' });
+    if (nodeResult.status !== 0) {
+      missing.push('Node.js (for npx - required for sequentialthinking, websearch, distill MCPs)');
+    }
+  } catch {
+    missing.push('Node.js (for npx - required for sequentialthinking, websearch, distill MCPs)');
+  }
+
+  // Check uv (needed for uvx-based MCPs)
+  try {
+    const uvResult = spawnSync('uvx', ['--version'], { stdio: 'pipe' });
+    if (uvResult.status !== 0) {
+      // Try alternate locations on Windows
+      const altUv = process.platform === 'win32' 
+        ? spawnSync('C:\\Users\\' + (process.env.USERNAME || 'user') + '\\.local\\bin\\uvx.exe', ['--version'], { stdio: 'pipe' })
+        : null;
+      if (!altUv || altUv.status !== 0) {
+        missing.push('uv (for uvx - required for grep MCP; install via: pip install uv)');
+      }
+    }
+  } catch {
+    missing.push('uv (for uvx - required for grep MCP; install via: pip install uv)');
+  }
+
+  // Check WSL2 on Windows (needed for Docker Desktop)
+  if (process.platform === 'win32') {
+    try {
+      const wslResult = spawnSync('wsl', ['--list', '--verbose'], { stdio: 'pipe', encoding: 'utf-8' });
+      if (wslResult.status !== 0 || !wslResult.stdout.includes('Ubuntu')) {
+        warnings.push('WSL2 (Ubuntu) - required for Docker Desktop; run: wsl --install');
+      }
+    } catch {
+      warnings.push('WSL2 (Ubuntu) - required for Docker Desktop; run: wsl --install');
+    }
+  }
+
+  // Report
+  if (missing.length > 0) {
+    console.log('\n[setup-resilient] ⚠️  Missing prerequisites (MCPs may not work):');
+    for (const m of missing) {
+      console.log(`   - ${m}`);
+    }
+  }
+  if (warnings.length > 0) {
+    console.log('\n[setup-resilient] ⚠️  Optional prerequisites (recommended):');
+    for (const w of warnings) {
+      console.log(`   - ${w}`);
+    }
+  }
+  if (missing.length === 0 && warnings.length === 0) {
+    console.log('\n[setup-resilient] ✓ All prerequisites detected');
+  }
+}
+
 const steps = [
   { label: 'preflight-versions', command: 'node', args: ['scripts/preflight-versions.mjs'] },
   { label: 'bun-install', command: 'bun', args: ['install'] },
@@ -143,6 +206,7 @@ function main() {
   loadEnvFile();
   ensureShellOnWindows();
   ensurePSExecutionPolicy();
+  checkPrerequisites();
 
   for (const step of steps) {
     runStep(step);
