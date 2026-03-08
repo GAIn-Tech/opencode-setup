@@ -5,6 +5,7 @@
     "opencode-antigravity-auth@1.4.6",
     "opencode-antigravity-quota@0.1.6",
     "opencode-supermemory@2.0.1",
+    "@tarquinen/opencode-dcp@latest",
     "opencode-plugin-preload-skills@1.8.0",
     "opencode-plugin-langfuse@0.1.8",
     "opencode-pty@0.2.1"

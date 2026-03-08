@@ -9,7 +9,10 @@
   "skills": {
     "enabled": [
        "brainstorming",
+       "budget-aware-router",
+       "context7",
        "dispatching-parallel-agents",
+       "distill",
        "executing-plans",
        "finishing-a-development-branch",
        "receiving-code-review",

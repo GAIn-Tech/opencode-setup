@@ -53,6 +53,9 @@
     "context7": {
       "enabled": true
     },
+    "distill": {
+      "enabled": true
+    },
     "websearch": {
       "enabled": true
     }
