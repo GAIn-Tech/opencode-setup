@@ -44,6 +44,28 @@ class LearningEngine extends EventEmitter {
     this.metaKB = new MetaKBReader(options.metaKBPath);
     this.metaKB.load(); // Non-blocking, returns false if unavailable
 
+    // Register built-in adviceGenerated hook: adjust routing based on meta-KB evidence
+    this.registerHook('adviceGenerated', ({ task_context, advice }) => {
+      if (!this.metaKB.index || !advice?.routing) return;
+      const metaResult = this.metaKB.query(task_context);
+      const warningCount = metaResult.warnings.length;
+      const evidenceCount = metaResult.suggestions.length;
+
+      if (warningCount > 0) {
+        // Reduce confidence by 10% per warning, floor at 0.1
+        const factor = Math.pow(0.9, Math.min(warningCount, 5));
+        advice.routing.confidence = Math.max(
+          0.1,
+          Math.round(advice.routing.confidence * factor * 100) / 100
+        );
+        advice.routing.meta_kb_warnings = warningCount;
+      }
+
+      if (evidenceCount > 0) {
+        advice.routing.meta_kb_evidence = evidenceCount;
+      }
+    });
+
     if (options.hooks && typeof options.hooks === 'object') {
       for (const [hookName, handlers] of Object.entries(options.hooks)) {
         if (Array.isArray(handlers)) {
