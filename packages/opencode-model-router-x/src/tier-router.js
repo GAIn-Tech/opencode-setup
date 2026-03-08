@@ -83,6 +83,25 @@ const FALLBACK_TIER_MAP = {
   mechanical: null
 };
 
+// ─── Model Capability Registry ──────────────────────────────
+// Pre-filter: models missing required capabilities are excluded before scoring.
+// Capabilities: vision, tools, reasoning, large_context (>128k tokens).
+const MODEL_CAPABILITIES = {
+  'opus-thinking':  { vision: true,  tools: true,  reasoning: true,  large_context: true  },
+  'opus':           { vision: true,  tools: true,  reasoning: true,  large_context: true  },
+  'sonnet':         { vision: true,  tools: true,  reasoning: true,  large_context: true  },
+  'haiku':          { vision: false, tools: true,  reasoning: false, large_context: false },
+  // Extended provider models
+  'gpt-5':          { vision: true,  tools: true,  reasoning: true,  large_context: true  },
+  'gpt-5.2':        { vision: true,  tools: true,  reasoning: true,  large_context: true  },
+  'gemini-3-flash': { vision: true,  tools: true,  reasoning: true,  large_context: true  },
+  'gemini-2.5-pro': { vision: true,  tools: true,  reasoning: true,  large_context: true  },
+  'kimi-k2.5':      { vision: false, tools: true,  reasoning: true,  large_context: true  },
+  'deepseek-v3.2':  { vision: false, tools: true,  reasoning: true,  large_context: true  },
+  'glm5':           { vision: false, tools: true,  reasoning: false, large_context: false },
+  'glm-4.7':        { vision: false, tools: true,  reasoning: false, large_context: false },
+};
+
 class TierRouter {
   constructor(options = {}) {
     this.dailyBudget = options.dailyBudget || 10.0;
@@ -164,6 +183,59 @@ class TierRouter {
     } else {
       return { tier: 'mechanical', complexity, strategy: TIER_CONFIG.mechanical };
     }
+  }
+
+  /**
+   * Filter models by required capabilities.
+   * Returns only models from the candidate set that have ALL required capabilities.
+   *
+   * @param {string[]} candidates - Model IDs to filter
+   * @param {string[]} requiredCapabilities - e.g. ['vision', 'reasoning']
+   * @returns {{ passed: string[], filtered: string[] }} - passed models and those filtered out
+   */
+  filterByCapabilities(candidates, requiredCapabilities) {
+    if (!requiredCapabilities || requiredCapabilities.length === 0) {
+      return { passed: candidates, filtered: [] };
+    }
+
+    const passed = [];
+    const filtered = [];
+
+    for (const model of candidates) {
+      // Normalize: strip provider prefix, extract base model name
+      const baseName = model.replace(/^[^/]+\//, '').replace(/^[^/]+\//, '');
+      const caps = MODEL_CAPABILITIES[baseName] || MODEL_CAPABILITIES[model] || null;
+
+      if (!caps) {
+        // Unknown model — let it through (don't block unknown models)
+        passed.push(model);
+        continue;
+      }
+
+      const hasAll = requiredCapabilities.every(cap => caps[cap] === true);
+      if (hasAll) {
+        passed.push(model);
+      } else {
+        filtered.push(model);
+      }
+    }
+
+    // If ALL models were filtered out, return originals (graceful degradation)
+    if (passed.length === 0 && candidates.length > 0) {
+      return { passed: candidates, filtered: [] };
+    }
+
+    return { passed, filtered };
+  }
+
+  /**
+   * Get capabilities for a model.
+   * @param {string} modelId
+   * @returns {object|null}
+   */
+  getModelCapabilities(modelId) {
+    const baseName = modelId.replace(/^[^/]+\//, '').replace(/^[^/]+\//, '');
+    return MODEL_CAPABILITIES[baseName] || MODEL_CAPABILITIES[modelId] || null;
   }
 
   /**
@@ -471,5 +543,6 @@ class TierRouter {
 module.exports = {
   TierRouter,
   TIER_CONFIG,
-  COMPLEXITY_KEYWORDS
+  COMPLEXITY_KEYWORDS,
+  MODEL_CAPABILITIES
 };

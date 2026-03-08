@@ -215,8 +215,75 @@ class RequestTracer {
   }
 }
 
+// ─── Agent Execution Tracer ──────────────────────────────────────────────────
+// High-level trace spans for agent boundaries: task dispatch, model selection,
+// skill loading, tool invocations. Emits to Langfuse when configured, otherwise
+// to structured logs. Each span records input/output and duration.
+// ─────────────────────────────────────────────────────────────────────────────
+
+class AgentTracer {
+  constructor(loggerInstance) {
+    this._logger = loggerInstance || new Logger({ service: 'agent-tracer' });
+  }
+
+  /**
+   * Create and execute a traced span.
+   * @param {string} spanName - e.g. 'task:dispatch', 'model:select', 'skill:load'
+   * @param {object} input - Span input data
+   * @param {Function} fn - Async or sync function to execute within the span
+   * @returns {Promise<*>} - Result of fn()
+   */
+  async span(spanName, input, fn) {
+    const startMs = Date.now();
+    let output = null;
+    let error = null;
+
+    try {
+      output = await fn();
+      return output;
+    } catch (err) {
+      error = err;
+      throw err;
+    } finally {
+      const durationMs = Date.now() - startMs;
+      const meta = {
+        span: spanName,
+        durationMs,
+        ...(input && { input: typeof input === 'object' ? JSON.stringify(input).slice(0, 500) : String(input) }),
+        ...(error && { error: error.message || String(error) }),
+      };
+
+      // Log at info level (always)
+      this._logger.info(`[trace] ${spanName} (${durationMs}ms)${error ? ' FAILED' : ''}`, meta);
+
+      // Emit to Langfuse if available
+      try {
+        const lf = getLangfuse();
+        if (lf) {
+          const trace = lf.trace({
+            name: `agent:${spanName}`,
+            metadata: { service: this._logger.service, durationMs },
+          });
+          trace.span({
+            name: spanName,
+            input: input || {},
+            output: error ? { error: error.message } : (output || {}),
+            startTime: new Date(startMs),
+            endTime: new Date(startMs + durationMs),
+          });
+        }
+      } catch (_lfErr) {
+        // Never let tracing break execution
+      }
+    }
+  }
+}
+
 // Create default logger instance
 const logger = new Logger();
+
+// Create default agent tracer
+const agentTracer = new AgentTracer(logger);
 
 // Convenience: flush pending Langfuse events via the default logger
 function flush() {
@@ -224,5 +291,5 @@ function flush() {
 }
 
 // Export as ES modules
-export { Logger, logger, flush };
+export { Logger, logger, flush, AgentTracer, agentTracer, RequestTracer };
 export default logger;
