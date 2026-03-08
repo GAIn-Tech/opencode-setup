@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-03-08T22:42:11.188Z",
+  "generated_at": "2026-03-08T22:53:25.960Z",
   "schema_version": 1,
-  "total_records": 188,
+  "total_records": 189,
   "source_files": {
-    "learning_updates": 188,
+    "learning_updates": 189,
     "agents_md": 7
   },
   "by_category": {
@@ -81,6 +81,15 @@
           "packages/opencode-validator/test/validator.test.js",
           "packages/opencode-memory-bus/test/spike.test.js",
           "packages/opencode-learning-engine/test/advise-edge-cases.test.js"
+        ],
+        "timestamp": "2026-03-08T19:20:00Z"
+      },
+      {
+        "id": "wave10-t12-t13-benchmark-cost-scoring",
+        "summary": "Add benchmark bonus scoring (T12) and cost-efficiency factor (T13) to ModelRouter._scoreModel(). BENCHMARK_SCORES registry with HumanEval/MBPP pass@1 for 16 models. _applyBenchmarkBonus() gives 0-0.15 supplementary bonus. _applyCostEfficiency() uses TokenCostCalculator pricing for 0-0.05 cost bonus. Neither changes existing scoring weights.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-model-router-x/src/index.js"
         ],
         "timestamp": "2026-03-08T19:20:00Z"
       },
@@ -4309,6 +4318,15 @@
         "timestamp": "2026-03-08T19:21:00Z"
       },
       {
+        "id": "wave10-t12-t13-benchmark-cost-scoring",
+        "summary": "Add benchmark bonus scoring (T12) and cost-efficiency factor (T13) to ModelRouter._scoreModel(). BENCHMARK_SCORES registry with HumanEval/MBPP pass@1 for 16 models. _applyBenchmarkBonus() gives 0-0.15 supplementary bonus. _applyCostEfficiency() uses TokenCostCalculator pricing for 0-0.05 cost bonus. Neither changes existing scoring weights.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-model-router-x/src/index.js"
+        ],
+        "timestamp": "2026-03-08T19:20:00Z"
+      },
+      {
         "id": "wave9-meta-kb-wiring-20260308",
         "summary": "Wire MetaKBReader into LearningEngine.advise() method. Advice output now includes meta_context field with warnings, suggestions, and conventions from the meta-knowledge index. Fail-open: returns empty arrays if index unavailable. Adds meta_context_stale flag when index > 24h old. 6 integration tests.",
         "risk_level": "medium",
@@ -4766,6 +4784,12 @@
         "summary": "Add MODEL_CAPABILITIES registry and filterByCapabilities() pre-filter to tier-router for capability-based model selection (vision, tools, reasoning, large_context). Add AgentTracer class to opencode-logger for high-level execution tracing (task dispatch, model selection, skill loading) with Langfuse and structured log output.",
         "risk_level": "medium",
         "timestamp": "2026-03-08T22:51:00Z"
+      },
+      {
+        "id": "wave10-t12-t13-benchmark-cost-scoring",
+        "summary": "Add benchmark bonus scoring (T12) and cost-efficiency factor (T13) to ModelRouter._scoreModel(). BENCHMARK_SCORES registry with HumanEval/MBPP pass@1 for 16 models. _applyBenchmarkBonus() gives 0-0.15 supplementary bonus. _applyCostEfficiency() uses TokenCostCalculator pricing for 0-0.05 cost bonus. Neither changes existing scoring weights.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-08T19:20:00Z"
       },
       {
         "id": "audit-namespace-fallback-20260308",
