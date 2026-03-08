@@ -1077,6 +1077,27 @@ class ModelRouter {
       result.reasons.push(`risk:${advice.riskScore.toFixed(1)}`);
     }
 
+    // Apply meta-KB signals (from Wave 9 meta-knowledge-base integration)
+    // advice.routing.meta_kb_warnings is set by the adviceGenerated hook (Task 6)
+    // advice.routing.meta_kb_evidence is set by the same hook for positive signals
+    const routing = advice.routing || {};
+    const metaWarnings = typeof routing.meta_kb_warnings === 'number' ? routing.meta_kb_warnings : 0;
+    const metaEvidence = Array.isArray(routing.meta_kb_evidence) ? routing.meta_kb_evidence : [];
+
+    if (metaWarnings > 0) {
+      // Each meta-KB warning applies a small penalty (capped at 0.25)
+      const metaPenalty = Math.min(0.25, metaWarnings * 0.05);
+      result.scorePenalty += metaPenalty;
+      result.reasons.push(`meta-kb:warnings(${metaWarnings})`);
+    }
+
+    if (metaEvidence.length > 0) {
+      // Positive evidence reduces penalty (bonus capped at 0.1)
+      const metaBonus = Math.min(0.1, metaEvidence.length * 0.03);
+      result.scorePenalty = Math.max(0, result.scorePenalty - metaBonus);
+      result.reasons.push(`meta-kb:evidence(${metaEvidence.length})`);
+    }
+
     return result;
   }
 
