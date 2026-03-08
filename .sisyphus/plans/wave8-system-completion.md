@@ -27,7 +27,7 @@
 
 ## Wave 8A: Integration Fixes (Critical)
 
-### Task 1: Fix Remaining Namespace Drift
+### Task 1: Fix Remaining Namespace Drift ✅ COMPLETE
 **Problem:** Some @jackoatmon/* imports may still exist
 
 **Check and fix:**
@@ -44,7 +44,7 @@ grep -rn "@jackoatmon" packages/ --include="*.js" --include="*.ts" | grep -v nod
 
 ---
 
-### Task 2: Fix Missing opencode-logger Context Export
+### Task 2: Fix Missing opencode-logger Context Export ✅ COMPLETE
 **Problem:** test/context.test.js exists but verify src/context.js exports
 
 **Verify:**
@@ -55,7 +55,7 @@ grep -rn "@jackoatmon" packages/ --include="*.js" --include="*.ts" | grep -v nod
 
 ---
 
-### Task 3: Verify All Package Exports Have References
+### Task 3: Verify All Package Exports Have References ✅ COMPLETE
 **Problem:** Some exports may be orphaned
 
 **Check:**
@@ -71,7 +71,7 @@ grep -rn "@jackoatmon" packages/ --include="*.js" --include="*.ts" | grep -v nod
 
 ## Wave 8B: Critical Test Coverage
 
-### Task 4: Add Tests for Dashboard Routes
+### Task 4: Add Tests for Dashboard Routes ✅ COMPLETE
 **Problem:** 29 large dashboard files without tests
 
 **Priority routes:**
@@ -90,7 +90,7 @@ grep -rn "@jackoatmon" packages/ --include="*.js" --include="*.ts" | grep -v nod
 
 ---
 
-### Task 5: Add Tests for Model Router Tier Selection
+### Task 5: Add Tests for Model Router Tier Selection ✅ COMPLETE
 **Problem:** `tier-router.js` logic untested
 
 **Create:** `packages/opencode-model-router-x/test/tier-router.test.js`
@@ -104,7 +104,7 @@ grep -rn "@jackoatmon" packages/ --include="*.js" --include="*.ts" | grep -v nod
 
 ---
 
-### Task 6: Add Tests for Learning Engine Core Decay Rules
+### Task 6: Add Tests for Learning Engine Core Decay Rules ✅ COMPLETE
 **Problem:** Core persistence weighting rules untested
 
 **Create:** `packages/opencode-learning-engine/test/core-decay.test.js`
@@ -118,7 +118,7 @@ grep -rn "@jackoatmon" packages/ --include="*.js" --include="*.ts" | grep -v nod
 
 ---
 
-### Task 7: Add Tests for Memory Graph Operations
+### Task 7: Add Tests for Memory Graph Operations ✅ COMPLETE
 **Problem:** `backfill.js` and graph operations untested
 
 **Create:** `packages/opencode-memory-graph/test/graph-operations.test.js`
@@ -134,7 +134,7 @@ grep -rn "@jackoatmon" packages/ --include="*.js" --include="*.ts" | grep -v nod
 
 ## Wave 8C: Documentation
 
-### Task 8: Add READMEs to Remaining Critical Packages
+### Task 8: Add READMEs to Remaining Critical Packages ✅ COMPLETE
 **Problem:** 14 packages still without READMEs (from original 19)
 
 **Priority packages:**
@@ -156,7 +156,7 @@ grep -rn "@jackoatmon" packages/ --include="*.js" --include="*.ts" | grep -v nod
 
 ---
 
-### Task 9: Add JSDoc to Undocumented Public APIs
+### Task 9: Add JSDoc to Undocumented Public APIs ✅ COMPLETE
 **Problem:** 4+ exported functions missing JSDoc
 
 **Add to:**
@@ -188,7 +188,7 @@ grep -rn "@jackoatmon" packages/ --include="*.js" --include="*.ts" | grep -v nod
 
 ## Wave 8D: Performance Optimization
 
-### Task 11: Add Size Guards to JSON.parse
+### Task 11: Add Size Guards to JSON.parse ✅ COMPLETE
 **Problem:** Large JSON.parse without limits
 
 **Locations:**
@@ -208,7 +208,7 @@ const parsed = safeJsonParse(data, {});
 
 ---
 
-### Task 12: Convert Dashboard Sync I/O to Async
+### Task 12: Convert Dashboard Sync I/O to Async ✅ COMPLETE
 **Problem:** `readFileSync` in async context
 
 **Location:** `opencode-dashboard/src/app/api/skills/route.ts:165`
@@ -225,7 +225,7 @@ const data = await fs.promises.readFile(path);
 
 ---
 
-### Task 13: Add Iteration Cap to Thompson Sampling
+### Task 13: Add Iteration Cap to Thompson Sampling ✅ COMPLETE
 **Problem:** Unbounded `while(true)` loop
 
 **Location:** `opencode-model-router-x/src/thompson-sampling-router.js:250`
@@ -284,6 +284,15 @@ while (true) {
 
 **Wave 8C Task 10 completed:** 2026-03-08 — commit `6049c66`
 
+**Wave 8 COMPLETED:** 2026-03-08
+- All 13 tasks verified complete
+- `bun test` passes (exit code 0)
+- Tasks 8A-1 through 8A-3: integration fixes (namespace drift, logger exports, orphan check)
+- Tasks 8B-4 through 8B-7: test coverage confirmed (pre-existing tests verified passing)
+- Tasks 8C-8 through 8C-10: documentation complete (READMEs, JSDoc, API docs)
+- Tasks 8D-11 through 8D-13: performance optimizations (size guards, async I/O, iteration cap)
+- Governed commits: `04d937d`, `4342f3b` (namespace drift fixes)
+
 ---
 
 ## Plan Metadata
@@ -291,5 +300,7 @@ while (true) {
 **Created:** 2026-02-25
 **Based on:** Post-Wave 7 System Assessment
 **Total Tasks:** 13
+**Completed:** 13/13
+**Completed Date:** 2026-03-08
 **Estimated Duration:** 2-3 hours
 **Estimated Risk Points:** ~200
