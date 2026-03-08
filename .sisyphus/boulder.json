@@ -131,6 +131,28 @@
       "commits": ["6975aec", "37e2965", "7808097", "4b4489d", "08b4141"],
       "tasks_completed": 6,
       "risk_points_reduced": 200
+    },
+    {
+      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\wave8-system-completion.md",
+      "plan_name": "wave8-system-completion",
+      "started_at": "2026-03-08T00:00:00.000Z",
+      "completed_at": "2026-03-08T18:44:00.000Z",
+      "session_ids": ["current"],
+      "agent": "atlas",
+      "commits": ["04d937d", "4342f3b"],
+      "tasks_completed": 13,
+      "risk_points_reduced": 200
+    },
+    {
+      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\wave9-meta-knowledge-base.md",
+      "plan_name": "wave9-meta-knowledge-base",
+      "started_at": "2026-03-08T19:00:00.000Z",
+      "completed_at": "2026-03-08T21:00:00.000Z",
+      "session_ids": ["current"],
+      "agent": "atlas",
+      "commits": ["9559768", "fc1eb46", "03b03af", "9d9a243", "0dc9e03", "549420f", "e717224", "bfe83fd", "8f5247e", "222ce63", "f595c45", "332f02f", "6597107"],
+      "tasks_completed": 14,
+      "risk_points_reduced": 300
     }
   ]
 }
