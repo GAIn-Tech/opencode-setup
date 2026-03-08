@@ -7,16 +7,12 @@
     "opencode-skill-rl-manager"
   ],
   "userSkills": {
-    "minimumCount": 35,
+    "minimumCount": 8,
     "required": [
-      "codebase-auditor",
       "code-doctor",
-      "task-orchestrator",
-      "systematic-debugging",
-      "test-driven-development",
-      "verification-before-completion",
-      "writing-plans",
-      "executing-plans"
+      "budget-aware-router",
+      "research-builder",
+      "evaluation-harness-builder"
     ]
   }
 }

@@ -27,6 +27,9 @@
     "src/",
     "README.md"
   ],
+  "dependencies": {
+    "opencode-safe-io": "workspace:*"
+  },
   "engines": {
     "node": ">=16.0.0"
   },
