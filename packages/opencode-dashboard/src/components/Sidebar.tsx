@@ -18,6 +18,7 @@ const navigation: NavItem[] = [
   { name: 'Orch Intelligence', href: '/orchestration/intelligence', icon: '🧭', description: 'Meta-awareness & stability' },
   { name: 'Models', href: '/models', icon: '🤖', description: 'Model routing & RL metrics' },
   { name: 'Config', href: '/config', icon: '⚙️', description: 'View all settings' },
+  { name: 'Observability', href: '/observability', icon: '📡', description: 'Pipeline metrics & alerts' },
   { name: 'Health', href: '/health', icon: '💚', description: 'Package & system status' },
   { name: 'Docs', href: '/docs', icon: '📚', description: 'Documentation browser' },
 ];

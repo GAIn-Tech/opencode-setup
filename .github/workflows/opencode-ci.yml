@@ -134,3 +134,25 @@ jobs:
             node -e "require('./packages/opencode-fallback-doctor/src/index.js')"
             echo "Fallback Doctor loadable"
           fi
+
+      - name: Dependency audit (security)
+        run: |
+          echo "=== Bun dependency audit ==="
+          bun pm ls --all 2>/dev/null || true
+          # Check for known vulnerable patterns in lockfile
+          node -e "
+            const fs = require('fs');
+            const lock = fs.readFileSync('bun.lock', 'utf8');
+            const vulnPatterns = ['event-stream', 'flatmap-stream', 'colors@1.4.1'];
+            let found = false;
+            for (const p of vulnPatterns) {
+              if (lock.includes(p)) {
+                console.error('VULN: Known vulnerable package found:', p);
+                found = true;
+              }
+            }
+            if (!found) console.log('No known vulnerable packages detected');
+          "
+
+      - name: Integrity guard
+        run: node scripts/integrity-guard.mjs
