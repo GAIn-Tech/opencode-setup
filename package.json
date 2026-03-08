@@ -32,7 +32,14 @@
     "state:deploy": "node scripts/deployment-state.mjs",
     "governance:check": "node scripts/learning-gate.mjs --staged && node scripts/deployment-state.mjs check-flow && node scripts/integrity-guard.mjs",
     "q": "node scripts/rebuild-q-runtime.mjs",
-    "q:recover": "node scripts/rebuild-q-runtime.mjs"
+    "q:recover": "node scripts/rebuild-q-runtime.mjs",
+    "skills": "node scripts/skills-manage.mjs list --all",
+    "skills:list": "node scripts/skills-manage.mjs list",
+    "skills:add": "node scripts/skills-manage.mjs add",
+    "skills:enable": "node scripts/skills-manage.mjs enable",
+    "skills:disable": "node scripts/skills-manage.mjs disable",
+    "skills:audit": "node scripts/skills-manage.mjs audit",
+    "skills:sync": "node scripts/skills-manage.mjs sync"
   },
   "main": "index.js",
   "devDependencies": {},
