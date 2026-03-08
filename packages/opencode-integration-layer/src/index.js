@@ -103,6 +103,23 @@ class IntegrationLayer {
     // P1 FIX: Use Map keyed by task_id instead of global mutable state
     this.taskContextMap = new Map();
     this.currentSessionId = config.currentSessionId || config.sessionId || null;
+
+    // Meta-KB index: fail-open loading for SkillRL integration
+    this.metaKBIndex = null;
+    if (config.metaKBIndexPath) {
+      try {
+        const fs = require('fs');
+        if (fs.existsSync(config.metaKBIndexPath)) {
+          const raw = fs.readFileSync(config.metaKBIndexPath, 'utf-8');
+          const parsed = JSON.parse(raw);
+          if (parsed.schema_version && parsed.by_category !== undefined) {
+            this.metaKBIndex = parsed;
+          }
+        }
+      } catch {
+        // Fail-open: proceed without meta-KB
+      }
+    }
     
     // Initialize utility packages
     this.logger = logger;
@@ -369,7 +386,9 @@ class IntegrationLayer {
   createOrchestrationAdvisorHooks() {
     return {
       /**
-       * Augment advice with SkillRL skill selection before returning
+       * Augment advice with SkillRL skill selection before returning.
+       * When meta-KB is available, adjusts skill scores based on
+       * anti-pattern penalties and positive evidence boosts.
        */
       onBeforeAdviceReturn: (taskContext, advice) => {
         if (!this.skillRL) {
@@ -380,11 +399,25 @@ class IntegrationLayer {
         const skills = this.skillRL.selectSkills(taskContext);
 
         // Augment advice with SkillRL recommendations
-        return {
+        const augmented = {
           ...advice,
           skillrl_skills: skills.map(s => s.name),
-          skillrl_relevance: skills.map(s => s.relevance_score)
+          skillrl_relevance: skills.map(s => s.relevance_score),
         };
+
+        // Apply meta-KB signal adjustments to SkillRL scores (fail-open)
+        if (this.metaKBIndex) {
+          try {
+            const adjustments = this._computeMetaKBSkillAdjustments(
+              taskContext, skills, this.metaKBIndex
+            );
+            augmented.meta_kb_skill_adjustments = adjustments;
+          } catch (err) {
+            logger.warn('Meta-KB skill adjustment failed', { error: err.message });
+          }
+        }
+
+        return augmented;
       },
 
       /**
@@ -678,6 +711,54 @@ class IntegrationLayer {
     return signal.provider_id === 'unknown' && signal.percent_used === 0 && signal.rotator_risk === 0
       ? null
       : signal;
+  }
+
+  /**
+   * Compute meta-KB skill adjustments for SkillRL integration.
+   * Anti-patterns matching skill names → penalty (negative score).
+   * Positive path matches → boost (positive score).
+   * @private
+   */
+  _computeMetaKBSkillAdjustments(taskContext, skills, metaKBIndex) {
+    const skillNames = skills.map(s => (s.name || '').toLowerCase());
+    const files = taskContext?.files || [];
+    let antiPatternPenalty = 0;
+    let positiveEvidence = 0;
+    const affectedSkills = [];
+
+    // Check anti-patterns for skill name mentions
+    if (Array.isArray(metaKBIndex.anti_patterns)) {
+      for (const ap of metaKBIndex.anti_patterns) {
+        const patternLower = (ap.pattern || '').toLowerCase();
+        const descLower = (ap.description || '').toLowerCase();
+        for (const skillName of skillNames) {
+          if (patternLower.includes(skillName) || descLower.includes(skillName)) {
+            const severityWeight = { critical: 4, high: 3, medium: 2, low: 1 }[ap.severity] || 1;
+            antiPatternPenalty += severityWeight;
+            affectedSkills.push({ skill: skillName, type: 'anti_pattern', severity: ap.severity });
+          }
+        }
+      }
+    }
+
+    // Check positive path matches
+    if (files.length > 0 && metaKBIndex.by_affected_path) {
+      for (const file of files) {
+        const normalized = file.replace(/\\/g, '/');
+        for (const [pathKey, entries] of Object.entries(metaKBIndex.by_affected_path)) {
+          if (normalized.startsWith(pathKey) || normalized.includes(pathKey)) {
+            positiveEvidence += entries.length;
+          }
+        }
+      }
+    }
+
+    return {
+      anti_pattern_penalty: antiPatternPenalty,
+      positive_evidence: positiveEvidence,
+      affected_skills: affectedSkills,
+      net_adjustment: positiveEvidence - antiPatternPenalty,
+    };
   }
 }
 
