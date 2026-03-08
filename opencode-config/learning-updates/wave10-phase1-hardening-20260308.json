@@ -1,0 +1,22 @@
+{
+  "id": "wave10-phase1-hardening-20260308",
+  "timestamp": "2026-03-08T19:21:00Z",
+  "summary": "Wave 10 Phase 1 plugin hardening: healthd daemon timeout protection + crash logging, lifecycle plugin error handling + state validation",
+  "affected_paths": [
+    "packages/opencode-plugin-healthd/src/daemon.js",
+    "packages/opencode-plugin-lifecycle/src/index.js"
+  ],
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "wave": "10",
+  "phase": "1",
+  "tasks": ["W10-T6", "W10-T7"],
+  "details": {
+    "healthd_daemon": "Added runCheckWithTimeout() (30s max per check), logCrash() for persistent crash log (~/.opencode/healthd-crashes.json, last 10 entries), wired into uncaughtException handler",
+    "lifecycle_plugin": "Wrapped _save() with try/catch + temp file cleanup, evaluateMany() with per-plugin error isolation, added validateState() method with required field + status enum validation, called from _load()"
+  }
+}

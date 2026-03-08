@@ -9,9 +9,11 @@ const { Healthd } = require('./index');
 // --- Constants ---
 
 const CHECK_INTERVAL_MS = 300_000; // 5 minutes
+const CHECK_TIMEOUT_MS = 30_000; // 30 seconds max per check
 const OPENCODE_DIR = path.join(os.homedir(), '.opencode');
 const LOG_FILE = path.join(OPENCODE_DIR, 'healthd.log');
 const PID_FILE = path.join(OPENCODE_DIR, 'healthd.pid');
+const CRASH_LOG_FILE = path.join(OPENCODE_DIR, 'healthd-crashes.json');
 
 // --- Ensure directories ---
 
@@ -118,6 +120,66 @@ function checkExistingDaemon() {
   return null;
 }
 
+// --- Timeout wrapper for health checks ---
+
+function runCheckWithTimeout(healthd, timeoutMs = CHECK_TIMEOUT_MS) {
+  let completed = false;
+  
+  const timeoutHandle = setTimeout(() => {
+    if (!completed) {
+      log('warn', `Health check exceeded timeout (${timeoutMs}ms), skipping this cycle`);
+    }
+  }, timeoutMs);
+  
+  try {
+    healthd.runCheck();
+    completed = true;
+    clearTimeout(timeoutHandle);
+  } catch (err) {
+    completed = true;
+    clearTimeout(timeoutHandle);
+    throw err;
+  }
+}
+
+// --- Crash logging ---
+
+function logCrash(err) {
+  try {
+    let crashes = [];
+    
+    // Read existing crashes if file exists
+    if (fs.existsSync(CRASH_LOG_FILE)) {
+      try {
+        const content = fs.readFileSync(CRASH_LOG_FILE, 'utf8');
+        crashes = JSON.parse(content);
+        if (!Array.isArray(crashes)) crashes = [];
+      } catch {
+        // If file is corrupted, start fresh
+        crashes = [];
+      }
+    }
+    
+    // Add new crash entry
+    crashes.push({
+      timestamp: new Date().toISOString(),
+      error: err.message,
+      stack: err.stack,
+    });
+    
+    // Keep only last 10 crashes
+    if (crashes.length > 10) {
+      crashes = crashes.slice(-10);
+    }
+    
+    // Write back to file
+    fs.writeFileSync(CRASH_LOG_FILE, JSON.stringify(crashes, null, 2), 'utf8');
+  } catch (logErr) {
+    // Crash logging failure should not crash the daemon
+    process.stderr.write(`[ERROR] Failed to log crash: ${logErr.message}\n`);
+  }
+}
+
 // --- Main daemon ---
 
 function main() {
@@ -176,11 +238,11 @@ function main() {
   });
 
   // Run initial check immediately
-  healthd.runCheck();
+  runCheckWithTimeout(healthd);
 
   // Set up interval
   const intervalId = setInterval(() => {
-    healthd.runCheck();
+    runCheckWithTimeout(healthd);
   }, CHECK_INTERVAL_MS);
 
   // Prevent interval from keeping Node alive when we want to exit
@@ -218,6 +280,7 @@ function main() {
   // Uncaught exception handler — log and continue
   process.on('uncaughtException', (err) => {
     log('error', `Uncaught exception: ${err.message}`, { stack: err.stack });
+    logCrash(err);
     // Don't exit — daemon should be resilient
   });
 
@@ -232,4 +295,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { main, CHECK_INTERVAL_MS, LOG_FILE, PID_FILE };
+module.exports = { main, CHECK_INTERVAL_MS, CHECK_TIMEOUT_MS, LOG_FILE, PID_FILE, CRASH_LOG_FILE, runCheckWithTimeout, logCrash };

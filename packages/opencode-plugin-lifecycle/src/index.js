@@ -97,11 +97,32 @@ class PluginLifecycleSupervisor {
   }
 
   async evaluateMany(inputs = []) {
-    const items = inputs.map((input) => this.evaluatePlugin(input));
-    await this._save();
+    const items = [];
+    for (const input of inputs) {
+      try {
+        const result = this.evaluatePlugin(input);
+        items.push(result);
+      } catch (err) {
+        items.push({
+          name: input?.name || 'unknown',
+          status: 'error',
+          reason_code: 'evaluation-error',
+          error: err.message,
+        });
+      }
+    }
+
+    try {
+      await this._save();
+    } catch (err) {
+      // Non-fatal: log but don't re-throw
+      console.error('[plugin-lifecycle] Failed to save state:', err.message);
+    }
+
     const degraded = items.filter((item) => item.status === 'degraded').length;
     const healthy = items.filter((item) => item.status === 'healthy').length;
     const unknown = items.filter((item) => item.status === 'unknown').length;
+    const error = items.filter((item) => item.status === 'error').length;
     const quarantined = items.filter((item) => Boolean(item.quarantine)).length;
 
     return {
@@ -110,6 +131,7 @@ class PluginLifecycleSupervisor {
       healthy,
       degraded,
       unknown,
+      error,
       quarantined,
       items,
     };
@@ -130,6 +152,11 @@ class PluginLifecycleSupervisor {
           safe[key] = parsed[key];
         }
       }
+      // Validate state integrity
+      const validation = this.validateState(safe);
+      if (!validation.valid) {
+        console.warn('[plugin-lifecycle] State validation issues:', validation.issues);
+      }
       return safe;
     } catch {
       return Object.create(null);
@@ -137,11 +164,59 @@ class PluginLifecycleSupervisor {
   }
 
   async _save() {
-    const dir = path.dirname(this.statePath);
-    await fsPromises.mkdir(dir, { recursive: true });
-    const tmp = `${this.statePath}.tmp`;
-    await fsPromises.writeFile(tmp, JSON.stringify(this.state, null, 2), 'utf8');
-    await fsPromises.rename(tmp, this.statePath);
+    try {
+      const dir = path.dirname(this.statePath);
+      await fsPromises.mkdir(dir, { recursive: true });
+      const tmp = `${this.statePath}.tmp`;
+      await fsPromises.writeFile(tmp, JSON.stringify(this.state, null, 2), 'utf8');
+      await fsPromises.rename(tmp, this.statePath);
+    } catch (err) {
+      // Attempt cleanup of temp file
+      const tmp = `${this.statePath}.tmp`;
+      try {
+        await fsPromises.unlink(tmp);
+      } catch {
+        // Ignore cleanup errors
+      }
+      // Log error to stderr but don't re-throw (save failures are non-fatal)
+      console.error('[plugin-lifecycle] Failed to save state:', err.message);
+    }
+  }
+
+  validateState(stateObj = this.state) {
+    const issues = [];
+    const validStatuses = ['healthy', 'degraded', 'unknown', 'error'];
+
+    for (const [name, entry] of Object.entries(stateObj)) {
+      if (typeof entry !== 'object' || entry === null) {
+        issues.push(`Entry "${name}" is not an object`);
+        continue;
+      }
+
+      // Check required fields
+      if (!entry.name || typeof entry.name !== 'string') {
+        issues.push(`Entry "${name}" missing or invalid "name" field`);
+      }
+      if (!entry.status || typeof entry.status !== 'string') {
+        issues.push(`Entry "${name}" missing or invalid "status" field`);
+      }
+      if (!entry.updated_at || typeof entry.updated_at !== 'string') {
+        issues.push(`Entry "${name}" missing or invalid "updated_at" field`);
+      }
+      if (!entry.reason_code || typeof entry.reason_code !== 'string') {
+        issues.push(`Entry "${name}" missing or invalid "reason_code" field`);
+      }
+
+      // Check status is valid
+      if (entry.status && !validStatuses.includes(entry.status)) {
+        issues.push(`Entry "${name}" has invalid status: "${entry.status}"`);
+      }
+    }
+
+    return {
+      valid: issues.length === 0,
+      issues,
+    };
   }
 }
 
