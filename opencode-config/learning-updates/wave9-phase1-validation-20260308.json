@@ -1,0 +1,19 @@
+{
+  "id": "wave9-phase1-validation-20260308",
+  "timestamp": "2026-03-08T00:00:00Z",
+  "category": "tooling",
+  "summary": "Add meta-KB npm scripts (meta-kb:synthesize, meta-kb:drift, meta-kb:check) to root package.json. Phase 1 validated: synthesis produces 165 records, drift detects 7 issues, advise() includes meta_context with warnings/suggestions/conventions. All tests pass.",
+  "affected_paths": [
+    "package.json"
+  ],
+  "root_cause": "No convenient npm scripts to run meta-KB synthesis and drift detection. Phase 1 acceptance criteria needed formal validation.",
+  "fix_approach": "Added 3 npm scripts to root package.json. Ran Phase 1 acceptance criteria: synthesis exit 0 with 165 records, drift exit 0 with 7 drift issues, advise() meta_context present with 1 warning + 2 conventions, bun test exit 0.",
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["node scripts/learning-gate.mjs --generate-hashes"],
+    "notes": "Phase 1 complete. All 4 acceptance criteria pass. Ready for Phase 2."
+  }
+}

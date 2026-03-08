@@ -39,7 +39,10 @@
     "skills:enable": "node scripts/skills-manage.mjs enable",
     "skills:disable": "node scripts/skills-manage.mjs disable",
     "skills:audit": "node scripts/skills-manage.mjs audit",
-    "skills:sync": "node scripts/skills-manage.mjs sync"
+    "skills:sync": "node scripts/skills-manage.mjs sync",
+    "meta-kb:synthesize": "node scripts/synthesize-meta-kb.mjs",
+    "meta-kb:drift": "node scripts/check-agents-drift.mjs",
+    "meta-kb:check": "node scripts/synthesize-meta-kb.mjs && node scripts/check-agents-drift.mjs"
   },
   "main": "index.js",
   "devDependencies": {},
