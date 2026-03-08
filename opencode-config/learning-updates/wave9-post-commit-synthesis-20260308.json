@@ -1,0 +1,17 @@
+{
+  "id": "wave9-post-commit-synthesis-20260308",
+  "timestamp": "2026-03-08T00:00:00Z",
+  "category": "tooling",
+  "summary": "Add post-commit meta-KB synthesis hook to learning-gate.mjs — after governed commits pass validation, automatically re-runs synthesize-meta-kb.mjs to keep the index fresh",
+  "affected_paths": ["scripts/learning-gate.mjs"],
+  "root_cause": "Meta-KB index could become stale if not refreshed after new learning-updates are committed",
+  "fix_approach": "Added triggerMetaKBSynthesis() function after PASS message; guards against circular amplification by checking for source: meta-kb-auto; fail-open with 30s timeout",
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["node scripts/learning-gate.mjs --generate-hashes", "bun test"],
+    "notes": "Synthesis trigger is fail-open — errors are logged as warnings, never block the gate"
+  }
+}
