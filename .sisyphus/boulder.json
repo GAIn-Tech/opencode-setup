@@ -1,25 +1,35 @@
 {
-  "active_plan": ".sisyphus/plans/wave10-system-hardening.md",
-  "plan_name": "wave10-system-hardening",
-  "started_at": "2026-03-08T21:30:00.000Z",
+  "active_plan": ".sisyphus/plans/wave11-perf-and-context-management.md",
+  "plan_name": "wave11-perf-and-context-management",
+  "started_at": "2026-03-09T00:00:00.000Z",
   "session_ids": ["current"],
   "progress": {
     "total_tasks": 25,
-    "completed": 25,
-    "current_task": null
+    "completed": 7,
+    "current_task": "T8"
   },
-  "completed_at": "2026-03-08T19:30:00.000Z",
   "waves": {
-    "wave10": {
+    "wave11": {
       "phase1": "complete",
-      "phase2": "complete",
-      "phase3": "complete",
-      "phase4": "complete"
+      "phase2": "pending",
+      "phase3": "pending",
+      "phase4": "pending"
     }
   },
-  "commits": ["2509b21", "032a397", "0f20149", "745c95f", "fddd96a", "d33dbc7", "b1035bc", "bf9b8c2", "7aae907", "a8bfcbb", "f74283c"],
-  "risk_points_reduced": 400,
+  "commits": ["8db7698", "d869df7", "601cfe0", "1c60c7f"],
+  "risk_points_reduced": 140,
   "completed_plans": [
+    {
+      "plan_path": ".sisyphus/plans/wave10-system-hardening.md",
+      "plan_name": "wave10-system-hardening",
+      "started_at": "2026-03-08T21:30:00.000Z",
+      "completed_at": "2026-03-08T19:30:00.000Z",
+      "session_ids": ["current"],
+      "agent": "atlas",
+      "commits": ["2509b21", "032a397", "0f20149", "745c95f", "fddd96a", "d33dbc7", "b1035bc", "bf9b8c2", "7aae907", "a8bfcbb", "f74283c"],
+      "tasks_completed": 25,
+      "risk_points_reduced": 400
+    },
     {
       "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\tech-debt-wave4.md",
       "plan_name": "tech-debt-wave4",
