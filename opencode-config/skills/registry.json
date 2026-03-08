@@ -4,6 +4,26 @@
   "lastUpdated": "2026-02-26T12:00:00Z",
   
   "skills": {
+    "distill": {
+      "description": "AST-aware context compression via distill MCP. Use when context is ≥65% full or before long subagent tasks to reclaim 50-70% token budget.",
+      "category": "optimization",
+      "tags": ["context", "compression", "tokens", "budget"],
+      "source": "custom",
+      "dependencies": [],
+      "synergies": ["budget-aware-router", "token-reporter", "dispatching-parallel-agents"],
+      "conflicts": [],
+      "triggers": ["context full", "compress context", "token budget low", "before subagent task", "context over 65%"]
+    },
+    "context7": {
+      "description": "Fetch up-to-date library documentation and code examples via Context7 MCP instead of relying on stale training data.",
+      "category": "research",
+      "tags": ["documentation", "libraries", "api-reference", "frameworks"],
+      "source": "custom",
+      "dependencies": [],
+      "synergies": ["research-builder", "writing-plans", "test-driven-development"],
+      "conflicts": [],
+      "triggers": ["library docs", "api reference", "framework documentation", "how to use library", "correct syntax for"]
+    },
     "git-master": {
       "description": "Atomic commits, rebase/squash, history search (blame, bisect, log -S)",
       "category": "git",
@@ -437,7 +457,7 @@
     },
     "research": {
       "description": "Skills for research and discovery",
-      "skills": ["research-builder"]
+      "skills": ["research-builder", "context7"]
     },
     "meta": {
       "description": "Skills about skills",
@@ -449,7 +469,7 @@
     },
     "optimization": {
       "description": "Skills for cost and performance optimization",
-      "skills": ["budget-aware-router"]
+      "skills": ["budget-aware-router", "distill"]
     }
   }
 }

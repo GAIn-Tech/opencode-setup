@@ -1,0 +1,23 @@
+{
+  "id": "distill-context7-skill-creation-20260308",
+  "timestamp": "2026-03-08T00:00:00Z",
+  "category": "skill-activation",
+  "summary": "Create dedicated skill files for distill MCP (context compression) and context7 MCP (library documentation). These MCPs were running but had no calling conventions instructing the agent when or how to use them. Added both skills to registry.json with categories, triggers, and synergies.",
+  "affected_paths": [
+    "opencode-config/skills/distill/SKILL.md",
+    "opencode-config/skills/context7/SKILL.md",
+    "opencode-config/skills/registry.json"
+  ],
+  "root_cause": "Calling convention gap — distill and context7 MCPs were enabled and running but no SKILL.md existed to teach the agent when or how to invoke them.",
+  "fix_approach": "Created SKILL.md for each MCP with explicit trigger conditions, tool invocation patterns, phase workflows, and synergy declarations.",
+  "risk_level": "low",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "node scripts/learning-gate.mjs --generate-hashes"
+    ],
+    "notes": "Skill files are documentation-only additions. No runtime code changed. No test regression possible."
+  }
+}
