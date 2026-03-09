@@ -63,6 +63,9 @@ try {
   memoryGraph = null;
 }
 
+// Context bridge for governor → distill advisory signals
+const { ContextBridge } = require('./context-bridge');
+
 // ---- Startup health report ----
 const integrationStatus = {
   structuredLogger: !!structuredLogger,
@@ -129,6 +132,12 @@ class IntegrationLayer {
     this.featureFlags = featureFlags;
     this.contextGovernor = contextGovernor;
     this.memoryGraph = memoryGraph;
+
+    // T8: ContextBridge — advisory bridge between governor and distill compression
+    this.contextBridge = new ContextBridge({
+      governor: this._getGovernorInstance(),
+      logger,
+    });
     
     // Log initialization status
     logger.info('IntegrationLayer initialized', {
@@ -302,6 +311,17 @@ class IntegrationLayer {
   }
 
   /**
+   * Evaluate context budget and return compression advisory signal.
+   * Delegates to ContextBridge for threshold evaluation.
+   * @param {string} sessionId
+   * @param {string} model
+   * @returns {{ action: 'compress_urgent'|'compress'|'none', reason: string, pct: number }}
+   */
+  evaluateContextBudget(sessionId, model) {
+    return this.contextBridge.evaluateAndCompress(sessionId, model);
+  }
+
+  /**
    * Get current budget status for a session+model.
    * @param {string} sessionId
    * @param {string} model
@@ -378,14 +398,17 @@ class IntegrationLayer {
    */
   setTaskContext(taskContext) {
     const taskId = taskContext?.task?.id || taskContext?.id || 'default';
-    this.taskContextMap.set(taskId, taskContext);
+    // T13: Evict stale entries before adding new ones (1-hour TTL)
+    this._evictStaleTaskContexts();
+    this.taskContextMap.set(taskId, { context: taskContext, ts: Date.now() });
   }
   
   /**
    * Get current task context by task_id
    */
   getTaskContext(taskId) {
-    return this.taskContextMap.get(taskId || 'default');
+    const entry = this.taskContextMap.get(taskId || 'default');
+    return entry?.context ?? entry ?? null;
   }
   
   /**
@@ -394,6 +417,21 @@ class IntegrationLayer {
   clearTaskContext(taskId) {
     const id = taskId || 'default';
     this.taskContextMap.delete(id);
+  }
+
+  /**
+   * T13: Evict stale task contexts older than 1 hour.
+   * Called automatically on setTaskContext to prevent unbounded Map growth.
+   * @private
+   */
+  _evictStaleTaskContexts() {
+    const TTL_MS = 60 * 60 * 1000; // 1 hour
+    const now = Date.now();
+    for (const [key, entry] of this.taskContextMap) {
+      if (entry?.ts && (now - entry.ts) > TTL_MS) {
+        this.taskContextMap.delete(key);
+      }
+    }
   }
 
   /**
@@ -554,7 +592,7 @@ class IntegrationLayer {
       onVerificationComplete: async (verificationResult) => {
         // P1 FIX: Use taskContextMap instead of global mutable state
         const taskId = verificationResult?.taskId || 'default';
-        const taskContext = this.taskContextMap.get(taskId);
+        const taskContext = this.getTaskContext(taskId);
         
         if (!this.showboat || !taskContext) {
           return;
