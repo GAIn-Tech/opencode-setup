@@ -47,6 +47,12 @@ class PipelineMetricsCollector {
     // Catalog freshness
     this._lastCatalogUpdate = null;
 
+    // T16: Distill compression metrics
+    this._compressionEvents = [];
+
+    // T17: Context7 lookup metrics
+    this._context7Events = [];
+
     // Cleanup timer
     this._cleanupTimer = null;
     if (typeof options.autoCleanup === 'undefined' || options.autoCleanup) {
@@ -330,6 +336,188 @@ class PipelineMetricsCollector {
     this._lastCatalogUpdate = Number.isFinite(Number(timestamp)) ? Number(timestamp) : this.nowFn();
   }
 
+  // ─── Compression Metrics (T16) ────────────────────────────────
+
+  /**
+   * Record a distill/DCP compression event.
+   * @param {{ sessionId: string, tokensBefore: number, tokensAfter: number, pipeline: string, durationMs: number }} data
+   */
+  recordCompression(data) {
+    const event = {
+      sessionId: String(data.sessionId || ''),
+      tokensBefore: toNonNegativeInt(data.tokensBefore, 0),
+      tokensAfter: toNonNegativeInt(data.tokensAfter, 0),
+      pipeline: String(data.pipeline || 'unknown'),
+      durationMs: toNonNegativeNumber(data.durationMs, 0),
+      timestamp: this.nowFn(),
+    };
+    event.tokensSaved = Math.max(0, event.tokensBefore - event.tokensAfter);
+    event.ratio = event.tokensBefore > 0
+      ? round(event.tokensAfter / event.tokensBefore, 4)
+      : 1;
+
+    if (!this._compressionEvents) this._compressionEvents = [];
+    this._compressionEvents.push(event);
+    this._enforceLimit(this._compressionEvents);
+
+    // Persist to SQLite if available
+    this._persistCompression(event);
+
+    return event;
+  }
+
+  /**
+   * Get compression statistics.
+   * @param {number} [windowMs]
+   * @returns {{ totalEvents: number, totalTokensSaved: number, avgCompressionRatio: number, avgDurationMs: number, byPipeline: Object }}
+   */
+  getCompressionStats(windowMs) {
+    if (!this._compressionEvents) return { totalEvents: 0, totalTokensSaved: 0, avgCompressionRatio: 1, avgDurationMs: 0, byPipeline: {} };
+
+    const cutoff = this.nowFn() - (windowMs || this.retentionMs);
+    const relevant = this._compressionEvents.filter(e => e.timestamp >= cutoff);
+
+    if (relevant.length === 0) {
+      return { totalEvents: 0, totalTokensSaved: 0, avgCompressionRatio: 1, avgDurationMs: 0, byPipeline: {} };
+    }
+
+    let totalSaved = 0;
+    let totalRatio = 0;
+    let totalDuration = 0;
+    const byPipeline = {};
+
+    for (const e of relevant) {
+      totalSaved += e.tokensSaved;
+      totalRatio += e.ratio;
+      totalDuration += e.durationMs;
+      if (!byPipeline[e.pipeline]) byPipeline[e.pipeline] = { events: 0, tokensSaved: 0 };
+      byPipeline[e.pipeline].events += 1;
+      byPipeline[e.pipeline].tokensSaved += e.tokensSaved;
+    }
+
+    return {
+      totalEvents: relevant.length,
+      totalTokensSaved: totalSaved,
+      avgCompressionRatio: round(totalRatio / relevant.length, 4),
+      avgDurationMs: round(totalDuration / relevant.length, 2),
+      byPipeline,
+    };
+  }
+
+  /** @private */
+  _persistCompression(event) {
+    if (!this._db) return;
+    try {
+      this._db.exec(`
+        CREATE TABLE IF NOT EXISTS compression_history (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          session_id TEXT,
+          tokens_before INTEGER,
+          tokens_after INTEGER,
+          tokens_saved INTEGER,
+          ratio REAL,
+          pipeline TEXT,
+          duration_ms REAL,
+          timestamp INTEGER,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      this._db.prepare(`
+        INSERT INTO compression_history (session_id, tokens_before, tokens_after, tokens_saved, ratio, pipeline, duration_ms, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(event.sessionId, event.tokensBefore, event.tokensAfter, event.tokensSaved, event.ratio, event.pipeline, event.durationMs, event.timestamp);
+    } catch (_err) {
+      // Non-fatal — degrade gracefully
+    }
+  }
+
+  // ─── Context7 Metrics (T17) ─────────────────────────────────
+
+  /**
+   * Record a Context7 documentation lookup.
+   * @param {{ libraryName: string, resolved: boolean, snippetCount: number, durationMs: number }} data
+   */
+  recordContext7Lookup(data) {
+    const event = {
+      libraryName: String(data.libraryName || ''),
+      resolved: Boolean(data.resolved),
+      snippetCount: toNonNegativeInt(data.snippetCount, 0),
+      durationMs: toNonNegativeNumber(data.durationMs, 0),
+      timestamp: this.nowFn(),
+    };
+
+    if (!this._context7Events) this._context7Events = [];
+    this._context7Events.push(event);
+    this._enforceLimit(this._context7Events);
+
+    // Persist to SQLite
+    this._persistContext7(event);
+
+    return event;
+  }
+
+  /**
+   * Get Context7 lookup statistics.
+   * @param {number} [windowMs]
+   * @returns {{ totalLookups: number, resolved: number, failed: number, resolutionRate: number, avgSnippetCount: number, avgDurationMs: number, librariesQueried: string[] }}
+   */
+  getContext7Stats(windowMs) {
+    if (!this._context7Events) return { totalLookups: 0, resolved: 0, failed: 0, resolutionRate: 0, avgSnippetCount: 0, avgDurationMs: 0, librariesQueried: [] };
+
+    const cutoff = this.nowFn() - (windowMs || this.retentionMs);
+    const relevant = this._context7Events.filter(e => e.timestamp >= cutoff);
+
+    if (relevant.length === 0) {
+      return { totalLookups: 0, resolved: 0, failed: 0, resolutionRate: 0, avgSnippetCount: 0, avgDurationMs: 0, librariesQueried: [] };
+    }
+
+    let resolved = 0;
+    let totalSnippets = 0;
+    let totalDuration = 0;
+    const libs = new Set();
+
+    for (const e of relevant) {
+      if (e.resolved) resolved += 1;
+      totalSnippets += e.snippetCount;
+      totalDuration += e.durationMs;
+      if (e.libraryName) libs.add(e.libraryName);
+    }
+
+    return {
+      totalLookups: relevant.length,
+      resolved,
+      failed: relevant.length - resolved,
+      resolutionRate: round(resolved / relevant.length, 4),
+      avgSnippetCount: round(totalSnippets / relevant.length, 2),
+      avgDurationMs: round(totalDuration / relevant.length, 2),
+      librariesQueried: Array.from(libs),
+    };
+  }
+
+  /** @private */
+  _persistContext7(event) {
+    if (!this._db) return;
+    try {
+      this._db.exec(`
+        CREATE TABLE IF NOT EXISTS context7_lookups (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          library_name TEXT,
+          resolved INTEGER,
+          snippet_count INTEGER,
+          duration_ms REAL,
+          timestamp INTEGER,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      this._db.prepare(`
+        INSERT INTO context7_lookups (library_name, resolved, snippet_count, duration_ms, timestamp)
+        VALUES (?, ?, ?, ?, ?)
+      `).run(event.libraryName, event.resolved ? 1 : 0, event.snippetCount, event.durationMs, event.timestamp);
+    } catch (_err) {
+      // Non-fatal
+    }
+  }
+
   // ─── Aggregate ───────────────────────────────────────────────
 
   /**
@@ -521,6 +709,120 @@ class PipelineMetricsCollector {
     }
   }
 
+  // ─── T16: Compression Metrics ──────────────────────────────────
+
+  /**
+   * Record a distill compression event.
+   * @param {object} data - { sessionId, inputTokens, outputTokens, ratio, strategy }
+   */
+  recordCompression(data = {}) {
+    const event = {
+      timestamp: this.nowFn(),
+      sessionId: data.sessionId || 'unknown',
+      inputTokens: toNonNegativeInt(data.inputTokens, 0),
+      outputTokens: toNonNegativeInt(data.outputTokens, 0),
+      ratio: toNonNegativeNumber(data.ratio, 0),
+      strategy: String(data.strategy || 'unknown'),
+    };
+    this._compressionEvents.push(event);
+    this._enforceLimit(this._compressionEvents);
+    this._persistCompression(event);
+  }
+
+  /**
+   * Get aggregate compression statistics.
+   * @returns {{ totalEvents: number, totalTokensSaved: number, avgCompressionRatio: number }}
+   */
+  getCompressionStats() {
+    const events = this._compressionEvents;
+    if (events.length === 0) {
+      return { totalEvents: 0, totalTokensSaved: 0, avgCompressionRatio: 0 };
+    }
+    let totalSaved = 0;
+    let ratioSum = 0;
+    for (const e of events) {
+      totalSaved += Math.max(0, e.inputTokens - e.outputTokens);
+      ratioSum += e.ratio;
+    }
+    return {
+      totalEvents: events.length,
+      totalTokensSaved: totalSaved,
+      avgCompressionRatio: round(ratioSum / events.length, 4),
+    };
+  }
+
+  /**
+   * Persist compression event to SQLite (never throws).
+   * @param {object} event
+   */
+  _persistCompression(event) {
+    if (!this._db) return;
+    try {
+      this._db.prepare(`
+        INSERT INTO compression_history (timestamp, session_id, input_tokens, output_tokens, ratio, strategy)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).run(event.timestamp, event.sessionId, event.inputTokens, event.outputTokens, event.ratio, event.strategy);
+    } catch (_err) {
+      // Never throw from persistence
+    }
+  }
+
+  // ─── T17: Context7 Lookup Metrics ─────────────────────────────
+
+  /**
+   * Record a Context7 library lookup attempt.
+   * @param {object} data - { libraryId, resolved, durationMs, source }
+   */
+  recordContext7Lookup(data = {}) {
+    const event = {
+      timestamp: this.nowFn(),
+      libraryId: String(data.libraryId || 'unknown'),
+      resolved: !!data.resolved,
+      durationMs: toNonNegativeNumber(data.durationMs, 0),
+      source: String(data.source || 'unknown'),
+    };
+    this._context7Events.push(event);
+    this._enforceLimit(this._context7Events);
+    this._persistContext7(event);
+  }
+
+  /**
+   * Get aggregate Context7 lookup statistics.
+   * @returns {{ totalLookups: number, resolved: number, failed: number, resolutionRate: number }}
+   */
+  getContext7Stats() {
+    const events = this._context7Events;
+    if (events.length === 0) {
+      return { totalLookups: 0, resolved: 0, failed: 0, resolutionRate: 0 };
+    }
+    let resolved = 0;
+    for (const e of events) {
+      if (e.resolved) resolved++;
+    }
+    return {
+      totalLookups: events.length,
+      resolved,
+      failed: events.length - resolved,
+      resolutionRate: round(resolved / events.length, 4),
+    };
+  }
+
+  /**
+   * Persist Context7 lookup to SQLite (never throws).
+   * @param {object} event
+   */
+  _persistContext7(event) {
+    if (!this._db) return;
+    try {
+      this._db.prepare(`
+        INSERT INTO context7_lookups (timestamp, library_id, resolved, duration_ms, source)
+        VALUES (?, ?, ?, ?, ?)
+      `).run(event.timestamp, event.libraryId, event.resolved ? 1 : 0, event.durationMs, event.source);
+    } catch (_err) {
+      // Never throw from persistence
+    }
+  }
+
   // ─── Cleanup ─────────────────────────────────────────────────
 
   /**
@@ -532,6 +834,8 @@ class PipelineMetricsCollector {
     this._cacheEvents = this._cacheEvents.filter(e => e.timestamp >= cutoff);
     this._transitionEvents = this._transitionEvents.filter(e => e.timestamp >= cutoff);
     this._prEvents = this._prEvents.filter(e => e.timestamp >= cutoff);
+    this._compressionEvents = this._compressionEvents.filter(e => e.timestamp >= cutoff);
+    this._context7Events = this._context7Events.filter(e => e.timestamp >= cutoff);
   }
 
   /**
@@ -542,6 +846,8 @@ class PipelineMetricsCollector {
     this._cacheEvents = [];
     this._transitionEvents = [];
     this._prEvents = [];
+    this._compressionEvents = [];
+    this._context7Events = [];
     this._detectedTimestamps.clear();
     this._lastCatalogUpdate = null;
   }
@@ -631,6 +937,33 @@ class PipelineMetricsCollector {
           prs_created INTEGER,
           prs_merged INTEGER,
           summary_json TEXT,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // T16: Compression history table
+      this._db.exec(`
+        CREATE TABLE IF NOT EXISTS compression_history (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          timestamp INTEGER NOT NULL,
+          session_id TEXT,
+          input_tokens INTEGER,
+          output_tokens INTEGER,
+          ratio REAL,
+          strategy TEXT,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // T17: Context7 lookup history table
+      this._db.exec(`
+        CREATE TABLE IF NOT EXISTS context7_lookups (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          timestamp INTEGER NOT NULL,
+          library_id TEXT,
+          resolved INTEGER,
+          duration_ms REAL,
+          source TEXT,
           created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
       `);

@@ -1,0 +1,14 @@
+{
+  "id": "wave11-t16-t17-compression-context7-metrics",
+  "timestamp": "2026-03-08T19:15:00Z",
+  "summary": "Add distill compression tracking (recordCompression, getCompressionStats) and Context7 lookup tracking (recordContext7Lookup, getContext7Stats) to PipelineMetricsCollector with SQLite persistence tables",
+  "affected_paths": [
+    "packages/opencode-model-manager/src/monitoring/metrics-collector.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}
