@@ -7,7 +7,7 @@
 
 | Claim | Documented | Actual | Delta |
 |-------|-----------|--------|-------|
-| Total files | 262 | 258 | -4 |
+| Total files | 259 | 267 | +8 |
 
 ### Proposed Diffs
 
@@ -15,6 +15,6 @@
 
 ```diff
 @@ opencode-config/AGENTS.md:4 @@
-- Central configuration hub for agents, skills, models, commands, and learning updates. 262 files across 7 subdirectories.
-+ Central configuration hub for agents, skills, models, commands, and learning updates. 258 files across 7 subdirectories.
+- Central configuration hub for agents, skills, models, commands, and learning updates. 259 files across 7 subdirectories.
++ Central configuration hub for agents, skills, models, commands, and learning updates. 267 files across 7 subdirectories.
 ```
