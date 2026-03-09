@@ -173,6 +173,20 @@ class SkillRLManager {
       updated = this.skillBank.updateSuccessRate(outcome.skill_used, outcome.success, outcome.task_type);
     }
     
+    // Track MCP tool affinities for the used skill (before validation gate
+    // so affinities are recorded even when updateSuccessRate output is rejected)
+    if (outcome.mcpToolsUsed && Array.isArray(outcome.mcpToolsUsed) && outcome.mcpToolsUsed.length > 0 && outcome.skill_used) {
+      const skill = this.skillBank.generalSkills.get(outcome.skill_used);
+      if (skill) {
+        skill.tool_affinities = skill.tool_affinities || {};
+        for (const tool of outcome.mcpToolsUsed) {
+          if (tool && typeof tool === 'string') {
+            skill.tool_affinities[tool] = (skill.tool_affinities[tool] || 0) + 1;
+          }
+        }
+      }
+    }
+
     // Validate updated skill data
     if (this._validationEnabled && updated) {
       const validation = LearningValidator.validateSkill(updated);
@@ -183,7 +197,7 @@ class SkillRLManager {
       // Sanitize to prevent drift
       Object.assign(updated, LearningValidator.sanitize(updated));
     }
-    
+
     // Also route to evolution engine for success/failure learning
     let result;
     if (outcome.success) {

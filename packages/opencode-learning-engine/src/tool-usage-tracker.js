@@ -731,6 +731,27 @@ function migrateSessionKeys(entries) {
   });
 }
 
+/**
+ * Get MCP-category tool names invoked in a specific session (from in-memory log).
+ * Returns a deduplicated list of canonical tool names whose category is docs, context,
+ * memory, or web. Used by the SkillRL bridge to record tool affinities.
+ * @param {string} sessionId
+ * @returns {string[]}
+ */
+function getSessionMcpInvocations(sessionId) {
+  if (!sessionId) return [];
+  const sessionKey = String(sessionId);
+  const MCP_CATEGORIES = new Set(['docs', 'context', 'memory', 'web']);
+  return [...new Set(
+    _testLog
+      .filter(entry => {
+        const entrySession = resolveSessionKey(entry.context);
+        return entrySession === sessionKey && MCP_CATEGORIES.has(AVAILABLE_TOOLS[entry.tool]?.category);
+      })
+      .map(entry => entry.tool)
+  )];
+}
+
 module.exports = {
   detectUnderUse,
   getUsageReport,
@@ -749,4 +770,6 @@ module.exports = {
   // Normalization (already used internally, now exported)
   normalizeMcpToolName,
   sanitizeParams,
+  // MCP → SkillRL affinity bridge
+  getSessionMcpInvocations,
 };

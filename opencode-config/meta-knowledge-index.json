@@ -1,13 +1,23 @@
 {
-  "generated_at": "2026-03-09T16:09:20.839Z",
+  "generated_at": "2026-03-09T16:10:00.962Z",
   "schema_version": 1,
-  "total_records": 206,
+  "total_records": 207,
   "source_files": {
-    "learning_updates": 206,
+    "learning_updates": 207,
     "agents_md": 7
   },
   "by_category": {
     "uncategorized": [
+      {
+        "id": "meta-kb-rehash-20260309",
+        "summary": "Regenerate governance hashes after learning-gate auto-refreshed meta-knowledge-index.json during the AGENTS.md drift fix commit. No content changes — hash chain integrity maintenance only.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/meta-knowledge-index.json",
+          "opencode-config/.governance-hashes.json"
+        ],
+        "timestamp": "2026-03-09T00:01:00Z"
+      },
       {
         "id": "agents-md-drift-fix-20260309",
         "summary": "Fix AGENTS.md file count and skill count drift detected by check-agents-drift.mjs. opencode-config/AGENTS.md claimed 259 files / 12 skills; actual count is 291 files / 14 skills (+32 files from Wave 11 additions, +2 skills from context7 and distill skill dirs). Updated to match reality.",
@@ -2601,6 +2611,16 @@
   "by_risk_level": {
     "low": [
       {
+        "id": "meta-kb-rehash-20260309",
+        "summary": "Regenerate governance hashes after learning-gate auto-refreshed meta-knowledge-index.json during the AGENTS.md drift fix commit. No content changes — hash chain integrity maintenance only.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/meta-knowledge-index.json",
+          "opencode-config/.governance-hashes.json"
+        ],
+        "timestamp": "2026-03-09T00:01:00Z"
+      },
+      {
         "id": "agents-md-drift-fix-20260309",
         "summary": "Fix AGENTS.md file count and skill count drift detected by check-agents-drift.mjs. opencode-config/AGENTS.md claimed 259 files / 12 skills; actual count is 291 files / 14 skills (+32 files from Wave 11 additions, +2 skills from context7 and distill skill dirs). Updated to match reality.",
         "risk_level": "low",
@@ -5116,6 +5136,64 @@
     "high": []
   },
   "by_affected_path": {
+    "opencode-config/meta-knowledge-index.json": [
+      {
+        "id": "meta-kb-rehash-20260309",
+        "summary": "Regenerate governance hashes after learning-gate auto-refreshed meta-knowledge-index.json during the AGENTS.md drift fix commit. No content changes — hash chain integrity maintenance only.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T00:01:00Z"
+      },
+      {
+        "id": "wave11-t4-budget-scoring-20260308",
+        "summary": "Wave 11 Phase 1 complete (7/7 tasks): context-governor activation, model-router perf caches, advice cache, integration-layer wiring, budget-aware scoring",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:50:00Z"
+      },
+      {
+        "id": "governance-refresh-20260308",
+        "summary": "Refresh auto-generated governance hashes and meta-KB index after AGENTS.md drift fixes",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:40:00Z"
+      },
+      {
+        "id": "wave9-meta-kb-synthesis-20260308",
+        "summary": "Add synthesize-meta-kb.mjs script that aggregates 161 learning-update JSONs and 7 AGENTS.md files into a single queryable meta-knowledge index at opencode-config/meta-knowledge-index.json. Indexes by category, risk level, and affected path. Extracts anti-patterns, conventions, and commands from AGENTS.md sections.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      }
+    ],
+    "opencode-config/.governance-hashes.json": [
+      {
+        "id": "meta-kb-rehash-20260309",
+        "summary": "Regenerate governance hashes after learning-gate auto-refreshed meta-knowledge-index.json during the AGENTS.md drift fix commit. No content changes — hash chain integrity maintenance only.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T00:01:00Z"
+      },
+      {
+        "id": "wave11-t4-budget-scoring-20260308",
+        "summary": "Wave 11 Phase 1 complete (7/7 tasks): context-governor activation, model-router perf caches, advice cache, integration-layer wiring, budget-aware scoring",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:50:00Z"
+      },
+      {
+        "id": "governance-refresh-20260308",
+        "summary": "Refresh auto-generated governance hashes and meta-KB index after AGENTS.md drift fixes",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:40:00Z"
+      },
+      {
+        "id": "wave10-phase1-ci-20260308",
+        "summary": "Wave 10 Phase 1 CI re-enablement: moved governance-gate.yml and opencode-ci.yml from disabled to active with paths filters and bun test step",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:22:00Z"
+      },
+      {
+        "id": "governance-hash-refresh-20260227",
+        "summary": "Refreshed governance hash baseline after approved setup portability and script changes to keep learning-gate drift detection aligned with current governed config state.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T22:40:00Z"
+      }
+    ],
     "opencode-config/AGENTS.md": [
       {
         "id": "agents-md-drift-fix-20260309",
@@ -5146,52 +5224,6 @@
         "summary": "Fix 7 stale counts in AGENTS.md files detected by check-agents-drift.mjs",
         "risk_level": "low",
         "timestamp": "2026-03-08T19:25:00Z"
-      }
-    ],
-    "opencode-config/meta-knowledge-index.json": [
-      {
-        "id": "wave11-t4-budget-scoring-20260308",
-        "summary": "Wave 11 Phase 1 complete (7/7 tasks): context-governor activation, model-router perf caches, advice cache, integration-layer wiring, budget-aware scoring",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:50:00Z"
-      },
-      {
-        "id": "governance-refresh-20260308",
-        "summary": "Refresh auto-generated governance hashes and meta-KB index after AGENTS.md drift fixes",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:40:00Z"
-      },
-      {
-        "id": "wave9-meta-kb-synthesis-20260308",
-        "summary": "Add synthesize-meta-kb.mjs script that aggregates 161 learning-update JSONs and 7 AGENTS.md files into a single queryable meta-knowledge index at opencode-config/meta-knowledge-index.json. Indexes by category, risk level, and affected path. Extracts anti-patterns, conventions, and commands from AGENTS.md sections.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      }
-    ],
-    "opencode-config/.governance-hashes.json": [
-      {
-        "id": "wave11-t4-budget-scoring-20260308",
-        "summary": "Wave 11 Phase 1 complete (7/7 tasks): context-governor activation, model-router perf caches, advice cache, integration-layer wiring, budget-aware scoring",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:50:00Z"
-      },
-      {
-        "id": "governance-refresh-20260308",
-        "summary": "Refresh auto-generated governance hashes and meta-KB index after AGENTS.md drift fixes",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:40:00Z"
-      },
-      {
-        "id": "wave10-phase1-ci-20260308",
-        "summary": "Wave 10 Phase 1 CI re-enablement: moved governance-gate.yml and opencode-ci.yml from disabled to active with paths filters and bun test step",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:22:00Z"
-      },
-      {
-        "id": "governance-hash-refresh-20260227",
-        "summary": "Refreshed governance hash baseline after approved setup portability and script changes to keep learning-gate drift detection aligned with current governed config state.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T22:40:00Z"
       }
     ],
     "packages/opencode-integration-layer": [

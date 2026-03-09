@@ -66,6 +66,18 @@ try {
 // Context bridge for governor → distill advisory signals
 const { ContextBridge } = require('./context-bridge');
 
+// Fail-open require for MCP → SkillRL affinity bridge
+let _getSessionMcpInvocations = null;
+try {
+  _getSessionMcpInvocations = require('opencode-learning-engine/src/tool-usage-tracker').getSessionMcpInvocations;
+} catch {
+  try {
+    _getSessionMcpInvocations = require('../../opencode-learning-engine/src/tool-usage-tracker').getSessionMcpInvocations;
+  } catch {
+    // Fail-open: affinity bridge unavailable without learning-engine
+  }
+}
+
 // ---- Startup health report ----
 const integrationStatus = {
   structuredLogger: !!structuredLogger,
@@ -758,6 +770,11 @@ class IntegrationLayer {
       this.showboat.captureEvidence(evidenceData);
     }
 
+    // Collect MCP tools used in this session for affinity tracking
+    const _mcpToolsUsed = _getSessionMcpInvocations
+      ? _getSessionMcpInvocations(taskContext.session_id || taskContext.sessionId)
+      : [];
+
     // Learn from outcome if failure
     if (!result.success && this.skillRL && skills) {
       this.skillRL.evolutionEngine.learnFromFailure({
@@ -766,6 +783,7 @@ class IntegrationLayer {
         step_id: taskContext.step_id,
         task_type: taskContext.task || 'unknown',
         skills_used: skills.map(s => s.name),
+        skill_used: skills[0]?.name,
         error_message: result.error || 'Unknown error',
         anti_pattern: {
           type: 'task_failure',
@@ -773,6 +791,13 @@ class IntegrationLayer {
         },
         outcome_description: result.error || 'Task execution failed',
         quota_signal: this._extractQuotaSignal(taskContext, result)
+      });
+      // Also call learnFromOutcome on failure to update tool_affinities
+      this.skillRL.learnFromOutcome({
+        success: false,
+        skill_used: skills[0]?.name,
+        mcpToolsUsed: _mcpToolsUsed,
+        task_type: taskContext.task || 'unknown',
       });
     } else if (result.success && this.skillRL && skills) {
       this.skillRL.learnFromOutcome({
@@ -782,6 +807,8 @@ class IntegrationLayer {
         step_id: taskContext.step_id,
         task_type: taskContext.task || 'unknown',
         skills_used: skills.map((s) => s.name),
+        skill_used: skills[0]?.name,
+        mcpToolsUsed: _mcpToolsUsed,
         positive_pattern: {
           type: 'task_success',
           context: result.message || 'Task execution succeeded'
