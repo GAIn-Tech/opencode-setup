@@ -1,13 +1,13 @@
 # AGENTS.md
 
 ## OVERVIEW
-Central configuration hub for agents, skills, models, commands, and learning updates. 259 files across 7 subdirectories.
+Central configuration hub for agents, skills, models, commands, and learning updates. 291 files across 7 subdirectories.
 
 ## STRUCTURE
 ```
 opencode-config/
 ├── agents/              # Empty (agents managed by oh-my-opencode plugin)
-├── skills/              # 12 skill directories (budget-aware-router, code-doctor, superpowers/*, etc.)
+├── skills/              # 14 skill directories (budget-aware-router, code-doctor, superpowers/*, etc.)
 ├── commands/            # Custom commands
 ├── models/              # Model configurations
 ├── learning-updates/    # Learning state and updates

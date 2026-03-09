@@ -1,0 +1,14 @@
+{
+  "id": "agents-md-drift-fix-20260309",
+  "timestamp": "2026-03-09T00:00:00Z",
+  "summary": "Fix AGENTS.md file count and skill count drift detected by check-agents-drift.mjs. opencode-config/AGENTS.md claimed 259 files / 12 skills; actual count is 291 files / 14 skills (+32 files from Wave 11 additions, +2 skills from context7 and distill skill dirs). Updated to match reality.",
+  "affected_paths": [
+    "opencode-config/AGENTS.md"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}
