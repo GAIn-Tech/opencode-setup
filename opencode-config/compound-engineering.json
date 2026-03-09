@@ -72,12 +72,13 @@
          "dev-browser",
          "frontend-ui-ux"
        ],
-       "optimization": [
-         "budget-aware-router",
-         "distill",
-         "token-reporter",
-         "context7"
-       ],
+        "optimization": [
+          "budget-aware-router",
+          "dcp",
+          "distill",
+          "token-reporter",
+          "context7"
+        ],
        "meta": [
          "task-orchestrator",
          "skill-orchestrator-runtime",
