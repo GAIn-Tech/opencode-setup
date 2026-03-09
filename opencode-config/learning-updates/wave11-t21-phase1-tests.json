@@ -1,0 +1,15 @@
+{
+  "id": "wave11-t21-phase1-optimization-tests",
+  "timestamp": "2026-03-08T23:10:00Z",
+  "summary": "T21: Added 31 isolation-pattern tests (73 assertions) for Phase 1 optimizations — model ID resolution cache (T5, 6 tests), skill-RL memoization (T7, 4 tests), budget-aware scoring penalty (T4, 10 tests), advice cache (T6, 11 tests). Discovered JS falsy-zero quirk: costPenalties[trivial]=0 with || operator applies default 0.05 penalty.",
+  "affected_paths": [
+    "packages/opencode-model-router-x/test/wave11-phase1-optimizations.test.js",
+    "packages/opencode-learning-engine/test/wave11-advice-cache.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}
