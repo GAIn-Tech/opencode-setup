@@ -34,6 +34,8 @@ OpenCode ecosystem: Bun-native monorepo (35 packages) for AI agent orchestration
 | Learning engine | packages/opencode-learning-engine/ |
 | Test utilities | packages/opencode-test-utils/ |
 | Integration tests | packages/opencode-integration-layer/tests/ (138 files) |
+| Context management | packages/opencode-context-governor/, packages/opencode-integration-layer/src/context-bridge.js |
+| Context observability | packages/opencode-model-manager/src/monitoring/ (metrics-collector, alert-manager) |
 
 ## CONVENTIONS (Deviations Only)
 - **Bun-First**: bunfig.toml, .bun-version (1.3.9), NOT npm/yarn compatible
@@ -69,6 +71,40 @@ OpenCode ecosystem: Bun-native monorepo (35 packages) for AI agent orchestration
 - **Risk-Based Auto-Approval**: Model approval thresholds (0-50 auto, 50-80 manual, >80 block)
 - **Rollback System**: Timestamp/hash-based recovery (scripts/model-rollback.mjs)
 - **Monitoring Metrics**: Discovery success rate, cache hit/miss L1/L2, state transitions, PR creation rate
+
+## CONTEXT MANAGEMENT (Wave 11)
+Context-aware token budget management, compression advisory, and observability.
+
+| Component | Package | Purpose |
+|-----------|---------|---------|
+| Context Governor | packages/opencode-context-governor/ | Token budget tracking per session+model (75% WARNING, 80% CRITICAL) |
+| ContextBridge | packages/opencode-integration-layer/src/context-bridge.js | Advisory bridge: evaluates budget → recommends compression (none/compress/compress_urgent) |
+| Distill (DCP) | MCP server (distill) | AST-based context compression (50-70% token savings) |
+| Context7 | MCP server (context7) | Up-to-date library documentation lookup |
+| Budget Penalty | packages/opencode-model-router-x/src/index.js (T4) | Deprioritizes expensive models when budget >=80% consumed |
+| Metrics | packages/opencode-model-manager/src/monitoring/metrics-collector.js | Tracks compression events, Context7 lookups, budget alerts |
+| AlertManager | packages/opencode-model-manager/src/monitoring/alert-manager.js | BUDGET_THRESHOLD alerts at 75%/80%/95% with auto-resolve |
+| Dashboard Widget | packages/opencode-dashboard/src/app/observability/page.tsx | Context Budget panel with color-coded bars, compression/Context7 stats |
+
+### Data Flow
+```
+Session tokens → Governor.consumeTokens() → ContextBridge.evaluateAndCompress()
+  → "none" (healthy) | "compress" (>=65%) | "compress_urgent" (>=80%)
+  → Dashboard widget / AlertManager.evaluateBudget()
+```
+
+### Key Thresholds
+- **65%**: Proactive compression recommended (ContextBridge)
+- **75%**: WARNING alert (AlertManager, Governor)
+- **80%**: CRITICAL alert + budget-aware model penalty (Governor, ModelRouter)
+- **95%**: Emergency alert (AlertManager)
+
+### Performance Optimizations (Wave 11 Phase 1)
+- Model ID resolution cache: O(1) Map lookup (T5)
+- Skill-RL memoization: 10-min TTL, 200-entry max (T7)
+- Advice cache: 5-min TTL, 500-entry max, session-signal bypass (T6)
+- Binary insertion sort in perf tracker (T12)
+- Stale session cleanup with 1-hour TTL (T13)
 
 ## COMMANDS
 | Command | Purpose |

@@ -1,0 +1,15 @@
+{
+  "id": "wave11-t23-agents-md-context-management",
+  "timestamp": "2026-03-08T23:30:00Z",
+  "summary": "T23: Added Context Management (Wave 11) documentation sections to root AGENTS.md and opencode-config/AGENTS.md. Root AGENTS.md gets full component table (Governor, ContextBridge, Distill, Context7, Budget Penalty, Metrics, AlertManager, Dashboard Widget), data flow diagram, key thresholds, performance optimizations, and WHERE TO LOOK entries. Config AGENTS.md gets skill/config table and related packages reference.",
+  "affected_paths": [
+    "AGENTS.md",
+    "opencode-config/AGENTS.md"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

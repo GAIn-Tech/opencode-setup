@@ -45,6 +45,21 @@ None specific to config
 - **0 Agents on disk**: Agent definitions managed by oh-my-opencode plugin (8 agents)
 - **Learning Updates**: Governed file changes tracked in learning-updates/
 
+## CONTEXT MANAGEMENT (Wave 11)
+Skills and configuration for context-aware token management:
+
+| Skill/Config | Location | Purpose |
+|--------------|----------|---------|
+| context-governor SKILL.md | skills/context-governor/ | Enables Governor MCP with auto-recommendation triggers |
+| dcp SKILL.md | skills/dcp/ | Dynamic Context Pruning skill for distill MCP integration |
+| Context7 auto-recommend | opencode.json (librarian prompt) | Triggers Context7 lookups for unfamiliar library questions |
+| Budget-aware routing | opencode.json (model-router config) | Penalizes expensive models when token budget >=80% |
+
+### Related Packages
+- `packages/opencode-context-governor/` — Governor: budget tracking, session management
+- `packages/opencode-integration-layer/src/context-bridge.js` — ContextBridge: compression advisory
+- `packages/opencode-model-manager/src/monitoring/` — Metrics + AlertManager for budget alerts
+
 ## COMMANDS
 | Command | Purpose |
 |---------|---------|
