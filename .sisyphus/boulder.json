@@ -1,24 +1,28 @@
 {
-  "active_plan": ".sisyphus/plans/wave11-perf-and-context-management.md",
-  "plan_name": "wave11-perf-and-context-management",
-  "started_at": "2026-03-09T00:00:00.000Z",
-  "session_ids": ["current"],
+  "active_plan": null,
+  "plan_name": null,
+  "started_at": null,
+  "session_ids": [],
   "progress": {
-    "total_tasks": 25,
-    "completed": 20,
-    "current_task": "T21"
+    "total_tasks": 0,
+    "completed": 0,
+    "current_task": null
   },
-  "waves": {
-    "wave11": {
-      "phase1": "complete",
-      "phase2": "complete",
-      "phase3": "complete",
-      "phase4": "pending"
-    }
-  },
-  "commits": ["8db7698", "d869df7", "601cfe0", "1c60c7f", "7fb5ca2", "af13c46", "a0402b0", "b1cd9d6", "92f715d", "cef37f0", "592cfd5", "723a041"],
-  "risk_points_reduced": 140,
+  "waves": {},
+  "commits": [],
+  "risk_points_reduced": 0,
   "completed_plans": [
+    {
+      "plan_path": ".sisyphus/plans/wave11-perf-and-context-management.md",
+      "plan_name": "wave11-perf-and-context-management",
+      "started_at": "2026-03-09T00:00:00.000Z",
+      "completed_at": "2026-03-09T00:30:00.000Z",
+      "session_ids": ["current"],
+      "agent": "atlas",
+      "commits": ["8db7698", "d869df7", "601cfe0", "1c60c7f", "7fb5ca2", "af13c46", "a0402b0", "b1cd9d6", "92f715d", "cef37f0", "592cfd5", "723a041", "6eed2c7", "fe09bb4", "d7f6adf"],
+      "tasks_completed": 25,
+      "risk_points_reduced": 200
+    },
     {
       "plan_path": ".sisyphus/plans/wave10-system-hardening.md",
       "plan_name": "wave10-system-hardening",
