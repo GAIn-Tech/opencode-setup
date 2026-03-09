@@ -60,6 +60,17 @@ Skills and configuration for context-aware token management:
 - `packages/opencode-integration-layer/src/context-bridge.js` — ContextBridge: compression advisory
 - `packages/opencode-model-manager/src/monitoring/` — Metrics + AlertManager for budget alerts
 
+## KNOWN ARCHITECTURAL CONSTRAINTS
+
+### `local/` is gitignored
+The `local/oh-my-opencode/` directory contains a development checkout of the oh-my-opencode plugin with hook telemetry (e.g., `src/plugin/tool-execute-after.ts`). Because `local/` is gitignored, changes there diverge from the npm-published plugin build. Consequences:
+
+- **MCP telemetry params are shallow**: `tool-execute-after.ts` passes `params: {}` to `logInvocation()`. Richer param telemetry requires updating the oh-my-opencode npm plugin source directly, not this repo.
+- **Hook drift**: Any local modifications to telemetry hooks, agent wiring, or MCP interception will not propagate to other machines via git. The governed fix path is to publish changes through the oh-my-opencode npm package.
+
+### MCP → SkillRL affinity bridge
+The `tool_affinities` field on skills (added in Wave 12) records which MCP tools co-occur with each skill. This data flows from `tool-usage-tracker.getSessionMcpInvocations()` through `IntegrationLayer.executeTaskWithEvidence()` into `SkillRLManager.learnFromOutcome()`. The bridge is fail-open — if the learning-engine package is unavailable, affinity tracking silently degrades.
+
 ## COMMANDS
 | Command | Purpose |
 |---------|---------|

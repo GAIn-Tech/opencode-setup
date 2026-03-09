@@ -1,0 +1,14 @@
+{
+  "id": "architectural-constraints-docs-20260309",
+  "timestamp": "2026-03-09T04:55:00Z",
+  "summary": "Document known architectural constraints: local/ gitignore drift affecting MCP telemetry params, and the new MCP → SkillRL affinity bridge data flow.",
+  "affected_paths": [
+    "opencode-config/AGENTS.md"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}
