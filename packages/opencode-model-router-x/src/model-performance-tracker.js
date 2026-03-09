@@ -36,9 +36,9 @@ class ModelPerformanceTracker {
     agg.totalCost += sanitized.cost;
     agg.totalTokens += sanitized.tokensUsed || 0;
 
-    // Latency tracking (percentiles)
-    agg.latencyHistory.push(sanitized.latency);
-    agg.latencyHistory.sort((a, b) => a - b);
+    // Latency tracking (percentiles) — T12: binary insertion O(log n) instead of push+sort O(n log n)
+    const insertIdx = this._binaryInsertIndex(agg.latencyHistory, sanitized.latency);
+    agg.latencyHistory.splice(insertIdx, 0, sanitized.latency);
     if (agg.latencyHistory.length > 100) {
       agg.latencyHistory.shift();
     }
@@ -241,6 +241,27 @@ class ModelPerformanceTracker {
    */
   _getKey(intentCategory, modelId) {
     return `${intentCategory}:${modelId}`;
+  }
+
+  /**
+   * Binary search for insertion index into a sorted array.
+   * Returns the index where `value` should be inserted to keep the array sorted ascending.
+   * @param {number[]} arr - Sorted array (ascending)
+   * @param {number} value - Value to insert
+   * @returns {number} Insertion index
+   */
+  _binaryInsertIndex(arr, value) {
+    let lo = 0;
+    let hi = arr.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >>> 1;
+      if (arr[mid] < value) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+    return lo;
   }
 
   /**

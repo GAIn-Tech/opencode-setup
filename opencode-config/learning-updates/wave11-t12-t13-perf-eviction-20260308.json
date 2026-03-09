@@ -1,0 +1,16 @@
+{
+  "id": "wave11-t12-t13-perf-eviction-20260308",
+  "timestamp": "2026-03-08T23:10:00Z",
+  "summary": "T12: Replace O(n log n) push+sort with O(log n) binary insertion in ModelPerformanceTracker latency history. T13: Add TTL-based eviction (1-hour) to IntegrationLayer taskContextMap and wire Governor cleanupStaleSessions on hourly unref'd interval.",
+  "affected_paths": [
+    "packages/opencode-model-router-x/src/model-performance-tracker.js",
+    "packages/opencode-integration-layer/src/index.js",
+    "packages/opencode-context-governor/src/index.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

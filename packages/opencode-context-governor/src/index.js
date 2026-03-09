@@ -49,6 +49,17 @@ class Governor {
          }
        }
      }
+
+    // T13: Periodic stale session cleanup (every 1 hour, unref'd so it won't keep process alive)
+    this._cleanupInterval = setInterval(() => {
+      const removed = this._tracker.cleanupStaleSessions();
+      if (removed > 0) {
+        console.log(`[Governor] Cleaned up ${removed} stale session(s)`);
+      }
+    }, 60 * 60 * 1000); // 1 hour
+    if (this._cleanupInterval.unref) {
+      this._cleanupInterval.unref();
+    }
   }
 
   /**
