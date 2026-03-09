@@ -28,6 +28,9 @@ class LearningEngine extends EventEmitter {
    */
   constructor(options = {}) {
     super();
+    // T19 (Wave 11): Startup time instrumentation
+    const _startupT0 = typeof performance !== 'undefined' ? performance.now() : Date.now();
+
     const { autoLoad = true, autoSave = true } = options;
 
     this.antiPatterns = new AntiPatternCatalog();
@@ -86,6 +89,10 @@ class LearningEngine extends EventEmitter {
     if (autoLoad) {
       this.load();
     }
+
+    // T19 (Wave 11): Log startup duration
+    const _startupMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - _startupT0;
+    console.log(`[Startup] LearningEngine: ${_startupMs.toFixed(1)}ms`);
   }
 
   /**

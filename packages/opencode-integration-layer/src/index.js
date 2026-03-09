@@ -97,6 +97,9 @@ const logger = structuredLogger?.createLogger?.('integration-layer') || {
 
 class IntegrationLayer {
   constructor(config = {}) {
+    // T19 (Wave 11): Startup time instrumentation
+    const _startupT0 = typeof performance !== 'undefined' ? performance.now() : Date.now();
+
     this.skillRL = config.skillRL || config.skillRLManager || null;
     this.showboat = config.showboat || config.showboatWrapper || null;
     this.quotaManager = config.quotaManager || null;
@@ -140,7 +143,9 @@ class IntegrationLayer {
     });
     
     // Log initialization status
+    const _startupMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - _startupT0;
     logger.info('IntegrationLayer initialized', {
+      startupMs: Math.round(_startupMs * 10) / 10,
       hasSkillRL: !!this.skillRL,
       hasShowboat: !!this.showboat,
       hasQuotaManager: !!this.quotaManager,
@@ -154,6 +159,7 @@ class IntegrationLayer {
       hasContextGovernor: !!contextGovernor,
       hasMemoryGraph: !!memoryGraph,
     });
+    logger.info(`[Startup] IntegrationLayer: ${_startupMs.toFixed(1)}ms`);
   }
 
   /**

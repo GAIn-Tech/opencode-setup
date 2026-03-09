@@ -231,6 +231,9 @@ class RouterIntegrationAdapter {
 
 class ModelRouter {
   constructor(options = {}) {
+    // T19 (Wave 11): Startup time instrumentation
+    const _startupT0 = typeof performance !== 'undefined' ? performance.now() : Date.now();
+
     // P4: INTEGRATION ADAPTER - Single point of integration (fixes option creep)
     // Instead of 10+ if-checks, use the adapter for all integrations
     this._adapter = new RouterIntegrationAdapter(IntegrationLayer, {
@@ -403,6 +406,14 @@ class ModelRouter {
     
     // P2: Health-Check Integration - Register providers as subsystems
     this._registerProvidersWithHealthCheck();
+
+    // T19 (Wave 11): Log startup duration
+    const _startupMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - _startupT0;
+    if (this.logger) {
+      this.logger.info(`[Startup] ModelRouter: ${_startupMs.toFixed(1)}ms`);
+    } else {
+      console.log(`[Startup] ModelRouter: ${_startupMs.toFixed(1)}ms`);
+    }
   }
 
   /**

@@ -1,0 +1,16 @@
+{
+  "id": "wave11-t19-startup-instrumentation",
+  "timestamp": "2026-03-08T19:25:00Z",
+  "summary": "Add performance.now() startup time instrumentation to IntegrationLayer, ModelRouter, and LearningEngine constructors. Logs [Startup] ComponentName: Xms on initialization.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/index.js",
+    "packages/opencode-model-router-x/src/index.js",
+    "packages/opencode-learning-engine/src/index.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}
