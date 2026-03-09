@@ -17,7 +17,8 @@ const ALERT_SEVERITY = Object.freeze({
 const ALERT_TYPE = Object.freeze({
   PROVIDER_FAILURE: 'provider_failure',
   STALE_CATALOG: 'stale_catalog',
-  PR_FAILURES: 'pr_failures'
+  PR_FAILURES: 'pr_failures',
+  BUDGET_THRESHOLD: 'budget_threshold'
 });
 
 /**
@@ -72,6 +73,78 @@ class AlertManager extends EventEmitter {
 
     // Check PR failures
     newAlerts.push(...this._checkPRFailures(snapshot.prCreation));
+
+    return newAlerts;
+  }
+
+  /**
+   * Evaluate token budget status and fire budget threshold alerts.
+   * Call this after each consumeTokens() with the budget result.
+   * @param {{ sessionId: string, model: string, used: number, remaining: number, pct: number, status: string }} budgetStatus
+   * @returns {object[]} Newly fired alerts
+   */
+  evaluateBudget(budgetStatus) {
+    if (!budgetStatus || typeof budgetStatus !== 'object') return [];
+
+    const newAlerts = [];
+    const pct = budgetStatus.pct ?? 0;
+    const sessionId = budgetStatus.sessionId || 'unknown';
+    const model = budgetStatus.model || 'unknown';
+    const alertId = `${ALERT_TYPE.BUDGET_THRESHOLD}:${sessionId}:${model}`;
+
+    if (pct >= 0.95) {
+      if (!this._activeAlerts.has(alertId) || this._activeAlerts.get(alertId).severity !== ALERT_SEVERITY.CRITICAL) {
+        // Upgrade to CRITICAL
+        if (this._activeAlerts.has(alertId)) this._activeAlerts.delete(alertId);
+        const alert = this._fireAlert({
+          id: alertId,
+          type: ALERT_TYPE.BUDGET_THRESHOLD,
+          severity: ALERT_SEVERITY.CRITICAL,
+          message: `Token budget CRITICAL: ${(pct * 100).toFixed(1)}% used for session ${sessionId} on ${model}`,
+          sessionId,
+          model,
+          pct,
+          used: budgetStatus.used,
+          remaining: budgetStatus.remaining,
+        });
+        if (alert) newAlerts.push(alert);
+      }
+    } else if (pct >= 0.80) {
+      if (!this._activeAlerts.has(alertId)) {
+        const alert = this._fireAlert({
+          id: alertId,
+          type: ALERT_TYPE.BUDGET_THRESHOLD,
+          severity: ALERT_SEVERITY.WARNING,
+          message: `Token budget WARNING: ${(pct * 100).toFixed(1)}% used for session ${sessionId} on ${model}`,
+          sessionId,
+          model,
+          pct,
+          used: budgetStatus.used,
+          remaining: budgetStatus.remaining,
+        });
+        if (alert) newAlerts.push(alert);
+      }
+    } else if (pct >= 0.75) {
+      if (!this._activeAlerts.has(alertId)) {
+        const alert = this._fireAlert({
+          id: alertId,
+          type: ALERT_TYPE.BUDGET_THRESHOLD,
+          severity: ALERT_SEVERITY.WARNING,
+          message: `Token budget WARN: ${(pct * 100).toFixed(1)}% used for session ${sessionId} on ${model}`,
+          sessionId,
+          model,
+          pct,
+          used: budgetStatus.used,
+          remaining: budgetStatus.remaining,
+        });
+        if (alert) newAlerts.push(alert);
+      }
+    } else {
+      // Below all thresholds — auto-resolve if active
+      if (this._activeAlerts.has(alertId)) {
+        this.resolveAlert(alertId);
+      }
+    }
 
     return newAlerts;
   }

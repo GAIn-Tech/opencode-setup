@@ -29,6 +29,28 @@ interface MonitoringSnapshot {
   catalogFreshness: { lastUpdateTimestamp: number | null; ageMs: number; stale: boolean };
 }
 
+interface ContextBudget {
+  sessionId: string;
+  model: string;
+  used: number;
+  max: number;
+  pct: number;
+  status: 'ok' | 'warn' | 'error' | 'exceeded';
+}
+
+interface CompressionStats {
+  totalEvents: number;
+  totalTokensSaved: number;
+  avgCompressionRatio: number;
+}
+
+interface Context7Stats {
+  totalLookups: number;
+  resolved: number;
+  failed: number;
+  resolutionRate: number;
+}
+
 interface MetaKBSummary {
   status: string;
   generated_at: string | null;
@@ -44,15 +66,21 @@ interface MetaKBSummary {
 export default function ObservabilityPage() {
   const [monitoring, setMonitoring] = useState<MonitoringSnapshot | null>(null);
   const [metaKB, setMetaKB] = useState<MetaKBSummary | null>(null);
+  const [budgets, setBudgets] = useState<ContextBudget[]>([]);
+  const [compression, setCompression] = useState<CompressionStats | null>(null);
+  const [context7Stats, setContext7Stats] = useState<Context7Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<string>('');
 
   const fetchData = useCallback(async () => {
     try {
-      const [monRes, kbRes] = await Promise.allSettled([
+      const [monRes, kbRes, budgetRes, compressionRes, ctx7Res] = await Promise.allSettled([
         fetch('/api/monitoring').then(r => r.ok ? r.json() : null),
         fetch('/api/meta-kb').then(r => r.ok ? r.json() : null),
+        fetch('/api/budget').then(r => r.ok ? r.json() : null),
+        fetch('/api/compression').then(r => r.ok ? r.json() : null),
+        fetch('/api/context7-stats').then(r => r.ok ? r.json() : null),
       ]);
 
       if (monRes.status === 'fulfilled' && monRes.value) {
@@ -60,6 +88,15 @@ export default function ObservabilityPage() {
       }
       if (kbRes.status === 'fulfilled' && kbRes.value) {
         setMetaKB(kbRes.value);
+      }
+      if (budgetRes.status === 'fulfilled' && budgetRes.value) {
+        setBudgets(Array.isArray(budgetRes.value) ? budgetRes.value : []);
+      }
+      if (compressionRes.status === 'fulfilled' && compressionRes.value) {
+        setCompression(compressionRes.value);
+      }
+      if (ctx7Res.status === 'fulfilled' && ctx7Res.value) {
+        setContext7Stats(ctx7Res.value);
       }
 
       setLastRefresh(new Date().toLocaleTimeString());
@@ -142,6 +179,82 @@ export default function ObservabilityPage() {
           subtitle={monitoring?.prCreation ? `${monitoring.prCreation.total} total` : ''}
         />
       </div>
+
+      {/* T15: Context Budget */}
+      {(budgets.length > 0 || compression || context7Stats) && (
+        <section>
+          <h2 className="text-lg font-semibold text-white mb-3">Context Budget</h2>
+          <div className="space-y-4">
+            {/* Active session budgets */}
+            {budgets.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {budgets.map((b) => {
+                  const pctDisplay = Math.round(b.pct * 100);
+                  const barColor = b.pct >= 0.80 ? 'bg-red-500' : b.pct >= 0.75 ? 'bg-amber-500' : 'bg-emerald-500';
+                  const textColor = b.pct >= 0.80 ? 'text-red-400' : b.pct >= 0.75 ? 'text-amber-400' : 'text-emerald-400';
+                  return (
+                    <div key={`${b.sessionId}-${b.model}`} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-zinc-300 truncate max-w-[60%]" title={b.model}>{b.model}</span>
+                        <span className={`text-sm font-bold ${textColor}`}>{pctDisplay}%</span>
+                      </div>
+                      <div className="h-2 bg-zinc-800 rounded-full overflow-hidden mb-2">
+                        <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${Math.min(pctDisplay, 100)}%` }} />
+                      </div>
+                      <div className="flex justify-between text-xs text-zinc-500">
+                        <span>{b.used.toLocaleString()} used</span>
+                        <span>{b.max.toLocaleString()} max</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Compression + Context7 stats row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {compression && (
+                <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+                  <h3 className="text-sm font-semibold text-zinc-200 mb-3">Distill Compression</h3>
+                  <div className="grid grid-cols-3 gap-3 text-center">
+                    <div>
+                      <div className="text-xs text-zinc-500">Events</div>
+                      <div className="text-lg font-bold text-zinc-200">{compression.totalEvents}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-zinc-500">Tokens Saved</div>
+                      <div className="text-lg font-bold text-emerald-400">{compression.totalTokensSaved.toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-zinc-500">Avg Ratio</div>
+                      <div className="text-lg font-bold text-zinc-200">{(compression.avgCompressionRatio * 100).toFixed(1)}%</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {context7Stats && (
+                <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+                  <h3 className="text-sm font-semibold text-zinc-200 mb-3">Context7 Lookups</h3>
+                  <div className="grid grid-cols-3 gap-3 text-center">
+                    <div>
+                      <div className="text-xs text-zinc-500">Total</div>
+                      <div className="text-lg font-bold text-zinc-200">{context7Stats.totalLookups}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-zinc-500">Resolved</div>
+                      <div className="text-lg font-bold text-emerald-400">{context7Stats.resolved}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-zinc-500">Rate</div>
+                      <div className="text-lg font-bold text-zinc-200">{(context7Stats.resolutionRate * 100).toFixed(1)}%</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Discovery Metrics */}
       {monitoring?.discovery && (
