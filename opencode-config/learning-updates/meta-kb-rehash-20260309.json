@@ -1,0 +1,15 @@
+{
+  "id": "meta-kb-rehash-20260309",
+  "timestamp": "2026-03-09T00:01:00Z",
+  "summary": "Regenerate governance hashes after learning-gate auto-refreshed meta-knowledge-index.json during the AGENTS.md drift fix commit. No content changes — hash chain integrity maintenance only.",
+  "affected_paths": [
+    "opencode-config/meta-knowledge-index.json",
+    "opencode-config/.governance-hashes.json"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}
