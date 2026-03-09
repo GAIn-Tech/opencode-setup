@@ -10,9 +10,19 @@
       "tags": ["context", "compression", "tokens", "budget"],
       "source": "custom",
       "dependencies": [],
-      "synergies": ["budget-aware-router", "token-reporter", "dispatching-parallel-agents"],
+      "synergies": ["budget-aware-router", "token-reporter", "dispatching-parallel-agents", "dcp"],
       "conflicts": [],
       "triggers": ["context full", "compress context", "token budget low", "before subagent task", "context over 65%"]
+    },
+    "dcp": {
+      "description": "Dynamic Context Pruning — prunes irrelevant context segments to reduce token usage. Works alongside distill for complementary compression strategies.",
+      "category": "optimization",
+      "tags": ["context", "pruning", "tokens", "budget", "relevance"],
+      "source": "plugin",
+      "dependencies": [],
+      "synergies": ["distill", "context-governor", "budget-aware-router"],
+      "conflicts": [],
+      "triggers": ["prune context", "remove irrelevant context", "context too long", "trim conversation"]
     },
     "context7": {
       "description": "Fetch up-to-date library documentation and code examples via Context7 MCP instead of relying on stale training data.",
@@ -140,7 +150,7 @@
       "tags": ["research", "spec", "quality-gate", "implementation"],
       "source": "custom",
       "dependencies": ["writing-plans"],
-      "synergies": ["executing-plans", "verification-before-completion", "innovation-migration-planner"],
+      "synergies": ["executing-plans", "verification-before-completion", "innovation-migration-planner", "context7"],
       "conflicts": [],
       "triggers": ["research and build", "investigate before implementation", "deep research", "spec first"]
     },
@@ -430,8 +440,8 @@
       "triggers": ["diagnose", "fix bug", "heal code", "auto-fix", "incident"]
     },
     "research-to-code": {
-      "description": "Research, spec, and implementation pipeline",
-      "skills": ["research-builder", "writing-plans", "executing-plans"],
+      "description": "Research, spec, and implementation pipeline with documentation lookups",
+      "skills": ["research-builder", "context7", "writing-plans", "executing-plans"],
       "triggers": ["research and build", "investigate then implement", "deep dive"]
     }
   },
@@ -479,7 +489,7 @@
     },
     "optimization": {
       "description": "Skills for cost and performance optimization",
-      "skills": ["budget-aware-router", "context-governor", "distill"]
+      "skills": ["budget-aware-router", "context-governor", "dcp", "distill"]
     }
   }
 }

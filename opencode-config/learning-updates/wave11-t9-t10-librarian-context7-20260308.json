@@ -1,0 +1,16 @@
+{
+  "id": "wave11-t9-t10-librarian-context7-20260308",
+  "timestamp": "2026-03-08T23:10:00Z",
+  "summary": "T9: Create librarian agent prompt with explicit Context7 MCP tool instructions (resolve-library-id, query-docs). T10: Add documentation task detection keywords and context7 auto-recommendation to skill-orchestrator-runtime SKILL.md. Add context7 to research-builder synergies and research-to-code profile.",
+  "affected_paths": [
+    "opencode-config/agents/librarian.md",
+    "opencode-config/skills/skill-orchestrator-runtime/SKILL.md",
+    "opencode-config/skills/registry.json"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

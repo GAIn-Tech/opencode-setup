@@ -129,7 +129,7 @@ The registry defines **profiles** — curated skill subsets for common task patt
 | `parallel-implementation` | "parallel work", "divide and conquer", "complex implementation" | dispatching-parallel-agents, subagent-driven-development, executing-plans |
 | `browser-testing` | "test UI", "browser test", "visual verification" | dev-browser, frontend-ui-ux, verification-before-completion |
 | `diagnostic-healing` | "diagnose", "fix bug", "heal code", "auto-fix", "incident" | code-doctor, systematic-debugging, incident-commander, git-master |
-| `research-to-code` | "research and build", "investigate then implement", "deep dive" | research-builder, writing-plans, executing-plans |
+| `research-to-code` | "research and build", "investigate then implement", "deep dive" | research-builder, context7, writing-plans, executing-plans |
 
 ### Profile Resolution Algorithm
 
@@ -146,10 +146,39 @@ The registry defines **profiles** — curated skill subsets for common task patt
 - **Ambiguous task**: run full scoring (Phase 2) to find best-fit skills
 - **Explicit user request**: honor explicit skill mentions over profile auto-selection
 
+## Documentation Task Detection (Context7 Auto-Recommendation)
+
+When the task involves library/framework documentation lookups, the orchestrator MUST recommend the **context7** skill (and optionally the **librarian** agent) before any implementation skills.
+
+### Detection Keywords
+
+If the user request contains any of these patterns, recommend context7:
+- "how do I use [library]", "API for [package]", "correct syntax for"
+- "library docs", "framework documentation", "package reference"
+- "what version of [lib]", "latest API", "migration guide"
+- Import/require statements referencing unfamiliar packages
+- Questions about function signatures, parameters, or return types
+
+### Recommendation Rule
+
+```
+IF task contains documentation_keywords:
+  1. Recommend context7 as PRIMARY skill (score: 0.9)
+  2. If research-builder is also recommended, chain: context7 → research-builder
+  3. Log: "Documentation task detected — context7 recommended for up-to-date API reference"
+```
+
+### Integration with Research Profile
+
+The `research-to-code` profile should include context7 for documentation-heavy research:
+- Profile skills: `["research-builder", "context7", "writing-plans", "executing-plans"]`
+- context7 runs first to gather accurate API references before spec writing
+
 ## Quick Start
 
 1. Check task against profile trigger phrases first
-2. If profile matched → load profile skills and skip to Phase 3 (chaining)
-3. Otherwise: load registry.json, parse intent signals, score all skills
-4. Filter by conflicts and dependencies
-5. Return top recommendations with chaining order
+2. Check for documentation keywords → recommend context7 if matched
+3. If profile matched → load profile skills and skip to Phase 3 (chaining)
+4. Otherwise: load registry.json, parse intent signals, score all skills
+5. Filter by conflicts and dependencies
+6. Return top recommendations with chaining order
