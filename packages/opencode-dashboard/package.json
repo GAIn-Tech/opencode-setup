@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:smoke": "node -e \"const fs=require('fs'); const path=require('path'); const apiDir=path.join(process.cwd(),'src','app','api'); const entries=fs.readdirSync(apiDir,{withFileTypes:true}).filter((entry)=>entry.isDirectory()); if(entries.length===0) throw new Error('No API route groups found'); console.log('dashboard smoke ok');\""
   },
   "dependencies": {
     "@xyflow/react": "^12.8.6",

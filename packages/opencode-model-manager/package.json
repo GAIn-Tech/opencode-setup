@@ -12,5 +12,8 @@
     "./monitoring": "./src/monitoring/index.js",
     "./monitoring/metrics-collector": "./src/monitoring/metrics-collector.js",
     "./monitoring/alert-manager": "./src/monitoring/alert-manager.js"
+  },
+  "scripts": {
+    "test:smoke": "node -e \"const mod=require('./src/index.js'); if(!mod || Object.keys(mod).length===0) throw new Error('model-manager exports missing'); console.log('model-manager smoke ok');\""
   }
 }
