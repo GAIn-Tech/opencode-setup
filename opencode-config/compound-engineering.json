@@ -10,12 +10,14 @@
     "enabled": [
        "brainstorming",
        "budget-aware-router",
-       "code-doctor",
-       "context-governor",
-       "context7",
-       "dev-browser",
-       "dispatching-parallel-agents",
-       "distill",
+       "dcp",
+        "code-doctor",
+        "context-governor",
+        "context7",
+       "agent-browser",
+        "dev-browser",
+        "dispatching-parallel-agents",
+        "distill",
        "evaluation-harness-builder",
        "executing-plans",
        "finishing-a-development-branch",
@@ -72,10 +74,11 @@
          "dispatching-parallel-agents",
          "github-triage"
        ],
-       "browser": [
-         "dev-browser",
-         "frontend-ui-ux"
-       ],
+        "browser": [
+          "agent-browser",
+          "dev-browser",
+          "frontend-ui-ux"
+        ],
         "optimization": [
           "budget-aware-router",
           "dcp",
