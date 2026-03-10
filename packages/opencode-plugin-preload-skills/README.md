@@ -12,26 +12,36 @@ Dynamic skill and tool preloading with three-tier classification and RL-driven p
 ## Usage
 
 ```javascript
-const PreloadSkills = require('opencode-plugin-preload-skills');
+const { PreloadSkillsPlugin } = require('opencode-plugin-preload-skills');
 
-const preloader = new PreloadSkills({
-  skillsDir: '~/.config/opencode/skills',
+const preloader = new PreloadSkillsPlugin({
+  logLevel: 'info',
 });
 
-const skills = preloader.getSkillsForContext({
-  task_type: 'debug',
-  files: ['src/api/handler.ts'],
+const selection = preloader.selectTools({
+  prompt: 'What is the correct syntax for using the React useEffect API?',
+  taskType: 'research',
 });
+
+console.log(selection.tools.map((tool) => tool.name));
+// ['read', 'edit', 'write', ..., 'context7_resolve_library_id', 'context7_query_docs']
 ```
 
 ## API
 
 | Method | Description |
 |--------|-------------|
-| `getSkillsForContext(context)` | Get relevant skills for a task context |
-| `promoteSkill(name)` | Promote a skill's tier based on positive outcome |
-| `demoteSkill(name)` | Demote a skill's tier based on negative outcome |
-| `getClassification()` | Get current skill tier assignments |
+| `selectTools(context)` | Return `{ tools, tier2Available, meta_context, metadata }` for the current prompt/task |
+| `loadOnDemand(skillName, taskType)` | Load a Tier 2 skill on demand |
+| `recordUsage(toolName)` | Track selected tool usage for promotion/demotion analysis |
+| `getStats()` | Return plugin stats and counters |
+
+## Runtime Contract
+
+- `selectTools()` returns the **selected tool surface**, not a finished runtime invocation.
+- MCP-backed entries are expanded to **callable tool IDs** where the runtime exposes them (for example `context7_query_docs`, `distill_run_tool`).
+- The plugin host/runtime must still consume `selection.tools` and pass those tool names into the actual model/tool surface.
+- In this repo, `IntegrationLayer.selectToolsForTask()` is the contract boundary for injecting a `PreloadSkillsPlugin` instance, but the external plugin host remains responsible for applying the selected tool IDs at runtime.
 
 ## License
 

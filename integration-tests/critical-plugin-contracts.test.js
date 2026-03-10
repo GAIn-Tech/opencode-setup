@@ -91,6 +91,11 @@ describe('opencode-plugin-preload-skills contract', () => {
     expect(mod).toBeDefined();
   });
 
+  it('exports PreloadSkillsPlugin constructor', () => {
+    const mod = require('../packages/opencode-plugin-preload-skills/src/index.js');
+    expect(typeof mod.PreloadSkillsPlugin).toBe('function');
+  });
+
   it('tier-resolver is loadable and exports a function or class', () => {
     const mod = require('../packages/opencode-plugin-preload-skills/src/tier-resolver.js');
     // Should export at least one callable
@@ -101,6 +106,21 @@ describe('opencode-plugin-preload-skills contract', () => {
   it('meta-context-injector is loadable', () => {
     const mod = require('../packages/opencode-plugin-preload-skills/src/meta-context-injector.js');
     expect(mod).toBeDefined();
+  });
+
+  it('selectTools returns callable MCP tool IDs rather than abstract MCP names', () => {
+    const { PreloadSkillsPlugin } = require('../packages/opencode-plugin-preload-skills/src/index.js');
+    const plugin = new PreloadSkillsPlugin({ logLevel: 'error' });
+
+    const libraryResult = plugin.selectTools({ prompt: 'What is the correct syntax for using the React useEffect API?' });
+    const libraryNames = libraryResult.tools.map(tool => tool.name);
+    expect(libraryNames).toContain('context7_query_docs');
+    expect(libraryNames).not.toContain('context7');
+
+    const compressionResult = plugin.selectTools({ prompt: 'Compress context because we are near the token limit' });
+    const compressionNames = compressionResult.tools.map(tool => tool.name);
+    expect(compressionNames).toContain('distill_run_tool');
+    expect(compressionNames).not.toContain('distill');
   });
 });
 
@@ -148,5 +168,42 @@ describe('cross-plugin contract: lifecycle ↔ healthd', () => {
     const result = sup.evaluatePlugin({ name: 'crash-plugin', crash_count: 2, configured: true, discovered: true });
     expect(result.quarantined).toBe(true);
     expect(result.reason_code).toBe('crash-loop');
+  });
+});
+
+// ─── Cross-package contract: integration-layer ↔ preload-skills ────────────
+
+describe('cross-package contract: integration-layer ↔ preload-skills', () => {
+  it('IntegrationLayer can accept an injected preloadSkills instance', () => {
+    const { IntegrationLayer } = require('../packages/opencode-integration-layer/src/index.js');
+    const { PreloadSkillsPlugin } = require('../packages/opencode-plugin-preload-skills/src/index.js');
+
+    const preload = new PreloadSkillsPlugin({ logLevel: 'error' });
+    const layer = new IntegrationLayer({ preloadSkills: preload });
+
+    expect(layer.preloadSkills).toBe(preload);
+  });
+
+  it('selectToolsForTask returns the preload-skills selection shape when injected', () => {
+    const { IntegrationLayer } = require('../packages/opencode-integration-layer/src/index.js');
+    const { PreloadSkillsPlugin } = require('../packages/opencode-plugin-preload-skills/src/index.js');
+
+    const preload = new PreloadSkillsPlugin({ logLevel: 'error' });
+    const layer = new IntegrationLayer({ preloadSkills: preload });
+
+    const result = layer.selectToolsForTask({ prompt: 'What is the correct syntax for using the React useEffect API?' });
+
+    expect(result).toBeDefined();
+    expect(Array.isArray(result.tools)).toBe(true);
+    expect(result.tools.some(tool => tool.name === 'context7_query_docs')).toBe(true);
+    expect('tier2Available' in result).toBe(true);
+    expect('meta_context' in result).toBe(true);
+  });
+
+  it('selectToolsForTask returns null when preloadSkills is unavailable', () => {
+    const { IntegrationLayer } = require('../packages/opencode-integration-layer/src/index.js');
+    const layer = new IntegrationLayer({ preloadSkills: null });
+
+    expect(layer.selectToolsForTask({ prompt: 'hello' })).toBeNull();
   });
 });
