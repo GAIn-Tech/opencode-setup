@@ -214,6 +214,9 @@ rm -rf ~/.config/opencode/node_modules
 
 ### MCP Server Issues
 ```bash
+# Generate current MCP lifecycle report
+bun run mcp:report
+
 # Test individual Playwright MCP server
 npx @playwright/mcp@0.0.64  # Should start without errors
 

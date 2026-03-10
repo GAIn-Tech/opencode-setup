@@ -1,0 +1,15 @@
+{
+  "id": "mcp-report-command-entrypoint-20260310",
+  "timestamp": "2026-03-10T01:47:00-04:00",
+  "summary": "Expose the generated MCP lifecycle report through a top-level `bun run mcp:report` command and document that entrypoint in setup instructions.",
+  "affected_paths": [
+    "package.json",
+    "setup-instructions.md"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}
