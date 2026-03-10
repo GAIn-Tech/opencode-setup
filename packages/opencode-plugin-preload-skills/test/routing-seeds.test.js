@@ -9,18 +9,18 @@ function select(prompt) {
 describe('PreloadSkillsPlugin routing seeds', () => {
   test('library/API prompt implicitly surfaces context7', () => {
     const names = select('What is the correct syntax for using the React useEffect API?');
-    expect(names).toContain('context7');
+    expect(names).toContain('context7_query_docs');
   });
 
   test('compression prompt implicitly surfaces distill', () => {
     const names = select('Compress context because the conversation is too long and we need more budget');
-    expect(names).toContain('distill');
+    expect(names).toContain('distill_run_tool');
   });
 
   test('budget-management prompt implicitly surfaces context-governor and distill', () => {
     const names = select('Check the context budget and compress if we are near the token limit');
-    expect(names).toContain('opencode-context-governor');
-    expect(names).toContain('distill');
+    expect(names).toContain('context-governor');
+    expect(names).toContain('distill_run_tool');
   });
 
   test('codebase audit prompt implicitly surfaces codebase-auditor', () => {

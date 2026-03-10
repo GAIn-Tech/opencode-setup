@@ -8,7 +8,7 @@ describe('PreloadSkillsPlugin MCP selection', () => {
     const names = result.tools.map((tool) => tool.name);
 
     expect(names).toContain('playwright');
-    expect(names).toContain('websearch');
+    expect(names).toContain('websearch_search');
   });
 
   test('includes tier-0 MCPs in selected tools', () => {
@@ -16,6 +16,7 @@ describe('PreloadSkillsPlugin MCP selection', () => {
     const result = plugin.selectTools({ prompt: 'hello' });
     const names = result.tools.map((tool) => tool.name);
 
-    expect(names).toContain('distill');
+    expect(names).toContain('distill_browse_tools');
+    expect(names).toContain('distill_run_tool');
   });
 });

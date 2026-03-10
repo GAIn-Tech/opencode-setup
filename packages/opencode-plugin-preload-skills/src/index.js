@@ -13,6 +13,14 @@ const { EventEmitter } = require('events');
 const { TierResolver } = require('./tier-resolver');
 const { generateMetaContext } = require('./meta-context-injector');
 
+const MCP_TOOL_REGISTRY = {
+  context7: ['context7_resolve_library_id', 'context7_query_docs'],
+  distill: ['distill_browse_tools', 'distill_run_tool'],
+  websearch: ['websearch_search', 'websearch_search_and_crawl'],
+  grep: ['grep_grep_query'],
+  sequentialthinking: ['sequentialthinking_sequentialthinking'],
+};
+
 const DEFAULTS = {
   tiersConfigPath: null,       // Path to tool-tiers.json, auto-resolved if null
   maxTier1Tools: 15,           // Cap on Tier 1 tools per prompt (prevent context bloat)
@@ -97,16 +105,20 @@ class PreloadSkillsPlugin extends EventEmitter {
 
     // 2. Always include Tier 0 (returns {tools, skills, mcps})
     const tier0 = this.tierResolver.getTier0();
-    const tier0Flat = [...(tier0.tools || []), ...(tier0.skills || []), ...(tier0.mcps || [])].map(name =>
-      typeof name === 'string' ? { name, source: 'tier0' } : { ...name, source: 'tier0' }
-    );
+    const tier0Flat = this._expandSelections([
+      ...(tier0.tools || []),
+      ...(tier0.skills || []),
+      ...(tier0.mcps || []),
+    ], 'tier0');
     this.stats.tier0Loads++;
 
     // 3. Classify prompt → Tier 1 matches (returns {tools, skills, mcps, categories})
     const tier1Matches = this.tierResolver.matchTier1(prompt, context.taskType);
-    const tier1Flat = [...(tier1Matches.tools || []), ...(tier1Matches.skills || []), ...(tier1Matches.mcps || [])].map(name =>
-      typeof name === 'string' ? { name, source: 'tier1', categories: tier1Matches.categories } : { ...name, source: 'tier1' }
-    );
+    const tier1Flat = this._expandSelections([
+      ...(tier1Matches.tools || []),
+      ...(tier1Matches.skills || []),
+      ...(tier1Matches.mcps || []),
+    ], 'tier1', tier1Matches.categories);
     const tier1Tools = tier1Flat.slice(0, this.config.maxTier1Tools);
     this.stats.tier1Loads += tier1Tools.length;
 
@@ -178,6 +190,26 @@ class PreloadSkillsPlugin extends EventEmitter {
 
     this.emit('tools-selected', result.metadata);
     return result;
+  }
+
+  _expandSelections(items = [], source, categories = []) {
+    return items.flatMap((item) => {
+      const base = typeof item === 'string'
+        ? { name: item, source, categories }
+        : { ...item, source, categories };
+
+      const mappedTools = MCP_TOOL_REGISTRY[base.name];
+      if (!mappedTools) {
+        return [base];
+      }
+
+      return mappedTools.map((toolName) => ({
+        name: toolName,
+        source,
+        categories,
+        mcp: base.name,
+      }));
+    });
   }
 
   /**
