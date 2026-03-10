@@ -1,0 +1,15 @@
+{
+  "id": "metrics-persistence-observability-20260309",
+  "timestamp": "2026-03-09T22:46:00-04:00",
+  "summary": "Unify compression and Context7 monitoring collection, expose them in snapshots, and read persisted history so fresh processes can serve observability data.",
+  "affected_paths": [
+    "packages/opencode-model-manager/src/monitoring/metrics-collector.js",
+    "packages/opencode-model-manager/test/monitoring/pipeline-metrics-collector.test.ts"
+  ],
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

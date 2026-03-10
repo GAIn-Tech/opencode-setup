@@ -62,6 +62,7 @@ class PipelineMetricsCollector {
     // SQLite persistence for daily metric summaries
     this._db = null;
     this._dbPath = options.dbPath || path.join(os.homedir(), '.opencode', 'metrics-history.db');
+    this._historyFilePath = options.historyFilePath || `${this._dbPath}.events.json`;
     this._historyRetentionDays = DEFAULT_HISTORY_RETENTION_DAYS;
     this._initDb();
   }
@@ -345,9 +346,9 @@ class PipelineMetricsCollector {
   recordCompression(data) {
     const event = {
       sessionId: String(data.sessionId || ''),
-      tokensBefore: toNonNegativeInt(data.tokensBefore, 0),
-      tokensAfter: toNonNegativeInt(data.tokensAfter, 0),
-      pipeline: String(data.pipeline || 'unknown'),
+      tokensBefore: toNonNegativeInt(data.tokensBefore ?? data.inputTokens, 0),
+      tokensAfter: toNonNegativeInt(data.tokensAfter ?? data.outputTokens, 0),
+      pipeline: String(data.pipeline || data.strategy || 'unknown'),
       durationMs: toNonNegativeNumber(data.durationMs, 0),
       timestamp: this.nowFn(),
     };
@@ -362,6 +363,7 @@ class PipelineMetricsCollector {
 
     // Persist to SQLite if available
     this._persistCompression(event);
+    this._appendEventHistory('compression', event);
 
     return event;
   }
@@ -372,6 +374,10 @@ class PipelineMetricsCollector {
    * @returns {{ totalEvents: number, totalTokensSaved: number, avgCompressionRatio: number, avgDurationMs: number, byPipeline: Object }}
    */
   getCompressionStats(windowMs) {
+    if (!this._compressionEvents || this._compressionEvents.length === 0) {
+      return this._readPersistedCompressionStats(windowMs);
+    }
+
     if (!this._compressionEvents) return { totalEvents: 0, totalTokensSaved: 0, avgCompressionRatio: 1, avgDurationMs: 0, byPipeline: {} };
 
     const cutoff = this.nowFn() - (windowMs || this.retentionMs);
@@ -439,7 +445,7 @@ class PipelineMetricsCollector {
    */
   recordContext7Lookup(data) {
     const event = {
-      libraryName: String(data.libraryName || ''),
+      libraryName: String(data.libraryName || data.libraryId || ''),
       resolved: Boolean(data.resolved),
       snippetCount: toNonNegativeInt(data.snippetCount, 0),
       durationMs: toNonNegativeNumber(data.durationMs, 0),
@@ -452,6 +458,7 @@ class PipelineMetricsCollector {
 
     // Persist to SQLite
     this._persistContext7(event);
+    this._appendEventHistory('context7', event);
 
     return event;
   }
@@ -462,6 +469,10 @@ class PipelineMetricsCollector {
    * @returns {{ totalLookups: number, resolved: number, failed: number, resolutionRate: number, avgSnippetCount: number, avgDurationMs: number, librariesQueried: string[] }}
    */
   getContext7Stats(windowMs) {
+    if (!this._context7Events || this._context7Events.length === 0) {
+      return this._readPersistedContext7Stats(windowMs);
+    }
+
     if (!this._context7Events) return { totalLookups: 0, resolved: 0, failed: 0, resolutionRate: 0, avgSnippetCount: 0, avgDurationMs: 0, librariesQueried: [] };
 
     const cutoff = this.nowFn() - (windowMs || this.retentionMs);
@@ -533,8 +544,95 @@ class PipelineMetricsCollector {
       transitions: this.getTransitionCounts(windowMs),
       prCreation: this.getPRRates(windowMs),
       timeToApproval: this.getTimeToApproval(windowMs),
-      catalogFreshness: this.getCatalogFreshness()
+      catalogFreshness: this.getCatalogFreshness(),
+      compression: this.getCompressionStats(windowMs),
+      context7: this.getContext7Stats(windowMs)
     };
+  }
+
+  _readPersistedCompressionStats(windowMs) {
+    const empty = { totalEvents: 0, totalTokensSaved: 0, avgCompressionRatio: 1, avgDurationMs: 0, byPipeline: {} };
+    if (!this._db) {
+      return this._readFileCompressionStats(windowMs);
+    }
+
+    try {
+      const cutoff = this.nowFn() - (windowMs || this.retentionMs);
+      const rows = this._db.prepare(`
+        SELECT tokens_saved, ratio, duration_ms, pipeline
+        FROM compression_history
+        WHERE timestamp >= ?
+      `).all(cutoff);
+
+      if (!rows.length) return empty;
+
+      let totalTokensSaved = 0;
+      let totalRatio = 0;
+      let totalDuration = 0;
+      const byPipeline = {};
+
+      for (const row of rows) {
+        totalTokensSaved += toNonNegativeInt(row.tokens_saved, 0);
+        totalRatio += toNonNegativeNumber(row.ratio, 1);
+        totalDuration += toNonNegativeNumber(row.duration_ms, 0);
+        const pipeline = String(row.pipeline || 'unknown');
+        if (!byPipeline[pipeline]) byPipeline[pipeline] = { events: 0, tokensSaved: 0 };
+        byPipeline[pipeline].events += 1;
+        byPipeline[pipeline].tokensSaved += toNonNegativeInt(row.tokens_saved, 0);
+      }
+
+      return {
+        totalEvents: rows.length,
+        totalTokensSaved,
+        avgCompressionRatio: round(totalRatio / rows.length, 4),
+        avgDurationMs: round(totalDuration / rows.length, 2),
+        byPipeline,
+      };
+    } catch (_err) {
+      return empty;
+    }
+  }
+
+  _readPersistedContext7Stats(windowMs) {
+    const empty = { totalLookups: 0, resolved: 0, failed: 0, resolutionRate: 0, avgSnippetCount: 0, avgDurationMs: 0, librariesQueried: [] };
+    if (!this._db) {
+      return this._readFileContext7Stats(windowMs);
+    }
+
+    try {
+      const cutoff = this.nowFn() - (windowMs || this.retentionMs);
+      const rows = this._db.prepare(`
+        SELECT library_name, resolved, snippet_count, duration_ms
+        FROM context7_lookups
+        WHERE timestamp >= ?
+      `).all(cutoff);
+
+      if (!rows.length) return empty;
+
+      let resolved = 0;
+      let totalSnippets = 0;
+      let totalDuration = 0;
+      const libraries = new Set();
+
+      for (const row of rows) {
+        if (row.resolved) resolved += 1;
+        totalSnippets += toNonNegativeInt(row.snippet_count, 0);
+        totalDuration += toNonNegativeNumber(row.duration_ms, 0);
+        if (row.library_name) libraries.add(String(row.library_name));
+      }
+
+      return {
+        totalLookups: rows.length,
+        resolved,
+        failed: rows.length - resolved,
+        resolutionRate: round(resolved / rows.length, 4),
+        avgSnippetCount: round(totalSnippets / rows.length, 2),
+        avgDurationMs: round(totalDuration / rows.length, 2),
+        librariesQueried: Array.from(libraries),
+      };
+    } catch (_err) {
+      return empty;
+    }
   }
 
   /**
@@ -709,120 +807,6 @@ class PipelineMetricsCollector {
     }
   }
 
-  // ─── T16: Compression Metrics ──────────────────────────────────
-
-  /**
-   * Record a distill compression event.
-   * @param {object} data - { sessionId, inputTokens, outputTokens, ratio, strategy }
-   */
-  recordCompression(data = {}) {
-    const event = {
-      timestamp: this.nowFn(),
-      sessionId: data.sessionId || 'unknown',
-      inputTokens: toNonNegativeInt(data.inputTokens, 0),
-      outputTokens: toNonNegativeInt(data.outputTokens, 0),
-      ratio: toNonNegativeNumber(data.ratio, 0),
-      strategy: String(data.strategy || 'unknown'),
-    };
-    this._compressionEvents.push(event);
-    this._enforceLimit(this._compressionEvents);
-    this._persistCompression(event);
-  }
-
-  /**
-   * Get aggregate compression statistics.
-   * @returns {{ totalEvents: number, totalTokensSaved: number, avgCompressionRatio: number }}
-   */
-  getCompressionStats() {
-    const events = this._compressionEvents;
-    if (events.length === 0) {
-      return { totalEvents: 0, totalTokensSaved: 0, avgCompressionRatio: 0 };
-    }
-    let totalSaved = 0;
-    let ratioSum = 0;
-    for (const e of events) {
-      totalSaved += Math.max(0, e.inputTokens - e.outputTokens);
-      ratioSum += e.ratio;
-    }
-    return {
-      totalEvents: events.length,
-      totalTokensSaved: totalSaved,
-      avgCompressionRatio: round(ratioSum / events.length, 4),
-    };
-  }
-
-  /**
-   * Persist compression event to SQLite (never throws).
-   * @param {object} event
-   */
-  _persistCompression(event) {
-    if (!this._db) return;
-    try {
-      this._db.prepare(`
-        INSERT INTO compression_history (timestamp, session_id, input_tokens, output_tokens, ratio, strategy)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `).run(event.timestamp, event.sessionId, event.inputTokens, event.outputTokens, event.ratio, event.strategy);
-    } catch (_err) {
-      // Never throw from persistence
-    }
-  }
-
-  // ─── T17: Context7 Lookup Metrics ─────────────────────────────
-
-  /**
-   * Record a Context7 library lookup attempt.
-   * @param {object} data - { libraryId, resolved, durationMs, source }
-   */
-  recordContext7Lookup(data = {}) {
-    const event = {
-      timestamp: this.nowFn(),
-      libraryId: String(data.libraryId || 'unknown'),
-      resolved: !!data.resolved,
-      durationMs: toNonNegativeNumber(data.durationMs, 0),
-      source: String(data.source || 'unknown'),
-    };
-    this._context7Events.push(event);
-    this._enforceLimit(this._context7Events);
-    this._persistContext7(event);
-  }
-
-  /**
-   * Get aggregate Context7 lookup statistics.
-   * @returns {{ totalLookups: number, resolved: number, failed: number, resolutionRate: number }}
-   */
-  getContext7Stats() {
-    const events = this._context7Events;
-    if (events.length === 0) {
-      return { totalLookups: 0, resolved: 0, failed: 0, resolutionRate: 0 };
-    }
-    let resolved = 0;
-    for (const e of events) {
-      if (e.resolved) resolved++;
-    }
-    return {
-      totalLookups: events.length,
-      resolved,
-      failed: events.length - resolved,
-      resolutionRate: round(resolved / events.length, 4),
-    };
-  }
-
-  /**
-   * Persist Context7 lookup to SQLite (never throws).
-   * @param {object} event
-   */
-  _persistContext7(event) {
-    if (!this._db) return;
-    try {
-      this._db.prepare(`
-        INSERT INTO context7_lookups (timestamp, library_id, resolved, duration_ms, source)
-        VALUES (?, ?, ?, ?, ?)
-      `).run(event.timestamp, event.libraryId, event.resolved ? 1 : 0, event.durationMs, event.source);
-    } catch (_err) {
-      // Never throw from persistence
-    }
-  }
-
   // ─── Cleanup ─────────────────────────────────────────────────
 
   /**
@@ -945,12 +929,14 @@ class PipelineMetricsCollector {
       this._db.exec(`
         CREATE TABLE IF NOT EXISTS compression_history (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          timestamp INTEGER NOT NULL,
           session_id TEXT,
-          input_tokens INTEGER,
-          output_tokens INTEGER,
+          tokens_before INTEGER,
+          tokens_after INTEGER,
+          tokens_saved INTEGER,
           ratio REAL,
-          strategy TEXT,
+          pipeline TEXT,
+          duration_ms REAL,
+          timestamp INTEGER,
           created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
       `);
@@ -959,17 +945,111 @@ class PipelineMetricsCollector {
       this._db.exec(`
         CREATE TABLE IF NOT EXISTS context7_lookups (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          timestamp INTEGER NOT NULL,
-          library_id TEXT,
+          library_name TEXT,
           resolved INTEGER,
+          snippet_count INTEGER,
           duration_ms REAL,
-          source TEXT,
+          timestamp INTEGER,
           created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
       `);
     } catch (_err) {
       // SQLite unavailable (missing module, permissions, etc.) — continue in-memory only
       this._db = null;
+    }
+  }
+
+  _appendEventHistory(kind, event) {
+    try {
+      const dir = path.dirname(this._historyFilePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+
+      const history = safeJsonParse(fs.existsSync(this._historyFilePath)
+        ? fs.readFileSync(this._historyFilePath, 'utf8')
+        : '[]', []);
+
+      history.push({ kind, event });
+      while (history.length > this._maxEvents) history.shift();
+      fs.writeFileSync(this._historyFilePath, JSON.stringify(history), 'utf8');
+    } catch (_err) {
+      // Non-fatal — in-memory metrics still work
+    }
+  }
+
+  _readFileCompressionStats(windowMs) {
+    const empty = { totalEvents: 0, totalTokensSaved: 0, avgCompressionRatio: 1, avgDurationMs: 0, byPipeline: {} };
+    try {
+      const history = safeJsonParse(fs.readFileSync(this._historyFilePath, 'utf8'), []);
+      const cutoff = this.nowFn() - (windowMs || this.retentionMs);
+      const relevant = history
+        .filter((entry) => entry && entry.kind === 'compression' && entry.event && entry.event.timestamp >= cutoff)
+        .map((entry) => entry.event);
+
+      if (!relevant.length) return empty;
+
+      let totalTokensSaved = 0;
+      let totalRatio = 0;
+      let totalDuration = 0;
+      const byPipeline = {};
+
+      for (const event of relevant) {
+        totalTokensSaved += toNonNegativeInt(event.tokensSaved, 0);
+        totalRatio += toNonNegativeNumber(event.ratio, 1);
+        totalDuration += toNonNegativeNumber(event.durationMs, 0);
+        const pipeline = String(event.pipeline || 'unknown');
+        if (!byPipeline[pipeline]) byPipeline[pipeline] = { events: 0, tokensSaved: 0 };
+        byPipeline[pipeline].events += 1;
+        byPipeline[pipeline].tokensSaved += toNonNegativeInt(event.tokensSaved, 0);
+      }
+
+      return {
+        totalEvents: relevant.length,
+        totalTokensSaved,
+        avgCompressionRatio: round(totalRatio / relevant.length, 4),
+        avgDurationMs: round(totalDuration / relevant.length, 2),
+        byPipeline,
+      };
+    } catch (_err) {
+      return empty;
+    }
+  }
+
+  _readFileContext7Stats(windowMs) {
+    const empty = { totalLookups: 0, resolved: 0, failed: 0, resolutionRate: 0, avgSnippetCount: 0, avgDurationMs: 0, librariesQueried: [] };
+    try {
+      const history = safeJsonParse(fs.readFileSync(this._historyFilePath, 'utf8'), []);
+      const cutoff = this.nowFn() - (windowMs || this.retentionMs);
+      const relevant = history
+        .filter((entry) => entry && entry.kind === 'context7' && entry.event && entry.event.timestamp >= cutoff)
+        .map((entry) => entry.event);
+
+      if (!relevant.length) return empty;
+
+      let resolved = 0;
+      let totalSnippets = 0;
+      let totalDuration = 0;
+      const libraries = new Set();
+
+      for (const event of relevant) {
+        if (event.resolved) resolved += 1;
+        totalSnippets += toNonNegativeInt(event.snippetCount, 0);
+        totalDuration += toNonNegativeNumber(event.durationMs, 0);
+        if (event.libraryName) libraries.add(String(event.libraryName));
+      }
+
+      return {
+        totalLookups: relevant.length,
+        resolved,
+        failed: relevant.length - resolved,
+        resolutionRate: round(resolved / relevant.length, 4),
+        avgSnippetCount: round(totalSnippets / relevant.length, 2),
+        avgDurationMs: round(totalDuration / relevant.length, 2),
+        librariesQueried: Array.from(libraries),
+      };
+    } catch (_err) {
+      return empty;
     }
   }
 }

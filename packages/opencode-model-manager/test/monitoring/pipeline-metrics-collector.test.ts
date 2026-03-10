@@ -1,5 +1,7 @@
 // @ts-nocheck
 const { afterEach, beforeEach, describe, expect, test } = require('bun:test');
+const os = require('os');
+const path = require('path');
 
 const { PipelineMetricsCollector, PROVIDERS } = require('../../src/monitoring/metrics-collector');
 
@@ -333,6 +335,67 @@ describe('PipelineMetricsCollector', () => {
       expect(snapshot.prCreation).toBeDefined();
       expect(snapshot.timeToApproval).toBeDefined();
       expect(snapshot.catalogFreshness).toBeDefined();
+    });
+
+    test('includes compression and Context7 sections', () => {
+      collector.recordCompression({
+        sessionId: 'ses_1',
+        inputTokens: 1000,
+        outputTokens: 400,
+        ratio: 0.4,
+        strategy: 'compress'
+      });
+      collector.recordContext7Lookup({
+        libraryId: '/vercel/next.js',
+        resolved: true,
+        durationMs: 25,
+        source: 'route'
+      });
+
+      const snapshot = collector.getSnapshot();
+      expect(snapshot.compression).toBeDefined();
+      expect(snapshot.compression.totalEvents).toBe(1);
+      expect(snapshot.context7).toBeDefined();
+      expect(snapshot.context7.totalLookups).toBe(1);
+    });
+  });
+
+  describe('persisted compression/context7 stats', () => {
+    test('reads compression stats from persisted history in a new collector instance', () => {
+      const dbPath = path.join(os.tmpdir(), `test-metrics-persist-${Date.now()}-compression.db`);
+      const writer = new PipelineMetricsCollector({ autoCleanup: false, dbPath });
+      writer.recordCompression({
+        sessionId: 'ses_persist',
+        inputTokens: 2000,
+        outputTokens: 500,
+        ratio: 0.25,
+        strategy: 'distill'
+      });
+      writer.close();
+
+      const reader = new PipelineMetricsCollector({ autoCleanup: false, dbPath });
+      const stats = reader.getCompressionStats();
+      expect(stats.totalEvents).toBe(1);
+      expect(stats.totalTokensSaved).toBe(1500);
+      reader.close();
+    });
+
+    test('reads Context7 stats from persisted history in a new collector instance', () => {
+      const dbPath = path.join(os.tmpdir(), `test-metrics-persist-${Date.now()}-context7.db`);
+      const writer = new PipelineMetricsCollector({ autoCleanup: false, dbPath });
+      writer.recordContext7Lookup({
+        libraryId: '/supabase/supabase',
+        resolved: true,
+        durationMs: 42,
+        source: 'context7'
+      });
+      writer.close();
+
+      const reader = new PipelineMetricsCollector({ autoCleanup: false, dbPath });
+      const stats = reader.getContext7Stats();
+      expect(stats.totalLookups).toBe(1);
+      expect(stats.resolved).toBe(1);
+      reader.close();
     });
   });
 
