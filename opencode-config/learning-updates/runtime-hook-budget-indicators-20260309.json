@@ -1,0 +1,14 @@
+{
+  "id": "runtime-hook-budget-indicators-20260309",
+  "timestamp": "2026-03-09T12:30:00Z",
+  "summary": "Enhance PostToolUse runtime hook with session budget tracking and distill CLI indicators. Adds per-session token estimation, budget threshold warnings at 50%/65%/80% emitted to stderr, and distill compression metric capture (tokens_before/after, savings ratio, pipeline list). Session state persisted at ~/.opencode/tool-usage/sessions/{session_id}-budget.json.",
+  "affected_paths": [
+    "scripts/runtime-tool-telemetry.mjs"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

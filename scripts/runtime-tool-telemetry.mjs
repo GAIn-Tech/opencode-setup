@@ -42,8 +42,10 @@ import { homedir } from 'os';
 // ---- Configuration ----
 const HOME = process.env.USERPROFILE || process.env.HOME || homedir();
 const DATA_DIR = join(HOME, '.opencode', 'tool-usage');
+const SESSIONS_DIR = join(DATA_DIR, 'sessions');
 const INVOCATIONS_FILE = join(DATA_DIR, 'invocations.json');
 const MAX_INVOCATIONS = 1000;
+const DEFAULT_MODEL_LIMIT = 200000;
 
 // ---- Tool catalog (mirrors AVAILABLE_TOOLS from tool-usage-tracker.js) ----
 const AVAILABLE_TOOLS = {
@@ -216,6 +218,202 @@ function writeJsonAtomicSync(filePath, data) {
   }
 }
 
+function stringifyLength(value) {
+  try {
+    return JSON.stringify(value === undefined ? {} : value).length;
+  } catch {
+    return String(value ?? '').length;
+  }
+}
+
+function estimateTokens(toolInput, toolResponse) {
+  const inputLength = stringifyLength(toolInput);
+  const responseLength = stringifyLength(toolResponse);
+  return Math.ceil((inputLength + responseLength) / 4);
+}
+
+function truncateOneLine(text, max = 120) {
+  const singleLine = String(text ?? '').replace(/[\r\n]+/g, ' ').trim();
+  if (singleLine.length <= max) return singleLine;
+  return singleLine.slice(0, max - 3) + '...';
+}
+
+function stringifyForSnippet(value) {
+  if (typeof value === 'string') return value;
+  try {
+    return JSON.stringify(value || {});
+  } catch {
+    return String(value ?? '');
+  }
+}
+
+function formatTokenK(tokens) {
+  return `${Math.round(tokens / 1000)}k`;
+}
+
+function getSessionBudgetFile(sessionId) {
+  const safeSessionId = sessionId || 'unknown';
+  return join(SESSIONS_DIR, `${safeSessionId}-budget.json`);
+}
+
+function getDefaultSessionBudget(sessionId) {
+  return {
+    session_id: sessionId || 'unknown',
+    cumulative_chars: 0,
+    estimated_tokens: 0,
+    model_limit: DEFAULT_MODEL_LIMIT,
+    warnings_emitted: [],
+    distill_events: [],
+    last_updated: new Date().toISOString(),
+  };
+}
+
+function loadSessionBudgetState(sessionId) {
+  const stateFile = getSessionBudgetFile(sessionId);
+  const defaults = getDefaultSessionBudget(sessionId);
+  const state = readJsonSync(stateFile, defaults);
+
+  state.session_id = state.session_id || defaults.session_id;
+  state.cumulative_chars = Number(state.cumulative_chars) || 0;
+  state.estimated_tokens = Number(state.estimated_tokens) || 0;
+  state.model_limit = Number(state.model_limit) || DEFAULT_MODEL_LIMIT;
+  state.warnings_emitted = Array.isArray(state.warnings_emitted) ? state.warnings_emitted : [];
+  state.distill_events = Array.isArray(state.distill_events) ? state.distill_events : [];
+  state.last_updated = state.last_updated || defaults.last_updated;
+
+  return { state, stateFile };
+}
+
+function emitBudgetWarnings(state) {
+  const percent = Math.round((state.estimated_tokens / state.model_limit) * 100);
+  const thresholds = [50, 65, 80];
+  for (const threshold of thresholds) {
+    const key = String(threshold);
+    if (percent < threshold || state.warnings_emitted.includes(key)) continue;
+
+    if (threshold === 50) {
+      process.stderr.write(
+        `[context] ~${percent}% budget used (~${formatTokenK(state.estimated_tokens)}/${formatTokenK(state.model_limit)} tokens)\n`
+      );
+    } else if (threshold === 65) {
+      process.stderr.write(`[context] ~${percent}% budget used - compression recommended (run distill)\n`);
+    } else {
+      process.stderr.write(`[context] ~${percent}% budget used - CRITICAL: compress or wrap up\n`);
+    }
+
+    state.warnings_emitted.push(key);
+  }
+}
+
+function findNumericMetric(value, keys) {
+  const targetKeys = new Set(keys.map((key) => key.toLowerCase()));
+  const queue = [value];
+
+  while (queue.length) {
+    const current = queue.shift();
+    if (!current || typeof current !== 'object') continue;
+
+    if (Array.isArray(current)) {
+      for (const item of current) queue.push(item);
+      continue;
+    }
+
+    for (const [rawKey, rawVal] of Object.entries(current)) {
+      const key = rawKey.toLowerCase();
+      if (targetKeys.has(key)) {
+        const num = Number(rawVal);
+        if (Number.isFinite(num)) return num;
+      }
+      if (rawVal && typeof rawVal === 'object') queue.push(rawVal);
+    }
+  }
+
+  return null;
+}
+
+function findDistillPipelines(response) {
+  const out = [];
+  const seen = new Set();
+  const queue = [response];
+
+  while (queue.length) {
+    const current = queue.shift();
+    if (!current) continue;
+
+    if (Array.isArray(current)) {
+      for (const item of current) queue.push(item);
+      continue;
+    }
+
+    if (typeof current !== 'object') continue;
+
+    if (typeof current.name === 'string') {
+      const name = current.name.trim();
+      if (name && !seen.has(name)) {
+        seen.add(name);
+        out.push(name);
+      }
+    }
+
+    if (typeof current.id === 'string') {
+      const id = current.id.trim();
+      if (id && !seen.has(id)) {
+        seen.add(id);
+        out.push(id);
+      }
+    }
+
+    for (const value of Object.values(current)) {
+      if (value && typeof value === 'object') queue.push(value);
+    }
+  }
+
+  return out;
+}
+
+function captureDistillMetrics(toolName, toolResponse, state) {
+  if (toolName !== 'distill_run_tool' && toolName !== 'distill_browse_tools') {
+    return;
+  }
+
+  let summary;
+
+  if (toolName === 'distill_browse_tools') {
+    const pipelines = findDistillPipelines(toolResponse).slice(0, 6);
+    const list = pipelines.length ? pipelines.join(', ') : 'none reported';
+    summary = `[distill] available pipelines: ${list}`;
+  } else {
+    const before = findNumericMetric(toolResponse, ['tokens_before', 'token_before', 'before_tokens']);
+    const after = findNumericMetric(toolResponse, ['tokens_after', 'token_after', 'after_tokens']);
+    let savings = findNumericMetric(toolResponse, ['savings', 'token_savings', 'savings_percent']);
+    let ratio = findNumericMetric(toolResponse, ['ratio', 'compression_ratio']);
+
+    if (savings === null && before !== null && after !== null && before > 0) {
+      savings = ((before - after) / before) * 100;
+    }
+    if (ratio !== null && ratio > 0 && ratio <= 1) {
+      ratio = ratio * 100;
+    }
+
+    if (before !== null && after !== null) {
+      const percentSavings = savings !== null ? Math.round(savings) : (ratio !== null ? Math.round(100 - ratio) : null);
+      const savingsText = percentSavings !== null ? `${percentSavings}% savings` : 'savings unknown';
+      summary = `[distill] compressed: ${Math.round(before)} -> ${Math.round(after)} tokens (${savingsText})`;
+    } else {
+      summary = '[distill] compression complete';
+    }
+  }
+
+  const line = truncateOneLine(summary, 120);
+  process.stderr.write(`${line}\n`);
+
+  state.distill_events.push({
+    timestamp: new Date().toISOString(),
+    tool: toolName,
+    response_snippet: truncateOneLine(stringifyForSnippet(toolResponse), 120),
+  });
+}
+
 // ---- Main ----
 
 function main() {
@@ -262,6 +460,9 @@ function main() {
   if (!existsSync(DATA_DIR)) {
     mkdirSync(DATA_DIR, { recursive: true });
   }
+  if (!existsSync(SESSIONS_DIR)) {
+    mkdirSync(SESSIONS_DIR, { recursive: true });
+  }
 
   // Read-modify-write invocations file
   const data = readJsonSync(INVOCATIONS_FILE, { invocations: [] });
@@ -273,6 +474,18 @@ function main() {
   }
 
   writeJsonAtomicSync(INVOCATIONS_FILE, data);
+
+  const { state, stateFile } = loadSessionBudgetState(sessionId);
+  const callChars = stringifyLength(input.tool_input) + stringifyLength(input.tool_response);
+  const callTokens = estimateTokens(input.tool_input, input.tool_response);
+
+  state.cumulative_chars += callChars;
+  state.estimated_tokens += callTokens;
+  emitBudgetWarnings(state);
+  captureDistillMetrics(toolName, input.tool_response, state);
+  state.last_updated = new Date().toISOString();
+
+  writeJsonAtomicSync(stateFile, state);
 
   // Exit cleanly — no stdout means "allow" decision
   process.exit(0);
