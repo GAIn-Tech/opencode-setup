@@ -118,6 +118,15 @@ describe('runtime-tool-telemetry PostToolUse hook', () => {
     expect(inv[inv.length - 1].category).toBe('planning');
   });
 
+  test('maps GitHub grep tool names correctly', () => {
+    const before = readInvocations().length;
+    runHook({ session_id: 'ses_grep_github', tool_name: 'GrepAppSearchGitHub' });
+    const inv = readInvocations();
+    expect(inv.length).toBe(before + 1);
+    expect(inv[inv.length - 1].tool).toBe('grep_app_searchgithub');
+    expect(inv[inv.length - 1].category).toBe('web');
+  });
+
   test('maps compound tool names correctly', () => {
     const before = readInvocations().length;
     runHook({ session_id: 'ses_compound', tool_name: 'AstGrepSearch' });
@@ -450,6 +459,49 @@ describe('runtime-tool-telemetry PostToolUse hook', () => {
     expect(stats.totalLookups).toBeGreaterThan(0);
     expect(stats.resolved).toBeGreaterThan(0);
     expect(stats.librariesQueried).toContain('/vercel/next.js');
+  });
+
+  test('records supermemory mode-specific tool usage for search', () => {
+    const before = readInvocations().length;
+    runHook({
+      session_id: 'ses_supermemory_search',
+      tool_name: 'Supermemory',
+      tool_input: {
+        mode: 'search',
+        query: 'context7 telemetry',
+        scope: 'project',
+      },
+      tool_response: {
+        results: [],
+      },
+    });
+
+    const inv = readInvocations();
+    expect(inv.length).toBe(before + 1);
+    expect(inv[inv.length - 1].tool).toBe('supermemory_search');
+    expect(inv[inv.length - 1].category).toBe('memory');
+  });
+
+  test('records supermemory mode-specific tool usage for add', () => {
+    const before = readInvocations().length;
+    runHook({
+      session_id: 'ses_supermemory_add',
+      tool_name: 'Supermemory',
+      tool_input: {
+        mode: 'add',
+        content: 'Runtime hook records failed Context7 lookups',
+        type: 'learned-pattern',
+        scope: 'project',
+      },
+      tool_response: {
+        success: true,
+      },
+    });
+
+    const inv = readInvocations();
+    expect(inv.length).toBe(before + 1);
+    expect(inv[inv.length - 1].tool).toBe('supermemory_add');
+    expect(inv[inv.length - 1].category).toBe('memory');
   });
 
   test('records failed Context7 lookups when docs query returns an error', () => {

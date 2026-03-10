@@ -1,0 +1,16 @@
+{
+  "id": "runtime-mcp-telemetry-coverage-20260310",
+  "timestamp": "2026-03-10T00:32:00-04:00",
+  "summary": "Extend runtime MCP telemetry so Supermemory mode-specific calls and GitHub grep searches are recorded with canonical tool identities, and mirror those identities in the learning-engine catalog.",
+  "affected_paths": [
+    "scripts/runtime-tool-telemetry.mjs",
+    "scripts/tests/runtime-tool-telemetry.test.js",
+    "packages/opencode-learning-engine/src/tool-usage-tracker.js"
+  ],
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

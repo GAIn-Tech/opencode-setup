@@ -64,18 +64,36 @@ const AVAILABLE_TOOLS = {
   // Web tools
   webfetch: { category: 'web', priority: 'medium', description: 'Fetch URL content' },
   websearch: { category: 'web', priority: 'medium', description: 'Search the web' },
+  websearch_search: { category: 'web', priority: 'medium', description: 'Search the web' },
+  websearch_crawl_and_extract: { category: 'web', priority: 'medium', description: 'Crawl and extract web pages' },
+  websearch_search_and_crawl: { category: 'web', priority: 'medium', description: 'Search and crawl web pages' },
+  websearch_capture_screenshot: { category: 'web', priority: 'medium', description: 'Capture webpage screenshot' },
+  websearch_generate_pdf: { category: 'web', priority: 'medium', description: 'Generate webpage PDF' },
+  websearch_extract_structured: { category: 'web', priority: 'medium', description: 'Extract structured webpage data' },
+  websearch_execute_js: { category: 'web', priority: 'medium', description: 'Execute JS on webpage' },
+  websearch_extract_regex: { category: 'web', priority: 'medium', description: 'Extract regex matches from webpage' },
+  websearch_get_youtube_transcript: { category: 'web', priority: 'medium', description: 'Get YouTube transcript' },
+  grep_app_searchgithub: { category: 'web', priority: 'medium', description: 'Search GitHub code examples' },
+  grep_grep_query: { category: 'web', priority: 'medium', description: 'Query grep GitHub code search' },
   codesearch: { category: 'web', priority: 'medium', description: 'Search code examples' },
   context7_resolve_library_id: { category: 'docs', priority: 'medium', description: 'Resolve library ID' },
   context7_query_docs: { category: 'docs', priority: 'medium', description: 'Query library docs' },
   
   // Memory tools
   supermemory: { category: 'memory', priority: 'medium', description: 'Persistent memory system' },
+  supermemory_add: { category: 'memory', priority: 'medium', description: 'Store durable memory' },
+  supermemory_search: { category: 'memory', priority: 'medium', description: 'Search durable memory' },
+  supermemory_list: { category: 'memory', priority: 'low', description: 'List recent memories' },
+  supermemory_profile: { category: 'memory', priority: 'low', description: 'Read memory profile' },
+  supermemory_forget: { category: 'memory', priority: 'low', description: 'Forget memory entry' },
   session_list: { category: 'memory', priority: 'low', description: 'List sessions' },
   session_read: { category: 'memory', priority: 'low', description: 'Read session history' },
   session_search: { category: 'memory', priority: 'low', description: 'Search sessions' },
   
   // Context management
   distill: { category: 'context', priority: 'medium', description: 'Distill tool outputs' },
+  distill_browse_tools: { category: 'context', priority: 'low', description: 'Browse distill pipelines' },
+  distill_run_tool: { category: 'context', priority: 'medium', description: 'Run distill pipeline' },
   prune: { category: 'context', priority: 'medium', description: 'Remove tool outputs' },
   
   // Skills

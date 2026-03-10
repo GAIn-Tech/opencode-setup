@@ -114,6 +114,11 @@ const AVAILABLE_TOOLS = {
   // Supermemory sub-tools
   supermemory_memory:    { category: 'memory', priority: 'medium' },
   supermemory_recall:    { category: 'memory', priority: 'medium' },
+  supermemory_add:       { category: 'memory', priority: 'medium' },
+  supermemory_search:    { category: 'memory', priority: 'medium' },
+  supermemory_list:      { category: 'memory', priority: 'low' },
+  supermemory_profile:   { category: 'memory', priority: 'low' },
+  supermemory_forget:    { category: 'memory', priority: 'low' },
   supermemory_listprojects: { category: 'memory', priority: 'low' },
   supermemory_whoami:    { category: 'memory', priority: 'low' },
   supermemory_memory_graph: { category: 'memory', priority: 'low' },
@@ -136,6 +141,15 @@ const REVERSE_SPECIAL = {
   'TodoWrite':  'todowrite',
   'CodeSearch': 'codesearch',
   'LookAt':     'look_at',
+  'GrepAppSearchGitHub': 'grep_app_searchgithub',
+};
+
+const SUPERMEMORY_MODE_TO_TOOL = {
+  add: 'supermemory_add',
+  search: 'supermemory_search',
+  list: 'supermemory_list',
+  profile: 'supermemory_profile',
+  forget: 'supermemory_forget',
 };
 
 /**
@@ -179,6 +193,15 @@ function pascalToSnake(name) {
   if (AVAILABLE_TOOLS[lower]) return lower;
 
   return snake;
+}
+
+function resolveRuntimeToolName(pascalName, toolInput) {
+  const baseTool = pascalToSnake(pascalName);
+  if (baseTool === 'supermemory') {
+    const mode = typeof toolInput?.mode === 'string' ? toolInput.mode.trim().toLowerCase() : '';
+    return SUPERMEMORY_MODE_TO_TOOL[mode] || baseTool;
+  }
+  return baseTool;
 }
 
 // ---- Read stdin ----
@@ -579,7 +602,7 @@ function main() {
   }
 
   // Reverse-map PascalCase → snake_case
-  const toolName = pascalToSnake(pascalToolName);
+  const toolName = resolveRuntimeToolName(pascalToolName, input.tool_input);
   const toolInfo = AVAILABLE_TOOLS[toolName] || { category: 'unknown', priority: 'unknown' };
 
   // Build invocation record (same shape as logInvocation in tool-usage-tracker.js)
