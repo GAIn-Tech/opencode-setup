@@ -53,7 +53,7 @@
         "priority": 1
       },
       "documentation": {
-        "patterns": ["document|readme|docs|jsdoc|typedoc|changelog|api.?doc|write.?up|explain|describe"],
+        "patterns": ["document|readme|docs|jsdoc|typedoc|changelog|api.?doc|write.?up|explain|describe|correct syntax|use the .* api|library docs|api reference"],
         "skills": ["writing-plans"],
         "mcps": ["context7"],
         "tools": [],
@@ -95,11 +95,18 @@
         "priority": 2
       },
       "search_research": {
-        "patterns": ["search|find|look.?up|research|how.?to|best.?practice|example|pattern|library|package|npm|crate|pip"],
+        "patterns": ["search|find|look.?up|research|how.?to|best.?practice|example|pattern|library|package|npm|crate|pip|api|syntax|reference"],
         "skills": [],
         "mcps": ["context7", "websearch", "grep"],
         "tools": ["grep", "glob", "ast_grep_search"],
         "priority": 2
+      },
+      "codebase_audit": {
+        "patterns": ["audit codebase|codebase audit|architecture review|coherence pass|what is disconnected|what is incomplete|what is naive|system pass|repo health check"],
+        "skills": ["codebase-auditor"],
+        "mcps": [],
+        "tools": ["grep", "glob", "ast_grep_search"],
+        "priority": 1
       },
       "skill_management": {
         "patterns": ["skill|create.?skill|edit.?skill|skill\\.md|slash.?command|opencode.?skill"],
