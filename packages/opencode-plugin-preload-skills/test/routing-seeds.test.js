@@ -17,6 +17,12 @@ describe('PreloadSkillsPlugin routing seeds', () => {
     expect(names).toContain('distill');
   });
 
+  test('budget-management prompt implicitly surfaces context-governor and distill', () => {
+    const names = select('Check the context budget and compress if we are near the token limit');
+    expect(names).toContain('opencode-context-governor');
+    expect(names).toContain('distill');
+  });
+
   test('codebase audit prompt implicitly surfaces codebase-auditor', () => {
     const names = select('Do a codebase audit and tell me what is disconnected or incomplete');
     expect(names).toContain('codebase-auditor');

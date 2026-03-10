@@ -80,6 +80,13 @@
         "tools": [],
         "priority": 2
       },
+      "context_budget": {
+        "patterns": ["context budget|token limit|context window|remaining budget|budget status|compress if|near the token limit|reclaim tokens"],
+        "skills": ["context-governor", "budget-aware-router"],
+        "mcps": ["opencode-context-governor", "distill"],
+        "tools": [],
+        "priority": 1
+      },
       "devops_deploy": {
         "patterns": ["deploy|docker|kubernetes|k8s|ci.?cd|pipeline|terraform|aws|gcp|azure|nginx|ssl|cert|domain|dns|helm|ansible"],
         "skills": [],
