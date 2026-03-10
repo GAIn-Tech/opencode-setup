@@ -277,13 +277,13 @@ function formatTokenK(tokens) {
 }
 
 function getSessionBudgetFile(sessionId) {
-  const safeSessionId = sessionId || 'unknown';
+  const safeSessionId = sessionId || `unknown-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   return join(SESSIONS_DIR, `${safeSessionId}-budget.json`);
 }
 
 function getDefaultSessionBudget(sessionId) {
   return {
-    session_id: sessionId || 'unknown',
+    session_id: sessionId || `unknown-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     cumulative_chars: 0,
     estimated_tokens: 0,
     model_limit: DEFAULT_MODEL_LIMIT,
@@ -595,7 +595,11 @@ function main() {
     process.exit(0);
   }
 
-  const sessionId = input.session_id;
+  const rawSessionId = typeof input.session_id === 'string' ? input.session_id.trim() : '';
+  const sessionId = rawSessionId || `unknown-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  if (!rawSessionId) {
+    process.stderr.write('warning: missing or invalid session_id; using isolated fallback session id\n');
+  }
   const pascalToolName = input.tool_name;
   if (!pascalToolName) {
     process.exit(0);
@@ -614,7 +618,7 @@ function main() {
     params: {},  // PostToolUse hook doesn't reliably pass full params
     success: true,  // If the hook fires, the tool succeeded
     context: {
-      session: sessionId || 'unknown',
+      session: sessionId,
       task: null,
       messageCount: 0,
       source: 'runtime-hook',

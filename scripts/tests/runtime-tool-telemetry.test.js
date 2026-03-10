@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeAll, afterAll } from 'bun:test';
-import { mkdtempSync, readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'fs';
+import { mkdtempSync, readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { spawnSync } from 'child_process';
@@ -70,6 +70,23 @@ describe('runtime-tool-telemetry PostToolUse hook', () => {
   test('exits 0 on missing tool_name', () => {
     const { exitCode } = runHook({ session_id: 'ses_test' });
     expect(exitCode).toBe(0);
+  });
+
+  test('warns and isolates invalid session ids instead of collapsing to one unknown budget file', () => {
+    const first = runHook({ tool_name: 'Bash', tool_input: { command: 'a' }, tool_response: { stdout: 'a' } });
+    const second = runHook({ session_id: '', tool_name: 'Bash', tool_input: { command: 'b' }, tool_response: { stdout: 'b' } });
+
+    expect(first.exitCode).toBe(0);
+    expect(second.exitCode).toBe(0);
+    expect(first.stderr).toContain('warning');
+    expect(first.stderr).toContain('session_id');
+    expect(second.stderr).toContain('warning');
+    expect(second.stderr).toContain('session_id');
+
+    const sessionsDir = join(tempHome, '.opencode', 'tool-usage', 'sessions');
+    const sessionFiles = readdirSync(sessionsDir).filter((name) => name.endsWith('-budget.json'));
+    const unknownFiles = sessionFiles.filter((name) => name.startsWith('unknown'));
+    expect(unknownFiles.length).toBe(2);
   });
 
   test('appends invocation for PascalCase tool name', () => {
