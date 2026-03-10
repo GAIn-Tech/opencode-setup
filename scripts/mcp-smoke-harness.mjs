@@ -46,6 +46,12 @@ function getInvocations() {
   return Array.isArray(data.invocations) ? data.invocations : [];
 }
 
+function getExercises() {
+  const filePath = path.join(HOME, '.opencode', 'tool-usage', 'mcp-exercises.json');
+  const data = readJson(filePath, { entries: [] });
+  return Array.isArray(data.entries) ? data.entries : [];
+}
+
 function matchesMcp(name, toolName) {
   const prefixes = MCP_TOOL_PREFIXES[name] || [name];
   const lowerTool = String(toolName || '').toLowerCase();
@@ -54,6 +60,7 @@ function matchesMcp(name, toolName) {
 
 function buildEntries() {
   const invocations = getInvocations();
+  const exercises = getExercises();
   const now = Date.now();
   const cutoff = now - (recentDays * 24 * 60 * 60 * 1000);
 
@@ -63,12 +70,14 @@ function buildEntries() {
       .sort((a, b) => new Date(String(b.timestamp || 0)).getTime() - new Date(String(a.timestamp || 0)).getTime());
     const lastInvocation = matching[0] || null;
     const lastTimestamp = lastInvocation?.timestamp ? new Date(lastInvocation.timestamp).getTime() : null;
+    const smokeVerified = exercises.some((entry) => entry?.name === mcp.name);
     return {
       name: mcp.name,
       type: mcp.type,
       telemetryHits: matching.length,
       lastInvocation: lastInvocation?.timestamp || null,
       recentlyExercised: lastTimestamp !== null && lastTimestamp >= cutoff,
+      smokeVerified,
     };
   });
 }
@@ -81,10 +90,10 @@ function printText(entries) {
   console.log(`Live MCPs: ${entries.length}`);
   console.log(`Recently exercised: ${exercisedCount}`);
   console.log('');
-  console.log('| MCP | Type | Telemetry Hits | Recently Exercised | Last Invocation |');
-  console.log('|-----|------|----------------|-------------------|-----------------|');
+  console.log('| MCP | Type | Telemetry Hits | Recently Exercised | Smoke Verified | Last Invocation |');
+  console.log('|-----|------|----------------|-------------------|----------------|-----------------|');
   for (const entry of entries) {
-    console.log(`| ${entry.name} | ${entry.type} | ${entry.telemetryHits} | ${entry.recentlyExercised ? 'yes' : 'no'} | ${entry.lastInvocation || 'never'} |`);
+    console.log(`| ${entry.name} | ${entry.type} | ${entry.telemetryHits} | ${entry.recentlyExercised ? 'yes' : 'no'} | ${entry.smokeVerified ? 'yes' : 'no'} | ${entry.lastInvocation || 'never'} |`);
   }
 }
 

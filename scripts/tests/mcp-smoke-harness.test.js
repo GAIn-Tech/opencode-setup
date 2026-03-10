@@ -49,5 +49,31 @@ describe('mcp-smoke-harness', () => {
     expect(payload.exercisedCount).toBeGreaterThan(0);
     expect(payload.entries.some((entry) => entry.name === 'context7' && entry.recentlyExercised)).toBe(true);
     expect(payload.entries.some((entry) => entry.name === 'supermemory' && entry.recentlyExercised)).toBe(true);
+    expect(payload.entries.every((entry) => Object.prototype.hasOwnProperty.call(entry, 'smokeVerified'))).toBe(true);
+  });
+
+  test('package.json exposes an mcp:exercise script', () => {
+    const pkg = JSON.parse(readFileSync(PACKAGE_JSON, 'utf8'));
+    expect(pkg.scripts['mcp:exercise']).toBe('node scripts/mcp-exercise-harness.mjs');
+  });
+
+  test('smoke verification state is surfaced separately from runtime telemetry', () => {
+    const tempHome = mkdtempSync(join(tmpdir(), 'mcp-exercise-'));
+    const toolUsageDir = join(tempHome, '.opencode', 'tool-usage');
+    mkdirSync(toolUsageDir, { recursive: true });
+    writeFileSync(join(toolUsageDir, 'mcp-exercises.json'), JSON.stringify({
+      entries: [
+        { name: 'playwright', verifiedAt: new Date().toISOString(), source: 'mcp-exercise-harness' },
+        { name: 'distill', verifiedAt: new Date().toISOString(), source: 'mcp-exercise-harness' }
+      ]
+    }, null, 2));
+
+    const { exitCode, stdout } = runHarness({ HOME: tempHome, USERPROFILE: tempHome }, ['--json']);
+    rmSync(tempHome, { recursive: true, force: true });
+
+    expect(exitCode).toBe(0);
+    const payload = JSON.parse(stdout);
+    expect(payload.entries.some((entry) => entry.name === 'playwright' && entry.smokeVerified === true)).toBe(true);
+    expect(payload.entries.some((entry) => entry.name === 'distill' && entry.smokeVerified === true)).toBe(true);
   });
 });
