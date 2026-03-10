@@ -1,0 +1,14 @@
+{
+  "id": "enabled-custom-skill-contracts-20260310",
+  "timestamp": "2026-03-10T12:57:00-04:00",
+  "summary": "Broaden skill surface regression coverage so every enabled custom skill must have an on-disk definition, not just one-off spot checks.",
+  "affected_paths": [
+    "scripts/tests/skill-surface-regression.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}
