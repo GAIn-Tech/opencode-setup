@@ -1,0 +1,14 @@
+{
+  "id": "mcp-file-bridge-tests-20260309",
+  "timestamp": "2026-03-09T12:05:00Z",
+  "summary": "Add 12 tests for file-based fallback in getSessionMcpInvocations(). Covers readInvocationsFromFile contract, MCP category filtering (memory/docs/web/context), deduplication, session ID isolation, multi-category sessions, and edge cases (null session, non-MCP tools, session_list/read/search tools).",
+  "affected_paths": [
+    "packages/opencode-learning-engine/test/tool-usage-file-bridge.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}
