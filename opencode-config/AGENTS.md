@@ -71,6 +71,14 @@ The `local/oh-my-opencode/` directory contains a development checkout of the oh-
 ### MCP → SkillRL affinity bridge
 The `tool_affinities` field on skills (added in Wave 12) records which MCP tools co-occur with each skill. This data flows from `tool-usage-tracker.getSessionMcpInvocations()` through `IntegrationLayer.executeTaskWithEvidence()` into `SkillRLManager.learnFromOutcome()`. The bridge is fail-open — if the learning-engine package is unavailable, affinity tracking silently degrades.
 
+### Runtime telemetry hook
+The learning-engine's `tool-usage-tracker.js` only runs in-process during `bun test`. At runtime, opencode loads plugins from bun's npm cache — our `packages/` code is not on the runtime load path. To bridge this gap, `scripts/runtime-tool-telemetry.mjs` is registered as a PostToolUse hook in `~/.claude/settings.json`. The oh-my-opencode plugin fires `tool.execute.after` after every tool call, which invokes the script via stdin JSON. The script reverse-maps PascalCase tool names back to snake_case keys, then appends to `~/.opencode/tool-usage/invocations.json` in the same format as `logInvocation()`.
+
+- **Hook config**: `~/.claude/settings.json` → `hooks.PostToolUse[0].hooks[0].command`
+- **Script**: `scripts/runtime-tool-telemetry.mjs` (ESM, standalone, no dependencies)
+- **Data flow**: oh-my-opencode PostToolUse → stdin JSON → pascalToSnake() → invocations.json
+- **Silent exit**: The script exits 0 with no stdout (= "allow" decision for PostToolUse pipeline)
+
 ## COMMANDS
 | Command | Purpose |
 |---------|---------|

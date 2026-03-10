@@ -1,13 +1,32 @@
 {
-  "generated_at": "2026-03-09T16:25:31.765Z",
+  "generated_at": "2026-03-10T02:04:42.996Z",
   "schema_version": 1,
-  "total_records": 210,
+  "total_records": 212,
   "source_files": {
-    "learning_updates": 210,
+    "learning_updates": 212,
     "agents_md": 7
   },
   "by_category": {
     "uncategorized": [
+      {
+        "id": "runtime-telemetry-docs-20260309",
+        "summary": "Document runtime telemetry hook architecture in AGENTS.md: hook config path, data flow, PascalCase reverse mapping, and silent-exit contract",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/AGENTS.md"
+        ],
+        "timestamp": "2026-03-10T02:04:14.897Z"
+      },
+      {
+        "id": "runtime-tool-telemetry-hook-20260309",
+        "summary": "Add PostToolUse runtime hook script that bridges oh-my-opencode tool.execute.after events into the learning-engine invocations.json, enabling MCP tool_affinities to accumulate from real runtime usage",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/runtime-tool-telemetry.mjs",
+          "scripts/tests/runtime-tool-telemetry.test.js"
+        ],
+        "timestamp": "2026-03-10T02:04:06.915Z"
+      },
       {
         "id": "architectural-constraints-docs-20260309",
         "summary": "Document known architectural constraints: local/ gitignore drift affecting MCP telemetry params, and the new MCP → SkillRL affinity bridge data flow.",
@@ -2642,6 +2661,25 @@
   "by_risk_level": {
     "low": [
       {
+        "id": "runtime-telemetry-docs-20260309",
+        "summary": "Document runtime telemetry hook architecture in AGENTS.md: hook config path, data flow, PascalCase reverse mapping, and silent-exit contract",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/AGENTS.md"
+        ],
+        "timestamp": "2026-03-10T02:04:14.897Z"
+      },
+      {
+        "id": "runtime-tool-telemetry-hook-20260309",
+        "summary": "Add PostToolUse runtime hook script that bridges oh-my-opencode tool.execute.after events into the learning-engine invocations.json, enabling MCP tool_affinities to accumulate from real runtime usage",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/runtime-tool-telemetry.mjs",
+          "scripts/tests/runtime-tool-telemetry.test.js"
+        ],
+        "timestamp": "2026-03-10T02:04:06.915Z"
+      },
+      {
         "id": "architectural-constraints-docs-20260309",
         "summary": "Document known architectural constraints: local/ gitignore drift affecting MCP telemetry params, and the new MCP → SkillRL affinity bridge data flow.",
         "risk_level": "low",
@@ -5200,6 +5238,12 @@
   "by_affected_path": {
     "opencode-config/AGENTS.md": [
       {
+        "id": "runtime-telemetry-docs-20260309",
+        "summary": "Document runtime telemetry hook architecture in AGENTS.md: hook config path, data flow, PascalCase reverse mapping, and silent-exit contract",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T02:04:14.897Z"
+      },
+      {
         "id": "architectural-constraints-docs-20260309",
         "summary": "Document known architectural constraints: local/ gitignore drift affecting MCP telemetry params, and the new MCP → SkillRL affinity bridge data flow.",
         "risk_level": "low",
@@ -5234,6 +5278,58 @@
         "summary": "Fix 7 stale counts in AGENTS.md files detected by check-agents-drift.mjs",
         "risk_level": "low",
         "timestamp": "2026-03-08T19:25:00Z"
+      }
+    ],
+    "scripts/runtime-tool-telemetry.mjs": [
+      {
+        "id": "runtime-tool-telemetry-hook-20260309",
+        "summary": "Add PostToolUse runtime hook script that bridges oh-my-opencode tool.execute.after events into the learning-engine invocations.json, enabling MCP tool_affinities to accumulate from real runtime usage",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T02:04:06.915Z"
+      }
+    ],
+    "scripts/tests": [
+      {
+        "id": "runtime-tool-telemetry-hook-20260309",
+        "summary": "Add PostToolUse runtime hook script that bridges oh-my-opencode tool.execute.after events into the learning-engine invocations.json, enabling MCP tool_affinities to accumulate from real runtime usage",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T02:04:06.915Z"
+      },
+      {
+        "id": "p1-setup-canonical-mcp-20260304",
+        "summary": "Switch setup MCP generation to canonical opencode-config/opencode.json merge into user opencode.json, preserving user custom MCP entries while updating canonical server definitions.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-04T00:15:00Z"
+      },
+      {
+        "id": "mcp-manifest-enabled-20260227",
+        "summary": "Align MCP tool-manifest enabled flag with config enabled field and add manifest mapping tests.",
+        "risk_level": "low",
+        "timestamp": "2026-02-28T00:02:00Z"
+      },
+      {
+        "id": "portability-strict-env-20260227",
+        "summary": "Allow strict portability verification to pass when configs have zero env placeholders, while still failing on missing required placeholders.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T23:59:00Z"
+      },
+      {
+        "id": "strict-portability-setup-20260227",
+        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T22:30:00Z"
+      },
+      {
+        "id": "skill-routing-hardening-wave2-20260227",
+        "summary": "Medium-priority skill routing hardening: --full-report mode for gate runner, fixture schema validation in evaluator, expanded DEFAULT_TASKS covering browser/git/code-review/meta domains, learning update for governance compliance",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T12:00:00Z"
+      },
+      {
+        "id": "skill-routing-hardening-wave3-20260227",
+        "summary": "Harden hierarchical routing no-match semantics and conflict validation safety checks",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T06:20:00Z"
       }
     ],
     "packages/opencode-learning-engine": [
@@ -7860,44 +7956,6 @@
         "summary": "Hardened setup transfer portability by adding cross-platform config sync, path-safe script root resolution, and portable MCP manifest generation.",
         "risk_level": "low",
         "timestamp": "2026-02-15T18:55:00Z"
-      }
-    ],
-    "scripts/tests": [
-      {
-        "id": "p1-setup-canonical-mcp-20260304",
-        "summary": "Switch setup MCP generation to canonical opencode-config/opencode.json merge into user opencode.json, preserving user custom MCP entries while updating canonical server definitions.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-04T00:15:00Z"
-      },
-      {
-        "id": "mcp-manifest-enabled-20260227",
-        "summary": "Align MCP tool-manifest enabled flag with config enabled field and add manifest mapping tests.",
-        "risk_level": "low",
-        "timestamp": "2026-02-28T00:02:00Z"
-      },
-      {
-        "id": "portability-strict-env-20260227",
-        "summary": "Allow strict portability verification to pass when configs have zero env placeholders, while still failing on missing required placeholders.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T23:59:00Z"
-      },
-      {
-        "id": "strict-portability-setup-20260227",
-        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T22:30:00Z"
-      },
-      {
-        "id": "skill-routing-hardening-wave2-20260227",
-        "summary": "Medium-priority skill routing hardening: --full-report mode for gate runner, fixture schema validation in evaluator, expanded DEFAULT_TASKS covering browser/git/code-review/meta domains, learning update for governance compliance",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T12:00:00Z"
-      },
-      {
-        "id": "skill-routing-hardening-wave3-20260227",
-        "summary": "Harden hierarchical routing no-match semantics and conflict validation safety checks",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T06:20:00Z"
       }
     ],
     "scripts/verify-portability.mjs": [
