@@ -1,0 +1,15 @@
+{
+  "id": "preload-tier-mcps-20260310",
+  "timestamp": "2026-03-10T12:31:00-04:00",
+  "summary": "Fix the preload-skills plugin so Tier 0 and Tier 1 MCP matches are carried into the selected tool surface instead of being silently dropped.",
+  "affected_paths": [
+    "packages/opencode-plugin-preload-skills/src/index.js",
+    "packages/opencode-plugin-preload-skills/test/mcp-selection.test.js"
+  ],
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

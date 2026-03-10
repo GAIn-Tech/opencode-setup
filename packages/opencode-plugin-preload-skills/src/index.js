@@ -97,14 +97,14 @@ class PreloadSkillsPlugin extends EventEmitter {
 
     // 2. Always include Tier 0 (returns {tools, skills, mcps})
     const tier0 = this.tierResolver.getTier0();
-    const tier0Flat = [...(tier0.tools || []), ...(tier0.skills || [])].map(name =>
+    const tier0Flat = [...(tier0.tools || []), ...(tier0.skills || []), ...(tier0.mcps || [])].map(name =>
       typeof name === 'string' ? { name, source: 'tier0' } : { ...name, source: 'tier0' }
     );
     this.stats.tier0Loads++;
 
     // 3. Classify prompt → Tier 1 matches (returns {tools, skills, mcps, categories})
     const tier1Matches = this.tierResolver.matchTier1(prompt, context.taskType);
-    const tier1Flat = [...(tier1Matches.tools || []), ...(tier1Matches.skills || [])].map(name =>
+    const tier1Flat = [...(tier1Matches.tools || []), ...(tier1Matches.skills || []), ...(tier1Matches.mcps || [])].map(name =>
       typeof name === 'string' ? { name, source: 'tier1', categories: tier1Matches.categories } : { ...name, source: 'tier1' }
     );
     const tier1Tools = tier1Flat.slice(0, this.config.maxTier1Tools);
