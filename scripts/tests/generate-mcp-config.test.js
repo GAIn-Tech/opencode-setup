@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { buildManifestFromConfig, mergeMcpIntoUserConfig } from '../generate-mcp-config.mjs';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 describe('generate-mcp-config manifest mapping', () => {
   test('uses cfg.enabled as source of truth for manifest entries', () => {
@@ -56,5 +58,14 @@ describe('generate-mcp-config manifest mapping', () => {
       command: ['node', 'packages/opencode-memory-bus/mcp-server.js'],
       enabled: true,
     });
+  });
+
+  test('canonical MCP inventory keeps playwright and removes dead github/tavily entries', () => {
+    const canonicalPath = join(import.meta.dir, '..', '..', 'opencode-config', 'opencode.json');
+    const canonicalConfig = JSON.parse(readFileSync(canonicalPath, 'utf8'));
+
+    expect(canonicalConfig.mcp.playwright?.enabled).toBe(true);
+    expect(canonicalConfig.mcp.github).toBeUndefined();
+    expect(canonicalConfig.mcp.tavily).toBeUndefined();
   });
 });
