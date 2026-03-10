@@ -1,13 +1,22 @@
 {
-  "generated_at": "2026-03-09T16:24:47.116Z",
+  "generated_at": "2026-03-09T16:25:31.765Z",
   "schema_version": 1,
-  "total_records": 209,
+  "total_records": 210,
   "source_files": {
-    "learning_updates": 209,
+    "learning_updates": 210,
     "agents_md": 7
   },
   "by_category": {
     "uncategorized": [
+      {
+        "id": "architectural-constraints-docs-20260309",
+        "summary": "Document known architectural constraints: local/ gitignore drift affecting MCP telemetry params, and the new MCP → SkillRL affinity bridge data flow.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/AGENTS.md"
+        ],
+        "timestamp": "2026-03-09T04:55:00Z"
+      },
       {
         "id": "mcp-skillrl-affinity-tests-20260309",
         "summary": "Add 22 tests covering MCP → SkillRL affinity bridge: getSessionMcpInvocations (10), tool_affinities tracking (8), IntegrationLayer bridge wiring (4).",
@@ -2633,6 +2642,15 @@
   "by_risk_level": {
     "low": [
       {
+        "id": "architectural-constraints-docs-20260309",
+        "summary": "Document known architectural constraints: local/ gitignore drift affecting MCP telemetry params, and the new MCP → SkillRL affinity bridge data flow.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/AGENTS.md"
+        ],
+        "timestamp": "2026-03-09T04:55:00Z"
+      },
+      {
         "id": "mcp-skillrl-affinity-tests-20260309",
         "summary": "Add 22 tests covering MCP → SkillRL affinity bridge: getSessionMcpInvocations (10), tool_affinities tracking (8), IntegrationLayer bridge wiring (4).",
         "risk_level": "low",
@@ -5180,6 +5198,44 @@
     "high": []
   },
   "by_affected_path": {
+    "opencode-config/AGENTS.md": [
+      {
+        "id": "architectural-constraints-docs-20260309",
+        "summary": "Document known architectural constraints: local/ gitignore drift affecting MCP telemetry params, and the new MCP → SkillRL affinity bridge data flow.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T04:55:00Z"
+      },
+      {
+        "id": "agents-md-drift-fix-20260309",
+        "summary": "Fix AGENTS.md file count and skill count drift detected by check-agents-drift.mjs. opencode-config/AGENTS.md claimed 259 files / 12 skills; actual count is 291 files / 14 skills (+32 files from Wave 11 additions, +2 skills from context7 and distill skill dirs). Updated to match reality.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T00:00:00Z"
+      },
+      {
+        "id": "wave11-t23-agents-md-context-management",
+        "summary": "T23: Added Context Management (Wave 11) documentation sections to root AGENTS.md and opencode-config/AGENTS.md. Root AGENTS.md gets full component table (Governor, ContextBridge, Distill, Context7, Budget Penalty, Metrics, AlertManager, Dashboard Widget), data flow diagram, key thresholds, performance optimizations, and WHERE TO LOOK entries. Config AGENTS.md gets skill/config table and related packages reference.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:30:00Z"
+      },
+      {
+        "id": "agents-md-filecount-20260308",
+        "summary": "Stabilize opencode-config/AGENTS.md file count to match drift script counting methodology",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:35:00Z"
+      },
+      {
+        "id": "agents-md-drift-fix2-20260308",
+        "summary": "Fix remaining AGENTS.md drift in opencode-config: align skill dir count and file total with drift script methodology",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:30:00Z"
+      },
+      {
+        "id": "agents-md-drift-fix-20260308",
+        "summary": "Fix 7 stale counts in AGENTS.md files detected by check-agents-drift.mjs",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:25:00Z"
+      }
+    ],
     "packages/opencode-learning-engine": [
       {
         "id": "mcp-skillrl-affinity-tests-20260309",
@@ -5620,38 +5676,6 @@
         "summary": "Refreshed governance hash baseline after approved setup portability and script changes to keep learning-gate drift detection aligned with current governed config state.",
         "risk_level": "low",
         "timestamp": "2026-02-27T22:40:00Z"
-      }
-    ],
-    "opencode-config/AGENTS.md": [
-      {
-        "id": "agents-md-drift-fix-20260309",
-        "summary": "Fix AGENTS.md file count and skill count drift detected by check-agents-drift.mjs. opencode-config/AGENTS.md claimed 259 files / 12 skills; actual count is 291 files / 14 skills (+32 files from Wave 11 additions, +2 skills from context7 and distill skill dirs). Updated to match reality.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T00:00:00Z"
-      },
-      {
-        "id": "wave11-t23-agents-md-context-management",
-        "summary": "T23: Added Context Management (Wave 11) documentation sections to root AGENTS.md and opencode-config/AGENTS.md. Root AGENTS.md gets full component table (Governor, ContextBridge, Distill, Context7, Budget Penalty, Metrics, AlertManager, Dashboard Widget), data flow diagram, key thresholds, performance optimizations, and WHERE TO LOOK entries. Config AGENTS.md gets skill/config table and related packages reference.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:30:00Z"
-      },
-      {
-        "id": "agents-md-filecount-20260308",
-        "summary": "Stabilize opencode-config/AGENTS.md file count to match drift script counting methodology",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:35:00Z"
-      },
-      {
-        "id": "agents-md-drift-fix2-20260308",
-        "summary": "Fix remaining AGENTS.md drift in opencode-config: align skill dir count and file total with drift script methodology",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:30:00Z"
-      },
-      {
-        "id": "agents-md-drift-fix-20260308",
-        "summary": "Fix 7 stale counts in AGENTS.md files detected by check-agents-drift.mjs",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:25:00Z"
       }
     ],
     "packages/opencode-model-router-x": [
