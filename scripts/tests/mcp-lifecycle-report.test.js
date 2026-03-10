@@ -1,15 +1,22 @@
-import { describe, expect, test } from 'bun:test';
+import { afterEach, describe, expect, test } from 'bun:test';
 import { spawnSync } from 'child_process';
-import { readFileSync } from 'fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import { tmpdir } from 'os';
 
 const SCRIPT = join(import.meta.dir, '..', 'report-mcp-lifecycle.mjs');
 const PACKAGE_JSON = join(import.meta.dir, '..', '..', 'package.json');
+const REPORTS_DIR = join(import.meta.dir, '..', '..', '.sisyphus', 'reports');
 
-function runReport() {
+afterEach(() => {
+  rmSync(REPORTS_DIR, { recursive: true, force: true });
+});
+
+function runReport(envOverrides = {}) {
   const result = spawnSync('node', [SCRIPT], {
     cwd: join(import.meta.dir, '..', '..'),
     timeout: 10000,
+    env: { ...process.env, ...envOverrides },
   });
 
   return {
@@ -43,5 +50,32 @@ describe('report-mcp-lifecycle', () => {
     expect(stdout).not.toContain('playwright: classified via alias/indirect wiring because no direct MCP skill file exists.');
     expect(stdout).not.toContain('opencode-context-governor: enabled and documented, but still lacks clear agent/orchestrator/runtime activity.');
     expect(stdout).not.toContain('distill: enabled and documented, but still lacks clear agent/orchestrator/runtime activity.');
+  });
+
+  test('classifies dormant internal MCPs and shows recently exercised signal', () => {
+    const tempHome = mkdtempSync(join(tmpdir(), 'mcp-report-'));
+    const toolUsageDir = join(tempHome, '.opencode', 'tool-usage');
+    mkdirSync(toolUsageDir, { recursive: true });
+    const now = new Date();
+    const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000);
+
+    writeFileSync(join(toolUsageDir, 'invocations.json'), JSON.stringify({
+      invocations: [
+        { timestamp: now.toISOString(), tool: 'supermemory_search' },
+        { timestamp: tenDaysAgo.toISOString(), tool: 'grep_app_searchgithub' }
+      ]
+    }, null, 2));
+
+    const { exitCode, stdout } = runReport({ HOME: tempHome, USERPROFILE: tempHome });
+    rmSync(tempHome, { recursive: true, force: true });
+
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain('Recently Exercised');
+    expect(stdout).toContain('| opencode-dashboard-launcher | DORMANT |');
+    expect(stdout).toContain('| opencode-memory-graph | DORMANT |');
+    expect(stdout).toContain('| opencode-model-router-x | DORMANT |');
+    expect(stdout).toContain('| opencode-runbooks | DORMANT |');
+    expect(stdout).toContain('| supermemory | LIVE | yes | remote | yes | yes | yes | 1 | yes');
+    expect(stdout).toContain('| grep | LIVE | yes | local | yes | yes | yes | 1 | no');
   });
 });

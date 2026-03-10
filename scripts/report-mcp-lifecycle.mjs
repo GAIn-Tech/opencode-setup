@@ -150,7 +150,16 @@ function buildMcpCatalog() {
     const skillExists = matchingSkillPaths.length > 0;
     const skillText = matchingSkillPaths.map((skillPath) => readText(skillPath)).join('\n');
 
-    const telemetryHits = invocations.filter((entry) => String(entry.tool || '').startsWith(name)).length;
+    const matchingInvocations = invocations
+      .filter((entry) => String(entry.tool || '').startsWith(name))
+      .sort((a, b) => new Date(String(b.timestamp || 0)).getTime() - new Date(String(a.timestamp || 0)).getTime());
+    const telemetryHits = matchingInvocations.length;
+    const lastInvocation = matchingInvocations[0] || null;
+    const lastInvocationTime = lastInvocation?.timestamp ? new Date(lastInvocation.timestamp) : null;
+    const daysSinceLastUse = lastInvocationTime
+      ? Math.floor((Date.now() - lastInvocationTime.getTime()) / (1000 * 60 * 60 * 24))
+      : null;
+    const recentlyExercised = daysSinceLastUse !== null && daysSinceLastUse <= 7;
     const orchestratorLower = orchestratorText.toLowerCase();
     const orchestratorMention = alias.orchestratorHints.some((hint) => orchestratorLower.includes(hint.toLowerCase()));
     const directIntegrationMention = (alias.directIntegrationHints || []).some((hint) => directIntegrationCorpus.includes(hint));
@@ -172,7 +181,8 @@ function buildMcpCatalog() {
       `${name}_capture`,
     ]);
 
-    let status = config.enabled ? 'PASSIVE' : 'DEAD';
+    const isDormantInternal = config.enabled !== true && name.startsWith('opencode-');
+    let status = config.enabled ? 'PASSIVE' : (isDormantInternal ? 'DORMANT' : 'DEAD');
     const hasStrongWiring =
       (skillExists && (matchingAgents.length > 0 || orchestratorMention || ohMyEnabled)) ||
       (matchingAgents.length > 0 && orchestratorMention) ||
@@ -197,6 +207,9 @@ function buildMcpCatalog() {
       registryEntry: registrySkills[name] ? true : false,
       matchingSkillPaths,
       directIntegrationMention,
+      lastInvocationTime,
+      daysSinceLastUse,
+      recentlyExercised,
     };
   });
 
@@ -209,12 +222,12 @@ function renderReport(entries) {
   lines.push('');
   lines.push(`Generated: ${new Date().toISOString()}`);
   lines.push('');
-  lines.push('| MCP | Status | Enabled | Type | Skill | Agent | Orchestrator | Telemetry |');
-  lines.push('|-----|--------|---------|------|-------|-------|--------------|-----------|');
+  lines.push('| MCP | Status | Enabled | Type | Skill | Agent | Orchestrator | Telemetry | Recently Exercised |');
+  lines.push('|-----|--------|---------|------|-------|-------|--------------|-----------|-------------------|');
 
   for (const entry of entries) {
     lines.push(
-      `| ${entry.name} | ${entry.status} | ${entry.enabled ? 'yes' : 'no'} | ${entry.type} | ${entry.skillExists ? 'yes' : 'no'} | ${entry.matchingAgents.length > 0 ? 'yes' : 'no'} | ${entry.orchestratorMention ? 'yes' : 'no'} | ${entry.telemetryHits} |`
+      `| ${entry.name} | ${entry.status} | ${entry.enabled ? 'yes' : 'no'} | ${entry.type} | ${entry.skillExists ? 'yes' : 'no'} | ${entry.matchingAgents.length > 0 ? 'yes' : 'no'} | ${entry.orchestratorMention ? 'yes' : 'no'} | ${entry.telemetryHits} | ${entry.recentlyExercised ? `yes (${entry.daysSinceLastUse}d)` : 'no'} |`
     );
   }
 
@@ -230,6 +243,8 @@ function renderReport(entries) {
       lines.push(`- Orchestrator mention: ${entry.orchestratorMention ? 'yes' : 'no'}`);
       lines.push(`- Direct integration mention: ${entry.directIntegrationMention ? 'yes' : 'no'}`);
       lines.push(`- Telemetry hits: ${entry.telemetryHits}`);
+      lines.push(`- Last invocation: ${entry.lastInvocationTime ? entry.lastInvocationTime.toISOString() : 'never'}`);
+      lines.push(`- Days since last use: ${entry.daysSinceLastUse !== null ? entry.daysSinceLastUse : 'N/A'}`);
       lines.push('');
 
     if (entry.enabled && entry.status !== 'DEAD') {

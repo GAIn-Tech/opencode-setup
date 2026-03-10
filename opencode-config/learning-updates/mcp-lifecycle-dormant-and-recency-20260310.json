@@ -1,0 +1,15 @@
+{
+  "id": "mcp-lifecycle-dormant-and-recency-20260310",
+  "timestamp": "2026-03-10T11:55:00-04:00",
+  "summary": "Extend the MCP lifecycle report with DORMANT classification for intentionally disabled internal MCPs and a recently-exercised signal sourced from invocation timestamps.",
+  "affected_paths": [
+    "scripts/report-mcp-lifecycle.mjs",
+    "scripts/tests/mcp-lifecycle-report.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}
