@@ -119,6 +119,8 @@ MCP servers are also defined in `opencode.json` under `"mcp"`. They connect auto
 
 **Important**: If local MCPs fail to connect, ensure Node.js and uv are installed and in your PATH. Run `bun scripts/health-check.mjs` to diagnose.
 
+**Internal MCP policy**: disabled `opencode-*` MCP entries such as `opencode-dashboard-launcher`, `opencode-memory-graph`, `opencode-model-router-x`, and `opencode-runbooks` are intentional dormant capabilities. Keep them disabled until they have an explicit MCP wrapper or startup/runtime integration path, rather than enabling raw package entrypoints opportunistically.
+
 ### Supermemory Setup
 
 1. Create account at https://supermemory.ai

@@ -14,8 +14,9 @@
         "code-doctor",
         "context-governor",
         "context7",
-       "agent-browser",
+        "agent-browser",
         "dev-browser",
+        "playwright",
         "dispatching-parallel-agents",
         "distill",
        "evaluation-harness-builder",
@@ -75,8 +76,9 @@
          "github-triage"
        ],
         "browser": [
-          "agent-browser",
-          "dev-browser",
+         "agent-browser",
+         "dev-browser",
+          "playwright",
           "frontend-ui-ux"
         ],
         "optimization": [

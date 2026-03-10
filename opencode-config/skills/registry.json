@@ -120,6 +120,22 @@
         "avoidWhen": ["simple one-shot page fetch", "no Playwright MCP configured", "prefer CLI-based browser automation"]
       }
     },
+    "playwright": {
+      "description": "Direct browser automation through the Playwright MCP for navigation, interaction, screenshots, and UI verification.",
+      "category": "browser",
+      "tags": ["playwright", "browser", "automation", "screenshots", "verification"],
+      "source": "custom",
+      "dependencies": [],
+      "synergies": ["frontend-ui-ux", "verification-before-completion"],
+      "conflicts": ["agent-browser"],
+      "triggers": ["playwright", "browser automation", "take screenshot", "click through UI", "test page"],
+      "overlapCluster": "browser",
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": ["want direct MCP browser path", "need screenshots or visual verification", "browser interaction should map clearly to Playwright telemetry"],
+        "avoidWhen": ["prefer CLI-based browser automation", "browser not actually required"]
+      }
+    },
     "agent-browser": {
       "description": "Browser automation using Vercel's agent-browser CLI with ref-based selection",
       "category": "browser",

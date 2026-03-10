@@ -1,0 +1,16 @@
+{
+  "id": "browser-mcp-registration-and-dormant-policy-20260310",
+  "timestamp": "2026-03-10T11:37:00-04:00",
+  "summary": "Register Playwright as a direct browser MCP skill in the canonical config and document the policy that disabled internal opencode-* MCPs remain dormant until they have explicit wrappers or runtime integration paths.",
+  "affected_paths": [
+    "opencode-config/skills/registry.json",
+    "opencode-config/compound-engineering.json",
+    "setup-instructions.md"
+  ],
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}
