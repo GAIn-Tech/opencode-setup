@@ -1,0 +1,15 @@
+{
+  "id": "dashboard-budget-route-20260310",
+  "timestamp": "2026-03-10T01:58:00-04:00",
+  "summary": "Add the missing dashboard budget API route so observability can aggregate per-session runtime budget files that the PostToolUse hook already writes.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/budget/route.ts",
+    "packages/opencode-dashboard/test/budget-route.test.ts"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}
