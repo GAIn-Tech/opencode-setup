@@ -10,6 +10,8 @@ interface MetricsCollectorInstance {
   recordCacheAccess: (tier: string, result: string, key: string) => void;
   recordTransition: (modelId: string, fromState: string, toState: string) => void;
   recordPRCreation: (success: boolean, data: Record<string, unknown>) => void;
+  recordCompression: (data: Record<string, unknown>) => void;
+  recordContext7Lookup: (data: Record<string, unknown>) => void;
 }
 
 interface AlertManagerInstance {
@@ -61,7 +63,7 @@ function getAlertManager() {
  * Query params:
  * - format: 'json' (default) | 'prometheus'
  * - window: time window in ms (default: 86400000 = 24h)
- * - section: 'all' | 'discovery' | 'cache' | 'transitions' | 'pr' | 'alerts'
+ * - section: 'all' | 'discovery' | 'cache' | 'transitions' | 'pr' | 'compression' | 'context7' | 'alerts'
  */
 export async function GET(request: Request) {
   try {
@@ -109,6 +111,10 @@ export async function GET(request: Request) {
       response = { transitions: snapshot.transitions };
     } else if (section === 'pr') {
       response = { prCreation: snapshot.prCreation };
+    } else if (section === 'compression') {
+      response = { compression: snapshot.compression };
+    } else if (section === 'context7') {
+      response = { context7: snapshot.context7 };
     } else if (section === 'alerts') {
       response = {
         active: activeAlerts,
@@ -117,7 +123,7 @@ export async function GET(request: Request) {
       };
     } else {
       return NextResponse.json(
-        { error: `Unknown section "${section}". Use: all, discovery, cache, transitions, pr, alerts` },
+        { error: `Unknown section "${section}". Use: all, discovery, cache, transitions, pr, compression, context7, alerts` },
         { status: 400 }
       );
     }
@@ -137,7 +143,7 @@ export async function GET(request: Request) {
  *
  * Ingest metrics from external sources (discovery runs, CI pipelines, etc.)
  *
- * Body: { type: 'discovery'|'cache'|'transition'|'pr', data: {...} }
+ * Body: { type: 'discovery'|'cache'|'transition'|'pr'|'compression'|'context7', data: {...} }
  */
 export async function POST(request: Request) {
   const authError = requireWriteAccess(request, 'metrics:ingest');
@@ -169,9 +175,15 @@ export async function POST(request: Request) {
       case 'pr':
         collector.recordPRCreation(data.success, data);
         break;
+      case 'compression':
+        collector.recordCompression(data);
+        break;
+      case 'context7':
+        collector.recordContext7Lookup(data);
+        break;
       default:
         return NextResponse.json(
-          { error: `Unknown metric type "${type}". Use: discovery, cache, transition, pr` },
+          { error: `Unknown metric type "${type}". Use: discovery, cache, transition, pr, compression, context7` },
           { status: 400 }
         );
     }

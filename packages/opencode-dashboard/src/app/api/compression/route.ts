@@ -1,0 +1,42 @@
+import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
+
+interface MetricsCollectorInstance {
+  getCompressionStats: (windowMs?: number) => Record<string, unknown>;
+}
+
+interface MonitoringModule {
+  PipelineMetricsCollector: new (opts: Record<string, unknown>) => MetricsCollectorInstance;
+}
+
+let monitoringModule: MonitoringModule | null = null;
+let metricsCollector: MetricsCollectorInstance | null = null;
+
+function loadModules() {
+  if (!monitoringModule) {
+    monitoringModule = require('opencode-model-manager/monitoring');
+  }
+}
+
+function getMetricsCollector() {
+  if (!metricsCollector) {
+    loadModules();
+    metricsCollector = new monitoringModule!.PipelineMetricsCollector({ autoCleanup: true });
+  }
+  return metricsCollector;
+}
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const windowMs = parseInt(searchParams.get('window') || '86400000', 10);
+    const stats = getMetricsCollector().getCompressionStats(windowMs);
+    return NextResponse.json(stats);
+  } catch (error: unknown) {
+    return NextResponse.json(
+      { error: 'Failed to fetch compression metrics', message: error instanceof Error ? error.message : String(error) },
+      { status: 500 }
+    );
+  }
+}
