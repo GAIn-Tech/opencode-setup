@@ -27,6 +27,8 @@ describe('MCP audit classification regression', () => {
 
   test('activated MCPs have matching skill and agent surfaces', () => {
     const requiredPairs = [
+      ['opencode-config/skills/distill/SKILL.md', 'opencode-config/agents/distill-compressor.md'],
+      ['opencode-config/skills/playwright/SKILL.md', 'opencode-config/agents/playwright-browser.md'],
       ['opencode-config/skills/supermemory/SKILL.md', 'opencode-config/agents/memory-keeper.md'],
       ['opencode-config/skills/sequentialthinking/SKILL.md', 'opencode-config/agents/thinker.md'],
       ['opencode-config/skills/websearch/SKILL.md', 'opencode-config/agents/researcher.md'],

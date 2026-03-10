@@ -10,9 +10,10 @@ const HOME = process.env.USERPROFILE || process.env.HOME || homedir();
 
 const MCP_ALIASES = {
   playwright: {
-    skillDirs: ['dev-browser', 'agent-browser'],
-    agentHints: ['playwright', 'browser'],
+    skillDirs: ['playwright', 'dev-browser', 'agent-browser'],
+    agentHints: ['playwright browser', 'playwright', 'browser'],
     orchestratorHints: ['browser-testing', 'playwright', 'dev-browser', 'agent-browser'],
+    directIntegrationHints: [],
   },
   distill: {
     skillDirs: ['distill', 'dcp', 'context-governor'],

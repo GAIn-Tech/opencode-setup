@@ -29,6 +29,7 @@ describe('MCP inventory regression checks', () => {
     const enabled = new Set(compound.skills.enabled);
 
     expect(enabled.has('supermemory')).toBe(true);
+    expect(enabled.has('playwright')).toBe(true);
     expect(enabled.has('sequentialthinking')).toBe(true);
     expect(enabled.has('websearch')).toBe(true);
     expect(enabled.has('grep')).toBe(true);
@@ -39,11 +40,15 @@ describe('MCP inventory regression checks', () => {
   test('required MCP skill and agent files exist on disk', () => {
     const requiredPaths = [
       'opencode-config/skills/supermemory/SKILL.md',
+      'opencode-config/skills/playwright/SKILL.md',
+      'opencode-config/skills/distill/SKILL.md',
       'opencode-config/skills/sequentialthinking/SKILL.md',
       'opencode-config/skills/websearch/SKILL.md',
       'opencode-config/skills/grep/SKILL.md',
       'opencode-config/skills/task-orchestrator/SKILL.md',
       'opencode-config/agents/memory-keeper.md',
+      'opencode-config/agents/playwright-browser.md',
+      'opencode-config/agents/distill-compressor.md',
       'opencode-config/agents/thinker.md',
       'opencode-config/agents/researcher.md',
       'opencode-config/agents/code-searcher.md',

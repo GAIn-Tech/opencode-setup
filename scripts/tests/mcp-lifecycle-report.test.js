@@ -40,7 +40,8 @@ describe('report-mcp-lifecycle', () => {
     expect(stdout).toContain('| opencode-context-governor | LIVE |');
     expect(stdout).not.toContain('tavily');
     expect(stdout).not.toContain('github');
-    expect(stdout).toContain('Heuristic Notes');
+    expect(stdout).not.toContain('playwright: classified via alias/indirect wiring because no direct MCP skill file exists.');
     expect(stdout).not.toContain('opencode-context-governor: enabled and documented, but still lacks clear agent/orchestrator/runtime activity.');
+    expect(stdout).not.toContain('distill: enabled and documented, but still lacks clear agent/orchestrator/runtime activity.');
   });
 });
