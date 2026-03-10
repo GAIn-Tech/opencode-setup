@@ -3,6 +3,7 @@ import { mkdtempSync, readFileSync, writeFileSync, mkdirSync, rmSync, existsSync
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { spawnSync } from 'child_process';
+import { PipelineMetricsCollector } from '../../packages/opencode-model-manager/src/monitoring/metrics-collector.js';
 
 const SCRIPT = join(import.meta.dir, '..', 'runtime-tool-telemetry.mjs');
 let tempHome;
@@ -49,6 +50,10 @@ function readSessionBudget(sessionId) {
     return null;
   }
   return JSON.parse(readFileSync(budgetFile, 'utf8'));
+}
+
+function getMetricsDbPath() {
+  return join(tempHome, '.opencode', 'metrics-history.db');
 }
 
 describe('runtime-tool-telemetry PostToolUse hook', () => {
@@ -392,5 +397,58 @@ describe('runtime-tool-telemetry PostToolUse hook', () => {
     expect(event).toHaveProperty('tool');
     expect(event.tool).toBe('distill_run_tool');
     expect(event).toHaveProperty('response_snippet');
+  });
+
+  test('writes distill runtime events into shared monitoring history', () => {
+    const sessionId = 'ses_distill_monitoring';
+    runHook({
+      session_id: sessionId,
+      tool_name: 'DistillRunTool',
+      tool_input: { pipeline: 'compress' },
+      tool_response: {
+        tokens_before: 2400,
+        tokens_after: 600,
+        duration_ms: 18,
+      },
+    });
+
+    const collector = new PipelineMetricsCollector({
+      autoCleanup: false,
+      dbPath: getMetricsDbPath(),
+    });
+    const stats = collector.getCompressionStats();
+    collector.close();
+
+    expect(stats.totalEvents).toBeGreaterThan(0);
+    expect(stats.totalTokensSaved).toBeGreaterThan(0);
+  });
+
+  test('writes Context7 runtime events into shared monitoring history', () => {
+    const sessionId = 'ses_context7_monitoring';
+    runHook({
+      session_id: sessionId,
+      tool_name: 'Context7QueryDocs',
+      tool_input: {
+        libraryId: '/vercel/next.js',
+        query: 'app router route handlers'
+      },
+      tool_response: {
+        snippets: [
+          { code: 'export async function GET() {}' },
+          { code: 'export async function POST() {}' }
+        ]
+      },
+    });
+
+    const collector = new PipelineMetricsCollector({
+      autoCleanup: false,
+      dbPath: getMetricsDbPath(),
+    });
+    const stats = collector.getContext7Stats();
+    collector.close();
+
+    expect(stats.totalLookups).toBeGreaterThan(0);
+    expect(stats.resolved).toBeGreaterThan(0);
+    expect(stats.librariesQueried).toContain('/vercel/next.js');
   });
 });

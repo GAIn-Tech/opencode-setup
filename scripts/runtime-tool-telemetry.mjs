@@ -44,7 +44,9 @@ const HOME = process.env.USERPROFILE || process.env.HOME || homedir();
 const DATA_DIR = join(HOME, '.opencode', 'tool-usage');
 const SESSIONS_DIR = join(DATA_DIR, 'sessions');
 const INVOCATIONS_FILE = join(DATA_DIR, 'invocations.json');
+const METRICS_HISTORY_FILE = join(HOME, '.opencode', 'metrics-history.db.events.json');
 const MAX_INVOCATIONS = 1000;
+const MAX_METRICS_EVENTS = 5000;
 const DEFAULT_MODEL_LIMIT = 200000;
 
 // ---- Tool catalog (mirrors AVAILABLE_TOOLS from tool-usage-tracker.js) ----
@@ -284,6 +286,23 @@ function loadSessionBudgetState(sessionId) {
   return { state, stateFile };
 }
 
+function appendMetricsHistory(kind, event) {
+  const dir = dirname(METRICS_HISTORY_FILE);
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+  }
+
+  const data = readJsonSync(METRICS_HISTORY_FILE, []);
+  const history = Array.isArray(data) ? data : [];
+  history.push({ kind, event });
+
+  if (history.length > MAX_METRICS_EVENTS) {
+    history.splice(0, history.length - MAX_METRICS_EVENTS);
+  }
+
+  writeJsonAtomicSync(METRICS_HISTORY_FILE, history);
+}
+
 function emitBudgetWarnings(state) {
   const percent = Math.round((state.estimated_tokens / state.model_limit) * 100);
   const thresholds = [50, 65, 80];
@@ -414,6 +433,95 @@ function captureDistillMetrics(toolName, toolResponse, state) {
   });
 }
 
+function getArrayLength(value) {
+  if (Array.isArray(value)) return value.length;
+  return null;
+}
+
+function findFirstString(value, keys) {
+  const targetKeys = new Set(keys.map((key) => key.toLowerCase()));
+  const queue = [value];
+
+  while (queue.length) {
+    const current = queue.shift();
+    if (!current || typeof current !== 'object') continue;
+
+    if (Array.isArray(current)) {
+      for (const item of current) queue.push(item);
+      continue;
+    }
+
+    for (const [rawKey, rawVal] of Object.entries(current)) {
+      const key = rawKey.toLowerCase();
+      if (targetKeys.has(key) && typeof rawVal === 'string' && rawVal.trim()) {
+        return rawVal.trim();
+      }
+      if (rawVal && typeof rawVal === 'object') queue.push(rawVal);
+    }
+  }
+
+  return '';
+}
+
+function findSnippetCount(value) {
+  const direct = findNumericMetric(value, ['snippet_count', 'snippetcount', 'snippets_count']);
+  if (direct !== null) return direct;
+
+  const queue = [value];
+  while (queue.length) {
+    const current = queue.shift();
+    if (!current || typeof current !== 'object') continue;
+    if (Array.isArray(current)) {
+      for (const item of current) queue.push(item);
+      continue;
+    }
+
+    for (const [rawKey, rawVal] of Object.entries(current)) {
+      const key = rawKey.toLowerCase();
+      if ((key === 'snippets' || key === 'results' || key === 'examples') && Array.isArray(rawVal)) {
+        return rawVal.length;
+      }
+      if (rawVal && typeof rawVal === 'object') queue.push(rawVal);
+    }
+  }
+
+  return 0;
+}
+
+function captureMonitoringMetrics(toolName, toolInput, toolResponse) {
+  if (toolName === 'distill_run_tool') {
+    const tokensBefore = findNumericMetric(toolResponse, ['tokens_before', 'token_before', 'before_tokens']);
+    const tokensAfter = findNumericMetric(toolResponse, ['tokens_after', 'token_after', 'after_tokens']);
+    if (tokensBefore !== null && tokensAfter !== null) {
+      appendMetricsHistory('compression', {
+        sessionId: findFirstString(toolInput, ['session_id']) || 'runtime-hook',
+        tokensBefore: Math.round(tokensBefore),
+        tokensAfter: Math.round(tokensAfter),
+        tokensSaved: Math.max(0, Math.round(tokensBefore) - Math.round(tokensAfter)),
+        ratio: tokensBefore > 0 ? Number((tokensAfter / tokensBefore).toFixed(4)) : 1,
+        pipeline: findFirstString(toolInput, ['pipeline', 'tool', 'name']) || 'distill',
+        durationMs: findNumericMetric(toolResponse, ['duration_ms', 'duration', 'elapsed_ms']) || 0,
+        timestamp: Date.now(),
+      });
+    }
+    return;
+  }
+
+  if (toolName === 'context7_query_docs' || toolName === 'context7_resolve_library_id') {
+    const libraryName =
+      findFirstString(toolInput, ['libraryid', 'libraryname']) ||
+      findFirstString(toolResponse, ['libraryid', 'libraryname', 'id', 'name']);
+
+    appendMetricsHistory('context7', {
+      libraryName: libraryName || 'unknown',
+      resolved: true,
+      snippetCount: findSnippetCount(toolResponse),
+      durationMs: findNumericMetric(toolResponse, ['duration_ms', 'duration', 'elapsed_ms']) || 0,
+      timestamp: Date.now(),
+    });
+  }
+}
+
 // ---- Main ----
 
 function main() {
@@ -483,6 +591,7 @@ function main() {
   state.estimated_tokens += callTokens;
   emitBudgetWarnings(state);
   captureDistillMetrics(toolName, input.tool_response, state);
+  captureMonitoringMetrics(toolName, input.tool_input, input.tool_response);
   state.last_updated = new Date().toISOString();
 
   writeJsonAtomicSync(stateFile, state);
