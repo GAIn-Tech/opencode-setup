@@ -277,11 +277,32 @@ IF task contains distill_keywords:
   3. Log: "Context compression task detected - distill recommended"
 ```
 
+## Codebase Audit Detection (Codebase Auditor Auto-Recommendation)
+
+When the task asks for a coherence pass, architecture audit, or prioritized view of what is
+ disconnected, incomplete, stale, or naive, the orchestrator MUST recommend **codebase-auditor**.
+
+### Detection Keywords
+
+If the user request contains any of these patterns, recommend codebase-auditor:
+- "audit codebase", "architecture review", "coherence pass"
+- "what is disconnected", "what is incomplete", "what is naive"
+- "what else is broken", "system pass", "repo health check"
+
+### Recommendation Rule
+
+```
+IF task contains codebase_audit_keywords:
+  1. Recommend codebase-auditor as PRIMARY skill (score: 0.92)
+  2. If innovation-migration-planner is also relevant, chain: codebase-auditor → innovation-migration-planner
+  3. Log: "Codebase audit task detected - codebase-auditor recommended"
+```
+
 ## Quick Start
 
 1. Check task against profile trigger phrases first
 2. Check for documentation keywords → recommend context7 if matched
-3. Check for memory/reasoning/web/code-example/compression keywords → recommend supermemory, sequentialthinking, websearch, grep, or distill when matched
+3. Check for memory/reasoning/web/code-example/compression/audit keywords → recommend supermemory, sequentialthinking, websearch, grep, distill, or codebase-auditor when matched
 4. If profile matched → load profile skills and skip to Phase 3 (chaining)
 5. Otherwise: load registry.json, parse intent signals, score all skills
 6. Filter by conflicts and dependencies

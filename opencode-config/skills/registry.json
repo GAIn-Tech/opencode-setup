@@ -162,6 +162,16 @@
       "conflicts": [],
       "triggers": ["find innovation areas", "push boundaries", "draft migration plan", "rank opportunities"]
     },
+    "codebase-auditor": {
+      "description": "Systematic codebase health audit with inventory, drift detection, and prioritized remediation guidance.",
+      "category": "analysis",
+      "tags": ["audit", "codebase", "inventory", "architecture", "health", "drift"],
+      "source": "custom",
+      "dependencies": [],
+      "synergies": ["innovation-migration-planner", "code-doctor", "evaluation-harness-builder", "research-builder"],
+      "conflicts": [],
+      "triggers": ["audit codebase", "system audit", "coherence pass", "what is disconnected", "architecture review"]
+    },
     "token-reporter": {
       "description": "Manual token tracking to dashboard API for usage monitoring",
       "category": "observability",
@@ -534,6 +544,10 @@
     "research": {
       "description": "Skills for research and discovery",
       "skills": ["research-builder", "context7", "websearch", "grep"]
+    },
+    "analysis": {
+      "description": "Skills for codebase and architecture analysis",
+      "skills": ["codebase-auditor"]
     },
     "memory": {
       "description": "Skills for persistent memory and recall",

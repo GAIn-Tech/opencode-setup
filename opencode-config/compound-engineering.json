@@ -12,6 +12,7 @@
        "budget-aware-router",
        "dcp",
         "code-doctor",
+        "codebase-auditor",
         "context-governor",
         "context7",
         "agent-browser",
@@ -64,12 +65,17 @@
          "git-master",
          "evaluation-harness-builder"
        ],
-       "debugging": [
-         "code-doctor",
-         "incident-commander",
-         "systematic-debugging"
-       ],
-       "completion": [
+        "debugging": [
+          "code-doctor",
+          "incident-commander",
+          "systematic-debugging"
+        ],
+        "analysis": [
+          "codebase-auditor",
+          "innovation-migration-planner",
+          "research-builder"
+        ],
+        "completion": [
          "finishing-a-development-branch",
          "receiving-code-review",
          "dispatching-parallel-agents",
