@@ -1,12 +1,14 @@
-﻿# MCP Audit Summary (Mar 8, 2026)
+# MCP Audit Summary (Mar 8, 2026)
+
+> Superseded by follow-up work completed on Mar 10, 2026. Current state: the formerly passive MCPs are now activated through skills/agents/orchestrator wiring, `github` and `tavily` were removed from canonical config, and `playwright` is enabled again.
 
 ## Quick Facts
 
 - Total MCPs in config: 9 enabled + 3 disabled = 12 total
-- LIVE MCPs: 2 (distill, context7) - actively invoked at runtime
-- PASSIVE MCPs: 4 (supermemory, sequentialthinking, websearch, grep) - configured but never invoked
-- DEAD MCPs: 3 (playwright, github, tavily) - disabled, no references
-- Pattern confirmed: YES - distill pattern repeats across 4 passive MCPs
+- LIVE MCPs at time of audit: 2 (distill, context7)
+- PASSIVE MCPs at time of audit: 4 (supermemory, sequentialthinking, websearch, grep)
+- DEAD MCPs at time of audit: 3 (playwright, github, tavily)
+- Current status: this summary is historical only; see Mar 10 follow-up commits for the current inventory
 
 ## Audit Methodology
 
@@ -86,12 +88,19 @@ Exhaustive search across:
 
 ### Passive MCPs to Wire Up (4 tasks)
 
+Status on Mar 10, 2026: completed.
+
 1. supermemory: Create skill + agent + orchestrator trigger
 2. sequentialthinking: Create skill + agent + orchestrator trigger
 3. websearch: Create skill + agent + orchestrator trigger
 4. grep: Create skill + agent + orchestrator trigger
 
 ### Dead MCPs to Clean Up (3 tasks)
+
+Status on Mar 10, 2026:
+- `github`: removed
+- `tavily`: removed
+- `playwright`: retained and enabled
 
 1. playwright: Remove from opencode.json (disabled, no references)
 2. github: Clarify intent (skill exists but doesn't call MCP)

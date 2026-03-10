@@ -1,8 +1,10 @@
-﻿# MCP Wiring Plan (Downstream)
+# MCP Wiring Plan (Downstream)
+
+> Superseded historical wiring plan from Mar 8, 2026. The core passive-MCP activation work was completed on Mar 10, 2026. Keep this as the original plan artifact, not the current source of truth.
 
 ## Context
 
-Audit completed Mar 8, 2026 reveals 4 PASSIVE MCPs (supermemory, sequentialthinking, websearch, grep) that are configured but never auto-invoked.
+Audit completed Mar 8, 2026 revealed 4 PASSIVE MCPs (supermemory, sequentialthinking, websearch, grep) that were configured but never auto-invoked.
 
 ## Pattern to Follow
 
@@ -24,47 +26,45 @@ All LIVE MCPs (distill, context7) follow this 3-part pattern:
 ## Wiring Tasks
 
 ### Task 1: Wire supermemory
-- [ ] Create opencode-config/skills/supermemory/SKILL.md
+- [x] Create opencode-config/skills/supermemory/SKILL.md
   - Tool calls: mcp_supermemory_* (check MCP docs for available tools)
   - Use case: Cross-session memory, persistent context
-- [ ] Create opencode-config/agents/memory-keeper.md
+- [x] Create opencode-config/agents/memory-keeper.md
   - Agent that calls supermemory tools
-- [ ] Add supermemory trigger to skill-orchestrator-runtime.md
+- [x] Add supermemory trigger to skill-orchestrator-runtime.md
   - Keywords: "remember", "recall", "persistent memory", "across sessions"
 
 ### Task 2: Wire sequentialthinking
-- [ ] Create opencode-config/skills/sequentialthinking/SKILL.md
+- [x] Create opencode-config/skills/sequentialthinking/SKILL.md
   - Tool calls: mcp_sequentialthinking_* (check MCP docs)
   - Use case: Step-by-step reasoning, complex problem solving
-- [ ] Create opencode-config/agents/thinker.md
+- [x] Create opencode-config/agents/thinker.md
   - Agent that calls sequentialthinking tools
-- [ ] Add sequentialthinking trigger to skill-orchestrator-runtime.md
+- [x] Add sequentialthinking trigger to skill-orchestrator-runtime.md
   - Keywords: "step by step", "break down", "think through", "reasoning"
 
 ### Task 3: Wire websearch
-- [ ] Create opencode-config/skills/websearch/SKILL.md
+- [x] Create opencode-config/skills/websearch/SKILL.md
   - Tool calls: mcp_websearch_* (check MCP docs)
   - Use case: Web research, current information lookup
-- [ ] Create opencode-config/agents/researcher.md
+- [x] Create opencode-config/agents/researcher.md
   - Agent that calls websearch tools
-- [ ] Add websearch trigger to skill-orchestrator-runtime.md
+- [x] Add websearch trigger to skill-orchestrator-runtime.md
   - Keywords: "search the web", "find information", "current news", "latest"
 
 ### Task 4: Wire grep
-- [ ] Create opencode-config/skills/grep/SKILL.md
+- [x] Create opencode-config/skills/grep/SKILL.md
   - Tool calls: mcp_grep_* (check MCP docs)
   - Use case: Code search across GitHub repos
-- [ ] Create opencode-config/agents/code-searcher.md
+- [x] Create opencode-config/agents/code-searcher.md
   - Agent that calls grep tools
-- [ ] Add grep trigger to skill-orchestrator-runtime.md
+- [x] Add grep trigger to skill-orchestrator-runtime.md
   - Keywords: "search code", "find in repo", "grep", "code pattern"
 
 ### Task 5: Clean up DEAD MCPs
-- [ ] Remove playwright from opencode.json (disabled, no references)
-- [ ] Remove tavily from opencode.json (disabled, no references)
-- [ ] Clarify github intent:
-  - If github MCP should be used: wire it like other MCPs
-  - If github-triage skill is sufficient: remove github from opencode.json
+- [x] Remove tavily from opencode.json (disabled, no references)
+- [x] Remove github from opencode.json (github-triage skill remains, MCP removed)
+- [x] Rehabilitate playwright instead of removing it (enabled in canonical config)
 
 ## Validation Checklist
 

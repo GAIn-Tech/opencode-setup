@@ -1,0 +1,16 @@
+{
+  "id": "mcp-audit-doc-refresh-20260310",
+  "timestamp": "2026-03-10T00:48:00-04:00",
+  "summary": "Refresh the historical MCP audit artifacts so they are clearly marked as superseded and point readers to the Mar 10 activation and cleanup follow-up state.",
+  "affected_paths": [
+    "opencode-config/supermemory/mcp-audit-20260308.md",
+    "opencode-config/supermemory/mcp-audit-summary-20260308.md",
+    "opencode-config/supermemory/mcp-wiring-plan-20260308.md"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}
