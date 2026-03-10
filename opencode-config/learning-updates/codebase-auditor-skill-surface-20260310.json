@@ -1,0 +1,15 @@
+{
+  "id": "codebase-auditor-skill-surface-20260310",
+  "timestamp": "2026-03-10T11:56:00-04:00",
+  "summary": "Add the missing codebase-auditor skill and paired agent so systematic repo audits become a first-class workflow instead of an undocumented gap.",
+  "affected_paths": [
+    "opencode-config/skills/codebase-auditor/SKILL.md",
+    "opencode-config/agents/codebase-auditor.md"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}
