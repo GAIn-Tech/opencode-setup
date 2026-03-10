@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-03-10T02:04:42.996Z",
+  "generated_at": "2026-03-10T02:43:46.378Z",
   "schema_version": 1,
-  "total_records": 212,
+  "total_records": 214,
   "source_files": {
-    "learning_updates": 212,
+    "learning_updates": 214,
     "agents_md": 7
   },
   "by_category": {
@@ -26,6 +26,24 @@
           "scripts/tests/runtime-tool-telemetry.test.js"
         ],
         "timestamp": "2026-03-10T02:04:06.915Z"
+      },
+      {
+        "id": "mcp-file-bridge-tests-20260309",
+        "summary": "Add 12 tests for file-based fallback in getSessionMcpInvocations(). Covers readInvocationsFromFile contract, MCP category filtering (memory/docs/web/context), deduplication, session ID isolation, multi-category sessions, and edge cases (null session, non-MCP tools, session_list/read/search tools).",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-learning-engine/test/tool-usage-file-bridge.test.js"
+        ],
+        "timestamp": "2026-03-09T12:05:00Z"
+      },
+      {
+        "id": "mcp-file-bridge-fallback-20260309",
+        "summary": "Add file-based fallback to getSessionMcpInvocations() so runtime PostToolUse hook data (written to invocations.json out-of-process) is merged with in-memory _testLog entries. Adds readInvocationsFromFile() and entry-level category fallback for runtime hook entries not in AVAILABLE_TOOLS catalog.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-learning-engine/src/tool-usage-tracker.js"
+        ],
+        "timestamp": "2026-03-09T12:00:00Z"
       },
       {
         "id": "architectural-constraints-docs-20260309",
@@ -2678,6 +2696,24 @@
           "scripts/tests/runtime-tool-telemetry.test.js"
         ],
         "timestamp": "2026-03-10T02:04:06.915Z"
+      },
+      {
+        "id": "mcp-file-bridge-tests-20260309",
+        "summary": "Add 12 tests for file-based fallback in getSessionMcpInvocations(). Covers readInvocationsFromFile contract, MCP category filtering (memory/docs/web/context), deduplication, session ID isolation, multi-category sessions, and edge cases (null session, non-MCP tools, session_list/read/search tools).",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-learning-engine/test/tool-usage-file-bridge.test.js"
+        ],
+        "timestamp": "2026-03-09T12:05:00Z"
+      },
+      {
+        "id": "mcp-file-bridge-fallback-20260309",
+        "summary": "Add file-based fallback to getSessionMcpInvocations() so runtime PostToolUse hook data (written to invocations.json out-of-process) is merged with in-memory _testLog entries. Adds readInvocationsFromFile() and entry-level category fallback for runtime hook entries not in AVAILABLE_TOOLS catalog.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-learning-engine/src/tool-usage-tracker.js"
+        ],
+        "timestamp": "2026-03-09T12:00:00Z"
       },
       {
         "id": "architectural-constraints-docs-20260309",
@@ -5333,6 +5369,18 @@
       }
     ],
     "packages/opencode-learning-engine": [
+      {
+        "id": "mcp-file-bridge-tests-20260309",
+        "summary": "Add 12 tests for file-based fallback in getSessionMcpInvocations(). Covers readInvocationsFromFile contract, MCP category filtering (memory/docs/web/context), deduplication, session ID isolation, multi-category sessions, and edge cases (null session, non-MCP tools, session_list/read/search tools).",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T12:05:00Z"
+      },
+      {
+        "id": "mcp-file-bridge-fallback-20260309",
+        "summary": "Add file-based fallback to getSessionMcpInvocations() so runtime PostToolUse hook data (written to invocations.json out-of-process) is merged with in-memory _testLog entries. Adds readInvocationsFromFile() and entry-level category fallback for runtime hook entries not in AVAILABLE_TOOLS catalog.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T12:00:00Z"
+      },
       {
         "id": "mcp-skillrl-affinity-tests-20260309",
         "summary": "Add 22 tests covering MCP → SkillRL affinity bridge: getSessionMcpInvocations (10), tool_affinities tracking (8), IntegrationLayer bridge wiring (4).",
