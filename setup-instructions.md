@@ -119,6 +119,8 @@ MCP servers are also defined in `opencode.json` under `"mcp"`. They connect auto
 
 **Important**: If local MCPs fail to connect, ensure Node.js and uv are installed and in your PATH. Run `bun scripts/health-check.mjs` to diagnose.
 
+**Exercise live MCP coverage**: run `bun run mcp:smoke` to see which enabled MCPs have recent telemetry activity and which still need explicit exercise after restart.
+
 **Internal MCP policy**: disabled `opencode-*` MCP entries such as `opencode-dashboard-launcher`, `opencode-memory-graph`, `opencode-model-router-x`, and `opencode-runbooks` are intentional dormant capabilities. Keep them disabled until they have an explicit MCP wrapper or startup/runtime integration path, rather than enabling raw package entrypoints opportunistically.
 
 ### Supermemory Setup
