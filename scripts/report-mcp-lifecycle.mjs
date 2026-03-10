@@ -67,6 +67,7 @@ function readJson(relativePath, fallback = {}) {
   try {
     return JSON.parse(readFileSync(path.join(root, relativePath), 'utf8'));
   } catch {
+    process.stderr.write(`warning: failed to read ${relativePath}; using fallback data\n`);
     return fallback;
   }
 }
@@ -85,6 +86,7 @@ function readTelemetryInvocations() {
     const data = JSON.parse(readFileSync(filePath, 'utf8'));
     return Array.isArray(data.invocations) ? data.invocations : [];
   } catch {
+    process.stderr.write(`warning: failed to read ${filePath}; treating telemetry as empty\n`);
     return [];
   }
 }

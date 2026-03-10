@@ -78,4 +78,18 @@ describe('report-mcp-lifecycle', () => {
     expect(stdout).toContain('| supermemory | LIVE | yes | remote | yes | yes | yes | 1 | yes');
     expect(stdout).toContain('| grep | LIVE | yes | local | yes | yes | yes | 1 | no');
   });
+
+  test('warns when invocations telemetry is unreadable', () => {
+    const tempHome = mkdtempSync(join(tmpdir(), 'mcp-report-bad-telemetry-'));
+    const toolUsageDir = join(tempHome, '.opencode', 'tool-usage');
+    mkdirSync(toolUsageDir, { recursive: true });
+    writeFileSync(join(toolUsageDir, 'invocations.json'), '{not-json', 'utf8');
+
+    const { exitCode, stderr } = runReport({ HOME: tempHome, USERPROFILE: tempHome });
+    rmSync(tempHome, { recursive: true, force: true });
+
+    expect(exitCode).toBe(0);
+    expect(stderr).toContain('warning');
+    expect(stderr).toContain('invocations.json');
+  });
 });
