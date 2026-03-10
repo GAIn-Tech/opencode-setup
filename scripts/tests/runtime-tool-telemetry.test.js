@@ -451,4 +451,37 @@ describe('runtime-tool-telemetry PostToolUse hook', () => {
     expect(stats.resolved).toBeGreaterThan(0);
     expect(stats.librariesQueried).toContain('/vercel/next.js');
   });
+
+  test('records failed Context7 lookups when docs query returns an error', () => {
+    const sessionId = 'ses_context7_failed';
+    const beforeCollector = new PipelineMetricsCollector({
+      autoCleanup: false,
+      dbPath: getMetricsDbPath(),
+    });
+    const beforeStats = beforeCollector.getContext7Stats();
+    beforeCollector.close();
+
+    runHook({
+      session_id: sessionId,
+      tool_name: 'Context7QueryDocs',
+      tool_input: {
+        libraryId: '/missing/library',
+        query: 'unknown api',
+      },
+      tool_response: {
+        error: 'Library not found',
+      },
+    });
+
+    const collector = new PipelineMetricsCollector({
+      autoCleanup: false,
+      dbPath: getMetricsDbPath(),
+    });
+    const stats = collector.getContext7Stats();
+    collector.close();
+
+    expect(stats.failed).toBeGreaterThan(beforeStats.failed);
+    expect(stats.resolved).toBe(beforeStats.resolved);
+    expect(stats.librariesQueried).toContain('/missing/library');
+  });
 });

@@ -488,6 +488,38 @@ function findSnippetCount(value) {
   return 0;
 }
 
+function hasFailureSignal(value) {
+  const queue = [value];
+
+  while (queue.length) {
+    const current = queue.shift();
+    if (!current || typeof current !== 'object') continue;
+
+    if (Array.isArray(current)) {
+      for (const item of current) queue.push(item);
+      continue;
+    }
+
+    for (const [rawKey, rawVal] of Object.entries(current)) {
+      const key = rawKey.toLowerCase();
+      if ((key === 'error' || key === 'errors' || key === 'failed' || key === 'success' || key === 'resolved') && typeof rawVal !== 'object') {
+        if (key === 'success' || key === 'resolved') {
+          if (rawVal === false || rawVal === 'false') return true;
+        } else if (key === 'failed') {
+          if (rawVal === true || rawVal === 'true') return true;
+        } else if (key === 'error' || key === 'errors') {
+          if (typeof rawVal === 'string' && rawVal.trim()) return true;
+          if (Array.isArray(rawVal) && rawVal.length > 0) return true;
+        }
+      }
+
+      if (rawVal && typeof rawVal === 'object') queue.push(rawVal);
+    }
+  }
+
+  return false;
+}
+
 function captureMonitoringMetrics(toolName, toolInput, toolResponse) {
   if (toolName === 'distill_run_tool') {
     const tokensBefore = findNumericMetric(toolResponse, ['tokens_before', 'token_before', 'before_tokens']);
@@ -511,11 +543,13 @@ function captureMonitoringMetrics(toolName, toolInput, toolResponse) {
     const libraryName =
       findFirstString(toolInput, ['libraryid', 'libraryname']) ||
       findFirstString(toolResponse, ['libraryid', 'libraryname', 'id', 'name']);
+    const snippetCount = findSnippetCount(toolResponse);
+    const resolved = !hasFailureSignal(toolResponse);
 
     appendMetricsHistory('context7', {
       libraryName: libraryName || 'unknown',
-      resolved: true,
-      snippetCount: findSnippetCount(toolResponse),
+      resolved,
+      snippetCount,
       durationMs: findNumericMetric(toolResponse, ['duration_ms', 'duration', 'elapsed_ms']) || 0,
       timestamp: Date.now(),
     });
