@@ -39,5 +39,7 @@ describe('report-mcp-lifecycle', () => {
     expect(stdout).toContain('| playwright | LIVE |');
     expect(stdout).not.toContain('tavily');
     expect(stdout).not.toContain('github');
+    expect(stdout).toContain('Heuristic Notes');
+    expect(stdout).toContain('opencode-context-governor');
   });
 });

@@ -199,6 +199,8 @@ function renderReport(entries) {
   }
 
   lines.push('');
+  const heuristicNotes = [];
+
   for (const entry of entries) {
     lines.push(`## ${entry.name}`);
     lines.push(`- Status: ${entry.status}`);
@@ -207,6 +209,23 @@ function renderReport(entries) {
     lines.push(`- Agents: ${entry.matchingAgents.length ? entry.matchingAgents.join(', ') : 'none'}`);
     lines.push(`- Orchestrator mention: ${entry.orchestratorMention ? 'yes' : 'no'}`);
     lines.push(`- Telemetry hits: ${entry.telemetryHits}`);
+    lines.push('');
+
+    if (entry.enabled && entry.status !== 'DEAD') {
+      if (!entry.skillExists && (entry.orchestratorMention || entry.matchingAgents.length > 0)) {
+        heuristicNotes.push(`${entry.name}: classified via alias/indirect wiring because no direct MCP skill file exists.`);
+      }
+      if (entry.skillExists && !entry.orchestratorMention && entry.matchingAgents.length === 0 && entry.telemetryHits === 0) {
+        heuristicNotes.push(`${entry.name}: enabled and documented, but still lacks clear agent/orchestrator/runtime activity.`);
+      }
+    }
+  }
+
+  if (heuristicNotes.length > 0) {
+    lines.push('## Heuristic Notes');
+    for (const note of heuristicNotes) {
+      lines.push(`- ${note}`);
+    }
     lines.push('');
   }
 
