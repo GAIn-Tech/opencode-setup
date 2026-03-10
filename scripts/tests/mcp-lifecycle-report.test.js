@@ -37,9 +37,10 @@ describe('report-mcp-lifecycle', () => {
     expect(stdout).toContain('| context7 | LIVE |');
     expect(stdout).toContain('| distill | LIVE |');
     expect(stdout).toContain('| playwright | LIVE |');
+    expect(stdout).toContain('| opencode-context-governor | LIVE |');
     expect(stdout).not.toContain('tavily');
     expect(stdout).not.toContain('github');
     expect(stdout).toContain('Heuristic Notes');
-    expect(stdout).toContain('opencode-context-governor');
+    expect(stdout).not.toContain('opencode-context-governor: enabled and documented, but still lacks clear agent/orchestrator/runtime activity.');
   });
 });

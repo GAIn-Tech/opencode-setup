@@ -23,31 +23,42 @@ const MCP_ALIASES = {
     skillDirs: ['context-governor'],
     agentHints: ['context governor'],
     orchestratorHints: ['context-governor', 'budget-status', 'token budget'],
+    directIntegrationHints: [
+      'checkContextBudget(',
+      'recordTokenUsage(',
+      'getContextBudgetStatus(',
+      'tokenBudgetManager.governor.getRemainingBudget(',
+    ],
   },
   context7: {
     skillDirs: ['context7'],
     agentHints: ['context7'],
     orchestratorHints: ['context7'],
+    directIntegrationHints: [],
   },
   supermemory: {
     skillDirs: ['supermemory'],
     agentHints: ['supermemory', 'memory'],
     orchestratorHints: ['supermemory', 'persistent memory'],
+    directIntegrationHints: [],
   },
   sequentialthinking: {
     skillDirs: ['sequentialthinking'],
     agentHints: ['sequentialthinking', 'reasoning'],
     orchestratorHints: ['sequentialthinking', 'step by step'],
+    directIntegrationHints: [],
   },
   websearch: {
     skillDirs: ['websearch'],
     agentHints: ['websearch', 'research'],
     orchestratorHints: ['websearch', 'search the web'],
+    directIntegrationHints: [],
   },
   grep: {
     skillDirs: ['grep'],
     agentHints: ['grep', 'code-search'],
     orchestratorHints: ['grep', 'code example'],
+    directIntegrationHints: [],
   },
 };
 
@@ -122,6 +133,11 @@ function buildMcpCatalog() {
   const skillFiles = collectRelativeFiles('opencode-config/skills');
   const agentFiles = collectRelativeFiles('opencode-config/agents');
   const orchestratorText = readText('opencode-config/skills/skill-orchestrator-runtime/SKILL.md');
+  const directIntegrationCorpus = [
+    readText('packages/opencode-integration-layer/src/index.js'),
+    readText('packages/opencode-model-router-x/src/index.js'),
+    readText('packages/opencode-integration-layer/src/context-bridge.js'),
+  ].join('\n');
   const ohMyMcp = ohMy.mcp || {};
   const registrySkills = registry.skills || {};
 
@@ -136,6 +152,7 @@ function buildMcpCatalog() {
     const telemetryHits = invocations.filter((entry) => String(entry.tool || '').startsWith(name)).length;
     const orchestratorLower = orchestratorText.toLowerCase();
     const orchestratorMention = alias.orchestratorHints.some((hint) => orchestratorLower.includes(hint.toLowerCase()));
+    const directIntegrationMention = (alias.directIntegrationHints || []).some((hint) => directIntegrationCorpus.includes(hint));
     const ohMyEnabled = ohMyMcp[name]?.enabled === true;
 
     const matchingAgents = agentFiles.filter((agentPath) => {
@@ -158,7 +175,8 @@ function buildMcpCatalog() {
     const hasStrongWiring =
       (skillExists && (matchingAgents.length > 0 || orchestratorMention || ohMyEnabled)) ||
       (matchingAgents.length > 0 && orchestratorMention) ||
-      (ohMyEnabled && orchestratorMention);
+      (ohMyEnabled && orchestratorMention) ||
+      directIntegrationMention;
 
     if (config.enabled && (telemetryHits > 0 || hasStrongWiring)) {
       status = 'LIVE';
@@ -177,6 +195,7 @@ function buildMcpCatalog() {
       toolMentions,
       registryEntry: registrySkills[name] ? true : false,
       matchingSkillPaths,
+      directIntegrationMention,
     };
   });
 
@@ -207,15 +226,16 @@ function renderReport(entries) {
     lines.push(`- Enabled: ${entry.enabled ? 'true' : 'false'}`);
     lines.push(`- Skill file: ${entry.skillExists ? 'present' : 'missing'}`);
     lines.push(`- Agents: ${entry.matchingAgents.length ? entry.matchingAgents.join(', ') : 'none'}`);
-    lines.push(`- Orchestrator mention: ${entry.orchestratorMention ? 'yes' : 'no'}`);
-    lines.push(`- Telemetry hits: ${entry.telemetryHits}`);
-    lines.push('');
+      lines.push(`- Orchestrator mention: ${entry.orchestratorMention ? 'yes' : 'no'}`);
+      lines.push(`- Direct integration mention: ${entry.directIntegrationMention ? 'yes' : 'no'}`);
+      lines.push(`- Telemetry hits: ${entry.telemetryHits}`);
+      lines.push('');
 
     if (entry.enabled && entry.status !== 'DEAD') {
       if (!entry.skillExists && (entry.orchestratorMention || entry.matchingAgents.length > 0)) {
         heuristicNotes.push(`${entry.name}: classified via alias/indirect wiring because no direct MCP skill file exists.`);
       }
-      if (entry.skillExists && !entry.orchestratorMention && entry.matchingAgents.length === 0 && entry.telemetryHits === 0) {
+      if (entry.skillExists && !entry.orchestratorMention && !entry.directIntegrationMention && entry.matchingAgents.length === 0 && entry.telemetryHits === 0) {
         heuristicNotes.push(`${entry.name}: enabled and documented, but still lacks clear agent/orchestrator/runtime activity.`);
       }
     }

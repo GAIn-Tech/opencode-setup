@@ -1,0 +1,15 @@
+{
+  "id": "mcp-lifecycle-direct-integration-20260310",
+  "timestamp": "2026-03-10T11:10:00-04:00",
+  "summary": "Refine the MCP lifecycle report so directly integrated capabilities like opencode-context-governor are recognized as live from runtime code paths instead of being mislabeled as passive.",
+  "affected_paths": [
+    "scripts/report-mcp-lifecycle.mjs",
+    "scripts/tests/mcp-lifecycle-report.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}
