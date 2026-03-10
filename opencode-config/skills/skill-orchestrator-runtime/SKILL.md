@@ -127,7 +127,7 @@ The registry defines **profiles** — curated skill subsets for common task patt
 | `planning-cycle` | "plan feature", "design system", "architect" | brainstorming, writing-plans, executing-plans |
 | `review-cycle` | "code review", "PR review", "review cycle" | requesting-code-review, receiving-code-review, verification-before-completion |
 | `parallel-implementation` | "parallel work", "divide and conquer", "complex implementation" | dispatching-parallel-agents, subagent-driven-development, executing-plans |
-| `browser-testing` | "test UI", "browser test", "visual verification" | dev-browser, frontend-ui-ux, verification-before-completion |
+| `browser-testing` | "test UI", "browser test", "visual verification" | playwright, frontend-ui-ux, verification-before-completion |
 | `diagnostic-healing` | "diagnose", "fix bug", "heal code", "auto-fix", "incident" | code-doctor, systematic-debugging, incident-commander, git-master |
 | `research-to-code` | "research and build", "investigate then implement", "deep dive" | research-builder, context7, writing-plans, executing-plans |
 
@@ -256,11 +256,32 @@ IF task contains code_example_keywords:
   3. Log: "External code example task detected - grep recommended"
 ```
 
+## Context Compression Detection (Distill Auto-Recommendation)
+
+When the task is about reclaiming context budget, compressing long histories, or preparing
+for large multi-step work, the orchestrator MUST recommend **distill** before implementation.
+
+### Detection Keywords
+
+If the user request contains any of these patterns, recommend distill:
+- "compress context", "context too long", "prune conversation"
+- "reclaim tokens", "context budget", "too much history"
+- "before long task", "compress logs", "distill this"
+
+### Recommendation Rule
+
+```
+IF task contains distill_keywords:
+  1. Recommend distill as PRIMARY skill (score: 0.9)
+  2. If context-governor is also relevant, chain: context-governor → distill
+  3. Log: "Context compression task detected - distill recommended"
+```
+
 ## Quick Start
 
 1. Check task against profile trigger phrases first
 2. Check for documentation keywords → recommend context7 if matched
-3. Check for memory/reasoning/web/code-example keywords → recommend supermemory, sequentialthinking, websearch, or grep when matched
+3. Check for memory/reasoning/web/code-example/compression keywords → recommend supermemory, sequentialthinking, websearch, grep, or distill when matched
 4. If profile matched → load profile skills and skip to Phase 3 (chaining)
 5. Otherwise: load registry.json, parse intent signals, score all skills
 6. Filter by conflicts and dependencies
