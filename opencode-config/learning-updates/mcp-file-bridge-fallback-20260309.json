@@ -1,0 +1,14 @@
+{
+  "id": "mcp-file-bridge-fallback-20260309",
+  "timestamp": "2026-03-09T12:00:00Z",
+  "summary": "Add file-based fallback to getSessionMcpInvocations() so runtime PostToolUse hook data (written to invocations.json out-of-process) is merged with in-memory _testLog entries. Adds readInvocationsFromFile() and entry-level category fallback for runtime hook entries not in AVAILABLE_TOOLS catalog.",
+  "affected_paths": [
+    "packages/opencode-learning-engine/src/tool-usage-tracker.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

@@ -732,9 +732,34 @@ function migrateSessionKeys(entries) {
 }
 
 /**
- * Get MCP-category tool names invoked in a specific session (from in-memory log).
+ * Read invocations from the on-disk invocations.json file (synchronous).
+ * Returns an array of invocation records, or [] on any error.
+ * Used as a fallback when _testLog has no entries for a session (runtime hook
+ * writes directly to the file without populating _testLog).
+ */
+function readInvocationsFromFile() {
+  try {
+    const raw = fs.readFileSync(INVOCATIONS_FILE, 'utf-8');
+    const data = JSON.parse(raw);
+    return Array.isArray(data.invocations) ? data.invocations : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Get MCP-category tool names invoked in a specific session.
  * Returns a deduplicated list of canonical tool names whose category is docs, context,
  * memory, or web. Used by the SkillRL bridge to record tool affinities.
+ *
+ * Sources (merged, deduplicated):
+ *   1. In-memory _testLog — populated by logInvocation() during in-process calls
+ *   2. On-disk invocations.json — populated by the runtime PostToolUse hook
+ *      (scripts/runtime-tool-telemetry.mjs) which runs out-of-process
+ *
+ * The file fallback ensures that runtime MCP tool usage is visible to the SkillRL
+ * bridge even when the learning engine was not loaded in the same process.
+ *
  * @param {string} sessionId
  * @returns {string[]}
  */
@@ -742,14 +767,28 @@ function getSessionMcpInvocations(sessionId) {
   if (!sessionId) return [];
   const sessionKey = String(sessionId);
   const MCP_CATEGORIES = new Set(['docs', 'context', 'memory', 'web']);
-  return [...new Set(
-    _testLog
+
+  // Helper: extract MCP tool names from a list of invocation entries.
+  // Checks both AVAILABLE_TOOLS catalog and the entry's own category field
+  // (runtime hook entries carry their category inline).
+  const extractMcpTools = (entries) =>
+    entries
       .filter(entry => {
         const entrySession = resolveSessionKey(entry.context);
-        return entrySession === sessionKey && MCP_CATEGORIES.has(AVAILABLE_TOOLS[entry.tool]?.category);
+        const category = AVAILABLE_TOOLS[entry.tool]?.category || entry.category;
+        return entrySession === sessionKey && MCP_CATEGORIES.has(category);
       })
-      .map(entry => entry.tool)
-  )];
+      .map(entry => entry.tool);
+
+  // 1. In-memory entries (fast path)
+  const inMemoryTools = extractMcpTools(_testLog);
+
+  // 2. File-based entries (fallback — catches runtime hook data)
+  const fileEntries = readInvocationsFromFile();
+  const fileTools = extractMcpTools(fileEntries);
+
+  // Merge and deduplicate
+  return [...new Set([...inMemoryTools, ...fileTools])];
 }
 
 module.exports = {
@@ -772,4 +811,6 @@ module.exports = {
   sanitizeParams,
   // MCP → SkillRL affinity bridge
   getSessionMcpInvocations,
+  // File-based invocation reader (for testing / external consumers)
+  readInvocationsFromFile,
 };
