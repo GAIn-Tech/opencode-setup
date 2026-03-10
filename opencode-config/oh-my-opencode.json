@@ -56,6 +56,9 @@
     "distill": {
       "enabled": true
     },
+    "playwright": {
+      "enabled": true
+    },
     "websearch": {
       "enabled": true
     }

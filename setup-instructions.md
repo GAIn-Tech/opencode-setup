@@ -112,14 +112,12 @@ MCP servers are also defined in `opencode.json` under `"mcp"`. They connect auto
 
 | Server | Type | Requires | Prerequisite |
 |--------|------|----------|--------------|
-| tavily | local | `TAVILY_API_KEY` env var | npx (Node.js) |
 | supermemory | remote | `SUPERMEMORY_API_KEY` env var | None |
 | context7 | remote | None | None |
 | playwright | local | None | npx (Node.js) |
 | sequentialthinking | local | None | **npx (Node.js)** |
 | websearch | local | None | **npx (Node.js)** |
 | grep | local | None | **uvx (uv)** |
-| github | local | `GITHUB_TOKEN` env var | npx (Node.js) |
 | distill | local | None | **npx (Node.js)** |
 
 **Important**: If local MCPs fail to connect, ensure Node.js and uv are installed and in your PATH. Run `bun scripts/health-check.mjs` to diagnose.
@@ -216,14 +214,11 @@ rm -rf ~/.config/opencode/node_modules
 
 ### MCP Server Issues
 ```bash
-# Test individual server
-npx -y tavily-mcp@0.2.16  # Should start without errors
+# Test individual Playwright MCP server
+npx @playwright/mcp@0.0.64  # Should start without errors
 
 # Check if uvx installed (needed for grep)
 pip install uv
-
-# Verify GitHub token
-echo $GITHUB_TOKEN
 ```
 
 ### Docker Desktop Issues (Windows)

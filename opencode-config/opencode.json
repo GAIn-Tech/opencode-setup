@@ -609,18 +609,6 @@
     }
   },
   "mcp": {
-    "tavily": {
-      "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "tavily-mcp@0.2.16"
-      ],
-      "environment": {
-        "TAVILY_API_KEY": "{env:TAVILY_API_KEY}"
-      },
-      "enabled": false
-    },
     "supermemory": {
       "type": "remote",
       "url": "https://mcp.supermemory.ai/mcp",
@@ -640,7 +628,7 @@
         "npx",
         "@playwright/mcp@0.0.64"
       ],
-      "enabled": false
+      "enabled": true
     },
     "sequentialthinking": {
       "type": "local",
@@ -667,18 +655,6 @@
         "grep-mcp"
       ],
       "enabled": true
-    },
-    "github": {
-      "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "@modelcontextprotocol/server-github@2025.4.8"
-      ],
-      "environment": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "{env:GITHUB_TOKEN}"
-      },
-      "enabled": false
     },
     "distill": {
       "type": "local",
