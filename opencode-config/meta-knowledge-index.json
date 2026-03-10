@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-03-10T02:43:46.378Z",
+  "generated_at": "2026-03-10T03:11:10.254Z",
   "schema_version": 1,
-  "total_records": 214,
+  "total_records": 216,
   "source_files": {
-    "learning_updates": 214,
+    "learning_updates": 216,
     "agents_md": 7
   },
   "by_category": {
@@ -26,6 +26,25 @@
           "scripts/tests/runtime-tool-telemetry.test.js"
         ],
         "timestamp": "2026-03-10T02:04:06.915Z"
+      },
+      {
+        "id": "runtime-hook-budget-indicators-20260309",
+        "summary": "Enhance PostToolUse runtime hook with session budget tracking and distill CLI indicators. Adds per-session token estimation, budget threshold warnings at 50%/65%/80% emitted to stderr, and distill compression metric capture (tokens_before/after, savings ratio, pipeline list). Session state persisted at ~/.opencode/tool-usage/sessions/{session_id}-budget.json.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/runtime-tool-telemetry.mjs"
+        ],
+        "timestamp": "2026-03-09T12:30:00Z"
+      },
+      {
+        "id": "governance-hash-refresh-20260309",
+        "summary": "Refresh governance hashes and meta-knowledge index after file-bridge commits. Auto-generated files only, no code changes.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/.governance-hashes.json",
+          "opencode-config/meta-knowledge-index.json"
+        ],
+        "timestamp": "2026-03-09T12:10:00Z"
       },
       {
         "id": "mcp-file-bridge-tests-20260309",
@@ -2698,6 +2717,25 @@
         "timestamp": "2026-03-10T02:04:06.915Z"
       },
       {
+        "id": "runtime-hook-budget-indicators-20260309",
+        "summary": "Enhance PostToolUse runtime hook with session budget tracking and distill CLI indicators. Adds per-session token estimation, budget threshold warnings at 50%/65%/80% emitted to stderr, and distill compression metric capture (tokens_before/after, savings ratio, pipeline list). Session state persisted at ~/.opencode/tool-usage/sessions/{session_id}-budget.json.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/runtime-tool-telemetry.mjs"
+        ],
+        "timestamp": "2026-03-09T12:30:00Z"
+      },
+      {
+        "id": "governance-hash-refresh-20260309",
+        "summary": "Refresh governance hashes and meta-knowledge index after file-bridge commits. Auto-generated files only, no code changes.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/.governance-hashes.json",
+          "opencode-config/meta-knowledge-index.json"
+        ],
+        "timestamp": "2026-03-09T12:10:00Z"
+      },
+      {
         "id": "mcp-file-bridge-tests-20260309",
         "summary": "Add 12 tests for file-based fallback in getSessionMcpInvocations(). Covers readInvocationsFromFile contract, MCP category filtering (memory/docs/web/context), deduplication, session ID isolation, multi-category sessions, and edge cases (null session, non-MCP tools, session_list/read/search tools).",
         "risk_level": "low",
@@ -5322,6 +5360,12 @@
         "summary": "Add PostToolUse runtime hook script that bridges oh-my-opencode tool.execute.after events into the learning-engine invocations.json, enabling MCP tool_affinities to accumulate from real runtime usage",
         "risk_level": "low",
         "timestamp": "2026-03-10T02:04:06.915Z"
+      },
+      {
+        "id": "runtime-hook-budget-indicators-20260309",
+        "summary": "Enhance PostToolUse runtime hook with session budget tracking and distill CLI indicators. Adds per-session token estimation, budget threshold warnings at 50%/65%/80% emitted to stderr, and distill compression metric capture (tokens_before/after, savings ratio, pipeline list). Session state persisted at ~/.opencode/tool-usage/sessions/{session_id}-budget.json.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T12:30:00Z"
       }
     ],
     "scripts/tests": [
@@ -5366,6 +5410,76 @@
         "summary": "Harden hierarchical routing no-match semantics and conflict validation safety checks",
         "risk_level": "low",
         "timestamp": "2026-02-27T06:20:00Z"
+      }
+    ],
+    "opencode-config/.governance-hashes.json": [
+      {
+        "id": "governance-hash-refresh-20260309",
+        "summary": "Refresh governance hashes and meta-knowledge index after file-bridge commits. Auto-generated files only, no code changes.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T12:10:00Z"
+      },
+      {
+        "id": "meta-kb-rehash-20260309",
+        "summary": "Regenerate governance hashes after learning-gate auto-refreshed meta-knowledge-index.json during the AGENTS.md drift fix commit. No content changes — hash chain integrity maintenance only.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T00:01:00Z"
+      },
+      {
+        "id": "wave11-t4-budget-scoring-20260308",
+        "summary": "Wave 11 Phase 1 complete (7/7 tasks): context-governor activation, model-router perf caches, advice cache, integration-layer wiring, budget-aware scoring",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:50:00Z"
+      },
+      {
+        "id": "governance-refresh-20260308",
+        "summary": "Refresh auto-generated governance hashes and meta-KB index after AGENTS.md drift fixes",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:40:00Z"
+      },
+      {
+        "id": "wave10-phase1-ci-20260308",
+        "summary": "Wave 10 Phase 1 CI re-enablement: moved governance-gate.yml and opencode-ci.yml from disabled to active with paths filters and bun test step",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:22:00Z"
+      },
+      {
+        "id": "governance-hash-refresh-20260227",
+        "summary": "Refreshed governance hash baseline after approved setup portability and script changes to keep learning-gate drift detection aligned with current governed config state.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T22:40:00Z"
+      }
+    ],
+    "opencode-config/meta-knowledge-index.json": [
+      {
+        "id": "governance-hash-refresh-20260309",
+        "summary": "Refresh governance hashes and meta-knowledge index after file-bridge commits. Auto-generated files only, no code changes.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T12:10:00Z"
+      },
+      {
+        "id": "meta-kb-rehash-20260309",
+        "summary": "Regenerate governance hashes after learning-gate auto-refreshed meta-knowledge-index.json during the AGENTS.md drift fix commit. No content changes — hash chain integrity maintenance only.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T00:01:00Z"
+      },
+      {
+        "id": "wave11-t4-budget-scoring-20260308",
+        "summary": "Wave 11 Phase 1 complete (7/7 tasks): context-governor activation, model-router perf caches, advice cache, integration-layer wiring, budget-aware scoring",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:50:00Z"
+      },
+      {
+        "id": "governance-refresh-20260308",
+        "summary": "Refresh auto-generated governance hashes and meta-KB index after AGENTS.md drift fixes",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:40:00Z"
+      },
+      {
+        "id": "wave9-meta-kb-synthesis-20260308",
+        "summary": "Add synthesize-meta-kb.mjs script that aggregates 161 learning-update JSONs and 7 AGENTS.md files into a single queryable meta-knowledge index at opencode-config/meta-knowledge-index.json. Indexes by category, risk level, and affected path. Extracts anti-patterns, conventions, and commands from AGENTS.md sections.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
       }
     ],
     "packages/opencode-learning-engine": [
@@ -5762,64 +5876,6 @@
         "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
         "risk_level": "low",
         "timestamp": "2026-02-15T12:30:00Z"
-      }
-    ],
-    "opencode-config/meta-knowledge-index.json": [
-      {
-        "id": "meta-kb-rehash-20260309",
-        "summary": "Regenerate governance hashes after learning-gate auto-refreshed meta-knowledge-index.json during the AGENTS.md drift fix commit. No content changes — hash chain integrity maintenance only.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T00:01:00Z"
-      },
-      {
-        "id": "wave11-t4-budget-scoring-20260308",
-        "summary": "Wave 11 Phase 1 complete (7/7 tasks): context-governor activation, model-router perf caches, advice cache, integration-layer wiring, budget-aware scoring",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:50:00Z"
-      },
-      {
-        "id": "governance-refresh-20260308",
-        "summary": "Refresh auto-generated governance hashes and meta-KB index after AGENTS.md drift fixes",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:40:00Z"
-      },
-      {
-        "id": "wave9-meta-kb-synthesis-20260308",
-        "summary": "Add synthesize-meta-kb.mjs script that aggregates 161 learning-update JSONs and 7 AGENTS.md files into a single queryable meta-knowledge index at opencode-config/meta-knowledge-index.json. Indexes by category, risk level, and affected path. Extracts anti-patterns, conventions, and commands from AGENTS.md sections.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      }
-    ],
-    "opencode-config/.governance-hashes.json": [
-      {
-        "id": "meta-kb-rehash-20260309",
-        "summary": "Regenerate governance hashes after learning-gate auto-refreshed meta-knowledge-index.json during the AGENTS.md drift fix commit. No content changes — hash chain integrity maintenance only.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T00:01:00Z"
-      },
-      {
-        "id": "wave11-t4-budget-scoring-20260308",
-        "summary": "Wave 11 Phase 1 complete (7/7 tasks): context-governor activation, model-router perf caches, advice cache, integration-layer wiring, budget-aware scoring",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:50:00Z"
-      },
-      {
-        "id": "governance-refresh-20260308",
-        "summary": "Refresh auto-generated governance hashes and meta-KB index after AGENTS.md drift fixes",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:40:00Z"
-      },
-      {
-        "id": "wave10-phase1-ci-20260308",
-        "summary": "Wave 10 Phase 1 CI re-enablement: moved governance-gate.yml and opencode-ci.yml from disabled to active with paths filters and bun test step",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:22:00Z"
-      },
-      {
-        "id": "governance-hash-refresh-20260227",
-        "summary": "Refreshed governance hash baseline after approved setup portability and script changes to keep learning-gate drift detection aligned with current governed config state.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T22:40:00Z"
       }
     ],
     "packages/opencode-model-router-x": [

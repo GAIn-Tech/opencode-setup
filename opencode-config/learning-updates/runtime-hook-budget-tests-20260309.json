@@ -1,0 +1,14 @@
+{
+  "id": "runtime-hook-budget-tests-20260309",
+  "timestamp": "2026-03-09T12:35:00Z",
+  "summary": "Add 10 tests for PostToolUse hook budget tracking and distill indicators. Covers session budget state creation, token accumulation, threshold warnings (50%/65%/80%), warning deduplication, distill_run_tool metric capture, distill_browse_tools pipeline listing, and distill event persistence.",
+  "affected_paths": [
+    "scripts/tests/runtime-tool-telemetry.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

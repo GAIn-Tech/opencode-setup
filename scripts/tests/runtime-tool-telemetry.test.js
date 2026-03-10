@@ -13,6 +13,8 @@ beforeAll(() => {
   tempHome = mkdtempSync(join(tmpdir(), 'telemetry-test-'));
   const dataDir = join(tempHome, '.opencode', 'tool-usage');
   mkdirSync(dataDir, { recursive: true });
+  const sessionsDir = join(dataDir, 'sessions');
+  mkdirSync(sessionsDir, { recursive: true });
   invocationsFile = join(dataDir, 'invocations.json');
   // Seed with empty invocations
   writeFileSync(invocationsFile, JSON.stringify({ invocations: [] }, null, 2));
@@ -38,6 +40,15 @@ function runHook(stdinData) {
 
 function readInvocations() {
   return JSON.parse(readFileSync(invocationsFile, 'utf8')).invocations;
+}
+
+function readSessionBudget(sessionId) {
+  const dataDir = join(tempHome, '.opencode', 'tool-usage');
+  const budgetFile = join(dataDir, 'sessions', `${sessionId}-budget.json`);
+  if (!existsSync(budgetFile)) {
+    return null;
+  }
+  return JSON.parse(readFileSync(budgetFile, 'utf8'));
 }
 
 describe('runtime-tool-telemetry PostToolUse hook', () => {
@@ -160,5 +171,226 @@ describe('runtime-tool-telemetry PostToolUse hook', () => {
     expect(last.context).toHaveProperty('source');
     expect(typeof last.timestamp).toBe('string');
     expect(last.success).toBe(true);
+  });
+
+  test('creates session budget state file after tool call', () => {
+    const sessionId = 'ses_budget_create';
+    runHook({
+      session_id: sessionId,
+      tool_name: 'Bash',
+      tool_input: { command: 'echo test' },
+      tool_response: { stdout: 'test' },
+    });
+    const budget = readSessionBudget(sessionId);
+    expect(budget).not.toBeNull();
+    expect(budget.session_id).toBe(sessionId);
+    expect(budget).toHaveProperty('cumulative_chars');
+    expect(budget).toHaveProperty('estimated_tokens');
+    expect(budget).toHaveProperty('model_limit');
+    expect(budget).toHaveProperty('warnings_emitted');
+    expect(budget).toHaveProperty('distill_events');
+    expect(budget).toHaveProperty('last_updated');
+    expect(budget.estimated_tokens).toBeGreaterThan(0);
+  });
+
+  test('accumulates token estimates across calls', () => {
+    const sessionId = 'ses_budget_accumulate';
+    const call1 = {
+      session_id: sessionId,
+      tool_name: 'Read',
+      tool_input: { filePath: '/test/file.js' },
+      tool_response: { content: 'x'.repeat(100) },
+    };
+    const call2 = {
+      session_id: sessionId,
+      tool_name: 'Read',
+      tool_input: { filePath: '/test/file2.js' },
+      tool_response: { content: 'y'.repeat(100) },
+    };
+    const call3 = {
+      session_id: sessionId,
+      tool_name: 'Read',
+      tool_input: { filePath: '/test/file3.js' },
+      tool_response: { content: 'z'.repeat(100) },
+    };
+    runHook(call1);
+    const budget1 = readSessionBudget(sessionId);
+    const tokens1 = budget1.estimated_tokens;
+    runHook(call2);
+    const budget2 = readSessionBudget(sessionId);
+    const tokens2 = budget2.estimated_tokens;
+    runHook(call3);
+    const budget3 = readSessionBudget(sessionId);
+    const tokens3 = budget3.estimated_tokens;
+    expect(tokens2).toBeGreaterThan(tokens1);
+    expect(tokens3).toBeGreaterThan(tokens2);
+  });
+
+  test('emits 50% budget warning to stderr', () => {
+    const sessionId = 'ses_budget_50pct';
+    const dataDir = join(tempHome, '.opencode', 'tool-usage');
+    const sessionsDir = join(dataDir, 'sessions');
+    mkdirSync(sessionsDir, { recursive: true });
+    const budgetFile = join(sessionsDir, `${sessionId}-budget.json`);
+    const preseededBudget = {
+      session_id: sessionId,
+      cumulative_chars: 100000,
+      estimated_tokens: 100000,
+      model_limit: 200000,
+      warnings_emitted: [],
+      distill_events: [],
+      last_updated: new Date().toISOString(),
+    };
+    writeFileSync(budgetFile, JSON.stringify(preseededBudget, null, 2));
+    const { stderr } = runHook({
+      session_id: sessionId,
+      tool_name: 'Bash',
+      tool_input: { command: 'test' },
+      tool_response: { stdout: 'x'.repeat(100) },
+    });
+    expect(stderr).toContain('[context]');
+    expect(stderr).toContain('budget used');
+  });
+
+  test('emits 65% compression recommended warning', () => {
+    const sessionId = 'ses_budget_65pct';
+    const dataDir = join(tempHome, '.opencode', 'tool-usage');
+    const sessionsDir = join(dataDir, 'sessions');
+    mkdirSync(sessionsDir, { recursive: true });
+    const budgetFile = join(sessionsDir, `${sessionId}-budget.json`);
+    const preseededBudget = {
+      session_id: sessionId,
+      cumulative_chars: 130000,
+      estimated_tokens: 130000,
+      model_limit: 200000,
+      warnings_emitted: ['50'],
+      distill_events: [],
+      last_updated: new Date().toISOString(),
+    };
+    writeFileSync(budgetFile, JSON.stringify(preseededBudget, null, 2));
+    const { stderr } = runHook({
+      session_id: sessionId,
+      tool_name: 'Bash',
+      tool_input: { command: 'test' },
+      tool_response: { stdout: 'x'.repeat(100) },
+    });
+    expect(stderr).toContain('compression recommended');
+  });
+
+  test('emits 80% critical warning', () => {
+    const sessionId = 'ses_budget_80pct';
+    const dataDir = join(tempHome, '.opencode', 'tool-usage');
+    const sessionsDir = join(dataDir, 'sessions');
+    mkdirSync(sessionsDir, { recursive: true });
+    const budgetFile = join(sessionsDir, `${sessionId}-budget.json`);
+    const preseededBudget = {
+      session_id: sessionId,
+      cumulative_chars: 160000,
+      estimated_tokens: 160000,
+      model_limit: 200000,
+      warnings_emitted: ['50', '65'],
+      distill_events: [],
+      last_updated: new Date().toISOString(),
+    };
+    writeFileSync(budgetFile, JSON.stringify(preseededBudget, null, 2));
+    const { stderr } = runHook({
+      session_id: sessionId,
+      tool_name: 'Bash',
+      tool_input: { command: 'test' },
+      tool_response: { stdout: 'x'.repeat(100) },
+    });
+    expect(stderr).toContain('CRITICAL');
+  });
+
+  test('does not emit warnings below 50%', () => {
+    const sessionId = 'ses_budget_low';
+    const { stderr } = runHook({
+      session_id: sessionId,
+      tool_name: 'Bash',
+      tool_input: { command: 'test' },
+      tool_response: { stdout: 'x'.repeat(10) },
+    });
+    expect(stderr).not.toContain('[context]');
+    expect(stderr).not.toContain('budget used');
+  });
+
+  test('does not re-emit already emitted warnings', () => {
+    const sessionId = 'ses_budget_no_reemit';
+    const dataDir = join(tempHome, '.opencode', 'tool-usage');
+    const sessionsDir = join(dataDir, 'sessions');
+    mkdirSync(sessionsDir, { recursive: true });
+    const budgetFile = join(sessionsDir, `${sessionId}-budget.json`);
+    const preseededBudget = {
+      session_id: sessionId,
+      cumulative_chars: 110000,
+      estimated_tokens: 110000,
+      model_limit: 200000,
+      warnings_emitted: ['50'],
+      distill_events: [],
+      last_updated: new Date().toISOString(),
+    };
+    writeFileSync(budgetFile, JSON.stringify(preseededBudget, null, 2));
+    const { stderr } = runHook({
+      session_id: sessionId,
+      tool_name: 'Bash',
+      tool_input: { command: 'test' },
+      tool_response: { stdout: 'x'.repeat(100) },
+    });
+    expect(stderr).not.toContain('[context]');
+  });
+
+  test('captures distill_run_tool compression metrics', () => {
+    const sessionId = 'ses_distill_run';
+    const { stderr } = runHook({
+      session_id: sessionId,
+      tool_name: 'DistillRunTool',
+      tool_input: { pipeline: 'compress' },
+      tool_response: {
+        tokens_before: 5000,
+        tokens_after: 2500,
+        savings: 50,
+      },
+    });
+    expect(stderr).toContain('[distill]');
+    expect(stderr).toContain('compressed:');
+  });
+
+  test('captures distill_browse_tools pipeline list', () => {
+    const sessionId = 'ses_distill_browse';
+    const { stderr } = runHook({
+      session_id: sessionId,
+      tool_name: 'DistillBrowseTools',
+      tool_input: {},
+      tool_response: {
+        pipelines: [
+          { name: 'compress', description: 'Compress context' },
+          { name: 'summarize', description: 'Summarize' },
+        ],
+      },
+    });
+    expect(stderr).toContain('[distill]');
+    expect(stderr).toContain('available pipelines:');
+  });
+
+  test('appends distill events to budget state', () => {
+    const sessionId = 'ses_distill_events';
+    runHook({
+      session_id: sessionId,
+      tool_name: 'DistillRunTool',
+      tool_input: { pipeline: 'compress' },
+      tool_response: {
+        tokens_before: 3000,
+        tokens_after: 1500,
+      },
+    });
+    const budget = readSessionBudget(sessionId);
+    expect(budget.distill_events).not.toBeNull();
+    expect(Array.isArray(budget.distill_events)).toBe(true);
+    expect(budget.distill_events.length).toBeGreaterThan(0);
+    const event = budget.distill_events[0];
+    expect(event).toHaveProperty('timestamp');
+    expect(event).toHaveProperty('tool');
+    expect(event.tool).toBe('distill_run_tool');
+    expect(event).toHaveProperty('response_snippet');
   });
 });
