@@ -75,6 +75,10 @@ describe('report-mcp-lifecycle', () => {
     expect(stdout).toContain('| opencode-memory-graph | DORMANT |');
     expect(stdout).toContain('| opencode-model-router-x | DORMANT |');
     expect(stdout).toContain('| opencode-runbooks | DORMANT |');
+    expect(stdout).toContain('Reactivation Reason');
+    expect(stdout).toContain('opencode-dashboard-launcher');
+    expect(stdout).toContain('Reactivation Criteria');
+    expect(stdout).toContain('supported launcher wrapper');
     expect(stdout).toContain('| supermemory | LIVE | yes | remote | yes | yes | yes | 1 | yes');
     expect(stdout).toContain('| grep | LIVE | yes | local | yes | yes | yes | 1 | no');
   });

@@ -1,0 +1,22 @@
+{
+  "opencode-dashboard-launcher": {
+    "reason": "Disabled until a dedicated MCP wrapper and startup path exist for launching the dashboard intentionally.",
+    "reactivation_criteria": "Enable only after a supported launcher wrapper and verification flow are implemented.",
+    "owner": "dashboard"
+  },
+  "opencode-memory-graph": {
+    "reason": "Disabled until the memory graph package exposes a stable MCP wrapper and persistence contract.",
+    "reactivation_criteria": "Enable only after a supported memory-graph MCP entrypoint and smoke verification are implemented.",
+    "owner": "memory"
+  },
+  "opencode-model-router-x": {
+    "reason": "Disabled as a standalone MCP until model-router-x has an explicit operator-facing MCP wrapper beyond internal integration paths.",
+    "reactivation_criteria": "Enable only after an operator-facing MCP wrapper and runtime smoke verification exist.",
+    "owner": "routing"
+  },
+  "opencode-runbooks": {
+    "reason": "Disabled until runbooks expose a stable MCP wrapper rather than only file/package-level functionality.",
+    "reactivation_criteria": "Enable only after a supported MCP wrapper and verification flow are implemented.",
+    "owner": "ops"
+  }
+}

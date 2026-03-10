@@ -131,6 +131,7 @@ function buildMcpCatalog() {
   const opencode = readJson('opencode-config/opencode.json', {});
   const ohMy = readJson('opencode-config/oh-my-opencode.json', {});
   const registry = readJson('opencode-config/skills/registry.json', {});
+  const dormantPolicy = readJson('opencode-config/mcp-dormant-policy.json', {});
   const invocations = readTelemetryInvocations();
 
   const skillFiles = collectRelativeFiles('opencode-config/skills');
@@ -212,6 +213,7 @@ function buildMcpCatalog() {
       lastInvocationTime,
       daysSinceLastUse,
       recentlyExercised,
+      dormantPolicy: dormantPolicy[name] || null,
     };
   });
 
@@ -247,6 +249,11 @@ function renderReport(entries) {
       lines.push(`- Telemetry hits: ${entry.telemetryHits}`);
       lines.push(`- Last invocation: ${entry.lastInvocationTime ? entry.lastInvocationTime.toISOString() : 'never'}`);
       lines.push(`- Days since last use: ${entry.daysSinceLastUse !== null ? entry.daysSinceLastUse : 'N/A'}`);
+      if (entry.status === 'DORMANT' && entry.dormantPolicy) {
+        lines.push(`- Reactivation Reason: ${entry.dormantPolicy.reason}`);
+        lines.push(`- Reactivation Criteria: ${entry.dormantPolicy.reactivation_criteria}`);
+        lines.push(`- Owner: ${entry.dormantPolicy.owner}`);
+      }
       lines.push('');
 
     if (entry.enabled && entry.status !== 'DEAD') {
