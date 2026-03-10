@@ -1,0 +1,16 @@
+{
+  "id": "passive-mcp-registry-orchestration-20260310",
+  "timestamp": "2026-03-10T00:08:00-04:00",
+  "summary": "Register passive MCP skills in the central registry, enable them in compound-engineering, and add orchestrator trigger rules so supermemory, sequentialthinking, websearch, and grep become discoverable at runtime.",
+  "affected_paths": [
+    "opencode-config/skills/registry.json",
+    "opencode-config/compound-engineering.json",
+    "opencode-config/skills/skill-orchestrator-runtime/SKILL.md"
+  ],
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

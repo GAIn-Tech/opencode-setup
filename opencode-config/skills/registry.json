@@ -34,6 +34,46 @@
       "conflicts": [],
       "triggers": ["library docs", "api reference", "framework documentation", "how to use library", "correct syntax for"]
     },
+    "supermemory": {
+      "description": "Persistent memory retrieval and storage via Supermemory for cross-session project knowledge, preferences, and reusable findings.",
+      "category": "memory",
+      "tags": ["memory", "persistence", "recall", "preferences", "project-knowledge"],
+      "source": "custom",
+      "dependencies": [],
+      "synergies": ["writing-plans", "research-builder", "verification-before-completion"],
+      "conflicts": [],
+      "triggers": ["remember this", "recall previous decision", "save for later", "persistent memory", "across sessions"]
+    },
+    "sequentialthinking": {
+      "description": "Structured step-by-step reasoning for hard problems that need explicit decomposition, branching, or revisions.",
+      "category": "reasoning",
+      "tags": ["reasoning", "analysis", "decomposition", "hypotheses", "planning"],
+      "source": "custom",
+      "dependencies": [],
+      "synergies": ["systematic-debugging", "writing-plans", "research-builder"],
+      "conflicts": [],
+      "triggers": ["think step by step", "break this down", "reason through", "analyze carefully", "multiple hypotheses"]
+    },
+    "websearch": {
+      "description": "Live web search and page extraction for current information, screenshots, transcripts, and structured web data.",
+      "category": "research",
+      "tags": ["web", "search", "current-events", "scraping", "screenshots", "transcripts"],
+      "source": "custom",
+      "dependencies": [],
+      "synergies": ["research-builder", "context7", "writing-plans"],
+      "conflicts": [],
+      "triggers": ["search the web", "find current info", "latest update", "web research", "scrape website"]
+    },
+    "grep": {
+      "description": "External code search across public repositories for real-world implementation examples and usage patterns.",
+      "category": "research",
+      "tags": ["code-search", "github", "examples", "patterns", "repositories"],
+      "source": "custom",
+      "dependencies": [],
+      "synergies": ["context7", "research-builder", "writing-plans"],
+      "conflicts": [],
+      "triggers": ["search code", "find github example", "public repo example", "grep github", "code pattern example"]
+    },
     "context-governor": {
       "description": "Context window budget management — tracks token consumption per session/model, warns at 75%/80% thresholds, and provides budget status for cost-aware model routing.",
       "category": "optimization",
@@ -477,7 +517,15 @@
     },
     "research": {
       "description": "Skills for research and discovery",
-      "skills": ["research-builder", "context7"]
+      "skills": ["research-builder", "context7", "websearch", "grep"]
+    },
+    "memory": {
+      "description": "Skills for persistent memory and recall",
+      "skills": ["supermemory"]
+    },
+    "reasoning": {
+      "description": "Skills for explicit reasoning workflows",
+      "skills": ["sequentialthinking"]
     },
     "meta": {
       "description": "Skills about skills",

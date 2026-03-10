@@ -20,6 +20,7 @@
        "executing-plans",
        "finishing-a-development-branch",
        "frontend-ui-ux",
+       "grep",
        "git-master",
        "github-triage",
        "incident-commander",
@@ -27,8 +28,10 @@
        "receiving-code-review",
        "requesting-code-review",
        "research-builder",
+       "sequentialthinking",
        "skill-orchestrator-runtime",
        "subagent-driven-development",
+       "supermemory",
        "systematic-debugging",
        "task-orchestrator",
        "test-driven-development",
@@ -36,10 +39,11 @@
        "using-git-worktrees",
        "using-superpowers",
        "verification-before-completion",
+       "websearch",
        "writing-plans",
        "writing-skills"
-     ],
-     "categories": {
+      ],
+      "categories": {
        "core-workflow": [
          "brainstorming",
          "writing-plans",
@@ -79,10 +83,22 @@
           "token-reporter",
           "context7"
         ],
-       "meta": [
-         "task-orchestrator",
-         "skill-orchestrator-runtime",
-         "using-superpowers",
+        "research": [
+          "context7",
+          "research-builder",
+          "websearch",
+          "grep"
+        ],
+        "memory": [
+          "supermemory"
+        ],
+        "reasoning": [
+          "sequentialthinking"
+        ],
+        "meta": [
+          "task-orchestrator",
+          "skill-orchestrator-runtime",
+          "using-superpowers",
          "writing-skills"
        ]
      }

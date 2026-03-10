@@ -174,11 +174,94 @@ The `research-to-code` profile should include context7 for documentation-heavy r
 - Profile skills: `["research-builder", "context7", "writing-plans", "executing-plans"]`
 - context7 runs first to gather accurate API references before spec writing
 
+## Persistent Memory Task Detection (Supermemory Auto-Recommendation)
+
+When the task involves recall, durable project knowledge, or cross-session memory, the
+orchestrator MUST recommend the **supermemory** skill before implementation or repeated research.
+
+### Detection Keywords
+
+If the user request contains any of these patterns, recommend supermemory:
+- "remember this", "save this for later", "store this decision"
+- "what did we decide", "recall previous", "across sessions"
+- "project memory", "persistent memory", "user preference"
+
+### Recommendation Rule
+
+```
+IF task contains memory_keywords:
+  1. Recommend supermemory as PRIMARY skill (score: 0.9)
+  2. If writing-plans is also recommended, chain: supermemory → writing-plans
+  3. Log: "Persistent memory task detected - supermemory recommended"
+```
+
+## Structured Reasoning Task Detection (Sequential Thinking Auto-Recommendation)
+
+When the task explicitly needs step-by-step reasoning, branching analysis, or hypothesis testing,
+the orchestrator MUST recommend **sequentialthinking** before implementation skills.
+
+### Detection Keywords
+
+If the user request contains any of these patterns, recommend sequentialthinking:
+- "think step by step", "reason through", "break this down"
+- "analyze carefully", "multiple hypotheses", "work through the logic"
+
+### Recommendation Rule
+
+```
+IF task contains reasoning_keywords:
+  1. Recommend sequentialthinking as PRIMARY skill (score: 0.85)
+  2. If systematic-debugging is also recommended, chain: sequentialthinking → systematic-debugging
+  3. Log: "Structured reasoning task detected - sequentialthinking recommended"
+```
+
+## Live Web Research Task Detection (Websearch Auto-Recommendation)
+
+When the task depends on current web information, live page content, or non-library web research,
+the orchestrator MUST recommend **websearch** before implementation.
+
+### Detection Keywords
+
+If the user request contains any of these patterns, recommend websearch:
+- "search the web", "find current information", "latest update"
+- "scrape this site", "take a screenshot", "youtube transcript"
+- "current status", "what does this page say today"
+
+### Recommendation Rule
+
+```
+IF task contains websearch_keywords:
+  1. Recommend websearch as PRIMARY skill (score: 0.9)
+  2. If research-builder is also recommended, chain: websearch → research-builder
+  3. Log: "Live web research task detected - websearch recommended"
+```
+
+## External Code Example Detection (Grep Auto-Recommendation)
+
+When the task asks for real-world code examples from public repositories, the orchestrator MUST
+recommend **grep** before implementation.
+
+### Detection Keywords
+
+If the user request contains any of these patterns, recommend grep:
+- "find GitHub example", "search code", "public repo example"
+- "how do other repos do this", "grep github", "code pattern example"
+
+### Recommendation Rule
+
+```
+IF task contains code_example_keywords:
+  1. Recommend grep as PRIMARY skill (score: 0.85)
+  2. If context7 is also recommended, chain: context7 → grep
+  3. Log: "External code example task detected - grep recommended"
+```
+
 ## Quick Start
 
 1. Check task against profile trigger phrases first
 2. Check for documentation keywords → recommend context7 if matched
-3. If profile matched → load profile skills and skip to Phase 3 (chaining)
-4. Otherwise: load registry.json, parse intent signals, score all skills
-5. Filter by conflicts and dependencies
-6. Return top recommendations with chaining order
+3. Check for memory/reasoning/web/code-example keywords → recommend supermemory, sequentialthinking, websearch, or grep when matched
+4. If profile matched → load profile skills and skip to Phase 3 (chaining)
+5. Otherwise: load registry.json, parse intent signals, score all skills
+6. Filter by conflicts and dependencies
+7. Return top recommendations with chaining order
