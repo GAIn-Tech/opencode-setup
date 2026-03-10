@@ -1,0 +1,14 @@
+{
+  "id": "mcp-lifecycle-report-generator-20260310",
+  "timestamp": "2026-03-10T01:40:00-04:00",
+  "summary": "Add a generated MCP lifecycle report script that classifies current servers from canonical config, wiring evidence, and runtime telemetry and writes a report artifact under .sisyphus/reports/.",
+  "affected_paths": [
+    "scripts/report-mcp-lifecycle.mjs"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}
