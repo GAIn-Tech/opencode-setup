@@ -1,6 +1,6 @@
 # Wave 11: Performance Optimization & Context Management Activation
 
-> **Status**: PLANNED
+> **Status**: IN PROGRESS (core activation and observability landed; follow-up integration gaps remain)
 > **Scope**: 5 tracks, 25 tasks across 4 phases
 > **Dependencies**: Wave 10 (System Hardening) COMPLETE
 

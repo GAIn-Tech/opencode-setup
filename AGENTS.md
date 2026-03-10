@@ -8,7 +8,7 @@ OpenCode ecosystem: Bun-native monorepo (35 packages) for AI agent orchestration
 .
 ├── packages/              # 35 workspace packages (opencode-*)
 ├── plugins/               # 12 external OpenCode plugins (oh-my-opencode, antigravity-auth)
-├── scripts/               # 44 .mjs infrastructure scripts (governance, deployment, validation)
+├── scripts/               # 46 .mjs infrastructure scripts (governance, deployment, validation)
 ├── opencode-config/       # Central config hub (agents, skills, models, learning-updates)
 ├── .sisyphus/             # Persistent workflow state (plans, notepads, docs)
 ├── .worktrees/            # Git worktrees for isolated feature branches
@@ -38,14 +38,14 @@ OpenCode ecosystem: Bun-native monorepo (35 packages) for AI agent orchestration
 | Context observability | packages/opencode-model-manager/src/monitoring/ (metrics-collector, alert-manager) |
 
 ## CONVENTIONS (Deviations Only)
-- **Bun-First**: bunfig.toml, .bun-version (1.3.9), NOT npm/yarn compatible
+- **Bun-First**: bunfig.toml, .bun-version (1.3.10), NOT npm/yarn compatible
 - **Dual Plugins**: plugins/ (external) + packages/ (internal workspace packages)
 - **Config Fragmentation**: 6+ config files (opencode.json 116KB, central-config.json, oh-my-opencode.json, compound-engineering.json, config.yaml, .opencode.config.json)
 - **SQLite in Packages**: packages/opencode-model-manager/audit.db (database files in source tree)
 - **No Build Step**: Source files consumed directly (except opencode-dashboard/.next/)
 - **Mixed Modules**: ESM (type: "module") and CJS (type: "commonjs") inconsistently
 - **Flat Namespace**: opencode-* prefix, NOT @org/ scoped packages
-- **Scripts as Infrastructure**: 44 .mjs files are core infrastructure, not utilities
+- **Scripts as Infrastructure**: 46 .mjs files are core infrastructure, not utilities
 - **Documentation Versioned**: 20+ markdown files at root (STATUS.md, COMPLETE-INVENTORY.md, MODEL_AUDIT_REPORT.md)
 
 ## ANTI-PATTERNS
