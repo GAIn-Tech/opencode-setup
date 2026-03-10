@@ -1,0 +1,14 @@
+{
+  "id": "mcp-report-command-test-20260310",
+  "timestamp": "2026-03-10T01:48:00-04:00",
+  "summary": "Add regression coverage ensuring package.json exposes the `mcp:report` command entrypoint for the generated MCP lifecycle report.",
+  "affected_paths": [
+    "scripts/tests/mcp-lifecycle-report.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

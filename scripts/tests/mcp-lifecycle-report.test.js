@@ -1,8 +1,10 @@
 import { describe, expect, test } from 'bun:test';
 import { spawnSync } from 'child_process';
+import { readFileSync } from 'fs';
 import { join } from 'path';
 
 const SCRIPT = join(import.meta.dir, '..', 'report-mcp-lifecycle.mjs');
+const PACKAGE_JSON = join(import.meta.dir, '..', '..', 'package.json');
 
 function runReport() {
   const result = spawnSync('node', [SCRIPT], {
@@ -18,6 +20,11 @@ function runReport() {
 }
 
 describe('report-mcp-lifecycle', () => {
+  test('package.json exposes an mcp:report script', () => {
+    const pkg = JSON.parse(readFileSync(PACKAGE_JSON, 'utf8'));
+    expect(pkg.scripts['mcp:report']).toBe('node scripts/report-mcp-lifecycle.mjs');
+  });
+
   test('prints current MCP lifecycle classification from repo state', () => {
     const { exitCode, stdout } = runReport();
 
