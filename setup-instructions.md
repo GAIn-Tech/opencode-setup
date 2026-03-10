@@ -5,7 +5,7 @@
 ### Required for All Platforms
 - **Operating System**: Windows (with Git Bash) or Linux/macOS
 - **Git**: Version control system
-- **bun**: Required, version 1.3.9+ (install via: https://bun.sh)
+- **bun**: Required, version 1.3.10+ (install via: https://bun.sh)
 
 ### Required for MCP Servers (if using local MCPs)
 - **Node.js**: v18+ — Required for `npx`-based MCPs (sequentialthinking, websearch, distill)
@@ -72,11 +72,8 @@ cp opencode-config/config.yaml ~/.opencode/config.yaml
 Add to your `~/.bashrc`, `~/.zshrc`, or Windows environment:
 
 ```bash
-# Required for GitHub MCP server
-export GITHUB_TOKEN="your-github-personal-access-token"
-
-# Required for Tavily search
-export TAVILY_API_KEY="your-tavily-api-key"
+# Required for Supermemory remote MCP
+export SUPERMEMORY_API_KEY="your-supermemory-bearer-token"
 ```
 
 **DO NOT** copy `antigravity-accounts.json` from another machine — each machine needs its own OAuth tokens.
@@ -180,7 +177,7 @@ opencode
 opencode run "ping" --model=google/antigravity-gemini-3-pro
 
 # Check startup logs for:
-#   - "oh-my-opencode loaded with 8 agents and 3 MCP toggles + Antigravity account rotation"
+#   - "oh-my-opencode loaded with 8 agents and 4 MCP toggles + Antigravity account rotation"
 #   - MCP server connection confirmations
 #   - Plugin load confirmations
 ```
@@ -253,6 +250,5 @@ Ensure model is defined in `opencode.json` → `provider.google.models` and refe
 - **antigravity-auth**: https://github.com/NoeFabris/opencode-antigravity-auth
 - **supermemory**: https://supermemory.ai
 - **compound-engineering**: https://github.com/EveryInc/compound-engineering-plugin
-- **Tavily**: https://tavily.com
 - **Context7**: https://context7.com
 - **Playwright MCP**: https://github.com/microsoft/playwright-mcp

@@ -41,48 +41,48 @@ Exhaustive search across:
 ## PASSIVE MCPs (4)
 
 ### 1. supermemory
-- Configuration: enabled: true (line 630 in opencode.json)
-- Invocations: 0 found
-- References: None
-- Verdict: PASSIVE - configured but never invoked
+- Configuration at time of audit: enabled: true (line 630 in opencode.json)
+- Invocations at time of audit: 0 found
+- References at time of audit: None
+- Verdict at time of audit: PASSIVE - configured but never invoked
 
 ### 2. sequentialthinking
-- Configuration: enabled: true (line 652 in opencode.json)
-- Invocations: 0 found
-- References: None
-- Verdict: PASSIVE - configured but never invoked
+- Configuration at time of audit: enabled: true (line 652 in opencode.json)
+- Invocations at time of audit: 0 found
+- References at time of audit: None
+- Verdict at time of audit: PASSIVE - configured but never invoked
 
 ### 3. websearch
-- Configuration: enabled: true (line 661 in opencode.json)
-- Invocations: 0 found
-- References: None
-- Verdict: PASSIVE - configured but never invoked
+- Configuration at time of audit: enabled: true (line 661 in opencode.json)
+- Invocations at time of audit: 0 found
+- References at time of audit: None
+- Verdict at time of audit: PASSIVE - configured but never invoked
 
 ### 4. grep
-- Configuration: enabled: true (line 669 in opencode.json)
-- Invocations: 0 found
-- References: None
-- Verdict: PASSIVE - configured but never invoked
+- Configuration at time of audit: enabled: true (line 669 in opencode.json)
+- Invocations at time of audit: 0 found
+- References at time of audit: None
+- Verdict at time of audit: PASSIVE - configured but never invoked
 
 ## DEAD MCPs (3)
 
 ### 1. playwright
-- Configuration: enabled: false (line 643 in opencode.json)
-- Invocations: 0 found
-- References: None
-- Verdict: DEAD - disabled, no references
+- Configuration at time of audit: enabled: false (line 643 in opencode.json)
+- Invocations at time of audit: 0 found
+- References at time of audit: None
+- Verdict at time of audit: DEAD - disabled, no references
 
 ### 2. github
-- Configuration: enabled: false (line 681 in opencode.json)
-- Invocations: 0 found
-- References: github-triage SKILL.md exists but doesn't call MCP tools
-- Verdict: DEAD - disabled, skill exists but doesn't use MCP
+- Configuration at time of audit: enabled: false (line 681 in opencode.json)
+- Invocations at time of audit: 0 found
+- References at time of audit: github-triage SKILL.md existed but didn't call MCP tools
+- Verdict at time of audit: DEAD - disabled, skill existed but didn't use MCP
 
 ### 3. tavily
-- Configuration: enabled: false (line 622 in opencode.json)
-- Invocations: 0 found
-- References: None
-- Verdict: DEAD - disabled, no references
+- Configuration at time of audit: enabled: false (line 622 in opencode.json)
+- Invocations at time of audit: 0 found
+- References at time of audit: None
+- Verdict at time of audit: DEAD - disabled, no references
 
 ## Wiring Plan (Downstream)
 
@@ -102,7 +102,7 @@ Status on Mar 10, 2026:
 - `tavily`: removed
 - `playwright`: retained and enabled
 
-1. playwright: Remove from opencode.json (disabled, no references)
+1. playwright: At the time of audit, removal was recommended; current state retains and enables playwright
 2. github: Clarify intent (skill exists but doesn't call MCP)
 3. tavily: Remove from opencode.json (disabled, no references)
 
