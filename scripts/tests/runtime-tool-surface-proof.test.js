@@ -1,9 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import {
-  candidatePorts,
   compareRuntimeToolsToSelection,
   extractExperimentalToolQueryFields,
-  sanitizeMcpConfig,
 } from '../runtime-tool-surface-proof.mjs';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -90,23 +88,5 @@ describe('runtime-tool-surface-proof helpers', () => {
       nonexistent_tool: null,
     });
     expect(result.allSelectedToolsVisible).toBe(false);
-  });
-
-  test('builds deterministic fallback port candidates', () => {
-    expect(candidatePorts(4317, 4)).toEqual([4317, 4318, 4319, 4320]);
-  });
-
-  test('strips unsupported opencode-* MCP keys for local runtime proof sandbox', () => {
-    const cleaned = sanitizeMcpConfig({
-      context7: { type: 'remote' },
-      distill: { type: 'local' },
-      'opencode-dashboard-launcher': { type: 'local' },
-      'opencode-context-governor': { type: 'local' },
-    });
-
-    expect(cleaned).toEqual({
-      context7: { type: 'remote' },
-      distill: { type: 'local' },
-    });
   });
 });

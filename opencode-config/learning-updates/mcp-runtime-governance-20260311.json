@@ -1,0 +1,35 @@
+{
+  "id": "mcp-runtime-governance-20260311",
+  "timestamp": "2026-03-11T23:10:00Z",
+  "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+  "affected_paths": [
+    "mcp-servers/tool-manifest.json",
+    "opencode-config/.governance-hashes.json",
+    "opencode-config/meta-knowledge-index.json",
+    "opencode-config/opencode.json",
+    "opencode-config/skills/registry.json",
+    "opencode-config/tool-tiers.json",
+    "scripts/generate-mcp-config.mjs",
+    "scripts/mcp-exercise-harness.mjs",
+    "scripts/mcp-smoke-harness.mjs",
+    "scripts/report-mcp-lifecycle.mjs",
+    "scripts/run-distill-mcp.mjs",
+    "scripts/runtime-tool-surface-proof.mjs",
+    "scripts/runtime-tool-telemetry.mjs",
+    "scripts/tests/distill-wrapper.test.js",
+    "scripts/tests/generate-mcp-config.test.js",
+    "scripts/tests/mcp-exercise-harness.test.js",
+    "scripts/tests/mcp-inventory-regression.test.js",
+    "scripts/tests/mcp-lifecycle-report.test.js",
+    "scripts/tests/mcp-smoke-harness.test.js",
+    "scripts/tests/package-smoke-runner.test.js",
+    "scripts/tests/runtime-tool-surface-proof.test.js",
+    "scripts/tests/runtime-tool-telemetry.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

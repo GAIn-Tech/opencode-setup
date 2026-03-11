@@ -52,6 +52,16 @@ function getExercises() {
   return Array.isArray(data.entries) ? data.entries : [];
 }
 
+function getRecentExercise(entry, exercises, cutoff) {
+  const matches = exercises
+    .filter((exercise) => exercise?.name === entry.name)
+    .sort((a, b) => new Date(String(b.verifiedAt || b.timestamp || 0)).getTime() - new Date(String(a.verifiedAt || a.timestamp || 0)).getTime());
+  const latest = matches[0] || null;
+  const latestTime = latest?.verifiedAt || latest?.timestamp || null;
+  const recent = latestTime !== null && new Date(latestTime).getTime() >= cutoff;
+  return { latest, recent };
+}
+
 function matchesMcp(name, toolName) {
   const prefixes = MCP_TOOL_PREFIXES[name] || [name];
   const lowerTool = String(toolName || '').toLowerCase();
@@ -70,13 +80,14 @@ function buildEntries() {
       .sort((a, b) => new Date(String(b.timestamp || 0)).getTime() - new Date(String(a.timestamp || 0)).getTime());
     const lastInvocation = matching[0] || null;
     const lastTimestamp = lastInvocation?.timestamp ? new Date(lastInvocation.timestamp).getTime() : null;
-    const smokeVerified = exercises.some((entry) => entry?.name === mcp.name);
+    const exercise = getRecentExercise(mcp, exercises, cutoff);
+    const smokeVerified = Boolean(exercise.latest);
     return {
       name: mcp.name,
       type: mcp.type,
       telemetryHits: matching.length,
       lastInvocation: lastInvocation?.timestamp || null,
-      recentlyExercised: lastTimestamp !== null && lastTimestamp >= cutoff,
+      recentlyExercised: (lastTimestamp !== null && lastTimestamp >= cutoff) || exercise.recent,
       smokeVerified,
     };
   });

@@ -96,6 +96,8 @@ const AVAILABLE_TOOLS = {
   // MCP grep-app tools
   grep_app_searchgithub: { category: 'web', priority: 'medium' },
   grep_grep_query:       { category: 'web', priority: 'medium' },
+  playwright:            { category: 'web', priority: 'medium' },
+  opencode_context_governor: { category: 'context', priority: 'medium' },
   // MCP websearch tools
   websearch_search:            { category: 'web', priority: 'medium' },
   websearch_crawl_and_extract: { category: 'web', priority: 'medium' },
@@ -195,8 +197,45 @@ function pascalToSnake(name) {
   return snake;
 }
 
+function normalizeRuntimeFragment(value) {
+  if (typeof value !== 'string') return '';
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+
+  return trimmed
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+    .replace(/[^a-zA-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .toLowerCase();
+}
+
+function resolveWrappedMcpToolName(toolInput) {
+  const provider = normalizeRuntimeFragment(toolInput?.mcp_name);
+  if (!provider) return 'skill_mcp';
+
+  if (provider === 'supermemory') {
+    const mode = typeof toolInput?.arguments?.mode === 'string'
+      ? toolInput.arguments.mode.trim().toLowerCase()
+      : '';
+    return SUPERMEMORY_MODE_TO_TOOL[mode] || provider;
+  }
+
+  const action = normalizeRuntimeFragment(
+    toolInput?.tool_name || toolInput?.resource_name || toolInput?.prompt_name
+  );
+  const combined = action ? `${provider}_${action}` : provider;
+
+  if (combined && AVAILABLE_TOOLS[combined]) return combined;
+  if (AVAILABLE_TOOLS[provider]) return provider;
+  return combined || provider;
+}
+
 function resolveRuntimeToolName(pascalName, toolInput) {
   const baseTool = pascalToSnake(pascalName);
+  if (baseTool === 'skill_mcp') {
+    return resolveWrappedMcpToolName(toolInput);
+  }
   if (baseTool === 'supermemory') {
     const mode = typeof toolInput?.mode === 'string' ? toolInput.mode.trim().toLowerCase() : '';
     return SUPERMEMORY_MODE_TO_TOOL[mode] || baseTool;

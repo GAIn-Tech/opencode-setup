@@ -19,6 +19,7 @@ describe('MCP inventory regression checks', () => {
     expect(config.mcp.websearch?.enabled).toBe(true);
     expect(config.mcp.grep?.enabled).toBe(true);
     expect(config.mcp.distill?.enabled).toBe(true);
+    expect(config.mcp.distill?.command).toEqual(['node', 'scripts/run-distill-mcp.mjs', 'serve', '--lazy']);
 
     expect(config.mcp.github).toBeUndefined();
     expect(config.mcp.tavily).toBeUndefined();

@@ -76,4 +76,22 @@ describe('mcp-smoke-harness', () => {
     expect(payload.entries.some((entry) => entry.name === 'playwright' && entry.smokeVerified === true)).toBe(true);
     expect(payload.entries.some((entry) => entry.name === 'distill' && entry.smokeVerified === true)).toBe(true);
   });
+
+  test('recent exercise probes count as recently exercised for local MCPs', () => {
+    const tempHome = mkdtempSync(join(tmpdir(), 'mcp-exercise-recent-'));
+    const toolUsageDir = join(tempHome, '.opencode', 'tool-usage');
+    mkdirSync(toolUsageDir, { recursive: true });
+    writeFileSync(join(toolUsageDir, 'mcp-exercises.json'), JSON.stringify({
+      entries: [
+        { name: 'playwright', verifiedAt: new Date().toISOString(), source: 'mcp-exercise-harness' },
+      ]
+    }, null, 2));
+
+    const { exitCode, stdout } = runHarness({ HOME: tempHome, USERPROFILE: tempHome }, ['--json']);
+    rmSync(tempHome, { recursive: true, force: true });
+
+    expect(exitCode).toBe(0);
+    const payload = JSON.parse(stdout);
+    expect(payload.entries.some((entry) => entry.name === 'playwright' && entry.recentlyExercised === true)).toBe(true);
+  });
 });

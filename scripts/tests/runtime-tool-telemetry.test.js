@@ -553,4 +553,48 @@ describe('runtime-tool-telemetry PostToolUse hook', () => {
     expect(stats.resolved).toBe(beforeStats.resolved);
     expect(stats.librariesQueried).toContain('/missing/library');
   });
+
+  test('unwraps skill_mcp wrapper calls to the underlying MCP provider when possible', () => {
+    const before = readInvocations().length;
+    runHook({
+      session_id: 'ses_skill_mcp_playwright',
+      tool_name: 'SkillMcp',
+      tool_input: {
+        mcp_name: 'playwright',
+        tool_name: 'browser_navigate',
+        arguments: { url: 'https://example.com' },
+      },
+      tool_response: { ok: true },
+    });
+
+    const inv = readInvocations();
+    expect(inv.length).toBe(before + 1);
+    expect(inv[inv.length - 1].tool).toBe('playwright');
+  });
+
+  test('preserves known MCP sub-tool identity when skill_mcp wraps a concrete tool', () => {
+    const before = readInvocations().length;
+    const sessionId = 'ses_skill_mcp_distill';
+    runHook({
+      session_id: sessionId,
+      tool_name: 'SkillMcp',
+      tool_input: {
+        mcp_name: 'distill',
+        tool_name: 'run_tool',
+        arguments: { name: 'context_budget' },
+      },
+      tool_response: {
+        tokens_before: 1800,
+        tokens_after: 900,
+      },
+    });
+
+    const inv = readInvocations();
+    expect(inv.length).toBe(before + 1);
+    expect(inv[inv.length - 1].tool).toBe('distill_run_tool');
+
+    const budget = readSessionBudget(sessionId);
+    expect(budget.distill_events.length).toBeGreaterThan(0);
+    expect(budget.distill_events[budget.distill_events.length - 1].tool).toBe('distill_run_tool');
+  });
 });

@@ -27,5 +27,7 @@ describe('package smoke runner', () => {
     expect(packageNames).toContain('opencode-integration-layer');
     expect(packageNames).toContain('opencode-context-governor');
     expect(packageNames).toContain('opencode-dashboard');
+    expect(packageNames).toContain('opencode-plugin-preload-skills');
+    expect(packageNames).toContain('opencode-model-router-x');
   });
 });

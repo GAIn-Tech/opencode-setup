@@ -143,7 +143,7 @@
       "source": "builtin",
       "dependencies": [],
       "synergies": ["frontend-ui-ux"],
-      "conflicts": ["dev-browser"],
+      "conflicts": ["dev-browser", "playwright"],
       "triggers": ["browse website", "fill form", "click button", "web automation"],
       "overlapCluster": "browser",
       "canonicalEntrypoint": false,

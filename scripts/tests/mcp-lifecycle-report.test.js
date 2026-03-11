@@ -83,6 +83,25 @@ describe('report-mcp-lifecycle', () => {
     expect(stdout).toContain('| grep | LIVE | yes | local | yes | yes | yes | 1 | no');
   });
 
+  test('treats recent probe-backed exercise as recently exercised even without telemetry', () => {
+    const tempHome = mkdtempSync(join(tmpdir(), 'mcp-report-exercise-'));
+    const toolUsageDir = join(tempHome, '.opencode', 'tool-usage');
+    mkdirSync(toolUsageDir, { recursive: true });
+
+    writeFileSync(join(toolUsageDir, 'mcp-exercises.json'), JSON.stringify({
+      entries: [
+        { name: 'playwright', verifiedAt: new Date().toISOString(), source: 'mcp-exercise-harness' }
+      ]
+    }, null, 2));
+
+    const { exitCode, stdout } = runReport({ HOME: tempHome, USERPROFILE: tempHome });
+    rmSync(tempHome, { recursive: true, force: true });
+
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain('| playwright | LIVE | yes | local | yes | yes | yes | 0 | yes');
+    expect(stdout).not.toContain('nulld');
+  });
+
   test('warns when invocations telemetry is unreadable', () => {
     const tempHome = mkdtempSync(join(tmpdir(), 'mcp-report-bad-telemetry-'));
     const toolUsageDir = join(tempHome, '.opencode', 'tool-usage');

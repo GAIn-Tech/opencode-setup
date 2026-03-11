@@ -41,19 +41,63 @@ export function buildManifestFromConfig(config) {
     mcp_servers: Object.entries(mcpMap).map(([name, cfg]) => ({
       name,
       command: cfg.command,
+      args: cfg.args,
       enabled: cfg.enabled === true,
       type: cfg.url ? 'remote' : 'local',
     })),
   };
 }
 
+export function listSupplementalConfigArtifacts(root) {
+  return [
+    {
+      sourcePath: join(root, 'opencode-config', 'tool-tiers.json'),
+      targetName: 'tool-tiers.json',
+    },
+  ];
+}
+
+function normalizeMcpEntry(entry) {
+  if (!entry || typeof entry !== 'object') {
+    return entry;
+  }
+
+  if (entry.type !== 'local') {
+    return entry;
+  }
+
+  const normalized = { ...entry };
+
+  if (Array.isArray(entry.args) && entry.args.length > 0) {
+    const commandParts = Array.isArray(entry.command)
+      ? entry.command
+      : (typeof entry.command === 'string' && entry.command ? [entry.command] : []);
+
+    normalized.command = [...commandParts, ...entry.args];
+  }
+
+  delete normalized.args;
+  delete normalized.description;
+  return normalized;
+}
+
+function normalizeMcpMap(mcp) {
+  if (!mcp || typeof mcp !== 'object') {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(mcp).map(([name, entry]) => [name, normalizeMcpEntry(entry)]),
+  );
+}
+
 export function mergeMcpIntoUserConfig(userConfig, sourceConfig) {
   const current = userConfig && typeof userConfig === 'object' ? userConfig : {};
   const source = sourceConfig && typeof sourceConfig === 'object' ? sourceConfig : {};
-  const currentMcp = current.mcp && typeof current.mcp === 'object' ? current.mcp : {};
+  const currentMcp = normalizeMcpMap(current.mcp && typeof current.mcp === 'object' ? current.mcp : {});
   const sourceMcp = source.mcp && typeof source.mcp === 'object'
-    ? source.mcp
-    : (source.mcpServers && typeof source.mcpServers === 'object' ? source.mcpServers : {});
+    ? normalizeMcpMap(source.mcp)
+    : normalizeMcpMap(source.mcpServers && typeof source.mcpServers === 'object' ? source.mcpServers : {});
 
   return {
     ...current,
@@ -123,6 +167,17 @@ function main() {
   const userManifestPath = join(userConfigDir(), 'tool-manifest.json');
   writeFileSync(userManifestPath, JSON.stringify(manifest, null, 2), 'utf8');
   console.log(`[generate-mcp-config] Synced: ${userManifestPath}`);
+
+  for (const artifact of listSupplementalConfigArtifacts(root)) {
+    if (!existsSync(artifact.sourcePath)) {
+      console.warn(`[generate-mcp-config] Supplemental artifact missing, skipping: ${artifact.sourcePath}`);
+      continue;
+    }
+
+    const targetPath = join(userConfigDir(), artifact.targetName);
+    writeFileSync(targetPath, readFileSync(artifact.sourcePath, 'utf8'), 'utf8');
+    console.log(`[generate-mcp-config] Synced: ${targetPath}`);
+  }
 
   if (writeRepoArtifacts) {
     const manifestPath = join(root, 'mcp-servers', 'tool-manifest.json');

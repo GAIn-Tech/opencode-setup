@@ -40,10 +40,17 @@
       },
       "testing": {
         "patterns": ["test|spec|jest|vitest|pytest|mocha|coverage|assert|expect|mock|stub|fixture|tdd"],
-        "skills": ["test-driven-development"],
+        "skills": ["test-driven-development", "evaluation-harness-builder"],
         "mcps": [],
         "tools": ["bash", "grep"],
         "priority": 2
+      },
+      "memory": {
+        "patterns": ["remember|recall|save for later|persistent memory|across sessions|memory"],
+        "skills": ["supermemory"],
+        "mcps": ["supermemory"],
+        "tools": [],
+        "priority": 1
       },
       "browser": {
         "patterns": ["browser|screenshot|scrape|navigate|click|fill.?form|web.?page|playwright|selenium|puppeteer|e2e|end.?to.?end"],
@@ -114,6 +121,20 @@
         "mcps": [],
         "tools": ["grep", "glob", "ast_grep_search"],
         "priority": 1
+      },
+      "incident_response": {
+        "patterns": ["incident|sev.?1|sev.?2|outage|critical failure|production issue|triage commander|incident response"],
+        "skills": ["incident-commander"],
+        "mcps": ["sequentialthinking"],
+        "tools": ["grep", "lsp_diagnostics"],
+        "priority": 1
+      },
+      "innovation_planning": {
+        "patterns": ["innovation|migration plan|high-upside|underexplored|rollout plan|migration ideas"],
+        "skills": ["innovation-migration-planner"],
+        "mcps": ["context7", "websearch"],
+        "tools": ["grep", "glob", "ast_grep_search"],
+        "priority": 2
       },
       "skill_management": {
         "patterns": ["skill|create.?skill|edit.?skill|skill\\.md|slash.?command|opencode.?skill"],

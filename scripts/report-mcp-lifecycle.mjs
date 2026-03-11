@@ -91,6 +91,16 @@ function readTelemetryInvocations() {
   }
 }
 
+function readExerciseInvocations() {
+  const filePath = path.join(HOME, '.opencode', 'tool-usage', 'mcp-exercises.json');
+  try {
+    const data = JSON.parse(readFileSync(filePath, 'utf8'));
+    return Array.isArray(data.entries) ? data.entries : [];
+  } catch {
+    return [];
+  }
+}
+
 function collectRelativeFiles(basePath) {
   const absoluteBase = path.join(root, basePath);
   if (!existsSync(absoluteBase)) return [];
@@ -133,6 +143,7 @@ function buildMcpCatalog() {
   const registry = readJson('opencode-config/skills/registry.json', {});
   const dormantPolicy = readJson('opencode-config/mcp-dormant-policy.json', {});
   const invocations = readTelemetryInvocations();
+  const exercises = readExerciseInvocations();
 
   const skillFiles = collectRelativeFiles('opencode-config/skills');
   const agentFiles = collectRelativeFiles('opencode-config/agents');
@@ -162,7 +173,17 @@ function buildMcpCatalog() {
     const daysSinceLastUse = lastInvocationTime
       ? Math.floor((Date.now() - lastInvocationTime.getTime()) / (1000 * 60 * 60 * 24))
       : null;
-    const recentlyExercised = daysSinceLastUse !== null && daysSinceLastUse <= 7;
+    const matchingExercises = exercises
+      .filter((entry) => entry?.name === name)
+      .sort((a, b) => new Date(String(b.verifiedAt || b.timestamp || 0)).getTime() - new Date(String(a.verifiedAt || a.timestamp || 0)).getTime());
+    const lastExercise = matchingExercises[0] || null;
+    const lastExerciseTime = lastExercise?.verifiedAt ? new Date(lastExercise.verifiedAt) : null;
+    const daysSinceLastExercise = lastExerciseTime
+      ? Math.floor((Date.now() - lastExerciseTime.getTime()) / (1000 * 60 * 60 * 24))
+      : null;
+    const recentlyExercised =
+      (daysSinceLastUse !== null && daysSinceLastUse <= 7) ||
+      (daysSinceLastExercise !== null && daysSinceLastExercise <= 7);
     const orchestratorLower = orchestratorText.toLowerCase();
     const orchestratorMention = alias.orchestratorHints.some((hint) => orchestratorLower.includes(hint.toLowerCase()));
     const directIntegrationMention = (alias.directIntegrationHints || []).some((hint) => directIntegrationCorpus.includes(hint));
@@ -212,6 +233,7 @@ function buildMcpCatalog() {
       directIntegrationMention,
       lastInvocationTime,
       daysSinceLastUse,
+      daysSinceLastExercise,
       recentlyExercised,
       dormantPolicy: dormantPolicy[name] || null,
     };
@@ -230,8 +252,9 @@ function renderReport(entries) {
   lines.push('|-----|--------|---------|------|-------|-------|--------------|-----------|-------------------|');
 
   for (const entry of entries) {
+    const recentAge = entry.daysSinceLastUse ?? entry.daysSinceLastExercise;
     lines.push(
-      `| ${entry.name} | ${entry.status} | ${entry.enabled ? 'yes' : 'no'} | ${entry.type} | ${entry.skillExists ? 'yes' : 'no'} | ${entry.matchingAgents.length > 0 ? 'yes' : 'no'} | ${entry.orchestratorMention ? 'yes' : 'no'} | ${entry.telemetryHits} | ${entry.recentlyExercised ? `yes (${entry.daysSinceLastUse}d)` : 'no'} |`
+      `| ${entry.name} | ${entry.status} | ${entry.enabled ? 'yes' : 'no'} | ${entry.type} | ${entry.skillExists ? 'yes' : 'no'} | ${entry.matchingAgents.length > 0 ? 'yes' : 'no'} | ${entry.orchestratorMention ? 'yes' : 'no'} | ${entry.telemetryHits} | ${entry.recentlyExercised ? `yes (${recentAge}d)` : 'no'} |`
     );
   }
 

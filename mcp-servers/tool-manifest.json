@@ -1,35 +1,128 @@
 {
-  "generated_at": "2026-02-19T16:53:09.305Z",
   "opencode_root": "{{OPENCODE_ROOT}}",
   "mcp_servers": [
     {
-      "name": "opencode-memory-graph",
-      "command": "node",
+      "name": "tavily",
+      "command": [
+        "npx",
+        "-y",
+        "tavily-mcp@0.2.16"
+      ],
+      "enabled": false,
+      "type": "local"
+    },
+    {
+      "name": "supermemory",
+      "enabled": true,
+      "type": "remote"
+    },
+    {
+      "name": "context7",
+      "enabled": true,
+      "type": "remote"
+    },
+    {
+      "name": "playwright",
+      "command": [
+        "npx",
+        "@playwright/mcp@0.0.64"
+      ],
       "enabled": true,
       "type": "local"
     },
     {
-      "name": "opencode-model-router-x",
-      "command": "node",
+      "name": "sequentialthinking",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
       "enabled": true,
       "type": "local"
     },
     {
-      "name": "opencode-context-governor",
-      "command": "node",
+      "name": "websearch",
+      "command": [
+        "npx",
+        "-y",
+        "@ignidor/web-search-mcp"
+      ],
       "enabled": true,
       "type": "local"
     },
     {
-      "name": "opencode-runbooks",
-      "command": "node",
+      "name": "grep",
+      "command": [
+        "uvx",
+        "grep-mcp"
+      ],
+      "enabled": true,
+      "type": "local"
+    },
+    {
+      "name": "github",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-github@2025.4.8"
+      ],
+      "enabled": false,
+      "type": "local"
+    },
+    {
+      "name": "distill",
+      "command": [
+        "node",
+        "scripts/run-distill-mcp.mjs",
+        "serve",
+        "--lazy"
+      ],
       "enabled": true,
       "type": "local"
     },
     {
       "name": "opencode-dashboard-launcher",
-      "command": "node",
+      "command": [
+        "node",
+        "packages/opencode-dashboard-launcher/src/index.js"
+      ],
+      "enabled": false,
+      "type": "local"
+    },
+    {
+      "name": "opencode-memory-graph",
+      "command": [
+        "node",
+        "packages/opencode-memory-graph/src/cli.js"
+      ],
+      "enabled": false,
+      "type": "local"
+    },
+    {
+      "name": "opencode-model-router-x",
+      "command": [
+        "node",
+        "packages/opencode-model-router-x/src/index.js"
+      ],
+      "enabled": false,
+      "type": "local"
+    },
+    {
+      "name": "opencode-context-governor",
+      "command": [
+        "node",
+        "packages/opencode-context-governor/src/index.js"
+      ],
       "enabled": true,
+      "type": "local"
+    },
+    {
+      "name": "opencode-runbooks",
+      "command": [
+        "node",
+        "packages/opencode-runbooks/src/index.js"
+      ],
+      "enabled": false,
       "type": "local"
     }
   ]
