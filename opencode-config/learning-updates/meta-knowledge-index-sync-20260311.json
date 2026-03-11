@@ -1,0 +1,15 @@
+{
+  "id": "meta-knowledge-index-sync-20260311",
+  "timestamp": "2026-03-11T23:20:00Z",
+  "summary": "Refresh governance hashes after automatic meta-knowledge index updates from learning gate hooks.",
+  "affected_paths": [
+    "opencode-config/.governance-hashes.json",
+    "opencode-config/meta-knowledge-index.json"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

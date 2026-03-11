@@ -1,13 +1,43 @@
 {
-  "generated_at": "2026-03-11T22:43:48.749Z",
+  "generated_at": "2026-03-11T22:45:03.690Z",
   "schema_version": 1,
-  "total_records": 267,
+  "total_records": 268,
   "source_files": {
-    "learning_updates": 267,
+    "learning_updates": 268,
     "agents_md": 7
   },
   "by_category": {
     "uncategorized": [
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "affected_paths": [
+          "mcp-servers/tool-manifest.json",
+          "opencode-config/.governance-hashes.json",
+          "opencode-config/meta-knowledge-index.json",
+          "opencode-config/opencode.json",
+          "opencode-config/skills/registry.json",
+          "opencode-config/tool-tiers.json",
+          "scripts/generate-mcp-config.mjs",
+          "scripts/mcp-exercise-harness.mjs",
+          "scripts/mcp-smoke-harness.mjs",
+          "scripts/report-mcp-lifecycle.mjs",
+          "scripts/run-distill-mcp.mjs",
+          "scripts/runtime-tool-surface-proof.mjs",
+          "scripts/runtime-tool-telemetry.mjs",
+          "scripts/tests/distill-wrapper.test.js",
+          "scripts/tests/generate-mcp-config.test.js",
+          "scripts/tests/mcp-exercise-harness.test.js",
+          "scripts/tests/mcp-inventory-regression.test.js",
+          "scripts/tests/mcp-lifecycle-report.test.js",
+          "scripts/tests/mcp-smoke-harness.test.js",
+          "scripts/tests/package-smoke-runner.test.js",
+          "scripts/tests/runtime-tool-surface-proof.test.js",
+          "scripts/tests/runtime-tool-telemetry.test.js"
+        ],
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
       {
         "id": "package-mcp-alignment-20260311",
         "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
@@ -3256,6 +3286,36 @@
   "by_risk_level": {
     "low": [
       {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "affected_paths": [
+          "mcp-servers/tool-manifest.json",
+          "opencode-config/.governance-hashes.json",
+          "opencode-config/meta-knowledge-index.json",
+          "opencode-config/opencode.json",
+          "opencode-config/skills/registry.json",
+          "opencode-config/tool-tiers.json",
+          "scripts/generate-mcp-config.mjs",
+          "scripts/mcp-exercise-harness.mjs",
+          "scripts/mcp-smoke-harness.mjs",
+          "scripts/report-mcp-lifecycle.mjs",
+          "scripts/run-distill-mcp.mjs",
+          "scripts/runtime-tool-surface-proof.mjs",
+          "scripts/runtime-tool-telemetry.mjs",
+          "scripts/tests/distill-wrapper.test.js",
+          "scripts/tests/generate-mcp-config.test.js",
+          "scripts/tests/mcp-exercise-harness.test.js",
+          "scripts/tests/mcp-inventory-regression.test.js",
+          "scripts/tests/mcp-lifecycle-report.test.js",
+          "scripts/tests/mcp-smoke-harness.test.js",
+          "scripts/tests/package-smoke-runner.test.js",
+          "scripts/tests/runtime-tool-surface-proof.test.js",
+          "scripts/tests/runtime-tool-telemetry.test.js"
+        ],
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
         "id": "preload-runtime-contract-20260310",
         "summary": "Clarify the preload-skills runtime contract by testing the IntegrationLayer boundary and updating the README to document selectTools(), callable tool IDs, and the external host's responsibility to consume them.",
         "risk_level": "low",
@@ -6426,53 +6486,13 @@
     "high": []
   },
   "by_affected_path": {
-    "bun.lock": [
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "unused-deps-removal-20260225",
-        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00.000Z"
-      },
-      {
-        "id": "knowledge-graph-hierarchy-lod-20260220",
-        "summary": "Added hierarchical knowledge graph views with adaptive edge decluttering and API shaping controls",
-        "risk_level": "medium",
-        "timestamp": "2026-02-20T06:00:00-05:00"
-      },
-      {
-        "id": "workspace-deps-fix-20260215",
-        "summary": "Fixed workspace dependency version mismatch preventing bun install, made git hooks executable, updated CLI shebangs for cross-platform compatibility",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T08:00:00Z"
-      }
-    ],
-    "integration-tests/critical-plugin-contracts.test.js": [
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "preload-runtime-contract-20260310",
-        "summary": "Clarify the preload-skills runtime contract by testing the IntegrationLayer boundary and updating the README to document selectTools(), callable tool IDs, and the external host's responsibility to consume them.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T14:45:00-04:00"
-      },
-      {
-        "id": "wave10-ci-matrix-test-consolidation",
-        "summary": "Add per-package CI test matrix (28 packages), consolidate dashboard tests/ into test/, and add critical plugin contract integration tests (healthd, lifecycle, preload-skills)",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T22:36:00Z"
-      }
-    ],
     "mcp-servers/tool-manifest.json": [
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
       {
         "id": "package-mcp-alignment-20260311",
         "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
@@ -6493,6 +6513,12 @@
       }
     ],
     "opencode-config/.governance-hashes.json": [
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
       {
         "id": "package-mcp-alignment-20260311",
         "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
@@ -6542,7 +6568,63 @@
         "timestamp": "2026-02-27T22:40:00Z"
       }
     ],
+    "opencode-config/meta-knowledge-index.json": [
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "protocol-compliance-pass-20260311",
+        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T21:20:00Z"
+      },
+      {
+        "id": "meta-knowledge-index-refresh-20260309",
+        "summary": "Refresh the generated meta-knowledge index so it includes the latest governed learning updates for observability and runtime telemetry work.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T23:15:00-04:00"
+      },
+      {
+        "id": "governance-hash-refresh-20260309",
+        "summary": "Refresh governance hashes and meta-knowledge index after file-bridge commits. Auto-generated files only, no code changes.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T12:10:00Z"
+      },
+      {
+        "id": "meta-kb-rehash-20260309",
+        "summary": "Regenerate governance hashes after learning-gate auto-refreshed meta-knowledge-index.json during the AGENTS.md drift fix commit. No content changes — hash chain integrity maintenance only.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T00:01:00Z"
+      },
+      {
+        "id": "wave11-t4-budget-scoring-20260308",
+        "summary": "Wave 11 Phase 1 complete (7/7 tasks): context-governor activation, model-router perf caches, advice cache, integration-layer wiring, budget-aware scoring",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:50:00Z"
+      },
+      {
+        "id": "governance-refresh-20260308",
+        "summary": "Refresh auto-generated governance hashes and meta-KB index after AGENTS.md drift fixes",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:40:00Z"
+      },
+      {
+        "id": "wave9-meta-kb-synthesis-20260308",
+        "summary": "Add synthesize-meta-kb.mjs script that aggregates 161 learning-update JSONs and 7 AGENTS.md files into a single queryable meta-knowledge index at opencode-config/meta-knowledge-index.json. Indexes by category, risk level, and affected path. Extracts anti-patterns, conventions, and commands from AGENTS.md sections.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      }
+    ],
     "opencode-config/opencode.json": [
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
       {
         "id": "package-mcp-alignment-20260311",
         "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
@@ -6599,6 +6681,12 @@
       }
     ],
     "opencode-config/skills": [
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
       {
         "id": "package-mcp-alignment-20260311",
         "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
@@ -6764,6 +6852,12 @@
     ],
     "opencode-config/tool-tiers.json": [
       {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
         "id": "package-mcp-alignment-20260311",
         "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
         "risk_level": "medium",
@@ -6786,6 +6880,470 @@
         "summary": "Complete dashboard implementation with all 6 roadmap features: SkillsRL APIs stabilized, Knowledge Graph interactive with React Flow, provider status unified tracking, ConfigViewer with Zod forms editors, Models 10x6 routing matrix UI, fresh-machine smoke pipeline.",
         "risk_level": "low",
         "timestamp": "2026-02-15T21:00:00Z"
+      }
+    ],
+    "scripts/generate-mcp-config.mjs": [
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "p1-setup-canonical-mcp-20260304",
+        "summary": "Switch setup MCP generation to canonical opencode-config/opencode.json merge into user opencode.json, preserving user custom MCP entries while updating canonical server definitions.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-04T00:15:00Z"
+      },
+      {
+        "id": "mcp-manifest-enabled-20260227",
+        "summary": "Align MCP tool-manifest enabled flag with config enabled field and add manifest mapping tests.",
+        "risk_level": "low",
+        "timestamp": "2026-02-28T00:02:00Z"
+      },
+      {
+        "id": "strict-portability-setup-20260227",
+        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T22:30:00Z"
+      },
+      {
+        "id": "portability-setup-hardening-20260227",
+        "summary": "Hardened clone/setup portability by fixing MCP config generation placeholder resolution, aligning plugin compatibility checks with opencode.json plugin schema, and reducing false-negative setup/health failures when no scoped plugin namespace is present.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T13:10:00Z"
+      },
+      {
+        "id": "portable-setup-transfer-20260215",
+        "summary": "Hardened setup transfer portability by adding cross-platform config sync, path-safe script root resolution, and portable MCP manifest generation.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T18:55:00Z"
+      }
+    ],
+    "scripts/mcp-exercise-harness.mjs": [
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "mcp-exercise-harness-20260310",
+        "summary": "Add an MCP exercise harness and top-level command that safely records smoke verification for local live MCPs without polluting real runtime usage telemetry.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T13:35:00-04:00"
+      }
+    ],
+    "scripts/mcp-smoke-harness.mjs": [
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "mcp-smoke-verified-status-20260310",
+        "summary": "Extend the MCP smoke report to surface smoke-verified status separately from recent runtime telemetry so cold-but-live MCPs can be proven exerciseable without faking usage.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T13:36:00-04:00"
+      },
+      {
+        "id": "mcp-smoke-harness-20260310",
+        "summary": "Add an MCP smoke harness and top-level package command so recent exercise coverage for live MCPs can be measured directly from telemetry after restarts.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:30:00-04:00"
+      }
+    ],
+    "scripts/report-mcp-lifecycle.mjs": [
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "dormant-mcp-policy-surfacing-20260310",
+        "summary": "Surface explicit dormant MCP reactivation metadata in the lifecycle report so disabled internal MCPs are actionable rather than just classified.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T12:32:00-04:00"
+      },
+      {
+        "id": "mcp-report-input-warnings-20260310",
+        "summary": "Warn when the MCP lifecycle report falls back from unreadable telemetry/config inputs so missing or corrupt data does not silently flatten usage visibility.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T12:15:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-dormant-and-recency-20260310",
+        "summary": "Extend the MCP lifecycle report with DORMANT classification for intentionally disabled internal MCPs and a recently-exercised signal sourced from invocation timestamps.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T11:55:00-04:00"
+      },
+      {
+        "id": "mcp-direct-path-regressions-20260310",
+        "summary": "Update MCP lifecycle and inventory regressions so Playwright and Distill direct paths are required and reflected in the generated lifecycle report.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T11:38:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-direct-integration-20260310",
+        "summary": "Refine the MCP lifecycle report so directly integrated capabilities like opencode-context-governor are recognized as live from runtime code paths instead of being mislabeled as passive.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T11:10:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-heuristic-notes-20260310",
+        "summary": "Refine the MCP lifecycle report to emit heuristic notes for alias-based or partially integrated MCP states, and add regression coverage for those notes.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T02:00:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-report-generator-20260310",
+        "summary": "Add a generated MCP lifecycle report script that classifies current servers from canonical config, wiring evidence, and runtime telemetry and writes a report artifact under .sisyphus/reports/.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T01:40:00-04:00"
+      }
+    ],
+    "scripts/run-distill-mcp.mjs": [
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      }
+    ],
+    "scripts/runtime-tool-surface-proof.mjs": [
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "protocol-compliance-pass-20260311",
+        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T21:20:00Z"
+      }
+    ],
+    "scripts/runtime-tool-telemetry.mjs": [
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "runtime-telemetry-session-isolation-20260310",
+        "summary": "Isolate missing or invalid runtime telemetry session IDs so bad hook payloads do not collapse multiple calls into a shared unknown budget file.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:16:00-04:00"
+      },
+      {
+        "id": "runtime-mcp-telemetry-coverage-20260310",
+        "summary": "Extend runtime MCP telemetry so Supermemory mode-specific calls and GitHub grep searches are recorded with canonical tool identities, and mirror those identities in the learning-engine catalog.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T00:32:00-04:00"
+      },
+      {
+        "id": "context7-failure-telemetry-20260309",
+        "summary": "Refine runtime Context7 telemetry so explicit error and unresolved signals are recorded as failed lookups in shared monitoring history.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T23:05:00-04:00"
+      },
+      {
+        "id": "runtime-telemetry-monitoring-history-20260309",
+        "summary": "Extend the PostToolUse runtime hook to persist distill and Context7 monitoring events into shared observability history alongside existing tool-usage telemetry.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T22:45:00-04:00"
+      },
+      {
+        "id": "runtime-tool-telemetry-hook-20260309",
+        "summary": "Add PostToolUse runtime hook script that bridges oh-my-opencode tool.execute.after events into the learning-engine invocations.json, enabling MCP tool_affinities to accumulate from real runtime usage",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T02:04:06.915Z"
+      },
+      {
+        "id": "runtime-hook-budget-indicators-20260309",
+        "summary": "Enhance PostToolUse runtime hook with session budget tracking and distill CLI indicators. Adds per-session token estimation, budget threshold warnings at 50%/65%/80% emitted to stderr, and distill compression metric capture (tokens_before/after, savings ratio, pipeline list). Session state persisted at ~/.opencode/tool-usage/sessions/{session_id}-budget.json.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T12:30:00Z"
+      }
+    ],
+    "scripts/tests": [
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "protocol-compliance-pass-20260311",
+        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T21:20:00Z"
+      },
+      {
+        "id": "mcp-smoke-verified-status-20260310",
+        "summary": "Extend the MCP smoke report to surface smoke-verified status separately from recent runtime telemetry so cold-but-live MCPs can be proven exerciseable without faking usage.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T13:36:00-04:00"
+      },
+      {
+        "id": "enabled-custom-skill-contracts-20260310",
+        "summary": "Broaden skill surface regression coverage so every enabled custom skill must have an on-disk definition, not just one-off spot checks.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T12:57:00-04:00"
+      },
+      {
+        "id": "workspace-package-smoke-runner-20260310",
+        "summary": "Add a workspace package smoke runner and top-level packages:smoke command so package entrypoint exercise becomes as discoverable as mcp:smoke.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:56:00-04:00"
+      },
+      {
+        "id": "dormant-mcp-policy-surfacing-20260310",
+        "summary": "Surface explicit dormant MCP reactivation metadata in the lifecycle report so disabled internal MCPs are actionable rather than just classified.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T12:32:00-04:00"
+      },
+      {
+        "id": "mcp-smoke-harness-20260310",
+        "summary": "Add an MCP smoke harness and top-level package command so recent exercise coverage for live MCPs can be measured directly from telemetry after restarts.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:30:00-04:00"
+      },
+      {
+        "id": "runtime-telemetry-session-isolation-20260310",
+        "summary": "Isolate missing or invalid runtime telemetry session IDs so bad hook payloads do not collapse multiple calls into a shared unknown budget file.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:16:00-04:00"
+      },
+      {
+        "id": "mcp-report-input-warnings-20260310",
+        "summary": "Warn when the MCP lifecycle report falls back from unreadable telemetry/config inputs so missing or corrupt data does not silently flatten usage visibility.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T12:15:00-04:00"
+      },
+      {
+        "id": "codebase-auditor-regression-20260310",
+        "summary": "Add a regression test ensuring the codebase-auditor skill is registered, enabled, and present on disk with its paired agent surface.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T11:58:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-dormant-and-recency-20260310",
+        "summary": "Extend the MCP lifecycle report with DORMANT classification for intentionally disabled internal MCPs and a recently-exercised signal sourced from invocation timestamps.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T11:55:00-04:00"
+      },
+      {
+        "id": "mcp-direct-path-regressions-20260310",
+        "summary": "Update MCP lifecycle and inventory regressions so Playwright and Distill direct paths are required and reflected in the generated lifecycle report.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T11:38:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-direct-integration-20260310",
+        "summary": "Refine the MCP lifecycle report so directly integrated capabilities like opencode-context-governor are recognized as live from runtime code paths instead of being mislabeled as passive.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T11:10:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-heuristic-notes-20260310",
+        "summary": "Refine the MCP lifecycle report to emit heuristic notes for alias-based or partially integrated MCP states, and add regression coverage for those notes.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T02:00:00-04:00"
+      },
+      {
+        "id": "mcp-report-command-test-20260310",
+        "summary": "Add regression coverage ensuring package.json exposes the `mcp:report` command entrypoint for the generated MCP lifecycle report.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T01:48:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-report-test-20260310",
+        "summary": "Add a regression test for the generated MCP lifecycle report so current live inventory expectations stay aligned with the reporting script.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T01:41:00-04:00"
+      },
+      {
+        "id": "mcp-audit-classification-regression-20260310",
+        "summary": "Add a regression test covering the post-activation MCP classification so the canonical live inventory and superseded historical audit markers stay aligned.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T00:49:00-04:00"
+      },
+      {
+        "id": "mcp-inventory-regression-suite-20260310",
+        "summary": "Add a dedicated MCP inventory regression suite covering canonical live services, enabled skill registry state, and required MCP skill and agent files.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T00:35:00-04:00"
+      },
+      {
+        "id": "mcp-config-regression-test-20260310",
+        "summary": "Add a canonical MCP inventory regression test so dead entries stay removed and playwright stays enabled in the source config.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T00:34:00-04:00"
+      },
+      {
+        "id": "runtime-mcp-telemetry-coverage-20260310",
+        "summary": "Extend runtime MCP telemetry so Supermemory mode-specific calls and GitHub grep searches are recorded with canonical tool identities, and mirror those identities in the learning-engine catalog.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T00:32:00-04:00"
+      },
+      {
+        "id": "context7-failure-telemetry-20260309",
+        "summary": "Refine runtime Context7 telemetry so explicit error and unresolved signals are recorded as failed lookups in shared monitoring history.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T23:05:00-04:00"
+      },
+      {
+        "id": "runtime-telemetry-monitoring-history-20260309",
+        "summary": "Extend the PostToolUse runtime hook to persist distill and Context7 monitoring events into shared observability history alongside existing tool-usage telemetry.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T22:45:00-04:00"
+      },
+      {
+        "id": "runtime-tool-telemetry-hook-20260309",
+        "summary": "Add PostToolUse runtime hook script that bridges oh-my-opencode tool.execute.after events into the learning-engine invocations.json, enabling MCP tool_affinities to accumulate from real runtime usage",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T02:04:06.915Z"
+      },
+      {
+        "id": "runtime-hook-budget-tests-20260309",
+        "summary": "Add 10 tests for PostToolUse hook budget tracking and distill indicators. Covers session budget state creation, token accumulation, threshold warnings (50%/65%/80%), warning deduplication, distill_run_tool metric capture, distill_browse_tools pipeline listing, and distill event persistence.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T12:35:00Z"
+      },
+      {
+        "id": "p1-setup-canonical-mcp-20260304",
+        "summary": "Switch setup MCP generation to canonical opencode-config/opencode.json merge into user opencode.json, preserving user custom MCP entries while updating canonical server definitions.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-04T00:15:00Z"
+      },
+      {
+        "id": "mcp-manifest-enabled-20260227",
+        "summary": "Align MCP tool-manifest enabled flag with config enabled field and add manifest mapping tests.",
+        "risk_level": "low",
+        "timestamp": "2026-02-28T00:02:00Z"
+      },
+      {
+        "id": "portability-strict-env-20260227",
+        "summary": "Allow strict portability verification to pass when configs have zero env placeholders, while still failing on missing required placeholders.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T23:59:00Z"
+      },
+      {
+        "id": "strict-portability-setup-20260227",
+        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T22:30:00Z"
+      },
+      {
+        "id": "skill-routing-hardening-wave2-20260227",
+        "summary": "Medium-priority skill routing hardening: --full-report mode for gate runner, fixture schema validation in evaluator, expanded DEFAULT_TASKS covering browser/git/code-review/meta domains, learning update for governance compliance",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T12:00:00Z"
+      },
+      {
+        "id": "skill-routing-hardening-wave3-20260227",
+        "summary": "Harden hierarchical routing no-match semantics and conflict validation safety checks",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T06:20:00Z"
+      }
+    ],
+    "bun.lock": [
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "unused-deps-removal-20260225",
+        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00.000Z"
+      },
+      {
+        "id": "knowledge-graph-hierarchy-lod-20260220",
+        "summary": "Added hierarchical knowledge graph views with adaptive edge decluttering and API shaping controls",
+        "risk_level": "medium",
+        "timestamp": "2026-02-20T06:00:00-05:00"
+      },
+      {
+        "id": "workspace-deps-fix-20260215",
+        "summary": "Fixed workspace dependency version mismatch preventing bun install, made git hooks executable, updated CLI shebangs for cross-platform compatibility",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T08:00:00Z"
+      }
+    ],
+    "integration-tests/critical-plugin-contracts.test.js": [
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "preload-runtime-contract-20260310",
+        "summary": "Clarify the preload-skills runtime contract by testing the IntegrationLayer boundary and updating the README to document selectTools(), callable tool IDs, and the external host's responsibility to consume them.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T14:45:00-04:00"
+      },
+      {
+        "id": "wave10-ci-matrix-test-consolidation",
+        "summary": "Add per-package CI test matrix (28 packages), consolidate dashboard tests/ into test/, and add critical plugin contract integration tests (healthd, lifecycle, preload-skills)",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T22:36:00Z"
       }
     ],
     "packages/opencode-integration-layer": [
@@ -7264,376 +7822,6 @@
         "timestamp": "2026-02-15T12:30:00Z"
       }
     ],
-    "scripts/generate-mcp-config.mjs": [
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "p1-setup-canonical-mcp-20260304",
-        "summary": "Switch setup MCP generation to canonical opencode-config/opencode.json merge into user opencode.json, preserving user custom MCP entries while updating canonical server definitions.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-04T00:15:00Z"
-      },
-      {
-        "id": "mcp-manifest-enabled-20260227",
-        "summary": "Align MCP tool-manifest enabled flag with config enabled field and add manifest mapping tests.",
-        "risk_level": "low",
-        "timestamp": "2026-02-28T00:02:00Z"
-      },
-      {
-        "id": "strict-portability-setup-20260227",
-        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T22:30:00Z"
-      },
-      {
-        "id": "portability-setup-hardening-20260227",
-        "summary": "Hardened clone/setup portability by fixing MCP config generation placeholder resolution, aligning plugin compatibility checks with opencode.json plugin schema, and reducing false-negative setup/health failures when no scoped plugin namespace is present.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T13:10:00Z"
-      },
-      {
-        "id": "portable-setup-transfer-20260215",
-        "summary": "Hardened setup transfer portability by adding cross-platform config sync, path-safe script root resolution, and portable MCP manifest generation.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T18:55:00Z"
-      }
-    ],
-    "scripts/mcp-exercise-harness.mjs": [
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "mcp-exercise-harness-20260310",
-        "summary": "Add an MCP exercise harness and top-level command that safely records smoke verification for local live MCPs without polluting real runtime usage telemetry.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T13:35:00-04:00"
-      }
-    ],
-    "scripts/mcp-smoke-harness.mjs": [
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "mcp-smoke-verified-status-20260310",
-        "summary": "Extend the MCP smoke report to surface smoke-verified status separately from recent runtime telemetry so cold-but-live MCPs can be proven exerciseable without faking usage.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T13:36:00-04:00"
-      },
-      {
-        "id": "mcp-smoke-harness-20260310",
-        "summary": "Add an MCP smoke harness and top-level package command so recent exercise coverage for live MCPs can be measured directly from telemetry after restarts.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:30:00-04:00"
-      }
-    ],
-    "scripts/report-mcp-lifecycle.mjs": [
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "dormant-mcp-policy-surfacing-20260310",
-        "summary": "Surface explicit dormant MCP reactivation metadata in the lifecycle report so disabled internal MCPs are actionable rather than just classified.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T12:32:00-04:00"
-      },
-      {
-        "id": "mcp-report-input-warnings-20260310",
-        "summary": "Warn when the MCP lifecycle report falls back from unreadable telemetry/config inputs so missing or corrupt data does not silently flatten usage visibility.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T12:15:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-dormant-and-recency-20260310",
-        "summary": "Extend the MCP lifecycle report with DORMANT classification for intentionally disabled internal MCPs and a recently-exercised signal sourced from invocation timestamps.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:55:00-04:00"
-      },
-      {
-        "id": "mcp-direct-path-regressions-20260310",
-        "summary": "Update MCP lifecycle and inventory regressions so Playwright and Distill direct paths are required and reflected in the generated lifecycle report.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:38:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-direct-integration-20260310",
-        "summary": "Refine the MCP lifecycle report so directly integrated capabilities like opencode-context-governor are recognized as live from runtime code paths instead of being mislabeled as passive.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:10:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-heuristic-notes-20260310",
-        "summary": "Refine the MCP lifecycle report to emit heuristic notes for alias-based or partially integrated MCP states, and add regression coverage for those notes.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T02:00:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-report-generator-20260310",
-        "summary": "Add a generated MCP lifecycle report script that classifies current servers from canonical config, wiring evidence, and runtime telemetry and writes a report artifact under .sisyphus/reports/.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T01:40:00-04:00"
-      }
-    ],
-    "scripts/run-distill-mcp.mjs": [
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      }
-    ],
-    "scripts/runtime-tool-surface-proof.mjs": [
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "protocol-compliance-pass-20260311",
-        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T21:20:00Z"
-      }
-    ],
-    "scripts/runtime-tool-telemetry.mjs": [
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "runtime-telemetry-session-isolation-20260310",
-        "summary": "Isolate missing or invalid runtime telemetry session IDs so bad hook payloads do not collapse multiple calls into a shared unknown budget file.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:16:00-04:00"
-      },
-      {
-        "id": "runtime-mcp-telemetry-coverage-20260310",
-        "summary": "Extend runtime MCP telemetry so Supermemory mode-specific calls and GitHub grep searches are recorded with canonical tool identities, and mirror those identities in the learning-engine catalog.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T00:32:00-04:00"
-      },
-      {
-        "id": "context7-failure-telemetry-20260309",
-        "summary": "Refine runtime Context7 telemetry so explicit error and unresolved signals are recorded as failed lookups in shared monitoring history.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T23:05:00-04:00"
-      },
-      {
-        "id": "runtime-telemetry-monitoring-history-20260309",
-        "summary": "Extend the PostToolUse runtime hook to persist distill and Context7 monitoring events into shared observability history alongside existing tool-usage telemetry.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T22:45:00-04:00"
-      },
-      {
-        "id": "runtime-tool-telemetry-hook-20260309",
-        "summary": "Add PostToolUse runtime hook script that bridges oh-my-opencode tool.execute.after events into the learning-engine invocations.json, enabling MCP tool_affinities to accumulate from real runtime usage",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T02:04:06.915Z"
-      },
-      {
-        "id": "runtime-hook-budget-indicators-20260309",
-        "summary": "Enhance PostToolUse runtime hook with session budget tracking and distill CLI indicators. Adds per-session token estimation, budget threshold warnings at 50%/65%/80% emitted to stderr, and distill compression metric capture (tokens_before/after, savings ratio, pipeline list). Session state persisted at ~/.opencode/tool-usage/sessions/{session_id}-budget.json.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T12:30:00Z"
-      }
-    ],
-    "scripts/tests": [
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "protocol-compliance-pass-20260311",
-        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T21:20:00Z"
-      },
-      {
-        "id": "mcp-smoke-verified-status-20260310",
-        "summary": "Extend the MCP smoke report to surface smoke-verified status separately from recent runtime telemetry so cold-but-live MCPs can be proven exerciseable without faking usage.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T13:36:00-04:00"
-      },
-      {
-        "id": "enabled-custom-skill-contracts-20260310",
-        "summary": "Broaden skill surface regression coverage so every enabled custom skill must have an on-disk definition, not just one-off spot checks.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T12:57:00-04:00"
-      },
-      {
-        "id": "workspace-package-smoke-runner-20260310",
-        "summary": "Add a workspace package smoke runner and top-level packages:smoke command so package entrypoint exercise becomes as discoverable as mcp:smoke.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:56:00-04:00"
-      },
-      {
-        "id": "dormant-mcp-policy-surfacing-20260310",
-        "summary": "Surface explicit dormant MCP reactivation metadata in the lifecycle report so disabled internal MCPs are actionable rather than just classified.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T12:32:00-04:00"
-      },
-      {
-        "id": "mcp-smoke-harness-20260310",
-        "summary": "Add an MCP smoke harness and top-level package command so recent exercise coverage for live MCPs can be measured directly from telemetry after restarts.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:30:00-04:00"
-      },
-      {
-        "id": "runtime-telemetry-session-isolation-20260310",
-        "summary": "Isolate missing or invalid runtime telemetry session IDs so bad hook payloads do not collapse multiple calls into a shared unknown budget file.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:16:00-04:00"
-      },
-      {
-        "id": "mcp-report-input-warnings-20260310",
-        "summary": "Warn when the MCP lifecycle report falls back from unreadable telemetry/config inputs so missing or corrupt data does not silently flatten usage visibility.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T12:15:00-04:00"
-      },
-      {
-        "id": "codebase-auditor-regression-20260310",
-        "summary": "Add a regression test ensuring the codebase-auditor skill is registered, enabled, and present on disk with its paired agent surface.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:58:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-dormant-and-recency-20260310",
-        "summary": "Extend the MCP lifecycle report with DORMANT classification for intentionally disabled internal MCPs and a recently-exercised signal sourced from invocation timestamps.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:55:00-04:00"
-      },
-      {
-        "id": "mcp-direct-path-regressions-20260310",
-        "summary": "Update MCP lifecycle and inventory regressions so Playwright and Distill direct paths are required and reflected in the generated lifecycle report.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:38:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-direct-integration-20260310",
-        "summary": "Refine the MCP lifecycle report so directly integrated capabilities like opencode-context-governor are recognized as live from runtime code paths instead of being mislabeled as passive.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:10:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-heuristic-notes-20260310",
-        "summary": "Refine the MCP lifecycle report to emit heuristic notes for alias-based or partially integrated MCP states, and add regression coverage for those notes.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T02:00:00-04:00"
-      },
-      {
-        "id": "mcp-report-command-test-20260310",
-        "summary": "Add regression coverage ensuring package.json exposes the `mcp:report` command entrypoint for the generated MCP lifecycle report.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T01:48:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-report-test-20260310",
-        "summary": "Add a regression test for the generated MCP lifecycle report so current live inventory expectations stay aligned with the reporting script.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T01:41:00-04:00"
-      },
-      {
-        "id": "mcp-audit-classification-regression-20260310",
-        "summary": "Add a regression test covering the post-activation MCP classification so the canonical live inventory and superseded historical audit markers stay aligned.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T00:49:00-04:00"
-      },
-      {
-        "id": "mcp-inventory-regression-suite-20260310",
-        "summary": "Add a dedicated MCP inventory regression suite covering canonical live services, enabled skill registry state, and required MCP skill and agent files.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T00:35:00-04:00"
-      },
-      {
-        "id": "mcp-config-regression-test-20260310",
-        "summary": "Add a canonical MCP inventory regression test so dead entries stay removed and playwright stays enabled in the source config.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T00:34:00-04:00"
-      },
-      {
-        "id": "runtime-mcp-telemetry-coverage-20260310",
-        "summary": "Extend runtime MCP telemetry so Supermemory mode-specific calls and GitHub grep searches are recorded with canonical tool identities, and mirror those identities in the learning-engine catalog.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T00:32:00-04:00"
-      },
-      {
-        "id": "context7-failure-telemetry-20260309",
-        "summary": "Refine runtime Context7 telemetry so explicit error and unresolved signals are recorded as failed lookups in shared monitoring history.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T23:05:00-04:00"
-      },
-      {
-        "id": "runtime-telemetry-monitoring-history-20260309",
-        "summary": "Extend the PostToolUse runtime hook to persist distill and Context7 monitoring events into shared observability history alongside existing tool-usage telemetry.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T22:45:00-04:00"
-      },
-      {
-        "id": "runtime-tool-telemetry-hook-20260309",
-        "summary": "Add PostToolUse runtime hook script that bridges oh-my-opencode tool.execute.after events into the learning-engine invocations.json, enabling MCP tool_affinities to accumulate from real runtime usage",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T02:04:06.915Z"
-      },
-      {
-        "id": "runtime-hook-budget-tests-20260309",
-        "summary": "Add 10 tests for PostToolUse hook budget tracking and distill indicators. Covers session budget state creation, token accumulation, threshold warnings (50%/65%/80%), warning deduplication, distill_run_tool metric capture, distill_browse_tools pipeline listing, and distill event persistence.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T12:35:00Z"
-      },
-      {
-        "id": "p1-setup-canonical-mcp-20260304",
-        "summary": "Switch setup MCP generation to canonical opencode-config/opencode.json merge into user opencode.json, preserving user custom MCP entries while updating canonical server definitions.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-04T00:15:00Z"
-      },
-      {
-        "id": "mcp-manifest-enabled-20260227",
-        "summary": "Align MCP tool-manifest enabled flag with config enabled field and add manifest mapping tests.",
-        "risk_level": "low",
-        "timestamp": "2026-02-28T00:02:00Z"
-      },
-      {
-        "id": "portability-strict-env-20260227",
-        "summary": "Allow strict portability verification to pass when configs have zero env placeholders, while still failing on missing required placeholders.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T23:59:00Z"
-      },
-      {
-        "id": "strict-portability-setup-20260227",
-        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T22:30:00Z"
-      },
-      {
-        "id": "skill-routing-hardening-wave2-20260227",
-        "summary": "Medium-priority skill routing hardening: --full-report mode for gate runner, fixture schema validation in evaluator, expanded DEFAULT_TASKS covering browser/git/code-review/meta domains, learning update for governance compliance",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T12:00:00Z"
-      },
-      {
-        "id": "skill-routing-hardening-wave3-20260227",
-        "summary": "Harden hierarchical routing no-match semantics and conflict validation safety checks",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T06:20:00Z"
-      }
-    ],
     "package.json": [
       {
         "id": "protocol-compliance-pass-20260311",
@@ -7776,50 +7964,6 @@
         "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
         "risk_level": "low",
         "timestamp": "2026-02-27T22:30:00Z"
-      }
-    ],
-    "opencode-config/meta-knowledge-index.json": [
-      {
-        "id": "protocol-compliance-pass-20260311",
-        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T21:20:00Z"
-      },
-      {
-        "id": "meta-knowledge-index-refresh-20260309",
-        "summary": "Refresh the generated meta-knowledge index so it includes the latest governed learning updates for observability and runtime telemetry work.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T23:15:00-04:00"
-      },
-      {
-        "id": "governance-hash-refresh-20260309",
-        "summary": "Refresh governance hashes and meta-knowledge index after file-bridge commits. Auto-generated files only, no code changes.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T12:10:00Z"
-      },
-      {
-        "id": "meta-kb-rehash-20260309",
-        "summary": "Regenerate governance hashes after learning-gate auto-refreshed meta-knowledge-index.json during the AGENTS.md drift fix commit. No content changes — hash chain integrity maintenance only.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T00:01:00Z"
-      },
-      {
-        "id": "wave11-t4-budget-scoring-20260308",
-        "summary": "Wave 11 Phase 1 complete (7/7 tasks): context-governor activation, model-router perf caches, advice cache, integration-layer wiring, budget-aware scoring",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:50:00Z"
-      },
-      {
-        "id": "governance-refresh-20260308",
-        "summary": "Refresh auto-generated governance hashes and meta-KB index after AGENTS.md drift fixes",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:40:00Z"
-      },
-      {
-        "id": "wave9-meta-kb-synthesis-20260308",
-        "summary": "Add synthesize-meta-kb.mjs script that aggregates 161 learning-update JSONs and 7 AGENTS.md files into a single queryable meta-knowledge index at opencode-config/meta-knowledge-index.json. Indexes by category, risk level, and affected path. Extracts anti-patterns, conventions, and commands from AGENTS.md sections.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
       }
     ],
     "scripts/run-package-smokes.mjs": [
