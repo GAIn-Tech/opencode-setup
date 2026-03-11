@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Dynamic skill/tool preloading with three-tier classification and RL-driven promotion",
   "main": "src/index.js",
+  "scripts": {
+    "test:smoke": "node -e \"const path = require('path'); const { PreloadSkillsPlugin } = require('./src/index.js'); const plugin = new PreloadSkillsPlugin({ logLevel: 'error', tiersConfigPath: path.resolve(process.cwd(), '..', '..', 'opencode-config', 'tool-tiers.json') }); const names = plugin.selectTools({ prompt: 'Remember this and check the context budget before the next test harness run' }).tools.map((tool) => tool.name); if (!names.includes('supermemory_search') || !names.includes('distill_run_tool')) throw new Error('preload routing smoke failed'); console.log('preload-skills smoke ok');\""
+  },
   "engines": {
     "node": ">=18"
   },

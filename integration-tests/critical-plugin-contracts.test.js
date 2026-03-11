@@ -200,6 +200,33 @@ describe('cross-package contract: integration-layer ↔ preload-skills', () => {
     expect('meta_context' in result).toBe(true);
   });
 
+  it('resolveRuntimeContext turns budget pressure into actionable DCP and distill guidance', () => {
+    const { IntegrationLayer } = require('../packages/opencode-integration-layer/src/index.js');
+    const { PreloadSkillsPlugin } = require('../packages/opencode-plugin-preload-skills/src/index.js');
+
+    const preload = new PreloadSkillsPlugin({ logLevel: 'error' });
+    const layer = new IntegrationLayer({ preloadSkills: preload, sessionId: 'ses_ctx' });
+    layer.contextBridge = {
+      evaluateAndCompress: () => ({
+        action: 'compress_urgent',
+        reason: 'Budget at 82% — CRITICAL: compress immediately or wrap up',
+        pct: 0.82,
+      }),
+    };
+
+    const result = layer.resolveRuntimeContext({
+      prompt: 'Remember this and compress context before the next long step',
+      sessionId: 'ses_ctx',
+      model: 'anthropic/claude-sonnet-4-5',
+    });
+
+    expect(result.budget.action).toBe('compress_urgent');
+    expect(result.compression.active).toBe(true);
+    expect(result.compression.recommendedSkills).toContain('dcp');
+    expect(result.toolNames).toContain('distill_run_tool');
+    expect(result.toolNames).toContain('supermemory_search');
+  });
+
   it('selectToolsForTask returns null when preloadSkills is unavailable', () => {
     const { IntegrationLayer } = require('../packages/opencode-integration-layer/src/index.js');
     const layer = new IntegrationLayer({ preloadSkills: null });

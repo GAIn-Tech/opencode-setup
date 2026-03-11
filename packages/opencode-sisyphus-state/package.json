@@ -6,6 +6,8 @@
   "scripts": {
     "test": "bun test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "uuid": "^11.1.0"
+  },
   "devDependencies": {}
 }

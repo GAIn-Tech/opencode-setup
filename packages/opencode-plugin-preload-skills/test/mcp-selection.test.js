@@ -19,4 +19,18 @@ describe('PreloadSkillsPlugin MCP selection', () => {
     expect(names).toContain('distill_browse_tools');
     expect(names).toContain('distill_run_tool');
   });
+
+  test('expands memory and context budget surfaces into callable runtime entrypoints', () => {
+    const plugin = new PreloadSkillsPlugin({ logLevel: 'error' });
+    const result = plugin.selectTools({
+      prompt: 'Remember this decision, recall it later, and check the context budget before the next long step',
+    });
+    const names = result.tools.map((tool) => tool.name);
+
+    expect(names).toContain('supermemory_search');
+    expect(names).toContain('supermemory_add');
+    expect(names).toContain('checkContextBudget');
+    expect(names).toContain('getContextBudgetStatus');
+    expect(names).toContain('recordTokenUsage');
+  });
 });

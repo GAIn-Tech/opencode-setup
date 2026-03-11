@@ -40,6 +40,9 @@ let MetaAwarenessTracker;
 try { Logger = require('@jackoatmon/opencode-logger'); } catch (e) {
   try { Logger = require('../../opencode-logger/src/index.js'); } catch (e2) { Logger = null; }
 }
+if (Logger && typeof Logger !== 'function') {
+  Logger = Logger.Logger || Logger.default || null;
+}
 try { ValidatorLib = require('@jackoatmon/opencode-validator'); } catch (e) {
   try { ValidatorLib = require('../../opencode-validator/src/index.js'); } catch (e2) { ValidatorLib = null; }
 }

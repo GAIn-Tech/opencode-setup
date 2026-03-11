@@ -386,6 +386,44 @@ class IntegrationLayer {
   }
 
   /**
+   * Combine tool selection with current context-budget pressure so runtime
+   * consumers have a single actionable plan.
+   */
+  resolveRuntimeContext(taskContext = {}) {
+    const selection = this.selectToolsForTask(taskContext);
+    const sessionId = taskContext.sessionId || taskContext.session_id || this.currentSessionId || null;
+    const model = taskContext.model || taskContext.modelId || taskContext.model_id || null;
+    const budget = sessionId && model
+      ? this.evaluateContextBudget(sessionId, model)
+      : { action: 'none', reason: 'Session/model not available — budget unchecked', pct: 0 };
+
+    const toolNames = new Set((selection?.tools || []).map((tool) => tool?.name || tool).filter(Boolean));
+    const recommendedTools = [];
+    const recommendedSkills = [];
+
+    if (budget.action === 'compress' || budget.action === 'compress_urgent') {
+      for (const toolName of ['distill_browse_tools', 'distill_run_tool', 'checkContextBudget', 'getContextBudgetStatus']) {
+        if (!toolNames.has(toolName)) {
+          toolNames.add(toolName);
+          recommendedTools.push(toolName);
+        }
+      }
+      recommendedSkills.push('dcp', 'distill', 'context-governor');
+    }
+
+    return {
+      selection,
+      budget,
+      toolNames: [...toolNames],
+      compression: {
+        active: budget.action === 'compress' || budget.action === 'compress_urgent',
+        recommendedTools,
+        recommendedSkills,
+      },
+    };
+  }
+
+  /**
    * Load an on-demand (Tier 2) skill mid-conversation.
    */
   loadOnDemandSkill(skillName, taskType) {

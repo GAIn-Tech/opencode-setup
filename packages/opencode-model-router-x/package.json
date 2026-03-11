@@ -8,7 +8,8 @@
     "./policies": "./src/policies.json"
   },
   "scripts": {
-    "test": "node -e \"const { ModelRouter } = require('./src/index.js'); const r = new ModelRouter(); console.log('selectModel:', r.selectModel({ complexity: 'high' })); r.recordOutcome('anthropic/claude-opus-4-6', true, 1200); console.log('after outcome:', r.getModelStats('anthropic/claude-opus-4-6')); console.log('ALL TESTS PASSED');\""
+    "test": "node -e \"const { ModelRouter } = require('./src/index.js'); const r = new ModelRouter(); console.log('selectModel:', r.selectModel({ complexity: 'high' })); r.recordOutcome('anthropic/claude-opus-4-6', true, 1200); console.log('after outcome:', r.getModelStats('anthropic/claude-opus-4-6')); console.log('ALL TESTS PASSED');\"",
+    "test:smoke": "node -e \"const { ModelRouter } = require('./src/index.js'); const router = new ModelRouter(); const pick = router.selectModel({ complexity: 'high' }); if (!pick || !pick.model) throw new Error('model-router pick missing'); console.log('model-router smoke ok');\""
   },
   "keywords": [
     "opencode",

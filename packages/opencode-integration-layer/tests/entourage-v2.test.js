@@ -121,9 +121,14 @@ describe('Entourage Synergy v2 (Full Cycle + Adaptive Behavior)', () => {
     // C. Deep Tracing (Entourage 3)
     // Check if RL learned outcome has run_id and step_id
     const report = skillRL.getReport();
-    // In our test, success reinforced skills. Let's check the reinforced skill in skill bank
-    const quotaSkill = skillRL.skillBank.getAllSkills().taskSpecific.find(s => s.name === 'quota-aware-routing');
-    expect(quotaSkill).toBeDefined();
+    expect(report.skills.general_count).toBeGreaterThan(0);
+    // In our test, success reinforces selected general skills
+    const allSkills = skillRL.skillBank.getAllSkills();
+    const reinforcedSkill = (allSkills.general || []).find(
+      (s) => ['verification-before-completion', 'test-driven-development', 'incremental-implementation'].includes(s.name)
+        && Number(s.usage_count || 0) > 0,
+    );
+    expect(reinforcedSkill).toBeDefined();
 
     // D. Sisyphus State persistence
     const finalState = store.getRunState(runId);

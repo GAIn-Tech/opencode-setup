@@ -14,8 +14,10 @@ const { TierResolver } = require('./tier-resolver');
 const { generateMetaContext } = require('./meta-context-injector');
 
 const MCP_TOOL_REGISTRY = {
+  supermemory: ['supermemory_search', 'supermemory_add'],
   context7: ['context7_resolve_library_id', 'context7_query_docs'],
   distill: ['distill_browse_tools', 'distill_run_tool'],
+  'opencode-context-governor': ['checkContextBudget', 'recordTokenUsage', 'getContextBudgetStatus'],
   websearch: ['websearch_search', 'websearch_search_and_crawl'],
   grep: ['grep_grep_query'],
   sequentialthinking: ['sequentialthinking_sequentialthinking'],
@@ -105,20 +107,20 @@ class PreloadSkillsPlugin extends EventEmitter {
 
     // 2. Always include Tier 0 (returns {tools, skills, mcps})
     const tier0 = this.tierResolver.getTier0();
-    const tier0Flat = this._expandSelections([
-      ...(tier0.tools || []),
-      ...(tier0.skills || []),
-      ...(tier0.mcps || []),
-    ], 'tier0');
+    const tier0Flat = [
+      ...this._expandSelections(tier0.tools || [], 'tier0-tool'),
+      ...this._expandSelections(tier0.skills || [], 'tier0-skill'),
+      ...this._expandSelections(tier0.mcps || [], 'tier0-mcp'),
+    ];
     this.stats.tier0Loads++;
 
     // 3. Classify prompt → Tier 1 matches (returns {tools, skills, mcps, categories})
     const tier1Matches = this.tierResolver.matchTier1(prompt, context.taskType);
-    const tier1Flat = this._expandSelections([
-      ...(tier1Matches.tools || []),
-      ...(tier1Matches.skills || []),
-      ...(tier1Matches.mcps || []),
-    ], 'tier1', tier1Matches.categories);
+    const tier1Flat = [
+      ...this._expandSelections(tier1Matches.tools || [], 'tier1-tool', tier1Matches.categories),
+      ...this._expandSelections(tier1Matches.skills || [], 'tier1-skill', tier1Matches.categories),
+      ...this._expandSelections(tier1Matches.mcps || [], 'tier1-mcp', tier1Matches.categories),
+    ];
     const tier1Tools = tier1Flat.slice(0, this.config.maxTier1Tools);
     this.stats.tier1Loads += tier1Tools.length;
 
@@ -201,6 +203,18 @@ class PreloadSkillsPlugin extends EventEmitter {
       const mappedTools = MCP_TOOL_REGISTRY[base.name];
       if (!mappedTools) {
         return [base];
+      }
+
+      if (source.endsWith('-skill')) {
+        return [
+          base,
+          ...mappedTools.map((toolName) => ({
+            name: toolName,
+            source,
+            categories,
+            skill: base.name,
+          })),
+        ];
       }
 
       return mappedTools.map((toolName) => ({
