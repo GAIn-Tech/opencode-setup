@@ -90,7 +90,7 @@ function checkUserConfigSyncFailures() {
     'rate-limit-fallback.json',
     'supermemory.json',
     'tool-tiers.json',
-    'opencode-mcp-config.json',
+    'tool-manifest.json',
   ];
 
   for (const name of requiredFiles) {
