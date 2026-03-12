@@ -346,13 +346,9 @@ class ModelRouter {
       const chainModels = Object.keys(this.models);
       const diagnosis = this.fallbackDoctor.diagnose({ models: chainModels });
       if (!diagnosis.healthy) {
-        if (this.logger?.warn) {
-          this.logger.warn('[ModelRouter] Fallback chain issues detected', {
-            issues: diagnosis.issues.map((i) => i.message),
-          });
-        } else {
-          console.warn('[ModelRouter] Fallback chain issues detected:', diagnosis.issues.map(i => i.message).join('; '));
-        }
+        this._logWarn('[ModelRouter] Fallback chain issues detected', {
+          issues: diagnosis.issues.map((i) => i.message),
+        });
       }
     }
     
@@ -378,16 +374,11 @@ class ModelRouter {
       
        this.globalContext = globalContext;
        this.orchestrator = new Orchestrator(strategies);
-     } catch (error) {
-      if (this.logger?.error) {
-        this.logger.error('[ModelRouter] Failed to initialize Orchestrator', { error: error?.message || error });
-        this.logger.error('[ModelRouter] Falling back to legacy scoring system');
-      } else {
-        console.error('[ModelRouter] Failed to initialize Orchestrator:', error);
-        console.error('[ModelRouter] Falling back to legacy scoring system');
-      }
-      this.orchestrator = null;
-    }
+      } catch (error) {
+       this._logError('[ModelRouter] Failed to initialize Orchestrator', { error: error?.message || error });
+       this._logError('[ModelRouter] Falling back to legacy scoring system');
+       this.orchestrator = null;
+     }
 
     // Initialize circuit breakers for each provider
     this.circuitBreakers = {};
@@ -431,11 +422,43 @@ class ModelRouter {
 
     // T19 (Wave 11): Log startup duration
     const _startupMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - _startupT0;
-    if (this.logger) {
-      this.logger.info(`[Startup] ModelRouter: ${_startupMs.toFixed(1)}ms`);
-    } else {
-      console.log(`[Startup] ModelRouter: ${_startupMs.toFixed(1)}ms`);
+    this._logInfo('[Startup] ModelRouter', { startupMs: Number(_startupMs.toFixed(1)) });
+  }
+
+  _logInfo(message, meta) {
+    if (this.logger?.info) {
+      this.logger.info(message, meta);
+      return;
     }
+    if (meta !== undefined) {
+      console.log(message, meta);
+      return;
+    }
+    console.log(message);
+  }
+
+  _logWarn(message, meta) {
+    if (this.logger?.warn) {
+      this.logger.warn(message, meta);
+      return;
+    }
+    if (meta !== undefined) {
+      console.warn(message, meta);
+      return;
+    }
+    console.warn(message);
+  }
+
+  _logError(message, meta) {
+    if (this.logger?.error) {
+      this.logger.error(message, meta);
+      return;
+    }
+    if (meta !== undefined) {
+      console.error(message, meta);
+      return;
+    }
+    console.error(message);
   }
 
   /**
@@ -1167,7 +1190,7 @@ class ModelRouter {
 
       return advice;
     } catch (error) {
-      console.warn('[ModelRouter] LearningEngine advise failed:', error.message);
+      this._logWarn('[ModelRouter] LearningEngine advise failed', { error: error.message });
       return { warnings: [], suggestions: [], shouldPause: false, riskScore: 0 };
     }
   }
@@ -1259,7 +1282,7 @@ class ModelRouter {
         adviceId
       });
     } catch (error) {
-      console.warn('[ModelRouter] Failed to record learning outcome:', error.message);
+      this._logWarn('[ModelRouter] Failed to record learning outcome', { error: error.message });
     }
   }
 
@@ -1269,7 +1292,7 @@ class ModelRouter {
       this.config = this.configLoader.load();
       return true;
     } catch (error) {
-      console.warn('[ModelRouter] Failed to reload config:', error.message);
+      this._logWarn('[ModelRouter] Failed to reload config', { error: error.message });
       return false;
     }
   }

@@ -95,4 +95,31 @@ describe('ModelRouter constructor injection', () => {
 
     expect(router.metaAwarenessTracker).toBe(tracker);
   });
+
+  test('uses injected logger for warning, error, and info helper paths', () => {
+    const calls = [];
+    const logger = {
+      info: (message, meta) => calls.push(['info', message, meta]),
+      warn: (message, meta) => calls.push(['warn', message, meta]),
+      error: (message, meta) => calls.push(['error', message, meta]),
+    };
+
+    const router = new ModelRouter({
+      logger,
+      healthCheck: { registerSubsystem: () => {} },
+      circuitBreakerClass: FakeCircuitBreaker,
+    });
+
+    calls.length = 0;
+
+    router._logInfo('info-message', { ok: true });
+    router._logWarn('warn-message', { warn: true });
+    router._logError('error-message', { error: true });
+
+    expect(calls).toEqual([
+      ['info', 'info-message', { ok: true }],
+      ['warn', 'warn-message', { warn: true }],
+      ['error', 'error-message', { error: true }],
+    ]);
+  });
 });
