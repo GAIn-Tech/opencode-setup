@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-03-12T01:32:36.751Z",
+  "generated_at": "2026-03-12T03:01:35.716Z",
   "schema_version": 1,
-  "total_records": 275,
+  "total_records": 277,
   "source_files": {
-    "learning_updates": 275,
+    "learning_updates": 277,
     "agents_md": 7
   },
   "by_category": {
@@ -28,6 +28,16 @@
           "opencode-config/meta-knowledge-index.json"
         ],
         "timestamp": "2026-03-12T01:15:00Z"
+      },
+      {
+        "id": "memory-graph-wiring-20260312",
+        "summary": "Wire memory-graph delegation methods into IntegrationLayer to expose error tracking and session management capabilities",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-integration-layer/src/index.js",
+          "packages/opencode-integration-layer/tests/memory-graph-wiring.test.js"
+        ],
+        "timestamp": "2026-03-12T00:00:00Z"
       },
       {
         "id": "governance-hash-refresh-model-sync-pruning-20260311",
@@ -149,6 +159,25 @@
           "opencode-config/meta-knowledge-index.json"
         ],
         "timestamp": "2026-03-11T21:20:00Z"
+      },
+      {
+        "id": "package-wiring-cleanup-20260311",
+        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-memory-bus/",
+          "packages/opencode-goraphdb-bridge/",
+          "packages/opencode-shared-orchestration/",
+          "packages/opencode-model-sync/",
+          "packages/opencode-integration-layer/",
+          "packages/opencode-config-loader/",
+          "packages/opencode-model-router-x/",
+          "packages/opencode-test-utils/",
+          "scripts/generate-mcp-config.mjs",
+          "scripts/bootstrap-runtime.mjs",
+          "integration-tests/"
+        ],
+        "timestamp": "2026-03-11T20:20:00Z"
       },
       {
         "id": "logger-wiring-integration-layer-20260311",
@@ -3383,6 +3412,16 @@
         "timestamp": "2026-03-12T01:15:00Z"
       },
       {
+        "id": "memory-graph-wiring-20260312",
+        "summary": "Wire memory-graph delegation methods into IntegrationLayer to expose error tracking and session management capabilities",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-integration-layer/src/index.js",
+          "packages/opencode-integration-layer/tests/memory-graph-wiring.test.js"
+        ],
+        "timestamp": "2026-03-12T00:00:00Z"
+      },
+      {
         "id": "governance-hash-refresh-model-sync-pruning-20260311",
         "summary": "Refresh governance hashes and meta-knowledge-index after model-sync package pruning.",
         "risk_level": "low",
@@ -6014,6 +6053,25 @@
         "timestamp": "2026-03-11T21:20:00Z"
       },
       {
+        "id": "package-wiring-cleanup-20260311",
+        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-memory-bus/",
+          "packages/opencode-goraphdb-bridge/",
+          "packages/opencode-shared-orchestration/",
+          "packages/opencode-model-sync/",
+          "packages/opencode-integration-layer/",
+          "packages/opencode-config-loader/",
+          "packages/opencode-model-router-x/",
+          "packages/opencode-test-utils/",
+          "scripts/generate-mcp-config.mjs",
+          "scripts/bootstrap-runtime.mjs",
+          "integration-tests/"
+        ],
+        "timestamp": "2026-03-11T20:20:00Z"
+      },
+      {
         "id": "preload-mcp-tool-expansion-20260310",
         "summary": "Expand abstract MCP selections in the preload-skills plugin into actual callable tool IDs so implicit routing can point at invocable runtime tools instead of server-name hints.",
         "risk_level": "medium",
@@ -6650,6 +6708,12 @@
         "timestamp": "2026-03-11T22:05:00Z"
       },
       {
+        "id": "package-wiring-cleanup-20260311",
+        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T20:20:00Z"
+      },
+      {
         "id": "wave11-t5t7-router-perf-20260308",
         "summary": "Add O(1) model ID resolution cache and skill-RL memoization to ModelRouter for hot-path performance optimization",
         "risk_level": "low",
@@ -6860,6 +6924,12 @@
         "summary": "Add bootstrap-runtime.mjs ESM entry point that wraps CJS bootstrap module for runtime package wiring.",
         "risk_level": "low",
         "timestamp": "2026-03-12T01:15:00Z"
+      },
+      {
+        "id": "package-wiring-cleanup-20260311",
+        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T20:20:00Z"
       }
     ],
     "scripts/tests": [
@@ -7204,12 +7274,146 @@
         "timestamp": "2026-03-08T00:00:00Z"
       }
     ],
+    "packages/opencode-integration-layer": [
+      {
+        "id": "memory-graph-wiring-20260312",
+        "summary": "Wire memory-graph delegation methods into IntegrationLayer to expose error tracking and session management capabilities",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T00:00:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "package-wiring-cleanup-20260311",
+        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T20:20:00Z"
+      },
+      {
+        "id": "logger-wiring-integration-layer-20260311",
+        "summary": "Wire structured logger into integration-layer, replacing raw console calls with logger.warn/info/error.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T00:00:00Z"
+      },
+      {
+        "id": "runbooks-wiring-integration-layer-20260311",
+        "summary": "Added runbooks.diagnose() method to IntegrationLayer with fail-open error handling",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T00:00:00Z"
+      },
+      {
+        "id": "package-smoke-entrypoints-20260310",
+        "summary": "Add test:smoke entrypoints for critical packages so workspace-level smoke orchestration can verify package surfaces consistently.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:55:00-04:00"
+      },
+      {
+        "id": "mcp-skillrl-affinity-tests-20260309",
+        "summary": "Add 22 tests covering MCP → SkillRL affinity bridge: getSessionMcpInvocations (10), tool_affinities tracking (8), IntegrationLayer bridge wiring (4).",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T04:50:00Z"
+      },
+      {
+        "id": "mcp-skillrl-affinity-bridge-20260309",
+        "summary": "Wire MCP tool invocation data into SkillRL outcomes so each skill accumulates tool_affinities counters. Adds getSessionMcpInvocations() to tool-usage-tracker, tool_affinities tracking in SkillRLManager.learnFromOutcome(), and fail-open bridge in IntegrationLayer.executeTaskWithEvidence().",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T04:45:00Z"
+      },
+      {
+        "id": "wave11-t3-governor-wiring-20260308",
+        "summary": "Wire context-governor into IntegrationLayer with checkContextBudget, recordTokenUsage, getContextBudgetStatus methods (fail-open)",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:45:00Z"
+      },
+      {
+        "id": "wave11-t22-phase2-component-tests",
+        "summary": "T22: Added 21 isolation-pattern tests (46 assertions) for Phase 2 components — ContextBridge threshold logic (9 tests: none/compress/compress_urgent at 50%/65%/72%/80%/95%, fail-open, null budget, custom thresholds), IntegrationLayer checkContextBudget (3 tests), recordTokenUsage (3 tests), task context eviction with 1-hour TTL (6 tests).",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:20:00Z"
+      },
+      {
+        "id": "wave11-t12-t13-perf-eviction-20260308",
+        "summary": "T12: Replace O(n log n) push+sort with O(log n) binary insertion in ModelPerformanceTracker latency history. T13: Add TTL-based eviction (1-hour) to IntegrationLayer taskContextMap and wire Governor cleanupStaleSessions on hourly unref'd interval.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:10:00Z"
+      },
+      {
+        "id": "wave11-t8-context-bridge-20260308",
+        "summary": "Create ContextBridge class as advisory bridge between context-governor and distill compression. Returns action signals (compress_urgent, compress, none) based on budget thresholds. Wire into IntegrationLayer with evaluateContextBudget() convenience method.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:10:00Z"
+      },
+      {
+        "id": "wave11-t19-startup-instrumentation",
+        "summary": "Add performance.now() startup time instrumentation to IntegrationLayer, ModelRouter, and LearningEngine constructors. Logs [Startup] ComponentName: Xms on initialization.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:25:00Z"
+      },
+      {
+        "id": "wave9-meta-kb-skillrl-20260308",
+        "summary": "Wire meta-KB signals into IntegrationLayer SkillRL hooks — anti-pattern penalties and positive evidence boosts adjust skill promotion/demotion scores",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T13:00:00Z"
+      },
+      {
+        "id": "namespace-drift-part2-20260308",
+        "summary": "Fix namespace drift in 5 remaining package.json name fields and repair 2 broken cross-package dependency references. Packages fixed: integration-layer, model-router-x, plugin-lifecycle, proofcheck, shared-orchestration. Cross-deps fixed: model-router-x deps on context-governor and fallback-doctor; integration-layer peerDeps on skill-rl-manager, learning-engine, shared-orchestration.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "p1-crash-guard-wiring-20260304",
+        "summary": "Add explicit IntegrationLayer delegation for commandExists/safeSpawn to crash-guard and cover behavior with integration tests for fail-closed and delegated execution.",
+        "risk_level": "low",
+        "timestamp": "2026-03-04T00:16:00Z"
+      },
+      {
+        "id": "namespace-drift-remaining-fixes-20260225",
+        "summary": "Fixed remaining @jackoatmon scoped imports in crash-guard, integration-layer, and learning-engine",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T22:50:00.000Z"
+      },
+      {
+        "id": "workspace-deps-standardization-20260225",
+        "summary": "Standardized all internal workspace dependencies to use workspace:* spec instead of file: references. Updated opencode-integration-layer peerDependencies and restored opencode-model-router-x dependencies with proper workspace resolution.",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:30:00Z"
+      },
+      {
+        "id": "unused-exports-removal-20260225",
+        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "p2-hardening-policies-fallback-sse-20260216",
+        "summary": "Completed P2 hardening for policies validation, fallback reason typing, and SSE client cleanup",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T02:05:00Z"
+      },
+      {
+        "id": "portability-integrity-pass-20260215",
+        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T12:30:00Z"
+      }
+    ],
     "packages/opencode-model-sync": [
       {
         "id": "package-wiring-extraction-model-sync-20260311",
         "summary": "Extract wiring patterns from opencode-model-sync (health-check registration, learning-engine connection, scheduled task patterns) into test-utils reference documentation, then prune stub package.",
         "risk_level": "low",
         "timestamp": "2026-03-11T23:30:00Z"
+      },
+      {
+        "id": "package-wiring-cleanup-20260311",
+        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T20:20:00Z"
       },
       {
         "id": "wave8-readme-model-plugin-packages-20260308",
@@ -7242,6 +7446,12 @@
         "summary": "Extract wiring patterns from opencode-model-sync (health-check registration, learning-engine connection, scheduled task patterns) into test-utils reference documentation, then prune stub package.",
         "risk_level": "low",
         "timestamp": "2026-03-11T23:30:00Z"
+      },
+      {
+        "id": "package-wiring-cleanup-20260311",
+        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T20:20:00Z"
       },
       {
         "id": "wave8-readme-orch-util-packages-20260308",
@@ -7560,6 +7770,12 @@
         "timestamp": "2026-03-11T22:05:00Z"
       },
       {
+        "id": "package-wiring-cleanup-20260311",
+        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T20:20:00Z"
+      },
+      {
         "id": "p1-setup-canonical-mcp-20260304",
         "summary": "Switch setup MCP generation to canonical opencode-config/opencode.json merge into user opencode.json, preserving user custom MCP entries while updating canonical server definitions.",
         "risk_level": "medium",
@@ -7820,122 +8036,6 @@
         "summary": "Add per-package CI test matrix (28 packages), consolidate dashboard tests/ into test/, and add critical plugin contract integration tests (healthd, lifecycle, preload-skills)",
         "risk_level": "low",
         "timestamp": "2026-03-08T22:36:00Z"
-      }
-    ],
-    "packages/opencode-integration-layer": [
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "logger-wiring-integration-layer-20260311",
-        "summary": "Wire structured logger into integration-layer, replacing raw console calls with logger.warn/info/error.",
-        "risk_level": "low",
-        "timestamp": "2026-03-11T00:00:00Z"
-      },
-      {
-        "id": "runbooks-wiring-integration-layer-20260311",
-        "summary": "Added runbooks.diagnose() method to IntegrationLayer with fail-open error handling",
-        "risk_level": "low",
-        "timestamp": "2026-03-11T00:00:00Z"
-      },
-      {
-        "id": "package-smoke-entrypoints-20260310",
-        "summary": "Add test:smoke entrypoints for critical packages so workspace-level smoke orchestration can verify package surfaces consistently.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:55:00-04:00"
-      },
-      {
-        "id": "mcp-skillrl-affinity-tests-20260309",
-        "summary": "Add 22 tests covering MCP → SkillRL affinity bridge: getSessionMcpInvocations (10), tool_affinities tracking (8), IntegrationLayer bridge wiring (4).",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T04:50:00Z"
-      },
-      {
-        "id": "mcp-skillrl-affinity-bridge-20260309",
-        "summary": "Wire MCP tool invocation data into SkillRL outcomes so each skill accumulates tool_affinities counters. Adds getSessionMcpInvocations() to tool-usage-tracker, tool_affinities tracking in SkillRLManager.learnFromOutcome(), and fail-open bridge in IntegrationLayer.executeTaskWithEvidence().",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T04:45:00Z"
-      },
-      {
-        "id": "wave11-t3-governor-wiring-20260308",
-        "summary": "Wire context-governor into IntegrationLayer with checkContextBudget, recordTokenUsage, getContextBudgetStatus methods (fail-open)",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:45:00Z"
-      },
-      {
-        "id": "wave11-t22-phase2-component-tests",
-        "summary": "T22: Added 21 isolation-pattern tests (46 assertions) for Phase 2 components — ContextBridge threshold logic (9 tests: none/compress/compress_urgent at 50%/65%/72%/80%/95%, fail-open, null budget, custom thresholds), IntegrationLayer checkContextBudget (3 tests), recordTokenUsage (3 tests), task context eviction with 1-hour TTL (6 tests).",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:20:00Z"
-      },
-      {
-        "id": "wave11-t12-t13-perf-eviction-20260308",
-        "summary": "T12: Replace O(n log n) push+sort with O(log n) binary insertion in ModelPerformanceTracker latency history. T13: Add TTL-based eviction (1-hour) to IntegrationLayer taskContextMap and wire Governor cleanupStaleSessions on hourly unref'd interval.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:10:00Z"
-      },
-      {
-        "id": "wave11-t8-context-bridge-20260308",
-        "summary": "Create ContextBridge class as advisory bridge between context-governor and distill compression. Returns action signals (compress_urgent, compress, none) based on budget thresholds. Wire into IntegrationLayer with evaluateContextBudget() convenience method.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:10:00Z"
-      },
-      {
-        "id": "wave11-t19-startup-instrumentation",
-        "summary": "Add performance.now() startup time instrumentation to IntegrationLayer, ModelRouter, and LearningEngine constructors. Logs [Startup] ComponentName: Xms on initialization.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:25:00Z"
-      },
-      {
-        "id": "wave9-meta-kb-skillrl-20260308",
-        "summary": "Wire meta-KB signals into IntegrationLayer SkillRL hooks — anti-pattern penalties and positive evidence boosts adjust skill promotion/demotion scores",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T13:00:00Z"
-      },
-      {
-        "id": "namespace-drift-part2-20260308",
-        "summary": "Fix namespace drift in 5 remaining package.json name fields and repair 2 broken cross-package dependency references. Packages fixed: integration-layer, model-router-x, plugin-lifecycle, proofcheck, shared-orchestration. Cross-deps fixed: model-router-x deps on context-governor and fallback-doctor; integration-layer peerDeps on skill-rl-manager, learning-engine, shared-orchestration.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "p1-crash-guard-wiring-20260304",
-        "summary": "Add explicit IntegrationLayer delegation for commandExists/safeSpawn to crash-guard and cover behavior with integration tests for fail-closed and delegated execution.",
-        "risk_level": "low",
-        "timestamp": "2026-03-04T00:16:00Z"
-      },
-      {
-        "id": "namespace-drift-remaining-fixes-20260225",
-        "summary": "Fixed remaining @jackoatmon scoped imports in crash-guard, integration-layer, and learning-engine",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T22:50:00.000Z"
-      },
-      {
-        "id": "workspace-deps-standardization-20260225",
-        "summary": "Standardized all internal workspace dependencies to use workspace:* spec instead of file: references. Updated opencode-integration-layer peerDependencies and restored opencode-model-router-x dependencies with proper workspace resolution.",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:30:00Z"
-      },
-      {
-        "id": "unused-exports-removal-20260225",
-        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "p2-hardening-policies-fallback-sse-20260216",
-        "summary": "Completed P2 hardening for policies validation, fallback reason typing, and SSE client cleanup",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T02:05:00Z"
-      },
-      {
-        "id": "portability-integrity-pass-20260215",
-        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T12:30:00Z"
       }
     ],
     "packages/opencode-plugin-preload-skills": [
@@ -8240,6 +8340,154 @@
         "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
         "risk_level": "low",
         "timestamp": "2026-02-27T22:30:00Z"
+      }
+    ],
+    "packages/opencode-memory-bus": [
+      {
+        "id": "package-wiring-cleanup-20260311",
+        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T20:20:00Z"
+      },
+      {
+        "id": "wave10-phase1-tests-20260308",
+        "summary": "Wave 10 Phase 1 test coverage expansion: opencode-validator (65 tests), opencode-memory-bus SQLite/FTS5 spike (12 tests), opencode-learning-engine advise() edge cases (10 tests)",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:20:00Z"
+      },
+      {
+        "id": "audit-membus-mcps-20260308",
+        "summary": "Add minimal package.json to opencode-memory-bus (empty spike package) and wire 5 custom MCP servers (dashboard-launcher, memory-graph, model-router-x, context-governor, runbooks) into opencode.json as disabled local servers",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "memory-bus-sqlite-spike-20260228",
+        "summary": "Add sqlite-vec + FTS5 compatibility spike script for opencode-memory-bus experimentation on Bun/Windows.",
+        "risk_level": "low",
+        "timestamp": "2026-02-28T00:20:00Z"
+      }
+    ],
+    "packages/opencode-goraphdb-bridge": [
+      {
+        "id": "package-wiring-cleanup-20260311",
+        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T20:20:00Z"
+      },
+      {
+        "id": "smoke-tests-16-packages-20260225",
+        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:55:00Z"
+      },
+      {
+        "id": "unused-deps-removal-20260225",
+        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00.000Z"
+      },
+      {
+        "id": "dead-code-cleanup-unused-vars-20260225",
+        "summary": "Remove 6 unused variable declarations across 5 packages",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T15:40:00Z"
+      },
+      {
+        "id": "audit-hardening-20260223",
+        "summary": "Comprehensive audit hardening: timeouts, path resolver, strict schema/env checks, goraphdb retries, health check classification",
+        "risk_level": "medium",
+        "timestamp": "2026-02-23T17:38:39Z"
+      },
+      {
+        "id": "workspace-deps-fix-20260215",
+        "summary": "Fixed workspace dependency version mismatch preventing bun install, made git hooks executable, updated CLI shebangs for cross-platform compatibility",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T08:00:00Z"
+      }
+    ],
+    "packages/opencode-shared-orchestration": [
+      {
+        "id": "package-wiring-cleanup-20260311",
+        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T20:20:00Z"
+      },
+      {
+        "id": "wave8-readme-orch-util-packages-20260308",
+        "summary": "Add README.md to five orchestration and utility packages that had none: opencode-shared-orchestration, opencode-showboat-wrapper, opencode-skill-rl-manager, opencode-test-utils, opencode-validator. Completes Wave 8C task 8 — all 34 packages now have READMEs.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:25:00Z"
+      },
+      {
+        "id": "namespace-drift-part2-20260308",
+        "summary": "Fix namespace drift in 5 remaining package.json name fields and repair 2 broken cross-package dependency references. Packages fixed: integration-layer, model-router-x, plugin-lifecycle, proofcheck, shared-orchestration. Cross-deps fixed: model-router-x deps on context-governor and fallback-doctor; integration-layer peerDeps on skill-rl-manager, learning-engine, shared-orchestration.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "smoke-tests-16-packages-20260225",
+        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:55:00Z"
+      }
+    ],
+    "packages/opencode-config-loader": [
+      {
+        "id": "package-wiring-cleanup-20260311",
+        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T20:20:00Z"
+      },
+      {
+        "id": "wave-1-async-io-complete-20260225",
+        "summary": "Wave 1: Async I/O conversion for config-loader, learning-engine, and model-manager to eliminate event loop blocking",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T02:32:00.000Z"
+      },
+      {
+        "id": "config-loader-async-io-20260225",
+        "summary": "Converted all sync file I/O to async in central-config-state.js and central-config.js. Added in-memory RL state cache and atomic write pattern (tmp+rename).",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "unused-exports-removal-20260225",
+        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "config-loader-safe-json-parse-20260224",
+        "summary": "Added safeJsonParse helper and replaced all unguarded JSON.parse calls in file-read paths in central-config.js and central-config-state.js",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "central-config-foundation-20260223",
+        "summary": "Introduce central config schema/state machinery with migration tooling and setup verification so dashboard-managed policy can persist safely with recovery and audit support.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-23T23:20:00Z"
+      },
+      {
+        "id": "audit-hardening-20260223",
+        "summary": "Comprehensive audit hardening: timeouts, path resolver, strict schema/env checks, goraphdb retries, health check classification",
+        "risk_level": "medium",
+        "timestamp": "2026-02-23T17:38:39Z"
+      },
+      {
+        "id": "dashboard-v2-implementation-20260215",
+        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:00:00Z"
+      }
+    ],
+    "integration-tests": [
+      {
+        "id": "package-wiring-cleanup-20260311",
+        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T20:20:00Z"
       }
     ],
     "scripts/run-package-smokes.mjs": [
@@ -9540,26 +9788,6 @@
         "timestamp": "2026-02-25T00:00:00Z"
       }
     ],
-    "packages/opencode-memory-bus": [
-      {
-        "id": "wave10-phase1-tests-20260308",
-        "summary": "Wave 10 Phase 1 test coverage expansion: opencode-validator (65 tests), opencode-memory-bus SQLite/FTS5 spike (12 tests), opencode-learning-engine advise() edge cases (10 tests)",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:20:00Z"
-      },
-      {
-        "id": "audit-membus-mcps-20260308",
-        "summary": "Add minimal package.json to opencode-memory-bus (empty spike package) and wire 5 custom MCP servers (dashboard-launcher, memory-graph, model-router-x, context-governor, runbooks) into opencode.json as disabled local servers",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "memory-bus-sqlite-spike-20260228",
-        "summary": "Add sqlite-vec + FTS5 compatibility spike script for opencode-memory-bus experimentation on Bun/Windows.",
-        "risk_level": "low",
-        "timestamp": "2026-02-28T00:20:00Z"
-      }
-    ],
     "opencode-config/learning-updates": [
       {
         "id": "wave9-phase2-validation-20260308",
@@ -9670,26 +9898,6 @@
         "summary": "Fixed workspace dependency version mismatch preventing bun install, made git hooks executable, updated CLI shebangs for cross-platform compatibility",
         "risk_level": "low",
         "timestamp": "2026-02-15T08:00:00Z"
-      }
-    ],
-    "packages/opencode-shared-orchestration": [
-      {
-        "id": "wave8-readme-orch-util-packages-20260308",
-        "summary": "Add README.md to five orchestration and utility packages that had none: opencode-shared-orchestration, opencode-showboat-wrapper, opencode-skill-rl-manager, opencode-test-utils, opencode-validator. Completes Wave 8C task 8 — all 34 packages now have READMEs.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:25:00Z"
-      },
-      {
-        "id": "namespace-drift-part2-20260308",
-        "summary": "Fix namespace drift in 5 remaining package.json name fields and repair 2 broken cross-package dependency references. Packages fixed: integration-layer, model-router-x, plugin-lifecycle, proofcheck, shared-orchestration. Cross-deps fixed: model-router-x deps on context-governor and fallback-doctor; integration-layer peerDeps on skill-rl-manager, learning-engine, shared-orchestration.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "smoke-tests-16-packages-20260225",
-        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:55:00Z"
       }
     ],
     "packages/opencode-showboat-wrapper": [
@@ -10602,38 +10810,6 @@
         "timestamp": "2026-02-22T03:55:00Z"
       }
     ],
-    "packages/opencode-goraphdb-bridge": [
-      {
-        "id": "smoke-tests-16-packages-20260225",
-        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:55:00Z"
-      },
-      {
-        "id": "unused-deps-removal-20260225",
-        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00.000Z"
-      },
-      {
-        "id": "dead-code-cleanup-unused-vars-20260225",
-        "summary": "Remove 6 unused variable declarations across 5 packages",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T15:40:00Z"
-      },
-      {
-        "id": "audit-hardening-20260223",
-        "summary": "Comprehensive audit hardening: timeouts, path resolver, strict schema/env checks, goraphdb retries, health check classification",
-        "risk_level": "medium",
-        "timestamp": "2026-02-23T17:38:39Z"
-      },
-      {
-        "id": "workspace-deps-fix-20260215",
-        "summary": "Fixed workspace dependency version mismatch preventing bun install, made git hooks executable, updated CLI shebangs for cross-platform compatibility",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T08:00:00Z"
-      }
-    ],
     "packages/opencode-graphdb-bridge": [
       {
         "id": "smoke-tests-16-packages-20260225",
@@ -10698,50 +10874,6 @@
         "summary": "Comprehensive audit hardening: timeouts, path resolver, strict schema/env checks, goraphdb retries, health check classification",
         "risk_level": "medium",
         "timestamp": "2026-02-23T17:38:39Z"
-      }
-    ],
-    "packages/opencode-config-loader": [
-      {
-        "id": "wave-1-async-io-complete-20260225",
-        "summary": "Wave 1: Async I/O conversion for config-loader, learning-engine, and model-manager to eliminate event loop blocking",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T02:32:00.000Z"
-      },
-      {
-        "id": "config-loader-async-io-20260225",
-        "summary": "Converted all sync file I/O to async in central-config-state.js and central-config.js. Added in-memory RL state cache and atomic write pattern (tmp+rename).",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "unused-exports-removal-20260225",
-        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "config-loader-safe-json-parse-20260224",
-        "summary": "Added safeJsonParse helper and replaced all unguarded JSON.parse calls in file-read paths in central-config.js and central-config-state.js",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "central-config-foundation-20260223",
-        "summary": "Introduce central config schema/state machinery with migration tooling and setup verification so dashboard-managed policy can persist safely with recovery and audit support.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-23T23:20:00Z"
-      },
-      {
-        "id": "audit-hardening-20260223",
-        "summary": "Comprehensive audit hardening: timeouts, path resolver, strict schema/env checks, goraphdb retries, health check classification",
-        "risk_level": "medium",
-        "timestamp": "2026-02-23T17:38:39Z"
-      },
-      {
-        "id": "dashboard-v2-implementation-20260215",
-        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:00:00Z"
       }
     ],
     "integration-tests/orchestration-atomic-write.test.js": [

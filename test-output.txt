@@ -1,0 +1,169 @@
+bun test v1.3.10 (30e609e0)
+[preload-skills] Initialized with undefined skills across 3 tiers
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: true,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+🚀 E2E Test: SkillRL + Showboat Full Workflow
+
+════════════════════════════════════════════════════════════
+
+📦 Setting up components...
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: true,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+✅ SkillRLManager initialized
+✅ ShowboatWrapper initialized
+✅ IntegrationLayer initialized
+
+════════════════════════════════════════════════════════════
+📋 SCENARIO 1: High-Impact Authentication Feature
+════════════════════════════════════════════════════════════
+
+1️⃣  OrchestrationAdvisor provides guidance...
+   - Base routing: explore
+   - Base skills: grep, read
+   - SkillRL augmentation: verification-before-completion, test-driven-development, incremental-implementation
+✅ SkillRL augmented advice with hierarchical skills
+
+2️⃣  Task executed... Running verification...
+[ShowboatWrapper] Capturing evidence for high-impact task: Implement OAuth 2.0 authentication system
+[ShowboatWrapper] Evidence captured: e2e-evidence\evidence-1773279530553.md
+[IntegrationLayer] Evidence captured: e2e-evidence\evidence-1773279530553.md
+   - Verification status: PASS ✅
+
+3️⃣  Checking evidence capture...
+   - Evidence file: evidence-1773279530553.md
+   - Contains Playwright assertions: YES ✅
+   - Contains verification status: YES ✅
+✅ High-impact task generated showboat evidence document
+
+════════════════════════════════════════════════════════════
+📋 SCENARIO 2: Low-Impact Documentation Fix
+════════════════════════════════════════════════════════════
+
+1️⃣  Task context set (low impact)...
+[IntegrationLayer] Skipping evidence capture (not high-impact)
+✅ Low-impact task correctly skipped evidence capture
+
+════════════════════════════════════════════════════════════
+📋 SCENARIO 3: Failed Task → SkillRL Evolution
+════════════════════════════════════════════════════════════
+
+1️⃣  Task attempted and failed...
+[IntegrationLayer] Failure distilled into SkillRL: inefficient_solution
+   - Failures before: 0
+   - Failures after: 1
+✅ Failure distilled and recorded in SkillRL evolution engine
+
+════════════════════════════════════════════════════════════
+📋 SCENARIO 4: Full Workflow End-to-End
+════════════════════════════════════════════════════════════
+
+1️⃣  Executing full workflow...
+[IntegrationLayer] SkillRL selected: verification-before-completion, test-driven-development, incremental-implementation
+   - Task: Deploy production database migration
+   - Skills selected: verification-before-completion, test-driven-development, incremental-implementation
+[ShowboatWrapper] Capturing evidence for high-impact task: Deploy production database migration
+[ShowboatWrapper] Evidence captured: e2e-evidence\evidence-1773279530567.md
+✅ Full workflow executed: skill selection → execution → evidence capture
+
+════════════════════════════════════════════════════════════
+📊 E2E TEST SUMMARY
+════════════════════════════════════════════════════════════
+✅ Scenario 1: High-impact task generated evidence
+✅ Scenario 2: Low-impact task skipped evidence
+✅ Scenario 3: Failure distilled into SkillRL
+✅ Scenario 4: Full workflow end-to-end
+
+🎉 ALL E2E TESTS PASSED!
+

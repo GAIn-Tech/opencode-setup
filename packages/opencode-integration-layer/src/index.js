@@ -131,6 +131,7 @@ class IntegrationLayer {
     this.modelRouter = config.modelRouter || config.ModelRouter || null;
     this.preloadSkills = config.preloadSkills || null;
     this.runbooks = config.runbooks || null;
+    this.fallbackDoctor = config.fallbackDoctor || null;
     // P1 FIX: Use Map keyed by task_id instead of global mutable state
     this.taskContextMap = new Map();
     this.currentSessionId = config.currentSessionId || config.sessionId || null;
@@ -303,6 +304,34 @@ class IntegrationLayer {
       return this.memoryGraph.isActive();
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Validate a fallback model chain using fallback-doctor.
+   * @param {string[]} models - Ordered list of model IDs
+   * @returns {Object|null} Validation result with valid, issues, suggestions
+   */
+  validateFallbackChain(models) {
+    if (!this.fallbackDoctor) return null;
+    try {
+      return this.fallbackDoctor.validateChain(models);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Run fallback-doctor diagnostics on model configuration.
+   * @param {Object} [config] - Optional config override
+   * @returns {Object|null} Diagnostic result with healthy, modelCount, issues
+   */
+  diagnoseFallbacks(config) {
+    if (!this.fallbackDoctor) return null;
+    try {
+      return this.fallbackDoctor.diagnose(config);
+    } catch {
+      return null;
     }
   }
 
@@ -1103,6 +1132,36 @@ class IntegrationLayer {
       affected_skills: affectedSkills,
       net_adjustment: positiveEvidence - antiPatternPenalty,
     };
+  }
+
+  /**
+   * Validate fallback chain for given models
+   * Delegates to fallbackDoctor.validateChain() with fail-open pattern
+   * @param {Array<string>} models - Model IDs to validate
+   * @returns {Object|null} Validation result or null if unavailable
+   */
+  validateFallbackChain(models) {
+    if (!this.fallbackDoctor) return null;
+    try {
+      return this.fallbackDoctor.validateChain(models);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Diagnose fallback chain health
+   * Delegates to fallbackDoctor.diagnose() with fail-open pattern
+   * @param {Object} config - Optional configuration for diagnosis
+   * @returns {Object|null} Diagnosis result or null if unavailable
+   */
+  diagnoseFallbacks(config) {
+    if (!this.fallbackDoctor) return null;
+    try {
+      return this.fallbackDoctor.diagnose(config);
+    } catch {
+      return null;
+    }
   }
 }
 

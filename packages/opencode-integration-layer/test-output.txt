@@ -1,0 +1,1120 @@
+bun test v1.3.10 (30e609e0)
+
+tests\bootstrap.test.js:
+[WARN] [IntegrationLayer] Degraded startup: 7/7 integrations unavailable: structuredLogger, inputValidator, healthChecker, backupManager, featureFlags, contextGovernor, memoryGraph 
+[preload-skills] Initialized with undefined skills across 3 tiers
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: true,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[preload-skills] Initialized with undefined skills across 3 tiers
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: true,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[preload-skills] Initialized with undefined skills across 3 tiers
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: true,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[preload-skills] Initialized with undefined skills across 3 tiers
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: true,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+
+tests\crash-guard-spawn-wiring.test.js:
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[WARN] safeSpawn requested but crash-guard not available {
+  command: "git",
+}
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+
+tests\distill-wiring.test.js:
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+
+tests\entourage-v2.test.js:
+[OrchestrationAdvisor] opencode-shared-orchestration not found — using inline stubs.
+[WorkflowStore] Applied migration 002: API Usage Tracking
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: true,
+  hasQuotaManager: true,
+  hasAdvisor: true,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[QuotaManager] Configured quota for primary-provider: 1000 monthly
+[IntegrationLayer] SkillRL selected: verification-before-completion, test-driven-development, incremental-implementation
+[SkillRL] Rejected corrupted skill update: Not an object
+[WorkflowStore] Applied migration 002: API Usage Tracking
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: true,
+  hasQuotaManager: true,
+  hasAdvisor: true,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[IntegrationLayer] SkillRL selected: verification-before-completion, test-driven-development, incremental-implementation
+[SkillRL] Rejected corrupted skill update: Not an object
+[WorkflowStore] Applied migration 002: API Usage Tracking
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: true,
+  hasQuotaManager: true,
+  hasAdvisor: true,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[IntegrationLayer] SkillRL selected: verification-before-completion, test-driven-development, incremental-implementation
+[SkillRL] Rejected corrupted skill update: Not an object
+
+tests\entourage.test.js:
+[WorkflowStore] Applied migration 002: API Usage Tracking
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: false,
+  hasQuotaManager: true,
+  hasAdvisor: true,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[QuotaManager] Configured quota for primary-provider: 1000 monthly
+[QuotaManager] Configured quota for fallback-provider: 1000 monthly
+[IntegrationLayer] SkillRL selected: verification-before-completion, test-driven-development, incremental-implementation
+[SkillRL] Rejected corrupted skill update: Not an object
+
+tests\error-wiring.test.js:
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[ERROR] Validation failed {
+  error: "Invalid input format",
+}
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[WARN] checkContextBudget failed (fail-open) {
+  error: "Governor initialization failed",
+}
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[ERROR] safeSpawn failed {
+  command: "nonexistent-command",
+  error: "Command not found",
+}
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[WARN] safeSpawn requested but crash-guard not available {
+  command: "some-command",
+}
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[ERROR] Validation failed {
+  error: "Schema mismatch",
+}
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[WARN] validateInput called but validator not available 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+
+tests\integration.test.js:
+🧪 Integration Layer Tests
+
+Test 1: IntegrationLayer integrates all components
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: true,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+✅ PASS: IntegrationLayer initialized with components
+
+Test 2: OrchestrationAdvisor hooks augment advice with SkillRL
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+  - Original routing: explore
+  - SkillRL skills: verification-before-completion, test-driven-development, incremental-implementation
+✅ PASS: SkillRL correctly augmented advice
+
+Test 3: Failure distillation updates SkillRL bank
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[IntegrationLayer] Failure distilled into SkillRL: test_failure
+  - Failures before: 0
+  - Failures after: 1
+✅ PASS: Failure distillation updated SkillRL
+
+Test 4: Proofcheck hooks trigger showboat for high-impact tasks
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: true,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[ShowboatWrapper] Capturing evidence for high-impact task: Deploy authentication system
+[ShowboatWrapper] Evidence captured: test-evidence\evidence-1773284721767.md
+[IntegrationLayer] Evidence captured: test-evidence\evidence-1773284721767.md
+  - Evidence files: 1
+  - Latest file: evidence-1773284721767.md
+✅ PASS: Showboat captured evidence for high-impact task
+
+Test 5: Low-impact tasks skip evidence capture
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: true,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[IntegrationLayer] Skipping evidence capture (not high-impact)
+  - Evidence files: 0 (correctly skipped)
+✅ PASS: Showboat skipped low-impact task
+
+══════════════════════════════════════════════════
+✅ Passed: 5
+❌ Failed: 0
+📊 Total: 5
+
+tests\logger-wiring.test.js:
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] test message 
+[WARN] test warning 
+[ERROR] test error 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] test {
+  key: "value",
+}
+[WARN] test {
+  key: "value",
+}
+[ERROR] test {
+  key: "value",
+}
+
+tests\mcp-skillrl-bridge.test.js:
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+
+tests\memory-graph-wiring.test.js:
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+
+tests\meta-kb-skillrl.test.js:
+[INFO] IntegrationLayer initialized {
+  startupMs: 11.2,
+  hasSkillRL: true,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 11.2ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 9.7,
+  hasSkillRL: true,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 9.7ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+
+tests\preload-skills-wiring.test.js:
+[preload-skills] Initialized with undefined skills across 3 tiers
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: true,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[preload-skills] Initialized with undefined skills across 3 tiers
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: true,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[preload-skills] Initialized with undefined skills across 3 tiers
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: true,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[preload-skills] Initialized with undefined skills across 3 tiers
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: true,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+
+tests\rotator-synergy.test.js:
+[WorkflowStore] Applied migration 002: API Usage Tracking
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: true,
+  hasQuotaManager: true,
+  hasAdvisor: true,
+  hasModelRouter: true,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[QuotaManager] Configured quota for nvidia: 1000 request-based
+[IntegrationLayer] SkillRL selected: verification-before-completion, test-driven-development, incremental-implementation
+[SkillRL] Rejected corrupted skill update: Not an object
+
+tests\runbooks-wiring.test.js:
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+
+ 82 pass
+ 0 fail
+ 210 expect() calls
+Ran 82 tests across 15 files. [297.00ms]
