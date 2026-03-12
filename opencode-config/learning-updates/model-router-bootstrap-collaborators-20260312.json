@@ -1,0 +1,15 @@
+{
+  "id": "model-router-bootstrap-collaborators-20260312",
+  "timestamp": "2026-03-12T21:40:00Z",
+  "summary": "Inject config-loader, feature-flags, and learning-engine into ModelRouter from IntegrationLayer bootstrap and verify those runtime collaborators are exposed in bootstrap wiring tests.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/bootstrap.js",
+    "packages/opencode-integration-layer/tests/model-router-wiring.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

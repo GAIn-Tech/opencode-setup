@@ -47,6 +47,9 @@ describe('model-router-x wiring', () => {
       expect(runtime.modelRouter.validator).toBeTruthy();
       expect(runtime.modelRouter.healthCheck).toBeTruthy();
       expect(runtime.modelRouter.CircuitBreaker).toBeTruthy();
+      expect(runtime.modelRouter.configLoader).toBeTruthy();
+      expect(runtime.modelRouter.featureFlags).toBeTruthy();
+      expect(runtime.modelRouter.learningEngine).toBeTruthy();
     } else {
       expect(runtime.modelRouter).toBeNull();
     }

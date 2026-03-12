@@ -22,6 +22,9 @@ let ValidatorModule = null;
 let ErrorTaxonomy = null;
 let HealthCheckModule = null;
 let MetaAwarenessTracker = null;
+let ConfigLoaderClass = null;
+let createFeatureFlags = null;
+let LearningEngineClass = null;
 
 const loadAttempts = {};
 
@@ -92,6 +95,16 @@ HealthCheckModule = tryLoad('health-check', () =>
 );
 MetaAwarenessTracker = tryLoad('meta-awareness-tracker', () =>
   require('../../opencode-learning-engine/src/meta-awareness-tracker.js').MetaAwarenessTracker
+);
+ConfigLoaderClass = tryLoad('config-loader', () =>
+  require('../../opencode-config-loader/src/index.js').ConfigLoader
+);
+const featureFlagsModule = tryLoad('feature-flags', () =>
+  require('../../opencode-feature-flags/src/index.js')
+);
+createFeatureFlags = featureFlagsModule?.createFeatureFlags || featureFlagsModule?.default?.createFeatureFlags || null;
+LearningEngineClass = tryLoad('learning-engine', () =>
+  require('../../opencode-learning-engine/src/index.js').LearningEngine
 );
 
 // --- Bootstrap state ---
@@ -205,9 +218,15 @@ function bootstrap(options = {}) {
 
   if (ModelRouter) {
     try {
+      const configLoader = ConfigLoaderClass ? new ConfigLoaderClass() : null;
+      const featureFlags = createFeatureFlags ? createFeatureFlags() : null;
+      const learningEngine = LearningEngineClass ? new LearningEngineClass() : null;
       config.modelRouter = new ModelRouter({
         skillRLManager: config.skillRLManager || null,
         fallbackDoctor: config.fallbackDoctor || null,
+        configLoader,
+        featureFlags,
+        learningEngine,
         logger: bootstrapLogger,
         validator: ValidatorModule || null,
         openCodeErrors: ErrorTaxonomy || null,
