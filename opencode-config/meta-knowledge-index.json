@@ -1,13 +1,23 @@
 {
-  "generated_at": "2026-03-12T03:25:53.877Z",
+  "generated_at": "2026-03-12T03:28:01.586Z",
   "schema_version": 1,
-  "total_records": 280,
+  "total_records": 281,
   "source_files": {
-    "learning_updates": 280,
+    "learning_updates": 281,
     "agents_md": 7
   },
   "by_category": {
     "uncategorized": [
+      {
+        "id": "model-router-wiring-20260312",
+        "summary": "Wire model-router-x into bootstrap for orchestrated model selection with injected skillRLManager and fallbackDoctor",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-integration-layer/src/bootstrap.js",
+          "packages/opencode-integration-layer/tests/model-router-wiring.test.js"
+        ],
+        "timestamp": "2026-03-12T03:30:00.000Z"
+      },
       {
         "id": "fallback-doctor-wiring-20260312",
         "summary": "Wire fallback-doctor into IntegrationLayer with validateFallbackChain() and diagnoseFallbacks() delegation methods",
@@ -3423,6 +3433,16 @@
   "by_risk_level": {
     "low": [
       {
+        "id": "model-router-wiring-20260312",
+        "summary": "Wire model-router-x into bootstrap for orchestrated model selection with injected skillRLManager and fallbackDoctor",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-integration-layer/src/bootstrap.js",
+          "packages/opencode-integration-layer/tests/model-router-wiring.test.js"
+        ],
+        "timestamp": "2026-03-12T03:30:00.000Z"
+      },
+      {
         "id": "fallback-doctor-wiring-20260312",
         "summary": "Wire fallback-doctor into IntegrationLayer with validateFallbackChain() and diagnoseFallbacks() delegation methods",
         "risk_level": "low",
@@ -6759,6 +6779,12 @@
   },
   "by_affected_path": {
     "packages/opencode-integration-layer": [
+      {
+        "id": "model-router-wiring-20260312",
+        "summary": "Wire model-router-x into bootstrap for orchestrated model selection with injected skillRLManager and fallbackDoctor",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T03:30:00.000Z"
+      },
       {
         "id": "fallback-doctor-wiring-20260312",
         "summary": "Wire fallback-doctor into IntegrationLayer with validateFallbackChain() and diagnoseFallbacks() delegation methods",

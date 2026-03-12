@@ -1,0 +1,11 @@
+{
+  "id": "e2e-wave2-smoke-test-20260312",
+  "timestamp": "2026-03-12T03:30:00.000Z",
+  "summary": "Update E2E bootstrap smoke test to verify all Wave 2 wired methods: memory-graph, fallback-doctor, plugin-lifecycle, sisyphus-state",
+  "affected_paths": [
+    "integration-tests/bootstrap-e2e.test.js",
+    "opencode-config/learning-updates/e2e-wave2-smoke-test-20260312.json"
+  ],
+  "validation": { "tests": "pass", "lint": "not-run", "typecheck": "not-run" },
+  "risk_level": "low"
+}

@@ -18,6 +18,26 @@ describe('bootstrap E2E', () => {
     // At least some packages attempted
     expect(status.packagesAttempted).toBeGreaterThan(0);
 
+    // Memory graph methods
+    expect(typeof runtime.recordSessionError).toBe('function');
+    expect(typeof runtime.getSessionErrors).toBe('function');
+    expect(typeof runtime.getErrorFrequency).toBe('function');
+    expect(typeof runtime.activateMemoryGraph).toBe('function');
+    expect(typeof runtime.isMemoryGraphActive).toBe('function');
+
+    // Fallback doctor methods
+    expect(typeof runtime.validateFallbackChain).toBe('function');
+    expect(typeof runtime.diagnoseFallbacks).toBe('function');
+
+    // Plugin lifecycle methods
+    expect(typeof runtime.evaluatePluginHealth).toBe('function');
+    expect(typeof runtime.listPlugins).toBe('function');
+
+    // Sisyphus state methods
+    expect(typeof runtime.executeWorkflow).toBe('function');
+    expect(typeof runtime.resumeWorkflow).toBe('function');
+    expect(typeof runtime.getWorkflowState).toBe('function');
+
     // resolveRuntimeContext doesn't throw
     const ctx = runtime.resolveRuntimeContext({
       sessionId: 'e2e-test',
