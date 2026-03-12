@@ -1,7 +1,7 @@
 {
   "id": "governance-hash-baseline-sync-20260312",
-  "timestamp": "2026-03-12T22:12:00Z",
-  "summary": "Sync the governed hash baseline so learning-gate no longer warns about a stale stored hash for opencode-config/meta-knowledge-index.json.",
+  "timestamp": "2026-03-12T22:37:30Z",
+  "summary": "Refresh the governed hash baseline so the stored hash for opencode-config/meta-knowledge-index.json matches the current tracked file content and removes the persistent verify-hashes warning.",
   "affected_paths": [
     "opencode-config/.governance-hashes.json",
     "opencode-config/learning-updates/governance-hash-baseline-sync-20260312.json"

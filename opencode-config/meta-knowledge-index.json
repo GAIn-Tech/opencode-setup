@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-12T22:32:50.958Z",
+  "generated_at": "2026-03-12T23:18:52.745Z",
   "schema_version": 1,
   "total_records": 293,
   "source_files": {
@@ -10,13 +10,13 @@
     "uncategorized": [
       {
         "id": "governance-hash-baseline-sync-20260312",
-        "summary": "Sync the governed hash baseline so learning-gate no longer warns about a stale stored hash for opencode-config/meta-knowledge-index.json.",
+        "summary": "Refresh the governed hash baseline so the stored hash for opencode-config/meta-knowledge-index.json matches the current tracked file content and removes the persistent verify-hashes warning.",
         "risk_level": "low",
         "affected_paths": [
           "opencode-config/.governance-hashes.json",
           "opencode-config/learning-updates/governance-hash-baseline-sync-20260312.json"
         ],
-        "timestamp": "2026-03-12T22:12:00Z"
+        "timestamp": "2026-03-12T22:37:30Z"
       },
       {
         "id": "model-router-bootstrap-collaborators-20260312",
@@ -3563,13 +3563,13 @@
     "low": [
       {
         "id": "governance-hash-baseline-sync-20260312",
-        "summary": "Sync the governed hash baseline so learning-gate no longer warns about a stale stored hash for opencode-config/meta-knowledge-index.json.",
+        "summary": "Refresh the governed hash baseline so the stored hash for opencode-config/meta-knowledge-index.json matches the current tracked file content and removes the persistent verify-hashes warning.",
         "risk_level": "low",
         "affected_paths": [
           "opencode-config/.governance-hashes.json",
           "opencode-config/learning-updates/governance-hash-baseline-sync-20260312.json"
         ],
-        "timestamp": "2026-03-12T22:12:00Z"
+        "timestamp": "2026-03-12T22:37:30Z"
       },
       {
         "id": "model-router-bootstrap-collaborators-20260312",
@@ -7039,9 +7039,9 @@
     "opencode-config/.governance-hashes.json": [
       {
         "id": "governance-hash-baseline-sync-20260312",
-        "summary": "Sync the governed hash baseline so learning-gate no longer warns about a stale stored hash for opencode-config/meta-knowledge-index.json.",
+        "summary": "Refresh the governed hash baseline so the stored hash for opencode-config/meta-knowledge-index.json matches the current tracked file content and removes the persistent verify-hashes warning.",
         "risk_level": "low",
-        "timestamp": "2026-03-12T22:12:00Z"
+        "timestamp": "2026-03-12T22:37:30Z"
       },
       {
         "id": "bootstrap-runtime-entry-point-20260311",
@@ -7125,9 +7125,9 @@
     "opencode-config/learning-updates": [
       {
         "id": "governance-hash-baseline-sync-20260312",
-        "summary": "Sync the governed hash baseline so learning-gate no longer warns about a stale stored hash for opencode-config/meta-knowledge-index.json.",
+        "summary": "Refresh the governed hash baseline so the stored hash for opencode-config/meta-knowledge-index.json matches the current tracked file content and removes the persistent verify-hashes warning.",
         "risk_level": "low",
-        "timestamp": "2026-03-12T22:12:00Z"
+        "timestamp": "2026-03-12T22:37:30Z"
       },
       {
         "id": "model-router-bootstrap-collaborators-20260312",
