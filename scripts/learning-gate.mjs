@@ -187,6 +187,34 @@ function writeKnownHashes(payload) {
   fs.writeFileSync(HASHES_PATH, `${JSON.stringify(payload, null, 2)}\n`);
 }
 
+function normalizeHashesPayload(payload) {
+  const clone = JSON.parse(JSON.stringify(payload));
+  delete clone.generated_at;
+  return clone;
+}
+
+function prepareHashesOutput(nextHashes, existingHashes) {
+  if (!existingHashes) {
+    return { payload: nextHashes, changed: true };
+  }
+
+  const normalizedNext = normalizeHashesPayload(nextHashes);
+  const normalizedExisting = normalizeHashesPayload(existingHashes);
+  const changed = JSON.stringify(normalizedNext) !== JSON.stringify(normalizedExisting);
+
+  if (!changed) {
+    return {
+      payload: {
+        ...nextHashes,
+        generated_at: existingHashes.generated_at || nextHashes.generated_at
+      },
+      changed: false
+    };
+  }
+
+  return { payload: nextHashes, changed: true };
+}
+
 function isValidHash(value) {
   return typeof value === 'string' && /^[a-f0-9]+$/i.test(value) && value.length === HASH_HEX_LENGTH;
 }
@@ -325,17 +353,18 @@ function validateLearningUpdate(update, file, policy, governedChanges) {
 async function main() {
   const args = parseArgs(process.argv);
   const policy = readJson(POLICY_PATH);
+  const knownHashes = readKnownHashes();
 
   const currentHashes = await computeGovernanceHashes(policy);
 
   if (args.generateHashes) {
-    writeKnownHashes(currentHashes);
+    const prepared = prepareHashesOutput(currentHashes, knownHashes);
+    writeKnownHashes(prepared.payload);
     console.log(`learning-gate: generated governance hashes at ${normalizePath(path.relative(ROOT, HASHES_PATH))}`);
     console.log(`- governed config files: ${Object.keys(currentHashes.files).length}`);
     return;
   }
 
-  const knownHashes = readKnownHashes();
   // Hash checks run on every invocation so runtime/manual edits cannot evade governance by avoiding git-diff contexts.
   enforceGovernanceHashes(knownHashes, currentHashes, args.verifyHashes);
 
@@ -378,12 +407,23 @@ async function main() {
 
   // Post-validation: refresh meta-KB index so downstream consumers stay current
   triggerMetaKBSynthesis(learningUpdateFiles);
+
+  const refreshedHashes = await computeGovernanceHashes(policy);
+  const preparedHashes = prepareHashesOutput(refreshedHashes, knownHashes);
+  if (preparedHashes.changed) {
+    writeKnownHashes(preparedHashes.payload);
+    console.log('learning-gate: governance hashes refreshed');
+  }
 }
 
-try {
-  await main();
-} catch (error) {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(message);
-  process.exit(1);
+if (import.meta.main) {
+  try {
+    await main();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(message);
+    process.exit(1);
+  }
 }
+
+export { normalizeHashesPayload, prepareHashesOutput, main };
