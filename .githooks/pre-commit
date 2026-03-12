@@ -5,3 +5,9 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
 bun run scripts/learning-gate.mjs --staged
+
+if git diff --quiet -- opencode-config/meta-knowledge-index.json opencode-config/.governance-hashes.json; then
+  exit 0
+fi
+
+git add opencode-config/meta-knowledge-index.json opencode-config/.governance-hashes.json
