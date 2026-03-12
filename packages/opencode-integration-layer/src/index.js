@@ -133,6 +133,8 @@ class IntegrationLayer {
     this.runbooks = config.runbooks || null;
     this.fallbackDoctor = config.fallbackDoctor || null;
     this.pluginLifecycle = config.pluginLifecycle || null;
+    this.workflowStore = config.workflowStore || null;
+    this.workflowExecutor = config.workflowExecutor || null;
     // P1 FIX: Use Map keyed by task_id instead of global mutable state
     this.taskContextMap = new Map();
     this.currentSessionId = config.currentSessionId || config.sessionId || null;
@@ -358,6 +360,53 @@ class IntegrationLayer {
     if (!this.pluginLifecycle) return null;
     try {
       return this.pluginLifecycle.list();
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Execute a workflow with durable checkpointing.
+   * @param {object} workflowDef - Workflow definition { name, steps }
+   * @param {object} input - Initial input data
+   * @param {string} [runId] - Optional run ID
+   * @returns {Promise<{ runId: string, status: string, context: object }|null>}
+   */
+  async executeWorkflow(workflowDef, input, runId) {
+    if (!this.workflowExecutor) return null;
+    try {
+      return await this.workflowExecutor.execute(workflowDef, input, runId);
+    } catch (err) {
+      this.logger.error('Workflow execution failed', { workflow: workflowDef?.name, error: err.message });
+      return null;
+    }
+  }
+
+  /**
+   * Resume a workflow from its last checkpoint.
+   * @param {string} runId
+   * @param {object} workflowDef
+   * @returns {Promise<object|null>}
+   */
+  async resumeWorkflow(runId, workflowDef) {
+    if (!this.workflowExecutor) return null;
+    try {
+      return await this.workflowExecutor.resume(runId, workflowDef);
+    } catch (err) {
+      this.logger.error('Workflow resume failed', { runId, error: err.message });
+      return null;
+    }
+  }
+
+  /**
+   * Get workflow run state.
+   * @param {string} runId
+   * @returns {object|null}
+   */
+  getWorkflowState(runId) {
+    if (!this.workflowStore) return null;
+    try {
+      return this.workflowStore.getRunState(runId);
     } catch {
       return null;
     }

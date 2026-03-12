@@ -1,0 +1,12 @@
+{
+  "id": "sisyphus-state-wiring-20260312",
+  "timestamp": "2026-03-12T01:00:00.000Z",
+  "summary": "Wire sisyphus-state (WorkflowStore + WorkflowExecutor) into bootstrap and IntegrationLayer for durable workflow execution",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/bootstrap.js",
+    "packages/opencode-integration-layer/src/index.js",
+    "packages/opencode-integration-layer/tests/sisyphus-state-wiring.test.js"
+  ],
+  "validation": { "tests": "pass", "lint": "not-run", "typecheck": "not-run" },
+  "risk_level": "low"
+}

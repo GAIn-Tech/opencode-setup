@@ -12,6 +12,8 @@ let Proofcheck = null;
 let FallbackDoctor = null;
 let PreloadSkillsPlugin = null;
 let PluginLifecycleSupervisor = null;
+let WorkflowStore = null;
+let WorkflowExecutor = null;
 
 const loadAttempts = {};
 
@@ -51,6 +53,12 @@ PreloadSkillsPlugin = tryLoad('preload-skills', () =>
 );
 PluginLifecycleSupervisor = tryLoad('plugin-lifecycle', () =>
   require('../../opencode-plugin-lifecycle/src/index.js').PluginLifecycleSupervisor
+);
+WorkflowStore = tryLoad('sisyphus-state-store', () =>
+  require('../../opencode-sisyphus-state/src/index.js').WorkflowStore
+);
+WorkflowExecutor = tryLoad('sisyphus-state-executor', () =>
+  require('../../opencode-sisyphus-state/src/index.js').WorkflowExecutor
 );
 
 // --- Bootstrap state ---
@@ -140,6 +148,19 @@ function bootstrap(options = {}) {
       });
       bootstrapStatus.packages['plugin-lifecycle'] = true;
     } catch { bootstrapStatus.packages['plugin-lifecycle'] = false; }
+  }
+
+  if (WorkflowStore) {
+    try {
+      const dbPath = options.workflowDbPath || null;
+      config.workflowStore = new WorkflowStore(dbPath);
+      if (WorkflowExecutor) {
+        config.workflowExecutor = new WorkflowExecutor(config.workflowStore, {}, {
+          budgetEnforcer: null,
+        });
+      }
+      bootstrapStatus.packages['sisyphus-state'] = true;
+    } catch { bootstrapStatus.packages['sisyphus-state'] = false; }
   }
 
   // Count stats
