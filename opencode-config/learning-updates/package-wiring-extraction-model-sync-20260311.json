@@ -1,0 +1,18 @@
+{
+  "id": "package-wiring-extraction-model-sync-20260311",
+  "timestamp": "2026-03-11T23:30:00Z",
+  "summary": "Extract wiring patterns from opencode-model-sync (health-check registration, learning-engine connection, scheduled task patterns) into test-utils reference documentation, then prune stub package.",
+  "affected_paths": [
+    "packages/opencode-model-sync/README.md",
+    "packages/opencode-model-sync/package.json",
+    "packages/opencode-model-sync/src/index.js",
+    "packages/opencode-model-sync/test/smoke.test.js",
+    "packages/opencode-test-utils/reference/wiring-patterns.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

@@ -38,7 +38,7 @@ describe('generate-mcp-config manifest mapping', () => {
     ]);
   });
 
-  test('preserves local MCP launch args in generated manifest', () => {
+  test('merges args into command array in generated manifest', () => {
     const config = {
       mcp: {
         distill: {
@@ -53,12 +53,30 @@ describe('generate-mcp-config manifest mapping', () => {
     expect(manifest.mcp_servers).toEqual([
       {
         name: 'distill',
-        command: ['node'],
-        args: ['scripts/run-distill-mcp.mjs', 'serve', '--lazy'],
+        command: ['node', 'scripts/run-distill-mcp.mjs', 'serve', '--lazy'],
         enabled: true,
         type: 'local',
       },
     ]);
+  });
+
+  test('does not emit args or description into manifest entries', () => {
+    const config = {
+      mcpServers: {
+        'test-server': {
+          command: ['node', 'server.js'],
+          args: ['--port', '3000'],
+          description: 'A test server',
+          enabled: true,
+        },
+      },
+    };
+    const manifest = buildManifestFromConfig(config);
+    const entry = manifest.mcp_servers[0];
+    expect(entry).toBeDefined();
+    expect(entry).not.toHaveProperty('args');
+    expect(entry).not.toHaveProperty('description');
+    expect(entry.command).toEqual(['node', 'server.js', '--port', '3000']);
   });
 
   test('merges source MCP entries into user config while preserving user custom entries', () => {

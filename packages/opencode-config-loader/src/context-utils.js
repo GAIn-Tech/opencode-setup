@@ -1,3 +1,5 @@
+'use strict';
+
 const { randomUUID } = require('crypto');
 
 function createOrchestrationId(prefix = 'id') {

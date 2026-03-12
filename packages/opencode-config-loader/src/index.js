@@ -294,6 +294,13 @@ function getConfig() {
   return _instance;
 }
 
+const {
+  createOrchestrationId,
+  pickSessionId,
+  normalizeQuotaSignal,
+  getQuotaSignal,
+} = require('./context-utils');
+
 module.exports = {
   ConfigLoader,
   getConfig,
@@ -302,4 +309,8 @@ module.exports = {
   mergeCentralConfig,
   loadRlState,
   appendAuditEntry,
+  createOrchestrationId,
+  pickSessionId,
+  normalizeQuotaSignal,
+  getQuotaSignal,
 };

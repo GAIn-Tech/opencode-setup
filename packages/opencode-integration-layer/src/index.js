@@ -6,15 +6,30 @@
  * - SkillRL → Learning Engine (failure distillation)
  * - Showboat → Proofcheck (evidence capture)
  */
+// Import structured logger first (needed for early logging)
+let structuredLogger;
+try {
+  structuredLogger = require('opencode-logger');
+} catch (e) {
+  structuredLogger = null;
+}
+
+// Initialize logger early for use throughout module
+const logger = structuredLogger?.createLogger?.('integration-layer') || {
+  info: (msg, data) => console.log(`[INFO] ${msg}`, data || ''),
+  warn: (msg, data) => console.warn(`[WARN] ${msg}`, data || ''),
+  error: (msg, data) => console.error(`[ERROR] ${msg}`, data || ''),
+  debug: () => {},
+};
+
 let contextUtils;
 try {
-  contextUtils = require('opencode-shared-orchestration/src/context-utils');
+  contextUtils = require('opencode-config-loader/src/context-utils');
 } catch {
-  // Fallback for non-linked environments (development without bun link)
   try {
-    contextUtils = require('../../opencode-shared-orchestration/src/context-utils');
+    contextUtils = require('../../opencode-config-loader/src/context-utils');
   } catch (e) {
-    console.warn('[IntegrationLayer] opencode-shared-orchestration not found. Context utilities unavailable.');
+    logger.warn('[IntegrationLayer] opencode-config-loader context-utils not found. Context utilities unavailable.');
     contextUtils = {
       createOrchestrationId: () => `orch_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       pickSessionId: (...args) => args.find(Boolean) || null,
@@ -26,11 +41,15 @@ try {
 const { createOrchestrationId, pickSessionId, normalizeQuotaSignal, getQuotaSignal } = contextUtils;
 
 // Import utility packages for full integration
-let structuredLogger, inputValidator, healthChecker, backupManager, featureFlags, contextGovernor, memoryGraph;
+let inputValidator, healthChecker, backupManager, featureFlags, contextGovernor, memoryGraph;
+let OpenCodeError, ErrorCategory, ErrorCode;
 try {
-  structuredLogger = require('opencode-logger');
-} catch (e) {
-  structuredLogger = null;
+  ({ OpenCodeError, ErrorCategory, ErrorCode } = require('../../opencode-errors/src/index.js'));
+} catch {
+  // Fail-open: OpenCodeError unavailable, will use plain Error
+  OpenCodeError = null;
+  ErrorCategory = null;
+  ErrorCode = null;
 }
 try {
   inputValidator = require('opencode-validator');
@@ -93,19 +112,12 @@ const _active = Object.entries(integrationStatus).filter(([, v]) => v).map(([k])
 const _missing = Object.entries(integrationStatus).filter(([, v]) => !v).map(([k]) => k);
 
 if (_missing.length > 0) {
-  console.warn(
+  logger.warn(
     `[IntegrationLayer] Degraded startup: ${_missing.length}/${Object.keys(integrationStatus).length} integrations unavailable: ${_missing.join(', ')}`
   );
 } else {
-  console.log(`[IntegrationLayer] All ${_active.length} integrations loaded.`);
+  logger.info(`[IntegrationLayer] All ${_active.length} integrations loaded.`);
 }
-
-// Initialize logger if available
-const logger = structuredLogger?.createLogger?.('integration-layer') || {
-  info: (msg, data) => console.log(`[INFO] ${msg}`, data || ''),
-  warn: (msg, data) => console.warn(`[WARN] ${msg}`, data || ''),
-  error: (msg, data) => console.error(`[ERROR] ${msg}`, data || ''),
-};
 
 class IntegrationLayer {
   constructor(config = {}) {
@@ -118,6 +130,7 @@ class IntegrationLayer {
     this.advisor = config.advisor || config.orchestrationAdvisor || null;
     this.modelRouter = config.modelRouter || config.ModelRouter || null;
     this.preloadSkills = config.preloadSkills || null;
+    this.runbooks = config.runbooks || null;
     // P1 FIX: Use Map keyed by task_id instead of global mutable state
     this.taskContextMap = new Map();
     this.currentSessionId = config.currentSessionId || config.sessionId || null;
@@ -183,6 +196,24 @@ class IntegrationLayer {
   }
 
   /**
+   * Diagnose an error using runbooks auto-diagnosis.
+   * Delegates to runbooks.diagnose() if available.
+   * Fail-open: returns null if runbooks unavailable or throws.
+   *
+   * @param {string|Error|object} error - Error to diagnose
+   * @param {object} [context={}] - Context for remedy execution
+   * @returns {{ match: object|null, remedy: object|null, result: object|null } | null}
+   */
+  diagnose(error, context = {}) {
+    if (!this.runbooks) return null;
+    try {
+      return this.runbooks.diagnose(error, context);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Check command availability via crash-guard spawn protection.
    */
   commandExists(command) {
@@ -205,7 +236,20 @@ class IntegrationLayer {
       this.logger.warn('safeSpawn requested but crash-guard not available', { command });
       return null;
     }
-    return this.crashGuard.safeSpawn(command, args, options);
+    try {
+      return this.crashGuard.safeSpawn(command, args, options);
+    } catch (err) {
+      this.logger.error('safeSpawn failed', { command, error: err.message });
+      if (OpenCodeError && ErrorCategory && ErrorCode) {
+        throw new OpenCodeError(`Process spawn failed: ${err.message}`, ErrorCategory.NETWORK, ErrorCode.CONNECTION_FAILED, {
+          command,
+          args,
+          originalError: err.message,
+          retryable: true
+        });
+      }
+      throw err;
+    }
   }
 
   /**
@@ -225,6 +269,12 @@ class IntegrationLayer {
       return result;
     } catch (err) {
       this.logger.error('Validation failed', { error: err.message });
+      if (OpenCodeError && ErrorCategory && ErrorCode) {
+        throw new OpenCodeError(err.message, ErrorCategory.VALIDATION, ErrorCode.INVALID_INPUT, {
+          originalError: err.message,
+          retryable: false
+        });
+      }
       return { valid: false, errors: [err.message] };
     }
   }
@@ -300,6 +350,14 @@ class IntegrationLayer {
       return result;
     } catch (err) {
       this.logger.warn('checkContextBudget failed (fail-open)', { error: err.message });
+      if (OpenCodeError && ErrorCategory && ErrorCode) {
+        throw new OpenCodeError(`Context budget check failed: ${err.message}`, ErrorCategory.CONFIG, ErrorCode.CONFIG_INVALID, {
+          sessionId,
+          model,
+          originalError: err.message,
+          retryable: true
+        });
+      }
       return { allowed: true, status: 'unknown', urgency: 0, remaining: Infinity, message: `Budget check error: ${err.message}` };
     }
   }

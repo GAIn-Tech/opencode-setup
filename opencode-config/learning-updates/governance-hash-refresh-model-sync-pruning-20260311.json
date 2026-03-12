@@ -1,0 +1,15 @@
+{
+  "id": "governance-hash-refresh-model-sync-pruning-20260311",
+  "timestamp": "2026-03-11T23:35:00Z",
+  "summary": "Refresh governance hashes and meta-knowledge-index after model-sync package pruning.",
+  "affected_paths": [
+    "opencode-config/.governance-hashes.json",
+    "opencode-config/meta-knowledge-index.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

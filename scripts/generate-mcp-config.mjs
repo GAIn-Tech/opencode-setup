@@ -38,13 +38,21 @@ export function buildManifestFromConfig(config) {
   const mcpMap = config.mcp || config.mcpServers || {};
   return {
     opencode_root: '{{OPENCODE_ROOT}}',
-    mcp_servers: Object.entries(mcpMap).map(([name, cfg]) => ({
-      name,
-      command: cfg.command,
-      args: cfg.args,
-      enabled: cfg.enabled === true,
-      type: cfg.url ? 'remote' : 'local',
-    })),
+    mcp_servers: Object.entries(mcpMap).map(([name, cfg]) => {
+      const commandParts = Array.isArray(cfg.command)
+        ? cfg.command
+        : (typeof cfg.command === 'string' && cfg.command ? [cfg.command] : []);
+      const argParts = Array.isArray(cfg.args) ? cfg.args : [];
+      const fullCommand = argParts.length > 0
+        ? [...commandParts, ...argParts]
+        : cfg.command;  // preserve original type (string/array) when no args to merge
+      return {
+        name,
+        command: fullCommand,
+        enabled: cfg.enabled === true,
+        type: cfg.url ? 'remote' : 'local',
+      };
+    }),
   };
 }
 

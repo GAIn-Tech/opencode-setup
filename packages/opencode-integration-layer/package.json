@@ -24,12 +24,10 @@
   "dependencies": {},
   "peerDependencies": {
     "opencode-skill-rl-manager": "workspace:*",
-    "opencode-learning-engine": "workspace:*",
-    "opencode-shared-orchestration": "workspace:*"
+    "opencode-learning-engine": "workspace:*"
   },
   "peerDependenciesMeta": {
     "opencode-skill-rl-manager": { "optional": true },
-    "opencode-learning-engine": { "optional": true },
-    "opencode-shared-orchestration": { "optional": true }
+    "opencode-learning-engine": { "optional": true }
   }
 }

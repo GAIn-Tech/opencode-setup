@@ -1,0 +1,37 @@
+{
+  "id": "runbooks-wiring-integration-layer-20260311",
+  "timestamp": "2026-03-11T00:00:00Z",
+  "category": "integration-layer-wiring",
+  "title": "Wire runbooks auto-diagnosis into integration-layer",
+  "summary": "Added runbooks.diagnose() method to IntegrationLayer with fail-open error handling",
+  "description": "Added runbooks instance to IntegrationLayer constructor and exposed diagnose() method that delegates to runbooks.diagnose(). Fail-open pattern: returns null if runbooks unavailable or throws. New test file with 3 test cases covering: (1) successful delegation to runbooks, (2) graceful null return when runbooks unavailable, (3) null return on runbooks error.",
+  "files_modified": [
+    "packages/opencode-integration-layer/src/index.js",
+    "packages/opencode-integration-layer/tests/runbooks-wiring.test.js"
+  ],
+  "affected_paths": [
+    "packages/opencode-integration-layer/"
+  ],
+  "changes": {
+    "integration_layer_constructor": "Added this.runbooks = config.runbooks || null",
+    "diagnose_method": "New method that delegates to runbooks.diagnose() with fail-open error handling",
+    "test_coverage": "3 new tests in runbooks-wiring.test.js"
+  },
+  "test_results": "60 tests pass (57 existing + 3 new)",
+  "governance_impact": "No breaking changes. Fail-open pattern maintains backward compatibility.",
+  "risk_level": "low",
+  "wave": "Wave 11 - Integration Layer Completion",
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "pass",
+    "lsp_diagnostics": "clean",
+    "build_status": "pass"
+  },
+  "test_details": {
+    "total": 60,
+    "passed": 60,
+    "failed": 0,
+    "new": 3
+  }
+}
