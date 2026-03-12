@@ -159,7 +159,7 @@ class IntegrationLayer {
     this.backupManager = backupManager;
     this.featureFlags = featureFlags;
     this.contextGovernor = contextGovernor;
-    this.memoryGraph = memoryGraph;
+    this.memoryGraph = config.memoryGraph || memoryGraph;
 
     // T8: ContextBridge — advisory bridge between governor and distill compression
     this.contextBridge = new ContextBridge({
@@ -210,6 +210,99 @@ class IntegrationLayer {
       return this.runbooks.diagnose(error, context);
     } catch {
       return null;
+    }
+  }
+
+  /**
+   * Record a session error in the memory graph.
+   * Delegates to memoryGraph.buildGraph() with error data.
+   * Fail-open: returns null if memoryGraph unavailable or throws.
+   *
+   * @param {string} sessionId - Session identifier
+   * @param {Error|object} error - Error to record
+   * @returns {Promise<object|null>} Graph build result or null
+   */
+  async recordSessionError(sessionId, error) {
+    if (!this.memoryGraph) return null;
+    try {
+      const errorData = error instanceof Error ? {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      } : error;
+      return await this.memoryGraph.buildGraph([{
+        sessionId,
+        ...errorData,
+        timestamp: new Date().toISOString(),
+      }]);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Get all errors recorded for a specific session.
+   * Delegates to memoryGraph.getSessionErrors().
+   * Fail-open: returns null if memoryGraph unavailable or throws.
+   *
+   * @param {string} sessionId - Session identifier
+   * @returns {Promise<Array|null>} Array of session errors or null
+   */
+  async getSessionErrors(sessionId) {
+    if (!this.memoryGraph) return null;
+    try {
+      return await this.memoryGraph.getSessionErrors(sessionId);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Get error frequency statistics across all sessions.
+   * Delegates to memoryGraph.getErrorFrequency().
+   * Fail-open: returns null if memoryGraph unavailable or throws.
+   *
+   * @returns {Promise<object|null>} Error frequency data or null
+   */
+  async getErrorFrequency() {
+    if (!this.memoryGraph) return null;
+    try {
+      return await this.memoryGraph.getErrorFrequency();
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Activate the memory graph with optional configuration.
+   * Delegates to memoryGraph.activate().
+   * Fail-open: returns null if memoryGraph unavailable or throws.
+   *
+   * @param {object} [opts={}] - Activation options
+   * @returns {Promise<object|null>} Activation result or null
+   */
+  async activateMemoryGraph(opts = {}) {
+    if (!this.memoryGraph) return null;
+    try {
+      return await this.memoryGraph.activate(opts);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Check if the memory graph is currently active.
+   * Delegates to memoryGraph.isActive().
+   * Fail-open: returns false if memoryGraph unavailable or throws.
+   *
+   * @returns {boolean} True if memory graph is active, false otherwise
+   */
+  isMemoryGraphActive() {
+    if (!this.memoryGraph) return false;
+    try {
+      return this.memoryGraph.isActive();
+    } catch {
+      return false;
     }
   }
 
