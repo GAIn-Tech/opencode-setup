@@ -15,6 +15,11 @@ let PluginLifecycleSupervisor = null;
 let WorkflowStore = null;
 let WorkflowExecutor = null;
 let ModelRouter = null;
+let LoggerClass = null;
+let ValidatorModule = null;
+let ErrorTaxonomy = null;
+let HealthCheckModule = null;
+let MetaAwarenessTracker = null;
 
 const loadAttempts = {};
 
@@ -64,6 +69,22 @@ WorkflowExecutor = tryLoad('sisyphus-state-executor', () =>
 ModelRouter = tryLoad('model-router-x', () =>
   require('../../opencode-model-router-x/src/index.js').ModelRouter
 );
+const loggerModule = tryLoad('logger', () =>
+  require('../../opencode-logger/src/index.js')
+);
+LoggerClass = loggerModule?.Logger || loggerModule?.default || (typeof loggerModule === 'function' ? loggerModule : null);
+ValidatorModule = tryLoad('validator', () =>
+  require('../../opencode-validator/src/index.js')
+);
+ErrorTaxonomy = tryLoad('errors', () =>
+  require('../../opencode-errors/src/index.js')
+);
+HealthCheckModule = tryLoad('health-check', () =>
+  require('../../opencode-health-check/src/index.js')
+);
+MetaAwarenessTracker = tryLoad('meta-awareness-tracker', () =>
+  require('../../opencode-learning-engine/src/meta-awareness-tracker.js').MetaAwarenessTracker
+);
 
 // --- Bootstrap state ---
 let singleton = null;
@@ -77,6 +98,13 @@ const bootstrapStatus = {
 function bootstrap(options = {}) {
   if (singleton) return singleton;
 
+  const bootstrapLogger = LoggerClass
+    ? new LoggerClass({ service: 'integration-bootstrap' })
+    : {
+        error: (...args) => console.error('[integration-bootstrap]', ...args),
+        warn: (...args) => console.warn('[integration-bootstrap]', ...args),
+      };
+
   // 1. Initialize crash-guard FIRST (prevents Bun ENOENT segfaults)
   if (initCrashGuard) {
     try {
@@ -86,12 +114,12 @@ function bootstrap(options = {}) {
         enableIsolation: false,
         memoryThresholdMB: options.memoryThresholdMB || 512,
         onCrash: (error) => {
-          console.error('[bootstrap] crash-guard caught:', error?.message);
+          bootstrapLogger.error('crash-guard caught', { error: error?.message });
         },
       });
       bootstrapStatus.crashGuardInitialized = true;
     } catch (err) {
-      console.warn('[bootstrap] crash-guard init failed:', err?.message);
+      bootstrapLogger.warn('crash-guard init failed', { error: err?.message });
       bootstrapStatus.crashGuardInitialized = false;
     }
   }
@@ -172,6 +200,13 @@ function bootstrap(options = {}) {
       config.modelRouter = new ModelRouter({
         skillRLManager: config.skillRLManager || null,
         fallbackDoctor: config.fallbackDoctor || null,
+        logger: bootstrapLogger,
+        validator: ValidatorModule || null,
+        openCodeErrors: ErrorTaxonomy || null,
+        healthCheck: HealthCheckModule || null,
+        metaAwarenessTracker: MetaAwarenessTracker ? new MetaAwarenessTracker() : null,
+        circuitBreakerClass: CircuitBreaker || null,
+        integrationLayerClass: IntegrationLayer,
       });
       bootstrapStatus.packages['model-router-x'] = true;
     } catch { bootstrapStatus.packages['model-router-x'] = false; }

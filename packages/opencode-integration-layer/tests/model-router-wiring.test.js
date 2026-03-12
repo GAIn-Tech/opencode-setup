@@ -35,4 +35,20 @@ describe('model-router-x wiring', () => {
       expect(status.packages['model-router-x']).toBeFalsy();
     }
   });
+
+  test('bootstrap injects runtime collaborators into ModelRouter when available', () => {
+    const { bootstrap, getBootstrapStatus, resetBootstrap } = require('../src/bootstrap.js');
+    resetBootstrap();
+    const runtime = bootstrap();
+    const status = getBootstrapStatus();
+
+    if (status.packages['model-router-x']) {
+      expect(runtime.modelRouter.logger).toBeTruthy();
+      expect(runtime.modelRouter.validator).toBeTruthy();
+      expect(runtime.modelRouter.healthCheck).toBeTruthy();
+      expect(runtime.modelRouter.CircuitBreaker).toBeTruthy();
+    } else {
+      expect(runtime.modelRouter).toBeNull();
+    }
+  });
 });

@@ -1211,35 +1211,6 @@ class IntegrationLayer {
     };
   }
 
-  /**
-   * Validate fallback chain for given models
-   * Delegates to fallbackDoctor.validateChain() with fail-open pattern
-   * @param {Array<string>} models - Model IDs to validate
-   * @returns {Object|null} Validation result or null if unavailable
-   */
-  validateFallbackChain(models) {
-    if (!this.fallbackDoctor) return null;
-    try {
-      return this.fallbackDoctor.validateChain(models);
-    } catch {
-      return null;
-    }
-  }
-
-  /**
-   * Diagnose fallback chain health
-   * Delegates to fallbackDoctor.diagnose() with fail-open pattern
-   * @param {Object} config - Optional configuration for diagnosis
-   * @returns {Object|null} Diagnosis result or null if unavailable
-   */
-  diagnoseFallbacks(config) {
-    if (!this.fallbackDoctor) return null;
-    try {
-      return this.fallbackDoctor.diagnose(config);
-    } catch {
-      return null;
-    }
-  }
 }
 
 module.exports = { IntegrationLayer };
