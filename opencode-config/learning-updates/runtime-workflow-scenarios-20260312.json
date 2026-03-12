@@ -1,0 +1,18 @@
+{
+  "id": "runtime-workflow-scenarios-20260312",
+  "timestamp": "2026-03-12T16:45:00Z",
+  "summary": "Add a live runtime workflow scenario suite that exercises healthy and compressed execution paths, standalone touchpoints, and workflow persistence through the real runtime, and include it in the protocol compliance pass.",
+  "affected_paths": [
+    "package.json",
+    "scripts/protocol-compliance-pass.mjs",
+    "scripts/runtime-workflow-scenarios.mjs",
+    "scripts/tests/protocol-compliance-pass.test.js",
+    "scripts/tests/runtime-workflow-scenarios.test.mjs"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}
