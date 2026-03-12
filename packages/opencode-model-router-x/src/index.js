@@ -80,6 +80,8 @@ class RouterIntegrationAdapter {
     this.layer = integrationLayer;
     this.options = options;
     this._initialized = false;
+    this.integrationLayerClass = options.integrationLayerClass || IntegrationLayer;
+    this._log = options.logger || null;
     
     // Lazy-initialize on first use
     this._services = {};
@@ -92,8 +94,8 @@ class RouterIntegrationAdapter {
     if (this._initialized) return;
     
     // Create IntegrationLayer instance if we got the class
-    if (IntegrationLayer && !this.layer) {
-      this.layer = new IntegrationLayer({
+    if (this.integrationLayerClass && !this.layer) {
+      this.layer = new this.integrationLayerClass({
         modelRouter,
         skillRL: this.options.skillRL,
         quotaManager: this.options.quotaManager,
@@ -242,7 +244,9 @@ class ModelRouter {
     this._adapter = new RouterIntegrationAdapter(IntegrationLayer, {
       skillRL: options.skillRLManager,
       quotaManager: options.quotaManager,
-      preloadSkills: options.preloadSkills
+      preloadSkills: options.preloadSkills,
+      integrationLayerClass: options.integrationLayerClass,
+      logger: options.logger || null,
     });
     
     this.policies = policies;
@@ -255,7 +259,8 @@ class ModelRouter {
     this.tuning.success_rate_floor = this.tuning.success_rate_floor ?? 0.50;
     this.tuning.success_rate_ceiling = this.tuning.success_rate_ceiling ?? 0.99;
     this.tuning.min_samples_for_tuning = this.tuning.min_samples_for_tuning ?? 5;
-    this.metaAwarenessTracker = options.metaAwarenessTracker || (MetaAwarenessTracker ? new MetaAwarenessTracker() : null);
+    const MetaAwarenessTrackerClass = options.metaAwarenessTrackerClass || MetaAwarenessTracker;
+    this.metaAwarenessTracker = options.metaAwarenessTracker || (MetaAwarenessTrackerClass ? new MetaAwarenessTrackerClass() : null);
     
     // P1: Atomic Write for Stats - add stats persistence path
     this.statsPersistPath = options.statsPersistPath || null;
@@ -308,40 +313,47 @@ class ModelRouter {
       this.config = {};
     }
     
-    // P2: Fallback Doctor Auto-Validation - validate fallback chains at initialization
-    this.fallbackDoctor = options.fallbackDoctor || null;
-    if (this.fallbackDoctor && FallbackDoctor) {
-      const chainModels = Object.keys(this.models);
-      const diagnosis = this.fallbackDoctor.diagnose({ models: chainModels });
-      if (!diagnosis.healthy) {
-        console.warn('[ModelRouter] Fallback chain issues detected:', diagnosis.issues.map(i => i.message).join('; '));
-      }
-    }
-    
-    // P1: Errors Integration - use standardized error taxonomy
-    this.errorHandler = options.errorHandler || null;
-    if (this.errorHandler && OpenCodeErrors) {
-      this._errorCategory = OpenCodeErrors.ErrorCategory;
-      this._errorCode = OpenCodeErrors.ErrorCode;
-    } else {
-      this._errorCategory = null;
-      this._errorCode = null;
-    }
-    
     // P2: Logger Integration - use structured logging
+    const LoggerCtor = options.loggerClass || Logger;
     if (options.logger) {
       this.logger = options.logger;
-    } else if (Logger) {
-      this.logger = new Logger({ service: 'model-router' });
+    } else if (LoggerCtor) {
+      this.logger = new LoggerCtor({ service: 'model-router' });
     } else {
       this.logger = null;
     }
 
     // P2: Validator Integration - Initialize input validator
-    if (ValidatorLib && ValidatorLib.Validator) {
-      this.validator = ValidatorLib;
+    const validatorModule = options.validator || ValidatorLib;
+    if (validatorModule && validatorModule.Validator && validatorModule.ValidationResult) {
+      this.validator = validatorModule;
     } else {
       this.validator = null;
+    }
+
+    // P1: Errors Integration - use standardized error taxonomy
+    const errorTaxonomy = options.openCodeErrors || OpenCodeErrors;
+    this.errorHandler = options.errorHandler || null;
+    this._errorCategory = errorTaxonomy?.ErrorCategory || null;
+    this._errorCode = errorTaxonomy?.ErrorCode || null;
+
+    this.healthCheck = options.healthCheck || HealthCheck || null;
+    this.CircuitBreaker = options.circuitBreakerClass || CircuitBreaker || null;
+
+    // P2: Fallback Doctor Auto-Validation - validate fallback chains at initialization
+    this.fallbackDoctor = options.fallbackDoctor || null;
+    if (this.fallbackDoctor) {
+      const chainModels = Object.keys(this.models);
+      const diagnosis = this.fallbackDoctor.diagnose({ models: chainModels });
+      if (!diagnosis.healthy) {
+        if (this.logger?.warn) {
+          this.logger.warn('[ModelRouter] Fallback chain issues detected', {
+            issues: diagnosis.issues.map((i) => i.message),
+          });
+        } else {
+          console.warn('[ModelRouter] Fallback chain issues detected:', diagnosis.issues.map(i => i.message).join('; '));
+        }
+      }
     }
     
     // Initialize Orchestrator correctly with strategies and global context
@@ -364,19 +376,25 @@ class ModelRouter {
         new FallbackLayerStrategy()
       ];
       
-      this.globalContext = globalContext;
-      this.orchestrator = new Orchestrator(strategies);
-    } catch (error) {
-      console.error('[ModelRouter] Failed to initialize Orchestrator:', error);
-      console.error('[ModelRouter] Falling back to legacy scoring system');
+       this.globalContext = globalContext;
+       this.orchestrator = new Orchestrator(strategies);
+     } catch (error) {
+      if (this.logger?.error) {
+        this.logger.error('[ModelRouter] Failed to initialize Orchestrator', { error: error?.message || error });
+        this.logger.error('[ModelRouter] Falling back to legacy scoring system');
+      } else {
+        console.error('[ModelRouter] Failed to initialize Orchestrator:', error);
+        console.error('[ModelRouter] Falling back to legacy scoring system');
+      }
       this.orchestrator = null;
     }
 
     // Initialize circuit breakers for each provider
     this.circuitBreakers = {};
     const providers = [...new Set(Object.values(this.models).map(m => m.provider))];
-    for (const provider of providers) {
-      this.circuitBreakers[provider] = new CircuitBreaker({
+    if (this.CircuitBreaker) {
+      for (const provider of providers) {
+        this.circuitBreakers[provider] = new this.CircuitBreaker({
         name: provider,
         failureThreshold: 5,
         successThreshold: 2,
@@ -404,7 +422,8 @@ class ModelRouter {
             });
           }
         }
-      });
+        });
+      }
     }
     
     // P2: Health-Check Integration - Register providers as subsystems
@@ -530,15 +549,13 @@ class ModelRouter {
    * @private
    */
   _registerProvidersWithHealthCheck() {
-    if (!HealthCheck || !HealthCheck.registerSubsystem) {
+    if (!this.healthCheck || typeof this.healthCheck.registerSubsystem !== 'function') {
       return;
     }
     
     const providers = [...new Set(Object.values(this.models).map(m => m.provider))];
     for (const provider of providers) {
-      HealthCheck.registerSubsystem(`model-provider:${provider}`, {
-        checkInterval: 30000,
-        checkFn: async () => {
+      this.healthCheck.registerSubsystem(`model-provider:${provider}`, async () => {
           const cb = this.circuitBreakers[provider];
           if (!cb) {
             return { healthy: true, message: 'No circuit breaker' };
@@ -549,7 +566,8 @@ class ModelRouter {
             message: `Circuit breaker state: ${state}`,
             metadata: { circuitState: state }
           };
-        },
+        }, {
+        checkInterval: 30000,
         metadata: { provider }
       });
     }

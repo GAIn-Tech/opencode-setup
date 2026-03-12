@@ -1,0 +1,15 @@
+{
+  "id": "model-router-constructor-injection-20260312",
+  "timestamp": "2026-03-12T03:36:00.000Z",
+  "summary": "Refactor model-router-x to prefer injected logger, validator, error taxonomy, health-check, meta-awareness tracker, circuit-breaker class, and integration-layer class while fixing health-check subsystem registration shape.",
+  "affected_paths": [
+    "packages/opencode-model-router-x/src/index.js",
+    "packages/opencode-model-router-x/test/constructor-injection.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}
