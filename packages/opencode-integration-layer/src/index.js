@@ -637,7 +637,7 @@ class IntegrationLayer {
     try {
       return this.preloadSkills.selectTools(taskContext);
     } catch (err) {
-      console.warn('[IntegrationLayer] preload-skills selectTools failed:', err.message);
+      this.logger.warn('preload-skills selectTools failed', { error: err.message });
       return null;
     }
   }
@@ -688,7 +688,11 @@ class IntegrationLayer {
     try {
       return this.preloadSkills.loadOnDemand(skillName, taskType);
     } catch (err) {
-      console.warn('[IntegrationLayer] on-demand skill load failed:', err.message);
+      this.logger.warn('on-demand skill load failed', {
+        skillName,
+        taskType,
+        error: err.message
+      });
       return null;
     }
   }
@@ -701,7 +705,11 @@ class IntegrationLayer {
     try {
       this.preloadSkills.recordUsage(usedTools, taskType);
     } catch (err) {
-      console.warn('[IntegrationLayer] recordToolUsage failed:', err.message);
+      this.logger.warn('recordToolUsage failed', {
+        usedTools,
+        taskType,
+        error: err.message
+      });
     }
   }
 
@@ -877,7 +885,10 @@ class IntegrationLayer {
           quota_signal: this._extractQuotaSignal(taskContext, outcome)
         });
 
-        console.log(`[IntegrationLayer] Failure distilled into SkillRL: ${antiPattern.type}`);
+        this.logger.info('Failure distilled into SkillRL', {
+          antiPatternType: antiPattern.type,
+          task: taskContext.task || 'unknown'
+        });
       },
 
       /**
@@ -913,7 +924,9 @@ class IntegrationLayer {
 
         // Check if this is a high-impact task
         if (!this.showboat.isHighImpact(taskContext)) {
-          console.log('[IntegrationLayer] Skipping evidence capture (not high-impact)');
+          this.logger.debug('Skipping evidence capture (not high-impact)', {
+            task: taskContext.task || 'unknown'
+          });
           return;
         }
 
@@ -932,7 +945,7 @@ class IntegrationLayer {
         const evidence = this.showboat.captureEvidence(evidenceData);
         
         if (evidence) {
-          console.log(`[IntegrationLayer] Evidence captured: ${evidence.path}`);
+          this.logger.info('Evidence captured', { path: evidence.path });
         }
       },
 
@@ -987,6 +1000,11 @@ class IntegrationLayer {
     // Enrich context with system signals
     taskContext = this.enrichTaskContext(taskContext || {});
 
+    // Compute runtime context so DCP/budget/tool recommendations participate in live flows
+    const runtimeContext = this.resolveRuntimeContext(taskContext);
+    taskContext.runtime_context = runtimeContext;
+    taskContext.runtimeContext = runtimeContext;
+
     // Set context for showboat
     this.setTaskContext(taskContext);
 
@@ -994,14 +1012,25 @@ class IntegrationLayer {
     let skills = null;
     if (this.skillRL) {
       skills = this.skillRL.selectSkills(taskContext);
-      console.log(`[IntegrationLayer] SkillRL selected: ${skills.map(s => s.name).join(', ')}`);
+      this.logger.info('SkillRL selected skills', {
+        skills: skills.map((s) => s.name),
+        task: taskContext.task || 'unknown'
+      });
     }
 
     // Execute the task with adaptive options
     const advice = this.advisor ? this.advisor.advise(taskContext) : null;
+    const budgetAction = runtimeContext?.budget?.action || 'none';
+    const compressionActive = runtimeContext?.compression?.active === true;
     const adaptiveOptions = {
-      retries: (advice?.risk_score > 50 || advice?.quota_risk > 0.8) ? 1 : 3,
-      backoff: (advice?.quota_risk > 0.5) ? 3000 : 1000
+      retries: (budgetAction === 'compress_urgent' || advice?.risk_score > 50 || advice?.quota_risk > 0.8) ? 1 : 3,
+      backoff: (compressionActive || advice?.quota_risk > 0.5) ? 3000 : 1000,
+      runtimeContext,
+      budgetAction,
+      compressionActive,
+      recommendedTools: runtimeContext?.toolNames || [],
+      compressionRecommendedTools: runtimeContext?.compression?.recommendedTools || [],
+      compressionRecommendedSkills: runtimeContext?.compression?.recommendedSkills || []
     };
 
     let result = null;
