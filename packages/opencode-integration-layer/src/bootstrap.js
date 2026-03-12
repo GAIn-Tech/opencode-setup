@@ -14,6 +14,7 @@ let PreloadSkillsPlugin = null;
 let PluginLifecycleSupervisor = null;
 let WorkflowStore = null;
 let WorkflowExecutor = null;
+let ModelRouter = null;
 
 const loadAttempts = {};
 
@@ -59,6 +60,9 @@ WorkflowStore = tryLoad('sisyphus-state-store', () =>
 );
 WorkflowExecutor = tryLoad('sisyphus-state-executor', () =>
   require('../../opencode-sisyphus-state/src/index.js').WorkflowExecutor
+);
+ModelRouter = tryLoad('model-router-x', () =>
+  require('../../opencode-model-router-x/src/index.js').ModelRouter
 );
 
 // --- Bootstrap state ---
@@ -161,6 +165,16 @@ function bootstrap(options = {}) {
       }
       bootstrapStatus.packages['sisyphus-state'] = true;
     } catch { bootstrapStatus.packages['sisyphus-state'] = false; }
+  }
+
+  if (ModelRouter) {
+    try {
+      config.modelRouter = new ModelRouter({
+        skillRLManager: config.skillRLManager || null,
+        fallbackDoctor: config.fallbackDoctor || null,
+      });
+      bootstrapStatus.packages['model-router-x'] = true;
+    } catch { bootstrapStatus.packages['model-router-x'] = false; }
   }
 
   // Count stats

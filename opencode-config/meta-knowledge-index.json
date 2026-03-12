@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-03-12T03:21:54.979Z",
+  "generated_at": "2026-03-12T03:25:53.877Z",
   "schema_version": 1,
-  "total_records": 279,
+  "total_records": 280,
   "source_files": {
-    "learning_updates": 279,
+    "learning_updates": 280,
     "agents_md": 7
   },
   "by_category": {
@@ -49,6 +49,17 @@
           "opencode-config/meta-knowledge-index.json"
         ],
         "timestamp": "2026-03-12T01:15:00Z"
+      },
+      {
+        "id": "sisyphus-state-wiring-20260312",
+        "summary": "Wire sisyphus-state (WorkflowStore + WorkflowExecutor) into bootstrap and IntegrationLayer for durable workflow execution",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-integration-layer/src/bootstrap.js",
+          "packages/opencode-integration-layer/src/index.js",
+          "packages/opencode-integration-layer/tests/sisyphus-state-wiring.test.js"
+        ],
+        "timestamp": "2026-03-12T01:00:00.000Z"
       },
       {
         "id": "memory-graph-wiring-20260312",
@@ -3454,6 +3465,17 @@
         "timestamp": "2026-03-12T01:15:00Z"
       },
       {
+        "id": "sisyphus-state-wiring-20260312",
+        "summary": "Wire sisyphus-state (WorkflowStore + WorkflowExecutor) into bootstrap and IntegrationLayer for durable workflow execution",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-integration-layer/src/bootstrap.js",
+          "packages/opencode-integration-layer/src/index.js",
+          "packages/opencode-integration-layer/tests/sisyphus-state-wiring.test.js"
+        ],
+        "timestamp": "2026-03-12T01:00:00.000Z"
+      },
+      {
         "id": "memory-graph-wiring-20260312",
         "summary": "Wire memory-graph delegation methods into IntegrationLayer to expose error tracking and session management capabilities",
         "risk_level": "low",
@@ -6748,6 +6770,12 @@
         "summary": "Wire PluginLifecycleSupervisor into bootstrap.js and expose evaluatePluginHealth + listPlugins methods in IntegrationLayer",
         "risk_level": "low",
         "timestamp": "2026-03-12T01:30:00Z"
+      },
+      {
+        "id": "sisyphus-state-wiring-20260312",
+        "summary": "Wire sisyphus-state (WorkflowStore + WorkflowExecutor) into bootstrap and IntegrationLayer for durable workflow execution",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T01:00:00.000Z"
       },
       {
         "id": "memory-graph-wiring-20260312",
