@@ -1,13 +1,23 @@
 {
-  "generated_at": "2026-03-12T21:59:32.249Z",
+  "generated_at": "2026-03-12T22:32:50.958Z",
   "schema_version": 1,
-  "total_records": 292,
+  "total_records": 293,
   "source_files": {
-    "learning_updates": 292,
+    "learning_updates": 293,
     "agents_md": 7
   },
   "by_category": {
     "uncategorized": [
+      {
+        "id": "governance-hash-baseline-sync-20260312",
+        "summary": "Sync the governed hash baseline so learning-gate no longer warns about a stale stored hash for opencode-config/meta-knowledge-index.json.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/.governance-hashes.json",
+          "opencode-config/learning-updates/governance-hash-baseline-sync-20260312.json"
+        ],
+        "timestamp": "2026-03-12T22:12:00Z"
+      },
       {
         "id": "model-router-bootstrap-collaborators-20260312",
         "summary": "Inject config-loader, feature-flags, and learning-engine into ModelRouter from IntegrationLayer bootstrap and verify those runtime collaborators are exposed in bootstrap wiring tests.",
@@ -3552,6 +3562,16 @@
   "by_risk_level": {
     "low": [
       {
+        "id": "governance-hash-baseline-sync-20260312",
+        "summary": "Sync the governed hash baseline so learning-gate no longer warns about a stale stored hash for opencode-config/meta-knowledge-index.json.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/.governance-hashes.json",
+          "opencode-config/learning-updates/governance-hash-baseline-sync-20260312.json"
+        ],
+        "timestamp": "2026-03-12T22:12:00Z"
+      },
+      {
         "id": "model-router-bootstrap-collaborators-20260312",
         "summary": "Inject config-loader, feature-flags, and learning-engine into ModelRouter from IntegrationLayer bootstrap and verify those runtime collaborators are exposed in bootstrap wiring tests.",
         "risk_level": "low",
@@ -7016,6 +7036,154 @@
     "high": []
   },
   "by_affected_path": {
+    "opencode-config/.governance-hashes.json": [
+      {
+        "id": "governance-hash-baseline-sync-20260312",
+        "summary": "Sync the governed hash baseline so learning-gate no longer warns about a stale stored hash for opencode-config/meta-knowledge-index.json.",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T22:12:00Z"
+      },
+      {
+        "id": "bootstrap-runtime-entry-point-20260311",
+        "summary": "Add bootstrap-runtime.mjs ESM entry point that wraps CJS bootstrap module for runtime package wiring.",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T01:15:00Z"
+      },
+      {
+        "id": "governance-hash-refresh-model-sync-pruning-20260311",
+        "summary": "Refresh governance hashes and meta-knowledge-index after model-sync package pruning.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:35:00Z"
+      },
+      {
+        "id": "meta-knowledge-index-sync-20260311",
+        "summary": "Refresh governance hashes after automatic meta-knowledge index updates from learning gate hooks.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:20:00Z"
+      },
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "protocol-compliance-pass-20260311",
+        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T21:20:00Z"
+      },
+      {
+        "id": "logger-wiring-integration-layer-20260311",
+        "summary": "Wire structured logger into integration-layer, replacing raw console calls with logger.warn/info/error.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T00:00:00Z"
+      },
+      {
+        "id": "governance-hash-refresh-20260309",
+        "summary": "Refresh governance hashes and meta-knowledge index after file-bridge commits. Auto-generated files only, no code changes.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T12:10:00Z"
+      },
+      {
+        "id": "meta-kb-rehash-20260309",
+        "summary": "Regenerate governance hashes after learning-gate auto-refreshed meta-knowledge-index.json during the AGENTS.md drift fix commit. No content changes — hash chain integrity maintenance only.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T00:01:00Z"
+      },
+      {
+        "id": "wave11-t4-budget-scoring-20260308",
+        "summary": "Wave 11 Phase 1 complete (7/7 tasks): context-governor activation, model-router perf caches, advice cache, integration-layer wiring, budget-aware scoring",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:50:00Z"
+      },
+      {
+        "id": "governance-refresh-20260308",
+        "summary": "Refresh auto-generated governance hashes and meta-KB index after AGENTS.md drift fixes",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:40:00Z"
+      },
+      {
+        "id": "wave10-phase1-ci-20260308",
+        "summary": "Wave 10 Phase 1 CI re-enablement: moved governance-gate.yml and opencode-ci.yml from disabled to active with paths filters and bun test step",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:22:00Z"
+      },
+      {
+        "id": "governance-hash-refresh-20260227",
+        "summary": "Refreshed governance hash baseline after approved setup portability and script changes to keep learning-gate drift detection aligned with current governed config state.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T22:40:00Z"
+      }
+    ],
+    "opencode-config/learning-updates": [
+      {
+        "id": "governance-hash-baseline-sync-20260312",
+        "summary": "Sync the governed hash baseline so learning-gate no longer warns about a stale stored hash for opencode-config/meta-knowledge-index.json.",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T22:12:00Z"
+      },
+      {
+        "id": "model-router-bootstrap-collaborators-20260312",
+        "summary": "Inject config-loader, feature-flags, and learning-engine into ModelRouter from IntegrationLayer bootstrap and verify those runtime collaborators are exposed in bootstrap wiring tests.",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T21:40:00Z"
+      },
+      {
+        "id": "e2e-wave2-smoke-test-20260312",
+        "summary": "Update E2E bootstrap smoke test to verify all Wave 2 wired methods: memory-graph, fallback-doctor, plugin-lifecycle, sisyphus-state",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T03:30:00.000Z"
+      },
+      {
+        "id": "wave9-phase2-validation-20260308",
+        "summary": "Wave 9 Phase 2 validation: all 4 acceptance criteria pass — routing confidence adjusts from meta-KB, skill loading includes meta-context, SkillRL respects meta-KB signals, bun test exit 0",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T13:30:00Z"
+      },
+      {
+        "id": "wave9-phase3-validation-20260308",
+        "summary": "Validate Phase 3 completion — all 5 acceptance criteria pass: post-commit synthesis works, dashboard endpoint returns data, model-router incorporates meta-KB signals, drift proposals have rich diffs, bun test exit 0",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "skill-routing-hardening-wave2-20260227",
+        "summary": "Medium-priority skill routing hardening: --full-report mode for gate runner, fixture schema validation in evaluator, expanded DEFAULT_TASKS covering browser/git/code-review/meta domains, learning update for governance compliance",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T12:00:00Z"
+      },
+      {
+        "id": "resilient-routing-components-20260223",
+        "summary": "Add resilient subagent routing components and antigravity model mappings with dedicated tests and design plan coverage.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-23T23:24:00Z"
+      },
+      {
+        "id": "central-config-foundation-20260223",
+        "summary": "Introduce central config schema/state machinery with migration tooling and setup verification so dashboard-managed policy can persist safely with recovery and audit support.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-23T23:20:00Z"
+      },
+      {
+        "id": "dashboard-frontend-stability-20260223",
+        "summary": "Stabilize dashboard data APIs and rendering behavior, including learning schema normalization, knowledge graph scaling, resilient workflow naming, and orchestration endpoint latency reduction.",
+        "risk_level": "low",
+        "timestamp": "2026-02-23T22:50:00Z"
+      },
+      {
+        "id": "symbiotic-removal-and-config-hardening-20260222",
+        "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T16:45:00Z"
+      }
+    ],
     "packages/opencode-integration-layer": [
       {
         "id": "model-router-bootstrap-collaborators-20260312",
@@ -7190,62 +7358,6 @@
         "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
         "risk_level": "low",
         "timestamp": "2026-02-15T12:30:00Z"
-      }
-    ],
-    "opencode-config/learning-updates": [
-      {
-        "id": "model-router-bootstrap-collaborators-20260312",
-        "summary": "Inject config-loader, feature-flags, and learning-engine into ModelRouter from IntegrationLayer bootstrap and verify those runtime collaborators are exposed in bootstrap wiring tests.",
-        "risk_level": "low",
-        "timestamp": "2026-03-12T21:40:00Z"
-      },
-      {
-        "id": "e2e-wave2-smoke-test-20260312",
-        "summary": "Update E2E bootstrap smoke test to verify all Wave 2 wired methods: memory-graph, fallback-doctor, plugin-lifecycle, sisyphus-state",
-        "risk_level": "low",
-        "timestamp": "2026-03-12T03:30:00.000Z"
-      },
-      {
-        "id": "wave9-phase2-validation-20260308",
-        "summary": "Wave 9 Phase 2 validation: all 4 acceptance criteria pass — routing confidence adjusts from meta-KB, skill loading includes meta-context, SkillRL respects meta-KB signals, bun test exit 0",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T13:30:00Z"
-      },
-      {
-        "id": "wave9-phase3-validation-20260308",
-        "summary": "Validate Phase 3 completion — all 5 acceptance criteria pass: post-commit synthesis works, dashboard endpoint returns data, model-router incorporates meta-KB signals, drift proposals have rich diffs, bun test exit 0",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "skill-routing-hardening-wave2-20260227",
-        "summary": "Medium-priority skill routing hardening: --full-report mode for gate runner, fixture schema validation in evaluator, expanded DEFAULT_TASKS covering browser/git/code-review/meta domains, learning update for governance compliance",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T12:00:00Z"
-      },
-      {
-        "id": "resilient-routing-components-20260223",
-        "summary": "Add resilient subagent routing components and antigravity model mappings with dedicated tests and design plan coverage.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-23T23:24:00Z"
-      },
-      {
-        "id": "central-config-foundation-20260223",
-        "summary": "Introduce central config schema/state machinery with migration tooling and setup verification so dashboard-managed policy can persist safely with recovery and audit support.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-23T23:20:00Z"
-      },
-      {
-        "id": "dashboard-frontend-stability-20260223",
-        "summary": "Stabilize dashboard data APIs and rendering behavior, including learning schema normalization, knowledge graph scaling, resilient workflow naming, and orchestration endpoint latency reduction.",
-        "risk_level": "low",
-        "timestamp": "2026-02-23T22:50:00Z"
-      },
-      {
-        "id": "symbiotic-removal-and-config-hardening-20260222",
-        "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T16:45:00Z"
       }
     ],
     "package.json": [
@@ -7914,86 +8026,6 @@
         "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
         "risk_level": "medium",
         "timestamp": "2026-03-11T20:20:00Z"
-      }
-    ],
-    "opencode-config/.governance-hashes.json": [
-      {
-        "id": "bootstrap-runtime-entry-point-20260311",
-        "summary": "Add bootstrap-runtime.mjs ESM entry point that wraps CJS bootstrap module for runtime package wiring.",
-        "risk_level": "low",
-        "timestamp": "2026-03-12T01:15:00Z"
-      },
-      {
-        "id": "governance-hash-refresh-model-sync-pruning-20260311",
-        "summary": "Refresh governance hashes and meta-knowledge-index after model-sync package pruning.",
-        "risk_level": "low",
-        "timestamp": "2026-03-11T23:35:00Z"
-      },
-      {
-        "id": "meta-knowledge-index-sync-20260311",
-        "summary": "Refresh governance hashes after automatic meta-knowledge index updates from learning gate hooks.",
-        "risk_level": "low",
-        "timestamp": "2026-03-11T23:20:00Z"
-      },
-      {
-        "id": "mcp-runtime-governance-20260311",
-        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
-        "risk_level": "low",
-        "timestamp": "2026-03-11T23:10:00Z"
-      },
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "protocol-compliance-pass-20260311",
-        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T21:20:00Z"
-      },
-      {
-        "id": "logger-wiring-integration-layer-20260311",
-        "summary": "Wire structured logger into integration-layer, replacing raw console calls with logger.warn/info/error.",
-        "risk_level": "low",
-        "timestamp": "2026-03-11T00:00:00Z"
-      },
-      {
-        "id": "governance-hash-refresh-20260309",
-        "summary": "Refresh governance hashes and meta-knowledge index after file-bridge commits. Auto-generated files only, no code changes.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T12:10:00Z"
-      },
-      {
-        "id": "meta-kb-rehash-20260309",
-        "summary": "Regenerate governance hashes after learning-gate auto-refreshed meta-knowledge-index.json during the AGENTS.md drift fix commit. No content changes — hash chain integrity maintenance only.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T00:01:00Z"
-      },
-      {
-        "id": "wave11-t4-budget-scoring-20260308",
-        "summary": "Wave 11 Phase 1 complete (7/7 tasks): context-governor activation, model-router perf caches, advice cache, integration-layer wiring, budget-aware scoring",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:50:00Z"
-      },
-      {
-        "id": "governance-refresh-20260308",
-        "summary": "Refresh auto-generated governance hashes and meta-KB index after AGENTS.md drift fixes",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:40:00Z"
-      },
-      {
-        "id": "wave10-phase1-ci-20260308",
-        "summary": "Wave 10 Phase 1 CI re-enablement: moved governance-gate.yml and opencode-ci.yml from disabled to active with paths filters and bun test step",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:22:00Z"
-      },
-      {
-        "id": "governance-hash-refresh-20260227",
-        "summary": "Refreshed governance hash baseline after approved setup portability and script changes to keep learning-gate drift detection aligned with current governed config state.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T22:40:00Z"
       }
     ],
     "opencode-config/meta-knowledge-index.json": [
