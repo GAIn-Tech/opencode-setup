@@ -135,6 +135,8 @@ class IntegrationLayer {
     this.pluginLifecycle = config.pluginLifecycle || null;
     this.workflowStore = config.workflowStore || null;
     this.workflowExecutor = config.workflowExecutor || null;
+    this.dashboardLauncher = config.dashboardLauncher || null;
+    this.healthd = config.healthd || null;
     // P1 FIX: Use Map keyed by task_id instead of global mutable state
     this.taskContextMap = new Map();
     this.currentSessionId = config.currentSessionId || config.sessionId || null;
@@ -407,6 +409,86 @@ class IntegrationLayer {
     if (!this.workflowStore) return null;
     try {
       return this.workflowStore.getRunState(runId);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Get the current dashboard runtime status.
+   * @returns {object|null}
+   */
+  getDashboardStatus() {
+    if (!this.dashboardLauncher || typeof this.dashboardLauncher.checkDashboard !== 'function') {
+      return null;
+    }
+    try {
+      return this.dashboardLauncher.checkDashboard();
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Ensure the dashboard is running.
+   * @param {boolean} [openInBrowser=false]
+   * @returns {object|null}
+   */
+  ensureDashboardRunning(openInBrowser = false) {
+    if (!this.dashboardLauncher || typeof this.dashboardLauncher.ensureDashboard !== 'function') {
+      return null;
+    }
+    try {
+      return this.dashboardLauncher.ensureDashboard(openInBrowser);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Stop the dashboard if it is running.
+   * @returns {object|null}
+   */
+  stopDashboard() {
+    if (!this.dashboardLauncher || typeof this.dashboardLauncher.stopDashboard !== 'function') {
+      return null;
+    }
+    try {
+      return this.dashboardLauncher.stopDashboard();
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Run an immediate plugin/MCP health check cycle.
+   * @returns {object|null}
+   */
+  runRuntimeHealthCheck() {
+    if (!this.healthd || typeof this.healthd.runCheck !== 'function') {
+      return null;
+    }
+    try {
+      return this.healthd.runCheck();
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Return the latest runtime health snapshot.
+   * @returns {object|null}
+   */
+  getRuntimeHealthStatus() {
+    if (!this.healthd) {
+      return null;
+    }
+    try {
+      return {
+        status: this.healthd.status,
+        lastResult: this.healthd.lastResult,
+        checkCount: this.healthd.checkCount,
+      };
     } catch {
       return null;
     }

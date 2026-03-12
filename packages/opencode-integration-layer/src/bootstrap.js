@@ -15,6 +15,8 @@ let PluginLifecycleSupervisor = null;
 let WorkflowStore = null;
 let WorkflowExecutor = null;
 let ModelRouter = null;
+let DashboardLauncher = null;
+let Healthd = null;
 let LoggerClass = null;
 let ValidatorModule = null;
 let ErrorTaxonomy = null;
@@ -68,6 +70,12 @@ WorkflowExecutor = tryLoad('sisyphus-state-executor', () =>
 );
 ModelRouter = tryLoad('model-router-x', () =>
   require('../../opencode-model-router-x/src/index.js').ModelRouter
+);
+DashboardLauncher = tryLoad('dashboard-launcher', () =>
+  require('../../opencode-dashboard-launcher/src/index.js')
+);
+Healthd = tryLoad('plugin-healthd', () =>
+  require('../../opencode-plugin-healthd/src/index.js').Healthd
 );
 const loggerModule = tryLoad('logger', () =>
   require('../../opencode-logger/src/index.js')
@@ -210,6 +218,20 @@ function bootstrap(options = {}) {
       });
       bootstrapStatus.packages['model-router-x'] = true;
     } catch { bootstrapStatus.packages['model-router-x'] = false; }
+  }
+
+  if (DashboardLauncher) {
+    config.dashboardLauncher = DashboardLauncher;
+    bootstrapStatus.packages['dashboard-launcher'] = true;
+  }
+
+  if (Healthd) {
+    try {
+      config.healthd = new Healthd({
+        mcps: options.healthdMcps || undefined,
+      });
+      bootstrapStatus.packages['plugin-healthd'] = true;
+    } catch { bootstrapStatus.packages['plugin-healthd'] = false; }
   }
 
   // Count stats
