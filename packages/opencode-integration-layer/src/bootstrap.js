@@ -11,6 +11,7 @@ let CircuitBreaker = null;
 let Proofcheck = null;
 let FallbackDoctor = null;
 let PreloadSkillsPlugin = null;
+let PluginLifecycleSupervisor = null;
 
 const loadAttempts = {};
 
@@ -47,6 +48,9 @@ FallbackDoctor = tryLoad('fallback-doctor', () =>
 );
 PreloadSkillsPlugin = tryLoad('preload-skills', () =>
   require('../../opencode-plugin-preload-skills/src/index.js').PreloadSkillsPlugin
+);
+PluginLifecycleSupervisor = tryLoad('plugin-lifecycle', () =>
+  require('../../opencode-plugin-lifecycle/src/index.js').PluginLifecycleSupervisor
 );
 
 // --- Bootstrap state ---
@@ -127,6 +131,15 @@ function bootstrap(options = {}) {
       config.preloadSkills = preload;
       bootstrapStatus.packages['preload-skills'] = true;
     } catch { bootstrapStatus.packages['preload-skills'] = false; }
+  }
+
+  if (PluginLifecycleSupervisor) {
+    try {
+      config.pluginLifecycle = new PluginLifecycleSupervisor({
+        quarantineCrashThreshold: options.quarantineCrashThreshold || 3,
+      });
+      bootstrapStatus.packages['plugin-lifecycle'] = true;
+    } catch { bootstrapStatus.packages['plugin-lifecycle'] = false; }
   }
 
   // Count stats

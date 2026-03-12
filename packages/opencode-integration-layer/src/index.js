@@ -132,6 +132,7 @@ class IntegrationLayer {
     this.preloadSkills = config.preloadSkills || null;
     this.runbooks = config.runbooks || null;
     this.fallbackDoctor = config.fallbackDoctor || null;
+    this.pluginLifecycle = config.pluginLifecycle || null;
     // P1 FIX: Use Map keyed by task_id instead of global mutable state
     this.taskContextMap = new Map();
     this.currentSessionId = config.currentSessionId || config.sessionId || null;
@@ -330,6 +331,33 @@ class IntegrationLayer {
     if (!this.fallbackDoctor) return null;
     try {
       return this.fallbackDoctor.diagnose(config);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Evaluate health of all plugins.
+   * @param {Array} inputs - Plugin input descriptors
+   * @returns {Promise<object|null>}
+   */
+  async evaluatePluginHealth(inputs) {
+    if (!this.pluginLifecycle) return null;
+    try {
+      return await this.pluginLifecycle.evaluateMany(inputs);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * List all plugin states.
+   * @returns {object|null}
+   */
+  listPlugins() {
+    if (!this.pluginLifecycle) return null;
+    try {
+      return this.pluginLifecycle.list();
     } catch {
       return null;
     }
