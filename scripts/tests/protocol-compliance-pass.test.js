@@ -11,6 +11,11 @@ describe('protocol-compliance-pass', () => {
     expect(pkg.scripts['protocol:compliance']).toBe('node scripts/protocol-compliance-pass.mjs');
   });
 
+  test('package.json exposes runtime:compliance script', () => {
+    const pkg = JSON.parse(readFileSync(PACKAGE_JSON, 'utf8'));
+    expect(pkg.scripts['runtime:compliance']).toBe('node scripts/runtime-context-compliance.mjs');
+  });
+
   test('evaluateRuntimeProof passes when all selected tools are visible', () => {
     const result = evaluateRuntimeProof({
       allSelectedToolsVisible: true,

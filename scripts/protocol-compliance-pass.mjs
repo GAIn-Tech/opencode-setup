@@ -67,6 +67,7 @@ function main() {
     { name: 'MCP smoke harness', command: 'bun', args: ['run', 'mcp:smoke'] },
     { name: 'MCP exercise harness', command: 'bun', args: ['run', 'mcp:exercise'] },
     { name: 'Config coherence', command: 'bun', args: ['run', 'config:coherence'] },
+    { name: 'Runtime context compliance', command: 'bun', args: ['run', 'runtime:compliance'] },
   ];
 
   for (const check of checks) {

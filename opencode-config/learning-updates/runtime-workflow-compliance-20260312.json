@@ -1,0 +1,18 @@
+{
+  "id": "runtime-workflow-compliance-20260312",
+  "timestamp": "2026-03-12T15:58:30Z",
+  "summary": "Add a runtime workflow compliance harness that exercises executeTaskWithEvidence end-to-end and validates DCP/context-budget/distill recommendations propagate into real execution.",
+  "affected_paths": [
+    "package.json",
+    "scripts/protocol-compliance-pass.mjs",
+    "scripts/runtime-context-compliance.mjs",
+    "scripts/tests/protocol-compliance-pass.test.js",
+    "scripts/tests/runtime-context-compliance.test.mjs"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

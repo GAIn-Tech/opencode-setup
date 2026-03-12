@@ -18,6 +18,7 @@
     "verify": "node scripts/verify-setup.mjs",
     "verify:strict": "node scripts/copy-config.mjs && node scripts/generate-mcp-config.mjs && node scripts/verify-setup.mjs && node scripts/validate-plugin-compatibility.mjs && node scripts/verify-portability.mjs --strict",
     "protocol:compliance": "node scripts/protocol-compliance-pass.mjs",
+    "runtime:compliance": "node scripts/runtime-context-compliance.mjs",
     "fix:bun-path": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { .\\scripts\\fix-bun-path.ps1 -PersistUser; node .\\scripts\\verify-setup.mjs }\"",
     "health": "node scripts/health-check.mjs",
     "integrity:check": "node scripts/integrity-guard.mjs",

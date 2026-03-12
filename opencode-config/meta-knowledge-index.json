@@ -1,13 +1,26 @@
 {
-  "generated_at": "2026-03-12T15:36:28.736Z",
+  "generated_at": "2026-03-12T16:24:15.307Z",
   "schema_version": 1,
-  "total_records": 288,
+  "total_records": 289,
   "source_files": {
-    "learning_updates": 288,
+    "learning_updates": 289,
     "agents_md": 7
   },
   "by_category": {
     "uncategorized": [
+      {
+        "id": "runtime-workflow-compliance-20260312",
+        "summary": "Add a runtime workflow compliance harness that exercises executeTaskWithEvidence end-to-end and validates DCP/context-budget/distill recommendations propagate into real execution.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "package.json",
+          "scripts/protocol-compliance-pass.mjs",
+          "scripts/runtime-context-compliance.mjs",
+          "scripts/tests/protocol-compliance-pass.test.js",
+          "scripts/tests/runtime-context-compliance.test.mjs"
+        ],
+        "timestamp": "2026-03-12T15:58:30Z"
+      },
       {
         "id": "model-router-logging-cleanup-20260312",
         "summary": "Normalize model-router helper logging to prefer injected logger paths and verify the helper behavior with constructor-injection tests.",
@@ -6190,6 +6203,19 @@
     ],
     "medium": [
       {
+        "id": "runtime-workflow-compliance-20260312",
+        "summary": "Add a runtime workflow compliance harness that exercises executeTaskWithEvidence end-to-end and validates DCP/context-budget/distill recommendations propagate into real execution.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "package.json",
+          "scripts/protocol-compliance-pass.mjs",
+          "scripts/runtime-context-compliance.mjs",
+          "scripts/tests/protocol-compliance-pass.test.js",
+          "scripts/tests/runtime-context-compliance.test.mjs"
+        ],
+        "timestamp": "2026-03-12T15:58:30Z"
+      },
+      {
         "id": "runtime-context-execution-path-20260312",
         "summary": "Wire resolveRuntimeContext into executeTaskWithEvidence so DCP/context-governor/distill recommendations participate in real runtime execution and replace remaining runtime-path console logging with structured logger usage.",
         "risk_level": "medium",
@@ -6920,6 +6946,362 @@
     "high": []
   },
   "by_affected_path": {
+    "package.json": [
+      {
+        "id": "runtime-workflow-compliance-20260312",
+        "summary": "Add a runtime workflow compliance harness that exercises executeTaskWithEvidence end-to-end and validates DCP/context-budget/distill recommendations propagate into real execution.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-12T15:58:30Z"
+      },
+      {
+        "id": "protocol-compliance-pass-20260311",
+        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T21:20:00Z"
+      },
+      {
+        "id": "mcp-exercise-harness-20260310",
+        "summary": "Add an MCP exercise harness and top-level command that safely records smoke verification for local live MCPs without polluting real runtime usage telemetry.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T13:35:00-04:00"
+      },
+      {
+        "id": "workspace-package-smoke-runner-20260310",
+        "summary": "Add a workspace package smoke runner and top-level packages:smoke command so package entrypoint exercise becomes as discoverable as mcp:smoke.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:56:00-04:00"
+      },
+      {
+        "id": "mcp-smoke-harness-20260310",
+        "summary": "Add an MCP smoke harness and top-level package command so recent exercise coverage for live MCPs can be measured directly from telemetry after restarts.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:30:00-04:00"
+      },
+      {
+        "id": "mcp-report-command-entrypoint-20260310",
+        "summary": "Expose the generated MCP lifecycle report through a top-level `bun run mcp:report` command and document that entrypoint in setup instructions.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T01:47:00-04:00"
+      },
+      {
+        "id": "skills-manage-cli-20260308",
+        "summary": "Add skills-manage.mjs CLI for atomic skill management: list, add, enable, disable, audit, sync commands. Sync package.json with 7 new skills:* script entries.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave9-phase1-validation-20260308",
+        "summary": "Add meta-KB npm scripts (meta-kb:synthesize, meta-kb:drift, meta-kb:check) to root package.json. Phase 1 validated: synthesis produces 165 records, drift detects 7 issues, advise() includes meta_context with warnings/suggestions/conventions. All tests pass.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave8-setup-fixes-20260307",
+        "summary": "Setup script improvements: auto-load .env, set SHELL, fix PowerShell policy, non-strict verify; Bun version bump 1.3.9->1.3.10; remove dead import",
+        "risk_level": "low",
+        "timestamp": "2026-03-07T23:45:00Z"
+      },
+      {
+        "id": "strict-portability-setup-20260227",
+        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T22:30:00Z"
+      },
+      {
+        "id": "symbiotic-removal-and-config-hardening-20260222",
+        "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T16:45:00Z"
+      },
+      {
+        "id": "bun-1-3-9-upgrade-alignment-20260222",
+        "summary": "Upgrade repository Bun policy from 1.2.23 to 1.3.9 to align with post-Feb-2026 shell GC/use-after-free fix timeline and keep setup/verify/docs consistent.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T05:35:00Z"
+      },
+      {
+        "id": "bun-q-recovery-stabilization-20260221",
+        "summary": "Stabilize q recovery by pinning Bun 1.2.23, locking q entrypoint to Node, and skipping crash-prone cross-platform compile step by default.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-21T15:05:00-05:00"
+      },
+      {
+        "id": "integration-automation-20260218",
+        "summary": "Add automated integration verification system for packages, skills, plugins, and MCPs",
+        "risk_level": "medium",
+        "timestamp": "2026-02-18T23:00:00.000Z"
+      },
+      {
+        "id": "living-docs-governance-system-20260218",
+        "summary": "Add living-docs governance system with drift gate enforcement",
+        "risk_level": "medium",
+        "timestamp": "2026-02-18T18:00:00.000Z"
+      },
+      {
+        "id": "dashboard-autostart-wrapper-and-windows-launch-fix-20260216",
+        "summary": "Fixed dashboard launcher reliability on Windows and added opencode wrapper for guaranteed dashboard startup",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T02:40:00Z"
+      },
+      {
+        "id": "p2-hardening-policies-fallback-sse-20260216",
+        "summary": "Completed P2 hardening for policies validation, fallback reason typing, and SSE client cleanup",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T02:05:00Z"
+      },
+      {
+        "id": "skillrl-stabilization-and-api-regression-20260215",
+        "summary": "Stabilized SkillRL persistence and added API regression coverage for /api/rl and /api/skills",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T23:45:00Z"
+      },
+      {
+        "id": "weekly-model-sync-and-health-verification-20260215",
+        "summary": "Added weekly model sync automation and model catalog verification in health endpoint",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T22:45:00Z"
+      },
+      {
+        "id": "learning-2026-02-11-governance-bootstrap",
+        "summary": "Bootstrap governance controls for learning updates and deployment-state tracking.",
+        "risk_level": "low",
+        "timestamp": "2026-02-11T13:45:00-05:00"
+      }
+    ],
+    "scripts/protocol-compliance-pass.mjs": [
+      {
+        "id": "runtime-workflow-compliance-20260312",
+        "summary": "Add a runtime workflow compliance harness that exercises executeTaskWithEvidence end-to-end and validates DCP/context-budget/distill recommendations propagate into real execution.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-12T15:58:30Z"
+      },
+      {
+        "id": "protocol-compliance-pass-20260311",
+        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T21:20:00Z"
+      }
+    ],
+    "scripts/runtime-context-compliance.mjs": [
+      {
+        "id": "runtime-workflow-compliance-20260312",
+        "summary": "Add a runtime workflow compliance harness that exercises executeTaskWithEvidence end-to-end and validates DCP/context-budget/distill recommendations propagate into real execution.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-12T15:58:30Z"
+      }
+    ],
+    "scripts/tests": [
+      {
+        "id": "runtime-workflow-compliance-20260312",
+        "summary": "Add a runtime workflow compliance harness that exercises executeTaskWithEvidence end-to-end and validates DCP/context-budget/distill recommendations propagate into real execution.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-12T15:58:30Z"
+      },
+      {
+        "id": "pre-commit-restaging-fix-20260312",
+        "summary": "Re-stage meta knowledge index and governance hashes in the pre-commit hook after learning-gate mutates them, preventing dirty working trees after governed commits.",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T15:20:00Z"
+      },
+      {
+        "id": "meta-kb-synthesis-stability-20260312",
+        "summary": "Prevent synthesize-meta-kb from rewriting meta-knowledge-index.json when only generated_at would change, preserving a clean working tree after governance hooks.",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T15:05:00Z"
+      },
+      {
+        "id": "bootstrap-runtime-entry-point-20260311",
+        "summary": "Add bootstrap-runtime.mjs ESM entry point that wraps CJS bootstrap module for runtime package wiring.",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T01:15:00Z"
+      },
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "protocol-compliance-pass-20260311",
+        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T21:20:00Z"
+      },
+      {
+        "id": "mcp-smoke-verified-status-20260310",
+        "summary": "Extend the MCP smoke report to surface smoke-verified status separately from recent runtime telemetry so cold-but-live MCPs can be proven exerciseable without faking usage.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T13:36:00-04:00"
+      },
+      {
+        "id": "enabled-custom-skill-contracts-20260310",
+        "summary": "Broaden skill surface regression coverage so every enabled custom skill must have an on-disk definition, not just one-off spot checks.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T12:57:00-04:00"
+      },
+      {
+        "id": "workspace-package-smoke-runner-20260310",
+        "summary": "Add a workspace package smoke runner and top-level packages:smoke command so package entrypoint exercise becomes as discoverable as mcp:smoke.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:56:00-04:00"
+      },
+      {
+        "id": "dormant-mcp-policy-surfacing-20260310",
+        "summary": "Surface explicit dormant MCP reactivation metadata in the lifecycle report so disabled internal MCPs are actionable rather than just classified.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T12:32:00-04:00"
+      },
+      {
+        "id": "mcp-smoke-harness-20260310",
+        "summary": "Add an MCP smoke harness and top-level package command so recent exercise coverage for live MCPs can be measured directly from telemetry after restarts.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:30:00-04:00"
+      },
+      {
+        "id": "runtime-telemetry-session-isolation-20260310",
+        "summary": "Isolate missing or invalid runtime telemetry session IDs so bad hook payloads do not collapse multiple calls into a shared unknown budget file.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:16:00-04:00"
+      },
+      {
+        "id": "mcp-report-input-warnings-20260310",
+        "summary": "Warn when the MCP lifecycle report falls back from unreadable telemetry/config inputs so missing or corrupt data does not silently flatten usage visibility.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T12:15:00-04:00"
+      },
+      {
+        "id": "codebase-auditor-regression-20260310",
+        "summary": "Add a regression test ensuring the codebase-auditor skill is registered, enabled, and present on disk with its paired agent surface.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T11:58:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-dormant-and-recency-20260310",
+        "summary": "Extend the MCP lifecycle report with DORMANT classification for intentionally disabled internal MCPs and a recently-exercised signal sourced from invocation timestamps.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T11:55:00-04:00"
+      },
+      {
+        "id": "mcp-direct-path-regressions-20260310",
+        "summary": "Update MCP lifecycle and inventory regressions so Playwright and Distill direct paths are required and reflected in the generated lifecycle report.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T11:38:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-direct-integration-20260310",
+        "summary": "Refine the MCP lifecycle report so directly integrated capabilities like opencode-context-governor are recognized as live from runtime code paths instead of being mislabeled as passive.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T11:10:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-heuristic-notes-20260310",
+        "summary": "Refine the MCP lifecycle report to emit heuristic notes for alias-based or partially integrated MCP states, and add regression coverage for those notes.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T02:00:00-04:00"
+      },
+      {
+        "id": "mcp-report-command-test-20260310",
+        "summary": "Add regression coverage ensuring package.json exposes the `mcp:report` command entrypoint for the generated MCP lifecycle report.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T01:48:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-report-test-20260310",
+        "summary": "Add a regression test for the generated MCP lifecycle report so current live inventory expectations stay aligned with the reporting script.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T01:41:00-04:00"
+      },
+      {
+        "id": "mcp-audit-classification-regression-20260310",
+        "summary": "Add a regression test covering the post-activation MCP classification so the canonical live inventory and superseded historical audit markers stay aligned.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T00:49:00-04:00"
+      },
+      {
+        "id": "mcp-inventory-regression-suite-20260310",
+        "summary": "Add a dedicated MCP inventory regression suite covering canonical live services, enabled skill registry state, and required MCP skill and agent files.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T00:35:00-04:00"
+      },
+      {
+        "id": "mcp-config-regression-test-20260310",
+        "summary": "Add a canonical MCP inventory regression test so dead entries stay removed and playwright stays enabled in the source config.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T00:34:00-04:00"
+      },
+      {
+        "id": "runtime-mcp-telemetry-coverage-20260310",
+        "summary": "Extend runtime MCP telemetry so Supermemory mode-specific calls and GitHub grep searches are recorded with canonical tool identities, and mirror those identities in the learning-engine catalog.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T00:32:00-04:00"
+      },
+      {
+        "id": "context7-failure-telemetry-20260309",
+        "summary": "Refine runtime Context7 telemetry so explicit error and unresolved signals are recorded as failed lookups in shared monitoring history.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T23:05:00-04:00"
+      },
+      {
+        "id": "runtime-telemetry-monitoring-history-20260309",
+        "summary": "Extend the PostToolUse runtime hook to persist distill and Context7 monitoring events into shared observability history alongside existing tool-usage telemetry.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T22:45:00-04:00"
+      },
+      {
+        "id": "runtime-tool-telemetry-hook-20260309",
+        "summary": "Add PostToolUse runtime hook script that bridges oh-my-opencode tool.execute.after events into the learning-engine invocations.json, enabling MCP tool_affinities to accumulate from real runtime usage",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T02:04:06.915Z"
+      },
+      {
+        "id": "runtime-hook-budget-tests-20260309",
+        "summary": "Add 10 tests for PostToolUse hook budget tracking and distill indicators. Covers session budget state creation, token accumulation, threshold warnings (50%/65%/80%), warning deduplication, distill_run_tool metric capture, distill_browse_tools pipeline listing, and distill event persistence.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T12:35:00Z"
+      },
+      {
+        "id": "p1-setup-canonical-mcp-20260304",
+        "summary": "Switch setup MCP generation to canonical opencode-config/opencode.json merge into user opencode.json, preserving user custom MCP entries while updating canonical server definitions.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-04T00:15:00Z"
+      },
+      {
+        "id": "mcp-manifest-enabled-20260227",
+        "summary": "Align MCP tool-manifest enabled flag with config enabled field and add manifest mapping tests.",
+        "risk_level": "low",
+        "timestamp": "2026-02-28T00:02:00Z"
+      },
+      {
+        "id": "portability-strict-env-20260227",
+        "summary": "Allow strict portability verification to pass when configs have zero env placeholders, while still failing on missing required placeholders.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T23:59:00Z"
+      },
+      {
+        "id": "strict-portability-setup-20260227",
+        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T22:30:00Z"
+      },
+      {
+        "id": "skill-routing-hardening-wave2-20260227",
+        "summary": "Medium-priority skill routing hardening: --full-report mode for gate runner, fixture schema validation in evaluator, expanded DEFAULT_TASKS covering browser/git/code-review/meta domains, learning update for governance compliance",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T12:00:00Z"
+      },
+      {
+        "id": "skill-routing-hardening-wave3-20260227",
+        "summary": "Harden hierarchical routing no-match semantics and conflict validation safety checks",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T06:20:00Z"
+      }
+    ],
     "packages/opencode-model-router-x": [
       {
         "id": "model-router-logging-cleanup-20260312",
@@ -7332,212 +7714,6 @@
         "summary": "Completed closure hardening for clone portability by unifying setup/verify workflows, enforcing env/docs governance in CI, adding devcontainer baseline, and validating Bun path recovery behavior.",
         "risk_level": "medium",
         "timestamp": "2026-02-22T03:05:00Z"
-      }
-    ],
-    "scripts/tests": [
-      {
-        "id": "pre-commit-restaging-fix-20260312",
-        "summary": "Re-stage meta knowledge index and governance hashes in the pre-commit hook after learning-gate mutates them, preventing dirty working trees after governed commits.",
-        "risk_level": "low",
-        "timestamp": "2026-03-12T15:20:00Z"
-      },
-      {
-        "id": "meta-kb-synthesis-stability-20260312",
-        "summary": "Prevent synthesize-meta-kb from rewriting meta-knowledge-index.json when only generated_at would change, preserving a clean working tree after governance hooks.",
-        "risk_level": "low",
-        "timestamp": "2026-03-12T15:05:00Z"
-      },
-      {
-        "id": "bootstrap-runtime-entry-point-20260311",
-        "summary": "Add bootstrap-runtime.mjs ESM entry point that wraps CJS bootstrap module for runtime package wiring.",
-        "risk_level": "low",
-        "timestamp": "2026-03-12T01:15:00Z"
-      },
-      {
-        "id": "mcp-runtime-governance-20260311",
-        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
-        "risk_level": "low",
-        "timestamp": "2026-03-11T23:10:00Z"
-      },
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "protocol-compliance-pass-20260311",
-        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T21:20:00Z"
-      },
-      {
-        "id": "mcp-smoke-verified-status-20260310",
-        "summary": "Extend the MCP smoke report to surface smoke-verified status separately from recent runtime telemetry so cold-but-live MCPs can be proven exerciseable without faking usage.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T13:36:00-04:00"
-      },
-      {
-        "id": "enabled-custom-skill-contracts-20260310",
-        "summary": "Broaden skill surface regression coverage so every enabled custom skill must have an on-disk definition, not just one-off spot checks.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T12:57:00-04:00"
-      },
-      {
-        "id": "workspace-package-smoke-runner-20260310",
-        "summary": "Add a workspace package smoke runner and top-level packages:smoke command so package entrypoint exercise becomes as discoverable as mcp:smoke.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:56:00-04:00"
-      },
-      {
-        "id": "dormant-mcp-policy-surfacing-20260310",
-        "summary": "Surface explicit dormant MCP reactivation metadata in the lifecycle report so disabled internal MCPs are actionable rather than just classified.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T12:32:00-04:00"
-      },
-      {
-        "id": "mcp-smoke-harness-20260310",
-        "summary": "Add an MCP smoke harness and top-level package command so recent exercise coverage for live MCPs can be measured directly from telemetry after restarts.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:30:00-04:00"
-      },
-      {
-        "id": "runtime-telemetry-session-isolation-20260310",
-        "summary": "Isolate missing or invalid runtime telemetry session IDs so bad hook payloads do not collapse multiple calls into a shared unknown budget file.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:16:00-04:00"
-      },
-      {
-        "id": "mcp-report-input-warnings-20260310",
-        "summary": "Warn when the MCP lifecycle report falls back from unreadable telemetry/config inputs so missing or corrupt data does not silently flatten usage visibility.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T12:15:00-04:00"
-      },
-      {
-        "id": "codebase-auditor-regression-20260310",
-        "summary": "Add a regression test ensuring the codebase-auditor skill is registered, enabled, and present on disk with its paired agent surface.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:58:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-dormant-and-recency-20260310",
-        "summary": "Extend the MCP lifecycle report with DORMANT classification for intentionally disabled internal MCPs and a recently-exercised signal sourced from invocation timestamps.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:55:00-04:00"
-      },
-      {
-        "id": "mcp-direct-path-regressions-20260310",
-        "summary": "Update MCP lifecycle and inventory regressions so Playwright and Distill direct paths are required and reflected in the generated lifecycle report.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:38:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-direct-integration-20260310",
-        "summary": "Refine the MCP lifecycle report so directly integrated capabilities like opencode-context-governor are recognized as live from runtime code paths instead of being mislabeled as passive.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:10:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-heuristic-notes-20260310",
-        "summary": "Refine the MCP lifecycle report to emit heuristic notes for alias-based or partially integrated MCP states, and add regression coverage for those notes.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T02:00:00-04:00"
-      },
-      {
-        "id": "mcp-report-command-test-20260310",
-        "summary": "Add regression coverage ensuring package.json exposes the `mcp:report` command entrypoint for the generated MCP lifecycle report.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T01:48:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-report-test-20260310",
-        "summary": "Add a regression test for the generated MCP lifecycle report so current live inventory expectations stay aligned with the reporting script.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T01:41:00-04:00"
-      },
-      {
-        "id": "mcp-audit-classification-regression-20260310",
-        "summary": "Add a regression test covering the post-activation MCP classification so the canonical live inventory and superseded historical audit markers stay aligned.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T00:49:00-04:00"
-      },
-      {
-        "id": "mcp-inventory-regression-suite-20260310",
-        "summary": "Add a dedicated MCP inventory regression suite covering canonical live services, enabled skill registry state, and required MCP skill and agent files.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T00:35:00-04:00"
-      },
-      {
-        "id": "mcp-config-regression-test-20260310",
-        "summary": "Add a canonical MCP inventory regression test so dead entries stay removed and playwright stays enabled in the source config.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T00:34:00-04:00"
-      },
-      {
-        "id": "runtime-mcp-telemetry-coverage-20260310",
-        "summary": "Extend runtime MCP telemetry so Supermemory mode-specific calls and GitHub grep searches are recorded with canonical tool identities, and mirror those identities in the learning-engine catalog.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T00:32:00-04:00"
-      },
-      {
-        "id": "context7-failure-telemetry-20260309",
-        "summary": "Refine runtime Context7 telemetry so explicit error and unresolved signals are recorded as failed lookups in shared monitoring history.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T23:05:00-04:00"
-      },
-      {
-        "id": "runtime-telemetry-monitoring-history-20260309",
-        "summary": "Extend the PostToolUse runtime hook to persist distill and Context7 monitoring events into shared observability history alongside existing tool-usage telemetry.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T22:45:00-04:00"
-      },
-      {
-        "id": "runtime-tool-telemetry-hook-20260309",
-        "summary": "Add PostToolUse runtime hook script that bridges oh-my-opencode tool.execute.after events into the learning-engine invocations.json, enabling MCP tool_affinities to accumulate from real runtime usage",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T02:04:06.915Z"
-      },
-      {
-        "id": "runtime-hook-budget-tests-20260309",
-        "summary": "Add 10 tests for PostToolUse hook budget tracking and distill indicators. Covers session budget state creation, token accumulation, threshold warnings (50%/65%/80%), warning deduplication, distill_run_tool metric capture, distill_browse_tools pipeline listing, and distill event persistence.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T12:35:00Z"
-      },
-      {
-        "id": "p1-setup-canonical-mcp-20260304",
-        "summary": "Switch setup MCP generation to canonical opencode-config/opencode.json merge into user opencode.json, preserving user custom MCP entries while updating canonical server definitions.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-04T00:15:00Z"
-      },
-      {
-        "id": "mcp-manifest-enabled-20260227",
-        "summary": "Align MCP tool-manifest enabled flag with config enabled field and add manifest mapping tests.",
-        "risk_level": "low",
-        "timestamp": "2026-02-28T00:02:00Z"
-      },
-      {
-        "id": "portability-strict-env-20260227",
-        "summary": "Allow strict portability verification to pass when configs have zero env placeholders, while still failing on missing required placeholders.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T23:59:00Z"
-      },
-      {
-        "id": "strict-portability-setup-20260227",
-        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T22:30:00Z"
-      },
-      {
-        "id": "skill-routing-hardening-wave2-20260227",
-        "summary": "Medium-priority skill routing hardening: --full-report mode for gate runner, fixture schema validation in evaluator, expanded DEFAULT_TASKS covering browser/git/code-review/meta domains, learning update for governance compliance",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T12:00:00Z"
-      },
-      {
-        "id": "skill-routing-hardening-wave3-20260227",
-        "summary": "Harden hierarchical routing no-match semantics and conflict validation safety checks",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T06:20:00Z"
       }
     ],
     "scripts/synthesize-meta-kb.mjs": [
@@ -8568,130 +8744,6 @@
         "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
         "risk_level": "low",
         "timestamp": "2026-02-15T12:30:00Z"
-      }
-    ],
-    "package.json": [
-      {
-        "id": "protocol-compliance-pass-20260311",
-        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T21:20:00Z"
-      },
-      {
-        "id": "mcp-exercise-harness-20260310",
-        "summary": "Add an MCP exercise harness and top-level command that safely records smoke verification for local live MCPs without polluting real runtime usage telemetry.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T13:35:00-04:00"
-      },
-      {
-        "id": "workspace-package-smoke-runner-20260310",
-        "summary": "Add a workspace package smoke runner and top-level packages:smoke command so package entrypoint exercise becomes as discoverable as mcp:smoke.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:56:00-04:00"
-      },
-      {
-        "id": "mcp-smoke-harness-20260310",
-        "summary": "Add an MCP smoke harness and top-level package command so recent exercise coverage for live MCPs can be measured directly from telemetry after restarts.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:30:00-04:00"
-      },
-      {
-        "id": "mcp-report-command-entrypoint-20260310",
-        "summary": "Expose the generated MCP lifecycle report through a top-level `bun run mcp:report` command and document that entrypoint in setup instructions.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T01:47:00-04:00"
-      },
-      {
-        "id": "skills-manage-cli-20260308",
-        "summary": "Add skills-manage.mjs CLI for atomic skill management: list, add, enable, disable, audit, sync commands. Sync package.json with 7 new skills:* script entries.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave9-phase1-validation-20260308",
-        "summary": "Add meta-KB npm scripts (meta-kb:synthesize, meta-kb:drift, meta-kb:check) to root package.json. Phase 1 validated: synthesis produces 165 records, drift detects 7 issues, advise() includes meta_context with warnings/suggestions/conventions. All tests pass.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave8-setup-fixes-20260307",
-        "summary": "Setup script improvements: auto-load .env, set SHELL, fix PowerShell policy, non-strict verify; Bun version bump 1.3.9->1.3.10; remove dead import",
-        "risk_level": "low",
-        "timestamp": "2026-03-07T23:45:00Z"
-      },
-      {
-        "id": "strict-portability-setup-20260227",
-        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T22:30:00Z"
-      },
-      {
-        "id": "symbiotic-removal-and-config-hardening-20260222",
-        "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T16:45:00Z"
-      },
-      {
-        "id": "bun-1-3-9-upgrade-alignment-20260222",
-        "summary": "Upgrade repository Bun policy from 1.2.23 to 1.3.9 to align with post-Feb-2026 shell GC/use-after-free fix timeline and keep setup/verify/docs consistent.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T05:35:00Z"
-      },
-      {
-        "id": "bun-q-recovery-stabilization-20260221",
-        "summary": "Stabilize q recovery by pinning Bun 1.2.23, locking q entrypoint to Node, and skipping crash-prone cross-platform compile step by default.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-21T15:05:00-05:00"
-      },
-      {
-        "id": "integration-automation-20260218",
-        "summary": "Add automated integration verification system for packages, skills, plugins, and MCPs",
-        "risk_level": "medium",
-        "timestamp": "2026-02-18T23:00:00.000Z"
-      },
-      {
-        "id": "living-docs-governance-system-20260218",
-        "summary": "Add living-docs governance system with drift gate enforcement",
-        "risk_level": "medium",
-        "timestamp": "2026-02-18T18:00:00.000Z"
-      },
-      {
-        "id": "dashboard-autostart-wrapper-and-windows-launch-fix-20260216",
-        "summary": "Fixed dashboard launcher reliability on Windows and added opencode wrapper for guaranteed dashboard startup",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T02:40:00Z"
-      },
-      {
-        "id": "p2-hardening-policies-fallback-sse-20260216",
-        "summary": "Completed P2 hardening for policies validation, fallback reason typing, and SSE client cleanup",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T02:05:00Z"
-      },
-      {
-        "id": "skillrl-stabilization-and-api-regression-20260215",
-        "summary": "Stabilized SkillRL persistence and added API regression coverage for /api/rl and /api/skills",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T23:45:00Z"
-      },
-      {
-        "id": "weekly-model-sync-and-health-verification-20260215",
-        "summary": "Added weekly model sync automation and model catalog verification in health endpoint",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T22:45:00Z"
-      },
-      {
-        "id": "learning-2026-02-11-governance-bootstrap",
-        "summary": "Bootstrap governance controls for learning updates and deployment-state tracking.",
-        "risk_level": "low",
-        "timestamp": "2026-02-11T13:45:00-05:00"
-      }
-    ],
-    "scripts/protocol-compliance-pass.mjs": [
-      {
-        "id": "protocol-compliance-pass-20260311",
-        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T21:20:00Z"
       }
     ],
     "scripts/verify-portability.mjs": [
