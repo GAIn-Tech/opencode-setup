@@ -4,7 +4,8 @@
   "summary": "Inject config-loader, feature-flags, and learning-engine into ModelRouter from IntegrationLayer bootstrap and verify those runtime collaborators are exposed in bootstrap wiring tests.",
   "affected_paths": [
     "packages/opencode-integration-layer/src/bootstrap.js",
-    "packages/opencode-integration-layer/tests/model-router-wiring.test.js"
+    "packages/opencode-integration-layer/tests/model-router-wiring.test.js",
+    "opencode-config/learning-updates/model-router-bootstrap-collaborators-20260312.json"
   ],
   "validation": {
     "tests": "pass",
