@@ -324,6 +324,34 @@ function synthesize() {
   return { index, skipped };
 }
 
+function normalizeIndexForComparison(index) {
+  if (!index || typeof index !== 'object') return null;
+  const clone = JSON.parse(JSON.stringify(index));
+  delete clone.generated_at;
+  return clone;
+}
+
+function prepareOutputIndex(nextIndex, existingIndex) {
+  if (!existingIndex || typeof existingIndex !== 'object') {
+    return { index: nextIndex, changed: true };
+  }
+
+  const normalizedExisting = normalizeIndexForComparison(existingIndex);
+  const normalizedNext = normalizeIndexForComparison(nextIndex);
+
+  if (JSON.stringify(normalizedExisting) === JSON.stringify(normalizedNext)) {
+    return {
+      index: {
+        ...nextIndex,
+        generated_at: existingIndex.generated_at || nextIndex.generated_at,
+      },
+      changed: false,
+    };
+  }
+
+  return { index: nextIndex, changed: true };
+}
+
 // --- Entry point ---
 
 if (process.argv[1] && resolve(process.argv[1]) === __filename) {
@@ -352,15 +380,32 @@ if (process.argv[1] && resolve(process.argv[1]) === __filename) {
     process.exit(0);
   }
 
+  let existingIndex = null;
+  if (existsSync(OUTPUT_PATH)) {
+    try {
+      existingIndex = JSON.parse(readFileSync(OUTPUT_PATH, 'utf-8'));
+    } catch {
+      existingIndex = null;
+    }
+  }
+
+  const { index: outputIndex, changed } = prepareOutputIndex(index, existingIndex);
+
   // Write output
   const outputDir = join(ROOT, 'opencode-config');
   if (!existsSync(outputDir)) mkdirSync(outputDir, { recursive: true });
-  writeFileSync(OUTPUT_PATH, JSON.stringify(index, null, 2), 'utf-8');
+  if (changed || !existsSync(OUTPUT_PATH)) {
+    writeFileSync(OUTPUT_PATH, JSON.stringify(outputIndex, null, 2), 'utf-8');
+  }
 
   console.error(stats.join('\n'));
-  console.error(`-> ${relative(ROOT, OUTPUT_PATH)}`);
+  if (changed || !existsSync(OUTPUT_PATH)) {
+    console.error(`-> ${relative(ROOT, OUTPUT_PATH)}`);
+  } else {
+    console.error(`-> ${relative(ROOT, OUTPUT_PATH)} (unchanged)`);
+  }
   process.exit(0);
 }
 
 // Export for programmatic use
-export { synthesize };
+export { synthesize, normalizeIndexForComparison, prepareOutputIndex };
