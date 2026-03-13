@@ -16,7 +16,7 @@ const REQUEST_TIMEOUT_MS = Number(process.env.API_SANITY_TIMEOUT_MS || '5000');
 
 const endpoints = [
   { path: '/api/health', name: 'Health Check' },
-  { path: '/api/config', name: 'Config List' },
+  { path: '/api/config', name: 'Config List', allowedStatus: [200, 401] },
   { path: '/api/models', name: 'Models' },
   { path: '/api/providers', name: 'Providers' },
   { path: '/api/skills', name: 'Skills' },

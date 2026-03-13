@@ -458,8 +458,8 @@
         "apiKey": "{env:GROQ_API_KEY}"
       },
       "models": {
-        "llama-3.1-70b": {
-          "name": "Llama 3.1 70B (Groq)",
+        "groq-70b-general": {
+          "name": "Groq 70B General",
           "limit": {
             "context": 128000,
             "output": 4096
@@ -479,8 +479,8 @@
         "apiKey": "{env:CEREBRAS_API_KEY}"
       },
       "models": {
-        "llama-3.1-70b": {
-          "name": "Llama 3.1 70B (Cerebras)",
+        "cerebras-70b-general": {
+          "name": "Cerebras 70B General",
           "limit": {
             "context": 8192,
             "output": 4096
