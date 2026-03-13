@@ -14,6 +14,20 @@ import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { resolveRoot, userConfigDir } from './resolve-root.mjs';
 
+function readDormantMcpNames(root) {
+  const dormantPolicyPath = join(root, 'opencode-config', 'mcp-dormant-policy.json');
+  if (!existsSync(dormantPolicyPath)) {
+    return new Set();
+  }
+
+  try {
+    const policy = JSON.parse(readFileSync(dormantPolicyPath, 'utf8'));
+    return new Set(Object.keys(policy || {}));
+  } catch {
+    return new Set();
+  }
+}
+
 function replaceRootPlaceholder(value, rootForward) {
   if (typeof value === 'string') {
     return value.replaceAll('{{OPENCODE_ROOT}}', rootForward);
@@ -99,13 +113,19 @@ function normalizeMcpMap(mcp) {
   );
 }
 
-export function mergeMcpIntoUserConfig(userConfig, sourceConfig) {
+export function mergeMcpIntoUserConfig(userConfig, sourceConfig, options = {}) {
   const current = userConfig && typeof userConfig === 'object' ? userConfig : {};
   const source = sourceConfig && typeof sourceConfig === 'object' ? sourceConfig : {};
   const currentMcp = normalizeMcpMap(current.mcp && typeof current.mcp === 'object' ? current.mcp : {});
   const sourceMcp = source.mcp && typeof source.mcp === 'object'
     ? normalizeMcpMap(source.mcp)
     : normalizeMcpMap(source.mcpServers && typeof source.mcpServers === 'object' ? source.mcpServers : {});
+  const dormantMcpNames = options.dormantMcpNames instanceof Set ? options.dormantMcpNames : new Set();
+
+  for (const dormantName of dormantMcpNames) {
+    delete currentMcp[dormantName];
+    delete sourceMcp[dormantName];
+  }
 
   return {
     ...current,
@@ -135,10 +155,11 @@ function main() {
 
   const canonicalConfig = JSON.parse(readFileSync(canonicalConfigPath, 'utf8'));
   const resolvedCanonical = replaceRootPlaceholder(canonicalConfig, rootForward);
+  const dormantMcpNames = readDormantMcpNames(root);
   const existingUserConfig = existsSync(userOpencodePath)
     ? JSON.parse(readFileSync(userOpencodePath, 'utf8'))
     : {};
-  const mergedUserConfig = mergeMcpIntoUserConfig(existingUserConfig, resolvedCanonical);
+  const mergedUserConfig = mergeMcpIntoUserConfig(existingUserConfig, resolvedCanonical, { dormantMcpNames });
   const mergedJson = JSON.stringify(mergedUserConfig, null, 2);
 
   // Validate JSON before writing

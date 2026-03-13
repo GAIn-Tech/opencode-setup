@@ -143,6 +143,29 @@ describe('generate-mcp-config manifest mapping', () => {
     });
   });
 
+  test('filters dormant MCP entries from merged runtime user config', () => {
+    const merged = mergeMcpIntoUserConfig(
+      {
+        mcp: {
+          'my-custom-mcp': { command: ['uvx', 'my-mcp'], enabled: true },
+          'opencode-memory-graph': { command: ['node', 'packages/opencode-memory-graph/src/cli.js'], enabled: true },
+        },
+      },
+      {
+        mcp: {
+          'opencode-context-governor': { command: ['node', 'packages/opencode-context-governor/src/index.js'], enabled: true },
+          supermemory: { url: 'https://mcp.supermemory.ai', enabled: true },
+        },
+      },
+      { dormantMcpNames: new Set(['opencode-memory-graph', 'opencode-context-governor']) },
+    );
+
+    expect(merged.mcp).toEqual({
+      'my-custom-mcp': { command: ['uvx', 'my-mcp'], enabled: true },
+      supermemory: { url: 'https://mcp.supermemory.ai', enabled: true },
+    });
+  });
+
   test('canonical MCP inventory keeps playwright and removes dead github/tavily entries', () => {
     const canonicalPath = join(import.meta.dir, '..', '..', 'opencode-config', 'opencode.json');
     const canonicalConfig = JSON.parse(readFileSync(canonicalPath, 'utf8'));

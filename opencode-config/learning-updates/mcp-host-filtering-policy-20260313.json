@@ -1,0 +1,17 @@
+{
+  "id": "mcp-host-filtering-policy-20260313",
+  "timestamp": "2026-03-13T04:22:00Z",
+  "summary": "Filter dormant internal MCP entries from generated host-facing user config and mark opencode-context-governor dormant until a real stdio MCP wrapper exists.",
+  "affected_paths": [
+    "opencode-config/mcp-dormant-policy.json",
+    "scripts/generate-mcp-config.mjs",
+    "scripts/tests/generate-mcp-config.test.js",
+    "opencode-config/learning-updates/mcp-host-filtering-policy-20260313.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

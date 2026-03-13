@@ -1,13 +1,36 @@
 {
-  "generated_at": "2026-03-13T03:14:10.621Z",
+  "generated_at": "2026-03-13T04:36:12.140Z",
   "schema_version": 1,
-  "total_records": 296,
+  "total_records": 298,
   "source_files": {
-    "learning_updates": 296,
+    "learning_updates": 298,
     "agents_md": 7
   },
   "by_category": {
     "uncategorized": [
+      {
+        "id": "mcp-runtime-safe-copy-sync-20260313",
+        "summary": "Apply dormant MCP filtering during copy-config sync so the actual user config only exposes host-safe MCP entries while preserving user-installed skills and custom MCPs.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/copy-config.mjs",
+          "scripts/tests/copy-config.test.js",
+          "opencode-config/learning-updates/mcp-runtime-safe-copy-sync-20260313.json"
+        ],
+        "timestamp": "2026-03-13T04:23:00Z"
+      },
+      {
+        "id": "mcp-host-filtering-policy-20260313",
+        "summary": "Filter dormant internal MCP entries from generated host-facing user config and mark opencode-context-governor dormant until a real stdio MCP wrapper exists.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/mcp-dormant-policy.json",
+          "scripts/generate-mcp-config.mjs",
+          "scripts/tests/generate-mcp-config.test.js",
+          "opencode-config/learning-updates/mcp-host-filtering-policy-20260313.json"
+        ],
+        "timestamp": "2026-03-13T04:22:00Z"
+      },
       {
         "id": "opencode-beads-portability-20260312",
         "summary": "Require the bd CLI whenever opencode-beads is configured so strict portability/setup catches missing local beads dependencies.",
@@ -3594,6 +3617,29 @@
   "by_risk_level": {
     "low": [
       {
+        "id": "mcp-runtime-safe-copy-sync-20260313",
+        "summary": "Apply dormant MCP filtering during copy-config sync so the actual user config only exposes host-safe MCP entries while preserving user-installed skills and custom MCPs.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/copy-config.mjs",
+          "scripts/tests/copy-config.test.js",
+          "opencode-config/learning-updates/mcp-runtime-safe-copy-sync-20260313.json"
+        ],
+        "timestamp": "2026-03-13T04:23:00Z"
+      },
+      {
+        "id": "mcp-host-filtering-policy-20260313",
+        "summary": "Filter dormant internal MCP entries from generated host-facing user config and mark opencode-context-governor dormant until a real stdio MCP wrapper exists.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/mcp-dormant-policy.json",
+          "scripts/generate-mcp-config.mjs",
+          "scripts/tests/generate-mcp-config.test.js",
+          "opencode-config/learning-updates/mcp-host-filtering-policy-20260313.json"
+        ],
+        "timestamp": "2026-03-13T04:22:00Z"
+      },
+      {
         "id": "opencode-beads-portability-20260312",
         "summary": "Require the bd CLI whenever opencode-beads is configured so strict portability/setup catches missing local beads dependencies.",
         "risk_level": "low",
@@ -7100,33 +7146,63 @@
     "high": []
   },
   "by_affected_path": {
-    "scripts/verify-portability.mjs": [
+    "scripts/copy-config.mjs": [
       {
-        "id": "opencode-beads-portability-20260312",
-        "summary": "Require the bd CLI whenever opencode-beads is configured so strict portability/setup catches missing local beads dependencies.",
+        "id": "mcp-runtime-safe-copy-sync-20260313",
+        "summary": "Apply dormant MCP filtering during copy-config sync so the actual user config only exposes host-safe MCP entries while preserving user-installed skills and custom MCPs.",
         "risk_level": "low",
-        "timestamp": "2026-03-12T23:20:00Z"
+        "timestamp": "2026-03-13T04:23:00Z"
       },
       {
-        "id": "protocol-compliance-pass-20260311",
-        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
+        "id": "model-routing-and-environment-hardening-2-22-2026",
+        "summary": "Further harden model routing and environment configuration with post-mid-2025 policy alignment, resiliency improvements, and Symbiotic reference cleanup.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T17:30:00Z"
+      },
+      {
+        "id": "portability-final-edge-hardening-20260222",
+        "summary": "Close final portability edge cases by hardening container parity execution context, non-git hook install behavior, path fallback safety, and multi-path Bun global symlink detection.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T05:10:00Z"
+      },
+      {
+        "id": "productization-p0-hardening-20260222",
+        "summary": "Resolve productization P0/P1 gaps for container parity, setup copy safety, hook consistency, and Bun preflight override behavior.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T04:50:00Z"
+      },
+      {
+        "id": "integration-automation-20260218",
+        "summary": "Add automated integration verification system for packages, skills, plugins, and MCPs",
         "risk_level": "medium",
-        "timestamp": "2026-03-11T21:20:00Z"
+        "timestamp": "2026-02-18T23:00:00.000Z"
       },
       {
-        "id": "portability-strict-env-20260227",
-        "summary": "Allow strict portability verification to pass when configs have zero env placeholders, while still failing on missing required placeholders.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T23:59:00Z"
+        "id": "living-docs-governance-system-20260218",
+        "summary": "Add living-docs governance system with drift gate enforcement",
+        "risk_level": "medium",
+        "timestamp": "2026-02-18T18:00:00.000Z"
       },
       {
-        "id": "strict-portability-setup-20260227",
-        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
+        "id": "portable-setup-transfer-20260215",
+        "summary": "Hardened setup transfer portability by adding cross-platform config sync, path-safe script root resolution, and portable MCP manifest generation.",
         "risk_level": "low",
-        "timestamp": "2026-02-27T22:30:00Z"
+        "timestamp": "2026-02-15T18:55:00Z"
       }
     ],
     "scripts/tests": [
+      {
+        "id": "mcp-runtime-safe-copy-sync-20260313",
+        "summary": "Apply dormant MCP filtering during copy-config sync so the actual user config only exposes host-safe MCP entries while preserving user-installed skills and custom MCPs.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T04:23:00Z"
+      },
+      {
+        "id": "mcp-host-filtering-policy-20260313",
+        "summary": "Filter dormant internal MCP entries from generated host-facing user config and mark opencode-context-governor dormant until a real stdio MCP wrapper exists.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T04:22:00Z"
+      },
       {
         "id": "opencode-beads-portability-20260312",
         "summary": "Require the bd CLI whenever opencode-beads is configured so strict portability/setup catches missing local beads dependencies.",
@@ -7358,6 +7434,18 @@
     ],
     "opencode-config/learning-updates": [
       {
+        "id": "mcp-runtime-safe-copy-sync-20260313",
+        "summary": "Apply dormant MCP filtering during copy-config sync so the actual user config only exposes host-safe MCP entries while preserving user-installed skills and custom MCPs.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T04:23:00Z"
+      },
+      {
+        "id": "mcp-host-filtering-policy-20260313",
+        "summary": "Filter dormant internal MCP entries from generated host-facing user config and mark opencode-context-governor dormant until a real stdio MCP wrapper exists.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T04:22:00Z"
+      },
+      {
         "id": "opencode-beads-portability-20260312",
         "summary": "Require the bd CLI whenever opencode-beads is configured so strict portability/setup catches missing local beads dependencies.",
         "risk_level": "low",
@@ -7434,6 +7522,102 @@
         "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
         "risk_level": "low",
         "timestamp": "2026-02-22T16:45:00Z"
+      }
+    ],
+    "opencode-config/mcp-dormant-policy.json": [
+      {
+        "id": "mcp-host-filtering-policy-20260313",
+        "summary": "Filter dormant internal MCP entries from generated host-facing user config and mark opencode-context-governor dormant until a real stdio MCP wrapper exists.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T04:22:00Z"
+      },
+      {
+        "id": "dormant-mcp-policy-surfacing-20260310",
+        "summary": "Surface explicit dormant MCP reactivation metadata in the lifecycle report so disabled internal MCPs are actionable rather than just classified.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T12:32:00-04:00"
+      }
+    ],
+    "scripts/generate-mcp-config.mjs": [
+      {
+        "id": "mcp-host-filtering-policy-20260313",
+        "summary": "Filter dormant internal MCP entries from generated host-facing user config and mark opencode-context-governor dormant until a real stdio MCP wrapper exists.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T04:22:00Z"
+      },
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "package-wiring-cleanup-20260311",
+        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T20:20:00Z"
+      },
+      {
+        "id": "p1-setup-canonical-mcp-20260304",
+        "summary": "Switch setup MCP generation to canonical opencode-config/opencode.json merge into user opencode.json, preserving user custom MCP entries while updating canonical server definitions.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-04T00:15:00Z"
+      },
+      {
+        "id": "mcp-manifest-enabled-20260227",
+        "summary": "Align MCP tool-manifest enabled flag with config enabled field and add manifest mapping tests.",
+        "risk_level": "low",
+        "timestamp": "2026-02-28T00:02:00Z"
+      },
+      {
+        "id": "strict-portability-setup-20260227",
+        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T22:30:00Z"
+      },
+      {
+        "id": "portability-setup-hardening-20260227",
+        "summary": "Hardened clone/setup portability by fixing MCP config generation placeholder resolution, aligning plugin compatibility checks with opencode.json plugin schema, and reducing false-negative setup/health failures when no scoped plugin namespace is present.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T13:10:00Z"
+      },
+      {
+        "id": "portable-setup-transfer-20260215",
+        "summary": "Hardened setup transfer portability by adding cross-platform config sync, path-safe script root resolution, and portable MCP manifest generation.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T18:55:00Z"
+      }
+    ],
+    "scripts/verify-portability.mjs": [
+      {
+        "id": "opencode-beads-portability-20260312",
+        "summary": "Require the bd CLI whenever opencode-beads is configured so strict portability/setup catches missing local beads dependencies.",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T23:20:00Z"
+      },
+      {
+        "id": "protocol-compliance-pass-20260311",
+        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T21:20:00Z"
+      },
+      {
+        "id": "portability-strict-env-20260227",
+        "summary": "Allow strict portability verification to pass when configs have zero env placeholders, while still failing on missing required placeholders.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T23:59:00Z"
+      },
+      {
+        "id": "strict-portability-setup-20260227",
+        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T22:30:00Z"
       }
     ],
     "opencode-config/opencode.json": [
@@ -8600,56 +8784,6 @@
         "summary": "Complete dashboard implementation with all 6 roadmap features: SkillsRL APIs stabilized, Knowledge Graph interactive with React Flow, provider status unified tracking, ConfigViewer with Zod forms editors, Models 10x6 routing matrix UI, fresh-machine smoke pipeline.",
         "risk_level": "low",
         "timestamp": "2026-02-15T21:00:00Z"
-      }
-    ],
-    "scripts/generate-mcp-config.mjs": [
-      {
-        "id": "mcp-runtime-governance-20260311",
-        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
-        "risk_level": "low",
-        "timestamp": "2026-03-11T23:10:00Z"
-      },
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "package-wiring-cleanup-20260311",
-        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T20:20:00Z"
-      },
-      {
-        "id": "p1-setup-canonical-mcp-20260304",
-        "summary": "Switch setup MCP generation to canonical opencode-config/opencode.json merge into user opencode.json, preserving user custom MCP entries while updating canonical server definitions.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-04T00:15:00Z"
-      },
-      {
-        "id": "mcp-manifest-enabled-20260227",
-        "summary": "Align MCP tool-manifest enabled flag with config enabled field and add manifest mapping tests.",
-        "risk_level": "low",
-        "timestamp": "2026-02-28T00:02:00Z"
-      },
-      {
-        "id": "strict-portability-setup-20260227",
-        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T22:30:00Z"
-      },
-      {
-        "id": "portability-setup-hardening-20260227",
-        "summary": "Hardened clone/setup portability by fixing MCP config generation placeholder resolution, aligning plugin compatibility checks with opencode.json plugin schema, and reducing false-negative setup/health failures when no scoped plugin namespace is present.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T13:10:00Z"
-      },
-      {
-        "id": "portable-setup-transfer-20260215",
-        "summary": "Hardened setup transfer portability by adding cross-platform config sync, path-safe script root resolution, and portable MCP manifest generation.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T18:55:00Z"
       }
     ],
     "scripts/mcp-exercise-harness.mjs": [
@@ -9920,14 +10054,6 @@
         "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
         "risk_level": "low",
         "timestamp": "2026-02-15T12:30:00Z"
-      }
-    ],
-    "opencode-config/mcp-dormant-policy.json": [
-      {
-        "id": "dormant-mcp-policy-surfacing-20260310",
-        "summary": "Surface explicit dormant MCP reactivation metadata in the lifecycle report so disabled internal MCPs are actionable rather than just classified.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T12:32:00-04:00"
       }
     ],
     "setup-instructions.md": [
@@ -11712,44 +11838,6 @@
         "summary": "Complete dashboard implementation with all 6 roadmap features: SkillsRL APIs stabilized, Knowledge Graph interactive with React Flow, provider status unified tracking, ConfigViewer with Zod forms editors, Models 10x6 routing matrix UI, fresh-machine smoke pipeline.",
         "risk_level": "low",
         "timestamp": "2026-02-15T21:00:00Z"
-      }
-    ],
-    "scripts/copy-config.mjs": [
-      {
-        "id": "model-routing-and-environment-hardening-2-22-2026",
-        "summary": "Further harden model routing and environment configuration with post-mid-2025 policy alignment, resiliency improvements, and Symbiotic reference cleanup.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T17:30:00Z"
-      },
-      {
-        "id": "portability-final-edge-hardening-20260222",
-        "summary": "Close final portability edge cases by hardening container parity execution context, non-git hook install behavior, path fallback safety, and multi-path Bun global symlink detection.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T05:10:00Z"
-      },
-      {
-        "id": "productization-p0-hardening-20260222",
-        "summary": "Resolve productization P0/P1 gaps for container parity, setup copy safety, hook consistency, and Bun preflight override behavior.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T04:50:00Z"
-      },
-      {
-        "id": "integration-automation-20260218",
-        "summary": "Add automated integration verification system for packages, skills, plugins, and MCPs",
-        "risk_level": "medium",
-        "timestamp": "2026-02-18T23:00:00.000Z"
-      },
-      {
-        "id": "living-docs-governance-system-20260218",
-        "summary": "Add living-docs governance system with drift gate enforcement",
-        "risk_level": "medium",
-        "timestamp": "2026-02-18T18:00:00.000Z"
-      },
-      {
-        "id": "portable-setup-transfer-20260215",
-        "summary": "Hardened setup transfer portability by adding cross-platform config sync, path-safe script root resolution, and portable MCP manifest generation.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T18:55:00Z"
       }
     ],
     "scripts/install-git-hooks.mjs": [
