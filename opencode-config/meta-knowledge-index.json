@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-03-13T16:15:58.891Z",
+  "generated_at": "2026-03-13T17:55:51.256Z",
   "schema_version": 1,
-  "total_records": 303,
+  "total_records": 307,
   "source_files": {
-    "learning_updates": 303,
+    "learning_updates": 307,
     "agents_md": 7
   },
   "by_category": {
@@ -76,6 +76,52 @@
           "opencode-config/learning-updates/mcp-host-filtering-policy-20260313.json"
         ],
         "timestamp": "2026-03-13T04:22:00Z"
+      },
+      {
+        "id": "runbooks-copy-sync-20260313",
+        "summary": "Keep runtime-safe copy-config merges preserving the runbooks MCP now that it has a supported stdio wrapper.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/tests/copy-config.test.js",
+          "opencode-config/learning-updates/runbooks-copy-sync-20260313.json"
+        ],
+        "timestamp": "2026-03-13T01:25:00Z"
+      },
+      {
+        "id": "runbooks-host-policy-20260313",
+        "summary": "Re-enable runbooks in the host-facing MCP policy now that a dedicated stdio MCP wrapper exists and update generator regression coverage.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/mcp-dormant-policy.json",
+          "scripts/tests/generate-mcp-config.test.js",
+          "opencode-config/learning-updates/runbooks-host-policy-20260313.json"
+        ],
+        "timestamp": "2026-03-13T01:20:00Z"
+      },
+      {
+        "id": "runbooks-mcp-config-20260313",
+        "summary": "Point the host-facing runbooks MCP entries at the new stdio wrapper entrypoint in canonical OpenCode config sources.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/opencode.json",
+          "mcp-servers/opencode-mcp-config.json",
+          "mcp-servers/opencode-mcp-config.template.json",
+          "opencode-config/learning-updates/runbooks-mcp-config-20260313.json"
+        ],
+        "timestamp": "2026-03-13T01:15:00Z"
+      },
+      {
+        "id": "runbooks-mcp-wrapper-20260313",
+        "summary": "Add a stdio MCP wrapper for opencode-runbooks and package metadata needed to expose runbook diagnostics/remedy tools over MCP.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-runbooks/package.json",
+          "packages/opencode-runbooks/src/mcp-server.mjs",
+          "packages/opencode-runbooks/test/mcp-server.test.mjs",
+          "bun.lock",
+          "opencode-config/learning-updates/runbooks-mcp-wrapper-20260313.json"
+        ],
+        "timestamp": "2026-03-13T01:10:00Z"
       },
       {
         "id": "dashboard-internal-runtime-observability-20260313",
@@ -3731,6 +3777,52 @@
         "timestamp": "2026-03-13T04:22:00Z"
       },
       {
+        "id": "runbooks-copy-sync-20260313",
+        "summary": "Keep runtime-safe copy-config merges preserving the runbooks MCP now that it has a supported stdio wrapper.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/tests/copy-config.test.js",
+          "opencode-config/learning-updates/runbooks-copy-sync-20260313.json"
+        ],
+        "timestamp": "2026-03-13T01:25:00Z"
+      },
+      {
+        "id": "runbooks-host-policy-20260313",
+        "summary": "Re-enable runbooks in the host-facing MCP policy now that a dedicated stdio MCP wrapper exists and update generator regression coverage.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/mcp-dormant-policy.json",
+          "scripts/tests/generate-mcp-config.test.js",
+          "opencode-config/learning-updates/runbooks-host-policy-20260313.json"
+        ],
+        "timestamp": "2026-03-13T01:20:00Z"
+      },
+      {
+        "id": "runbooks-mcp-config-20260313",
+        "summary": "Point the host-facing runbooks MCP entries at the new stdio wrapper entrypoint in canonical OpenCode config sources.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/opencode.json",
+          "mcp-servers/opencode-mcp-config.json",
+          "mcp-servers/opencode-mcp-config.template.json",
+          "opencode-config/learning-updates/runbooks-mcp-config-20260313.json"
+        ],
+        "timestamp": "2026-03-13T01:15:00Z"
+      },
+      {
+        "id": "runbooks-mcp-wrapper-20260313",
+        "summary": "Add a stdio MCP wrapper for opencode-runbooks and package metadata needed to expose runbook diagnostics/remedy tools over MCP.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-runbooks/package.json",
+          "packages/opencode-runbooks/src/mcp-server.mjs",
+          "packages/opencode-runbooks/test/mcp-server.test.mjs",
+          "bun.lock",
+          "opencode-config/learning-updates/runbooks-mcp-wrapper-20260313.json"
+        ],
+        "timestamp": "2026-03-13T01:10:00Z"
+      },
+      {
         "id": "dashboard-internal-runtime-observability-20260313",
         "summary": "Expose internal runtime observability in the dashboard orchestration API and page, including bootstrap package status, context budget pressure, workflow hooks, model-router collaborators, and meta-awareness source state.",
         "risk_level": "low",
@@ -7288,6 +7380,18 @@
         "timestamp": "2026-03-13T04:22:00Z"
       },
       {
+        "id": "runbooks-copy-sync-20260313",
+        "summary": "Keep runtime-safe copy-config merges preserving the runbooks MCP now that it has a supported stdio wrapper.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T01:25:00Z"
+      },
+      {
+        "id": "runbooks-host-policy-20260313",
+        "summary": "Re-enable runbooks in the host-facing MCP policy now that a dedicated stdio MCP wrapper exists and update generator regression coverage.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T01:20:00Z"
+      },
+      {
         "id": "opencode-beads-portability-20260312",
         "summary": "Require the bd CLI whenever opencode-beads is configured so strict portability/setup catches missing local beads dependencies.",
         "risk_level": "low",
@@ -7554,6 +7658,30 @@
         "timestamp": "2026-03-13T04:22:00Z"
       },
       {
+        "id": "runbooks-copy-sync-20260313",
+        "summary": "Keep runtime-safe copy-config merges preserving the runbooks MCP now that it has a supported stdio wrapper.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T01:25:00Z"
+      },
+      {
+        "id": "runbooks-host-policy-20260313",
+        "summary": "Re-enable runbooks in the host-facing MCP policy now that a dedicated stdio MCP wrapper exists and update generator regression coverage.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T01:20:00Z"
+      },
+      {
+        "id": "runbooks-mcp-config-20260313",
+        "summary": "Point the host-facing runbooks MCP entries at the new stdio wrapper entrypoint in canonical OpenCode config sources.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T01:15:00Z"
+      },
+      {
+        "id": "runbooks-mcp-wrapper-20260313",
+        "summary": "Add a stdio MCP wrapper for opencode-runbooks and package metadata needed to expose runbook diagnostics/remedy tools over MCP.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T01:10:00Z"
+      },
+      {
         "id": "dashboard-internal-runtime-observability-20260313",
         "summary": "Expose internal runtime observability in the dashboard orchestration API and page, including bootstrap package status, context budget pressure, workflow hooks, model-router collaborators, and meta-awareness source state.",
         "risk_level": "low",
@@ -7652,6 +7780,12 @@
         "timestamp": "2026-03-13T04:22:00Z"
       },
       {
+        "id": "runbooks-host-policy-20260313",
+        "summary": "Re-enable runbooks in the host-facing MCP policy now that a dedicated stdio MCP wrapper exists and update generator regression coverage.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T01:20:00Z"
+      },
+      {
         "id": "dormant-mcp-policy-surfacing-20260310",
         "summary": "Surface explicit dormant MCP reactivation metadata in the lifecycle report so disabled internal MCPs are actionable rather than just classified.",
         "risk_level": "low",
@@ -7664,6 +7798,12 @@
         "summary": "Point host-facing context-governor MCP config at the new stdio wrapper entrypoint across canonical and template config files.",
         "risk_level": "low",
         "timestamp": "2026-03-13T16:16:00Z"
+      },
+      {
+        "id": "runbooks-mcp-config-20260313",
+        "summary": "Point the host-facing runbooks MCP entries at the new stdio wrapper entrypoint in canonical OpenCode config sources.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T01:15:00Z"
       },
       {
         "id": "opencode-beads-plugin-20260312",
@@ -7740,6 +7880,12 @@
         "timestamp": "2026-03-13T16:16:00Z"
       },
       {
+        "id": "runbooks-mcp-config-20260313",
+        "summary": "Point the host-facing runbooks MCP entries at the new stdio wrapper entrypoint in canonical OpenCode config sources.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T01:15:00Z"
+      },
+      {
         "id": "portability-integrity-pass-20260215",
         "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
         "risk_level": "low",
@@ -7752,6 +7898,12 @@
         "summary": "Point host-facing context-governor MCP config at the new stdio wrapper entrypoint across canonical and template config files.",
         "risk_level": "low",
         "timestamp": "2026-03-13T16:16:00Z"
+      },
+      {
+        "id": "runbooks-mcp-config-20260313",
+        "summary": "Point the host-facing runbooks MCP entries at the new stdio wrapper entrypoint in canonical OpenCode config sources.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T01:15:00Z"
       }
     ],
     "packages/opencode-context-governor": [
@@ -7846,6 +7998,12 @@
         "summary": "Add a real stdio MCP wrapper for opencode-context-governor using the MCP SDK and cover its tool handlers with package-level tests.",
         "risk_level": "medium",
         "timestamp": "2026-03-13T16:15:00Z"
+      },
+      {
+        "id": "runbooks-mcp-wrapper-20260313",
+        "summary": "Add a stdio MCP wrapper for opencode-runbooks and package metadata needed to expose runbook diagnostics/remedy tools over MCP.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T01:10:00Z"
       },
       {
         "id": "package-mcp-alignment-20260311",
@@ -7970,6 +8128,26 @@
         "summary": "Hardened setup transfer portability by adding cross-platform config sync, path-safe script root resolution, and portable MCP manifest generation.",
         "risk_level": "low",
         "timestamp": "2026-02-15T18:55:00Z"
+      }
+    ],
+    "packages/opencode-runbooks": [
+      {
+        "id": "runbooks-mcp-wrapper-20260313",
+        "summary": "Add a stdio MCP wrapper for opencode-runbooks and package metadata needed to expose runbook diagnostics/remedy tools over MCP.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T01:10:00Z"
+      },
+      {
+        "id": "smoke-tests-16-packages-20260225",
+        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:55:00Z"
+      },
+      {
+        "id": "json-parse-migration-20260225",
+        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T12:00:00Z"
       }
     ],
     "packages/opencode-dashboard": [
@@ -11800,20 +11978,6 @@
         "summary": "Comprehensive audit hardening: timeouts, path resolver, strict schema/env checks, goraphdb retries, health check classification",
         "risk_level": "medium",
         "timestamp": "2026-02-23T17:38:39Z"
-      }
-    ],
-    "packages/opencode-runbooks": [
-      {
-        "id": "smoke-tests-16-packages-20260225",
-        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:55:00Z"
-      },
-      {
-        "id": "json-parse-migration-20260225",
-        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T12:00:00Z"
       }
     ],
     "packages/opencode-health-check": [

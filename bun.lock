@@ -168,6 +168,14 @@
     "packages/opencode-runbooks": {
       "name": "opencode-runbooks",
       "version": "1.0.0",
+      "bin": {
+        "opencode-runbooks-mcp": "src/mcp-server.mjs",
+      },
+      "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.27.1",
+        "opencode-safe-io": "workspace:*",
+        "zod": "^4.3.6",
+      },
     },
     "packages/opencode-safe-io": {
       "name": "opencode-safe-io",

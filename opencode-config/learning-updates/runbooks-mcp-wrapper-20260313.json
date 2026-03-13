@@ -1,0 +1,18 @@
+{
+  "id": "runbooks-mcp-wrapper-20260313",
+  "timestamp": "2026-03-13T01:10:00Z",
+  "summary": "Add a stdio MCP wrapper for opencode-runbooks and package metadata needed to expose runbook diagnostics/remedy tools over MCP.",
+  "affected_paths": [
+    "packages/opencode-runbooks/package.json",
+    "packages/opencode-runbooks/src/mcp-server.mjs",
+    "packages/opencode-runbooks/test/mcp-server.test.mjs",
+    "bun.lock",
+    "opencode-config/learning-updates/runbooks-mcp-wrapper-20260313.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}
