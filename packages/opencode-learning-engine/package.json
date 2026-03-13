@@ -42,8 +42,5 @@
       "import": "./src/meta-awareness-tracker.mjs",
       "require": "./src/meta-awareness-tracker.js"
     }
-  },
-  "dependencies": {
-    "opencode-safe-io": "workspace:*"
   }
 }

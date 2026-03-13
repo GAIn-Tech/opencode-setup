@@ -26,5 +26,8 @@
     "src/",
     "README.md"
   ],
-  "preferGlobal": true
+  "preferGlobal": true,
+  "dependencies": {
+    "opencode-safe-io": "workspace:*"
+  }
 }

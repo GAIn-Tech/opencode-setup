@@ -23,6 +23,9 @@
     "packages/opencode-context-governor": {
       "name": "opencode-context-governor",
       "version": "0.1.0",
+      "bin": {
+        "opencode-context-governor-mcp": "src/mcp-server.mjs",
+      },
       "dependencies": {
         "@modelcontextprotocol/sdk": "^1.27.1",
         "zod": "^4.3.6",
@@ -62,6 +65,9 @@
       "bin": {
         "opencode-dashboard": "src/cli.js",
       },
+      "dependencies": {
+        "opencode-safe-io": "workspace:*",
+      },
     },
     "packages/opencode-errors": {
       "name": "opencode-errors",
@@ -84,6 +90,9 @@
     "packages/opencode-feature-flags": {
       "name": "opencode-feature-flags",
       "version": "1.0.0",
+      "dependencies": {
+        "opencode-safe-io": "workspace:*",
+      },
     },
     "packages/opencode-graphdb-bridge": {
       "name": "opencode-graphdb-bridge",
@@ -145,6 +154,7 @@
         "opencode-circuit-breaker": "workspace:*",
         "opencode-config-loader": "workspace:*",
         "opencode-context-governor": "workspace:*",
+        "opencode-safe-io": "workspace:*",
       },
     },
     "packages/opencode-plugin-healthd": {
@@ -153,20 +163,32 @@
       "bin": {
         "opencode-healthd": "src/daemon.js",
       },
+      "dependencies": {
+        "opencode-safe-io": "workspace:*",
+      },
     },
     "packages/opencode-plugin-lifecycle": {
       "name": "opencode-plugin-lifecycle",
       "version": "0.1.0",
+      "dependencies": {
+        "opencode-safe-io": "workspace:*",
+      },
     },
     "packages/opencode-plugin-preload-skills": {
       "name": "opencode-plugin-preload-skills",
       "version": "1.0.0",
+      "dependencies": {
+        "opencode-safe-io": "workspace:*",
+      },
     },
     "packages/opencode-proofcheck": {
       "name": "opencode-proofcheck",
       "version": "0.1.0",
       "bin": {
         "proofcheck": "src/cli.js",
+      },
+      "dependencies": {
+        "opencode-safe-io": "workspace:*",
       },
     },
     "packages/opencode-runbooks": {

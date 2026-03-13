@@ -11,5 +11,7 @@
   },
   "keywords": ["opencode", "plugin", "skills", "preload", "rl", "orchestration"],
   "license": "MIT",
-  "dependencies": {}
+  "dependencies": {
+    "opencode-safe-io": "workspace:*"
+  }
 }

@@ -26,6 +26,7 @@
   "dependencies": {
     "opencode-circuit-breaker": "workspace:*",
     "opencode-config-loader": "workspace:*",
-    "opencode-context-governor": "workspace:*"
+    "opencode-context-governor": "workspace:*",
+    "opencode-safe-io": "workspace:*"
   }
 }

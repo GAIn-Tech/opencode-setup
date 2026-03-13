@@ -7,7 +7,9 @@
   "scripts": {
     "test": "bun test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "opencode-safe-io": "workspace:*"
+  },
   "devDependencies": {},
   "keywords": [
     "feature-flags",

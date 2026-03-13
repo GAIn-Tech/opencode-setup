@@ -1,13 +1,41 @@
 {
-  "generated_at": "2026-03-13T21:28:55.141Z",
+  "generated_at": "2026-03-13T23:42:32.407Z",
   "schema_version": 1,
-  "total_records": 312,
+  "total_records": 310,
   "source_files": {
-    "learning_updates": 312,
+    "learning_updates": 310,
     "agents_md": 7
   },
   "by_category": {
     "uncategorized": [
+      {
+        "id": "safe-io-dep-declarations-20260313",
+        "summary": "Declare missing opencode-safe-io workspace dependency in 6 packages that use it at runtime: opencode-model-router-x, opencode-plugin-preload-skills, opencode-dashboard-launcher, opencode-feature-flags, opencode-plugin-healthd, opencode-proofcheck. Also remove duplicate dependencies key introduced by rebase in opencode-learning-engine.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-router-x/package.json",
+          "packages/opencode-plugin-preload-skills/package.json",
+          "packages/opencode-dashboard-launcher/package.json",
+          "packages/opencode-feature-flags/package.json",
+          "packages/opencode-plugin-healthd/package.json",
+          "packages/opencode-proofcheck/package.json",
+          "packages/opencode-learning-engine/package.json"
+        ],
+        "timestamp": "2026-03-13T21:30:00Z"
+      },
+      {
+        "id": "orchestration-type-safety-and-config-fixes-20260313",
+        "summary": "Fix type safety issues in orchestration route (Set.size vs number misuse for traces/parentSpans, incorrect object-vs-number pass to evaluatePolicyEngine), rename ambiguous model IDs in opencode.json, add missing opencode-safe-io workspace dependencies, and allow 401 on /api/config in api-sanity script.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/opencode.json",
+          "packages/opencode-dashboard/src/app/api/orchestration/route.ts",
+          "packages/opencode-learning-engine/package.json",
+          "packages/opencode-plugin-lifecycle/package.json",
+          "scripts/api-sanity.mjs"
+        ],
+        "timestamp": "2026-03-13T21:00:00Z"
+      },
       {
         "id": "mcp-host-health-verification-20260313",
         "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
@@ -21,52 +49,6 @@
           "opencode-config/learning-updates/mcp-host-health-verification-20260313.json"
         ],
         "timestamp": "2026-03-13T19:55:00Z"
-      },
-      {
-        "id": "memory-graph-copy-sync-20260313",
-        "summary": "Keep runtime-safe copy-config sync preserving the memory-graph MCP wrapper in the host-facing user config.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/tests/copy-config.test.js",
-          "opencode-config/learning-updates/memory-graph-copy-sync-20260313.json"
-        ],
-        "timestamp": "2026-03-13T16:43:00Z"
-      },
-      {
-        "id": "memory-graph-host-policy-20260313",
-        "summary": "Re-enable memory-graph in host-facing MCP policy and update generator regressions now that a real stdio wrapper exists.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/mcp-dormant-policy.json",
-          "scripts/tests/generate-mcp-config.test.js",
-          "opencode-config/learning-updates/memory-graph-host-policy-20260313.json"
-        ],
-        "timestamp": "2026-03-13T16:42:00Z"
-      },
-      {
-        "id": "memory-graph-mcp-config-20260313",
-        "summary": "Point host-facing memory-graph MCP config sources at the new stdio wrapper entrypoint instead of the raw CLI entrypoint.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/opencode.json",
-          "mcp-servers/opencode-mcp-config.json",
-          "mcp-servers/opencode-mcp-config.template.json",
-          "opencode-config/learning-updates/memory-graph-mcp-config-20260313.json"
-        ],
-        "timestamp": "2026-03-13T16:41:00Z"
-      },
-      {
-        "id": "memory-graph-mcp-wrapper-20260313",
-        "summary": "Add a stdio MCP wrapper for memory-graph so graph build, activation, and query operations are available through a real host-facing MCP server.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-memory-graph/package.json",
-          "packages/opencode-memory-graph/src/mcp-server.mjs",
-          "packages/opencode-memory-graph/test/mcp-server.test.mjs",
-          "bun.lock",
-          "opencode-config/learning-updates/memory-graph-mcp-wrapper-20260313.json"
-        ],
-        "timestamp": "2026-03-13T16:40:00Z"
       },
       {
         "id": "context-governor-copy-sync-20260313",
@@ -3781,6 +3763,34 @@
   "by_risk_level": {
     "low": [
       {
+        "id": "safe-io-dep-declarations-20260313",
+        "summary": "Declare missing opencode-safe-io workspace dependency in 6 packages that use it at runtime: opencode-model-router-x, opencode-plugin-preload-skills, opencode-dashboard-launcher, opencode-feature-flags, opencode-plugin-healthd, opencode-proofcheck. Also remove duplicate dependencies key introduced by rebase in opencode-learning-engine.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-router-x/package.json",
+          "packages/opencode-plugin-preload-skills/package.json",
+          "packages/opencode-dashboard-launcher/package.json",
+          "packages/opencode-feature-flags/package.json",
+          "packages/opencode-plugin-healthd/package.json",
+          "packages/opencode-proofcheck/package.json",
+          "packages/opencode-learning-engine/package.json"
+        ],
+        "timestamp": "2026-03-13T21:30:00Z"
+      },
+      {
+        "id": "orchestration-type-safety-and-config-fixes-20260313",
+        "summary": "Fix type safety issues in orchestration route (Set.size vs number misuse for traces/parentSpans, incorrect object-vs-number pass to evaluatePolicyEngine), rename ambiguous model IDs in opencode.json, add missing opencode-safe-io workspace dependencies, and allow 401 on /api/config in api-sanity script.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/opencode.json",
+          "packages/opencode-dashboard/src/app/api/orchestration/route.ts",
+          "packages/opencode-learning-engine/package.json",
+          "packages/opencode-plugin-lifecycle/package.json",
+          "scripts/api-sanity.mjs"
+        ],
+        "timestamp": "2026-03-13T21:00:00Z"
+      },
+      {
         "id": "mcp-host-health-verification-20260313",
         "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
         "risk_level": "low",
@@ -3793,52 +3803,6 @@
           "opencode-config/learning-updates/mcp-host-health-verification-20260313.json"
         ],
         "timestamp": "2026-03-13T19:55:00Z"
-      },
-      {
-        "id": "memory-graph-copy-sync-20260313",
-        "summary": "Keep runtime-safe copy-config sync preserving the memory-graph MCP wrapper in the host-facing user config.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/tests/copy-config.test.js",
-          "opencode-config/learning-updates/memory-graph-copy-sync-20260313.json"
-        ],
-        "timestamp": "2026-03-13T16:43:00Z"
-      },
-      {
-        "id": "memory-graph-host-policy-20260313",
-        "summary": "Re-enable memory-graph in host-facing MCP policy and update generator regressions now that a real stdio wrapper exists.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/mcp-dormant-policy.json",
-          "scripts/tests/generate-mcp-config.test.js",
-          "opencode-config/learning-updates/memory-graph-host-policy-20260313.json"
-        ],
-        "timestamp": "2026-03-13T16:42:00Z"
-      },
-      {
-        "id": "memory-graph-mcp-config-20260313",
-        "summary": "Point host-facing memory-graph MCP config sources at the new stdio wrapper entrypoint instead of the raw CLI entrypoint.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/opencode.json",
-          "mcp-servers/opencode-mcp-config.json",
-          "mcp-servers/opencode-mcp-config.template.json",
-          "opencode-config/learning-updates/memory-graph-mcp-config-20260313.json"
-        ],
-        "timestamp": "2026-03-13T16:41:00Z"
-      },
-      {
-        "id": "memory-graph-mcp-wrapper-20260313",
-        "summary": "Add a stdio MCP wrapper for memory-graph so graph build, activation, and query operations are available through a real host-facing MCP server.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-memory-graph/package.json",
-          "packages/opencode-memory-graph/src/mcp-server.mjs",
-          "packages/opencode-memory-graph/test/mcp-server.test.mjs",
-          "bun.lock",
-          "opencode-config/learning-updates/memory-graph-mcp-wrapper-20260313.json"
-        ],
-        "timestamp": "2026-03-13T16:40:00Z"
       },
       {
         "id": "context-governor-copy-sync-20260313",
@@ -7474,6 +7438,1216 @@
     "high": []
   },
   "by_affected_path": {
+    "packages/opencode-model-router-x": [
+      {
+        "id": "safe-io-dep-declarations-20260313",
+        "summary": "Declare missing opencode-safe-io workspace dependency in 6 packages that use it at runtime: opencode-model-router-x, opencode-plugin-preload-skills, opencode-dashboard-launcher, opencode-feature-flags, opencode-plugin-healthd, opencode-proofcheck. Also remove duplicate dependencies key introduced by rebase in opencode-learning-engine.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T21:30:00Z"
+      },
+      {
+        "id": "model-router-logging-cleanup-20260312",
+        "summary": "Normalize model-router helper logging to prefer injected logger paths and verify the helper behavior with constructor-injection tests.",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T15:45:00Z"
+      },
+      {
+        "id": "model-router-constructor-injection-20260312",
+        "summary": "Refactor model-router-x to prefer injected logger, validator, error taxonomy, health-check, meta-awareness tracker, circuit-breaker class, and integration-layer class while fixing health-check subsystem registration shape.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-12T03:36:00.000Z"
+      },
+      {
+        "id": "circuit-breaker-dep-fix-20260311",
+        "summary": "Re-add circuit-breaker workspace dep to model-router-x that was incorrectly removed as phantom. The @jackoatmon/ scoped and ../../ relative path import patterns were missed by audit grep.",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T01:20:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "package-wiring-cleanup-20260311",
+        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T20:20:00Z"
+      },
+      {
+        "id": "wave11-t5t7-router-perf-20260308",
+        "summary": "Add O(1) model ID resolution cache and skill-RL memoization to ModelRouter for hot-path performance optimization",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:35:00Z"
+      },
+      {
+        "id": "wave11-t12-t13-perf-eviction-20260308",
+        "summary": "T12: Replace O(n log n) push+sort with O(log n) binary insertion in ModelPerformanceTracker latency history. T13: Add TTL-based eviction (1-hour) to IntegrationLayer taskContextMap and wire Governor cleanupStaleSessions on hourly unref'd interval.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:10:00Z"
+      },
+      {
+        "id": "wave11-t21-phase1-optimization-tests",
+        "summary": "T21: Added 31 isolation-pattern tests (73 assertions) for Phase 1 optimizations — model ID resolution cache (T5, 6 tests), skill-RL memoization (T7, 4 tests), budget-aware scoring penalty (T4, 10 tests), advice cache (T6, 11 tests). Discovered JS falsy-zero quirk: costPenalties[trivial]=0 with || operator applies default 0.05 penalty.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:10:00Z"
+      },
+      {
+        "id": "wave10-capability-routing-tracing",
+        "summary": "Add MODEL_CAPABILITIES registry and filterByCapabilities() pre-filter to tier-router for capability-based model selection (vision, tools, reasoning, large_context). Add AgentTracer class to opencode-logger for high-level execution tracing (task dispatch, model selection, skill loading) with Langfuse and structured log output.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-08T22:51:00Z"
+      },
+      {
+        "id": "wave10-t17-benchmark-cost-tests",
+        "summary": "Add 17 tests for benchmark bonus (T12) and cost-efficiency scoring (T13) in isolation pattern. Tests cover: bonus range, unknown models, cap enforcement, monotonicity, provider coverage, cost ordering, and integration bounds.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:25:00Z"
+      },
+      {
+        "id": "wave11-t19-startup-instrumentation",
+        "summary": "Add performance.now() startup time instrumentation to IntegrationLayer, ModelRouter, and LearningEngine constructors. Logs [Startup] ComponentName: Xms on initialization.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:25:00Z"
+      },
+      {
+        "id": "wave10-t12-t13-benchmark-cost-scoring",
+        "summary": "Add benchmark bonus scoring (T12) and cost-efficiency factor (T13) to ModelRouter._scoreModel(). BENCHMARK_SCORES registry with HumanEval/MBPP pass@1 for 16 models. _applyBenchmarkBonus() gives 0-0.15 supplementary bonus. _applyCostEfficiency() uses TokenCostCalculator pricing for 0-0.05 cost bonus. Neither changes existing scoring weights.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-08T19:20:00Z"
+      },
+      {
+        "id": "audit-namespace-fallback-20260308",
+        "summary": "Add relative-path fallback requires for all 11 @jackoatmon/ references in model-router-x — prevents MODULE_NOT_FOUND when running outside Bun workspace linking",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "namespace-drift-part2-20260308",
+        "summary": "Fix namespace drift in 5 remaining package.json name fields and repair 2 broken cross-package dependency references. Packages fixed: integration-layer, model-router-x, plugin-lifecycle, proofcheck, shared-orchestration. Cross-deps fixed: model-router-x deps on context-governor and fallback-doctor; integration-layer peerDeps on skill-rl-manager, learning-engine, shared-orchestration.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave9-model-router-meta-kb-20260308",
+        "summary": "Extend model-router _applyLearningPenalties to incorporate meta-KB signals — warnings reduce score (capped 0.25), positive evidence provides bonus (capped 0.1)",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "quota-signal-lock-20260307",
+        "summary": "Serialize quota-header and failure signal updates through a shared rotator mutex to prevent race-driven 429 propagation drift, and record the completion in config precedence docs.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-07T02:52:00Z"
+      },
+      {
+        "id": "external-call-timeouts-20260225",
+        "summary": "Add explicit timeouts to 7 external call sites that could hang indefinitely",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T17:00:00Z"
+      },
+      {
+        "id": "workspace-deps-standardization-20260225",
+        "summary": "Standardized all internal workspace dependencies to use workspace:* spec instead of file: references. Updated opencode-integration-layer peerDependencies and restored opencode-model-router-x dependencies with proper workspace resolution.",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:30:00Z"
+      },
+      {
+        "id": "unused-deps-removal-20260225",
+        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00.000Z"
+      },
+      {
+        "id": "dead-code-cleanup-unused-vars-20260225",
+        "summary": "Remove 6 unused variable declarations across 5 packages",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T15:40:00Z"
+      },
+      {
+        "id": "json-parse-migration-20260225",
+        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "model-router-x-discovery-cache-perf-20260225",
+        "summary": "Optimize model-discovery.js: bounded cache with TTL, parallel provider fetching, early exit on invalid JSON",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T03:15:00.000Z"
+      },
+      {
+        "id": "unused-exports-removal-20260225",
+        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "zen-model-restoration-and-dashboard-loader-fix-20260224",
+        "summary": "Restore Zen GLM-5/Kimi K2.5 aliases across config catalogs and fix dashboard API module resolution to remove build warnings.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-24T22:50:00Z"
+      },
+      {
+        "id": "orchestration-intelligence-foundation-20260224",
+        "summary": "Add orchestration intelligence foundation with meta-awareness telemetry, scoring, stability guardrails, dashboard APIs/UI, and central-config controls.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-24T22:10:00Z"
+      },
+      {
+        "id": "model-discovery-all-providers-fail-20260224",
+        "summary": "Detect and surface when all providers fail in ModelDiscovery.pollOnce() instead of silently returning stale cache",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "resilient-routing-components-20260223",
+        "summary": "Add resilient subagent routing components and antigravity model mappings with dedicated tests and design plan coverage.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-23T23:24:00Z"
+      },
+      {
+        "id": "audit-hardening-20260223",
+        "summary": "Comprehensive audit hardening: timeouts, path resolver, strict schema/env checks, goraphdb retries, health check classification",
+        "risk_level": "medium",
+        "timestamp": "2026-02-23T17:38:39Z"
+      },
+      {
+        "id": "model-routing-and-environment-hardening-2-22-2026",
+        "summary": "Further harden model routing and environment configuration with post-mid-2025 policy alignment, resiliency improvements, and Symbiotic reference cleanup.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T17:30:00Z"
+      },
+      {
+        "id": "frontier-control-plane-foundation-20260222",
+        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T03:55:00Z"
+      },
+      {
+        "id": "round1-3-integrations-complete-20260217",
+        "summary": "All 30 integration items completed across 3 rounds - fully interconnected packages",
+        "risk_level": "low",
+        "timestamp": "2026-02-17T00:00:00Z"
+      },
+      {
+        "id": "gemini-model-correction-20260215",
+        "summary": "Corrected Gemini model names from non-existent gemini-2.5-* to official gemini-2.0-* across entire codebase",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:27:00-05:00"
+      },
+      {
+        "id": "model-validation-script-20260215",
+        "summary": "Created validate-models.mjs script for automated model catalog validation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T19:48:00-05:00"
+      },
+      {
+        "id": "rotator-sync-contract-fix-20260216",
+        "summary": "Fixed key rotator/model router contract mismatch by restoring synchronous key selection",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T00:40:00Z"
+      },
+      {
+        "id": "config-precedence-and-quota-lock-20260215",
+        "summary": "Documented 4-tier config precedence, added quota signal lock, fixed llama-3.1-405b",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T19:28:00-05:00"
+      },
+      {
+        "id": "provider-config-and-cerebras-tpm-20260215",
+        "summary": "Expanded provider config coverage and hardened Cerebras TPM handling",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T22:20:00Z"
+      },
+      {
+        "id": "fallback-layer-strategy-complete-20260215",
+        "summary": "Completed fallback-layer-strategy.js MODEL_CATALOG with all providers and models",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T22:00:00Z"
+      },
+      {
+        "id": "model-validation-critical-fixes-20260215",
+        "summary": "Fixed critical model issues, provider key rotation race conditions, and added model catalog validation groundwork.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-15T22:00:00Z"
+      },
+      {
+        "id": "fallback-matrix-rebuild-20260215",
+        "summary": "Rebuilt complete fallback matrix with 6-layer coverage for all 10 intents",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:45:00Z"
+      }
+    ],
+    "packages/opencode-plugin-preload-skills": [
+      {
+        "id": "safe-io-dep-declarations-20260313",
+        "summary": "Declare missing opencode-safe-io workspace dependency in 6 packages that use it at runtime: opencode-model-router-x, opencode-plugin-preload-skills, opencode-dashboard-launcher, opencode-feature-flags, opencode-plugin-healthd, opencode-proofcheck. Also remove duplicate dependencies key introduced by rebase in opencode-learning-engine.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T21:30:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "preload-runtime-contract-20260310",
+        "summary": "Clarify the preload-skills runtime contract by testing the IntegrationLayer boundary and updating the README to document selectTools(), callable tool IDs, and the external host's responsibility to consume them.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T14:45:00-04:00"
+      },
+      {
+        "id": "preload-mcp-tool-expansion-20260310",
+        "summary": "Expand abstract MCP selections in the preload-skills plugin into actual callable tool IDs so implicit routing can point at invocable runtime tools instead of server-name hints.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T14:20:00-04:00"
+      },
+      {
+        "id": "context-budget-routing-20260310",
+        "summary": "Add an explicit context-budget routing category so budget and token-limit prompts implicitly surface opencode-context-governor alongside distill instead of falling back to generic AI/ML routing.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T13:55:00-04:00"
+      },
+      {
+        "id": "preload-tier-mcps-20260310",
+        "summary": "Fix the preload-skills plugin so Tier 0 and Tier 1 MCP matches are carried into the selected tool surface instead of being silently dropped.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:31:00-04:00"
+      },
+      {
+        "id": "wave9-meta-context-injector-20260308",
+        "summary": "Create meta-context injector module for preload-skills that generates 200-token-capped markdown context blocks from meta-KB, wire into selectTools()",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T12:30:00Z"
+      },
+      {
+        "id": "wave8-readme-model-plugin-packages-20260308",
+        "summary": "Add README.md to four model and plugin packages that had none: opencode-model-benchmark, opencode-model-sync, opencode-plugin-lifecycle, opencode-plugin-preload-skills. Completes Wave 8C task 8 for the model/plugin tier.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:20:00Z"
+      },
+      {
+        "id": "namespace-drift-part1-20260308",
+        "summary": "Fix namespace drift in 6 package.json name fields: opencode-context-governor, opencode-crash-guard, opencode-eval-harness, opencode-fallback-doctor, opencode-plugin-healthd, opencode-plugin-preload-skills. Renamed from @jackoatmon/* and @opencode/* scoped names to flat opencode-* names matching directory layout.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "smoke-tests-16-packages-20260225",
+        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:55:00Z"
+      },
+      {
+        "id": "json-parse-migration-20260225",
+        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "unused-exports-removal-20260225",
+        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "dashboards-full-implementation-20260215",
+        "summary": "Complete dashboard implementation with all 6 roadmap features: SkillsRL APIs stabilized, Knowledge Graph interactive with React Flow, provider status unified tracking, ConfigViewer with Zod forms editors, Models 10x6 routing matrix UI, fresh-machine smoke pipeline.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T21:00:00Z"
+      }
+    ],
+    "packages/opencode-dashboard-launcher": [
+      {
+        "id": "safe-io-dep-declarations-20260313",
+        "summary": "Declare missing opencode-safe-io workspace dependency in 6 packages that use it at runtime: opencode-model-router-x, opencode-plugin-preload-skills, opencode-dashboard-launcher, opencode-feature-flags, opencode-plugin-healthd, opencode-proofcheck. Also remove duplicate dependencies key introduced by rebase in opencode-learning-engine.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T21:30:00Z"
+      },
+      {
+        "id": "wave8-readme-infra-packages-20260308",
+        "summary": "Add README.md to five infrastructure packages that had none: opencode-backup-manager, opencode-circuit-breaker, opencode-dashboard-launcher, opencode-errors, opencode-safe-io. Completes Wave 8C task 8 for the infrastructure tier.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:15:00Z"
+      },
+      {
+        "id": "external-call-timeouts-20260225",
+        "summary": "Add explicit timeouts to 7 external call sites that could hang indefinitely",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T17:00:00Z"
+      },
+      {
+        "id": "smoke-tests-16-packages-20260225",
+        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:55:00Z"
+      },
+      {
+        "id": "unused-deps-removal-20260225",
+        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00.000Z"
+      },
+      {
+        "id": "json-parse-migration-20260225",
+        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "round1-3-integrations-complete-20260217",
+        "summary": "All 30 integration items completed across 3 rounds - fully interconnected packages",
+        "risk_level": "low",
+        "timestamp": "2026-02-17T00:00:00Z"
+      },
+      {
+        "id": "dashboard-autostart-wrapper-and-windows-launch-fix-20260216",
+        "summary": "Fixed dashboard launcher reliability on Windows and added opencode wrapper for guaranteed dashboard startup",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T02:40:00Z"
+      },
+      {
+        "id": "dashboard-v2-implementation-20260215",
+        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:00:00Z"
+      }
+    ],
+    "packages/opencode-feature-flags": [
+      {
+        "id": "safe-io-dep-declarations-20260313",
+        "summary": "Declare missing opencode-safe-io workspace dependency in 6 packages that use it at runtime: opencode-model-router-x, opencode-plugin-preload-skills, opencode-dashboard-launcher, opencode-feature-flags, opencode-plugin-healthd, opencode-proofcheck. Also remove duplicate dependencies key introduced by rebase in opencode-learning-engine.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T21:30:00Z"
+      },
+      {
+        "id": "smoke-tests-16-packages-20260225",
+        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:55:00Z"
+      },
+      {
+        "id": "unused-deps-removal-20260225",
+        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00.000Z"
+      },
+      {
+        "id": "json-parse-migration-20260225",
+        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "frontier-control-plane-foundation-20260222",
+        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T03:55:00Z"
+      }
+    ],
+    "packages/opencode-plugin-healthd": [
+      {
+        "id": "safe-io-dep-declarations-20260313",
+        "summary": "Declare missing opencode-safe-io workspace dependency in 6 packages that use it at runtime: opencode-model-router-x, opencode-plugin-preload-skills, opencode-dashboard-launcher, opencode-feature-flags, opencode-plugin-healthd, opencode-proofcheck. Also remove duplicate dependencies key introduced by rebase in opencode-learning-engine.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T21:30:00Z"
+      },
+      {
+        "id": "wave10-phase1-hardening-20260308",
+        "summary": "Wave 10 Phase 1 plugin hardening: healthd daemon timeout protection + crash logging, lifecycle plugin error handling + state validation",
+        "risk_level": "medium",
+        "timestamp": "2026-03-08T19:21:00Z"
+      },
+      {
+        "id": "namespace-drift-part1-20260308",
+        "summary": "Fix namespace drift in 6 package.json name fields: opencode-context-governor, opencode-crash-guard, opencode-eval-harness, opencode-fallback-doctor, opencode-plugin-healthd, opencode-plugin-preload-skills. Renamed from @jackoatmon/* and @opencode/* scoped names to flat opencode-* names matching directory layout.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "telemetry-pass2-hardening-20260227",
+        "summary": "Pass 2 addendum: hardened telemetry pipeline with canonical tool name normalization, MCP invocation depth upgrade, runtime parity verification, E2E contract tests, session key contract fix, health check config alignment, and context management completeness check.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T12:45:00Z"
+      },
+      {
+        "id": "remove-orphaned-exports-20260225",
+        "summary": "Removed 9 orphaned exports with zero cross-package imports: circuitBreakerRegistry/CircuitBreakerRegistry/CircuitOpenError from circuit-breaker, RequestTracer/LOG_LEVELS from logger, KNOWN_BAD_PLUGINS/DEFAULT_MCPS from plugin-healthd, toJSON/toCSV from memory-graph.",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T22:00:00Z"
+      },
+      {
+        "id": "smoke-tests-16-packages-20260225",
+        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:55:00Z"
+      },
+      {
+        "id": "json-parse-migration-20260225",
+        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "portability-integrity-pass-20260215",
+        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T12:30:00Z"
+      },
+      {
+        "id": "workspace-deps-fix-20260215",
+        "summary": "Fixed workspace dependency version mismatch preventing bun install, made git hooks executable, updated CLI shebangs for cross-platform compatibility",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T08:00:00Z"
+      }
+    ],
+    "packages/opencode-proofcheck": [
+      {
+        "id": "safe-io-dep-declarations-20260313",
+        "summary": "Declare missing opencode-safe-io workspace dependency in 6 packages that use it at runtime: opencode-model-router-x, opencode-plugin-preload-skills, opencode-dashboard-launcher, opencode-feature-flags, opencode-plugin-healthd, opencode-proofcheck. Also remove duplicate dependencies key introduced by rebase in opencode-learning-engine.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T21:30:00Z"
+      },
+      {
+        "id": "namespace-drift-part2-20260308",
+        "summary": "Fix namespace drift in 5 remaining package.json name fields and repair 2 broken cross-package dependency references. Packages fixed: integration-layer, model-router-x, plugin-lifecycle, proofcheck, shared-orchestration. Cross-deps fixed: model-router-x deps on context-governor and fallback-doctor; integration-layer peerDeps on skill-rl-manager, learning-engine, shared-orchestration.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "smoke-tests-16-packages-20260225",
+        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:55:00Z"
+      },
+      {
+        "id": "dead-code-cleanup-unused-vars-20260225",
+        "summary": "Remove 6 unused variable declarations across 5 packages",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T15:40:00Z"
+      },
+      {
+        "id": "json-parse-migration-20260225",
+        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "reduce-explicit-any-types-20260225",
+        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "workspace-deps-fix-20260215",
+        "summary": "Fixed workspace dependency version mismatch preventing bun install, made git hooks executable, updated CLI shebangs for cross-platform compatibility",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T08:00:00Z"
+      }
+    ],
+    "packages/opencode-learning-engine": [
+      {
+        "id": "safe-io-dep-declarations-20260313",
+        "summary": "Declare missing opencode-safe-io workspace dependency in 6 packages that use it at runtime: opencode-model-router-x, opencode-plugin-preload-skills, opencode-dashboard-launcher, opencode-feature-flags, opencode-plugin-healthd, opencode-proofcheck. Also remove duplicate dependencies key introduced by rebase in opencode-learning-engine.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T21:30:00Z"
+      },
+      {
+        "id": "orchestration-type-safety-and-config-fixes-20260313",
+        "summary": "Fix type safety issues in orchestration route (Set.size vs number misuse for traces/parentSpans, incorrect object-vs-number pass to evaluatePolicyEngine), rename ambiguous model IDs in opencode.json, add missing opencode-safe-io workspace dependencies, and allow 401 on /api/config in api-sanity script.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T21:00:00Z"
+      },
+      {
+        "id": "package-smoke-entrypoints-20260310",
+        "summary": "Add test:smoke entrypoints for critical packages so workspace-level smoke orchestration can verify package surfaces consistently.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:55:00-04:00"
+      },
+      {
+        "id": "runtime-mcp-telemetry-coverage-20260310",
+        "summary": "Extend runtime MCP telemetry so Supermemory mode-specific calls and GitHub grep searches are recorded with canonical tool identities, and mirror those identities in the learning-engine catalog.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T00:32:00-04:00"
+      },
+      {
+        "id": "mcp-file-bridge-tests-20260309",
+        "summary": "Add 12 tests for file-based fallback in getSessionMcpInvocations(). Covers readInvocationsFromFile contract, MCP category filtering (memory/docs/web/context), deduplication, session ID isolation, multi-category sessions, and edge cases (null session, non-MCP tools, session_list/read/search tools).",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T12:05:00Z"
+      },
+      {
+        "id": "mcp-file-bridge-fallback-20260309",
+        "summary": "Add file-based fallback to getSessionMcpInvocations() so runtime PostToolUse hook data (written to invocations.json out-of-process) is merged with in-memory _testLog entries. Adds readInvocationsFromFile() and entry-level category fallback for runtime hook entries not in AVAILABLE_TOOLS catalog.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T12:00:00Z"
+      },
+      {
+        "id": "mcp-skillrl-affinity-tests-20260309",
+        "summary": "Add 22 tests covering MCP → SkillRL affinity bridge: getSessionMcpInvocations (10), tool_affinities tracking (8), IntegrationLayer bridge wiring (4).",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T04:50:00Z"
+      },
+      {
+        "id": "mcp-skillrl-affinity-bridge-20260309",
+        "summary": "Wire MCP tool invocation data into SkillRL outcomes so each skill accumulates tool_affinities counters. Adds getSessionMcpInvocations() to tool-usage-tracker, tool_affinities tracking in SkillRLManager.learnFromOutcome(), and fail-open bridge in IntegrationLayer.executeTaskWithEvidence().",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T04:45:00Z"
+      },
+      {
+        "id": "wave11-t6-advice-cache-20260308",
+        "summary": "Add Map-based advice cache to LearningEngine.advise() with 5-min TTL, session-signal bypass, and invalidation on learnFromOutcome",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:40:00Z"
+      },
+      {
+        "id": "wave11-t21-phase1-optimization-tests",
+        "summary": "T21: Added 31 isolation-pattern tests (73 assertions) for Phase 1 optimizations — model ID resolution cache (T5, 6 tests), skill-RL memoization (T7, 4 tests), budget-aware scoring penalty (T4, 10 tests), advice cache (T6, 11 tests). Discovered JS falsy-zero quirk: costPenalties[trivial]=0 with || operator applies default 0.05 penalty.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:10:00Z"
+      },
+      {
+        "id": "wave11-t19-startup-instrumentation",
+        "summary": "Add performance.now() startup time instrumentation to IntegrationLayer, ModelRouter, and LearningEngine constructors. Logs [Startup] ComponentName: Xms on initialization.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:25:00Z"
+      },
+      {
+        "id": "wave10-phase1-tests-20260308",
+        "summary": "Wave 10 Phase 1 test coverage expansion: opencode-validator (65 tests), opencode-memory-bus SQLite/FTS5 spike (12 tests), opencode-learning-engine advise() edge cases (10 tests)",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:20:00Z"
+      },
+      {
+        "id": "skill-upgrade-advisor-affinity-fix-20260308",
+        "summary": "Fixed 3 dangling SKILL_AFFINITY references in orchestration-advisor.js: refactor->using-git-worktrees, playwright->agent-browser, frontend-design->dev-browser. All advisor skill references now resolve to canonical registry entries.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T15:30:00Z"
+      },
+      {
+        "id": "wave9-meta-kb-routing-20260308",
+        "summary": "Register adviceGenerated hook that adjusts routing confidence based on meta-KB anti-pattern matches and adds meta_kb_warnings/meta_kb_evidence counts to routing output",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T12:00:00Z"
+      },
+      {
+        "id": "wave8-core-decay-tests-20260308",
+        "summary": "Add 18-test regression suite for core decay rules in opencode-learning-engine: covers getAdaptiveWeight, markAsCore, and updateCoreLearning behaviour including the invariant that core-persistence learnings never decay below weight 1.0.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:10:00Z"
+      },
+      {
+        "id": "wave8-integration-baseline-fix-20260308",
+        "summary": "Add opencode-safe-io workspace dep to opencode-learning-engine so session-key-contract integration test resolves its import. Lower integrity-baseline minimumCount from 35 to 8 and sync required skills list to the 8 skills actually installed (budget-aware-router, code-doctor, evaluation-harness-builder, incident-commander, innovation-migration-planner, research-builder, skill-orchestrator-runtime, token-reporter).",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave9-meta-kb-reader-20260308",
+        "summary": "Add MetaKBReader module to opencode-learning-engine. Fail-open reader that loads meta-knowledge-index.json into memory, queries by affected_path and task_type with 200-token output cap. 12 tests covering load/query/isStale/truncation.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave9-meta-kb-wiring-20260308",
+        "summary": "Wire MetaKBReader into LearningEngine.advise() method. Advice output now includes meta_context field with warnings, suggestions, and conventions from the meta-knowledge index. Fail-open: returns empty arrays if index unavailable. Adds meta_context_stale flag when index > 24h old. 6 integration tests.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave8-setup-fixes-20260307",
+        "summary": "Setup script improvements: auto-load .env, set SHELL, fix PowerShell policy, non-strict verify; Bun version bump 1.3.9->1.3.10; remove dead import",
+        "risk_level": "low",
+        "timestamp": "2026-03-07T23:45:00Z"
+      },
+      {
+        "id": "telemetry-structured-outcomes-20260304",
+        "summary": "Persist structured invocation error outcome fields and canonical session linkage, with regression coverage for direct prune hook telemetry.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-04T02:30:00Z"
+      },
+      {
+        "id": "telemetry-pass2-hardening-20260227",
+        "summary": "Pass 2 addendum: hardened telemetry pipeline with canonical tool name normalization, MCP invocation depth upgrade, runtime parity verification, E2E contract tests, session key contract fix, health check config alignment, and context management completeness check.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T12:45:00Z"
+      },
+      {
+        "id": "skill-routing-architecture-upgrade-20260227",
+        "summary": "Introduce hierarchical skill routing metadata, overlap governance, and quality gates for skill selection",
+        "risk_level": "medium",
+        "timestamp": "2026-02-27T04:35:00Z"
+      },
+      {
+        "id": "tool-usage-tracker-logInvocation-export-20260227",
+        "summary": "Export logInvocation from tool-usage-tracker and add missing readJsonAsync/initAsync helpers. logInvocation was fully implemented but not exported in module.exports, making it dead code. readJsonAsync and initAsync were called inside logInvocation but never defined in the file or imported from opencode-safe-io. Added minimal implementations of both helpers. This change is the foundation for Task 2–4 of context-distill-tracking-fixes plan: wire MCP tool telemetry into the tracking pipeline.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T00:00:00Z"
+      },
+      {
+        "id": "namespace-drift-remaining-fixes-20260225",
+        "summary": "Fixed remaining @jackoatmon scoped imports in crash-guard, integration-layer, and learning-engine",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T22:50:00.000Z"
+      },
+      {
+        "id": "exports-maps-20260225",
+        "summary": "Add exports maps to learning-engine and health-check packages for clean public API",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T12:50:00Z"
+      },
+      {
+        "id": "json-parse-migration-20260225",
+        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "reduce-explicit-any-types-20260225",
+        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "wave-1-async-io-complete-20260225",
+        "summary": "Wave 1: Async I/O conversion for config-loader, learning-engine, and model-manager to eliminate event loop blocking",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T02:32:00.000Z"
+      },
+      {
+        "id": "deprecated-functions-removal-20260225",
+        "summary": "Remove 5 deprecated functions across 3 packages to improve code maintainability",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "orphan-module-wiring-20260225",
+        "summary": "Wire orphan modules: getSchedulerTelemetry + tool-usage-tracker export",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "tool-usage-tracker-race-fix-20260225",
+        "summary": "Fix read-modify-write race in logInvocation and updateMetrics. Previously, concurrent callers read stale JSON snapshot outside the _writePromise queue, mutated in memory, then only serialized the write — last writer wins, earlier entries lost. Now the entire read-mutate-write transaction runs inside the _writePromise chain. Atomic write (tmp+rename with EPERM fallback) inlined to avoid double-queuing.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "unused-exports-removal-20260225",
+        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "meta-awareness-test-harness-20260224",
+        "summary": "Add dedicated unit coverage for meta-awareness rules/stability/rollups/tracker and wire unit tests into the learning-engine test script.",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T22:35:00Z"
+      },
+      {
+        "id": "orchestration-intelligence-foundation-20260224",
+        "summary": "Add orchestration intelligence foundation with meta-awareness telemetry, scoring, stability guardrails, dashboard APIs/UI, and central-config controls.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-24T22:10:00Z"
+      },
+      {
+        "id": "learning-engine-jsonl-rotation-20260224",
+        "summary": "Added JSONL rotation to MetaAwarenessTracker._appendEvent() to prevent unbounded telemetry file growth",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "learning-engine-pattern-extractor-debug-logging-20260224",
+        "summary": "Added DEBUG-guarded logging to empty catch blocks in PatternExtractor to surface parse errors",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "learning-engine-rollup-debounce-20260224",
+        "summary": "Added in-memory cache and debounced disk writes to MetaAwarenessTracker rollups",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "tool-usage-tracker-async-conversion-20260224",
+        "summary": "Full async conversion of tool-usage-tracker.js hot-path functions. Added writeJsonAsync with atomic tmp+rename and serialized write queue (_writePromise chain). Added initAsync with _initPromise singleton. All 7 hot-path functions converted to async. trackEvent calls now fire-and-forget with .catch(). Sync helpers renamed to *Sync with @deprecated.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "symbiotic-removal-and-config-hardening-20260222",
+        "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T16:45:00Z"
+      },
+      {
+        "id": "meta-awareness-and-setup-fix-20260218",
+        "summary": "Add meta-awareness system and fix setup.sh skill transfer",
+        "risk_level": "low",
+        "timestamp": "2026-02-18T21:00:00.000Z"
+      },
+      {
+        "id": "meta-integration-fix-20260218",
+        "summary": "Integrate MetaAwareness and MetaInstructionParser into OrchestrationAdvisor - they existed but were never imported or used",
+        "risk_level": "medium",
+        "timestamp": "2026-02-18T21:00:00Z"
+      },
+      {
+        "id": "jarvis-security-patterns-analysis-20260218",
+        "summary": "Analyzed JARVIS security patterns and extracted 5 reusable patterns for opencode-setup integration",
+        "risk_level": "low",
+        "timestamp": "2026-02-18T00:00:00Z"
+      },
+      {
+        "id": "atomic-write-sweep-learning-state-20260216",
+        "summary": "Applied atomic JSON write pattern to remaining learning and state persistence files",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T01:20:00Z"
+      },
+      {
+        "id": "portability-integrity-pass-20260215",
+        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T12:30:00Z"
+      }
+    ],
+    "opencode-config/opencode.json": [
+      {
+        "id": "orchestration-type-safety-and-config-fixes-20260313",
+        "summary": "Fix type safety issues in orchestration route (Set.size vs number misuse for traces/parentSpans, incorrect object-vs-number pass to evaluatePolicyEngine), rename ambiguous model IDs in opencode.json, add missing opencode-safe-io workspace dependencies, and allow 401 on /api/config in api-sanity script.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T21:00:00Z"
+      },
+      {
+        "id": "context-governor-mcp-config-20260313",
+        "summary": "Point host-facing context-governor MCP config at the new stdio wrapper entrypoint across canonical and template config files.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T16:16:00Z"
+      },
+      {
+        "id": "runbooks-mcp-config-20260313",
+        "summary": "Point the host-facing runbooks MCP entries at the new stdio wrapper entrypoint in canonical OpenCode config sources.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T01:15:00Z"
+      },
+      {
+        "id": "opencode-beads-plugin-20260312",
+        "summary": "Add the upstream opencode-beads plugin to the main OpenCode plugin configuration so synced user configs load the beads integration.",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T23:10:00Z"
+      },
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "mcp-config-cleanup-and-playwright-20260310",
+        "summary": "Remove dead github and tavily MCP entries from the canonical config, enable playwright as a live MCP service again, and update installation documentation to match the new inventory.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T00:33:00-04:00"
+      },
+      {
+        "id": "wave11-t1t2-governor-activation-20260308",
+        "summary": "Enable context-governor MCP and create skill file with registry entries for budget-aware context management",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:30:00Z"
+      },
+      {
+        "id": "audit-membus-mcps-20260308",
+        "summary": "Add minimal package.json to opencode-memory-bus (empty spike package) and wire 5 custom MCP servers (dashboard-launcher, memory-graph, model-router-x, context-governor, runbooks) into opencode.json as disabled local servers",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "distill-context7-config-wiring-20260308",
+        "summary": "Wire distill and context7 skills into the active system: enable both (plus budget-aware-router) in compound-engineering.json enabled list; add distill to oh-my-opencode.json MCP toggles; add @tarquinen/opencode-dcp@latest plugin to opencode.json plugin array (was documented in README and plugins/opencode-dcp/info.md but missing from active config).",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "zen-model-restoration-and-dashboard-loader-fix-20260224",
+        "summary": "Restore Zen GLM-5/Kimi K2.5 aliases across config catalogs and fix dashboard API module resolution to remove build warnings.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-24T22:50:00Z"
+      },
+      {
+        "id": "model-routing-and-environment-hardening-2-22-2026",
+        "summary": "Further harden model routing and environment configuration with post-mid-2025 policy alignment, resiliency improvements, and Symbiotic reference cleanup.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T17:30:00Z"
+      },
+      {
+        "id": "provider-config-and-cerebras-tpm-20260215",
+        "summary": "Expanded provider config coverage and hardened Cerebras TPM handling",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T22:20:00Z"
+      },
+      {
+        "id": "portability-integrity-pass-20260215",
+        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T12:30:00Z"
+      }
+    ],
+    "packages/opencode-dashboard": [
+      {
+        "id": "orchestration-type-safety-and-config-fixes-20260313",
+        "summary": "Fix type safety issues in orchestration route (Set.size vs number misuse for traces/parentSpans, incorrect object-vs-number pass to evaluatePolicyEngine), rename ambiguous model IDs in opencode.json, add missing opencode-safe-io workspace dependencies, and allow 401 on /api/config in api-sanity script.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T21:00:00Z"
+      },
+      {
+        "id": "dashboard-internal-runtime-observability-20260313",
+        "summary": "Expose internal runtime observability in the dashboard orchestration API and page, including bootstrap package status, context budget pressure, workflow hooks, model-router collaborators, and meta-awareness source state.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T00:05:00Z"
+      },
+      {
+        "id": "package-smoke-entrypoints-20260310",
+        "summary": "Add test:smoke entrypoints for critical packages so workspace-level smoke orchestration can verify package surfaces consistently.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:55:00-04:00"
+      },
+      {
+        "id": "dashboard-budget-route-20260310",
+        "summary": "Add the missing dashboard budget API route so observability can aggregate per-session runtime budget files that the PostToolUse hook already writes.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T01:58:00-04:00"
+      },
+      {
+        "id": "dashboard-monitoring-routes-20260309",
+        "summary": "Add dashboard endpoints and monitoring-route support for compression and Context7 observability, backed by the shared monitoring collector.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T22:47:00-04:00"
+      },
+      {
+        "id": "wave10-dashboard-deploy-security",
+        "summary": "Add dashboard observability page (pipeline metrics, cache rates, meta-KB health), deployment automation workflow (dev/staging/prod stages), and CI security scanning (dependency audit + integrity-guard)",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T22:50:00Z"
+      },
+      {
+        "id": "wave10-ci-matrix-test-consolidation",
+        "summary": "Add per-package CI test matrix (28 packages), consolidate dashboard tests/ into test/, and add critical plugin contract integration tests (healthd, lifecycle, preload-skills)",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T22:36:00Z"
+      },
+      {
+        "id": "wave11-t18-t15-budget-alerts-dashboard",
+        "summary": "Add BUDGET_THRESHOLD alert type with evaluateBudget() to AlertManager (75/80/95% thresholds). Add Context Budget dashboard widget with compression stats, Context7 stats, and color-coded budget bars to observability page.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:20:00Z"
+      },
+      {
+        "id": "dashboard-api-docs-complete-20260308",
+        "summary": "Rewrote packages/opencode-dashboard/API.md from source: expanded from 20 to all 31 endpoints, corrected inaccurate response shapes, added SSE events, config read/write, docs browser, frontier-status, retrieval-quality, plugin-supervisor, policy-review, runs, all orchestration sub-routes, model lifecycle/audit/transition, skills promotions, status unified/providers/usage, and monitoring ingest.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave9-dashboard-meta-kb-20260308",
+        "summary": "Add /api/meta-kb dashboard endpoint — returns index age, record counts, category/risk breakdown, anti-pattern/convention/command counts, and inline drift status",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "skill-rl-path-standardization-20260227",
+        "summary": "Standardize SkillRLManager persistence path to ~/.opencode/skill-rl.json across all consumers. Fixed 3 divergent path references: (1) index.js:130 was using ./skill-rl-state.json (relative, wrong), (2) models/route.ts:156 was using skill-rl-state.json (wrong suffix), (3) file-watcher.ts:45 was using skill-rl-state.json (wrong suffix). Added os.homedir() canonical path with one-time migration from legacy ./skill-rl-state.json. Added production SkillRLManager instantiation in create-managers.ts (previously only instantiated in 5 test files — never in production).",
+        "risk_level": "medium",
+        "timestamp": "2026-02-27T00:01:00Z"
+      },
+      {
+        "id": "nextjs-cve-patch-20260225",
+        "summary": "Patch critical CVE in Next.js by updating from 14.2.3 to 14.2.10 in opencode-dashboard.",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00Z"
+      },
+      {
+        "id": "unused-deps-removal-20260225",
+        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00.000Z"
+      },
+      {
+        "id": "reduce-explicit-any-types-20260225",
+        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "event-store-lost-update-fix-20260225",
+        "summary": "Fixed lost-update race condition in persistEvents by moving read-merge-write inside the serialized write queue. Previously, callers read stale existingEvents outside the queue, so concurrent writers overwrote each other's events.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T10:00:00Z"
+      },
+      {
+        "id": "dashboard-async-migration-20260225",
+        "summary": "Converted sync I/O to async in 9 dashboard files + 7 callers. Write paths use serialized write queue (_writePromise pattern) to prevent concurrent corruption. Verification read in write-json-atomic.ts intentionally kept sync. Added 7 regression tests for event-store async atomicWrite.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "env-validation-20260225",
+        "summary": "Added startup validation for security-critical environment variables in dashboard routes to warn operators of missing signing keys and write tokens",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "event-store-error-logging-20260225",
+        "summary": "Added console.warn logging to 2 empty catch blocks in event-store.js that were swallowing cleanup errors after write/rename failures.",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "prototype-pollution-fix-20260225",
+        "summary": "Security hardening: prevent prototype pollution in plugin lifecycle supervisor",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "zen-model-restoration-and-dashboard-loader-fix-20260224",
+        "summary": "Restore Zen GLM-5/Kimi K2.5 aliases across config catalogs and fix dashboard API module resolution to remove build warnings.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-24T22:50:00Z"
+      },
+      {
+        "id": "orchestration-intelligence-foundation-20260224",
+        "summary": "Add orchestration intelligence foundation with meta-awareness telemetry, scoring, stability guardrails, dashboard APIs/UI, and central-config controls.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-24T22:10:00Z"
+      },
+      {
+        "id": "dashboard-api-wave6-20260224",
+        "summary": "Added lifecycle management API endpoints to dashboard for model state management",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T07:30:00Z"
+      },
+      {
+        "id": "dashboard-frontend-stability-20260223",
+        "summary": "Stabilize dashboard data APIs and rendering behavior, including learning schema normalization, knowledge graph scaling, resilient workflow naming, and orchestration endpoint latency reduction.",
+        "risk_level": "low",
+        "timestamp": "2026-02-23T22:50:00Z"
+      },
+      {
+        "id": "frontier-control-plane-foundation-20260222",
+        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T03:55:00Z"
+      },
+      {
+        "id": "knowledge-graph-hierarchy-lod-20260220",
+        "summary": "Added hierarchical knowledge graph views with adaptive edge decluttering and API shaping controls",
+        "risk_level": "medium",
+        "timestamp": "2026-02-20T06:00:00-05:00"
+      },
+      {
+        "id": "token-counts-workflows-20260219",
+        "summary": "Add token counts to workflow runs in dashboard",
+        "risk_level": "low",
+        "timestamp": "2026-02-19T02:30:00.000Z"
+      },
+      {
+        "id": "token-counting-dashboard-20260219",
+        "summary": "Add true token counting to workflows dashboard with input/output/total token tracking",
+        "risk_level": "low",
+        "timestamp": "2026-02-19T01:00:00.000Z"
+      },
+      {
+        "id": "fullframe-graph-and-workflow-monitor-population-20260216",
+        "summary": "Moved interactive graph to dedicated full-frame route and wired workflow monitor to real run/thread data",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T03:10:00Z"
+      },
+      {
+        "id": "provider-cache-metrics-and-fallback-reason-tests-20260216",
+        "summary": "Added provider probe cache metrics visibility and fallback-reason regression coverage",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T02:20:00Z"
+      },
+      {
+        "id": "p2-hardening-policies-fallback-sse-20260216",
+        "summary": "Completed P2 hardening for policies validation, fallback reason typing, and SSE client cleanup",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T02:05:00Z"
+      },
+      {
+        "id": "api-fallback-envelope-normalization-20260216",
+        "summary": "Normalized fallback envelope semantics across RL, Skills, and Learning APIs",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T01:45:00Z"
+      },
+      {
+        "id": "provider-probe-cache-backoff-20260216",
+        "summary": "Added in-memory cache/backoff for provider health probes",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T01:35:00Z"
+      },
+      {
+        "id": "gemini-model-correction-20260215",
+        "summary": "Corrected Gemini model names from non-existent gemini-2.5-* to official gemini-2.0-* across entire codebase",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:27:00-05:00"
+      },
+      {
+        "id": "model-validation-script-20260215",
+        "summary": "Created validate-models.mjs script for automated model catalog validation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T19:48:00-05:00"
+      },
+      {
+        "id": "configviewer-typed-intent-routing-20260215",
+        "summary": "Extended ConfigViewer with typed intent-routing editor controls",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T00:05:00Z"
+      },
+      {
+        "id": "provider-telemetry-ui-enhancements-20260215",
+        "summary": "Enhanced provider telemetry dashboard with pressure analytics and hot model visibility",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T23:55:00Z"
+      },
+      {
+        "id": "knowledge-graph-drag-zoom-20260215",
+        "summary": "Improved knowledge graph drag/zoom UX with viewport persistence and position retention",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T23:30:00Z"
+      },
+      {
+        "id": "models-routing-matrix-ui-20260215",
+        "summary": "Enhanced models routing matrix UI with filtering, sorting, and coverage analytics",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T23:05:00Z"
+      },
+      {
+        "id": "weekly-model-sync-and-health-verification-20260215",
+        "summary": "Added weekly model sync automation and model catalog verification in health endpoint",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T22:45:00Z"
+      },
+      {
+        "id": "model-validation-critical-fixes-20260215",
+        "summary": "Fixed critical model issues, provider key rotation race conditions, and added model catalog validation groundwork.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-15T22:00:00Z"
+      },
+      {
+        "id": "dashboards-full-implementation-20260215",
+        "summary": "Complete dashboard implementation with all 6 roadmap features: SkillsRL APIs stabilized, Knowledge Graph interactive with React Flow, provider status unified tracking, ConfigViewer with Zod forms editors, Models 10x6 routing matrix UI, fresh-machine smoke pipeline.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T21:00:00Z"
+      },
+      {
+        "id": "provider-status-atomicity-20260215",
+        "summary": "Fixed provider-status.json write to use atomic temp-file pattern, preventing corruption on mid-write interruption.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:15:00Z"
+      },
+      {
+        "id": "dashboard-v2-implementation-20260215",
+        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:00:00Z"
+      },
+      {
+        "id": "skillsrl-api-fixes-20260215",
+        "summary": "Stabilized Skills RL backend APIs with contracts normalization and missing /api/rl endpoint creation.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T19:30:00Z"
+      },
+      {
+        "id": "portability-integrity-pass-20260215",
+        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T12:30:00Z"
+      }
+    ],
+    "packages/opencode-plugin-lifecycle": [
+      {
+        "id": "orchestration-type-safety-and-config-fixes-20260313",
+        "summary": "Fix type safety issues in orchestration route (Set.size vs number misuse for traces/parentSpans, incorrect object-vs-number pass to evaluatePolicyEngine), rename ambiguous model IDs in opencode.json, add missing opencode-safe-io workspace dependencies, and allow 401 on /api/config in api-sanity script.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T21:00:00Z"
+      },
+      {
+        "id": "wave10-phase1-hardening-20260308",
+        "summary": "Wave 10 Phase 1 plugin hardening: healthd daemon timeout protection + crash logging, lifecycle plugin error handling + state validation",
+        "risk_level": "medium",
+        "timestamp": "2026-03-08T19:21:00Z"
+      },
+      {
+        "id": "wave8-readme-model-plugin-packages-20260308",
+        "summary": "Add README.md to four model and plugin packages that had none: opencode-model-benchmark, opencode-model-sync, opencode-plugin-lifecycle, opencode-plugin-preload-skills. Completes Wave 8C task 8 for the model/plugin tier.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:20:00Z"
+      },
+      {
+        "id": "namespace-drift-part2-20260308",
+        "summary": "Fix namespace drift in 5 remaining package.json name fields and repair 2 broken cross-package dependency references. Packages fixed: integration-layer, model-router-x, plugin-lifecycle, proofcheck, shared-orchestration. Cross-deps fixed: model-router-x deps on context-governor and fallback-doctor; integration-layer peerDeps on skill-rl-manager, learning-engine, shared-orchestration.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "smoke-tests-16-packages-20260225",
+        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:55:00Z"
+      },
+      {
+        "id": "json-parse-migration-20260225",
+        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "prototype-pollution-fix-20260225",
+        "summary": "Security hardening: prevent prototype pollution in plugin lifecycle supervisor",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "frontier-control-plane-foundation-20260222",
+        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T03:55:00Z"
+      }
+    ],
+    "scripts/api-sanity.mjs": [
+      {
+        "id": "orchestration-type-safety-and-config-fixes-20260313",
+        "summary": "Fix type safety issues in orchestration route (Set.size vs number misuse for traces/parentSpans, incorrect object-vs-number pass to evaluatePolicyEngine), rename ambiguous model IDs in opencode.json, add missing opencode-safe-io workspace dependencies, and allow 401 on /api/config in api-sanity script.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T21:00:00Z"
+      },
+      {
+        "id": "audit-hardening-20260223",
+        "summary": "Comprehensive audit hardening: timeouts, path resolver, strict schema/env checks, goraphdb retries, health check classification",
+        "risk_level": "medium",
+        "timestamp": "2026-02-23T17:38:39Z"
+      },
+      {
+        "id": "api-sanity-sse-and-rl-fallback-20260216",
+        "summary": "Hardened API sanity checks for RL fallback and SSE endpoints",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T00:32:00Z"
+      },
+      {
+        "id": "dashboards-full-implementation-20260215",
+        "summary": "Complete dashboard implementation with all 6 roadmap features: SkillsRL APIs stabilized, Knowledge Graph interactive with React Flow, provider status unified tracking, ConfigViewer with Zod forms editors, Models 10x6 routing matrix UI, fresh-machine smoke pipeline.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T21:00:00Z"
+      }
+    ],
     "scripts/mcp-exercise-harness.mjs": [
       {
         "id": "mcp-host-health-verification-20260313",
@@ -7568,18 +8742,6 @@
         "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
         "risk_level": "low",
         "timestamp": "2026-03-13T19:55:00Z"
-      },
-      {
-        "id": "memory-graph-copy-sync-20260313",
-        "summary": "Keep runtime-safe copy-config sync preserving the memory-graph MCP wrapper in the host-facing user config.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T16:43:00Z"
-      },
-      {
-        "id": "memory-graph-host-policy-20260313",
-        "summary": "Re-enable memory-graph in host-facing MCP policy and update generator regressions now that a real stdio wrapper exists.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T16:42:00Z"
       },
       {
         "id": "context-governor-copy-sync-20260313",
@@ -7854,12 +9016,6 @@
         "timestamp": "2026-03-13T19:55:00Z"
       },
       {
-        "id": "memory-graph-host-policy-20260313",
-        "summary": "Re-enable memory-graph in host-facing MCP policy and update generator regressions now that a real stdio wrapper exists.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T16:42:00Z"
-      },
-      {
         "id": "context-governor-host-policy-20260313",
         "summary": "Remove context-governor from dormant MCP policy and update generator filtering tests now that a real stdio MCP wrapper exists.",
         "risk_level": "low",
@@ -7890,30 +9046,6 @@
         "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
         "risk_level": "low",
         "timestamp": "2026-03-13T19:55:00Z"
-      },
-      {
-        "id": "memory-graph-copy-sync-20260313",
-        "summary": "Keep runtime-safe copy-config sync preserving the memory-graph MCP wrapper in the host-facing user config.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T16:43:00Z"
-      },
-      {
-        "id": "memory-graph-host-policy-20260313",
-        "summary": "Re-enable memory-graph in host-facing MCP policy and update generator regressions now that a real stdio wrapper exists.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T16:42:00Z"
-      },
-      {
-        "id": "memory-graph-mcp-config-20260313",
-        "summary": "Point host-facing memory-graph MCP config sources at the new stdio wrapper entrypoint instead of the raw CLI entrypoint.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T16:41:00Z"
-      },
-      {
-        "id": "memory-graph-mcp-wrapper-20260313",
-        "summary": "Add a stdio MCP wrapper for memory-graph so graph build, activation, and query operations are available through a real host-facing MCP server.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T16:40:00Z"
       },
       {
         "id": "context-governor-copy-sync-20260313",
@@ -8060,99 +9192,7 @@
         "timestamp": "2026-02-22T16:45:00Z"
       }
     ],
-    "opencode-config/opencode.json": [
-      {
-        "id": "memory-graph-mcp-config-20260313",
-        "summary": "Point host-facing memory-graph MCP config sources at the new stdio wrapper entrypoint instead of the raw CLI entrypoint.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T16:41:00Z"
-      },
-      {
-        "id": "context-governor-mcp-config-20260313",
-        "summary": "Point host-facing context-governor MCP config at the new stdio wrapper entrypoint across canonical and template config files.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T16:16:00Z"
-      },
-      {
-        "id": "runbooks-mcp-config-20260313",
-        "summary": "Point the host-facing runbooks MCP entries at the new stdio wrapper entrypoint in canonical OpenCode config sources.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T01:15:00Z"
-      },
-      {
-        "id": "opencode-beads-plugin-20260312",
-        "summary": "Add the upstream opencode-beads plugin to the main OpenCode plugin configuration so synced user configs load the beads integration.",
-        "risk_level": "low",
-        "timestamp": "2026-03-12T23:10:00Z"
-      },
-      {
-        "id": "mcp-runtime-governance-20260311",
-        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
-        "risk_level": "low",
-        "timestamp": "2026-03-11T23:10:00Z"
-      },
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "mcp-config-cleanup-and-playwright-20260310",
-        "summary": "Remove dead github and tavily MCP entries from the canonical config, enable playwright as a live MCP service again, and update installation documentation to match the new inventory.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T00:33:00-04:00"
-      },
-      {
-        "id": "wave11-t1t2-governor-activation-20260308",
-        "summary": "Enable context-governor MCP and create skill file with registry entries for budget-aware context management",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:30:00Z"
-      },
-      {
-        "id": "audit-membus-mcps-20260308",
-        "summary": "Add minimal package.json to opencode-memory-bus (empty spike package) and wire 5 custom MCP servers (dashboard-launcher, memory-graph, model-router-x, context-governor, runbooks) into opencode.json as disabled local servers",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "distill-context7-config-wiring-20260308",
-        "summary": "Wire distill and context7 skills into the active system: enable both (plus budget-aware-router) in compound-engineering.json enabled list; add distill to oh-my-opencode.json MCP toggles; add @tarquinen/opencode-dcp@latest plugin to opencode.json plugin array (was documented in README and plugins/opencode-dcp/info.md but missing from active config).",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "zen-model-restoration-and-dashboard-loader-fix-20260224",
-        "summary": "Restore Zen GLM-5/Kimi K2.5 aliases across config catalogs and fix dashboard API module resolution to remove build warnings.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-24T22:50:00Z"
-      },
-      {
-        "id": "model-routing-and-environment-hardening-2-22-2026",
-        "summary": "Further harden model routing and environment configuration with post-mid-2025 policy alignment, resiliency improvements, and Symbiotic reference cleanup.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T17:30:00Z"
-      },
-      {
-        "id": "provider-config-and-cerebras-tpm-20260215",
-        "summary": "Expanded provider config coverage and hardened Cerebras TPM handling",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T22:20:00Z"
-      },
-      {
-        "id": "portability-integrity-pass-20260215",
-        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T12:30:00Z"
-      }
-    ],
     "mcp-servers/opencode-mcp-config.json": [
-      {
-        "id": "memory-graph-mcp-config-20260313",
-        "summary": "Point host-facing memory-graph MCP config sources at the new stdio wrapper entrypoint instead of the raw CLI entrypoint.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T16:41:00Z"
-      },
       {
         "id": "context-governor-mcp-config-20260313",
         "summary": "Point host-facing context-governor MCP config at the new stdio wrapper entrypoint across canonical and template config files.",
@@ -8174,12 +9214,6 @@
     ],
     "mcp-servers/opencode-mcp-config.template.json": [
       {
-        "id": "memory-graph-mcp-config-20260313",
-        "summary": "Point host-facing memory-graph MCP config sources at the new stdio wrapper entrypoint instead of the raw CLI entrypoint.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T16:41:00Z"
-      },
-      {
         "id": "context-governor-mcp-config-20260313",
         "summary": "Point host-facing context-governor MCP config at the new stdio wrapper entrypoint across canonical and template config files.",
         "risk_level": "low",
@@ -8190,124 +9224,6 @@
         "summary": "Point the host-facing runbooks MCP entries at the new stdio wrapper entrypoint in canonical OpenCode config sources.",
         "risk_level": "low",
         "timestamp": "2026-03-13T01:15:00Z"
-      }
-    ],
-    "packages/opencode-memory-graph": [
-      {
-        "id": "memory-graph-mcp-wrapper-20260313",
-        "summary": "Add a stdio MCP wrapper for memory-graph so graph build, activation, and query operations are available through a real host-facing MCP server.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T16:40:00Z"
-      },
-      {
-        "id": "wave8-graph-v3-getnode-fix-20260308",
-        "summary": "Add missing getNode(id) method to MemoryGraphV3 that delegates to NodeStore.get(id). Fixes TypeError in store.test.js that prevented 54 MemoryGraphV3 tests from running.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:30:00Z"
-      },
-      {
-        "id": "remove-orphaned-exports-20260225",
-        "summary": "Removed 9 orphaned exports with zero cross-package imports: circuitBreakerRegistry/CircuitBreakerRegistry/CircuitOpenError from circuit-breaker, RequestTracer/LOG_LEVELS from logger, KNOWN_BAD_PLUGINS/DEFAULT_MCPS from plugin-healthd, toJSON/toCSV from memory-graph.",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T22:00:00Z"
-      },
-      {
-        "id": "unused-deps-removal-20260225",
-        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00.000Z"
-      },
-      {
-        "id": "reduce-explicit-any-types-20260225",
-        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "deprecated-functions-removal-20260225",
-        "summary": "Remove 5 deprecated functions across 3 packages to improve code maintainability",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "unused-exports-removal-20260225",
-        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "round1-3-integrations-complete-20260217",
-        "summary": "All 30 integration items completed across 3 rounds - fully interconnected packages",
-        "risk_level": "low",
-        "timestamp": "2026-02-17T00:00:00Z"
-      },
-      {
-        "id": "atomic-write-sweep-learning-state-20260216",
-        "summary": "Applied atomic JSON write pattern to remaining learning and state persistence files",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T01:20:00Z"
-      },
-      {
-        "id": "dashboard-v2-implementation-20260215",
-        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:00:00Z"
-      },
-      {
-        "id": "portability-integrity-pass-20260215",
-        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T12:30:00Z"
-      },
-      {
-        "id": "workspace-deps-fix-20260215",
-        "summary": "Fixed workspace dependency version mismatch preventing bun install, made git hooks executable, updated CLI shebangs for cross-platform compatibility",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T08:00:00Z"
-      }
-    ],
-    "bun.lock": [
-      {
-        "id": "memory-graph-mcp-wrapper-20260313",
-        "summary": "Add a stdio MCP wrapper for memory-graph so graph build, activation, and query operations are available through a real host-facing MCP server.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T16:40:00Z"
-      },
-      {
-        "id": "context-governor-mcp-wrapper-20260313",
-        "summary": "Add a real stdio MCP wrapper for opencode-context-governor using the MCP SDK and cover its tool handlers with package-level tests.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-13T16:15:00Z"
-      },
-      {
-        "id": "runbooks-mcp-wrapper-20260313",
-        "summary": "Add a stdio MCP wrapper for opencode-runbooks and package metadata needed to expose runbook diagnostics/remedy tools over MCP.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T01:10:00Z"
-      },
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "unused-deps-removal-20260225",
-        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00.000Z"
-      },
-      {
-        "id": "knowledge-graph-hierarchy-lod-20260220",
-        "summary": "Added hierarchical knowledge graph views with adaptive edge decluttering and API shaping controls",
-        "risk_level": "medium",
-        "timestamp": "2026-02-20T06:00:00-05:00"
-      },
-      {
-        "id": "workspace-deps-fix-20260215",
-        "summary": "Fixed workspace dependency version mismatch preventing bun install, made git hooks executable, updated CLI shebangs for cross-platform compatibility",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T08:00:00Z"
       }
     ],
     "packages/opencode-context-governor": [
@@ -8394,6 +9310,44 @@
         "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
         "risk_level": "low",
         "timestamp": "2026-02-15T12:30:00Z"
+      }
+    ],
+    "bun.lock": [
+      {
+        "id": "context-governor-mcp-wrapper-20260313",
+        "summary": "Add a real stdio MCP wrapper for opencode-context-governor using the MCP SDK and cover its tool handlers with package-level tests.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-13T16:15:00Z"
+      },
+      {
+        "id": "runbooks-mcp-wrapper-20260313",
+        "summary": "Add a stdio MCP wrapper for opencode-runbooks and package metadata needed to expose runbook diagnostics/remedy tools over MCP.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T01:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "unused-deps-removal-20260225",
+        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00.000Z"
+      },
+      {
+        "id": "knowledge-graph-hierarchy-lod-20260220",
+        "summary": "Added hierarchical knowledge graph views with adaptive edge decluttering and API shaping controls",
+        "risk_level": "medium",
+        "timestamp": "2026-02-20T06:00:00-05:00"
+      },
+      {
+        "id": "workspace-deps-fix-20260215",
+        "summary": "Fixed workspace dependency version mismatch preventing bun install, made git hooks executable, updated CLI shebangs for cross-platform compatibility",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T08:00:00Z"
       }
     ],
     "scripts/copy-config.mjs": [
@@ -8514,272 +9468,6 @@
         "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
         "risk_level": "medium",
         "timestamp": "2026-02-25T12:00:00Z"
-      }
-    ],
-    "packages/opencode-dashboard": [
-      {
-        "id": "dashboard-internal-runtime-observability-20260313",
-        "summary": "Expose internal runtime observability in the dashboard orchestration API and page, including bootstrap package status, context budget pressure, workflow hooks, model-router collaborators, and meta-awareness source state.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T00:05:00Z"
-      },
-      {
-        "id": "package-smoke-entrypoints-20260310",
-        "summary": "Add test:smoke entrypoints for critical packages so workspace-level smoke orchestration can verify package surfaces consistently.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:55:00-04:00"
-      },
-      {
-        "id": "dashboard-budget-route-20260310",
-        "summary": "Add the missing dashboard budget API route so observability can aggregate per-session runtime budget files that the PostToolUse hook already writes.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T01:58:00-04:00"
-      },
-      {
-        "id": "dashboard-monitoring-routes-20260309",
-        "summary": "Add dashboard endpoints and monitoring-route support for compression and Context7 observability, backed by the shared monitoring collector.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T22:47:00-04:00"
-      },
-      {
-        "id": "wave10-dashboard-deploy-security",
-        "summary": "Add dashboard observability page (pipeline metrics, cache rates, meta-KB health), deployment automation workflow (dev/staging/prod stages), and CI security scanning (dependency audit + integrity-guard)",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T22:50:00Z"
-      },
-      {
-        "id": "wave10-ci-matrix-test-consolidation",
-        "summary": "Add per-package CI test matrix (28 packages), consolidate dashboard tests/ into test/, and add critical plugin contract integration tests (healthd, lifecycle, preload-skills)",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T22:36:00Z"
-      },
-      {
-        "id": "wave11-t18-t15-budget-alerts-dashboard",
-        "summary": "Add BUDGET_THRESHOLD alert type with evaluateBudget() to AlertManager (75/80/95% thresholds). Add Context Budget dashboard widget with compression stats, Context7 stats, and color-coded budget bars to observability page.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:20:00Z"
-      },
-      {
-        "id": "dashboard-api-docs-complete-20260308",
-        "summary": "Rewrote packages/opencode-dashboard/API.md from source: expanded from 20 to all 31 endpoints, corrected inaccurate response shapes, added SSE events, config read/write, docs browser, frontier-status, retrieval-quality, plugin-supervisor, policy-review, runs, all orchestration sub-routes, model lifecycle/audit/transition, skills promotions, status unified/providers/usage, and monitoring ingest.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave9-dashboard-meta-kb-20260308",
-        "summary": "Add /api/meta-kb dashboard endpoint — returns index age, record counts, category/risk breakdown, anti-pattern/convention/command counts, and inline drift status",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "skill-rl-path-standardization-20260227",
-        "summary": "Standardize SkillRLManager persistence path to ~/.opencode/skill-rl.json across all consumers. Fixed 3 divergent path references: (1) index.js:130 was using ./skill-rl-state.json (relative, wrong), (2) models/route.ts:156 was using skill-rl-state.json (wrong suffix), (3) file-watcher.ts:45 was using skill-rl-state.json (wrong suffix). Added os.homedir() canonical path with one-time migration from legacy ./skill-rl-state.json. Added production SkillRLManager instantiation in create-managers.ts (previously only instantiated in 5 test files — never in production).",
-        "risk_level": "medium",
-        "timestamp": "2026-02-27T00:01:00Z"
-      },
-      {
-        "id": "nextjs-cve-patch-20260225",
-        "summary": "Patch critical CVE in Next.js by updating from 14.2.3 to 14.2.10 in opencode-dashboard.",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00Z"
-      },
-      {
-        "id": "unused-deps-removal-20260225",
-        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00.000Z"
-      },
-      {
-        "id": "reduce-explicit-any-types-20260225",
-        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "event-store-lost-update-fix-20260225",
-        "summary": "Fixed lost-update race condition in persistEvents by moving read-merge-write inside the serialized write queue. Previously, callers read stale existingEvents outside the queue, so concurrent writers overwrote each other's events.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T10:00:00Z"
-      },
-      {
-        "id": "dashboard-async-migration-20260225",
-        "summary": "Converted sync I/O to async in 9 dashboard files + 7 callers. Write paths use serialized write queue (_writePromise pattern) to prevent concurrent corruption. Verification read in write-json-atomic.ts intentionally kept sync. Added 7 regression tests for event-store async atomicWrite.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "env-validation-20260225",
-        "summary": "Added startup validation for security-critical environment variables in dashboard routes to warn operators of missing signing keys and write tokens",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "event-store-error-logging-20260225",
-        "summary": "Added console.warn logging to 2 empty catch blocks in event-store.js that were swallowing cleanup errors after write/rename failures.",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "prototype-pollution-fix-20260225",
-        "summary": "Security hardening: prevent prototype pollution in plugin lifecycle supervisor",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "zen-model-restoration-and-dashboard-loader-fix-20260224",
-        "summary": "Restore Zen GLM-5/Kimi K2.5 aliases across config catalogs and fix dashboard API module resolution to remove build warnings.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-24T22:50:00Z"
-      },
-      {
-        "id": "orchestration-intelligence-foundation-20260224",
-        "summary": "Add orchestration intelligence foundation with meta-awareness telemetry, scoring, stability guardrails, dashboard APIs/UI, and central-config controls.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-24T22:10:00Z"
-      },
-      {
-        "id": "dashboard-api-wave6-20260224",
-        "summary": "Added lifecycle management API endpoints to dashboard for model state management",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T07:30:00Z"
-      },
-      {
-        "id": "dashboard-frontend-stability-20260223",
-        "summary": "Stabilize dashboard data APIs and rendering behavior, including learning schema normalization, knowledge graph scaling, resilient workflow naming, and orchestration endpoint latency reduction.",
-        "risk_level": "low",
-        "timestamp": "2026-02-23T22:50:00Z"
-      },
-      {
-        "id": "frontier-control-plane-foundation-20260222",
-        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T03:55:00Z"
-      },
-      {
-        "id": "knowledge-graph-hierarchy-lod-20260220",
-        "summary": "Added hierarchical knowledge graph views with adaptive edge decluttering and API shaping controls",
-        "risk_level": "medium",
-        "timestamp": "2026-02-20T06:00:00-05:00"
-      },
-      {
-        "id": "token-counts-workflows-20260219",
-        "summary": "Add token counts to workflow runs in dashboard",
-        "risk_level": "low",
-        "timestamp": "2026-02-19T02:30:00.000Z"
-      },
-      {
-        "id": "token-counting-dashboard-20260219",
-        "summary": "Add true token counting to workflows dashboard with input/output/total token tracking",
-        "risk_level": "low",
-        "timestamp": "2026-02-19T01:00:00.000Z"
-      },
-      {
-        "id": "fullframe-graph-and-workflow-monitor-population-20260216",
-        "summary": "Moved interactive graph to dedicated full-frame route and wired workflow monitor to real run/thread data",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T03:10:00Z"
-      },
-      {
-        "id": "provider-cache-metrics-and-fallback-reason-tests-20260216",
-        "summary": "Added provider probe cache metrics visibility and fallback-reason regression coverage",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T02:20:00Z"
-      },
-      {
-        "id": "p2-hardening-policies-fallback-sse-20260216",
-        "summary": "Completed P2 hardening for policies validation, fallback reason typing, and SSE client cleanup",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T02:05:00Z"
-      },
-      {
-        "id": "api-fallback-envelope-normalization-20260216",
-        "summary": "Normalized fallback envelope semantics across RL, Skills, and Learning APIs",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T01:45:00Z"
-      },
-      {
-        "id": "provider-probe-cache-backoff-20260216",
-        "summary": "Added in-memory cache/backoff for provider health probes",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T01:35:00Z"
-      },
-      {
-        "id": "gemini-model-correction-20260215",
-        "summary": "Corrected Gemini model names from non-existent gemini-2.5-* to official gemini-2.0-* across entire codebase",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:27:00-05:00"
-      },
-      {
-        "id": "model-validation-script-20260215",
-        "summary": "Created validate-models.mjs script for automated model catalog validation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T19:48:00-05:00"
-      },
-      {
-        "id": "configviewer-typed-intent-routing-20260215",
-        "summary": "Extended ConfigViewer with typed intent-routing editor controls",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T00:05:00Z"
-      },
-      {
-        "id": "provider-telemetry-ui-enhancements-20260215",
-        "summary": "Enhanced provider telemetry dashboard with pressure analytics and hot model visibility",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T23:55:00Z"
-      },
-      {
-        "id": "knowledge-graph-drag-zoom-20260215",
-        "summary": "Improved knowledge graph drag/zoom UX with viewport persistence and position retention",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T23:30:00Z"
-      },
-      {
-        "id": "models-routing-matrix-ui-20260215",
-        "summary": "Enhanced models routing matrix UI with filtering, sorting, and coverage analytics",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T23:05:00Z"
-      },
-      {
-        "id": "weekly-model-sync-and-health-verification-20260215",
-        "summary": "Added weekly model sync automation and model catalog verification in health endpoint",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T22:45:00Z"
-      },
-      {
-        "id": "model-validation-critical-fixes-20260215",
-        "summary": "Fixed critical model issues, provider key rotation race conditions, and added model catalog validation groundwork.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-15T22:00:00Z"
-      },
-      {
-        "id": "dashboards-full-implementation-20260215",
-        "summary": "Complete dashboard implementation with all 6 roadmap features: SkillsRL APIs stabilized, Knowledge Graph interactive with React Flow, provider status unified tracking, ConfigViewer with Zod forms editors, Models 10x6 routing matrix UI, fresh-machine smoke pipeline.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T21:00:00Z"
-      },
-      {
-        "id": "provider-status-atomicity-20260215",
-        "summary": "Fixed provider-status.json write to use atomic temp-file pattern, preventing corruption on mid-write interruption.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:15:00Z"
-      },
-      {
-        "id": "dashboard-v2-implementation-20260215",
-        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:00:00Z"
-      },
-      {
-        "id": "skillsrl-api-fixes-20260215",
-        "summary": "Stabilized Skills RL backend APIs with contracts normalization and missing /api/rl endpoint creation.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T19:30:00Z"
-      },
-      {
-        "id": "portability-integrity-pass-20260215",
-        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T12:30:00Z"
       }
     ],
     "scripts/verify-portability.mjs": [
@@ -9258,242 +9946,6 @@
         "summary": "Add a runtime workflow compliance harness that exercises executeTaskWithEvidence end-to-end and validates DCP/context-budget/distill recommendations propagate into real execution.",
         "risk_level": "medium",
         "timestamp": "2026-03-12T15:58:30Z"
-      }
-    ],
-    "packages/opencode-model-router-x": [
-      {
-        "id": "model-router-logging-cleanup-20260312",
-        "summary": "Normalize model-router helper logging to prefer injected logger paths and verify the helper behavior with constructor-injection tests.",
-        "risk_level": "low",
-        "timestamp": "2026-03-12T15:45:00Z"
-      },
-      {
-        "id": "model-router-constructor-injection-20260312",
-        "summary": "Refactor model-router-x to prefer injected logger, validator, error taxonomy, health-check, meta-awareness tracker, circuit-breaker class, and integration-layer class while fixing health-check subsystem registration shape.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-12T03:36:00.000Z"
-      },
-      {
-        "id": "circuit-breaker-dep-fix-20260311",
-        "summary": "Re-add circuit-breaker workspace dep to model-router-x that was incorrectly removed as phantom. The @jackoatmon/ scoped and ../../ relative path import patterns were missed by audit grep.",
-        "risk_level": "low",
-        "timestamp": "2026-03-12T01:20:00Z"
-      },
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "package-wiring-cleanup-20260311",
-        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T20:20:00Z"
-      },
-      {
-        "id": "wave11-t5t7-router-perf-20260308",
-        "summary": "Add O(1) model ID resolution cache and skill-RL memoization to ModelRouter for hot-path performance optimization",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:35:00Z"
-      },
-      {
-        "id": "wave11-t12-t13-perf-eviction-20260308",
-        "summary": "T12: Replace O(n log n) push+sort with O(log n) binary insertion in ModelPerformanceTracker latency history. T13: Add TTL-based eviction (1-hour) to IntegrationLayer taskContextMap and wire Governor cleanupStaleSessions on hourly unref'd interval.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:10:00Z"
-      },
-      {
-        "id": "wave11-t21-phase1-optimization-tests",
-        "summary": "T21: Added 31 isolation-pattern tests (73 assertions) for Phase 1 optimizations — model ID resolution cache (T5, 6 tests), skill-RL memoization (T7, 4 tests), budget-aware scoring penalty (T4, 10 tests), advice cache (T6, 11 tests). Discovered JS falsy-zero quirk: costPenalties[trivial]=0 with || operator applies default 0.05 penalty.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:10:00Z"
-      },
-      {
-        "id": "wave10-capability-routing-tracing",
-        "summary": "Add MODEL_CAPABILITIES registry and filterByCapabilities() pre-filter to tier-router for capability-based model selection (vision, tools, reasoning, large_context). Add AgentTracer class to opencode-logger for high-level execution tracing (task dispatch, model selection, skill loading) with Langfuse and structured log output.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-08T22:51:00Z"
-      },
-      {
-        "id": "wave10-t17-benchmark-cost-tests",
-        "summary": "Add 17 tests for benchmark bonus (T12) and cost-efficiency scoring (T13) in isolation pattern. Tests cover: bonus range, unknown models, cap enforcement, monotonicity, provider coverage, cost ordering, and integration bounds.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:25:00Z"
-      },
-      {
-        "id": "wave11-t19-startup-instrumentation",
-        "summary": "Add performance.now() startup time instrumentation to IntegrationLayer, ModelRouter, and LearningEngine constructors. Logs [Startup] ComponentName: Xms on initialization.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:25:00Z"
-      },
-      {
-        "id": "wave10-t12-t13-benchmark-cost-scoring",
-        "summary": "Add benchmark bonus scoring (T12) and cost-efficiency factor (T13) to ModelRouter._scoreModel(). BENCHMARK_SCORES registry with HumanEval/MBPP pass@1 for 16 models. _applyBenchmarkBonus() gives 0-0.15 supplementary bonus. _applyCostEfficiency() uses TokenCostCalculator pricing for 0-0.05 cost bonus. Neither changes existing scoring weights.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-08T19:20:00Z"
-      },
-      {
-        "id": "audit-namespace-fallback-20260308",
-        "summary": "Add relative-path fallback requires for all 11 @jackoatmon/ references in model-router-x — prevents MODULE_NOT_FOUND when running outside Bun workspace linking",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "namespace-drift-part2-20260308",
-        "summary": "Fix namespace drift in 5 remaining package.json name fields and repair 2 broken cross-package dependency references. Packages fixed: integration-layer, model-router-x, plugin-lifecycle, proofcheck, shared-orchestration. Cross-deps fixed: model-router-x deps on context-governor and fallback-doctor; integration-layer peerDeps on skill-rl-manager, learning-engine, shared-orchestration.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave9-model-router-meta-kb-20260308",
-        "summary": "Extend model-router _applyLearningPenalties to incorporate meta-KB signals — warnings reduce score (capped 0.25), positive evidence provides bonus (capped 0.1)",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "quota-signal-lock-20260307",
-        "summary": "Serialize quota-header and failure signal updates through a shared rotator mutex to prevent race-driven 429 propagation drift, and record the completion in config precedence docs.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-07T02:52:00Z"
-      },
-      {
-        "id": "external-call-timeouts-20260225",
-        "summary": "Add explicit timeouts to 7 external call sites that could hang indefinitely",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T17:00:00Z"
-      },
-      {
-        "id": "workspace-deps-standardization-20260225",
-        "summary": "Standardized all internal workspace dependencies to use workspace:* spec instead of file: references. Updated opencode-integration-layer peerDependencies and restored opencode-model-router-x dependencies with proper workspace resolution.",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:30:00Z"
-      },
-      {
-        "id": "unused-deps-removal-20260225",
-        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00.000Z"
-      },
-      {
-        "id": "dead-code-cleanup-unused-vars-20260225",
-        "summary": "Remove 6 unused variable declarations across 5 packages",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T15:40:00Z"
-      },
-      {
-        "id": "json-parse-migration-20260225",
-        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "model-router-x-discovery-cache-perf-20260225",
-        "summary": "Optimize model-discovery.js: bounded cache with TTL, parallel provider fetching, early exit on invalid JSON",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T03:15:00.000Z"
-      },
-      {
-        "id": "unused-exports-removal-20260225",
-        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "zen-model-restoration-and-dashboard-loader-fix-20260224",
-        "summary": "Restore Zen GLM-5/Kimi K2.5 aliases across config catalogs and fix dashboard API module resolution to remove build warnings.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-24T22:50:00Z"
-      },
-      {
-        "id": "orchestration-intelligence-foundation-20260224",
-        "summary": "Add orchestration intelligence foundation with meta-awareness telemetry, scoring, stability guardrails, dashboard APIs/UI, and central-config controls.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-24T22:10:00Z"
-      },
-      {
-        "id": "model-discovery-all-providers-fail-20260224",
-        "summary": "Detect and surface when all providers fail in ModelDiscovery.pollOnce() instead of silently returning stale cache",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "resilient-routing-components-20260223",
-        "summary": "Add resilient subagent routing components and antigravity model mappings with dedicated tests and design plan coverage.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-23T23:24:00Z"
-      },
-      {
-        "id": "audit-hardening-20260223",
-        "summary": "Comprehensive audit hardening: timeouts, path resolver, strict schema/env checks, goraphdb retries, health check classification",
-        "risk_level": "medium",
-        "timestamp": "2026-02-23T17:38:39Z"
-      },
-      {
-        "id": "model-routing-and-environment-hardening-2-22-2026",
-        "summary": "Further harden model routing and environment configuration with post-mid-2025 policy alignment, resiliency improvements, and Symbiotic reference cleanup.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T17:30:00Z"
-      },
-      {
-        "id": "frontier-control-plane-foundation-20260222",
-        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T03:55:00Z"
-      },
-      {
-        "id": "round1-3-integrations-complete-20260217",
-        "summary": "All 30 integration items completed across 3 rounds - fully interconnected packages",
-        "risk_level": "low",
-        "timestamp": "2026-02-17T00:00:00Z"
-      },
-      {
-        "id": "gemini-model-correction-20260215",
-        "summary": "Corrected Gemini model names from non-existent gemini-2.5-* to official gemini-2.0-* across entire codebase",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:27:00-05:00"
-      },
-      {
-        "id": "model-validation-script-20260215",
-        "summary": "Created validate-models.mjs script for automated model catalog validation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T19:48:00-05:00"
-      },
-      {
-        "id": "rotator-sync-contract-fix-20260216",
-        "summary": "Fixed key rotator/model router contract mismatch by restoring synchronous key selection",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T00:40:00Z"
-      },
-      {
-        "id": "config-precedence-and-quota-lock-20260215",
-        "summary": "Documented 4-tier config precedence, added quota signal lock, fixed llama-3.1-405b",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T19:28:00-05:00"
-      },
-      {
-        "id": "provider-config-and-cerebras-tpm-20260215",
-        "summary": "Expanded provider config coverage and hardened Cerebras TPM handling",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T22:20:00Z"
-      },
-      {
-        "id": "fallback-layer-strategy-complete-20260215",
-        "summary": "Completed fallback-layer-strategy.js MODEL_CATALOG with all providers and models",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T22:00:00Z"
-      },
-      {
-        "id": "model-validation-critical-fixes-20260215",
-        "summary": "Fixed critical model issues, provider key rotation race conditions, and added model catalog validation groundwork.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-15T22:00:00Z"
-      },
-      {
-        "id": "fallback-matrix-rebuild-20260215",
-        "summary": "Rebuilt complete fallback matrix with 6-layer coverage for all 10 intents",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:45:00Z"
       }
     ],
     ".githooks/pre-commit": [
@@ -10036,80 +10488,6 @@
         "timestamp": "2026-03-08T22:36:00Z"
       }
     ],
-    "packages/opencode-plugin-preload-skills": [
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "preload-runtime-contract-20260310",
-        "summary": "Clarify the preload-skills runtime contract by testing the IntegrationLayer boundary and updating the README to document selectTools(), callable tool IDs, and the external host's responsibility to consume them.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T14:45:00-04:00"
-      },
-      {
-        "id": "preload-mcp-tool-expansion-20260310",
-        "summary": "Expand abstract MCP selections in the preload-skills plugin into actual callable tool IDs so implicit routing can point at invocable runtime tools instead of server-name hints.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T14:20:00-04:00"
-      },
-      {
-        "id": "context-budget-routing-20260310",
-        "summary": "Add an explicit context-budget routing category so budget and token-limit prompts implicitly surface opencode-context-governor alongside distill instead of falling back to generic AI/ML routing.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T13:55:00-04:00"
-      },
-      {
-        "id": "preload-tier-mcps-20260310",
-        "summary": "Fix the preload-skills plugin so Tier 0 and Tier 1 MCP matches are carried into the selected tool surface instead of being silently dropped.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:31:00-04:00"
-      },
-      {
-        "id": "wave9-meta-context-injector-20260308",
-        "summary": "Create meta-context injector module for preload-skills that generates 200-token-capped markdown context blocks from meta-KB, wire into selectTools()",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T12:30:00Z"
-      },
-      {
-        "id": "wave8-readme-model-plugin-packages-20260308",
-        "summary": "Add README.md to four model and plugin packages that had none: opencode-model-benchmark, opencode-model-sync, opencode-plugin-lifecycle, opencode-plugin-preload-skills. Completes Wave 8C task 8 for the model/plugin tier.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:20:00Z"
-      },
-      {
-        "id": "namespace-drift-part1-20260308",
-        "summary": "Fix namespace drift in 6 package.json name fields: opencode-context-governor, opencode-crash-guard, opencode-eval-harness, opencode-fallback-doctor, opencode-plugin-healthd, opencode-plugin-preload-skills. Renamed from @jackoatmon/* and @opencode/* scoped names to flat opencode-* names matching directory layout.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "smoke-tests-16-packages-20260225",
-        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:55:00Z"
-      },
-      {
-        "id": "json-parse-migration-20260225",
-        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "unused-exports-removal-20260225",
-        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "dashboards-full-implementation-20260215",
-        "summary": "Complete dashboard implementation with all 6 roadmap features: SkillsRL APIs stabilized, Knowledge Graph interactive with React Flow, provider status unified tracking, ConfigViewer with Zod forms editors, Models 10x6 routing matrix UI, fresh-machine smoke pipeline.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T21:00:00Z"
-      }
-    ],
     "packages/opencode-sisyphus-state": [
       {
         "id": "package-mcp-alignment-20260311",
@@ -10478,260 +10856,6 @@
         "summary": "Implement Wave 4 assessment infrastructure for automated model management: model assessor with real benchmark execution (HumanEval, MBPP, latency) and metrics collector for 4-pillar metrics (accuracy, latency, cost, robustness) with SQLite persistence and z-score normalization.",
         "risk_level": "low",
         "timestamp": "2026-02-24T00:00:00Z"
-      }
-    ],
-    "packages/opencode-learning-engine": [
-      {
-        "id": "package-smoke-entrypoints-20260310",
-        "summary": "Add test:smoke entrypoints for critical packages so workspace-level smoke orchestration can verify package surfaces consistently.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:55:00-04:00"
-      },
-      {
-        "id": "runtime-mcp-telemetry-coverage-20260310",
-        "summary": "Extend runtime MCP telemetry so Supermemory mode-specific calls and GitHub grep searches are recorded with canonical tool identities, and mirror those identities in the learning-engine catalog.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T00:32:00-04:00"
-      },
-      {
-        "id": "mcp-file-bridge-tests-20260309",
-        "summary": "Add 12 tests for file-based fallback in getSessionMcpInvocations(). Covers readInvocationsFromFile contract, MCP category filtering (memory/docs/web/context), deduplication, session ID isolation, multi-category sessions, and edge cases (null session, non-MCP tools, session_list/read/search tools).",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T12:05:00Z"
-      },
-      {
-        "id": "mcp-file-bridge-fallback-20260309",
-        "summary": "Add file-based fallback to getSessionMcpInvocations() so runtime PostToolUse hook data (written to invocations.json out-of-process) is merged with in-memory _testLog entries. Adds readInvocationsFromFile() and entry-level category fallback for runtime hook entries not in AVAILABLE_TOOLS catalog.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T12:00:00Z"
-      },
-      {
-        "id": "mcp-skillrl-affinity-tests-20260309",
-        "summary": "Add 22 tests covering MCP → SkillRL affinity bridge: getSessionMcpInvocations (10), tool_affinities tracking (8), IntegrationLayer bridge wiring (4).",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T04:50:00Z"
-      },
-      {
-        "id": "mcp-skillrl-affinity-bridge-20260309",
-        "summary": "Wire MCP tool invocation data into SkillRL outcomes so each skill accumulates tool_affinities counters. Adds getSessionMcpInvocations() to tool-usage-tracker, tool_affinities tracking in SkillRLManager.learnFromOutcome(), and fail-open bridge in IntegrationLayer.executeTaskWithEvidence().",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T04:45:00Z"
-      },
-      {
-        "id": "wave11-t6-advice-cache-20260308",
-        "summary": "Add Map-based advice cache to LearningEngine.advise() with 5-min TTL, session-signal bypass, and invalidation on learnFromOutcome",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:40:00Z"
-      },
-      {
-        "id": "wave11-t21-phase1-optimization-tests",
-        "summary": "T21: Added 31 isolation-pattern tests (73 assertions) for Phase 1 optimizations — model ID resolution cache (T5, 6 tests), skill-RL memoization (T7, 4 tests), budget-aware scoring penalty (T4, 10 tests), advice cache (T6, 11 tests). Discovered JS falsy-zero quirk: costPenalties[trivial]=0 with || operator applies default 0.05 penalty.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:10:00Z"
-      },
-      {
-        "id": "wave11-t19-startup-instrumentation",
-        "summary": "Add performance.now() startup time instrumentation to IntegrationLayer, ModelRouter, and LearningEngine constructors. Logs [Startup] ComponentName: Xms on initialization.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:25:00Z"
-      },
-      {
-        "id": "wave10-phase1-tests-20260308",
-        "summary": "Wave 10 Phase 1 test coverage expansion: opencode-validator (65 tests), opencode-memory-bus SQLite/FTS5 spike (12 tests), opencode-learning-engine advise() edge cases (10 tests)",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:20:00Z"
-      },
-      {
-        "id": "skill-upgrade-advisor-affinity-fix-20260308",
-        "summary": "Fixed 3 dangling SKILL_AFFINITY references in orchestration-advisor.js: refactor->using-git-worktrees, playwright->agent-browser, frontend-design->dev-browser. All advisor skill references now resolve to canonical registry entries.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T15:30:00Z"
-      },
-      {
-        "id": "wave9-meta-kb-routing-20260308",
-        "summary": "Register adviceGenerated hook that adjusts routing confidence based on meta-KB anti-pattern matches and adds meta_kb_warnings/meta_kb_evidence counts to routing output",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T12:00:00Z"
-      },
-      {
-        "id": "wave8-core-decay-tests-20260308",
-        "summary": "Add 18-test regression suite for core decay rules in opencode-learning-engine: covers getAdaptiveWeight, markAsCore, and updateCoreLearning behaviour including the invariant that core-persistence learnings never decay below weight 1.0.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:10:00Z"
-      },
-      {
-        "id": "wave8-integration-baseline-fix-20260308",
-        "summary": "Add opencode-safe-io workspace dep to opencode-learning-engine so session-key-contract integration test resolves its import. Lower integrity-baseline minimumCount from 35 to 8 and sync required skills list to the 8 skills actually installed (budget-aware-router, code-doctor, evaluation-harness-builder, incident-commander, innovation-migration-planner, research-builder, skill-orchestrator-runtime, token-reporter).",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave9-meta-kb-reader-20260308",
-        "summary": "Add MetaKBReader module to opencode-learning-engine. Fail-open reader that loads meta-knowledge-index.json into memory, queries by affected_path and task_type with 200-token output cap. 12 tests covering load/query/isStale/truncation.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave9-meta-kb-wiring-20260308",
-        "summary": "Wire MetaKBReader into LearningEngine.advise() method. Advice output now includes meta_context field with warnings, suggestions, and conventions from the meta-knowledge index. Fail-open: returns empty arrays if index unavailable. Adds meta_context_stale flag when index > 24h old. 6 integration tests.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave8-setup-fixes-20260307",
-        "summary": "Setup script improvements: auto-load .env, set SHELL, fix PowerShell policy, non-strict verify; Bun version bump 1.3.9->1.3.10; remove dead import",
-        "risk_level": "low",
-        "timestamp": "2026-03-07T23:45:00Z"
-      },
-      {
-        "id": "telemetry-structured-outcomes-20260304",
-        "summary": "Persist structured invocation error outcome fields and canonical session linkage, with regression coverage for direct prune hook telemetry.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-04T02:30:00Z"
-      },
-      {
-        "id": "telemetry-pass2-hardening-20260227",
-        "summary": "Pass 2 addendum: hardened telemetry pipeline with canonical tool name normalization, MCP invocation depth upgrade, runtime parity verification, E2E contract tests, session key contract fix, health check config alignment, and context management completeness check.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T12:45:00Z"
-      },
-      {
-        "id": "skill-routing-architecture-upgrade-20260227",
-        "summary": "Introduce hierarchical skill routing metadata, overlap governance, and quality gates for skill selection",
-        "risk_level": "medium",
-        "timestamp": "2026-02-27T04:35:00Z"
-      },
-      {
-        "id": "tool-usage-tracker-logInvocation-export-20260227",
-        "summary": "Export logInvocation from tool-usage-tracker and add missing readJsonAsync/initAsync helpers. logInvocation was fully implemented but not exported in module.exports, making it dead code. readJsonAsync and initAsync were called inside logInvocation but never defined in the file or imported from opencode-safe-io. Added minimal implementations of both helpers. This change is the foundation for Task 2–4 of context-distill-tracking-fixes plan: wire MCP tool telemetry into the tracking pipeline.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T00:00:00Z"
-      },
-      {
-        "id": "namespace-drift-remaining-fixes-20260225",
-        "summary": "Fixed remaining @jackoatmon scoped imports in crash-guard, integration-layer, and learning-engine",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T22:50:00.000Z"
-      },
-      {
-        "id": "exports-maps-20260225",
-        "summary": "Add exports maps to learning-engine and health-check packages for clean public API",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T12:50:00Z"
-      },
-      {
-        "id": "json-parse-migration-20260225",
-        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "reduce-explicit-any-types-20260225",
-        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "wave-1-async-io-complete-20260225",
-        "summary": "Wave 1: Async I/O conversion for config-loader, learning-engine, and model-manager to eliminate event loop blocking",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T02:32:00.000Z"
-      },
-      {
-        "id": "deprecated-functions-removal-20260225",
-        "summary": "Remove 5 deprecated functions across 3 packages to improve code maintainability",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "orphan-module-wiring-20260225",
-        "summary": "Wire orphan modules: getSchedulerTelemetry + tool-usage-tracker export",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "tool-usage-tracker-race-fix-20260225",
-        "summary": "Fix read-modify-write race in logInvocation and updateMetrics. Previously, concurrent callers read stale JSON snapshot outside the _writePromise queue, mutated in memory, then only serialized the write — last writer wins, earlier entries lost. Now the entire read-mutate-write transaction runs inside the _writePromise chain. Atomic write (tmp+rename with EPERM fallback) inlined to avoid double-queuing.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "unused-exports-removal-20260225",
-        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "meta-awareness-test-harness-20260224",
-        "summary": "Add dedicated unit coverage for meta-awareness rules/stability/rollups/tracker and wire unit tests into the learning-engine test script.",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T22:35:00Z"
-      },
-      {
-        "id": "orchestration-intelligence-foundation-20260224",
-        "summary": "Add orchestration intelligence foundation with meta-awareness telemetry, scoring, stability guardrails, dashboard APIs/UI, and central-config controls.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-24T22:10:00Z"
-      },
-      {
-        "id": "learning-engine-jsonl-rotation-20260224",
-        "summary": "Added JSONL rotation to MetaAwarenessTracker._appendEvent() to prevent unbounded telemetry file growth",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "learning-engine-pattern-extractor-debug-logging-20260224",
-        "summary": "Added DEBUG-guarded logging to empty catch blocks in PatternExtractor to surface parse errors",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "learning-engine-rollup-debounce-20260224",
-        "summary": "Added in-memory cache and debounced disk writes to MetaAwarenessTracker rollups",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "tool-usage-tracker-async-conversion-20260224",
-        "summary": "Full async conversion of tool-usage-tracker.js hot-path functions. Added writeJsonAsync with atomic tmp+rename and serialized write queue (_writePromise chain). Added initAsync with _initPromise singleton. All 7 hot-path functions converted to async. trackEvent calls now fire-and-forget with .catch(). Sync helpers renamed to *Sync with @deprecated.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "symbiotic-removal-and-config-hardening-20260222",
-        "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T16:45:00Z"
-      },
-      {
-        "id": "meta-awareness-and-setup-fix-20260218",
-        "summary": "Add meta-awareness system and fix setup.sh skill transfer",
-        "risk_level": "low",
-        "timestamp": "2026-02-18T21:00:00.000Z"
-      },
-      {
-        "id": "meta-integration-fix-20260218",
-        "summary": "Integrate MetaAwareness and MetaInstructionParser into OrchestrationAdvisor - they existed but were never imported or used",
-        "risk_level": "medium",
-        "timestamp": "2026-02-18T21:00:00Z"
-      },
-      {
-        "id": "jarvis-security-patterns-analysis-20260218",
-        "summary": "Analyzed JARVIS security patterns and extracted 5 reusable patterns for opencode-setup integration",
-        "risk_level": "low",
-        "timestamp": "2026-02-18T00:00:00Z"
-      },
-      {
-        "id": "atomic-write-sweep-learning-state-20260216",
-        "summary": "Applied atomic JSON write pattern to remaining learning and state persistence files",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T01:20:00Z"
-      },
-      {
-        "id": "portability-integrity-pass-20260215",
-        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T12:30:00Z"
       }
     ],
     "setup-instructions.md": [
@@ -11180,100 +11304,6 @@
         "timestamp": "2026-02-11T13:45:00-05:00"
       }
     ],
-    "packages/opencode-plugin-healthd": [
-      {
-        "id": "wave10-phase1-hardening-20260308",
-        "summary": "Wave 10 Phase 1 plugin hardening: healthd daemon timeout protection + crash logging, lifecycle plugin error handling + state validation",
-        "risk_level": "medium",
-        "timestamp": "2026-03-08T19:21:00Z"
-      },
-      {
-        "id": "namespace-drift-part1-20260308",
-        "summary": "Fix namespace drift in 6 package.json name fields: opencode-context-governor, opencode-crash-guard, opencode-eval-harness, opencode-fallback-doctor, opencode-plugin-healthd, opencode-plugin-preload-skills. Renamed from @jackoatmon/* and @opencode/* scoped names to flat opencode-* names matching directory layout.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "telemetry-pass2-hardening-20260227",
-        "summary": "Pass 2 addendum: hardened telemetry pipeline with canonical tool name normalization, MCP invocation depth upgrade, runtime parity verification, E2E contract tests, session key contract fix, health check config alignment, and context management completeness check.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T12:45:00Z"
-      },
-      {
-        "id": "remove-orphaned-exports-20260225",
-        "summary": "Removed 9 orphaned exports with zero cross-package imports: circuitBreakerRegistry/CircuitBreakerRegistry/CircuitOpenError from circuit-breaker, RequestTracer/LOG_LEVELS from logger, KNOWN_BAD_PLUGINS/DEFAULT_MCPS from plugin-healthd, toJSON/toCSV from memory-graph.",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T22:00:00Z"
-      },
-      {
-        "id": "smoke-tests-16-packages-20260225",
-        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:55:00Z"
-      },
-      {
-        "id": "json-parse-migration-20260225",
-        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "portability-integrity-pass-20260215",
-        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T12:30:00Z"
-      },
-      {
-        "id": "workspace-deps-fix-20260215",
-        "summary": "Fixed workspace dependency version mismatch preventing bun install, made git hooks executable, updated CLI shebangs for cross-platform compatibility",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T08:00:00Z"
-      }
-    ],
-    "packages/opencode-plugin-lifecycle": [
-      {
-        "id": "wave10-phase1-hardening-20260308",
-        "summary": "Wave 10 Phase 1 plugin hardening: healthd daemon timeout protection + crash logging, lifecycle plugin error handling + state validation",
-        "risk_level": "medium",
-        "timestamp": "2026-03-08T19:21:00Z"
-      },
-      {
-        "id": "wave8-readme-model-plugin-packages-20260308",
-        "summary": "Add README.md to four model and plugin packages that had none: opencode-model-benchmark, opencode-model-sync, opencode-plugin-lifecycle, opencode-plugin-preload-skills. Completes Wave 8C task 8 for the model/plugin tier.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:20:00Z"
-      },
-      {
-        "id": "namespace-drift-part2-20260308",
-        "summary": "Fix namespace drift in 5 remaining package.json name fields and repair 2 broken cross-package dependency references. Packages fixed: integration-layer, model-router-x, plugin-lifecycle, proofcheck, shared-orchestration. Cross-deps fixed: model-router-x deps on context-governor and fallback-doctor; integration-layer peerDeps on skill-rl-manager, learning-engine, shared-orchestration.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "smoke-tests-16-packages-20260225",
-        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:55:00Z"
-      },
-      {
-        "id": "json-parse-migration-20260225",
-        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "prototype-pollution-fix-20260225",
-        "summary": "Security hardening: prevent prototype pollution in plugin lifecycle supervisor",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "frontier-control-plane-foundation-20260222",
-        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T03:55:00Z"
-      }
-    ],
     "packages/opencode-validator": [
       {
         "id": "wave10-phase1-tests-20260308",
@@ -11292,6 +11322,74 @@
         "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
         "risk_level": "low",
         "timestamp": "2026-02-25T00:00:00Z"
+      }
+    ],
+    "packages/opencode-memory-graph": [
+      {
+        "id": "wave8-graph-v3-getnode-fix-20260308",
+        "summary": "Add missing getNode(id) method to MemoryGraphV3 that delegates to NodeStore.get(id). Fixes TypeError in store.test.js that prevented 54 MemoryGraphV3 tests from running.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:30:00Z"
+      },
+      {
+        "id": "remove-orphaned-exports-20260225",
+        "summary": "Removed 9 orphaned exports with zero cross-package imports: circuitBreakerRegistry/CircuitBreakerRegistry/CircuitOpenError from circuit-breaker, RequestTracer/LOG_LEVELS from logger, KNOWN_BAD_PLUGINS/DEFAULT_MCPS from plugin-healthd, toJSON/toCSV from memory-graph.",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T22:00:00Z"
+      },
+      {
+        "id": "unused-deps-removal-20260225",
+        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00.000Z"
+      },
+      {
+        "id": "reduce-explicit-any-types-20260225",
+        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "deprecated-functions-removal-20260225",
+        "summary": "Remove 5 deprecated functions across 3 packages to improve code maintainability",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "unused-exports-removal-20260225",
+        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "round1-3-integrations-complete-20260217",
+        "summary": "All 30 integration items completed across 3 rounds - fully interconnected packages",
+        "risk_level": "low",
+        "timestamp": "2026-02-17T00:00:00Z"
+      },
+      {
+        "id": "atomic-write-sweep-learning-state-20260216",
+        "summary": "Applied atomic JSON write pattern to remaining learning and state persistence files",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T01:20:00Z"
+      },
+      {
+        "id": "dashboard-v2-implementation-20260215",
+        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:00:00Z"
+      },
+      {
+        "id": "portability-integrity-pass-20260215",
+        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T12:30:00Z"
+      },
+      {
+        "id": "workspace-deps-fix-20260215",
+        "summary": "Fixed workspace dependency version mismatch preventing bun install, made git hooks executable, updated CLI shebangs for cross-platform compatibility",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T08:00:00Z"
       }
     ],
     "packages/opencode-showboat-wrapper": [
@@ -11348,56 +11446,6 @@
         "summary": "Removed 9 orphaned exports with zero cross-package imports: circuitBreakerRegistry/CircuitBreakerRegistry/CircuitOpenError from circuit-breaker, RequestTracer/LOG_LEVELS from logger, KNOWN_BAD_PLUGINS/DEFAULT_MCPS from plugin-healthd, toJSON/toCSV from memory-graph.",
         "risk_level": "low",
         "timestamp": "2026-02-25T22:00:00Z"
-      }
-    ],
-    "packages/opencode-dashboard-launcher": [
-      {
-        "id": "wave8-readme-infra-packages-20260308",
-        "summary": "Add README.md to five infrastructure packages that had none: opencode-backup-manager, opencode-circuit-breaker, opencode-dashboard-launcher, opencode-errors, opencode-safe-io. Completes Wave 8C task 8 for the infrastructure tier.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:15:00Z"
-      },
-      {
-        "id": "external-call-timeouts-20260225",
-        "summary": "Add explicit timeouts to 7 external call sites that could hang indefinitely",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T17:00:00Z"
-      },
-      {
-        "id": "smoke-tests-16-packages-20260225",
-        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:55:00Z"
-      },
-      {
-        "id": "unused-deps-removal-20260225",
-        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00.000Z"
-      },
-      {
-        "id": "json-parse-migration-20260225",
-        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "round1-3-integrations-complete-20260217",
-        "summary": "All 30 integration items completed across 3 rounds - fully interconnected packages",
-        "risk_level": "low",
-        "timestamp": "2026-02-17T00:00:00Z"
-      },
-      {
-        "id": "dashboard-autostart-wrapper-and-windows-launch-fix-20260216",
-        "summary": "Fixed dashboard launcher reliability on Windows and added opencode wrapper for guaranteed dashboard startup",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T02:40:00Z"
-      },
-      {
-        "id": "dashboard-v2-implementation-20260215",
-        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:00:00Z"
       }
     ],
     "packages/opencode-errors": [
@@ -11524,44 +11572,6 @@
         "summary": "Corrected Gemini model names from non-existent gemini-2.5-* to official gemini-2.0-* across entire codebase",
         "risk_level": "low",
         "timestamp": "2026-02-15T20:27:00-05:00"
-      },
-      {
-        "id": "workspace-deps-fix-20260215",
-        "summary": "Fixed workspace dependency version mismatch preventing bun install, made git hooks executable, updated CLI shebangs for cross-platform compatibility",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T08:00:00Z"
-      }
-    ],
-    "packages/opencode-proofcheck": [
-      {
-        "id": "namespace-drift-part2-20260308",
-        "summary": "Fix namespace drift in 5 remaining package.json name fields and repair 2 broken cross-package dependency references. Packages fixed: integration-layer, model-router-x, plugin-lifecycle, proofcheck, shared-orchestration. Cross-deps fixed: model-router-x deps on context-governor and fallback-doctor; integration-layer peerDeps on skill-rl-manager, learning-engine, shared-orchestration.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "smoke-tests-16-packages-20260225",
-        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:55:00Z"
-      },
-      {
-        "id": "dead-code-cleanup-unused-vars-20260225",
-        "summary": "Remove 6 unused variable declarations across 5 packages",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T15:40:00Z"
-      },
-      {
-        "id": "json-parse-migration-20260225",
-        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "reduce-explicit-any-types-20260225",
-        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T12:00:00Z"
       },
       {
         "id": "workspace-deps-fix-20260215",
@@ -12150,32 +12160,6 @@
         "timestamp": "2026-02-26T22:00:00Z"
       }
     ],
-    "packages/opencode-feature-flags": [
-      {
-        "id": "smoke-tests-16-packages-20260225",
-        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:55:00Z"
-      },
-      {
-        "id": "unused-deps-removal-20260225",
-        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00.000Z"
-      },
-      {
-        "id": "json-parse-migration-20260225",
-        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "frontier-control-plane-foundation-20260222",
-        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T03:55:00Z"
-      }
-    ],
     "packages/opencode-graphdb-bridge": [
       {
         "id": "smoke-tests-16-packages-20260225",
@@ -12414,26 +12398,6 @@
         "summary": "Introduce central config schema/state machinery with migration tooling and setup verification so dashboard-managed policy can persist safely with recovery and audit support.",
         "risk_level": "medium",
         "timestamp": "2026-02-23T23:20:00Z"
-      }
-    ],
-    "scripts/api-sanity.mjs": [
-      {
-        "id": "audit-hardening-20260223",
-        "summary": "Comprehensive audit hardening: timeouts, path resolver, strict schema/env checks, goraphdb retries, health check classification",
-        "risk_level": "medium",
-        "timestamp": "2026-02-23T17:38:39Z"
-      },
-      {
-        "id": "api-sanity-sse-and-rl-fallback-20260216",
-        "summary": "Hardened API sanity checks for RL fallback and SSE endpoints",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T00:32:00Z"
-      },
-      {
-        "id": "dashboards-full-implementation-20260215",
-        "summary": "Complete dashboard implementation with all 6 roadmap features: SkillsRL APIs stabilized, Knowledge Graph interactive with React Flow, provider status unified tracking, ConfigViewer with Zod forms editors, Models 10x6 routing matrix UI, fresh-machine smoke pipeline.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T21:00:00Z"
       }
     ],
     "scripts/install-git-hooks.mjs": [
