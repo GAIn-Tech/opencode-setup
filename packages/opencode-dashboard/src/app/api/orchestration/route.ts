@@ -1,10 +1,12 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { pathToFileURL } from 'url';
 import { NextResponse } from 'next/server';
 import { collectCorrelationData } from './lib/correlation.js';
 import { normalizeEvents, persistEvents, summarizeEventProvenance } from './lib/event-store.js';
 import { evaluatePolicyEngine } from './lib/policy-engine.js';
+import { loadMetaAwarenessTracker, readMetaAwarenessRollups } from '../../../lib/meta-awareness';
 
 export const dynamic = 'force-dynamic';
 
@@ -117,6 +119,132 @@ function readJson<T>(filePath: string, fallback: T): T {
   } catch {
     return fallback;
   }
+}
+
+function resolveHome() {
+  return process.env.USERPROFILE || process.env.HOME || os.homedir();
+}
+
+function toBudgetStatus(pctValue: number): 'ok' | 'warn' | 'error' | 'exceeded' {
+  if (pctValue >= 1) return 'exceeded';
+  if (pctValue >= 0.8) return 'error';
+  if (pctValue >= 0.75) return 'warn';
+  return 'ok';
+}
+
+function readBudgetSummaries(limit = 5) {
+  const sessionsDir = path.join(resolveHome(), '.opencode', 'tool-usage', 'sessions');
+  if (!fs.existsSync(sessionsDir)) return [];
+  return fs
+    .readdirSync(sessionsDir)
+    .filter((file) => file.endsWith('-budget.json'))
+    .map((file) => {
+      const raw = readJson<Record<string, unknown>>(path.join(sessionsDir, file), {});
+      const used = Number(raw.estimated_tokens) || 0;
+      const max = Number(raw.model_limit) || 0;
+      const pctValue = max > 0 ? used / max : 0;
+      return {
+        sessionId: String(raw.session_id || file.replace(/-budget\.json$/, '')),
+        model: String(raw.model_id || 'unknown'),
+        used,
+        max,
+        pct: Number(pctValue.toFixed(4)),
+        status: toBudgetStatus(pctValue),
+        updatedAt: String(raw.last_updated || ''),
+      };
+    })
+    .sort((a, b) => b.used - a.used)
+    .slice(0, limit);
+}
+
+async function collectInternalRuntime(repoRoot: string) {
+  const budgetSessions = readBudgetSummaries();
+  const rollups = await readMetaAwarenessRollups();
+  const liveTracker = loadMetaAwarenessTracker();
+
+  const runtimeInfo = {
+    source: 'fallback' as 'live' | 'fallback',
+    bootstrap: {
+      packagesAttempted: 0,
+      packagesLoaded: 0,
+      packages: {} as Record<string, boolean>,
+    },
+    contextGovernor: {
+      topBudgetSessions: budgetSessions,
+      highPressureSessions: budgetSessions.filter((entry) => ['warn', 'error', 'exceeded'].includes(entry.status)).length,
+    },
+    runtimeContext: {
+      resolveAvailable: false,
+      executeTaskWithEvidenceAvailable: false,
+      budgetMethodAvailable: false,
+      tokenRecordingAvailable: false,
+    },
+    workflows: {
+      executeAvailable: false,
+      resumeAvailable: false,
+      stateAvailable: false,
+    },
+    modelRouter: {
+      available: false,
+      collaborators: {
+        logger: false,
+        validator: false,
+        healthCheck: false,
+        circuitBreaker: false,
+        configLoader: false,
+        featureFlags: false,
+        learningEngine: false,
+      },
+    },
+    metaAwareness: {
+      liveTrackerAvailable: Boolean(liveTracker),
+      fallbackRollupsAvailable: Boolean(rollups),
+      fallbackGeneratedAt: String((rollups as Record<string, unknown> | null)?.generated_at || ''),
+    },
+  };
+
+  try {
+    const runtimeModule = await import(pathToFileURL(path.join(repoRoot, 'scripts', 'bootstrap-runtime.mjs')).href);
+    const runtime = typeof runtimeModule.getRuntime === 'function' ? runtimeModule.getRuntime({ sessionId: 'dashboard-observability' }) : null;
+    const runtimeStatus = typeof runtimeModule.getRuntimeStatus === 'function' ? runtimeModule.getRuntimeStatus() : null;
+    if (runtimeStatus) {
+      runtimeInfo.source = 'live';
+      runtimeInfo.bootstrap = {
+        packagesAttempted: Number(runtimeStatus.packagesAttempted || 0),
+        packagesLoaded: Number(runtimeStatus.packagesLoaded || 0),
+        packages: (runtimeStatus.packages as Record<string, boolean>) || {},
+      };
+    }
+    if (runtime) {
+      runtimeInfo.runtimeContext = {
+        resolveAvailable: typeof runtime.resolveRuntimeContext === 'function',
+        executeTaskWithEvidenceAvailable: typeof runtime.executeTaskWithEvidence === 'function',
+        budgetMethodAvailable: typeof runtime.checkContextBudget === 'function',
+        tokenRecordingAvailable: typeof runtime.recordTokenUsage === 'function',
+      };
+      runtimeInfo.workflows = {
+        executeAvailable: typeof runtime.executeWorkflow === 'function',
+        resumeAvailable: typeof runtime.resumeWorkflow === 'function',
+        stateAvailable: typeof runtime.getWorkflowState === 'function',
+      };
+      runtimeInfo.modelRouter = {
+        available: Boolean(runtime.modelRouter),
+        collaborators: {
+          logger: Boolean(runtime.modelRouter?.logger),
+          validator: Boolean(runtime.modelRouter?.validator),
+          healthCheck: Boolean(runtime.modelRouter?.healthCheck),
+          circuitBreaker: Boolean(runtime.modelRouter?.CircuitBreaker),
+          configLoader: Boolean(runtime.modelRouter?.configLoader),
+          featureFlags: Boolean(runtime.modelRouter?.featureFlags),
+          learningEngine: Boolean(runtime.modelRouter?.learningEngine),
+        },
+      };
+    }
+  } catch {
+    // fail-open: keep fallback payload
+  }
+
+  return runtimeInfo;
 }
 
 function scoreLevel(value: number, target: number): 'healthy' | 'warning' | 'critical' {
@@ -414,6 +542,8 @@ export async function GET(request: Request) {
     const adjustedScore = fidelityMode === 'live' ? score : Math.min(score, 69);
     const adjustedLevel = adjustedScore >= 85 ? 'healthy' : adjustedScore >= 65 ? 'warning' : 'critical';
 
+    const internalRuntime = await collectInternalRuntime(repoRoot);
+
     return {
       version: '1.0.0',
       generated_at: new Date().toISOString(),
@@ -544,6 +674,7 @@ export async function GET(request: Request) {
         },
         gaps: integrationGaps,
       },
+      internal_runtime: internalRuntime,
     };
     };
 

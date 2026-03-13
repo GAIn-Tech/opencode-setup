@@ -73,6 +73,34 @@ describe('orchestration route', () => {
       expect(data).toHaveProperty('fidelity_reason');
       expect(data).toHaveProperty('fidelity_impact');
     });
+
+    it('includes internal runtime observability data', async () => {
+      const request = new Request('http://localhost:3000/api/orchestration');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(data).toHaveProperty('internal_runtime');
+      expect(data.internal_runtime).toHaveProperty('source');
+      expect(data.internal_runtime).toHaveProperty('bootstrap');
+      expect(data.internal_runtime.bootstrap).toHaveProperty('packagesAttempted');
+      expect(data.internal_runtime.bootstrap).toHaveProperty('packagesLoaded');
+      expect(data.internal_runtime).toHaveProperty('contextGovernor');
+      expect(Array.isArray(data.internal_runtime.contextGovernor.topBudgetSessions)).toBe(true);
+      expect(data.internal_runtime).toHaveProperty('runtimeContext');
+      expect(data.internal_runtime.runtimeContext).toHaveProperty('resolveAvailable');
+      expect(data.internal_runtime).toHaveProperty('workflows');
+      expect(data.internal_runtime).toHaveProperty('modelRouter');
+      expect(data.internal_runtime.modelRouter).toHaveProperty('collaborators');
+      expect(data.internal_runtime).toHaveProperty('metaAwareness');
+    });
+
+    it('reports runtime source as live or fallback', async () => {
+      const request = new Request('http://localhost:3000/api/orchestration');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(['live', 'fallback']).toContain(data.internal_runtime.source);
+    });
   });
 
   describe('POST /api/orchestration', () => {

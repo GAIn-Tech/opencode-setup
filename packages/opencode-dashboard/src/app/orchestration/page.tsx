@@ -77,6 +77,46 @@ type OrchestrationResponse = {
       recommended_next_step: string;
     }>;
   };
+  internal_runtime: {
+    source: 'live' | 'fallback';
+    bootstrap: {
+      packagesAttempted: number;
+      packagesLoaded: number;
+      packages: Record<string, boolean>;
+    };
+    contextGovernor: {
+      topBudgetSessions: Array<{
+        sessionId: string;
+        model: string;
+        used: number;
+        max: number;
+        pct: number;
+        status: 'ok' | 'warn' | 'error' | 'exceeded';
+        updatedAt: string;
+      }>;
+      highPressureSessions: number;
+    };
+    runtimeContext: {
+      resolveAvailable: boolean;
+      executeTaskWithEvidenceAvailable: boolean;
+      budgetMethodAvailable: boolean;
+      tokenRecordingAvailable: boolean;
+    };
+    workflows: {
+      executeAvailable: boolean;
+      resumeAvailable: boolean;
+      stateAvailable: boolean;
+    };
+    modelRouter: {
+      available: boolean;
+      collaborators: Record<string, boolean>;
+    };
+    metaAwareness: {
+      liveTrackerAvailable: boolean;
+      fallbackRollupsAvailable: boolean;
+      fallbackGeneratedAt: string;
+    };
+  };
 };
 
 function levelClass(level: 'healthy' | 'warning' | 'critical') {
@@ -256,6 +296,64 @@ export default function OrchestrationPage() {
                   <div className="rounded border border-zinc-800 bg-zinc-900/60 p-3"><div className="text-zinc-500">P90 tokens/msg</div><div className="font-mono">{fmt(data.tokens.p90_per_message)}</div></div>
                   <div className="rounded border border-zinc-800 bg-zinc-900/60 p-3"><div className="text-zinc-500">Avg loops/session</div><div className="font-mono">{fmt(data.loops.avg_loops_per_session)}</div></div>
                   <div className="rounded border border-zinc-800 bg-zinc-900/60 p-3"><div className="text-zinc-500">Max loops/session</div><div className="font-mono">{fmt(data.loops.max_loops_single_session)}</div></div>
+                </div>
+              </div>
+            </section>
+
+            <section className="mb-6 rounded-lg border border-zinc-800 bg-zinc-900/40 p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-300">Internal Runtime</h3>
+                <span className={`rounded border px-2 py-1 text-xs ${data.internal_runtime.source === 'live' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300' : 'border-zinc-700 bg-zinc-900/60 text-zinc-400'}`}>
+                  {data.internal_runtime.source === 'live' ? 'Live runtime' : 'Fallback snapshot'}
+                </span>
+              </div>
+              <div className="mb-4 grid grid-cols-2 gap-2 text-sm lg:grid-cols-4">
+                <div className="rounded border border-zinc-800 bg-zinc-900/60 p-3"><div className="text-zinc-500">Bootstrap packages</div><div className="font-mono">{fmt(data.internal_runtime.bootstrap.packagesLoaded)} / {fmt(data.internal_runtime.bootstrap.packagesAttempted)}</div></div>
+                <div className="rounded border border-zinc-800 bg-zinc-900/60 p-3"><div className="text-zinc-500">High-pressure budgets</div><div className="font-mono">{fmt(data.internal_runtime.contextGovernor.highPressureSessions)}</div></div>
+                <div className="rounded border border-zinc-800 bg-zinc-900/60 p-3"><div className="text-zinc-500">Runtime context</div><div className="font-mono">{data.internal_runtime.runtimeContext.resolveAvailable ? 'enabled' : 'missing'}</div></div>
+                <div className="rounded border border-zinc-800 bg-zinc-900/60 p-3"><div className="text-zinc-500">Meta-awareness</div><div className="font-mono">{data.internal_runtime.metaAwareness.liveTrackerAvailable ? 'live' : data.internal_runtime.metaAwareness.fallbackRollupsAvailable ? 'fallback' : 'missing'}</div></div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                <div className="rounded border border-zinc-800 bg-zinc-900/60 p-3 text-sm">
+                  <div className="mb-2 text-zinc-300">Runtime Context Hooks</div>
+                  <div className="space-y-1 text-xs text-zinc-400">
+                    <div>resolveRuntimeContext: {data.internal_runtime.runtimeContext.resolveAvailable ? 'yes' : 'no'}</div>
+                    <div>executeTaskWithEvidence: {data.internal_runtime.runtimeContext.executeTaskWithEvidenceAvailable ? 'yes' : 'no'}</div>
+                    <div>checkContextBudget: {data.internal_runtime.runtimeContext.budgetMethodAvailable ? 'yes' : 'no'}</div>
+                    <div>recordTokenUsage: {data.internal_runtime.runtimeContext.tokenRecordingAvailable ? 'yes' : 'no'}</div>
+                  </div>
+                </div>
+
+                <div className="rounded border border-zinc-800 bg-zinc-900/60 p-3 text-sm">
+                  <div className="mb-2 text-zinc-300">Workflow Runtime</div>
+                  <div className="space-y-1 text-xs text-zinc-400">
+                    <div>executeWorkflow: {data.internal_runtime.workflows.executeAvailable ? 'yes' : 'no'}</div>
+                    <div>resumeWorkflow: {data.internal_runtime.workflows.resumeAvailable ? 'yes' : 'no'}</div>
+                    <div>getWorkflowState: {data.internal_runtime.workflows.stateAvailable ? 'yes' : 'no'}</div>
+                  </div>
+                </div>
+
+                <div className="rounded border border-zinc-800 bg-zinc-900/60 p-3 text-sm">
+                  <div className="mb-2 text-zinc-300">Model Router Collaborators</div>
+                  <div className="grid grid-cols-2 gap-1 text-xs text-zinc-400">
+                    {Object.entries(data.internal_runtime.modelRouter.collaborators).map(([name, present]) => (
+                      <div key={name}>{name}: {present ? 'yes' : 'no'}</div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 rounded border border-zinc-800 bg-zinc-900/60 p-3 text-sm">
+                <div className="mb-2 text-zinc-300">Top Budget Sessions</div>
+                <div className="space-y-2 text-xs text-zinc-400">
+                  {data.internal_runtime.contextGovernor.topBudgetSessions.length === 0 ? <div>No session budgets captured.</div> : null}
+                  {data.internal_runtime.contextGovernor.topBudgetSessions.map((entry) => (
+                    <div key={`${entry.sessionId}-${entry.model}`} className="flex items-center justify-between gap-3 rounded border border-zinc-800 px-2 py-1">
+                      <span className="truncate">{entry.sessionId} / {entry.model}</span>
+                      <span className="font-mono">{fmt(entry.used)} / {fmt(entry.max)} ({fmt(entry.pct * 100)}%)</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </section>

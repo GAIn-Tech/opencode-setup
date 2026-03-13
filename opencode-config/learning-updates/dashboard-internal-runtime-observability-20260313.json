@@ -1,0 +1,17 @@
+{
+  "id": "dashboard-internal-runtime-observability-20260313",
+  "timestamp": "2026-03-13T00:05:00Z",
+  "summary": "Expose internal runtime observability in the dashboard orchestration API and page, including bootstrap package status, context budget pressure, workflow hooks, model-router collaborators, and meta-awareness source state.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/orchestration/route.ts",
+    "packages/opencode-dashboard/src/app/orchestration/page.tsx",
+    "packages/opencode-dashboard/test/orchestration-route.test.ts",
+    "opencode-config/learning-updates/dashboard-internal-runtime-observability-20260313.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}
