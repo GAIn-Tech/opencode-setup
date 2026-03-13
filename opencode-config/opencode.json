@@ -679,7 +679,7 @@
     },
     "opencode-context-governor": {
       "type": "local",
-      "command": ["node", "packages/opencode-context-governor/src/index.js"],
+      "command": ["node", "packages/opencode-context-governor/src/mcp-server.mjs"],
       "enabled": true
     },
     "opencode-runbooks": {

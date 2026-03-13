@@ -14,7 +14,7 @@
     },
     "opencode-context-governor": {
       "command": "node",
-      "args": ["{{OPENCODE_ROOT}}/packages/opencode-context-governor/src/index.js"],
+      "args": ["{{OPENCODE_ROOT}}/packages/opencode-context-governor/src/mcp-server.mjs"],
       "description": "Token budget controller per model/session",
       "enabled": true
     },
