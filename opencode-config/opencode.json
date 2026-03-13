@@ -684,8 +684,8 @@
     },
     "opencode-runbooks": {
       "type": "local",
-      "command": ["node", "packages/opencode-runbooks/src/index.js"],
-      "enabled": false
+      "command": ["node", "packages/opencode-runbooks/src/mcp-server.mjs"],
+      "enabled": true
     }
   },
   "permission": {

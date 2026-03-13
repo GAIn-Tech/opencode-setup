@@ -26,7 +26,7 @@
     },
     "opencode-runbooks": {
       "command": "node",
-      "args": ["{{OPENCODE_ROOT}}/packages/opencode-runbooks/src/index.js"],
+      "args": ["{{OPENCODE_ROOT}}/packages/opencode-runbooks/src/mcp-server.mjs"],
       "description": "Auto-remediation based on error signatures",
       "enabled": true
     }

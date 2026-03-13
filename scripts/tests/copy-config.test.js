@@ -19,8 +19,8 @@ describe('copy-config runtime-safe merge', () => {
     const userConfig = {
       plugin: ['custom-plugin'],
       mcp: {
-        'opencode-runbooks': {
-          command: ['node', 'packages/opencode-runbooks/src/index.js'],
+        'opencode-memory-graph': {
+          command: ['node', 'packages/opencode-memory-graph/src/cli.js'],
           enabled: false,
         },
         'my-custom-mcp': {
@@ -33,7 +33,7 @@ describe('copy-config runtime-safe merge', () => {
     const merged = buildRuntimeSafeUserConfig(
       canonicalConfig,
       userConfig,
-      new Set(['opencode-runbooks']),
+      new Set(['opencode-memory-graph']),
     );
 
     expect(merged.plugin).toEqual(['custom-plugin']);

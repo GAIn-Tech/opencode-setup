@@ -1,0 +1,15 @@
+{
+  "id": "runbooks-copy-sync-20260313",
+  "timestamp": "2026-03-13T01:25:00Z",
+  "summary": "Keep runtime-safe copy-config merges preserving the runbooks MCP now that it has a supported stdio wrapper.",
+  "affected_paths": [
+    "scripts/tests/copy-config.test.js",
+    "opencode-config/learning-updates/runbooks-copy-sync-20260313.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

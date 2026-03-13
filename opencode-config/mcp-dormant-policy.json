@@ -14,9 +14,5 @@
     "reactivation_criteria": "Enable only after an operator-facing MCP wrapper and runtime smoke verification exist.",
     "owner": "routing"
   },
-  "opencode-runbooks": {
-    "reason": "Disabled until runbooks expose a stable MCP wrapper rather than only file/package-level functionality.",
-    "reactivation_criteria": "Enable only after a supported MCP wrapper and verification flow are implemented.",
-    "owner": "ops"
-  }
+  
 }

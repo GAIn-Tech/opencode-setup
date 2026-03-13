@@ -154,6 +154,7 @@ describe('generate-mcp-config manifest mapping', () => {
       {
         mcp: {
           'opencode-context-governor': { command: ['node', 'packages/opencode-context-governor/src/mcp-server.mjs'], enabled: true },
+          'opencode-runbooks': { command: ['node', 'packages/opencode-runbooks/src/mcp-server.mjs'], enabled: true },
           supermemory: { url: 'https://mcp.supermemory.ai', enabled: true },
         },
       },
@@ -163,6 +164,7 @@ describe('generate-mcp-config manifest mapping', () => {
     expect(merged.mcp).toEqual({
       'my-custom-mcp': { command: ['uvx', 'my-mcp'], enabled: true },
       'opencode-context-governor': { command: ['node', 'packages/opencode-context-governor/src/mcp-server.mjs'], enabled: true },
+      'opencode-runbooks': { command: ['node', 'packages/opencode-runbooks/src/mcp-server.mjs'], enabled: true },
       supermemory: { url: 'https://mcp.supermemory.ai', enabled: true },
     });
   });
