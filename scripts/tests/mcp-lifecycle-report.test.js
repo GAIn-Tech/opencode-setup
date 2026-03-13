@@ -45,11 +45,13 @@ describe('report-mcp-lifecycle', () => {
     expect(stdout).toContain('| distill | LIVE |');
     expect(stdout).toContain('| playwright | LIVE |');
     expect(stdout).toContain('| opencode-context-governor | LIVE |');
+    expect(stdout).toContain('| opencode-runbooks | LIVE |');
     expect(stdout).not.toContain('tavily');
     expect(stdout).not.toContain('github');
     expect(stdout).not.toContain('playwright: classified via alias/indirect wiring because no direct MCP skill file exists.');
     expect(stdout).not.toContain('opencode-context-governor: enabled and documented, but still lacks clear agent/orchestrator/runtime activity.');
     expect(stdout).not.toContain('distill: enabled and documented, but still lacks clear agent/orchestrator/runtime activity.');
+    expect(stdout).not.toContain('opencode-runbooks: enabled and documented, but still lacks clear agent/orchestrator/runtime activity.');
   });
 
   test('classifies dormant internal MCPs and shows recently exercised signal', () => {
@@ -74,7 +76,6 @@ describe('report-mcp-lifecycle', () => {
     expect(stdout).toContain('| opencode-dashboard-launcher | DORMANT |');
     expect(stdout).toContain('| opencode-memory-graph | DORMANT |');
     expect(stdout).toContain('| opencode-model-router-x | DORMANT |');
-    expect(stdout).toContain('| opencode-runbooks | DORMANT |');
     expect(stdout).toContain('Reactivation Reason');
     expect(stdout).toContain('opencode-dashboard-launcher');
     expect(stdout).toContain('Reactivation Criteria');

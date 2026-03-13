@@ -31,6 +31,16 @@ const MCP_ALIASES = {
       'tokenBudgetManager.governor.getRemainingBudget(',
     ],
   },
+  'opencode-runbooks': {
+    skillDirs: ['runbooks'],
+    agentHints: ['runbooks', 'remediation'],
+    orchestratorHints: ['runbooks', 'diagnose'],
+    directIntegrationHints: [
+      'config.runbooks = new Runbooks()',
+      'this.runbooks = config.runbooks || null;',
+      'diagnose(error, context = {})',
+    ],
+  },
   context7: {
     skillDirs: ['context7'],
     agentHints: ['context7'],
@@ -150,6 +160,7 @@ function buildMcpCatalog() {
   const orchestratorText = readText('opencode-config/skills/skill-orchestrator-runtime/SKILL.md');
   const directIntegrationCorpus = [
     readText('packages/opencode-integration-layer/src/index.js'),
+    readText('packages/opencode-integration-layer/src/bootstrap.js'),
     readText('packages/opencode-model-router-x/src/index.js'),
     readText('packages/opencode-integration-layer/src/context-bridge.js'),
   ].join('\n');

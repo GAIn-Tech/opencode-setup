@@ -32,6 +32,7 @@ describe('mcp-exercise-harness', () => {
     expect(verifiedNames).toContain('websearch');
     expect(verifiedNames).toContain('grep');
     expect(verifiedNames).toContain('opencode-context-governor');
+    expect(verifiedNames).toContain('opencode-runbooks');
     expect(verifiedNames).toContain('distill');
     expect(skippedNames).toEqual([]);
 

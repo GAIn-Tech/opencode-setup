@@ -84,6 +84,17 @@ const EXERCISE_PROBES = {
       }
     },
   },
+  'opencode-runbooks': {
+    source: 'package-smoke',
+    run() {
+      const { Runbooks } = require(path.join(root, 'packages', 'opencode-runbooks', 'src', 'index.js'));
+      const runbooks = new Runbooks();
+      const diagnosis = runbooks.diagnose('MCP command unavailable', { mcpName: 'supermemory' });
+      if (!diagnosis?.match || !diagnosis?.remedy || !diagnosis?.result) {
+        throw new Error('Runbooks probe failed');
+      }
+    },
+  },
   playwright: {
     source: 'playwright-help',
     run() {

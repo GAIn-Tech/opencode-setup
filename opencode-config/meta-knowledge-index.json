@@ -1,13 +1,27 @@
 {
-  "generated_at": "2026-03-13T17:55:51.256Z",
+  "generated_at": "2026-03-13T19:54:25.817Z",
   "schema_version": 1,
-  "total_records": 307,
+  "total_records": 308,
   "source_files": {
-    "learning_updates": 307,
+    "learning_updates": 308,
     "agents_md": 7
   },
   "by_category": {
     "uncategorized": [
+      {
+        "id": "mcp-host-health-verification-20260313",
+        "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/mcp-exercise-harness.mjs",
+          "scripts/report-mcp-lifecycle.mjs",
+          "scripts/tests/mcp-exercise-harness.test.js",
+          "scripts/tests/mcp-lifecycle-report.test.js",
+          "opencode-config/mcp-dormant-policy.json",
+          "opencode-config/learning-updates/mcp-host-health-verification-20260313.json"
+        ],
+        "timestamp": "2026-03-13T19:55:00Z"
+      },
       {
         "id": "context-governor-copy-sync-20260313",
         "summary": "Update runtime-safe copy-config expectations so context-governor remains surfaced in user config while still filtering dormant internal MCPs.",
@@ -3721,6 +3735,20 @@
   "by_risk_level": {
     "low": [
       {
+        "id": "mcp-host-health-verification-20260313",
+        "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/mcp-exercise-harness.mjs",
+          "scripts/report-mcp-lifecycle.mjs",
+          "scripts/tests/mcp-exercise-harness.test.js",
+          "scripts/tests/mcp-lifecycle-report.test.js",
+          "opencode-config/mcp-dormant-policy.json",
+          "opencode-config/learning-updates/mcp-host-health-verification-20260313.json"
+        ],
+        "timestamp": "2026-03-13T19:55:00Z"
+      },
+      {
         "id": "context-governor-copy-sync-20260313",
         "summary": "Update runtime-safe copy-config expectations so context-governor remains surfaced in user config while still filtering dormant internal MCPs.",
         "risk_level": "low",
@@ -7354,7 +7382,101 @@
     "high": []
   },
   "by_affected_path": {
+    "scripts/mcp-exercise-harness.mjs": [
+      {
+        "id": "mcp-host-health-verification-20260313",
+        "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T19:55:00Z"
+      },
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "mcp-exercise-harness-20260310",
+        "summary": "Add an MCP exercise harness and top-level command that safely records smoke verification for local live MCPs without polluting real runtime usage telemetry.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T13:35:00-04:00"
+      }
+    ],
+    "scripts/report-mcp-lifecycle.mjs": [
+      {
+        "id": "mcp-host-health-verification-20260313",
+        "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T19:55:00Z"
+      },
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "dormant-mcp-policy-surfacing-20260310",
+        "summary": "Surface explicit dormant MCP reactivation metadata in the lifecycle report so disabled internal MCPs are actionable rather than just classified.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T12:32:00-04:00"
+      },
+      {
+        "id": "mcp-report-input-warnings-20260310",
+        "summary": "Warn when the MCP lifecycle report falls back from unreadable telemetry/config inputs so missing or corrupt data does not silently flatten usage visibility.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T12:15:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-dormant-and-recency-20260310",
+        "summary": "Extend the MCP lifecycle report with DORMANT classification for intentionally disabled internal MCPs and a recently-exercised signal sourced from invocation timestamps.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T11:55:00-04:00"
+      },
+      {
+        "id": "mcp-direct-path-regressions-20260310",
+        "summary": "Update MCP lifecycle and inventory regressions so Playwright and Distill direct paths are required and reflected in the generated lifecycle report.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T11:38:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-direct-integration-20260310",
+        "summary": "Refine the MCP lifecycle report so directly integrated capabilities like opencode-context-governor are recognized as live from runtime code paths instead of being mislabeled as passive.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T11:10:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-heuristic-notes-20260310",
+        "summary": "Refine the MCP lifecycle report to emit heuristic notes for alias-based or partially integrated MCP states, and add regression coverage for those notes.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T02:00:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-report-generator-20260310",
+        "summary": "Add a generated MCP lifecycle report script that classifies current servers from canonical config, wiring evidence, and runtime telemetry and writes a report artifact under .sisyphus/reports/.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T01:40:00-04:00"
+      }
+    ],
     "scripts/tests": [
+      {
+        "id": "mcp-host-health-verification-20260313",
+        "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T19:55:00Z"
+      },
       {
         "id": "context-governor-copy-sync-20260313",
         "summary": "Update runtime-safe copy-config expectations so context-governor remains surfaced in user config while still filtering dormant internal MCPs.",
@@ -7620,7 +7742,45 @@
         "timestamp": "2026-02-27T06:20:00Z"
       }
     ],
+    "opencode-config/mcp-dormant-policy.json": [
+      {
+        "id": "mcp-host-health-verification-20260313",
+        "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T19:55:00Z"
+      },
+      {
+        "id": "context-governor-host-policy-20260313",
+        "summary": "Remove context-governor from dormant MCP policy and update generator filtering tests now that a real stdio MCP wrapper exists.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T16:17:00Z"
+      },
+      {
+        "id": "mcp-host-filtering-policy-20260313",
+        "summary": "Filter dormant internal MCP entries from generated host-facing user config and mark opencode-context-governor dormant until a real stdio MCP wrapper exists.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T04:22:00Z"
+      },
+      {
+        "id": "runbooks-host-policy-20260313",
+        "summary": "Re-enable runbooks in the host-facing MCP policy now that a dedicated stdio MCP wrapper exists and update generator regression coverage.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T01:20:00Z"
+      },
+      {
+        "id": "dormant-mcp-policy-surfacing-20260310",
+        "summary": "Surface explicit dormant MCP reactivation metadata in the lifecycle report so disabled internal MCPs are actionable rather than just classified.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T12:32:00-04:00"
+      }
+    ],
     "opencode-config/learning-updates": [
+      {
+        "id": "mcp-host-health-verification-20260313",
+        "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T19:55:00Z"
+      },
       {
         "id": "context-governor-copy-sync-20260313",
         "summary": "Update runtime-safe copy-config expectations so context-governor remains surfaced in user config while still filtering dormant internal MCPs.",
@@ -7764,32 +7924,6 @@
         "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
         "risk_level": "low",
         "timestamp": "2026-02-22T16:45:00Z"
-      }
-    ],
-    "opencode-config/mcp-dormant-policy.json": [
-      {
-        "id": "context-governor-host-policy-20260313",
-        "summary": "Remove context-governor from dormant MCP policy and update generator filtering tests now that a real stdio MCP wrapper exists.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T16:17:00Z"
-      },
-      {
-        "id": "mcp-host-filtering-policy-20260313",
-        "summary": "Filter dormant internal MCP entries from generated host-facing user config and mark opencode-context-governor dormant until a real stdio MCP wrapper exists.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T04:22:00Z"
-      },
-      {
-        "id": "runbooks-host-policy-20260313",
-        "summary": "Re-enable runbooks in the host-facing MCP policy now that a dedicated stdio MCP wrapper exists and update generator regression coverage.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T01:20:00Z"
-      },
-      {
-        "id": "dormant-mcp-policy-surfacing-20260310",
-        "summary": "Surface explicit dormant MCP reactivation metadata in the lifecycle report so disabled internal MCPs are actionable rather than just classified.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T12:32:00-04:00"
       }
     ],
     "opencode-config/opencode.json": [
@@ -9540,26 +9674,6 @@
         "timestamp": "2026-02-15T21:00:00Z"
       }
     ],
-    "scripts/mcp-exercise-harness.mjs": [
-      {
-        "id": "mcp-runtime-governance-20260311",
-        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
-        "risk_level": "low",
-        "timestamp": "2026-03-11T23:10:00Z"
-      },
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "mcp-exercise-harness-20260310",
-        "summary": "Add an MCP exercise harness and top-level command that safely records smoke verification for local live MCPs without polluting real runtime usage telemetry.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T13:35:00-04:00"
-      }
-    ],
     "scripts/mcp-smoke-harness.mjs": [
       {
         "id": "mcp-runtime-governance-20260311",
@@ -9584,62 +9698,6 @@
         "summary": "Add an MCP smoke harness and top-level package command so recent exercise coverage for live MCPs can be measured directly from telemetry after restarts.",
         "risk_level": "medium",
         "timestamp": "2026-03-10T12:30:00-04:00"
-      }
-    ],
-    "scripts/report-mcp-lifecycle.mjs": [
-      {
-        "id": "mcp-runtime-governance-20260311",
-        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
-        "risk_level": "low",
-        "timestamp": "2026-03-11T23:10:00Z"
-      },
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "dormant-mcp-policy-surfacing-20260310",
-        "summary": "Surface explicit dormant MCP reactivation metadata in the lifecycle report so disabled internal MCPs are actionable rather than just classified.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T12:32:00-04:00"
-      },
-      {
-        "id": "mcp-report-input-warnings-20260310",
-        "summary": "Warn when the MCP lifecycle report falls back from unreadable telemetry/config inputs so missing or corrupt data does not silently flatten usage visibility.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T12:15:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-dormant-and-recency-20260310",
-        "summary": "Extend the MCP lifecycle report with DORMANT classification for intentionally disabled internal MCPs and a recently-exercised signal sourced from invocation timestamps.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:55:00-04:00"
-      },
-      {
-        "id": "mcp-direct-path-regressions-20260310",
-        "summary": "Update MCP lifecycle and inventory regressions so Playwright and Distill direct paths are required and reflected in the generated lifecycle report.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:38:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-direct-integration-20260310",
-        "summary": "Refine the MCP lifecycle report so directly integrated capabilities like opencode-context-governor are recognized as live from runtime code paths instead of being mislabeled as passive.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:10:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-heuristic-notes-20260310",
-        "summary": "Refine the MCP lifecycle report to emit heuristic notes for alias-based or partially integrated MCP states, and add regression coverage for those notes.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T02:00:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-report-generator-20260310",
-        "summary": "Add a generated MCP lifecycle report script that classifies current servers from canonical config, wiring evidence, and runtime telemetry and writes a report artifact under .sisyphus/reports/.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T01:40:00-04:00"
       }
     ],
     "scripts/run-distill-mcp.mjs": [

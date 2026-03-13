@@ -13,6 +13,5 @@
     "reason": "Disabled as a standalone MCP until model-router-x has an explicit operator-facing MCP wrapper beyond internal integration paths.",
     "reactivation_criteria": "Enable only after an operator-facing MCP wrapper and runtime smoke verification exist.",
     "owner": "routing"
-  },
-  
+  }
 }
