@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Active token budget controller for OpenCode sessions. Tracks per-model, per-session token consumption with configurable warn/error thresholds.",
   "main": "src/index.js",
+  "bin": {
+    "opencode-context-governor-mcp": "src/mcp-server.mjs"
+  },
   "keywords": [
     "opencode",
     "token-budget",
@@ -19,6 +22,11 @@
     "node": ">=16.0.0"
   },
   "scripts": {
-    "test:smoke": "node -e \"const { Governor } = require('./src/index.js'); const gov = new Governor({ autoLoad: false }); const check = gov.checkBudget('smoke-session', 'anthropic/claude-sonnet-4-5', 1000); if(!check || !check.status) throw new Error('Governor check failed'); console.log('context-governor smoke ok');\""
+    "test:smoke": "node -e \"const { Governor } = require('./src/index.js'); const gov = new Governor({ autoLoad: false }); const check = gov.checkBudget('smoke-session', 'anthropic/claude-sonnet-4-5', 1000); if(!check || !check.status) throw new Error('Governor check failed'); console.log('context-governor smoke ok');\"",
+    "test:mcp": "node --test test/mcp-server.test.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "zod": "^4.3.6"
   }
 }
