@@ -10,6 +10,10 @@ describe('copy-config runtime-safe merge', () => {
           command: ['node', 'packages/opencode-context-governor/src/mcp-server.mjs'],
           enabled: true,
         },
+        'opencode-memory-graph': {
+          command: ['node', 'packages/opencode-memory-graph/src/mcp-server.mjs'],
+          enabled: true,
+        },
         supermemory: {
           url: 'https://mcp.supermemory.ai',
           enabled: true,
@@ -19,8 +23,8 @@ describe('copy-config runtime-safe merge', () => {
     const userConfig = {
       plugin: ['custom-plugin'],
       mcp: {
-        'opencode-memory-graph': {
-          command: ['node', 'packages/opencode-memory-graph/src/cli.js'],
+        'opencode-model-router-x': {
+          command: ['node', 'packages/opencode-model-router-x/src/index.js'],
           enabled: false,
         },
         'my-custom-mcp': {
@@ -33,13 +37,17 @@ describe('copy-config runtime-safe merge', () => {
     const merged = buildRuntimeSafeUserConfig(
       canonicalConfig,
       userConfig,
-      new Set(['opencode-memory-graph']),
+      new Set(['opencode-model-router-x']),
     );
 
     expect(merged.plugin).toEqual(['custom-plugin']);
     expect(merged.mcp).toEqual({
       'opencode-context-governor': {
         command: ['node', 'packages/opencode-context-governor/src/mcp-server.mjs'],
+        enabled: true,
+      },
+      'opencode-memory-graph': {
+        command: ['node', 'packages/opencode-memory-graph/src/mcp-server.mjs'],
         enabled: true,
       },
       'my-custom-mcp': {
