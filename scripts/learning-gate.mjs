@@ -416,7 +416,13 @@ async function main() {
   }
 }
 
-if (import.meta.main) {
+// `import.meta.main` is Bun-specific; fall back to argv[1] check for Node.js compatibility
+import { fileURLToPath } from 'node:url';
+const _isEntryPoint = (typeof import.meta.main === 'boolean')
+  ? import.meta.main
+  : process.argv[1] === fileURLToPath(import.meta.url);
+
+if (_isEntryPoint) {
   try {
     await main();
   } catch (error) {

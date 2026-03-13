@@ -378,13 +378,13 @@ class PipelineMetricsCollector {
       return this._readPersistedCompressionStats(windowMs);
     }
 
-    if (!this._compressionEvents) return { totalEvents: 0, totalTokensSaved: 0, avgCompressionRatio: 1, avgDurationMs: 0, byPipeline: {} };
+    if (!this._compressionEvents) return { totalEvents: 0, totalTokensSaved: 0, avgCompressionRatio: 0, avgDurationMs: 0, byPipeline: {} };
 
     const cutoff = this.nowFn() - (windowMs || this.retentionMs);
     const relevant = this._compressionEvents.filter(e => e.timestamp >= cutoff);
 
     if (relevant.length === 0) {
-      return { totalEvents: 0, totalTokensSaved: 0, avgCompressionRatio: 1, avgDurationMs: 0, byPipeline: {} };
+      return { totalEvents: 0, totalTokensSaved: 0, avgCompressionRatio: 0, avgDurationMs: 0, byPipeline: {} };
     }
 
     let totalSaved = 0;
@@ -551,7 +551,7 @@ class PipelineMetricsCollector {
   }
 
   _readPersistedCompressionStats(windowMs) {
-    const empty = { totalEvents: 0, totalTokensSaved: 0, avgCompressionRatio: 1, avgDurationMs: 0, byPipeline: {} };
+    const empty = { totalEvents: 0, totalTokensSaved: 0, avgCompressionRatio: 0, avgDurationMs: 0, byPipeline: {} };
     if (!this._db) {
       return this._readFileCompressionStats(windowMs);
     }
@@ -834,6 +834,18 @@ class PipelineMetricsCollector {
     this._context7Events = [];
     this._detectedTimestamps.clear();
     this._lastCatalogUpdate = null;
+
+    // Clear persistence (SQLite + file fallback) so the fallback path doesn't return stale data
+    if (this._db) {
+      try { this._db.prepare('DELETE FROM compression_history').run(); } catch (_e) { /* table may not exist yet */ }
+      try { this._db.prepare('DELETE FROM context7_lookups').run(); } catch (_e) { /* table may not exist yet */ }
+    }
+    // Clear the JSON history file used when SQLite is unavailable (e.g. bun:sqlite lacks .pragma)
+    try {
+      if (fs.existsSync(this._historyFilePath)) {
+        fs.writeFileSync(this._historyFilePath, '[]', 'utf8');
+      }
+    } catch (_e) { /* non-fatal */ }
   }
 
   /**
@@ -979,7 +991,7 @@ class PipelineMetricsCollector {
   }
 
   _readFileCompressionStats(windowMs) {
-    const empty = { totalEvents: 0, totalTokensSaved: 0, avgCompressionRatio: 1, avgDurationMs: 0, byPipeline: {} };
+    const empty = { totalEvents: 0, totalTokensSaved: 0, avgCompressionRatio: 0, avgDurationMs: 0, byPipeline: {} };
     try {
       const history = safeJsonParse(fs.readFileSync(this._historyFilePath, 'utf8'), []);
       const cutoff = this.nowFn() - (windowMs || this.retentionMs);

@@ -10,7 +10,9 @@
  *   - Task context eviction (TTL)
  */
 
-import { describe, expect, test, beforeEach } from 'bun:test';
+import { describe, expect, test, beforeEach, afterEach } from 'bun:test';
+import { tmpdir } from 'node:os';
+import { unlinkSync, existsSync } from 'node:fs';
 
 // --- Governor ---
 import { Governor } from '../packages/opencode-context-governor/src/index.js';
@@ -133,12 +135,21 @@ describe('ContextBridge evaluateAndCompress', () => {
 
 describe('PipelineMetricsCollector compression tracking (T16)', () => {
   let collector;
+  let _dbPath;
 
   beforeEach(() => {
+    _dbPath = `${tmpdir()}/test-metrics-t20-${Date.now()}-${Math.random().toString(36).slice(2)}.db`;
     collector = new PipelineMetricsCollector({
       autoCleanup: false,
-      dbPath: '/tmp/test-metrics-t20.db',
+      dbPath: _dbPath,
     });
+  });
+
+  afterEach(() => {
+    collector.close();
+    for (const suffix of ['', '-shm', '-wal', '.events.json']) {
+      try { unlinkSync(_dbPath + suffix); } catch (_e) { /* ok */ }
+    }
   });
 
   test('recordCompression stores events and getCompressionStats aggregates', () => {
@@ -173,12 +184,21 @@ describe('PipelineMetricsCollector compression tracking (T16)', () => {
 
 describe('PipelineMetricsCollector Context7 tracking (T17)', () => {
   let collector;
+  let _dbPath;
 
   beforeEach(() => {
+    _dbPath = `${tmpdir()}/test-metrics-t20-c7-${Date.now()}-${Math.random().toString(36).slice(2)}.db`;
     collector = new PipelineMetricsCollector({
       autoCleanup: false,
-      dbPath: '/tmp/test-metrics-t20-c7.db',
+      dbPath: _dbPath,
     });
+  });
+
+  afterEach(() => {
+    collector.close();
+    for (const suffix of ['', '-shm', '-wal', '.events.json']) {
+      try { unlinkSync(_dbPath + suffix); } catch (_e) { /* ok */ }
+    }
   });
 
   test('recordContext7Lookup stores events and getContext7Stats aggregates', () => {
@@ -305,17 +325,25 @@ describe('PipelineMetricsCollector cleanup includes new event types', () => {
 
 describe('PipelineMetricsCollector reset clears compression and context7', () => {
   test('reset clears all event arrays including new ones', () => {
+    const dbPath = `${tmpdir()}/test-metrics-t20-reset-${Date.now()}-${Math.random().toString(36).slice(2)}.db`;
     const collector = new PipelineMetricsCollector({
       autoCleanup: false,
-      dbPath: '/tmp/test-metrics-t20-reset.db',
+      dbPath,
     });
 
-    collector.recordCompression({ sessionId: 's', inputTokens: 100, outputTokens: 50, ratio: 0.5, strategy: 'x' });
-    collector.recordContext7Lookup({ libraryId: '/a/b', resolved: true, durationMs: 10, source: 's' });
+    try {
+      collector.recordCompression({ sessionId: 's', inputTokens: 100, outputTokens: 50, ratio: 0.5, strategy: 'x' });
+      collector.recordContext7Lookup({ libraryId: '/a/b', resolved: true, durationMs: 10, source: 's' });
 
-    collector.reset();
+      collector.reset();
 
-    expect(collector.getCompressionStats().totalEvents).toBe(0);
-    expect(collector.getContext7Stats().totalLookups).toBe(0);
+      expect(collector.getCompressionStats().totalEvents).toBe(0);
+      expect(collector.getContext7Stats().totalLookups).toBe(0);
+    } finally {
+      collector.close();
+      for (const suffix of ['', '-shm', '-wal', '.events.json']) {
+        try { unlinkSync(dbPath + suffix); } catch (_e) { /* ok */ }
+      }
+    }
   });
 });

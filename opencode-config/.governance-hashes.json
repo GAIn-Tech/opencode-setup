@@ -1,7 +1,7 @@
 {
   "version": 1,
   "algorithm": "SHA-256",
-  "generated_at": "2026-03-13T23:42:34.465Z",
+  "generated_at": "2026-03-13T23:57:50.999Z",
   "files": {
     "opencode-config/antigravity.json": "d332d874ef445af235aeee92777ca40a9110cede734f9535efa4c7e2c9d25b6b",
     "opencode-config/central-config.json": "ade5728ba5a9192cf40af1ee731006b1b48516744da3f8eb885f57c4d79f05ac",
@@ -13,7 +13,7 @@
     "opencode-config/integrity-baseline.json": "d866bee0b2338f6a2618d3b075e0bf5ec30df1392813b224035a45946daa3b06",
     "opencode-config/learning-update-policy.json": "4b618c0d8e4ffaa07b5b568b9bafd0bc14a8b3e1c5912826dca59e15c9054e7f",
     "opencode-config/mcp-dormant-policy.json": "ef4ec5e7727e52cb817c8fd1400a4608e638903f3da7f117678b881b9553da14",
-    "opencode-config/meta-knowledge-index.json": "649a86a1da340777098b561713bf3531332ac47eed378ae72be09972474f1c1c",
+    "opencode-config/meta-knowledge-index.json": "ffbcfc83cc3ee45cf799444d55dab487db3171fabffef3676ed43c24d4cd5f65",
     "opencode-config/models/catalog-2026.json": "6444a2634ce415512df94b0d117f8afa9c72cd6d6cd8eba473f26c9f13531d41",
     "opencode-config/models/schema-v2.json": "e95c663a71a004ee9a99827a6a6814ab9305ed4f6a130670d8022752f8f34c1b",
     "opencode-config/models/schema.json": "6b2c46197b86bbbdebad01c896eaa9a4d4111b115c1c3de7d58fae68c98eb49c",
