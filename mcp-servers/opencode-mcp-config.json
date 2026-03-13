@@ -8,7 +8,7 @@
     },
     "opencode-memory-graph": {
       "command": "node",
-      "args": ["{{OPENCODE_ROOT}}/packages/opencode-memory-graph/src/cli.js"],
+      "args": ["{{OPENCODE_ROOT}}/packages/opencode-memory-graph/src/mcp-server.mjs"],
       "description": "Session-to-error graph builder from OpenCode runtime logs",
       "enabled": true
     },

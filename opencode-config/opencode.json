@@ -669,8 +669,8 @@
     },
     "opencode-memory-graph": {
       "type": "local",
-      "command": ["node", "packages/opencode-memory-graph/src/cli.js"],
-      "enabled": false
+      "command": ["node", "packages/opencode-memory-graph/src/mcp-server.mjs"],
+      "enabled": true
     },
     "opencode-model-router-x": {
       "type": "local",
