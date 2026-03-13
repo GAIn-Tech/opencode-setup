@@ -1,0 +1,18 @@
+{
+  "id": "memory-graph-mcp-wrapper-20260313",
+  "timestamp": "2026-03-13T16:40:00Z",
+  "summary": "Add a stdio MCP wrapper for memory-graph so graph build, activation, and query operations are available through a real host-facing MCP server.",
+  "affected_paths": [
+    "packages/opencode-memory-graph/package.json",
+    "packages/opencode-memory-graph/src/mcp-server.mjs",
+    "packages/opencode-memory-graph/test/mcp-server.test.mjs",
+    "bun.lock",
+    "opencode-config/learning-updates/memory-graph-mcp-wrapper-20260313.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

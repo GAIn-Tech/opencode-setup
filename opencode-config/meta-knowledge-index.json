@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-03-13T19:54:25.817Z",
+  "generated_at": "2026-03-13T21:28:55.141Z",
   "schema_version": 1,
-  "total_records": 308,
+  "total_records": 312,
   "source_files": {
-    "learning_updates": 308,
+    "learning_updates": 312,
     "agents_md": 7
   },
   "by_category": {
@@ -21,6 +21,52 @@
           "opencode-config/learning-updates/mcp-host-health-verification-20260313.json"
         ],
         "timestamp": "2026-03-13T19:55:00Z"
+      },
+      {
+        "id": "memory-graph-copy-sync-20260313",
+        "summary": "Keep runtime-safe copy-config sync preserving the memory-graph MCP wrapper in the host-facing user config.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/tests/copy-config.test.js",
+          "opencode-config/learning-updates/memory-graph-copy-sync-20260313.json"
+        ],
+        "timestamp": "2026-03-13T16:43:00Z"
+      },
+      {
+        "id": "memory-graph-host-policy-20260313",
+        "summary": "Re-enable memory-graph in host-facing MCP policy and update generator regressions now that a real stdio wrapper exists.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/mcp-dormant-policy.json",
+          "scripts/tests/generate-mcp-config.test.js",
+          "opencode-config/learning-updates/memory-graph-host-policy-20260313.json"
+        ],
+        "timestamp": "2026-03-13T16:42:00Z"
+      },
+      {
+        "id": "memory-graph-mcp-config-20260313",
+        "summary": "Point host-facing memory-graph MCP config sources at the new stdio wrapper entrypoint instead of the raw CLI entrypoint.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/opencode.json",
+          "mcp-servers/opencode-mcp-config.json",
+          "mcp-servers/opencode-mcp-config.template.json",
+          "opencode-config/learning-updates/memory-graph-mcp-config-20260313.json"
+        ],
+        "timestamp": "2026-03-13T16:41:00Z"
+      },
+      {
+        "id": "memory-graph-mcp-wrapper-20260313",
+        "summary": "Add a stdio MCP wrapper for memory-graph so graph build, activation, and query operations are available through a real host-facing MCP server.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-memory-graph/package.json",
+          "packages/opencode-memory-graph/src/mcp-server.mjs",
+          "packages/opencode-memory-graph/test/mcp-server.test.mjs",
+          "bun.lock",
+          "opencode-config/learning-updates/memory-graph-mcp-wrapper-20260313.json"
+        ],
+        "timestamp": "2026-03-13T16:40:00Z"
       },
       {
         "id": "context-governor-copy-sync-20260313",
@@ -3747,6 +3793,52 @@
           "opencode-config/learning-updates/mcp-host-health-verification-20260313.json"
         ],
         "timestamp": "2026-03-13T19:55:00Z"
+      },
+      {
+        "id": "memory-graph-copy-sync-20260313",
+        "summary": "Keep runtime-safe copy-config sync preserving the memory-graph MCP wrapper in the host-facing user config.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/tests/copy-config.test.js",
+          "opencode-config/learning-updates/memory-graph-copy-sync-20260313.json"
+        ],
+        "timestamp": "2026-03-13T16:43:00Z"
+      },
+      {
+        "id": "memory-graph-host-policy-20260313",
+        "summary": "Re-enable memory-graph in host-facing MCP policy and update generator regressions now that a real stdio wrapper exists.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/mcp-dormant-policy.json",
+          "scripts/tests/generate-mcp-config.test.js",
+          "opencode-config/learning-updates/memory-graph-host-policy-20260313.json"
+        ],
+        "timestamp": "2026-03-13T16:42:00Z"
+      },
+      {
+        "id": "memory-graph-mcp-config-20260313",
+        "summary": "Point host-facing memory-graph MCP config sources at the new stdio wrapper entrypoint instead of the raw CLI entrypoint.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/opencode.json",
+          "mcp-servers/opencode-mcp-config.json",
+          "mcp-servers/opencode-mcp-config.template.json",
+          "opencode-config/learning-updates/memory-graph-mcp-config-20260313.json"
+        ],
+        "timestamp": "2026-03-13T16:41:00Z"
+      },
+      {
+        "id": "memory-graph-mcp-wrapper-20260313",
+        "summary": "Add a stdio MCP wrapper for memory-graph so graph build, activation, and query operations are available through a real host-facing MCP server.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-memory-graph/package.json",
+          "packages/opencode-memory-graph/src/mcp-server.mjs",
+          "packages/opencode-memory-graph/test/mcp-server.test.mjs",
+          "bun.lock",
+          "opencode-config/learning-updates/memory-graph-mcp-wrapper-20260313.json"
+        ],
+        "timestamp": "2026-03-13T16:40:00Z"
       },
       {
         "id": "context-governor-copy-sync-20260313",
@@ -7478,6 +7570,18 @@
         "timestamp": "2026-03-13T19:55:00Z"
       },
       {
+        "id": "memory-graph-copy-sync-20260313",
+        "summary": "Keep runtime-safe copy-config sync preserving the memory-graph MCP wrapper in the host-facing user config.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T16:43:00Z"
+      },
+      {
+        "id": "memory-graph-host-policy-20260313",
+        "summary": "Re-enable memory-graph in host-facing MCP policy and update generator regressions now that a real stdio wrapper exists.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T16:42:00Z"
+      },
+      {
         "id": "context-governor-copy-sync-20260313",
         "summary": "Update runtime-safe copy-config expectations so context-governor remains surfaced in user config while still filtering dormant internal MCPs.",
         "risk_level": "low",
@@ -7750,6 +7854,12 @@
         "timestamp": "2026-03-13T19:55:00Z"
       },
       {
+        "id": "memory-graph-host-policy-20260313",
+        "summary": "Re-enable memory-graph in host-facing MCP policy and update generator regressions now that a real stdio wrapper exists.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T16:42:00Z"
+      },
+      {
         "id": "context-governor-host-policy-20260313",
         "summary": "Remove context-governor from dormant MCP policy and update generator filtering tests now that a real stdio MCP wrapper exists.",
         "risk_level": "low",
@@ -7780,6 +7890,30 @@
         "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
         "risk_level": "low",
         "timestamp": "2026-03-13T19:55:00Z"
+      },
+      {
+        "id": "memory-graph-copy-sync-20260313",
+        "summary": "Keep runtime-safe copy-config sync preserving the memory-graph MCP wrapper in the host-facing user config.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T16:43:00Z"
+      },
+      {
+        "id": "memory-graph-host-policy-20260313",
+        "summary": "Re-enable memory-graph in host-facing MCP policy and update generator regressions now that a real stdio wrapper exists.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T16:42:00Z"
+      },
+      {
+        "id": "memory-graph-mcp-config-20260313",
+        "summary": "Point host-facing memory-graph MCP config sources at the new stdio wrapper entrypoint instead of the raw CLI entrypoint.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T16:41:00Z"
+      },
+      {
+        "id": "memory-graph-mcp-wrapper-20260313",
+        "summary": "Add a stdio MCP wrapper for memory-graph so graph build, activation, and query operations are available through a real host-facing MCP server.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T16:40:00Z"
       },
       {
         "id": "context-governor-copy-sync-20260313",
@@ -7928,6 +8062,12 @@
     ],
     "opencode-config/opencode.json": [
       {
+        "id": "memory-graph-mcp-config-20260313",
+        "summary": "Point host-facing memory-graph MCP config sources at the new stdio wrapper entrypoint instead of the raw CLI entrypoint.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T16:41:00Z"
+      },
+      {
         "id": "context-governor-mcp-config-20260313",
         "summary": "Point host-facing context-governor MCP config at the new stdio wrapper entrypoint across canonical and template config files.",
         "risk_level": "low",
@@ -8008,6 +8148,12 @@
     ],
     "mcp-servers/opencode-mcp-config.json": [
       {
+        "id": "memory-graph-mcp-config-20260313",
+        "summary": "Point host-facing memory-graph MCP config sources at the new stdio wrapper entrypoint instead of the raw CLI entrypoint.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T16:41:00Z"
+      },
+      {
         "id": "context-governor-mcp-config-20260313",
         "summary": "Point host-facing context-governor MCP config at the new stdio wrapper entrypoint across canonical and template config files.",
         "risk_level": "low",
@@ -8028,6 +8174,12 @@
     ],
     "mcp-servers/opencode-mcp-config.template.json": [
       {
+        "id": "memory-graph-mcp-config-20260313",
+        "summary": "Point host-facing memory-graph MCP config sources at the new stdio wrapper entrypoint instead of the raw CLI entrypoint.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T16:41:00Z"
+      },
+      {
         "id": "context-governor-mcp-config-20260313",
         "summary": "Point host-facing context-governor MCP config at the new stdio wrapper entrypoint across canonical and template config files.",
         "risk_level": "low",
@@ -8038,6 +8190,124 @@
         "summary": "Point the host-facing runbooks MCP entries at the new stdio wrapper entrypoint in canonical OpenCode config sources.",
         "risk_level": "low",
         "timestamp": "2026-03-13T01:15:00Z"
+      }
+    ],
+    "packages/opencode-memory-graph": [
+      {
+        "id": "memory-graph-mcp-wrapper-20260313",
+        "summary": "Add a stdio MCP wrapper for memory-graph so graph build, activation, and query operations are available through a real host-facing MCP server.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T16:40:00Z"
+      },
+      {
+        "id": "wave8-graph-v3-getnode-fix-20260308",
+        "summary": "Add missing getNode(id) method to MemoryGraphV3 that delegates to NodeStore.get(id). Fixes TypeError in store.test.js that prevented 54 MemoryGraphV3 tests from running.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:30:00Z"
+      },
+      {
+        "id": "remove-orphaned-exports-20260225",
+        "summary": "Removed 9 orphaned exports with zero cross-package imports: circuitBreakerRegistry/CircuitBreakerRegistry/CircuitOpenError from circuit-breaker, RequestTracer/LOG_LEVELS from logger, KNOWN_BAD_PLUGINS/DEFAULT_MCPS from plugin-healthd, toJSON/toCSV from memory-graph.",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T22:00:00Z"
+      },
+      {
+        "id": "unused-deps-removal-20260225",
+        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00.000Z"
+      },
+      {
+        "id": "reduce-explicit-any-types-20260225",
+        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "deprecated-functions-removal-20260225",
+        "summary": "Remove 5 deprecated functions across 3 packages to improve code maintainability",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "unused-exports-removal-20260225",
+        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "round1-3-integrations-complete-20260217",
+        "summary": "All 30 integration items completed across 3 rounds - fully interconnected packages",
+        "risk_level": "low",
+        "timestamp": "2026-02-17T00:00:00Z"
+      },
+      {
+        "id": "atomic-write-sweep-learning-state-20260216",
+        "summary": "Applied atomic JSON write pattern to remaining learning and state persistence files",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T01:20:00Z"
+      },
+      {
+        "id": "dashboard-v2-implementation-20260215",
+        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:00:00Z"
+      },
+      {
+        "id": "portability-integrity-pass-20260215",
+        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T12:30:00Z"
+      },
+      {
+        "id": "workspace-deps-fix-20260215",
+        "summary": "Fixed workspace dependency version mismatch preventing bun install, made git hooks executable, updated CLI shebangs for cross-platform compatibility",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T08:00:00Z"
+      }
+    ],
+    "bun.lock": [
+      {
+        "id": "memory-graph-mcp-wrapper-20260313",
+        "summary": "Add a stdio MCP wrapper for memory-graph so graph build, activation, and query operations are available through a real host-facing MCP server.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T16:40:00Z"
+      },
+      {
+        "id": "context-governor-mcp-wrapper-20260313",
+        "summary": "Add a real stdio MCP wrapper for opencode-context-governor using the MCP SDK and cover its tool handlers with package-level tests.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-13T16:15:00Z"
+      },
+      {
+        "id": "runbooks-mcp-wrapper-20260313",
+        "summary": "Add a stdio MCP wrapper for opencode-runbooks and package metadata needed to expose runbook diagnostics/remedy tools over MCP.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T01:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "unused-deps-removal-20260225",
+        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00.000Z"
+      },
+      {
+        "id": "knowledge-graph-hierarchy-lod-20260220",
+        "summary": "Added hierarchical knowledge graph views with adaptive edge decluttering and API shaping controls",
+        "risk_level": "medium",
+        "timestamp": "2026-02-20T06:00:00-05:00"
+      },
+      {
+        "id": "workspace-deps-fix-20260215",
+        "summary": "Fixed workspace dependency version mismatch preventing bun install, made git hooks executable, updated CLI shebangs for cross-platform compatibility",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T08:00:00Z"
       }
     ],
     "packages/opencode-context-governor": [
@@ -8124,44 +8394,6 @@
         "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
         "risk_level": "low",
         "timestamp": "2026-02-15T12:30:00Z"
-      }
-    ],
-    "bun.lock": [
-      {
-        "id": "context-governor-mcp-wrapper-20260313",
-        "summary": "Add a real stdio MCP wrapper for opencode-context-governor using the MCP SDK and cover its tool handlers with package-level tests.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-13T16:15:00Z"
-      },
-      {
-        "id": "runbooks-mcp-wrapper-20260313",
-        "summary": "Add a stdio MCP wrapper for opencode-runbooks and package metadata needed to expose runbook diagnostics/remedy tools over MCP.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T01:10:00Z"
-      },
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "unused-deps-removal-20260225",
-        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00.000Z"
-      },
-      {
-        "id": "knowledge-graph-hierarchy-lod-20260220",
-        "summary": "Added hierarchical knowledge graph views with adaptive edge decluttering and API shaping controls",
-        "risk_level": "medium",
-        "timestamp": "2026-02-20T06:00:00-05:00"
-      },
-      {
-        "id": "workspace-deps-fix-20260215",
-        "summary": "Fixed workspace dependency version mismatch preventing bun install, made git hooks executable, updated CLI shebangs for cross-platform compatibility",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T08:00:00Z"
       }
     ],
     "scripts/copy-config.mjs": [
@@ -11060,74 +11292,6 @@
         "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
         "risk_level": "low",
         "timestamp": "2026-02-25T00:00:00Z"
-      }
-    ],
-    "packages/opencode-memory-graph": [
-      {
-        "id": "wave8-graph-v3-getnode-fix-20260308",
-        "summary": "Add missing getNode(id) method to MemoryGraphV3 that delegates to NodeStore.get(id). Fixes TypeError in store.test.js that prevented 54 MemoryGraphV3 tests from running.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:30:00Z"
-      },
-      {
-        "id": "remove-orphaned-exports-20260225",
-        "summary": "Removed 9 orphaned exports with zero cross-package imports: circuitBreakerRegistry/CircuitBreakerRegistry/CircuitOpenError from circuit-breaker, RequestTracer/LOG_LEVELS from logger, KNOWN_BAD_PLUGINS/DEFAULT_MCPS from plugin-healthd, toJSON/toCSV from memory-graph.",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T22:00:00Z"
-      },
-      {
-        "id": "unused-deps-removal-20260225",
-        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00.000Z"
-      },
-      {
-        "id": "reduce-explicit-any-types-20260225",
-        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "deprecated-functions-removal-20260225",
-        "summary": "Remove 5 deprecated functions across 3 packages to improve code maintainability",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "unused-exports-removal-20260225",
-        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "round1-3-integrations-complete-20260217",
-        "summary": "All 30 integration items completed across 3 rounds - fully interconnected packages",
-        "risk_level": "low",
-        "timestamp": "2026-02-17T00:00:00Z"
-      },
-      {
-        "id": "atomic-write-sweep-learning-state-20260216",
-        "summary": "Applied atomic JSON write pattern to remaining learning and state persistence files",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T01:20:00Z"
-      },
-      {
-        "id": "dashboard-v2-implementation-20260215",
-        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:00:00Z"
-      },
-      {
-        "id": "portability-integrity-pass-20260215",
-        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T12:30:00Z"
-      },
-      {
-        "id": "workspace-deps-fix-20260215",
-        "summary": "Fixed workspace dependency version mismatch preventing bun install, made git hooks executable, updated CLI shebangs for cross-platform compatibility",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T08:00:00Z"
       }
     ],
     "packages/opencode-showboat-wrapper": [
