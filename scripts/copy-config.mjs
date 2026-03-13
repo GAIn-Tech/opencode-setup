@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, renameSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, renameSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { resolvePath, userConfigDir, userDataDir } from './resolve-root.mjs';
+import { mergeMcpIntoUserConfig } from './generate-mcp-config.mjs';
 
 const SOURCE_CONFIG_DIR = resolvePath('opencode-config');
 const TARGET_CONFIG_DIR = userConfigDir();
@@ -39,6 +41,38 @@ const MERGE_DIRS = [
 ];
 
 const backupEnabled = String(process.env.OPENCODE_COPY_CONFIG_BACKUP || '1') !== '0';
+
+function readDormantMcpNames(configDir = SOURCE_CONFIG_DIR) {
+  const dormantPolicyPath = path.join(configDir, 'mcp-dormant-policy.json');
+  if (!existsSync(dormantPolicyPath)) {
+    return new Set();
+  }
+
+  try {
+    const policy = JSON.parse(readFileSync(dormantPolicyPath, 'utf8'));
+    return new Set(Object.keys(policy || {}));
+  } catch {
+    return new Set();
+  }
+}
+
+export function buildRuntimeSafeUserConfig(canonicalConfig, userConfig, dormantMcpNames = new Set()) {
+  return mergeMcpIntoUserConfig(userConfig, canonicalConfig, { dormantMcpNames });
+}
+
+function syncRuntimeSafeUserConfig() {
+  const canonicalPath = path.join(SOURCE_CONFIG_DIR, 'opencode.json');
+  const targetPath = path.join(TARGET_CONFIG_DIR, 'opencode.json');
+  if (!existsSync(canonicalPath) || !existsSync(targetPath)) {
+    return;
+  }
+
+  const dormantMcpNames = readDormantMcpNames();
+  const canonicalConfig = JSON.parse(readFileSync(canonicalPath, 'utf8'));
+  const userConfig = JSON.parse(readFileSync(targetPath, 'utf8'));
+  const mergedConfig = buildRuntimeSafeUserConfig(canonicalConfig, userConfig, dormantMcpNames);
+  writeFileSync(targetPath, `${JSON.stringify(mergedConfig, null, 2)}\n`, 'utf8');
+}
 
 function ensureDir(dirPath) {
   mkdirSync(dirPath, { recursive: true });
@@ -168,13 +202,17 @@ function main() {
     rmSync(stagingRoot, { recursive: true, force: true });
   }
 
+  syncRuntimeSafeUserConfig();
   console.log('[copy-config] Configuration sync complete');
 }
 
-try {
-  main();
-} catch (error) {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(`[copy-config] Failed: ${message}`);
-  process.exit(1);
+const thisFile = fileURLToPath(import.meta.url);
+if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(thisFile)) {
+  try {
+    main();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`[copy-config] Failed: ${message}`);
+    process.exit(1);
+  }
 }
