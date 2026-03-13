@@ -7,7 +7,7 @@ describe('copy-config runtime-safe merge', () => {
       plugin: ['opencode-supermemory@2.0.1'],
       mcp: {
         'opencode-context-governor': {
-          command: ['node', 'packages/opencode-context-governor/src/index.js'],
+          command: ['node', 'packages/opencode-context-governor/src/mcp-server.mjs'],
           enabled: true,
         },
         supermemory: {
@@ -33,11 +33,15 @@ describe('copy-config runtime-safe merge', () => {
     const merged = buildRuntimeSafeUserConfig(
       canonicalConfig,
       userConfig,
-      new Set(['opencode-context-governor', 'opencode-runbooks']),
+      new Set(['opencode-runbooks']),
     );
 
     expect(merged.plugin).toEqual(['custom-plugin']);
     expect(merged.mcp).toEqual({
+      'opencode-context-governor': {
+        command: ['node', 'packages/opencode-context-governor/src/mcp-server.mjs'],
+        enabled: true,
+      },
       'my-custom-mcp': {
         command: ['uvx', 'my-mcp'],
         enabled: true,
