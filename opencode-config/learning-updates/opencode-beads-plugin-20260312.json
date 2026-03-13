@@ -1,0 +1,15 @@
+{
+  "id": "opencode-beads-plugin-20260312",
+  "timestamp": "2026-03-12T23:10:00Z",
+  "summary": "Add the upstream opencode-beads plugin to the main OpenCode plugin configuration so synced user configs load the beads integration.",
+  "affected_paths": [
+    "opencode-config/opencode.json",
+    "opencode-config/learning-updates/opencode-beads-plugin-20260312.json"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

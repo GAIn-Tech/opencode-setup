@@ -8,7 +8,8 @@
     "@tarquinen/opencode-dcp@latest",
     "opencode-plugin-preload-skills@1.8.0",
     "opencode-plugin-langfuse@0.1.8",
-    "opencode-pty@0.2.1"
+    "opencode-pty@0.2.1",
+    "opencode-beads@0.6.0"
   ],
   "provider": {
     "google": {
