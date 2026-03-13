@@ -129,7 +129,7 @@ describe('generate-mcp-config manifest mapping', () => {
       mcp: {
         'opencode-context-governor': {
           type: 'local',
-          command: ['node', 'packages/opencode-context-governor/src/index.js'],
+          command: ['node', 'packages/opencode-context-governor/src/mcp-server.mjs'],
           enabled: true,
           description: 'Context governor MCP — context window budget management',
         },
@@ -138,7 +138,7 @@ describe('generate-mcp-config manifest mapping', () => {
 
     expect(merged.mcp['opencode-context-governor']).toEqual({
       type: 'local',
-      command: ['node', 'packages/opencode-context-governor/src/index.js'],
+      command: ['node', 'packages/opencode-context-governor/src/mcp-server.mjs'],
       enabled: true,
     });
   });
@@ -153,15 +153,16 @@ describe('generate-mcp-config manifest mapping', () => {
       },
       {
         mcp: {
-          'opencode-context-governor': { command: ['node', 'packages/opencode-context-governor/src/index.js'], enabled: true },
+          'opencode-context-governor': { command: ['node', 'packages/opencode-context-governor/src/mcp-server.mjs'], enabled: true },
           supermemory: { url: 'https://mcp.supermemory.ai', enabled: true },
         },
       },
-      { dormantMcpNames: new Set(['opencode-memory-graph', 'opencode-context-governor']) },
+      { dormantMcpNames: new Set(['opencode-memory-graph']) },
     );
 
     expect(merged.mcp).toEqual({
       'my-custom-mcp': { command: ['uvx', 'my-mcp'], enabled: true },
+      'opencode-context-governor': { command: ['node', 'packages/opencode-context-governor/src/mcp-server.mjs'], enabled: true },
       supermemory: { url: 'https://mcp.supermemory.ai', enabled: true },
     });
   });
