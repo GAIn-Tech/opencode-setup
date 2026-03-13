@@ -42,6 +42,10 @@ export function normalizePluginName(specifier) {
   return versionSep === -1 ? s : s.slice(0, versionSep);
 }
 
+const PLUGIN_COMMAND_REQUIREMENTS = {
+  'opencode-beads': ['bd'],
+};
+
 export function extractEnvPlaceholders(value, found = new Set()) {
   if (typeof value === 'string') {
     const matches = value.matchAll(/\{env:([A-Z0-9_]+)\}/g);
@@ -184,6 +188,24 @@ function checkPluginDeclarationFailures(repoConfig, userConfig) {
   return failures;
 }
 
+export function checkPluginCommandFailures(userConfig, locateCommand = commandLocation) {
+  const failures = [];
+  const configuredPlugins = (Array.isArray(userConfig.plugin) ? userConfig.plugin : [])
+    .map(normalizePluginName)
+    .filter(Boolean);
+
+  for (const plugin of configuredPlugins) {
+    const commands = PLUGIN_COMMAND_REQUIREMENTS[plugin] || [];
+    for (const command of commands) {
+      if (!locateCommand(command)) {
+        failures.push(`Missing required command '${command}' for configured plugin '${plugin}'`);
+      }
+    }
+  }
+
+  return failures;
+}
+
 function checkEnabledLocalMcpCommandFailures(userConfig) {
   const failures = [];
   const enabledLocal = getEnabledLocalMcpCommands(userConfig.mcp || {});
@@ -243,6 +265,7 @@ export function runPortabilityVerification({ strict = false } = {}) {
   failures.push(...checkRegistryMirrorFailures());
   failures.push(...checkAgentMirrorFailures());
   failures.push(...checkPluginDeclarationFailures(repoConfig, userConfig));
+  failures.push(...checkPluginCommandFailures(userConfig));
   failures.push(...checkEnabledLocalMcpCommandFailures(userConfig));
   failures.push(...checkRequiredEnvFailures(userConfig, strict));
 

@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import {
+  checkPluginCommandFailures,
   checkRequiredEnvFailures,
   extractEnvPlaceholders,
   getEnabledLocalMcpCommands,
@@ -55,5 +56,18 @@ describe('verify-portability helpers', () => {
   test('strict mode does not fail when no env placeholders exist', () => {
     const failures = checkRequiredEnvFailures({ provider: {}, mcp: {} }, true);
     expect(failures).toEqual([]);
+  });
+
+  test('plugin command requirements are skipped for unrelated plugins', () => {
+    const failures = checkPluginCommandFailures({ plugin: ['opencode-supermemory@2.0.1'] });
+    expect(failures).toEqual([]);
+  });
+
+  test('opencode-beads requires bd command when configured', () => {
+    const failures = checkPluginCommandFailures(
+      { plugin: ['opencode-beads@0.6.0'] },
+      () => null,
+    );
+    expect(failures).toEqual(["Missing required command 'bd' for configured plugin 'opencode-beads'"]);
   });
 });
