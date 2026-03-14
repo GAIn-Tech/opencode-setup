@@ -1139,6 +1139,50 @@ OPENCODE_BENCHMARK_SANDBOX=pyodide            # pyodide | docker
 
 ---
 
+## Implementation Status (Updated 2026-03-14)
+
+### Phase 1: Exploration Mode — COMPLETE
+- `packages/opencode-model-router-x/src/exploration-mode.js` — CLI flag, env var, runtime API
+- Thompson sampling, epsilon-greedy, UCB strategies implemented
+- Token budget manager integrated
+
+### Phase 2: Performance Tracking — COMPLETE
+- `packages/opencode-model-router-x/src/model-performance-tracker.js` (294 lines) — Percentile tracking, binary insertion sort
+- Metrics: accuracy, latency_ms, cost_usd, success rate, reasoning_efficiency
+
+### Phase 3: Comprehension Memory — COMPLETE
+- `packages/opencode-model-router-x/src/model-comprehension-memory.js` (356 lines) — SQLite + WAL mode
+- Table `model_performance`: id, task_id, intent_category, model_id, provider, timestamp, is_exploration, accuracy, latency_ms, cost_usd, success, tool_usage_count, context_tokens, output_tokens, reasoning_efficiency, error_type
+
+### Phase 4: Model Discovery — COMPLETE
+- `packages/opencode-model-router-x/src/model-discovery.js` — 3-tier fallback (API → docs → community)
+- Key rotation, subagent retry
+
+### Phase 5-6: Benchmarking & Hierarchy — DEFERRED
+- `packages/opencode-model-benchmark/` exists but incomplete (6 source files: benchmark-runner.js, model-comparator.js, hierarchy-placer.js, document-updater.js, pyodide-sandbox.js)
+- Needs Pyodide for HumanEval/MBPP/SWE-bench code execution
+- Estimated effort: 3-5 weeks
+
+### Phase 7: SkillRL Integration — COMPLETE
+- `packages/opencode-skill-rl-manager/src/exploration-adapter.js` (130 lines, CJS) — Bridges comprehension memory → SkillRL
+- Class `ExplorationRLAdapter({comprehensionMemory, skillRLManager})`
+- Methods: `updateFromExploration(taskCategory)`, `getAllMetricsForTask(taskCategory)`, `getBestModelRecommendation(taskCategory)`
+- Exported from `packages/opencode-skill-rl-manager/src/index.js`
+- Tests: 4 pass, 12 assertions
+
+### Config Coherence — COMPLETE
+- `scripts/validate-config-coherence.mjs` — SHA256-based drift detection (repo vs runtime)
+- Unblocks `protocol-compliance-pass.mjs` line 69 (`bun run config:coherence`)
+- Tests: 3 pass, 6 assertions
+
+### Overall: ~75% complete (Phases 1-4 + 7 done, 5-6 deferred)
+### Recommendation: Deploy exploration mode NOW (zero additional effort needed)
+
+### 16 Test Files Passing
+All exploration/performance/comprehension/discovery/RL tests green.
+
+---
+
 ## Related Plans
 
 - [Model Scoring Matrix v2.0](../docs/model-scoring-matrix-2025-v2.md)

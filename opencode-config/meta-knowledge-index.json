@@ -1,13 +1,30 @@
 {
-  "generated_at": "2026-03-14T20:21:21.358Z",
+  "generated_at": "2026-03-14T22:38:31.890Z",
   "schema_version": 1,
-  "total_records": 326,
+  "total_records": 327,
   "source_files": {
-    "learning_updates": 326,
+    "learning_updates": 327,
     "agents_md": 7
   },
   "by_category": {
     "uncategorized": [
+      {
+        "id": "benchmark-pipeline-functional-2026-03-14",
+        "summary": "Made opencode-model-benchmark production-functional: BenchmarkRunner with pluggable model client, evaluator, SQLite storage, built-in mini problems, real pass@k formula. Added BenchmarkPipeline orchestrator chaining Runner → Comparator → HierarchyPlacer → DocumentUpdater. 32 tests across 5 files.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-benchmark/src/benchmark-runner.js",
+          "packages/opencode-model-benchmark/src/benchmark-pipeline.js",
+          "packages/opencode-model-benchmark/src/index.js",
+          "packages/opencode-model-benchmark/package.json",
+          "packages/opencode-model-benchmark/test/benchmark-runner.test.js",
+          "packages/opencode-model-benchmark/test/model-comparator.test.js",
+          "packages/opencode-model-benchmark/test/hierarchy-placer.test.js",
+          "packages/opencode-model-benchmark/test/document-updater.test.js",
+          "packages/opencode-model-benchmark/test/benchmark-pipeline.test.js"
+        ],
+        "timestamp": "2026-03-14T19:06:00Z"
+      },
       {
         "id": "config-coherence-enriched-json-2026-03-14",
         "summary": "Config coherence script now handles enriched JSON files (e.g., opencode.json with MCP path resolution) via structural comparison of non-enriched keys instead of SHA256 hash. Added ENRICHED_JSON_FILES map, deepEqual(), and compareEnrichedJson(). Unblocks protocol-compliance-pass.mjs.",
@@ -3950,6 +3967,23 @@
   "by_risk_level": {
     "low": [
       {
+        "id": "benchmark-pipeline-functional-2026-03-14",
+        "summary": "Made opencode-model-benchmark production-functional: BenchmarkRunner with pluggable model client, evaluator, SQLite storage, built-in mini problems, real pass@k formula. Added BenchmarkPipeline orchestrator chaining Runner → Comparator → HierarchyPlacer → DocumentUpdater. 32 tests across 5 files.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-benchmark/src/benchmark-runner.js",
+          "packages/opencode-model-benchmark/src/benchmark-pipeline.js",
+          "packages/opencode-model-benchmark/src/index.js",
+          "packages/opencode-model-benchmark/package.json",
+          "packages/opencode-model-benchmark/test/benchmark-runner.test.js",
+          "packages/opencode-model-benchmark/test/model-comparator.test.js",
+          "packages/opencode-model-benchmark/test/hierarchy-placer.test.js",
+          "packages/opencode-model-benchmark/test/document-updater.test.js",
+          "packages/opencode-model-benchmark/test/benchmark-pipeline.test.js"
+        ],
+        "timestamp": "2026-03-14T19:06:00Z"
+      },
+      {
         "id": "config-coherence-enriched-json-2026-03-14",
         "summary": "Config coherence script now handles enriched JSON files (e.g., opencode.json with MCP path resolution) via structural comparison of non-enriched keys instead of SHA256 hash. Added ENRICHED_JSON_FILES map, deepEqual(), and compareEnrichedJson(). Unblocks protocol-compliance-pass.mjs.",
         "risk_level": "low",
@@ -7812,6 +7846,32 @@
     "high": []
   },
   "by_affected_path": {
+    "packages/opencode-model-benchmark": [
+      {
+        "id": "benchmark-pipeline-functional-2026-03-14",
+        "summary": "Made opencode-model-benchmark production-functional: BenchmarkRunner with pluggable model client, evaluator, SQLite storage, built-in mini problems, real pass@k formula. Added BenchmarkPipeline orchestrator chaining Runner → Comparator → HierarchyPlacer → DocumentUpdater. 32 tests across 5 files.",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T19:06:00Z"
+      },
+      {
+        "id": "wave8-readme-model-plugin-packages-20260308",
+        "summary": "Add README.md to four model and plugin packages that had none: opencode-model-benchmark, opencode-model-sync, opencode-plugin-lifecycle, opencode-plugin-preload-skills. Completes Wave 8C task 8 for the model/plugin tier.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:20:00Z"
+      },
+      {
+        "id": "unused-deps-removal-20260225",
+        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00.000Z"
+      },
+      {
+        "id": "frontier-control-plane-foundation-20260222",
+        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T03:55:00Z"
+      }
+    ],
     "scripts/validate-config-coherence.mjs": [
       {
         "id": "config-coherence-enriched-json-2026-03-14",
@@ -11980,26 +12040,6 @@
         "summary": "Add README.md to five orchestration and utility packages that had none: opencode-shared-orchestration, opencode-showboat-wrapper, opencode-skill-rl-manager, opencode-test-utils, opencode-validator. Completes Wave 8C task 8 — all 34 packages now have READMEs.",
         "risk_level": "low",
         "timestamp": "2026-03-08T00:25:00Z"
-      }
-    ],
-    "packages/opencode-model-benchmark": [
-      {
-        "id": "wave8-readme-model-plugin-packages-20260308",
-        "summary": "Add README.md to four model and plugin packages that had none: opencode-model-benchmark, opencode-model-sync, opencode-plugin-lifecycle, opencode-plugin-preload-skills. Completes Wave 8C task 8 for the model/plugin tier.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:20:00Z"
-      },
-      {
-        "id": "unused-deps-removal-20260225",
-        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00.000Z"
-      },
-      {
-        "id": "frontier-control-plane-foundation-20260222",
-        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T03:55:00Z"
       }
     ],
     "packages/opencode-backup-manager": [
