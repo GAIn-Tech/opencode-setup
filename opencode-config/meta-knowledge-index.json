@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-03-14T08:07:11.563Z",
+  "generated_at": "2026-03-14T08:15:12.845Z",
   "schema_version": 1,
-  "total_records": 316,
+  "total_records": 317,
   "source_files": {
-    "learning_updates": 316,
+    "learning_updates": 317,
     "agents_md": 7
   },
   "by_category": {
@@ -32,6 +32,16 @@
           "scripts/check-agents-drift.mjs",
           "README.md",
           "agents-list.md"
+        ],
+        "timestamp": "2026-03-14T08:00:00.000Z"
+      },
+      {
+        "id": "fix-context-management-test-isolation-2026-03-14",
+        "summary": "Fix test isolation in context-management.test.js: clean up SQLite DB files between test runs, clear persistence in reset(), fix avgCompressionRatio empty defaults from 1 to 0",
+        "risk_level": "low",
+        "affected_paths": [
+          "integration-tests/context-management.test.js",
+          "packages/opencode-model-manager/src/monitoring/metrics-collector.js"
         ],
         "timestamp": "2026-03-14T08:00:00.000Z"
       },
@@ -3846,6 +3856,16 @@
           "scripts/tests/mcp-inventory-regression.test.js"
         ],
         "timestamp": "2026-03-14T08:30:00.000Z"
+      },
+      {
+        "id": "fix-context-management-test-isolation-2026-03-14",
+        "summary": "Fix test isolation in context-management.test.js: clean up SQLite DB files between test runs, clear persistence in reset(), fix avgCompressionRatio empty defaults from 1 to 0",
+        "risk_level": "low",
+        "affected_paths": [
+          "integration-tests/context-management.test.js",
+          "packages/opencode-model-manager/src/monitoring/metrics-collector.js"
+        ],
+        "timestamp": "2026-03-14T08:00:00.000Z"
       },
       {
         "id": "remove-anomalous-agents-2026-03-14",
@@ -8178,6 +8198,148 @@
         "timestamp": "2026-03-14T08:00:00.000Z"
       }
     ],
+    "integration-tests/context-management.test.js": [
+      {
+        "id": "fix-context-management-test-isolation-2026-03-14",
+        "summary": "Fix test isolation in context-management.test.js: clean up SQLite DB files between test runs, clear persistence in reset(), fix avgCompressionRatio empty defaults from 1 to 0",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T08:00:00.000Z"
+      }
+    ],
+    "packages/opencode-model-manager": [
+      {
+        "id": "fix-context-management-test-isolation-2026-03-14",
+        "summary": "Fix test isolation in context-management.test.js: clean up SQLite DB files between test runs, clear persistence in reset(), fix avgCompressionRatio empty defaults from 1 to 0",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T08:00:00.000Z"
+      },
+      {
+        "id": "package-smoke-entrypoints-20260310",
+        "summary": "Add test:smoke entrypoints for critical packages so workspace-level smoke orchestration can verify package surfaces consistently.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:55:00-04:00"
+      },
+      {
+        "id": "metrics-persistence-observability-20260309",
+        "summary": "Unify compression and Context7 monitoring collection, expose them in snapshots, and read persisted history so fresh processes can serve observability data.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-09T22:46:00-04:00"
+      },
+      {
+        "id": "wave10-observability-persistence",
+        "summary": "Add opt-in Langfuse tracing to opencode-logger (WARN+ levels) and SQLite daily-metrics persistence to pipeline metrics collector (bun:sqlite with better-sqlite3 fallback)",
+        "risk_level": "medium",
+        "timestamp": "2026-03-08T22:35:00Z"
+      },
+      {
+        "id": "wave11-t18-t15-budget-alerts-dashboard",
+        "summary": "Add BUDGET_THRESHOLD alert type with evaluateBudget() to AlertManager (75/80/95% thresholds). Add Context Budget dashboard widget with compression stats, Context7 stats, and color-coded budget bars to observability page.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:20:00Z"
+      },
+      {
+        "id": "wave11-t16-t17-compression-context7-metrics",
+        "summary": "Add distill compression tracking (recordCompression, getCompressionStats) and Context7 lookup tracking (recordContext7Lookup, getContext7Stats) to PipelineMetricsCollector with SQLite persistence tables",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:15:00Z"
+      },
+      {
+        "id": "external-call-timeouts-20260225",
+        "summary": "Add explicit timeouts to 7 external call sites that could hang indefinitely",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T17:00:00Z"
+      },
+      {
+        "id": "audit-log-cap-rotation-20260225",
+        "summary": "Cap change-event-system audit log at 10k events with 7-day TTL to prevent unbounded memory growth and write latency spikes",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "reduce-explicit-any-types-20260225",
+        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "wave-1-async-io-complete-20260225",
+        "summary": "Wave 1: Async I/O conversion for config-loader, learning-engine, and model-manager to eliminate event loop blocking",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T02:32:00.000Z"
+      },
+      {
+        "id": "command-injection-fix-20260225",
+        "summary": "Security hardening: fix command injection in pr-generator execSync calls",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "model-manager-alert-writequeue-bounds-20260225",
+        "summary": "Added maxHistorySize cap to AlertManager and maxPendingWrites backpressure to AuditLogger writeQueue",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "model-manager-bounded-arrays-20260225",
+        "summary": "Added maxEvents cap with FIFO eviction to PipelineMetricsCollector event arrays",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "model-manager-readme-20260224",
+        "summary": "Added comprehensive README for opencode-model-manager package",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T10:15:00Z"
+      },
+      {
+        "id": "docs-wave7-20260224",
+        "summary": "Added comprehensive secrets and rollback documentation",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T09:00:00Z"
+      },
+      {
+        "id": "validation-wave7-20260224",
+        "summary": "Added catalog validation pipeline with comprehensive checks",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T08:30:00Z"
+      },
+      {
+        "id": "automation-wave7-20260224",
+        "summary": "Added PR automation and CI workflow for model catalog sync",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T08:00:00Z"
+      },
+      {
+        "id": "model-manager-lifecycle-wave5-20260224",
+        "summary": "Implement Wave 5 of automated model management protocol: 5-state lifecycle state machine, tamper-evident audit logger, and risk-based auto-approval rules engine.",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T02:35:00Z"
+      },
+      {
+        "id": "model-management-wave1-20260224",
+        "summary": "Wave 1: Provider Adapter Framework - Foundation for automated model management protocol",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "model-management-wave2-20260224",
+        "summary": "Wave 2: Discovery Engine & Caching - Resilient model discovery with two-tier caching and circuit breaker protection",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "model-management-wave3-20260224",
+        "summary": "Wave 3: Snapshot Store & Diff Engine - Change detection and audit logging for automated model management",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "model-manager-assessment-wave4-20260224",
+        "summary": "Implement Wave 4 assessment infrastructure for automated model management: model assessor with real benchmark execution (HumanEval, MBPP, latency) and metrics collector for 4-pillar metrics (accuracy, latency, cost, robustness) with SQLite persistence and z-score normalization.",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      }
+    ],
     "packages/opencode-sisyphus-state": [
       {
         "id": "uncapped-concurrency-2026-03-14",
@@ -10706,134 +10868,6 @@
         "summary": "Add a workspace package smoke runner and top-level packages:smoke command so package entrypoint exercise becomes as discoverable as mcp:smoke.",
         "risk_level": "medium",
         "timestamp": "2026-03-10T12:56:00-04:00"
-      }
-    ],
-    "packages/opencode-model-manager": [
-      {
-        "id": "package-smoke-entrypoints-20260310",
-        "summary": "Add test:smoke entrypoints for critical packages so workspace-level smoke orchestration can verify package surfaces consistently.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:55:00-04:00"
-      },
-      {
-        "id": "metrics-persistence-observability-20260309",
-        "summary": "Unify compression and Context7 monitoring collection, expose them in snapshots, and read persisted history so fresh processes can serve observability data.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-09T22:46:00-04:00"
-      },
-      {
-        "id": "wave10-observability-persistence",
-        "summary": "Add opt-in Langfuse tracing to opencode-logger (WARN+ levels) and SQLite daily-metrics persistence to pipeline metrics collector (bun:sqlite with better-sqlite3 fallback)",
-        "risk_level": "medium",
-        "timestamp": "2026-03-08T22:35:00Z"
-      },
-      {
-        "id": "wave11-t18-t15-budget-alerts-dashboard",
-        "summary": "Add BUDGET_THRESHOLD alert type with evaluateBudget() to AlertManager (75/80/95% thresholds). Add Context Budget dashboard widget with compression stats, Context7 stats, and color-coded budget bars to observability page.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:20:00Z"
-      },
-      {
-        "id": "wave11-t16-t17-compression-context7-metrics",
-        "summary": "Add distill compression tracking (recordCompression, getCompressionStats) and Context7 lookup tracking (recordContext7Lookup, getContext7Stats) to PipelineMetricsCollector with SQLite persistence tables",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:15:00Z"
-      },
-      {
-        "id": "external-call-timeouts-20260225",
-        "summary": "Add explicit timeouts to 7 external call sites that could hang indefinitely",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T17:00:00Z"
-      },
-      {
-        "id": "audit-log-cap-rotation-20260225",
-        "summary": "Cap change-event-system audit log at 10k events with 7-day TTL to prevent unbounded memory growth and write latency spikes",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "reduce-explicit-any-types-20260225",
-        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "wave-1-async-io-complete-20260225",
-        "summary": "Wave 1: Async I/O conversion for config-loader, learning-engine, and model-manager to eliminate event loop blocking",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T02:32:00.000Z"
-      },
-      {
-        "id": "command-injection-fix-20260225",
-        "summary": "Security hardening: fix command injection in pr-generator execSync calls",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "model-manager-alert-writequeue-bounds-20260225",
-        "summary": "Added maxHistorySize cap to AlertManager and maxPendingWrites backpressure to AuditLogger writeQueue",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "model-manager-bounded-arrays-20260225",
-        "summary": "Added maxEvents cap with FIFO eviction to PipelineMetricsCollector event arrays",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "model-manager-readme-20260224",
-        "summary": "Added comprehensive README for opencode-model-manager package",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T10:15:00Z"
-      },
-      {
-        "id": "docs-wave7-20260224",
-        "summary": "Added comprehensive secrets and rollback documentation",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T09:00:00Z"
-      },
-      {
-        "id": "validation-wave7-20260224",
-        "summary": "Added catalog validation pipeline with comprehensive checks",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T08:30:00Z"
-      },
-      {
-        "id": "automation-wave7-20260224",
-        "summary": "Added PR automation and CI workflow for model catalog sync",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T08:00:00Z"
-      },
-      {
-        "id": "model-manager-lifecycle-wave5-20260224",
-        "summary": "Implement Wave 5 of automated model management protocol: 5-state lifecycle state machine, tamper-evident audit logger, and risk-based auto-approval rules engine.",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T02:35:00Z"
-      },
-      {
-        "id": "model-management-wave1-20260224",
-        "summary": "Wave 1: Provider Adapter Framework - Foundation for automated model management protocol",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "model-management-wave2-20260224",
-        "summary": "Wave 2: Discovery Engine & Caching - Resilient model discovery with two-tier caching and circuit breaker protection",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "model-management-wave3-20260224",
-        "summary": "Wave 3: Snapshot Store & Diff Engine - Change detection and audit logging for automated model management",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "model-manager-assessment-wave4-20260224",
-        "summary": "Implement Wave 4 assessment infrastructure for automated model management: model assessor with real benchmark execution (HumanEval, MBPP, latency) and metrics collector for 4-pillar metrics (accuracy, latency, cost, robustness) with SQLite persistence and z-score normalization.",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
       }
     ],
     "packages/opencode-learning-engine": [

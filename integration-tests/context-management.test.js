@@ -11,6 +11,14 @@
  */
 
 import { describe, expect, test, beforeEach } from 'bun:test';
+import { unlinkSync } from 'node:fs';
+
+/** Remove SQLite DB and event-history JSON files to prevent cross-test pollution. */
+function cleanupDbFiles(dbPath) {
+  for (const f of [dbPath, `${dbPath}-shm`, `${dbPath}-wal`, `${dbPath}.events.json`]) {
+    try { unlinkSync(f); } catch (_) { /* may not exist */ }
+  }
+}
 
 // --- Governor ---
 import { Governor } from '../packages/opencode-context-governor/src/index.js';
@@ -133,11 +141,13 @@ describe('ContextBridge evaluateAndCompress', () => {
 
 describe('PipelineMetricsCollector compression tracking (T16)', () => {
   let collector;
+  const DB_PATH = '/tmp/test-metrics-t20.db';
 
   beforeEach(() => {
+    cleanupDbFiles(DB_PATH);
     collector = new PipelineMetricsCollector({
       autoCleanup: false,
-      dbPath: '/tmp/test-metrics-t20.db',
+      dbPath: DB_PATH,
     });
   });
 
@@ -173,11 +183,13 @@ describe('PipelineMetricsCollector compression tracking (T16)', () => {
 
 describe('PipelineMetricsCollector Context7 tracking (T17)', () => {
   let collector;
+  const DB_PATH = '/tmp/test-metrics-t20-c7.db';
 
   beforeEach(() => {
+    cleanupDbFiles(DB_PATH);
     collector = new PipelineMetricsCollector({
       autoCleanup: false,
-      dbPath: '/tmp/test-metrics-t20-c7.db',
+      dbPath: DB_PATH,
     });
   });
 
@@ -305,9 +317,11 @@ describe('PipelineMetricsCollector cleanup includes new event types', () => {
 
 describe('PipelineMetricsCollector reset clears compression and context7', () => {
   test('reset clears all event arrays including new ones', () => {
+    const resetDbPath = '/tmp/test-metrics-t20-reset.db';
+    cleanupDbFiles(resetDbPath);
     const collector = new PipelineMetricsCollector({
       autoCleanup: false,
-      dbPath: '/tmp/test-metrics-t20-reset.db',
+      dbPath: resetDbPath,
     });
 
     collector.recordCompression({ sessionId: 's', inputTokens: 100, outputTokens: 50, ratio: 0.5, strategy: 'x' });
