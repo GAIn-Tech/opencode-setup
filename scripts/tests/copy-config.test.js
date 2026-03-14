@@ -1,5 +1,16 @@
-import { describe, expect, test } from 'bun:test';
-import { buildRuntimeSafeUserConfig } from '../copy-config.mjs';
+import { afterEach, describe, expect, test } from 'bun:test';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { buildRuntimeSafeUserConfig, pruneDeprecatedRuntimeAgentPrompts } from '../copy-config.mjs';
+
+const tempDirs = [];
+
+afterEach(() => {
+  for (const dir of tempDirs.splice(0)) {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
 
 describe('copy-config runtime-safe merge', () => {
   test('removes dormant MCP entries while preserving user custom entries', () => {
@@ -59,5 +70,23 @@ describe('copy-config runtime-safe merge', () => {
         enabled: true,
       },
     });
+  });
+
+  test('prunes only deprecated runtime agent prompts', () => {
+    const targetConfigDir = mkdtempSync(path.join(tmpdir(), 'copy-config-agents-'));
+    tempDirs.push(targetConfigDir);
+
+    const agentsDir = path.join(targetConfigDir, 'agents');
+    mkdirSync(agentsDir, { recursive: true });
+    writeFileSync(path.join(agentsDir, 'thinker.md'), '# stale\n', 'utf8');
+    writeFileSync(path.join(agentsDir, 'memory-keeper.md'), '# stale\n', 'utf8');
+    writeFileSync(path.join(agentsDir, 'my-custom-agent.md'), '# keep\n', 'utf8');
+
+    const removed = pruneDeprecatedRuntimeAgentPrompts(targetConfigDir);
+
+    expect(removed.sort()).toEqual(['memory-keeper.md', 'thinker.md']);
+    expect(existsSync(path.join(agentsDir, 'thinker.md'))).toBe(false);
+    expect(existsSync(path.join(agentsDir, 'memory-keeper.md'))).toBe(false);
+    expect(existsSync(path.join(agentsDir, 'my-custom-agent.md'))).toBe(true);
   });
 });

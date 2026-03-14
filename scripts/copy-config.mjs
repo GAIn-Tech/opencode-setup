@@ -26,7 +26,6 @@ const CONFIG_FILES = [
 
 const CONFIG_DIRS = [
   'commands',
-  'agents',
   'docs',
   'models',
   'supermemory',
@@ -41,6 +40,17 @@ const MERGE_DIRS = [
 ];
 
 const backupEnabled = String(process.env.OPENCODE_COPY_CONFIG_BACKUP || '1') !== '0';
+
+export const DEPRECATED_REPO_AGENT_FILES = [
+  'code-searcher.md',
+  'codebase-auditor.md',
+  'distill-compressor.md',
+  'memory-keeper.md',
+  'playwright-browser.md',
+  'researcher.md',
+  'thinker.md',
+  'librarian.md',
+];
 
 function readDormantMcpNames(configDir = SOURCE_CONFIG_DIR) {
   const dormantPolicyPath = path.join(configDir, 'mcp-dormant-policy.json');
@@ -58,6 +68,25 @@ function readDormantMcpNames(configDir = SOURCE_CONFIG_DIR) {
 
 export function buildRuntimeSafeUserConfig(canonicalConfig, userConfig, dormantMcpNames = new Set()) {
   return mergeMcpIntoUserConfig(userConfig, canonicalConfig, { dormantMcpNames });
+}
+
+export function pruneDeprecatedRuntimeAgentPrompts(targetConfigDir = TARGET_CONFIG_DIR, deprecatedFiles = DEPRECATED_REPO_AGENT_FILES) {
+  const agentsDir = path.join(targetConfigDir, 'agents');
+  if (!existsSync(agentsDir)) {
+    return [];
+  }
+
+  const removed = [];
+  for (const fileName of deprecatedFiles) {
+    const filePath = path.join(agentsDir, fileName);
+    if (!existsSync(filePath)) {
+      continue;
+    }
+    rmSync(filePath, { force: true });
+    removed.push(fileName);
+  }
+
+  return removed;
 }
 
 function syncRuntimeSafeUserConfig() {
@@ -200,6 +229,11 @@ function main() {
     }
   } finally {
     rmSync(stagingRoot, { recursive: true, force: true });
+  }
+
+  const removedAgentPrompts = pruneDeprecatedRuntimeAgentPrompts();
+  if (removedAgentPrompts.length > 0) {
+    console.log(`[copy-config] Removed deprecated agent prompts: ${removedAgentPrompts.join(', ')}`);
   }
 
   syncRuntimeSafeUserConfig();
