@@ -1,0 +1,42 @@
+{
+  "$schema": "warning-baseline",
+  "version": 1,
+  "description": "Baseline of known, intentional warnings in test/build output. Update via: node scripts/ci-warning-budget.mjs --update-baseline",
+  "categories": [
+    {
+      "id": "integration-layer-degraded",
+      "pattern": "running in degraded mode|IntegrationLayer.*degraded|failed to load",
+      "maxCount": 10,
+      "intentional": true,
+      "reason": "bootstrap.js tryLoad() fail-open pattern for optional dependencies"
+    },
+    {
+      "id": "orchestration-advisor-stubs",
+      "pattern": "OrchestrationAdvisor.*stub|stub.*orchestration",
+      "maxCount": 5,
+      "intentional": true,
+      "reason": "Stub methods in orchestration advisor for unimplemented features"
+    },
+    {
+      "id": "dashboard-token-missing",
+      "pattern": "OPENCODE_DASHBOARD_TOKEN|dashboard.*token.*missing|write token",
+      "maxCount": 5,
+      "intentional": true,
+      "reason": "Expected when no dashboard write token configured"
+    },
+    {
+      "id": "skills-api-parse",
+      "pattern": "Skills API.*parse|parse.*skill.*error|Failed to parse",
+      "maxCount": 5,
+      "intentional": true,
+      "reason": "Intentional test case for error handling"
+    },
+    {
+      "id": "skillrl-corrupted",
+      "pattern": "SkillRL.*corrupted|corrupted.*update|reject.*corrupted",
+      "maxCount": 5,
+      "intentional": true,
+      "reason": "Intentional test case for corrupted update rejection"
+    }
+  ]
+}
