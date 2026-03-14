@@ -159,6 +159,8 @@ Good signals:
 
 ## Policy for Future Packages
 
+Canonical runtime policy lives in `opencode-config/opencode.json` plus `opencode-config/mcp-dormant-policy.json`. If `mcp-servers/opencode-mcp-config.json` is retained as a reference mirror for internal wrappers, keep its enabled flags aligned with those canonical files instead of treating it as an independent source of truth.
+
 Before adding any new wrapper:
 
 1. Define the public contract in the library layer.

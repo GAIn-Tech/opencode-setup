@@ -1,0 +1,18 @@
+{
+  "id": "mcp-boundary-reconciliation-2026-03-14",
+  "timestamp": "2026-03-14T08:30:00.000Z",
+  "summary": "Reconciled MCP boundary docs and config with active runtime policy: aligned opencode-mcp-config.json dormant entries with mcp-dormant-policy.json, rewrote server-list.md to remove stale tavily/github entries and add 3 active internal wrappers plus dormant section, updated setup-instructions.md to reflect active internal MCP wrappers, added canonical source-of-truth note to cli-mcp-surface-policy.md, and extended mcp-inventory-regression tests to assert dormant/active alignment across config files.",
+  "affected_paths": [
+    "mcp-servers/opencode-mcp-config.json",
+    "mcp-servers/server-list.md",
+    "setup-instructions.md",
+    "docs/architecture/cli-mcp-surface-policy.md",
+    "scripts/tests/mcp-inventory-regression.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}
