@@ -14,6 +14,7 @@
 
 const { SkillBank } = require('./skill-bank');
 const { EvolutionEngine } = require('./evolution-engine');
+const { ExplorationRLAdapter } = require('./exploration-adapter');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -396,4 +397,5 @@ class SkillRLManager {
 module.exports = {
   SkillRLManager,
   EvolutionEngine,
+  ExplorationRLAdapter,
 };
