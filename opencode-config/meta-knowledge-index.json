@@ -1,13 +1,30 @@
 {
-  "generated_at": "2026-03-14T07:07:13.243Z",
+  "generated_at": "2026-03-14T07:28:00.692Z",
   "schema_version": 1,
-  "total_records": 313,
+  "total_records": 314,
   "source_files": {
-    "learning_updates": 313,
+    "learning_updates": 314,
     "agents_md": 7
   },
   "by_category": {
     "uncategorized": [
+      {
+        "id": "remove-anomalous-agents-2026-03-14",
+        "summary": "Remove 7 anomalous agent .md files from opencode-config/agents/ that were erroneously created during Wave 8-10 skill activation. These files caused phantom agent options (thinker, playwright-browser, memory-keeper, code-searcher, codebase-auditor, distill-compressor, researcher) to appear in the opencode interface. Agent definitions are managed by oh-my-opencode plugin, not on-disk markdown. Updated 2 test files that asserted agent file existence.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/agents/code-searcher.md",
+          "opencode-config/agents/codebase-auditor.md",
+          "opencode-config/agents/distill-compressor.md",
+          "opencode-config/agents/memory-keeper.md",
+          "opencode-config/agents/playwright-browser.md",
+          "opencode-config/agents/researcher.md",
+          "opencode-config/agents/thinker.md",
+          "scripts/tests/mcp-audit-classification.test.js",
+          "scripts/tests/skill-surface-regression.test.js"
+        ],
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
       {
         "id": "uncapped-concurrency-2026-03-14",
         "summary": "Remove artificial concurrency ceiling from deriveDefaultParallelConcurrency(); enable continuous scaling with host compute resources (CPU and memory).",
@@ -3791,6 +3808,23 @@
   "by_risk_level": {
     "low": [
       {
+        "id": "remove-anomalous-agents-2026-03-14",
+        "summary": "Remove 7 anomalous agent .md files from opencode-config/agents/ that were erroneously created during Wave 8-10 skill activation. These files caused phantom agent options (thinker, playwright-browser, memory-keeper, code-searcher, codebase-auditor, distill-compressor, researcher) to appear in the opencode interface. Agent definitions are managed by oh-my-opencode plugin, not on-disk markdown. Updated 2 test files that asserted agent file existence.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/agents/code-searcher.md",
+          "opencode-config/agents/codebase-auditor.md",
+          "opencode-config/agents/distill-compressor.md",
+          "opencode-config/agents/memory-keeper.md",
+          "opencode-config/agents/playwright-browser.md",
+          "opencode-config/agents/researcher.md",
+          "opencode-config/agents/thinker.md",
+          "scripts/tests/mcp-audit-classification.test.js",
+          "scripts/tests/skill-surface-regression.test.js"
+        ],
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
         "id": "uncapped-concurrency-2026-03-14",
         "summary": "Remove artificial concurrency ceiling from deriveDefaultParallelConcurrency(); enable continuous scaling with host compute resources (CPU and memory).",
         "risk_level": "low",
@@ -7494,187 +7528,63 @@
     "high": []
   },
   "by_affected_path": {
-    "packages/opencode-sisyphus-state": [
+    "opencode-config/agents": [
       {
-        "id": "uncapped-concurrency-2026-03-14",
-        "summary": "Remove artificial concurrency ceiling from deriveDefaultParallelConcurrency(); enable continuous scaling with host compute resources (CPU and memory).",
+        "id": "remove-anomalous-agents-2026-03-14",
+        "summary": "Remove 7 anomalous agent .md files from opencode-config/agents/ that were erroneously created during Wave 8-10 skill activation. These files caused phantom agent options (thinker, playwright-browser, memory-keeper, code-searcher, codebase-auditor, distill-compressor, researcher) to appear in the opencode interface. Agent definitions are managed by oh-my-opencode plugin, not on-disk markdown. Updated 2 test files that asserted agent file existence.",
         "risk_level": "low",
         "timestamp": "2026-03-14T00:00:00.000Z"
       },
       {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "sisyphus-budget-enforcer-tests-20260307",
-        "summary": "Add regression coverage for index export and automatic budget wiring path in WorkflowExecutor.",
+        "id": "codebase-auditor-skill-surface-20260310",
+        "summary": "Add the missing codebase-auditor skill and paired agent so systematic repo audits become a first-class workflow instead of an undocumented gap.",
         "risk_level": "low",
-        "timestamp": "2026-03-07T03:15:00Z"
+        "timestamp": "2026-03-10T11:56:00-04:00"
       },
       {
-        "id": "sisyphus-budget-enforcer-wiring-20260307",
-        "summary": "Integrate BudgetEnforcer into WorkflowExecutor via constructor options and export it from package index for first-class runtime wiring.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-07T03:10:00Z"
-      },
-      {
-        "id": "p1-sisyphus-sandbox-module-restore-20260304",
-        "summary": "Restore missing sisyphus-state sandbox modules (rbac and agent-sandbox) required by executor/runtime tests after rebasing onto remote master state.",
+        "id": "distill-direct-routing-guidance-20260310",
+        "summary": "Add a direct Distill compressor agent and explicit orchestrator routing guidance so context compression is treated as a first-class MCP path.",
         "risk_level": "low",
-        "timestamp": "2026-03-04T00:33:00Z"
+        "timestamp": "2026-03-10T11:36:00-04:00"
       },
       {
-        "id": "p1-executor-budget-sandbox-20260304",
-        "summary": "Integrate budget and sandbox capability enforcement into WorkflowExecutor runtime path, including terminal handling for budget/sandbox denials and regression coverage for deny/allow behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-04T00:17:00Z"
-      },
-      {
-        "id": "unused-deps-removal-20260225",
-        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
+        "id": "playwright-direct-mcp-surface-20260310",
+        "summary": "Add a direct Playwright MCP skill and paired browser agent so browser automation has a first-class MCP path instead of relying only on indirect alias wiring.",
         "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00.000Z"
+        "timestamp": "2026-03-10T11:35:00-04:00"
       },
       {
-        "id": "reduce-explicit-any-types-20260225",
-        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
+        "id": "research-mcp-skill-guides-20260310",
+        "summary": "Add Websearch and Grep skill guides plus paired research agents so live web research and external code-example lookup follow the same discoverable MCP pattern as Context7.",
         "risk_level": "low",
-        "timestamp": "2026-02-25T12:00:00Z"
+        "timestamp": "2026-03-10T00:07:00-04:00"
       },
       {
-        "id": "unused-exports-removal-20260225",
-        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
+        "id": "sequentialthinking-skill-activation-20260310",
+        "summary": "Add the Sequential Thinking skill guide and thinker agent prompt so explicit reasoning work has a first-class MCP activation path.",
         "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
+        "timestamp": "2026-03-10T00:06:00-04:00"
       },
       {
-        "id": "gemini-model-correction-20260215",
-        "summary": "Corrected Gemini model names from non-existent gemini-2.5-* to official gemini-2.0-* across entire codebase",
+        "id": "supermemory-skill-activation-20260310",
+        "summary": "Add the Supermemory skill guide and memory-keeper agent prompt so persistent memory use has a concrete invocation path matching the existing live MCP pattern.",
         "risk_level": "low",
-        "timestamp": "2026-02-15T20:27:00-05:00"
+        "timestamp": "2026-03-10T00:05:00-04:00"
       },
       {
-        "id": "quota-manager-request-based-math-20260216",
-        "summary": "Corrected request-based quota math and added regression tests",
+        "id": "wave11-t9-t10-librarian-context7-20260308",
+        "summary": "T9: Create librarian agent prompt with explicit Context7 MCP tool instructions (resolve-library-id, query-docs). T10: Add documentation task detection keywords and context7 auto-recommendation to skill-orchestrator-runtime SKILL.md. Add context7 to research-builder synergies and research-to-code profile.",
         "risk_level": "low",
-        "timestamp": "2026-02-16T01:10:00Z"
-      },
-      {
-        "id": "quota-routing-providerid-fix-20260216",
-        "summary": "Fixed provider ID normalization in quota-aware routing",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T00:52:00Z"
-      },
-      {
-        "id": "model-validation-script-20260215",
-        "summary": "Created validate-models.mjs script for automated model catalog validation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T19:48:00-05:00"
-      },
-      {
-        "id": "provider-config-and-cerebras-tpm-20260215",
-        "summary": "Expanded provider config coverage and hardened Cerebras TPM handling",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T22:20:00Z"
-      },
-      {
-        "id": "portability-integrity-pass-20260215",
-        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T12:30:00Z"
-      }
-    ],
-    "scripts/mcp-exercise-harness.mjs": [
-      {
-        "id": "mcp-host-health-verification-20260313",
-        "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T19:55:00Z"
-      },
-      {
-        "id": "mcp-runtime-governance-20260311",
-        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
-        "risk_level": "low",
-        "timestamp": "2026-03-11T23:10:00Z"
-      },
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "mcp-exercise-harness-20260310",
-        "summary": "Add an MCP exercise harness and top-level command that safely records smoke verification for local live MCPs without polluting real runtime usage telemetry.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T13:35:00-04:00"
-      }
-    ],
-    "scripts/report-mcp-lifecycle.mjs": [
-      {
-        "id": "mcp-host-health-verification-20260313",
-        "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T19:55:00Z"
-      },
-      {
-        "id": "mcp-runtime-governance-20260311",
-        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
-        "risk_level": "low",
-        "timestamp": "2026-03-11T23:10:00Z"
-      },
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "dormant-mcp-policy-surfacing-20260310",
-        "summary": "Surface explicit dormant MCP reactivation metadata in the lifecycle report so disabled internal MCPs are actionable rather than just classified.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T12:32:00-04:00"
-      },
-      {
-        "id": "mcp-report-input-warnings-20260310",
-        "summary": "Warn when the MCP lifecycle report falls back from unreadable telemetry/config inputs so missing or corrupt data does not silently flatten usage visibility.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T12:15:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-dormant-and-recency-20260310",
-        "summary": "Extend the MCP lifecycle report with DORMANT classification for intentionally disabled internal MCPs and a recently-exercised signal sourced from invocation timestamps.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:55:00-04:00"
-      },
-      {
-        "id": "mcp-direct-path-regressions-20260310",
-        "summary": "Update MCP lifecycle and inventory regressions so Playwright and Distill direct paths are required and reflected in the generated lifecycle report.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:38:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-direct-integration-20260310",
-        "summary": "Refine the MCP lifecycle report so directly integrated capabilities like opencode-context-governor are recognized as live from runtime code paths instead of being mislabeled as passive.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:10:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-heuristic-notes-20260310",
-        "summary": "Refine the MCP lifecycle report to emit heuristic notes for alias-based or partially integrated MCP states, and add regression coverage for those notes.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T02:00:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-report-generator-20260310",
-        "summary": "Add a generated MCP lifecycle report script that classifies current servers from canonical config, wiring evidence, and runtime telemetry and writes a report artifact under .sisyphus/reports/.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T01:40:00-04:00"
+        "timestamp": "2026-03-08T23:10:00Z"
       }
     ],
     "scripts/tests": [
+      {
+        "id": "remove-anomalous-agents-2026-03-14",
+        "summary": "Remove 7 anomalous agent .md files from opencode-config/agents/ that were erroneously created during Wave 8-10 skill activation. These files caused phantom agent options (thinker, playwright-browser, memory-keeper, code-searcher, codebase-auditor, distill-compressor, researcher) to appear in the opencode interface. Agent definitions are managed by oh-my-opencode plugin, not on-disk markdown. Updated 2 test files that asserted agent file existence.",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
       {
         "id": "mcp-host-health-verification-20260313",
         "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
@@ -7956,6 +7866,186 @@
         "summary": "Harden hierarchical routing no-match semantics and conflict validation safety checks",
         "risk_level": "low",
         "timestamp": "2026-02-27T06:20:00Z"
+      }
+    ],
+    "packages/opencode-sisyphus-state": [
+      {
+        "id": "uncapped-concurrency-2026-03-14",
+        "summary": "Remove artificial concurrency ceiling from deriveDefaultParallelConcurrency(); enable continuous scaling with host compute resources (CPU and memory).",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "sisyphus-budget-enforcer-tests-20260307",
+        "summary": "Add regression coverage for index export and automatic budget wiring path in WorkflowExecutor.",
+        "risk_level": "low",
+        "timestamp": "2026-03-07T03:15:00Z"
+      },
+      {
+        "id": "sisyphus-budget-enforcer-wiring-20260307",
+        "summary": "Integrate BudgetEnforcer into WorkflowExecutor via constructor options and export it from package index for first-class runtime wiring.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-07T03:10:00Z"
+      },
+      {
+        "id": "p1-sisyphus-sandbox-module-restore-20260304",
+        "summary": "Restore missing sisyphus-state sandbox modules (rbac and agent-sandbox) required by executor/runtime tests after rebasing onto remote master state.",
+        "risk_level": "low",
+        "timestamp": "2026-03-04T00:33:00Z"
+      },
+      {
+        "id": "p1-executor-budget-sandbox-20260304",
+        "summary": "Integrate budget and sandbox capability enforcement into WorkflowExecutor runtime path, including terminal handling for budget/sandbox denials and regression coverage for deny/allow behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-04T00:17:00Z"
+      },
+      {
+        "id": "unused-deps-removal-20260225",
+        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00.000Z"
+      },
+      {
+        "id": "reduce-explicit-any-types-20260225",
+        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "unused-exports-removal-20260225",
+        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "gemini-model-correction-20260215",
+        "summary": "Corrected Gemini model names from non-existent gemini-2.5-* to official gemini-2.0-* across entire codebase",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:27:00-05:00"
+      },
+      {
+        "id": "quota-manager-request-based-math-20260216",
+        "summary": "Corrected request-based quota math and added regression tests",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T01:10:00Z"
+      },
+      {
+        "id": "quota-routing-providerid-fix-20260216",
+        "summary": "Fixed provider ID normalization in quota-aware routing",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T00:52:00Z"
+      },
+      {
+        "id": "model-validation-script-20260215",
+        "summary": "Created validate-models.mjs script for automated model catalog validation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T19:48:00-05:00"
+      },
+      {
+        "id": "provider-config-and-cerebras-tpm-20260215",
+        "summary": "Expanded provider config coverage and hardened Cerebras TPM handling",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T22:20:00Z"
+      },
+      {
+        "id": "portability-integrity-pass-20260215",
+        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T12:30:00Z"
+      }
+    ],
+    "scripts/mcp-exercise-harness.mjs": [
+      {
+        "id": "mcp-host-health-verification-20260313",
+        "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T19:55:00Z"
+      },
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "mcp-exercise-harness-20260310",
+        "summary": "Add an MCP exercise harness and top-level command that safely records smoke verification for local live MCPs without polluting real runtime usage telemetry.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T13:35:00-04:00"
+      }
+    ],
+    "scripts/report-mcp-lifecycle.mjs": [
+      {
+        "id": "mcp-host-health-verification-20260313",
+        "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T19:55:00Z"
+      },
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "dormant-mcp-policy-surfacing-20260310",
+        "summary": "Surface explicit dormant MCP reactivation metadata in the lifecycle report so disabled internal MCPs are actionable rather than just classified.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T12:32:00-04:00"
+      },
+      {
+        "id": "mcp-report-input-warnings-20260310",
+        "summary": "Warn when the MCP lifecycle report falls back from unreadable telemetry/config inputs so missing or corrupt data does not silently flatten usage visibility.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T12:15:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-dormant-and-recency-20260310",
+        "summary": "Extend the MCP lifecycle report with DORMANT classification for intentionally disabled internal MCPs and a recently-exercised signal sourced from invocation timestamps.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T11:55:00-04:00"
+      },
+      {
+        "id": "mcp-direct-path-regressions-20260310",
+        "summary": "Update MCP lifecycle and inventory regressions so Playwright and Distill direct paths are required and reflected in the generated lifecycle report.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T11:38:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-direct-integration-20260310",
+        "summary": "Refine the MCP lifecycle report so directly integrated capabilities like opencode-context-governor are recognized as live from runtime code paths instead of being mislabeled as passive.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T11:10:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-heuristic-notes-20260310",
+        "summary": "Refine the MCP lifecycle report to emit heuristic notes for alias-based or partially integrated MCP states, and add regression coverage for those notes.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T02:00:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-report-generator-20260310",
+        "summary": "Add a generated MCP lifecycle report script that classifies current servers from canonical config, wiring evidence, and runtime telemetry and writes a report artifact under .sisyphus/reports/.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T01:40:00-04:00"
       }
     ],
     "opencode-config/mcp-dormant-policy.json": [
@@ -10876,50 +10966,6 @@
         "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
         "risk_level": "low",
         "timestamp": "2026-02-15T12:30:00Z"
-      }
-    ],
-    "opencode-config/agents": [
-      {
-        "id": "codebase-auditor-skill-surface-20260310",
-        "summary": "Add the missing codebase-auditor skill and paired agent so systematic repo audits become a first-class workflow instead of an undocumented gap.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:56:00-04:00"
-      },
-      {
-        "id": "distill-direct-routing-guidance-20260310",
-        "summary": "Add a direct Distill compressor agent and explicit orchestrator routing guidance so context compression is treated as a first-class MCP path.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:36:00-04:00"
-      },
-      {
-        "id": "playwright-direct-mcp-surface-20260310",
-        "summary": "Add a direct Playwright MCP skill and paired browser agent so browser automation has a first-class MCP path instead of relying only on indirect alias wiring.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T11:35:00-04:00"
-      },
-      {
-        "id": "research-mcp-skill-guides-20260310",
-        "summary": "Add Websearch and Grep skill guides plus paired research agents so live web research and external code-example lookup follow the same discoverable MCP pattern as Context7.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T00:07:00-04:00"
-      },
-      {
-        "id": "sequentialthinking-skill-activation-20260310",
-        "summary": "Add the Sequential Thinking skill guide and thinker agent prompt so explicit reasoning work has a first-class MCP activation path.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T00:06:00-04:00"
-      },
-      {
-        "id": "supermemory-skill-activation-20260310",
-        "summary": "Add the Supermemory skill guide and memory-keeper agent prompt so persistent memory use has a concrete invocation path matching the existing live MCP pattern.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T00:05:00-04:00"
-      },
-      {
-        "id": "wave11-t9-t10-librarian-context7-20260308",
-        "summary": "T9: Create librarian agent prompt with explicit Context7 MCP tool instructions (resolve-library-id, query-docs). T10: Add documentation task detection keywords and context7 auto-recommendation to skill-orchestrator-runtime SKILL.md. Add context7 to research-builder synergies and research-to-code profile.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:10:00Z"
       }
     ],
     "opencode-config/oh-my-opencode.json": [
