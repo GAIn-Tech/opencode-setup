@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-03-14T18:24:23.512Z",
+  "generated_at": "2026-03-14T18:38:46.475Z",
   "schema_version": 1,
-  "total_records": 321,
+  "total_records": 323,
   "source_files": {
-    "learning_updates": 321,
+    "learning_updates": 323,
     "agents_md": 7
   },
   "by_category": {
@@ -60,6 +60,16 @@
         "timestamp": "2026-03-14T00:00:00.000Z"
       },
       {
+        "id": "config-coherence-drift-detection-2026-03-14",
+        "summary": "Rewrote validate-config-coherence.mjs from model-reference validation into SHA256-based config drift detection. Compares repo opencode-config/ against runtime ~/.config/opencode/ for CONFIG_FILES, CONFIG_DIRS, and MERGE_DIRS. Exports validateConfigCoherence() for programmatic use. Supports --json and --quiet CLI flags. MERGE_DIRS only check repo entries exist in runtime (user-custom entries preserved). Unblocks protocol-compliance-pass.mjs line 69 which calls bun run config:coherence.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/validate-config-coherence.mjs",
+          "scripts/tests/validate-config-coherence.test.js"
+        ],
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
         "id": "dashboard-auth-hardening-2026-03-14",
         "summary": "Gate all 10 POST endpoints with requireWriteAccess and specific permissions. Add 4 new permissions (skills:promote, usage:write, providers:manage, orchestration:write) to admin+operator ROLE_MATRIX. Fix skills/promotions missing permission arg. Add regression test scanning all route.ts POST exports for universal auth coverage.",
         "risk_level": "medium",
@@ -72,6 +82,17 @@
           "integration-tests/dashboard-write-guard.test.ts",
           "integration-tests/orchestration-atomic-write.test.js",
           "docs/model-management/HARDENING-BACKLOG.md"
+        ],
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "exploration-rl-adapter-2026-03-14",
+        "summary": "Created ExplorationRLAdapter (CJS) bridging ModelComprehensionMemory performance data into SkillRLManager learning. Queries model_performance SQLite table by intent_category, computes composite scores (accuracy, latency, cost, success_rate, reasoning_efficiency), feeds results to skillRLManager.recordOutcome(). Exported from opencode-skill-rl-manager/src/index.js. Unblocks adaptive routing Phase 7 integration.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-skill-rl-manager/src/exploration-adapter.js",
+          "packages/opencode-skill-rl-manager/test/exploration-adapter.test.js",
+          "packages/opencode-skill-rl-manager/src/index.js"
         ],
         "timestamp": "2026-03-14T00:00:00.000Z"
       },
@@ -3918,6 +3939,27 @@
           "packages/opencode-model-manager/src/monitoring/metrics-collector.js"
         ],
         "timestamp": "2026-03-14T08:00:00.000Z"
+      },
+      {
+        "id": "config-coherence-drift-detection-2026-03-14",
+        "summary": "Rewrote validate-config-coherence.mjs from model-reference validation into SHA256-based config drift detection. Compares repo opencode-config/ against runtime ~/.config/opencode/ for CONFIG_FILES, CONFIG_DIRS, and MERGE_DIRS. Exports validateConfigCoherence() for programmatic use. Supports --json and --quiet CLI flags. MERGE_DIRS only check repo entries exist in runtime (user-custom entries preserved). Unblocks protocol-compliance-pass.mjs line 69 which calls bun run config:coherence.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/validate-config-coherence.mjs",
+          "scripts/tests/validate-config-coherence.test.js"
+        ],
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "exploration-rl-adapter-2026-03-14",
+        "summary": "Created ExplorationRLAdapter (CJS) bridging ModelComprehensionMemory performance data into SkillRLManager learning. Queries model_performance SQLite table by intent_category, computes composite scores (accuracy, latency, cost, success_rate, reasoning_efficiency), feeds results to skillRLManager.recordOutcome(). Exported from opencode-skill-rl-manager/src/index.js. Unblocks adaptive routing Phase 7 integration.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-skill-rl-manager/src/exploration-adapter.js",
+          "packages/opencode-skill-rl-manager/test/exploration-adapter.test.js",
+          "packages/opencode-skill-rl-manager/src/index.js"
+        ],
+        "timestamp": "2026-03-14T00:00:00.000Z"
       },
       {
         "id": "remove-anomalous-agents-2026-03-14",
@@ -7842,6 +7884,12 @@
         "timestamp": "2026-03-14T00:00:00.000Z"
       },
       {
+        "id": "config-coherence-drift-detection-2026-03-14",
+        "summary": "Rewrote validate-config-coherence.mjs from model-reference validation into SHA256-based config drift detection. Compares repo opencode-config/ against runtime ~/.config/opencode/ for CONFIG_FILES, CONFIG_DIRS, and MERGE_DIRS. Exports validateConfigCoherence() for programmatic use. Supports --json and --quiet CLI flags. MERGE_DIRS only check repo entries exist in runtime (user-custom entries preserved). Unblocks protocol-compliance-pass.mjs line 69 which calls bun run config:coherence.",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
         "id": "remove-anomalous-agents-2026-03-14",
         "summary": "Remove 7 anomalous agent .md files from opencode-config/agents/ that were erroneously created during Wave 8-10 skill activation. These files caused phantom agent options (thinker, playwright-browser, memory-keeper, code-searcher, codebase-auditor, distill-compressor, researcher) to appear in the opencode interface. Agent definitions are managed by oh-my-opencode plugin, not on-disk markdown. Updated 2 test files that asserted agent file existence.",
         "risk_level": "low",
@@ -8484,6 +8532,26 @@
         "timestamp": "2026-03-14T00:00:00.000Z"
       }
     ],
+    "scripts/validate-config-coherence.mjs": [
+      {
+        "id": "config-coherence-drift-detection-2026-03-14",
+        "summary": "Rewrote validate-config-coherence.mjs from model-reference validation into SHA256-based config drift detection. Compares repo opencode-config/ against runtime ~/.config/opencode/ for CONFIG_FILES, CONFIG_DIRS, and MERGE_DIRS. Exports validateConfigCoherence() for programmatic use. Supports --json and --quiet CLI flags. MERGE_DIRS only check repo entries exist in runtime (user-custom entries preserved). Unblocks protocol-compliance-pass.mjs line 69 which calls bun run config:coherence.",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "model-routing-and-environment-hardening-2-22-2026",
+        "summary": "Further harden model routing and environment configuration with post-mid-2025 policy alignment, resiliency improvements, and Symbiotic reference cleanup.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T17:30:00Z"
+      },
+      {
+        "id": "symbiotic-removal-and-config-hardening-20260222",
+        "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T16:45:00Z"
+      }
+    ],
     "packages/opencode-dashboard": [
       {
         "id": "dashboard-auth-hardening-2026-03-14",
@@ -8784,6 +8852,74 @@
         "summary": "Gate all 10 POST endpoints with requireWriteAccess and specific permissions. Add 4 new permissions (skills:promote, usage:write, providers:manage, orchestration:write) to admin+operator ROLE_MATRIX. Fix skills/promotions missing permission arg. Add regression test scanning all route.ts POST exports for universal auth coverage.",
         "risk_level": "medium",
         "timestamp": "2026-03-14T00:00:00.000Z"
+      }
+    ],
+    "packages/opencode-skill-rl-manager": [
+      {
+        "id": "exploration-rl-adapter-2026-03-14",
+        "summary": "Created ExplorationRLAdapter (CJS) bridging ModelComprehensionMemory performance data into SkillRLManager learning. Queries model_performance SQLite table by intent_category, computes composite scores (accuracy, latency, cost, success_rate, reasoning_efficiency), feeds results to skillRLManager.recordOutcome(). Exported from opencode-skill-rl-manager/src/index.js. Unblocks adaptive routing Phase 7 integration.",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "mcp-skillrl-affinity-tests-20260309",
+        "summary": "Add 22 tests covering MCP → SkillRL affinity bridge: getSessionMcpInvocations (10), tool_affinities tracking (8), IntegrationLayer bridge wiring (4).",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T04:50:00Z"
+      },
+      {
+        "id": "mcp-skillrl-affinity-bridge-20260309",
+        "summary": "Wire MCP tool invocation data into SkillRL outcomes so each skill accumulates tool_affinities counters. Adds getSessionMcpInvocations() to tool-usage-tracker, tool_affinities tracking in SkillRLManager.learnFromOutcome(), and fail-open bridge in IntegrationLayer.executeTaskWithEvidence().",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T04:45:00Z"
+      },
+      {
+        "id": "wave8-readme-orch-util-packages-20260308",
+        "summary": "Add README.md to five orchestration and utility packages that had none: opencode-shared-orchestration, opencode-showboat-wrapper, opencode-skill-rl-manager, opencode-test-utils, opencode-validator. Completes Wave 8C task 8 — all 34 packages now have READMEs.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:25:00Z"
+      },
+      {
+        "id": "skill-rl-registry-seed-and-mcp-telemetry-20260227",
+        "summary": "Two parallel Wave 3 tasks: (1) Add syncWithRegistry() to SkillRLManager that additively seeds all 29 skills from opencode-config/skills/registry.json on startup — preserving existing usage_count/success_rate for the 5 hardcoded seeds, adding 24 new entries with neutral defaults. (2) Wire logInvocation fire-and-forget into tool-execute-after hook for all MCP-prefixed tool calls (context7, distill, supermemory, websearch, grep, github, playwright). 4 new tests for syncWithRegistry covering idempotency, preservation, prefix normalization, and count.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T00:02:00Z"
+      },
+      {
+        "id": "skill-rl-path-standardization-20260227",
+        "summary": "Standardize SkillRLManager persistence path to ~/.opencode/skill-rl.json across all consumers. Fixed 3 divergent path references: (1) index.js:130 was using ./skill-rl-state.json (relative, wrong), (2) models/route.ts:156 was using skill-rl-state.json (wrong suffix), (3) file-watcher.ts:45 was using skill-rl-state.json (wrong suffix). Added os.homedir() canonical path with one-time migration from legacy ./skill-rl-state.json. Added production SkillRLManager instantiation in create-managers.ts (previously only instantiated in 5 test files — never in production).",
+        "risk_level": "medium",
+        "timestamp": "2026-02-27T00:01:00Z"
+      },
+      {
+        "id": "unused-exports-removal-20260225",
+        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "provider-cache-metrics-and-fallback-reason-tests-20260216",
+        "summary": "Added provider probe cache metrics visibility and fallback-reason regression coverage",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T02:20:00Z"
+      },
+      {
+        "id": "p2-hardening-policies-fallback-sse-20260216",
+        "summary": "Completed P2 hardening for policies validation, fallback reason typing, and SSE client cleanup",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T02:05:00Z"
+      },
+      {
+        "id": "skillrl-stabilization-and-api-regression-20260215",
+        "summary": "Stabilized SkillRL persistence and added API regression coverage for /api/rl and /api/skills",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T23:45:00Z"
+      },
+      {
+        "id": "portability-integrity-pass-20260215",
+        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T12:30:00Z"
       }
     ],
     "packages/opencode-sisyphus-state": [
@@ -11490,68 +11626,6 @@
         "timestamp": "2026-03-08T19:25:00Z"
       }
     ],
-    "packages/opencode-skill-rl-manager": [
-      {
-        "id": "mcp-skillrl-affinity-tests-20260309",
-        "summary": "Add 22 tests covering MCP → SkillRL affinity bridge: getSessionMcpInvocations (10), tool_affinities tracking (8), IntegrationLayer bridge wiring (4).",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T04:50:00Z"
-      },
-      {
-        "id": "mcp-skillrl-affinity-bridge-20260309",
-        "summary": "Wire MCP tool invocation data into SkillRL outcomes so each skill accumulates tool_affinities counters. Adds getSessionMcpInvocations() to tool-usage-tracker, tool_affinities tracking in SkillRLManager.learnFromOutcome(), and fail-open bridge in IntegrationLayer.executeTaskWithEvidence().",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T04:45:00Z"
-      },
-      {
-        "id": "wave8-readme-orch-util-packages-20260308",
-        "summary": "Add README.md to five orchestration and utility packages that had none: opencode-shared-orchestration, opencode-showboat-wrapper, opencode-skill-rl-manager, opencode-test-utils, opencode-validator. Completes Wave 8C task 8 — all 34 packages now have READMEs.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:25:00Z"
-      },
-      {
-        "id": "skill-rl-registry-seed-and-mcp-telemetry-20260227",
-        "summary": "Two parallel Wave 3 tasks: (1) Add syncWithRegistry() to SkillRLManager that additively seeds all 29 skills from opencode-config/skills/registry.json on startup — preserving existing usage_count/success_rate for the 5 hardcoded seeds, adding 24 new entries with neutral defaults. (2) Wire logInvocation fire-and-forget into tool-execute-after hook for all MCP-prefixed tool calls (context7, distill, supermemory, websearch, grep, github, playwright). 4 new tests for syncWithRegistry covering idempotency, preservation, prefix normalization, and count.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T00:02:00Z"
-      },
-      {
-        "id": "skill-rl-path-standardization-20260227",
-        "summary": "Standardize SkillRLManager persistence path to ~/.opencode/skill-rl.json across all consumers. Fixed 3 divergent path references: (1) index.js:130 was using ./skill-rl-state.json (relative, wrong), (2) models/route.ts:156 was using skill-rl-state.json (wrong suffix), (3) file-watcher.ts:45 was using skill-rl-state.json (wrong suffix). Added os.homedir() canonical path with one-time migration from legacy ./skill-rl-state.json. Added production SkillRLManager instantiation in create-managers.ts (previously only instantiated in 5 test files — never in production).",
-        "risk_level": "medium",
-        "timestamp": "2026-02-27T00:01:00Z"
-      },
-      {
-        "id": "unused-exports-removal-20260225",
-        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "provider-cache-metrics-and-fallback-reason-tests-20260216",
-        "summary": "Added provider probe cache metrics visibility and fallback-reason regression coverage",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T02:20:00Z"
-      },
-      {
-        "id": "p2-hardening-policies-fallback-sse-20260216",
-        "summary": "Completed P2 hardening for policies validation, fallback reason typing, and SSE client cleanup",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T02:05:00Z"
-      },
-      {
-        "id": "skillrl-stabilization-and-api-regression-20260215",
-        "summary": "Stabilized SkillRL persistence and added API regression coverage for /api/rl and /api/skills",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T23:45:00Z"
-      },
-      {
-        "id": "portability-integrity-pass-20260215",
-        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T12:30:00Z"
-      }
-    ],
     "AGENTS.md": [
       {
         "id": "wave11-t23-agents-md-context-management",
@@ -12934,20 +13008,6 @@
         "summary": "Further harden model routing and environment configuration with post-mid-2025 policy alignment, resiliency improvements, and Symbiotic reference cleanup.",
         "risk_level": "low",
         "timestamp": "2026-02-22T17:30:00Z"
-      }
-    ],
-    "scripts/validate-config-coherence.mjs": [
-      {
-        "id": "model-routing-and-environment-hardening-2-22-2026",
-        "summary": "Further harden model routing and environment configuration with post-mid-2025 policy alignment, resiliency improvements, and Symbiotic reference cleanup.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T17:30:00Z"
-      },
-      {
-        "id": "symbiotic-removal-and-config-hardening-20260222",
-        "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T16:45:00Z"
       }
     ],
     "scripts/validate-fallback-consistency.mjs": [

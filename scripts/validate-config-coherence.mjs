@@ -1,123 +1,174 @@
 #!/usr/bin/env node
 
+import { createHash } from 'node:crypto';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
-import { readFileSync } from 'node:fs';
-import { resolveRoot } from './resolve-root.mjs';
+import { fileURLToPath } from 'node:url';
+import { resolvePath, userConfigDir } from './resolve-root.mjs';
+import * as copyConfig from './copy-config.mjs';
 
-const root = resolveRoot();
+const FALLBACK_CONFIG_FILES = ['opencode.json', 'antigravity.json', 'oh-my-opencode.json', 'compound-engineering.json', 'config.yaml', 'rate-limit-fallback.json', 'deployment-state.json', 'learning-update-policy.json', 'supermemory.json', 'tool-tiers.json'];
+const FALLBACK_CONFIG_DIRS = ['commands', 'docs', 'models', 'supermemory'];
+const FALLBACK_MERGE_DIRS = ['skills'];
 
-function readJson(relativePath) {
-  const filePath = path.join(root, relativePath);
-  return JSON.parse(readFileSync(filePath, 'utf8'));
+function choose(value, fallback) {
+  return Array.isArray(value) ? value : fallback;
 }
 
-function parseDelegationModelsFromYaml(relativePath) {
-  const filePath = path.join(root, relativePath);
-  const content = readFileSync(filePath, 'utf8');
-  const models = new Set();
+function sha256File(filePath) {
+  return createHash('sha256').update(readFileSync(filePath)).digest('hex');
+}
 
-  for (const rawLine of content.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    const match = line.match(/^models:\s*\[([^\]]*)\]\s*$/);
-    if (!match) continue;
+function walkFiles(dirPath, basePath = dirPath) {
+  if (!existsSync(dirPath)) return [];
+  const files = [];
+  for (const entry of readdirSync(dirPath)) {
+    const fullPath = path.join(dirPath, entry);
+    const stats = statSync(fullPath);
+    if (stats.isDirectory()) files.push(...walkFiles(fullPath, basePath));
+    else if (stats.isFile()) files.push(path.relative(basePath, fullPath).split(path.sep).join('/'));
+  }
+  return files.sort();
+}
 
-    const parts = match[1]
-      .split(',')
-      .map((part) => part.trim())
-      .filter(Boolean)
-      .map((part) => part.replace(/^['"]|['"]$/g, ''));
+function addDrift(result, type, target, detail) {
+  result.drift.push({ type, target, detail });
+}
 
-    for (const model of parts) {
-      models.add(model);
+function compareTrackedFiles(result, repoConfigDir, runtimeConfigDir, configFiles) {
+  for (const fileName of configFiles) {
+    const repoPath = path.join(repoConfigDir, fileName);
+    const runtimePath = path.join(runtimeConfigDir, fileName);
+    if (!existsSync(repoPath)) {
+      addDrift(result, 'repo-file-missing', fileName, 'missing in repo source config');
+      continue;
+    }
+    if (!existsSync(runtimePath)) {
+      addDrift(result, 'runtime-file-missing', fileName, 'missing in runtime config');
+      continue;
+    }
+    const repoHash = sha256File(repoPath);
+    const runtimeHash = sha256File(runtimePath);
+    if (repoHash !== runtimeHash) {
+      addDrift(result, 'file-mismatch', fileName, `sha256 differs (repo=${repoHash.slice(0, 12)}..., runtime=${runtimeHash.slice(0, 12)}...)`);
     }
   }
-
-  return models;
 }
 
-function collectCatalogIndex(opencodeConfig) {
-  const providerToModels = new Map();
-  const modelNames = new Set();
-  const models = opencodeConfig?.provider || opencodeConfig?.models || {};
-
-  for (const [provider, providerConfig] of Object.entries(models)) {
-    const providerModels = providerConfig?.models || {};
-    const modelSet = new Set(Object.keys(providerModels));
-    providerToModels.set(provider, modelSet);
-    for (const modelName of modelSet) {
-      modelNames.add(modelName);
+function compareTrackedDirs(result, repoConfigDir, runtimeConfigDir, configDirs) {
+  for (const dirName of configDirs) {
+    const repoDirPath = path.join(repoConfigDir, dirName);
+    const runtimeDirPath = path.join(runtimeConfigDir, dirName);
+    if (!existsSync(repoDirPath)) {
+      addDrift(result, 'repo-dir-missing', `${dirName}/`, 'missing in repo source config');
+      continue;
     }
-  }
-
-  return { providerToModels, modelNames };
-}
-
-function parseProviderModel(modelRef) {
-  if (typeof modelRef !== 'string') return null;
-  const [provider, ...modelParts] = modelRef.split('/');
-  if (!provider || modelParts.length === 0) return null;
-  return { provider, modelName: modelParts.join('/') };
-}
-
-function main() {
-  const opencodeConfig = readJson('opencode-config/opencode.json');
-  const omoConfig = readJson('opencode-config/oh-my-opencode.json');
-  const delegationModels = parseDelegationModelsFromYaml('opencode-config/config.yaml');
-
-  const errors = [];
-  const { providerToModels, modelNames } = collectCatalogIndex(opencodeConfig);
-
-  const enabledAgents = Array.isArray(omoConfig?.agents?.enabled) ? omoConfig.agents.enabled : [];
-  for (const agent of enabledAgents) {
-    const config = omoConfig?.agents?.[agent];
-    const modelRef = config?.model;
-    if (!modelRef) {
-      errors.push(`Agent '${agent}' is enabled but has no model configured.`);
+    if (!existsSync(runtimeDirPath)) {
+      addDrift(result, 'runtime-dir-missing', `${dirName}/`, 'missing in runtime config');
       continue;
     }
 
-    const parsed = parseProviderModel(modelRef);
-    if (!parsed) {
-      errors.push(`Agent '${agent}' has invalid model reference '${modelRef}'. Expected 'provider/model'.`);
+    const repoFiles = walkFiles(repoDirPath);
+    const runtimeFiles = walkFiles(runtimeDirPath);
+    const runtimeFileSet = new Set(runtimeFiles);
+    const repoFileSet = new Set(repoFiles);
+
+    for (const relPath of repoFiles) {
+      if (!runtimeFileSet.has(relPath)) {
+        addDrift(result, 'runtime-file-missing', `${dirName}/${relPath}`, 'missing in runtime config dir');
+        continue;
+      }
+      const repoHash = sha256File(path.join(repoDirPath, relPath));
+      const runtimeHash = sha256File(path.join(runtimeDirPath, relPath));
+      if (repoHash !== runtimeHash) {
+        addDrift(result, 'dir-file-mismatch', `${dirName}/${relPath}`, `sha256 differs (repo=${repoHash.slice(0, 12)}..., runtime=${runtimeHash.slice(0, 12)}...)`);
+      }
+    }
+
+    for (const relPath of runtimeFiles) {
+      if (!repoFileSet.has(relPath)) {
+        addDrift(result, 'runtime-extra-file', `${dirName}/${relPath}`, 'extra file not present in repo source');
+      }
+    }
+  }
+}
+
+function compareMergeDirs(result, repoConfigDir, runtimeConfigDir, mergeDirs) {
+  for (const dirName of mergeDirs) {
+    const repoDirPath = path.join(repoConfigDir, dirName);
+    const runtimeDirPath = path.join(runtimeConfigDir, dirName);
+    if (!existsSync(repoDirPath)) {
+      addDrift(result, 'repo-dir-missing', `${dirName}/`, 'missing merge dir in repo source config');
       continue;
     }
-
-    const providerModels = providerToModels.get(parsed.provider);
-    if (!providerModels) {
-      errors.push(`Agent '${agent}' references unknown provider '${parsed.provider}' in '${modelRef}'.`);
+    if (!existsSync(runtimeDirPath)) {
+      addDrift(result, 'runtime-dir-missing', `${dirName}/`, 'missing merge dir in runtime config');
       continue;
     }
+    for (const entry of readdirSync(repoDirPath)) {
+      if (!existsSync(path.join(runtimeDirPath, entry))) {
+        addDrift(result, 'runtime-entry-missing', `${dirName}/${entry}`, 'required merge entry missing in runtime config');
+      }
+    }
+  }
+}
 
-    if (!providerModels.has(parsed.modelName)) {
-      errors.push(`Agent '${agent}' references unknown model '${parsed.modelName}' for provider '${parsed.provider}'.`);
+export function validateConfigCoherence(options = {}) {
+  const repoConfigDir = options.repoConfigDir || resolvePath('opencode-config');
+  const runtimeConfigDir = options.runtimeConfigDir || userConfigDir();
+  const configFiles = choose(options.configFiles, choose(copyConfig.CONFIG_FILES, FALLBACK_CONFIG_FILES));
+  const configDirs = choose(options.configDirs, choose(copyConfig.CONFIG_DIRS, FALLBACK_CONFIG_DIRS));
+  const mergeDirs = choose(options.mergeDirs, choose(copyConfig.MERGE_DIRS, FALLBACK_MERGE_DIRS));
+
+  const result = {
+    ok: true,
+    repoConfigDir,
+    runtimeConfigDir,
+    checked: { configFiles: configFiles.length, configDirs: configDirs.length, mergeDirs: mergeDirs.length },
+    drift: []
+  };
+
+  if (!existsSync(runtimeConfigDir)) {
+    result.ok = false;
+    addDrift(result, 'runtime-not-synced', runtimeConfigDir, 'runtime config directory does not exist (not synced yet)');
+    return result;
+  }
+
+  compareTrackedFiles(result, repoConfigDir, runtimeConfigDir, configFiles);
+  compareTrackedDirs(result, repoConfigDir, runtimeConfigDir, configDirs);
+  compareMergeDirs(result, repoConfigDir, runtimeConfigDir, mergeDirs);
+  result.ok = result.drift.length === 0;
+  return result;
+}
+
+function runCli() {
+  const args = process.argv.slice(2);
+  const quiet = args.includes('--quiet');
+  const json = args.includes('--json');
+  const result = validateConfigCoherence();
+
+  if (!quiet) {
+    if (json) {
+      console.log(JSON.stringify(result, null, 2));
+    } else if (result.ok) {
+      console.log('config-coherence: PASS');
+    } else {
+      console.error(`config-coherence: FAIL (${result.drift.length} drift item${result.drift.length === 1 ? '' : 's'})`);
+      for (const item of result.drift) {
+        console.error(`- [${item.type}] ${item.target}: ${item.detail}`);
+      }
     }
   }
 
-  for (const modelName of delegationModels) {
-    if (!modelNames.has(modelName)) {
-      errors.push(`Delegation model '${modelName}' in config.yaml is not present in opencode model catalog.`);
-    }
-  }
+  process.exitCode = result.ok ? 0 : 1;
+}
 
-  const omoMcp = omoConfig?.mcp && typeof omoConfig.mcp === 'object' ? Object.keys(omoConfig.mcp) : [];
-  const catalogMcp = opencodeConfig?.mcp && typeof opencodeConfig.mcp === 'object' ? opencodeConfig.mcp : {};
-  for (const server of omoMcp) {
-    if (!Object.prototype.hasOwnProperty.call(catalogMcp, server)) {
-      errors.push(`oh-my-opencode MCP '${server}' is not declared in opencode.json MCP catalog.`);
-    }
-  }
-
-  if (errors.length > 0) {
-    console.error(`config-coherence: FAIL (${errors.length} issue${errors.length === 1 ? '' : 's'})`);
-    for (const error of errors) {
-      console.error(`- ${error}`);
-    }
+const thisFile = fileURLToPath(import.meta.url);
+if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(thisFile)) {
+  try {
+    runCli();
+  } catch (error) {
+    console.error(`[validate-config-coherence] Failed: ${error instanceof Error ? error.message : String(error)}`);
     process.exit(1);
   }
-
-  console.log(
-    `config-coherence: PASS (${enabledAgents.length} enabled agent models, ${delegationModels.size} delegation models, ${omoMcp.length} MCP references)`
-  );
 }
-
-main();
