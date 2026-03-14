@@ -114,3 +114,5 @@ MCP servers are defined in `opencode.json`:
 
 ### Adding new MCP servers
 Add to `opencode.json` → `mcp` section, then restart OpenCode.
+
+Before adding an MCP wrapper for an internal `opencode-*` package, review `docs/architecture/cli-mcp-surface-policy.md` and justify whether the package should be MCP-first, CLI-first, hybrid, or remain library-only.

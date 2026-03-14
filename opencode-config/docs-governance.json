@@ -5,7 +5,8 @@
     "INTEGRATION-GUIDE.md",
     "setup-instructions.md",
     "TROUBLESHOOTING.md",
-    "PORTABILITY.md"
+    "PORTABILITY.md",
+    "docs/architecture/cli-mcp-surface-policy.md"
   ],
   "rules": [
     {
@@ -53,7 +54,8 @@
       "require_any": [
         "README.md",
         "setup-instructions.md",
-        "INTEGRATION-GUIDE.md"
+        "INTEGRATION-GUIDE.md",
+        "docs/architecture/cli-mcp-surface-policy.md"
       ]
     },
     {

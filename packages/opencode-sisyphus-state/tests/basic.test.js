@@ -208,8 +208,8 @@ describe('Sisyphus State Machine', () => {
 
     await executor.execute(workflow, { items: [1, 2, 3, 4, 5, 6] });
 
-    expect(executor.defaultParallelConcurrency).toBe(5);
-    expect(maxActive).toBe(5);
+    expect(executor.defaultParallelConcurrency).toBe(7);
+    expect(maxActive).toBe(6);
   });
 
   it('should respect explicit step concurrency over host-derived default', async () => {
@@ -243,7 +243,7 @@ describe('Sisyphus State Machine', () => {
 
     await executor.execute(workflow, { items: [1, 2, 3, 4] });
 
-    expect(executor.defaultParallelConcurrency).toBe(8);
+    expect(executor.defaultParallelConcurrency).toBe(15);
     expect(maxActive).toBe(2);
   });
 

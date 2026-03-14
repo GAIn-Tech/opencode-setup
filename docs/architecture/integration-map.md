@@ -7,6 +7,12 @@
 
 ---
 
+## Related Docs
+
+- See `docs/architecture/cli-mcp-surface-policy.md` for the standing decision gate on when packages should be CLI-first, MCP-first, hybrid, or library-only.
+
+---
+
 ## Table of Contents
 
 1. [Package Architecture](#package-architecture)

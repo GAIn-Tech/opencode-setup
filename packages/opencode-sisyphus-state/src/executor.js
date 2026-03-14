@@ -30,20 +30,11 @@ function deriveDefaultParallelConcurrency(systemInfo = {}) {
   const totalMemoryBytes = getTotalMemoryBytes(systemInfo);
   const totalMemoryGiB = totalMemoryBytes / GIB;
 
-  const cpuBound = Math.max(2, Math.min(8, cpuCount - 1));
+  const cpuBound = Math.max(2, cpuCount - 1);
 
-  let memoryBound = 2;
-  if (totalMemoryGiB >= 32) {
-    memoryBound = 8;
-  } else if (totalMemoryGiB >= 24) {
-    memoryBound = 6;
-  } else if (totalMemoryGiB >= 16) {
-    memoryBound = 5;
-  } else if (totalMemoryGiB >= 8) {
-    memoryBound = 4;
-  } else if (totalMemoryGiB >= 4) {
-    memoryBound = 3;
-  }
+  const MEMORY_OVERHEAD_GIB = 2;
+  const MEMORY_PER_TASK_GIB = 2;
+  const memoryBound = Math.max(2, Math.floor((totalMemoryGiB - MEMORY_OVERHEAD_GIB) / MEMORY_PER_TASK_GIB));
 
   return Math.max(2, Math.min(cpuBound, memoryBound));
 }

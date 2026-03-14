@@ -1,13 +1,23 @@
 {
-  "generated_at": "2026-03-13T21:28:55.141Z",
+  "generated_at": "2026-03-14T07:07:13.243Z",
   "schema_version": 1,
-  "total_records": 312,
+  "total_records": 313,
   "source_files": {
-    "learning_updates": 312,
+    "learning_updates": 313,
     "agents_md": 7
   },
   "by_category": {
     "uncategorized": [
+      {
+        "id": "uncapped-concurrency-2026-03-14",
+        "summary": "Remove artificial concurrency ceiling from deriveDefaultParallelConcurrency(); enable continuous scaling with host compute resources (CPU and memory).",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-sisyphus-state/src/executor.js",
+          "packages/opencode-sisyphus-state/tests/basic.test.js"
+        ],
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
       {
         "id": "mcp-host-health-verification-20260313",
         "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
@@ -3781,6 +3791,16 @@
   "by_risk_level": {
     "low": [
       {
+        "id": "uncapped-concurrency-2026-03-14",
+        "summary": "Remove artificial concurrency ceiling from deriveDefaultParallelConcurrency(); enable continuous scaling with host compute resources (CPU and memory).",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-sisyphus-state/src/executor.js",
+          "packages/opencode-sisyphus-state/tests/basic.test.js"
+        ],
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
         "id": "mcp-host-health-verification-20260313",
         "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
         "risk_level": "low",
@@ -7474,6 +7494,98 @@
     "high": []
   },
   "by_affected_path": {
+    "packages/opencode-sisyphus-state": [
+      {
+        "id": "uncapped-concurrency-2026-03-14",
+        "summary": "Remove artificial concurrency ceiling from deriveDefaultParallelConcurrency(); enable continuous scaling with host compute resources (CPU and memory).",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "sisyphus-budget-enforcer-tests-20260307",
+        "summary": "Add regression coverage for index export and automatic budget wiring path in WorkflowExecutor.",
+        "risk_level": "low",
+        "timestamp": "2026-03-07T03:15:00Z"
+      },
+      {
+        "id": "sisyphus-budget-enforcer-wiring-20260307",
+        "summary": "Integrate BudgetEnforcer into WorkflowExecutor via constructor options and export it from package index for first-class runtime wiring.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-07T03:10:00Z"
+      },
+      {
+        "id": "p1-sisyphus-sandbox-module-restore-20260304",
+        "summary": "Restore missing sisyphus-state sandbox modules (rbac and agent-sandbox) required by executor/runtime tests after rebasing onto remote master state.",
+        "risk_level": "low",
+        "timestamp": "2026-03-04T00:33:00Z"
+      },
+      {
+        "id": "p1-executor-budget-sandbox-20260304",
+        "summary": "Integrate budget and sandbox capability enforcement into WorkflowExecutor runtime path, including terminal handling for budget/sandbox denials and regression coverage for deny/allow behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-04T00:17:00Z"
+      },
+      {
+        "id": "unused-deps-removal-20260225",
+        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00.000Z"
+      },
+      {
+        "id": "reduce-explicit-any-types-20260225",
+        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "unused-exports-removal-20260225",
+        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "gemini-model-correction-20260215",
+        "summary": "Corrected Gemini model names from non-existent gemini-2.5-* to official gemini-2.0-* across entire codebase",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:27:00-05:00"
+      },
+      {
+        "id": "quota-manager-request-based-math-20260216",
+        "summary": "Corrected request-based quota math and added regression tests",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T01:10:00Z"
+      },
+      {
+        "id": "quota-routing-providerid-fix-20260216",
+        "summary": "Fixed provider ID normalization in quota-aware routing",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T00:52:00Z"
+      },
+      {
+        "id": "model-validation-script-20260215",
+        "summary": "Created validate-models.mjs script for automated model catalog validation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T19:48:00-05:00"
+      },
+      {
+        "id": "provider-config-and-cerebras-tpm-20260215",
+        "summary": "Expanded provider config coverage and hardened Cerebras TPM handling",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T22:20:00Z"
+      },
+      {
+        "id": "portability-integrity-pass-20260215",
+        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T12:30:00Z"
+      }
+    ],
     "scripts/mcp-exercise-harness.mjs": [
       {
         "id": "mcp-host-health-verification-20260313",
@@ -10108,92 +10220,6 @@
         "summary": "Complete dashboard implementation with all 6 roadmap features: SkillsRL APIs stabilized, Knowledge Graph interactive with React Flow, provider status unified tracking, ConfigViewer with Zod forms editors, Models 10x6 routing matrix UI, fresh-machine smoke pipeline.",
         "risk_level": "low",
         "timestamp": "2026-02-15T21:00:00Z"
-      }
-    ],
-    "packages/opencode-sisyphus-state": [
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "sisyphus-budget-enforcer-tests-20260307",
-        "summary": "Add regression coverage for index export and automatic budget wiring path in WorkflowExecutor.",
-        "risk_level": "low",
-        "timestamp": "2026-03-07T03:15:00Z"
-      },
-      {
-        "id": "sisyphus-budget-enforcer-wiring-20260307",
-        "summary": "Integrate BudgetEnforcer into WorkflowExecutor via constructor options and export it from package index for first-class runtime wiring.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-07T03:10:00Z"
-      },
-      {
-        "id": "p1-sisyphus-sandbox-module-restore-20260304",
-        "summary": "Restore missing sisyphus-state sandbox modules (rbac and agent-sandbox) required by executor/runtime tests after rebasing onto remote master state.",
-        "risk_level": "low",
-        "timestamp": "2026-03-04T00:33:00Z"
-      },
-      {
-        "id": "p1-executor-budget-sandbox-20260304",
-        "summary": "Integrate budget and sandbox capability enforcement into WorkflowExecutor runtime path, including terminal handling for budget/sandbox denials and regression coverage for deny/allow behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-04T00:17:00Z"
-      },
-      {
-        "id": "unused-deps-removal-20260225",
-        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00.000Z"
-      },
-      {
-        "id": "reduce-explicit-any-types-20260225",
-        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "unused-exports-removal-20260225",
-        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "gemini-model-correction-20260215",
-        "summary": "Corrected Gemini model names from non-existent gemini-2.5-* to official gemini-2.0-* across entire codebase",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:27:00-05:00"
-      },
-      {
-        "id": "quota-manager-request-based-math-20260216",
-        "summary": "Corrected request-based quota math and added regression tests",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T01:10:00Z"
-      },
-      {
-        "id": "quota-routing-providerid-fix-20260216",
-        "summary": "Fixed provider ID normalization in quota-aware routing",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T00:52:00Z"
-      },
-      {
-        "id": "model-validation-script-20260215",
-        "summary": "Created validate-models.mjs script for automated model catalog validation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T19:48:00-05:00"
-      },
-      {
-        "id": "provider-config-and-cerebras-tpm-20260215",
-        "summary": "Expanded provider config coverage and hardened Cerebras TPM handling",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T22:20:00Z"
-      },
-      {
-        "id": "portability-integrity-pass-20260215",
-        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T12:30:00Z"
       }
     ],
     "packages/opencode-memory-bus": [
