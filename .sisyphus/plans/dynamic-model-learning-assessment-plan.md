@@ -1158,10 +1158,20 @@ OPENCODE_BENCHMARK_SANDBOX=pyodide            # pyodide | docker
 - `packages/opencode-model-router-x/src/model-discovery.js` — 3-tier fallback (API → docs → community)
 - Key rotation, subagent retry
 
-### Phase 5-6: Benchmarking & Hierarchy — DEFERRED
-- `packages/opencode-model-benchmark/` exists but incomplete (6 source files: benchmark-runner.js, model-comparator.js, hierarchy-placer.js, document-updater.js, pyodide-sandbox.js)
-- Needs Pyodide for HumanEval/MBPP/SWE-bench code execution
-- Estimated effort: 3-5 weeks
+### Phase 5: BenchmarkRunner — FUNCTIONAL (Pyodide deferred)
+- `packages/opencode-model-benchmark/src/benchmark-runner.js` — Pluggable ModelClient + Evaluator interfaces, SQLite storage (bun:sqlite), built-in 4 mini Python problems, real pass@k formula (binomial coefficient)
+- `loadProblems()` loads from benchmark JSON or falls back to built-in set
+- `storeResults()` persists to SQLite with `benchmark_results` table
+- `getHistory()` reads from SQLite with JSON parsing
+- Pyodide sandbox (code execution) deferred — evaluator interface ready for it
+- 8 tests, all passing
+
+### Phase 6: Hierarchy & Pipeline — COMPLETE
+- `model-comparator.js` (137 lines) — Weighted multi-dimension comparison (benchmark, cost, latency, reliability). `compare()`, `rank()`
+- `hierarchy-placer.js` (176 lines) — 4-tier placement (premium/standard/economy/fallback). `determineLevels()`, `suggestChanges()`
+- `document-updater.js` (221 lines) — Auto-generates model docs, hierarchy overview, changelog. Updates opencode.json + rate-limit-fallback.json
+- `benchmark-pipeline.js` (NEW) — Orchestrates Runner → Comparator → HierarchyPlacer → DocumentUpdater. `runFullPipeline()`, `compareAndPlace()`, `updateDocumentation()`
+- 24 tests across 4 files, all passing
 
 ### Phase 7: SkillRL Integration — COMPLETE
 - `packages/opencode-skill-rl-manager/src/exploration-adapter.js` (130 lines, CJS) — Bridges comprehension memory → SkillRL
@@ -1172,14 +1182,16 @@ OPENCODE_BENCHMARK_SANDBOX=pyodide            # pyodide | docker
 
 ### Config Coherence — COMPLETE
 - `scripts/validate-config-coherence.mjs` — SHA256-based drift detection (repo vs runtime)
+- Enriched JSON handling for post-copy modified files (opencode.json MCP section)
+- Audit logging (NDJSON), version manifest, machine identity, cross-machine warnings
 - Unblocks `protocol-compliance-pass.mjs` line 69 (`bun run config:coherence`)
-- Tests: 3 pass, 6 assertions
+- Tests: 8 pass (5 coherence + 3 audit/manifest/machine)
 
-### Overall: ~75% complete (Phases 1-4 + 7 done, 5-6 deferred)
-### Recommendation: Deploy exploration mode NOW (zero additional effort needed)
+### Overall: ~90% complete (Phases 1-4 + 5-7 functional, only Pyodide sandbox deferred)
+### Exploration mode DEPLOYED via ConfigLoader → bootstrap → ModelRouter wiring
+### Benchmark pipeline FUNCTIONAL — ready for real model evaluation when model client is connected
 
-### 16 Test Files Passing
-All exploration/performance/comprehension/discovery/RL tests green.
+### Test Coverage: 32 benchmark tests + 16 routing tests + 8 coherence tests + 4 RL tests = 60+ tests passing
 
 ---
 
