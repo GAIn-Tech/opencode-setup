@@ -18,6 +18,7 @@
 
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import snapshotSchema from '../packages/opencode-model-manager/src/snapshot/snapshot-schema.js';
 import {
   readFileSync,
   writeFileSync,
@@ -30,6 +31,8 @@ import { execSync } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { resolveRoot } from './resolve-root.mjs';
+
+const { validateSnapshot: validateSnapshotForRestore } = snapshotSchema;
 
 // ---------------------------------------------------------------------------
 // Paths
@@ -410,47 +413,6 @@ function restoreCatalogFromSnapshot(snapshot) {
 
   writeFileSync(CATALOG_PATH, JSON.stringify(catalog, null, 2), 'utf-8');
   return catalog;
-}
-
-function validateSnapshotForRestore(snapshot) {
-  const errors = [];
-
-  if (!snapshot || typeof snapshot !== 'object') {
-    return { valid: false, errors: ['snapshot must be an object'] };
-  }
-
-  if (!snapshot.id || typeof snapshot.id !== 'string') {
-    errors.push('snapshot.id is required');
-  }
-
-  if (!Number.isFinite(snapshot.timestamp) || snapshot.timestamp <= 0) {
-    errors.push('snapshot.timestamp must be a valid epoch ms value');
-  }
-
-  if (!Array.isArray(snapshot.models) || snapshot.models.length === 0) {
-    errors.push('snapshot.models must be a non-empty array');
-  }
-
-  const models = Array.isArray(snapshot.models) ? snapshot.models : [];
-  for (let i = 0; i < models.length; i++) {
-    const model = models[i];
-    if (!model || typeof model !== 'object') {
-      errors.push(`snapshot.models[${i}] must be an object`);
-      continue;
-    }
-
-    const modelId = String(model.id || model.name || '').trim();
-    if (!modelId) {
-      errors.push(`snapshot.models[${i}] missing id/name`);
-    }
-
-    const provider = String(model.provider || snapshot.provider || '').trim();
-    if (!provider) {
-      errors.push(`snapshot.models[${i}] missing provider`);
-    }
-  }
-
-  return { valid: errors.length === 0, errors };
 }
 
 /**
