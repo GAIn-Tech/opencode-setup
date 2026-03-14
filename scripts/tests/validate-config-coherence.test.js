@@ -42,13 +42,14 @@ function writeMatchingRuntime(runtimeConfigDir) {
   writeFileSync(path.join(runtimeConfigDir, 'skills', 'alpha', 'SKILL.md'), '# alpha\n', 'utf8');
 }
 
-function runValidation(repoConfigDir, runtimeConfigDir) {
+function runValidation(repoConfigDir, runtimeConfigDir, extra = {}) {
   return validateConfigCoherence({
     repoConfigDir,
     runtimeConfigDir,
     configFiles: TEST_CONFIG_FILES,
     configDirs: TEST_CONFIG_DIRS,
-    mergeDirs: TEST_MERGE_DIRS
+    mergeDirs: TEST_MERGE_DIRS,
+    ...extra
   });
 }
 
@@ -71,16 +72,60 @@ describe('validate-config-coherence', () => {
     expect(result.drift.some((item) => item.type === 'runtime-file-missing' && item.target === 'opencode.json')).toBe(true);
   });
 
-  test('detects content mismatch as drift', () => {
+  test('detects content mismatch as drift (non-enriched file)', () => {
     const { repoConfigDir, runtimeConfigDir } = setupDirs();
     writeBaselineRepo(repoConfigDir);
     writeMatchingRuntime(runtimeConfigDir);
 
+    // Use enrichedJsonFiles: {} so opencode.json is treated as a plain hash-compared file
     writeFileSync(path.join(runtimeConfigDir, 'opencode.json'), '{"ok":false}\n', 'utf8');
 
-    const result = runValidation(repoConfigDir, runtimeConfigDir);
+    const result = runValidation(repoConfigDir, runtimeConfigDir, { enrichedJsonFiles: {} });
     expect(result.ok).toBe(false);
     expect(result.drift.some((item) => item.type === 'file-mismatch' && item.target === 'opencode.json')).toBe(true);
+  });
+
+  test('enriched file passes when only enriched keys differ', () => {
+    const { repoConfigDir, runtimeConfigDir } = setupDirs();
+    // Repo has no mcp key
+    writeFileSync(path.join(repoConfigDir, 'opencode.json'), '{"ok":true,"permissions":{"allow":["*"]}}\n', 'utf8');
+    // Runtime has mcp key added by generate-mcp-config
+    writeFileSync(path.join(runtimeConfigDir, 'opencode.json'), '{"ok":true,"permissions":{"allow":["*"]},"mcp":{"tavily":{"command":"npx"}}}\n', 'utf8');
+
+    mkdirSync(path.join(repoConfigDir, 'commands'), { recursive: true });
+    writeFileSync(path.join(repoConfigDir, 'commands', 'hello.md'), '# hello\n', 'utf8');
+    mkdirSync(path.join(runtimeConfigDir, 'commands'), { recursive: true });
+    writeFileSync(path.join(runtimeConfigDir, 'commands', 'hello.md'), '# hello\n', 'utf8');
+    mkdirSync(path.join(repoConfigDir, 'skills', 'alpha'), { recursive: true });
+    writeFileSync(path.join(repoConfigDir, 'skills', 'alpha', 'SKILL.md'), '# alpha\n', 'utf8');
+    mkdirSync(path.join(runtimeConfigDir, 'skills', 'alpha'), { recursive: true });
+    writeFileSync(path.join(runtimeConfigDir, 'skills', 'alpha', 'SKILL.md'), '# alpha\n', 'utf8');
+
+    const enriched = { 'opencode.json': { ignoreKeys: new Set(['mcp']) } };
+    const result = runValidation(repoConfigDir, runtimeConfigDir, { enrichedJsonFiles: enriched });
+    expect(result.ok).toBe(true);
+    expect(result.drift).toHaveLength(0);
+  });
+
+  test('enriched file detects drift in non-enriched keys', () => {
+    const { repoConfigDir, runtimeConfigDir } = setupDirs();
+    writeFileSync(path.join(repoConfigDir, 'opencode.json'), '{"ok":true,"permissions":{"allow":["*"]}}\n', 'utf8');
+    // Runtime: permissions changed (should be caught) + mcp added (should be ignored)
+    writeFileSync(path.join(runtimeConfigDir, 'opencode.json'), '{"ok":true,"permissions":{"allow":["read"]},"mcp":{"tavily":{}}}\n', 'utf8');
+
+    mkdirSync(path.join(repoConfigDir, 'commands'), { recursive: true });
+    writeFileSync(path.join(repoConfigDir, 'commands', 'hello.md'), '# hello\n', 'utf8');
+    mkdirSync(path.join(runtimeConfigDir, 'commands'), { recursive: true });
+    writeFileSync(path.join(runtimeConfigDir, 'commands', 'hello.md'), '# hello\n', 'utf8');
+    mkdirSync(path.join(repoConfigDir, 'skills', 'alpha'), { recursive: true });
+    writeFileSync(path.join(repoConfigDir, 'skills', 'alpha', 'SKILL.md'), '# alpha\n', 'utf8');
+    mkdirSync(path.join(runtimeConfigDir, 'skills', 'alpha'), { recursive: true });
+    writeFileSync(path.join(runtimeConfigDir, 'skills', 'alpha', 'SKILL.md'), '# alpha\n', 'utf8');
+
+    const enriched = { 'opencode.json': { ignoreKeys: new Set(['mcp']) } };
+    const result = runValidation(repoConfigDir, runtimeConfigDir, { enrichedJsonFiles: enriched });
+    expect(result.ok).toBe(false);
+    expect(result.drift.some((item) => item.type === 'enriched-mismatch' && item.target === 'opencode.json')).toBe(true);
   });
 
   test('passes when all tracked config files and dirs match', () => {

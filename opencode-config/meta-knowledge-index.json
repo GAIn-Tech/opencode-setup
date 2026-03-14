@@ -1,13 +1,23 @@
 {
-  "generated_at": "2026-03-14T18:38:46.475Z",
+  "generated_at": "2026-03-14T19:07:34.200Z",
   "schema_version": 1,
-  "total_records": 323,
+  "total_records": 324,
   "source_files": {
-    "learning_updates": 323,
+    "learning_updates": 324,
     "agents_md": 7
   },
   "by_category": {
     "uncategorized": [
+      {
+        "id": "config-coherence-enriched-json-2026-03-14",
+        "summary": "Config coherence script now handles enriched JSON files (e.g., opencode.json with MCP path resolution) via structural comparison of non-enriched keys instead of SHA256 hash. Added ENRICHED_JSON_FILES map, deepEqual(), and compareEnrichedJson(). Unblocks protocol-compliance-pass.mjs.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/validate-config-coherence.mjs",
+          "scripts/tests/validate-config-coherence.test.js"
+        ],
+        "timestamp": "2026-03-14T18:45:00Z"
+      },
       {
         "id": "mcp-boundary-reconciliation-2026-03-14",
         "summary": "Reconciled MCP boundary docs and config with active runtime policy: aligned opencode-mcp-config.json dormant entries with mcp-dormant-policy.json, rewrote server-list.md to remove stale tavily/github entries and add 3 active internal wrappers plus dormant section, updated setup-instructions.md to reflect active internal MCP wrappers, added canonical source-of-truth note to cli-mcp-surface-policy.md, and extended mcp-inventory-regression tests to assert dormant/active alignment across config files.",
@@ -3918,6 +3928,16 @@
   "by_risk_level": {
     "low": [
       {
+        "id": "config-coherence-enriched-json-2026-03-14",
+        "summary": "Config coherence script now handles enriched JSON files (e.g., opencode.json with MCP path resolution) via structural comparison of non-enriched keys instead of SHA256 hash. Added ENRICHED_JSON_FILES map, deepEqual(), and compareEnrichedJson(). Unblocks protocol-compliance-pass.mjs.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/validate-config-coherence.mjs",
+          "scripts/tests/validate-config-coherence.test.js"
+        ],
+        "timestamp": "2026-03-14T18:45:00Z"
+      },
+      {
         "id": "mcp-boundary-reconciliation-2026-03-14",
         "summary": "Reconciled MCP boundary docs and config with active runtime policy: aligned opencode-mcp-config.json dormant entries with mcp-dormant-policy.json, rewrote server-list.md to remove stale tavily/github entries and add 3 active internal wrappers plus dormant section, updated setup-instructions.md to reflect active internal MCP wrappers, added canonical source-of-truth note to cli-mcp-surface-policy.md, and extended mcp-inventory-regression tests to assert dormant/active alignment across config files.",
         "risk_level": "low",
@@ -7748,88 +7768,18 @@
     "high": []
   },
   "by_affected_path": {
-    "mcp-servers/opencode-mcp-config.json": [
+    "scripts/validate-config-coherence.mjs": [
       {
-        "id": "mcp-boundary-reconciliation-2026-03-14",
-        "summary": "Reconciled MCP boundary docs and config with active runtime policy: aligned opencode-mcp-config.json dormant entries with mcp-dormant-policy.json, rewrote server-list.md to remove stale tavily/github entries and add 3 active internal wrappers plus dormant section, updated setup-instructions.md to reflect active internal MCP wrappers, added canonical source-of-truth note to cli-mcp-surface-policy.md, and extended mcp-inventory-regression tests to assert dormant/active alignment across config files.",
+        "id": "config-coherence-enriched-json-2026-03-14",
+        "summary": "Config coherence script now handles enriched JSON files (e.g., opencode.json with MCP path resolution) via structural comparison of non-enriched keys instead of SHA256 hash. Added ENRICHED_JSON_FILES map, deepEqual(), and compareEnrichedJson(). Unblocks protocol-compliance-pass.mjs.",
         "risk_level": "low",
-        "timestamp": "2026-03-14T08:30:00.000Z"
+        "timestamp": "2026-03-14T18:45:00Z"
       },
       {
-        "id": "memory-graph-mcp-config-20260313",
-        "summary": "Point host-facing memory-graph MCP config sources at the new stdio wrapper entrypoint instead of the raw CLI entrypoint.",
+        "id": "config-coherence-drift-detection-2026-03-14",
+        "summary": "Rewrote validate-config-coherence.mjs from model-reference validation into SHA256-based config drift detection. Compares repo opencode-config/ against runtime ~/.config/opencode/ for CONFIG_FILES, CONFIG_DIRS, and MERGE_DIRS. Exports validateConfigCoherence() for programmatic use. Supports --json and --quiet CLI flags. MERGE_DIRS only check repo entries exist in runtime (user-custom entries preserved). Unblocks protocol-compliance-pass.mjs line 69 which calls bun run config:coherence.",
         "risk_level": "low",
-        "timestamp": "2026-03-13T16:41:00Z"
-      },
-      {
-        "id": "context-governor-mcp-config-20260313",
-        "summary": "Point host-facing context-governor MCP config at the new stdio wrapper entrypoint across canonical and template config files.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T16:16:00Z"
-      },
-      {
-        "id": "runbooks-mcp-config-20260313",
-        "summary": "Point the host-facing runbooks MCP entries at the new stdio wrapper entrypoint in canonical OpenCode config sources.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T01:15:00Z"
-      },
-      {
-        "id": "portability-integrity-pass-20260215",
-        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T12:30:00Z"
-      }
-    ],
-    "mcp-servers/server-list.md": [
-      {
-        "id": "mcp-boundary-reconciliation-2026-03-14",
-        "summary": "Reconciled MCP boundary docs and config with active runtime policy: aligned opencode-mcp-config.json dormant entries with mcp-dormant-policy.json, rewrote server-list.md to remove stale tavily/github entries and add 3 active internal wrappers plus dormant section, updated setup-instructions.md to reflect active internal MCP wrappers, added canonical source-of-truth note to cli-mcp-surface-policy.md, and extended mcp-inventory-regression tests to assert dormant/active alignment across config files.",
-        "risk_level": "low",
-        "timestamp": "2026-03-14T08:30:00.000Z"
-      }
-    ],
-    "setup-instructions.md": [
-      {
-        "id": "mcp-boundary-reconciliation-2026-03-14",
-        "summary": "Reconciled MCP boundary docs and config with active runtime policy: aligned opencode-mcp-config.json dormant entries with mcp-dormant-policy.json, rewrote server-list.md to remove stale tavily/github entries and add 3 active internal wrappers plus dormant section, updated setup-instructions.md to reflect active internal MCP wrappers, added canonical source-of-truth note to cli-mcp-surface-policy.md, and extended mcp-inventory-regression tests to assert dormant/active alignment across config files.",
-        "risk_level": "low",
-        "timestamp": "2026-03-14T08:30:00.000Z"
-      },
-      {
-        "id": "mcp-smoke-harness-20260310",
-        "summary": "Add an MCP smoke harness and top-level package command so recent exercise coverage for live MCPs can be measured directly from telemetry after restarts.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:30:00-04:00"
-      },
-      {
-        "id": "browser-mcp-registration-and-dormant-policy-20260310",
-        "summary": "Register Playwright as a direct browser MCP skill in the canonical config and document the policy that disabled internal opencode-* MCPs remain dormant until they have explicit wrappers or runtime integration paths.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T11:37:00-04:00"
-      },
-      {
-        "id": "docs-config-drift-refresh-20260310",
-        "summary": "Refresh stale setup and MCP audit documentation so Bun requirements, removed environment variables, MCP toggle counts, and historical verdict wording match the current system state.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T01:59:00-04:00"
-      },
-      {
-        "id": "mcp-report-command-entrypoint-20260310",
-        "summary": "Expose the generated MCP lifecycle report through a top-level `bun run mcp:report` command and document that entrypoint in setup instructions.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T01:47:00-04:00"
-      },
-      {
-        "id": "mcp-config-cleanup-and-playwright-20260310",
-        "summary": "Remove dead github and tavily MCP entries from the canonical config, enable playwright as a live MCP service again, and update installation documentation to match the new inventory.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T00:33:00-04:00"
-      },
-      {
-        "id": "wave8-setup-prereqs-docs-20260308",
-        "summary": "Add checkPrerequisites() function to setup-resilient.mjs that validates Node.js, uv, and WSL2 availability before setup proceeds. Extend setup-instructions.md with Docker troubleshooting section and secrets onboarding guidance.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:05:00Z"
+        "timestamp": "2026-03-14T00:00:00.000Z"
       },
       {
         "id": "model-routing-and-environment-hardening-2-22-2026",
@@ -7838,33 +7788,19 @@
         "timestamp": "2026-02-22T17:30:00Z"
       },
       {
-        "id": "bun-1-3-9-upgrade-alignment-20260222",
-        "summary": "Upgrade repository Bun policy from 1.2.23 to 1.3.9 to align with post-Feb-2026 shell GC/use-after-free fix timeline and keep setup/verify/docs consistent.",
+        "id": "symbiotic-removal-and-config-hardening-20260222",
+        "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
         "risk_level": "low",
-        "timestamp": "2026-02-22T05:35:00Z"
-      },
-      {
-        "id": "documentation-standards-20260219",
-        "summary": "Unified documentation standards with style guide and improved formatting across all project documentation",
-        "risk_level": "low",
-        "timestamp": "2026-02-19T18:31:56-05:00"
-      },
-      {
-        "id": "living-docs-governance-system-20260218",
-        "summary": "Add living-docs governance system with drift gate enforcement",
-        "risk_level": "medium",
-        "timestamp": "2026-02-18T18:00:00.000Z"
-      }
-    ],
-    "docs/architecture": [
-      {
-        "id": "mcp-boundary-reconciliation-2026-03-14",
-        "summary": "Reconciled MCP boundary docs and config with active runtime policy: aligned opencode-mcp-config.json dormant entries with mcp-dormant-policy.json, rewrote server-list.md to remove stale tavily/github entries and add 3 active internal wrappers plus dormant section, updated setup-instructions.md to reflect active internal MCP wrappers, added canonical source-of-truth note to cli-mcp-surface-policy.md, and extended mcp-inventory-regression tests to assert dormant/active alignment across config files.",
-        "risk_level": "low",
-        "timestamp": "2026-03-14T08:30:00.000Z"
+        "timestamp": "2026-02-22T16:45:00Z"
       }
     ],
     "scripts/tests": [
+      {
+        "id": "config-coherence-enriched-json-2026-03-14",
+        "summary": "Config coherence script now handles enriched JSON files (e.g., opencode.json with MCP path resolution) via structural comparison of non-enriched keys instead of SHA256 hash. Added ENRICHED_JSON_FILES map, deepEqual(), and compareEnrichedJson(). Unblocks protocol-compliance-pass.mjs.",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T18:45:00Z"
+      },
       {
         "id": "mcp-boundary-reconciliation-2026-03-14",
         "summary": "Reconciled MCP boundary docs and config with active runtime policy: aligned opencode-mcp-config.json dormant entries with mcp-dormant-policy.json, rewrote server-list.md to remove stale tavily/github entries and add 3 active internal wrappers plus dormant section, updated setup-instructions.md to reflect active internal MCP wrappers, added canonical source-of-truth note to cli-mcp-surface-policy.md, and extended mcp-inventory-regression tests to assert dormant/active alignment across config files.",
@@ -8182,6 +8118,122 @@
         "summary": "Harden hierarchical routing no-match semantics and conflict validation safety checks",
         "risk_level": "low",
         "timestamp": "2026-02-27T06:20:00Z"
+      }
+    ],
+    "mcp-servers/opencode-mcp-config.json": [
+      {
+        "id": "mcp-boundary-reconciliation-2026-03-14",
+        "summary": "Reconciled MCP boundary docs and config with active runtime policy: aligned opencode-mcp-config.json dormant entries with mcp-dormant-policy.json, rewrote server-list.md to remove stale tavily/github entries and add 3 active internal wrappers plus dormant section, updated setup-instructions.md to reflect active internal MCP wrappers, added canonical source-of-truth note to cli-mcp-surface-policy.md, and extended mcp-inventory-regression tests to assert dormant/active alignment across config files.",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T08:30:00.000Z"
+      },
+      {
+        "id": "memory-graph-mcp-config-20260313",
+        "summary": "Point host-facing memory-graph MCP config sources at the new stdio wrapper entrypoint instead of the raw CLI entrypoint.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T16:41:00Z"
+      },
+      {
+        "id": "context-governor-mcp-config-20260313",
+        "summary": "Point host-facing context-governor MCP config at the new stdio wrapper entrypoint across canonical and template config files.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T16:16:00Z"
+      },
+      {
+        "id": "runbooks-mcp-config-20260313",
+        "summary": "Point the host-facing runbooks MCP entries at the new stdio wrapper entrypoint in canonical OpenCode config sources.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T01:15:00Z"
+      },
+      {
+        "id": "portability-integrity-pass-20260215",
+        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T12:30:00Z"
+      }
+    ],
+    "mcp-servers/server-list.md": [
+      {
+        "id": "mcp-boundary-reconciliation-2026-03-14",
+        "summary": "Reconciled MCP boundary docs and config with active runtime policy: aligned opencode-mcp-config.json dormant entries with mcp-dormant-policy.json, rewrote server-list.md to remove stale tavily/github entries and add 3 active internal wrappers plus dormant section, updated setup-instructions.md to reflect active internal MCP wrappers, added canonical source-of-truth note to cli-mcp-surface-policy.md, and extended mcp-inventory-regression tests to assert dormant/active alignment across config files.",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T08:30:00.000Z"
+      }
+    ],
+    "setup-instructions.md": [
+      {
+        "id": "mcp-boundary-reconciliation-2026-03-14",
+        "summary": "Reconciled MCP boundary docs and config with active runtime policy: aligned opencode-mcp-config.json dormant entries with mcp-dormant-policy.json, rewrote server-list.md to remove stale tavily/github entries and add 3 active internal wrappers plus dormant section, updated setup-instructions.md to reflect active internal MCP wrappers, added canonical source-of-truth note to cli-mcp-surface-policy.md, and extended mcp-inventory-regression tests to assert dormant/active alignment across config files.",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T08:30:00.000Z"
+      },
+      {
+        "id": "mcp-smoke-harness-20260310",
+        "summary": "Add an MCP smoke harness and top-level package command so recent exercise coverage for live MCPs can be measured directly from telemetry after restarts.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:30:00-04:00"
+      },
+      {
+        "id": "browser-mcp-registration-and-dormant-policy-20260310",
+        "summary": "Register Playwright as a direct browser MCP skill in the canonical config and document the policy that disabled internal opencode-* MCPs remain dormant until they have explicit wrappers or runtime integration paths.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T11:37:00-04:00"
+      },
+      {
+        "id": "docs-config-drift-refresh-20260310",
+        "summary": "Refresh stale setup and MCP audit documentation so Bun requirements, removed environment variables, MCP toggle counts, and historical verdict wording match the current system state.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T01:59:00-04:00"
+      },
+      {
+        "id": "mcp-report-command-entrypoint-20260310",
+        "summary": "Expose the generated MCP lifecycle report through a top-level `bun run mcp:report` command and document that entrypoint in setup instructions.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T01:47:00-04:00"
+      },
+      {
+        "id": "mcp-config-cleanup-and-playwright-20260310",
+        "summary": "Remove dead github and tavily MCP entries from the canonical config, enable playwright as a live MCP service again, and update installation documentation to match the new inventory.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T00:33:00-04:00"
+      },
+      {
+        "id": "wave8-setup-prereqs-docs-20260308",
+        "summary": "Add checkPrerequisites() function to setup-resilient.mjs that validates Node.js, uv, and WSL2 availability before setup proceeds. Extend setup-instructions.md with Docker troubleshooting section and secrets onboarding guidance.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:05:00Z"
+      },
+      {
+        "id": "model-routing-and-environment-hardening-2-22-2026",
+        "summary": "Further harden model routing and environment configuration with post-mid-2025 policy alignment, resiliency improvements, and Symbiotic reference cleanup.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T17:30:00Z"
+      },
+      {
+        "id": "bun-1-3-9-upgrade-alignment-20260222",
+        "summary": "Upgrade repository Bun policy from 1.2.23 to 1.3.9 to align with post-Feb-2026 shell GC/use-after-free fix timeline and keep setup/verify/docs consistent.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T05:35:00Z"
+      },
+      {
+        "id": "documentation-standards-20260219",
+        "summary": "Unified documentation standards with style guide and improved formatting across all project documentation",
+        "risk_level": "low",
+        "timestamp": "2026-02-19T18:31:56-05:00"
+      },
+      {
+        "id": "living-docs-governance-system-20260218",
+        "summary": "Add living-docs governance system with drift gate enforcement",
+        "risk_level": "medium",
+        "timestamp": "2026-02-18T18:00:00.000Z"
+      }
+    ],
+    "docs/architecture": [
+      {
+        "id": "mcp-boundary-reconciliation-2026-03-14",
+        "summary": "Reconciled MCP boundary docs and config with active runtime policy: aligned opencode-mcp-config.json dormant entries with mcp-dormant-policy.json, rewrote server-list.md to remove stale tavily/github entries and add 3 active internal wrappers plus dormant section, updated setup-instructions.md to reflect active internal MCP wrappers, added canonical source-of-truth note to cli-mcp-surface-policy.md, and extended mcp-inventory-regression tests to assert dormant/active alignment across config files.",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T08:30:00.000Z"
       }
     ],
     "opencode-config/agents": [
@@ -8530,26 +8582,6 @@
         "summary": "Extended ci-boundary-enforce.mjs to scan ALL packages (not just dashboard API) for forbidden opencode-model-manager internal imports. Created shared CJS snapshot-schema.js module with validateSnapshot() and normalizeSnapshot(), refactored snapshot-store.js and model-rollback.mjs to use it, eliminating schema validation duplication.",
         "risk_level": "medium",
         "timestamp": "2026-03-14T00:00:00.000Z"
-      }
-    ],
-    "scripts/validate-config-coherence.mjs": [
-      {
-        "id": "config-coherence-drift-detection-2026-03-14",
-        "summary": "Rewrote validate-config-coherence.mjs from model-reference validation into SHA256-based config drift detection. Compares repo opencode-config/ against runtime ~/.config/opencode/ for CONFIG_FILES, CONFIG_DIRS, and MERGE_DIRS. Exports validateConfigCoherence() for programmatic use. Supports --json and --quiet CLI flags. MERGE_DIRS only check repo entries exist in runtime (user-custom entries preserved). Unblocks protocol-compliance-pass.mjs line 69 which calls bun run config:coherence.",
-        "risk_level": "low",
-        "timestamp": "2026-03-14T00:00:00.000Z"
-      },
-      {
-        "id": "model-routing-and-environment-hardening-2-22-2026",
-        "summary": "Further harden model routing and environment configuration with post-mid-2025 policy alignment, resiliency improvements, and Symbiotic reference cleanup.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T17:30:00Z"
-      },
-      {
-        "id": "symbiotic-removal-and-config-hardening-20260222",
-        "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T16:45:00Z"
       }
     ],
     "packages/opencode-dashboard": [

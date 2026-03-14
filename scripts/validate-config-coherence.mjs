@@ -11,6 +11,13 @@ const FALLBACK_CONFIG_FILES = ['opencode.json', 'antigravity.json', 'oh-my-openc
 const FALLBACK_CONFIG_DIRS = ['commands', 'docs', 'models', 'supermemory'];
 const FALLBACK_MERGE_DIRS = ['skills'];
 
+// Files that are copied from repo then intentionally enriched by post-copy scripts
+// (e.g. generate-mcp-config.mjs resolves $ROOT placeholders and merges MCP entries).
+// For these, compare all top-level JSON keys EXCEPT the enriched ones.
+const ENRICHED_JSON_FILES = {
+  'opencode.json': { ignoreKeys: new Set(['mcp', 'mcpServers']) },
+};
+
 function choose(value, fallback) {
   return Array.isArray(value) ? value : fallback;
 }
@@ -35,7 +42,56 @@ function addDrift(result, type, target, detail) {
   result.drift.push({ type, target, detail });
 }
 
-function compareTrackedFiles(result, repoConfigDir, runtimeConfigDir, configFiles) {
+/**
+ * Deep-equal check for JSON values (plain objects, arrays, primitives).
+ * Returns true if structurally identical.
+ */
+function deepEqual(a, b) {
+  if (a === b) return true;
+  if (a == null || b == null) return a === b;
+  if (typeof a !== typeof b) return false;
+  if (Array.isArray(a)) {
+    if (!Array.isArray(b) || a.length !== b.length) return false;
+    return a.every((v, i) => deepEqual(v, b[i]));
+  }
+  if (typeof a === 'object') {
+    const aKeys = Object.keys(a).sort();
+    const bKeys = Object.keys(b).sort();
+    if (aKeys.length !== bKeys.length) return false;
+    return aKeys.every((k, i) => k === bKeys[i] && deepEqual(a[k], b[k]));
+  }
+  return false;
+}
+
+/**
+ * Compare enriched JSON files structurally, ignoring specified top-level keys.
+ * Returns null if values match, or a description of the first mismatch found.
+ */
+function compareEnrichedJson(repoPath, runtimePath, ignoreKeys) {
+  let repoObj, runtimeObj;
+  try {
+    repoObj = JSON.parse(readFileSync(repoPath, 'utf8'));
+  } catch {
+    return 'repo file is not valid JSON';
+  }
+  try {
+    runtimeObj = JSON.parse(readFileSync(runtimePath, 'utf8'));
+  } catch {
+    return 'runtime file is not valid JSON';
+  }
+  const driftKeys = [];
+  for (const key of Object.keys(repoObj)) {
+    if (ignoreKeys.has(key)) continue;
+    if (!(key in runtimeObj)) {
+      driftKeys.push(`key "${key}" missing in runtime`);
+    } else if (!deepEqual(repoObj[key], runtimeObj[key])) {
+      driftKeys.push(`key "${key}" differs`);
+    }
+  }
+  return driftKeys.length > 0 ? driftKeys.join(', ') : null;
+}
+
+function compareTrackedFiles(result, repoConfigDir, runtimeConfigDir, configFiles, enrichedJsonFiles) {
   for (const fileName of configFiles) {
     const repoPath = path.join(repoConfigDir, fileName);
     const runtimePath = path.join(runtimeConfigDir, fileName);
@@ -47,6 +103,18 @@ function compareTrackedFiles(result, repoConfigDir, runtimeConfigDir, configFile
       addDrift(result, 'runtime-file-missing', fileName, 'missing in runtime config');
       continue;
     }
+
+    // Enriched JSON files: structural compare ignoring enriched keys
+    const enrichment = enrichedJsonFiles[fileName];
+    if (enrichment) {
+      const mismatch = compareEnrichedJson(repoPath, runtimePath, enrichment.ignoreKeys);
+      if (mismatch) {
+        addDrift(result, 'enriched-mismatch', fileName, mismatch);
+      }
+      continue;
+    }
+
+    // Standard files: hash comparison
     const repoHash = sha256File(repoPath);
     const runtimeHash = sha256File(runtimePath);
     if (repoHash !== runtimeHash) {
@@ -134,7 +202,8 @@ export function validateConfigCoherence(options = {}) {
     return result;
   }
 
-  compareTrackedFiles(result, repoConfigDir, runtimeConfigDir, configFiles);
+  const enrichedJsonFiles = options.enrichedJsonFiles || ENRICHED_JSON_FILES;
+  compareTrackedFiles(result, repoConfigDir, runtimeConfigDir, configFiles, enrichedJsonFiles);
   compareTrackedDirs(result, repoConfigDir, runtimeConfigDir, configDirs);
   compareMergeDirs(result, repoConfigDir, runtimeConfigDir, mergeDirs);
   result.ok = result.drift.length === 0;
