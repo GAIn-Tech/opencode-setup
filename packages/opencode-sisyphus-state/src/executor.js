@@ -1,5 +1,52 @@
 const { v4: uuidv4 } = require('uuid');
+const os = require('os');
 const { BudgetEnforcer } = require('./budget-enforcer');
+
+const GIB = 1024 * 1024 * 1024;
+
+function getCpuCount(systemInfo = {}) {
+  if (Number.isFinite(systemInfo.cpuCount) && systemInfo.cpuCount > 0) {
+    return Math.floor(systemInfo.cpuCount);
+  }
+
+  if (typeof os.availableParallelism === 'function') {
+    return os.availableParallelism();
+  }
+
+  const cpus = typeof os.cpus === 'function' ? os.cpus() : [];
+  return Math.max(1, cpus.length || 1);
+}
+
+function getTotalMemoryBytes(systemInfo = {}) {
+  if (Number.isFinite(systemInfo.totalMemoryBytes) && systemInfo.totalMemoryBytes > 0) {
+    return systemInfo.totalMemoryBytes;
+  }
+
+  return typeof os.totalmem === 'function' ? os.totalmem() : 0;
+}
+
+function deriveDefaultParallelConcurrency(systemInfo = {}) {
+  const cpuCount = getCpuCount(systemInfo);
+  const totalMemoryBytes = getTotalMemoryBytes(systemInfo);
+  const totalMemoryGiB = totalMemoryBytes / GIB;
+
+  const cpuBound = Math.max(2, Math.min(8, cpuCount - 1));
+
+  let memoryBound = 2;
+  if (totalMemoryGiB >= 32) {
+    memoryBound = 8;
+  } else if (totalMemoryGiB >= 24) {
+    memoryBound = 6;
+  } else if (totalMemoryGiB >= 16) {
+    memoryBound = 5;
+  } else if (totalMemoryGiB >= 8) {
+    memoryBound = 4;
+  } else if (totalMemoryGiB >= 4) {
+    memoryBound = 3;
+  }
+
+  return Math.max(2, Math.min(cpuBound, memoryBound));
+}
 
 class WorkflowExecutor {
   constructor(store, handlers = {}, options = {}) {
@@ -8,6 +55,8 @@ class WorkflowExecutor {
     this.budgetEnforcer = options.budgetEnforcer ||
       (options.budget ? new BudgetEnforcer(options.budget) : null);
     this.agentSandbox = options.agentSandbox || null;
+    this.defaultParallelConcurrency = options.defaultParallelConcurrency
+      ?? deriveDefaultParallelConcurrency(options.systemInfo);
   }
 
   registerHandler(type, handler) {
@@ -59,8 +108,8 @@ class WorkflowExecutor {
       this.store.upsertStep(runId, step.id, 'running', null);
       this.store.logEvent(runId, 'step_started', { stepId: step.id, type: 'parallel-for', count: list.length });
 
-      // Concurrency limit to prevent memory exhaustion (default 5, configurable via step.concurrency)
-      const concurrencyLimit = step.concurrency ?? 5;
+      // Concurrency limit derived from host specs unless explicitly overridden per step.
+      const concurrencyLimit = step.concurrency ?? this.defaultParallelConcurrency;
 
       try {
         // Process in batches with concurrency control
@@ -235,4 +284,4 @@ class WorkflowExecutor {
   }
 }
 
-module.exports = { WorkflowExecutor };
+module.exports = { WorkflowExecutor, deriveDefaultParallelConcurrency };
