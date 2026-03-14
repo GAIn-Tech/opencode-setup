@@ -1,13 +1,27 @@
 {
-  "generated_at": "2026-03-14T22:38:31.890Z",
+  "generated_at": "2026-03-14T23:26:18.450Z",
   "schema_version": 1,
-  "total_records": 327,
+  "total_records": 328,
   "source_files": {
-    "learning_updates": 327,
+    "learning_updates": 328,
     "agents_md": 7
   },
   "by_category": {
     "uncategorized": [
+      {
+        "id": "portability-fixes-canonical-paths-2026-03-14",
+        "summary": "Fixed cross-machine portability: replaced relative DB paths with canonical ~/.opencode/ paths in audit-logger and state-machine, added dir creation before audit writes, replaced hardcoded Windows path with os.homedir(), added learning-updates to CONFIG_DIRS, documented plugins architecture",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-manager/src/lifecycle/audit-logger.js",
+          "packages/opencode-model-manager/src/lifecycle/state-machine.js",
+          "scripts/validate-config-coherence.mjs",
+          "scripts/setup-resilient.mjs",
+          "scripts/copy-config.mjs",
+          "plugins/README.md"
+        ],
+        "timestamp": "2026-03-14T19:30:00Z"
+      },
       {
         "id": "benchmark-pipeline-functional-2026-03-14",
         "summary": "Made opencode-model-benchmark production-functional: BenchmarkRunner with pluggable model client, evaluator, SQLite storage, built-in mini problems, real pass@k formula. Added BenchmarkPipeline orchestrator chaining Runner → Comparator → HierarchyPlacer → DocumentUpdater. 32 tests across 5 files.",
@@ -3967,6 +3981,20 @@
   "by_risk_level": {
     "low": [
       {
+        "id": "portability-fixes-canonical-paths-2026-03-14",
+        "summary": "Fixed cross-machine portability: replaced relative DB paths with canonical ~/.opencode/ paths in audit-logger and state-machine, added dir creation before audit writes, replaced hardcoded Windows path with os.homedir(), added learning-updates to CONFIG_DIRS, documented plugins architecture",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-manager/src/lifecycle/audit-logger.js",
+          "packages/opencode-model-manager/src/lifecycle/state-machine.js",
+          "scripts/validate-config-coherence.mjs",
+          "scripts/setup-resilient.mjs",
+          "scripts/copy-config.mjs",
+          "plugins/README.md"
+        ],
+        "timestamp": "2026-03-14T19:30:00Z"
+      },
+      {
         "id": "benchmark-pipeline-functional-2026-03-14",
         "summary": "Made opencode-model-benchmark production-functional: BenchmarkRunner with pluggable model client, evaluator, SQLite storage, built-in mini problems, real pass@k formula. Added BenchmarkPipeline orchestrator chaining Runner → Comparator → HierarchyPlacer → DocumentUpdater. 32 tests across 5 files.",
         "risk_level": "low",
@@ -7846,33 +7874,165 @@
     "high": []
   },
   "by_affected_path": {
-    "packages/opencode-model-benchmark": [
+    "packages/opencode-model-manager": [
       {
-        "id": "benchmark-pipeline-functional-2026-03-14",
-        "summary": "Made opencode-model-benchmark production-functional: BenchmarkRunner with pluggable model client, evaluator, SQLite storage, built-in mini problems, real pass@k formula. Added BenchmarkPipeline orchestrator chaining Runner → Comparator → HierarchyPlacer → DocumentUpdater. 32 tests across 5 files.",
+        "id": "portability-fixes-canonical-paths-2026-03-14",
+        "summary": "Fixed cross-machine portability: replaced relative DB paths with canonical ~/.opencode/ paths in audit-logger and state-machine, added dir creation before audit writes, replaced hardcoded Windows path with os.homedir(), added learning-updates to CONFIG_DIRS, documented plugins architecture",
         "risk_level": "low",
-        "timestamp": "2026-03-14T19:06:00Z"
+        "timestamp": "2026-03-14T19:30:00Z"
       },
       {
-        "id": "wave8-readme-model-plugin-packages-20260308",
-        "summary": "Add README.md to four model and plugin packages that had none: opencode-model-benchmark, opencode-model-sync, opencode-plugin-lifecycle, opencode-plugin-preload-skills. Completes Wave 8C task 8 for the model/plugin tier.",
+        "id": "fix-context-management-test-isolation-2026-03-14",
+        "summary": "Fix test isolation in context-management.test.js: clean up SQLite DB files between test runs, clear persistence in reset(), fix avgCompressionRatio empty defaults from 1 to 0",
         "risk_level": "low",
-        "timestamp": "2026-03-08T00:20:00Z"
+        "timestamp": "2026-03-14T08:00:00.000Z"
       },
       {
-        "id": "unused-deps-removal-20260225",
-        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00.000Z"
+        "id": "boundary-and-schema-hardening-2026-03-14",
+        "summary": "Extended ci-boundary-enforce.mjs to scan ALL packages (not just dashboard API) for forbidden opencode-model-manager internal imports. Created shared CJS snapshot-schema.js module with validateSnapshot() and normalizeSnapshot(), refactored snapshot-store.js and model-rollback.mjs to use it, eliminating schema validation duplication.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-14T00:00:00.000Z"
       },
       {
-        "id": "frontier-control-plane-foundation-20260222",
-        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
+        "id": "multi-process-transition-safety-2026-03-14",
+        "summary": "Fixed multi-process race condition in state-machine.js _persistTransition() by adding atomic compare-and-swap verification inside BEGIN IMMEDIATE transaction. Reads current DB state after acquiring write lock, throws STALE_STATE error on mismatch. Added regression test using dual StateMachine instances with deferred() gating.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "package-smoke-entrypoints-20260310",
+        "summary": "Add test:smoke entrypoints for critical packages so workspace-level smoke orchestration can verify package surfaces consistently.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:55:00-04:00"
+      },
+      {
+        "id": "metrics-persistence-observability-20260309",
+        "summary": "Unify compression and Context7 monitoring collection, expose them in snapshots, and read persisted history so fresh processes can serve observability data.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-09T22:46:00-04:00"
+      },
+      {
+        "id": "wave10-observability-persistence",
+        "summary": "Add opt-in Langfuse tracing to opencode-logger (WARN+ levels) and SQLite daily-metrics persistence to pipeline metrics collector (bun:sqlite with better-sqlite3 fallback)",
+        "risk_level": "medium",
+        "timestamp": "2026-03-08T22:35:00Z"
+      },
+      {
+        "id": "wave11-t18-t15-budget-alerts-dashboard",
+        "summary": "Add BUDGET_THRESHOLD alert type with evaluateBudget() to AlertManager (75/80/95% thresholds). Add Context Budget dashboard widget with compression stats, Context7 stats, and color-coded budget bars to observability page.",
         "risk_level": "low",
-        "timestamp": "2026-02-22T03:55:00Z"
+        "timestamp": "2026-03-08T19:20:00Z"
+      },
+      {
+        "id": "wave11-t16-t17-compression-context7-metrics",
+        "summary": "Add distill compression tracking (recordCompression, getCompressionStats) and Context7 lookup tracking (recordContext7Lookup, getContext7Stats) to PipelineMetricsCollector with SQLite persistence tables",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:15:00Z"
+      },
+      {
+        "id": "external-call-timeouts-20260225",
+        "summary": "Add explicit timeouts to 7 external call sites that could hang indefinitely",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T17:00:00Z"
+      },
+      {
+        "id": "audit-log-cap-rotation-20260225",
+        "summary": "Cap change-event-system audit log at 10k events with 7-day TTL to prevent unbounded memory growth and write latency spikes",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "reduce-explicit-any-types-20260225",
+        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "wave-1-async-io-complete-20260225",
+        "summary": "Wave 1: Async I/O conversion for config-loader, learning-engine, and model-manager to eliminate event loop blocking",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T02:32:00.000Z"
+      },
+      {
+        "id": "command-injection-fix-20260225",
+        "summary": "Security hardening: fix command injection in pr-generator execSync calls",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "model-manager-alert-writequeue-bounds-20260225",
+        "summary": "Added maxHistorySize cap to AlertManager and maxPendingWrites backpressure to AuditLogger writeQueue",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "model-manager-bounded-arrays-20260225",
+        "summary": "Added maxEvents cap with FIFO eviction to PipelineMetricsCollector event arrays",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "model-manager-readme-20260224",
+        "summary": "Added comprehensive README for opencode-model-manager package",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T10:15:00Z"
+      },
+      {
+        "id": "docs-wave7-20260224",
+        "summary": "Added comprehensive secrets and rollback documentation",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T09:00:00Z"
+      },
+      {
+        "id": "validation-wave7-20260224",
+        "summary": "Added catalog validation pipeline with comprehensive checks",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T08:30:00Z"
+      },
+      {
+        "id": "automation-wave7-20260224",
+        "summary": "Added PR automation and CI workflow for model catalog sync",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T08:00:00Z"
+      },
+      {
+        "id": "model-manager-lifecycle-wave5-20260224",
+        "summary": "Implement Wave 5 of automated model management protocol: 5-state lifecycle state machine, tamper-evident audit logger, and risk-based auto-approval rules engine.",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T02:35:00Z"
+      },
+      {
+        "id": "model-management-wave1-20260224",
+        "summary": "Wave 1: Provider Adapter Framework - Foundation for automated model management protocol",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "model-management-wave2-20260224",
+        "summary": "Wave 2: Discovery Engine & Caching - Resilient model discovery with two-tier caching and circuit breaker protection",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "model-management-wave3-20260224",
+        "summary": "Wave 3: Snapshot Store & Diff Engine - Change detection and audit logging for automated model management",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "model-manager-assessment-wave4-20260224",
+        "summary": "Implement Wave 4 assessment infrastructure for automated model management: model assessor with real benchmark execution (HumanEval, MBPP, latency) and metrics collector for 4-pillar metrics (accuracy, latency, cost, robustness) with SQLite persistence and z-score normalization.",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
       }
     ],
     "scripts/validate-config-coherence.mjs": [
+      {
+        "id": "portability-fixes-canonical-paths-2026-03-14",
+        "summary": "Fixed cross-machine portability: replaced relative DB paths with canonical ~/.opencode/ paths in audit-logger and state-machine, added dir creation before audit writes, replaced hardcoded Windows path with os.homedir(), added learning-updates to CONFIG_DIRS, documented plugins architecture",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T19:30:00Z"
+      },
       {
         "id": "config-coherence-enriched-json-2026-03-14",
         "summary": "Config coherence script now handles enriched JSON files (e.g., opencode.json with MCP path resolution) via structural comparison of non-enriched keys instead of SHA256 hash. Added ENRICHED_JSON_FILES map, deepEqual(), and compareEnrichedJson(). Unblocks protocol-compliance-pass.mjs.",
@@ -7902,6 +8062,128 @@
         "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
         "risk_level": "low",
         "timestamp": "2026-02-22T16:45:00Z"
+      }
+    ],
+    "scripts/setup-resilient.mjs": [
+      {
+        "id": "portability-fixes-canonical-paths-2026-03-14",
+        "summary": "Fixed cross-machine portability: replaced relative DB paths with canonical ~/.opencode/ paths in audit-logger and state-machine, added dir creation before audit writes, replaced hardcoded Windows path with os.homedir(), added learning-updates to CONFIG_DIRS, documented plugins architecture",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T19:30:00Z"
+      },
+      {
+        "id": "wave8-setup-prereqs-docs-20260308",
+        "summary": "Add checkPrerequisites() function to setup-resilient.mjs that validates Node.js, uv, and WSL2 availability before setup proceeds. Extend setup-instructions.md with Docker troubleshooting section and secrets onboarding guidance.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:05:00Z"
+      },
+      {
+        "id": "wave8-setup-fixes-20260307",
+        "summary": "Setup script improvements: auto-load .env, set SHELL, fix PowerShell policy, non-strict verify; Bun version bump 1.3.9->1.3.10; remove dead import",
+        "risk_level": "low",
+        "timestamp": "2026-03-07T23:45:00Z"
+      },
+      {
+        "id": "strict-portability-setup-20260227",
+        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T22:30:00Z"
+      }
+    ],
+    "scripts/copy-config.mjs": [
+      {
+        "id": "portability-fixes-canonical-paths-2026-03-14",
+        "summary": "Fixed cross-machine portability: replaced relative DB paths with canonical ~/.opencode/ paths in audit-logger and state-machine, added dir creation before audit writes, replaced hardcoded Windows path with os.homedir(), added learning-updates to CONFIG_DIRS, documented plugins architecture",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T19:30:00Z"
+      },
+      {
+        "id": "agent-source-of-truth-hardening-2026-03-14",
+        "summary": "Hardened plugin-managed agent source-of-truth: removed last anomalous agent prompt (librarian.md), stopped wholesale agents/ directory sync in copy-config.mjs, added pruneDeprecatedRuntimeAgentPrompts() that removes only known deprecated filenames while preserving user-custom agents, updated check-agents-drift.mjs to count named agents from oh-my-opencode.json config instead of filesystem, and corrected stale documentation in README.md and agents-list.md.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-14T08:00:00.000Z"
+      },
+      {
+        "id": "config-coherence-wave-2026-03-14",
+        "summary": "Config coherence wave: added machine identity (getMachineId with persistent .machine-id.json), audit logging (appendAuditEntry writing NDJSON with 1MB rotation), version manifest tracking (writeConfigManifest in copy-config.mjs, readConfigManifest in validate-config-coherence.mjs), and cross-machine warning detection. CLI now appends audit entries on every coherence check.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "mcp-runtime-safe-copy-sync-20260313",
+        "summary": "Apply dormant MCP filtering during copy-config sync so the actual user config only exposes host-safe MCP entries while preserving user-installed skills and custom MCPs.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T04:23:00Z"
+      },
+      {
+        "id": "model-routing-and-environment-hardening-2-22-2026",
+        "summary": "Further harden model routing and environment configuration with post-mid-2025 policy alignment, resiliency improvements, and Symbiotic reference cleanup.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T17:30:00Z"
+      },
+      {
+        "id": "portability-final-edge-hardening-20260222",
+        "summary": "Close final portability edge cases by hardening container parity execution context, non-git hook install behavior, path fallback safety, and multi-path Bun global symlink detection.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T05:10:00Z"
+      },
+      {
+        "id": "productization-p0-hardening-20260222",
+        "summary": "Resolve productization P0/P1 gaps for container parity, setup copy safety, hook consistency, and Bun preflight override behavior.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T04:50:00Z"
+      },
+      {
+        "id": "integration-automation-20260218",
+        "summary": "Add automated integration verification system for packages, skills, plugins, and MCPs",
+        "risk_level": "medium",
+        "timestamp": "2026-02-18T23:00:00.000Z"
+      },
+      {
+        "id": "living-docs-governance-system-20260218",
+        "summary": "Add living-docs governance system with drift gate enforcement",
+        "risk_level": "medium",
+        "timestamp": "2026-02-18T18:00:00.000Z"
+      },
+      {
+        "id": "portable-setup-transfer-20260215",
+        "summary": "Hardened setup transfer portability by adding cross-platform config sync, path-safe script root resolution, and portable MCP manifest generation.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T18:55:00Z"
+      }
+    ],
+    "plugins/README.md": [
+      {
+        "id": "portability-fixes-canonical-paths-2026-03-14",
+        "summary": "Fixed cross-machine portability: replaced relative DB paths with canonical ~/.opencode/ paths in audit-logger and state-machine, added dir creation before audit writes, replaced hardcoded Windows path with os.homedir(), added learning-updates to CONFIG_DIRS, documented plugins architecture",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T19:30:00Z"
+      }
+    ],
+    "packages/opencode-model-benchmark": [
+      {
+        "id": "benchmark-pipeline-functional-2026-03-14",
+        "summary": "Made opencode-model-benchmark production-functional: BenchmarkRunner with pluggable model client, evaluator, SQLite storage, built-in mini problems, real pass@k formula. Added BenchmarkPipeline orchestrator chaining Runner → Comparator → HierarchyPlacer → DocumentUpdater. 32 tests across 5 files.",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T19:06:00Z"
+      },
+      {
+        "id": "wave8-readme-model-plugin-packages-20260308",
+        "summary": "Add README.md to four model and plugin packages that had none: opencode-model-benchmark, opencode-model-sync, opencode-plugin-lifecycle, opencode-plugin-preload-skills. Completes Wave 8C task 8 for the model/plugin tier.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:20:00Z"
+      },
+      {
+        "id": "unused-deps-removal-20260225",
+        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00.000Z"
+      },
+      {
+        "id": "frontier-control-plane-foundation-20260222",
+        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T03:55:00Z"
       }
     ],
     "scripts/tests": [
@@ -8408,62 +8690,6 @@
         "timestamp": "2026-03-08T23:10:00Z"
       }
     ],
-    "scripts/copy-config.mjs": [
-      {
-        "id": "agent-source-of-truth-hardening-2026-03-14",
-        "summary": "Hardened plugin-managed agent source-of-truth: removed last anomalous agent prompt (librarian.md), stopped wholesale agents/ directory sync in copy-config.mjs, added pruneDeprecatedRuntimeAgentPrompts() that removes only known deprecated filenames while preserving user-custom agents, updated check-agents-drift.mjs to count named agents from oh-my-opencode.json config instead of filesystem, and corrected stale documentation in README.md and agents-list.md.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-14T08:00:00.000Z"
-      },
-      {
-        "id": "config-coherence-wave-2026-03-14",
-        "summary": "Config coherence wave: added machine identity (getMachineId with persistent .machine-id.json), audit logging (appendAuditEntry writing NDJSON with 1MB rotation), version manifest tracking (writeConfigManifest in copy-config.mjs, readConfigManifest in validate-config-coherence.mjs), and cross-machine warning detection. CLI now appends audit entries on every coherence check.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-14T00:00:00.000Z"
-      },
-      {
-        "id": "mcp-runtime-safe-copy-sync-20260313",
-        "summary": "Apply dormant MCP filtering during copy-config sync so the actual user config only exposes host-safe MCP entries while preserving user-installed skills and custom MCPs.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T04:23:00Z"
-      },
-      {
-        "id": "model-routing-and-environment-hardening-2-22-2026",
-        "summary": "Further harden model routing and environment configuration with post-mid-2025 policy alignment, resiliency improvements, and Symbiotic reference cleanup.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T17:30:00Z"
-      },
-      {
-        "id": "portability-final-edge-hardening-20260222",
-        "summary": "Close final portability edge cases by hardening container parity execution context, non-git hook install behavior, path fallback safety, and multi-path Bun global symlink detection.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T05:10:00Z"
-      },
-      {
-        "id": "productization-p0-hardening-20260222",
-        "summary": "Resolve productization P0/P1 gaps for container parity, setup copy safety, hook consistency, and Bun preflight override behavior.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T04:50:00Z"
-      },
-      {
-        "id": "integration-automation-20260218",
-        "summary": "Add automated integration verification system for packages, skills, plugins, and MCPs",
-        "risk_level": "medium",
-        "timestamp": "2026-02-18T23:00:00.000Z"
-      },
-      {
-        "id": "living-docs-governance-system-20260218",
-        "summary": "Add living-docs governance system with drift gate enforcement",
-        "risk_level": "medium",
-        "timestamp": "2026-02-18T18:00:00.000Z"
-      },
-      {
-        "id": "portable-setup-transfer-20260215",
-        "summary": "Hardened setup transfer portability by adding cross-platform config sync, path-safe script root resolution, and portable MCP manifest generation.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T18:55:00Z"
-      }
-    ],
     "scripts/check-agents-drift.mjs": [
       {
         "id": "agent-source-of-truth-hardening-2026-03-14",
@@ -8542,152 +8768,6 @@
         "summary": "Fix test isolation in context-management.test.js: clean up SQLite DB files between test runs, clear persistence in reset(), fix avgCompressionRatio empty defaults from 1 to 0",
         "risk_level": "low",
         "timestamp": "2026-03-14T08:00:00.000Z"
-      }
-    ],
-    "packages/opencode-model-manager": [
-      {
-        "id": "fix-context-management-test-isolation-2026-03-14",
-        "summary": "Fix test isolation in context-management.test.js: clean up SQLite DB files between test runs, clear persistence in reset(), fix avgCompressionRatio empty defaults from 1 to 0",
-        "risk_level": "low",
-        "timestamp": "2026-03-14T08:00:00.000Z"
-      },
-      {
-        "id": "boundary-and-schema-hardening-2026-03-14",
-        "summary": "Extended ci-boundary-enforce.mjs to scan ALL packages (not just dashboard API) for forbidden opencode-model-manager internal imports. Created shared CJS snapshot-schema.js module with validateSnapshot() and normalizeSnapshot(), refactored snapshot-store.js and model-rollback.mjs to use it, eliminating schema validation duplication.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-14T00:00:00.000Z"
-      },
-      {
-        "id": "multi-process-transition-safety-2026-03-14",
-        "summary": "Fixed multi-process race condition in state-machine.js _persistTransition() by adding atomic compare-and-swap verification inside BEGIN IMMEDIATE transaction. Reads current DB state after acquiring write lock, throws STALE_STATE error on mismatch. Added regression test using dual StateMachine instances with deferred() gating.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-14T00:00:00.000Z"
-      },
-      {
-        "id": "package-smoke-entrypoints-20260310",
-        "summary": "Add test:smoke entrypoints for critical packages so workspace-level smoke orchestration can verify package surfaces consistently.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:55:00-04:00"
-      },
-      {
-        "id": "metrics-persistence-observability-20260309",
-        "summary": "Unify compression and Context7 monitoring collection, expose them in snapshots, and read persisted history so fresh processes can serve observability data.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-09T22:46:00-04:00"
-      },
-      {
-        "id": "wave10-observability-persistence",
-        "summary": "Add opt-in Langfuse tracing to opencode-logger (WARN+ levels) and SQLite daily-metrics persistence to pipeline metrics collector (bun:sqlite with better-sqlite3 fallback)",
-        "risk_level": "medium",
-        "timestamp": "2026-03-08T22:35:00Z"
-      },
-      {
-        "id": "wave11-t18-t15-budget-alerts-dashboard",
-        "summary": "Add BUDGET_THRESHOLD alert type with evaluateBudget() to AlertManager (75/80/95% thresholds). Add Context Budget dashboard widget with compression stats, Context7 stats, and color-coded budget bars to observability page.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:20:00Z"
-      },
-      {
-        "id": "wave11-t16-t17-compression-context7-metrics",
-        "summary": "Add distill compression tracking (recordCompression, getCompressionStats) and Context7 lookup tracking (recordContext7Lookup, getContext7Stats) to PipelineMetricsCollector with SQLite persistence tables",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:15:00Z"
-      },
-      {
-        "id": "external-call-timeouts-20260225",
-        "summary": "Add explicit timeouts to 7 external call sites that could hang indefinitely",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T17:00:00Z"
-      },
-      {
-        "id": "audit-log-cap-rotation-20260225",
-        "summary": "Cap change-event-system audit log at 10k events with 7-day TTL to prevent unbounded memory growth and write latency spikes",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "reduce-explicit-any-types-20260225",
-        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "wave-1-async-io-complete-20260225",
-        "summary": "Wave 1: Async I/O conversion for config-loader, learning-engine, and model-manager to eliminate event loop blocking",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T02:32:00.000Z"
-      },
-      {
-        "id": "command-injection-fix-20260225",
-        "summary": "Security hardening: fix command injection in pr-generator execSync calls",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "model-manager-alert-writequeue-bounds-20260225",
-        "summary": "Added maxHistorySize cap to AlertManager and maxPendingWrites backpressure to AuditLogger writeQueue",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "model-manager-bounded-arrays-20260225",
-        "summary": "Added maxEvents cap with FIFO eviction to PipelineMetricsCollector event arrays",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "model-manager-readme-20260224",
-        "summary": "Added comprehensive README for opencode-model-manager package",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T10:15:00Z"
-      },
-      {
-        "id": "docs-wave7-20260224",
-        "summary": "Added comprehensive secrets and rollback documentation",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T09:00:00Z"
-      },
-      {
-        "id": "validation-wave7-20260224",
-        "summary": "Added catalog validation pipeline with comprehensive checks",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T08:30:00Z"
-      },
-      {
-        "id": "automation-wave7-20260224",
-        "summary": "Added PR automation and CI workflow for model catalog sync",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T08:00:00Z"
-      },
-      {
-        "id": "model-manager-lifecycle-wave5-20260224",
-        "summary": "Implement Wave 5 of automated model management protocol: 5-state lifecycle state machine, tamper-evident audit logger, and risk-based auto-approval rules engine.",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T02:35:00Z"
-      },
-      {
-        "id": "model-management-wave1-20260224",
-        "summary": "Wave 1: Provider Adapter Framework - Foundation for automated model management protocol",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "model-management-wave2-20260224",
-        "summary": "Wave 2: Discovery Engine & Caching - Resilient model discovery with two-tier caching and circuit breaker protection",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "model-management-wave3-20260224",
-        "summary": "Wave 3: Snapshot Store & Diff Engine - Change detection and audit logging for automated model management",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "model-manager-assessment-wave4-20260224",
-        "summary": "Implement Wave 4 assessment infrastructure for automated model management: model assessor with real benchmark execution (HumanEval, MBPP, latency) and metrics collector for 4-pillar metrics (accuracy, latency, cost, robustness) with SQLite persistence and z-score normalization.",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
       }
     ],
     "scripts/ci-boundary-enforce.mjs": [
@@ -12158,26 +12238,6 @@
         "summary": "Remove 5 deprecated functions across 3 packages to improve code maintainability",
         "risk_level": "low",
         "timestamp": "2026-02-25T00:00:00Z"
-      }
-    ],
-    "scripts/setup-resilient.mjs": [
-      {
-        "id": "wave8-setup-prereqs-docs-20260308",
-        "summary": "Add checkPrerequisites() function to setup-resilient.mjs that validates Node.js, uv, and WSL2 availability before setup proceeds. Extend setup-instructions.md with Docker troubleshooting section and secrets onboarding guidance.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:05:00Z"
-      },
-      {
-        "id": "wave8-setup-fixes-20260307",
-        "summary": "Setup script improvements: auto-load .env, set SHELL, fix PowerShell policy, non-strict verify; Bun version bump 1.3.9->1.3.10; remove dead import",
-        "risk_level": "low",
-        "timestamp": "2026-03-07T23:45:00Z"
-      },
-      {
-        "id": "strict-portability-setup-20260227",
-        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T22:30:00Z"
       }
     ],
     "packages/opencode-crash-guard": [

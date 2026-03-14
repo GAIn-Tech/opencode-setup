@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { createHash, randomUUID } from 'node:crypto';
-import { appendFileSync, existsSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -62,6 +62,7 @@ export function appendAuditEntry(result, action = 'coherence-check', options = {
     repoConfigDir: result.repoConfigDir,
     runtimeConfigDir: result.runtimeConfigDir,
   };
+  mkdirSync(path.dirname(auditPath), { recursive: true });
   appendFileSync(auditPath, `${JSON.stringify(entry)}\n`, 'utf8');
 }
 

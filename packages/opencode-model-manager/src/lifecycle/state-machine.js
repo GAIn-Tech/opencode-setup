@@ -3,7 +3,11 @@
 const fs = require('fs');
 const path = require('path');
 
-const DEFAULT_DB_PATH = './lifecycle.db';
+const DEFAULT_DB_PATH = require('path').join(
+  process.env.HOME || process.env.USERPROFILE || require('os').homedir(),
+  '.opencode',
+  'lifecycle.db'
+);
 
 const LIFECYCLE_STATES = Object.freeze({
   DETECTED: 'detected',

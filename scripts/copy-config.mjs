@@ -28,6 +28,7 @@ const CONFIG_FILES = [
 const CONFIG_DIRS = [
   'commands',
   'docs',
+  'learning-updates',
   'models',
   'supermemory',
   // NOTE: 'skills' is intentionally excluded — handled below with MERGE logic
@@ -129,7 +130,7 @@ function stageOperations(stagingRoot) {
     operations.push({ label: fileName, stagedPath, targetPath });
   }
 
-  for (const dirName of [...CONFIG_DIRS, 'learning-updates']) {
+  for (const dirName of CONFIG_DIRS) {
     const sourcePath = path.join(SOURCE_CONFIG_DIR, dirName);
     const targetPath = path.join(TARGET_CONFIG_DIR, dirName);
     if (!existsSync(sourcePath)) {

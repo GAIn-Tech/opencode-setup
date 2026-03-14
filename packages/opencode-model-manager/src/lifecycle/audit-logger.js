@@ -5,7 +5,11 @@ const fs = require('fs');
 const path = require('path');
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const DEFAULT_DB_PATH = './audit.db';
+const DEFAULT_DB_PATH = require('path').join(
+  process.env.HOME || process.env.USERPROFILE || require('os').homedir(),
+  '.opencode',
+  'audit.db'
+);
 const DEFAULT_RETENTION_DAYS = 365;
 const GENESIS_PREVIOUS_HASH = '0';
 
