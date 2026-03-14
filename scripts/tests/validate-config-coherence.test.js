@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test } from 'bun:test';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { validateConfigCoherence } from '../validate-config-coherence.mjs';
+import { appendAuditEntry, getMachineId, readConfigManifest, validateConfigCoherence } from '../validate-config-coherence.mjs';
 
 const tempDirs = [];
 
@@ -139,5 +139,57 @@ describe('validate-config-coherence', () => {
     const result = runValidation(repoConfigDir, runtimeConfigDir);
     expect(result.ok).toBe(true);
     expect(result.drift).toHaveLength(0);
+  });
+
+  test('getMachineId generates and persists machine identity', () => {
+    const { runtimeConfigDir } = setupDirs();
+    const machineIdPath = path.join(runtimeConfigDir, '.machine-id.json');
+
+    const first = getMachineId({ machineIdPath });
+    expect(typeof first.id).toBe('string');
+    expect(first.id.length).toBeGreaterThan(0);
+    expect(typeof first.hostname).toBe('string');
+    expect(first.hostname.length).toBeGreaterThan(0);
+    expect(typeof first.platform).toBe('string');
+    expect(first.platform.length).toBeGreaterThan(0);
+    expect(typeof first.arch).toBe('string');
+    expect(first.arch.length).toBeGreaterThan(0);
+    expect(typeof first.created).toBe('string');
+    expect(existsSync(machineIdPath)).toBe(true);
+
+    const second = getMachineId({ machineIdPath });
+    expect(second.id).toBe(first.id);
+  });
+
+  test('appendAuditEntry writes NDJSON entries', () => {
+    const { runtimeConfigDir } = setupDirs();
+    const auditPath = path.join(runtimeConfigDir, 'config-audit.ndjson');
+    const result = {
+      ok: true,
+      drift: [],
+      repoConfigDir: '/tmp/repo',
+      runtimeConfigDir: '/tmp/runtime',
+    };
+
+    appendAuditEntry(result, 'test-action', { auditPath, configDir: runtimeConfigDir });
+
+    const lines = readFileSync(auditPath, 'utf8').trim().split('\n');
+    expect(lines.length).toBe(1);
+
+    const entry = JSON.parse(lines[0]);
+    expect(entry.action).toBe('test-action');
+    expect(entry.ok).toBe(true);
+    expect(entry.driftCount).toBe(0);
+    expect(entry.repoConfigDir).toBe('/tmp/repo');
+    expect(entry.runtimeConfigDir).toBe('/tmp/runtime');
+    expect(typeof entry.machineId).toBe('string');
+    expect(entry.machineId.length).toBeGreaterThan(0);
+    expect(Array.isArray(entry.drift)).toBe(true);
+  });
+
+  test('readConfigManifest returns null when no manifest exists', () => {
+    const { runtimeConfigDir } = setupDirs();
+    const manifestPath = path.join(runtimeConfigDir, 'config-manifest.json');
+    expect(readConfigManifest({ manifestPath })).toBeNull();
   });
 });

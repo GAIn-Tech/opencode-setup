@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, renameSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { createHash } from 'node:crypto';
+import { hostname, tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolvePath, userConfigDir, userDataDir } from './resolve-root.mjs';
@@ -187,6 +188,36 @@ function rollbackOperations(operations) {
   }
 }
 
+export function writeConfigManifest(runtimeConfigDir, configFiles) {
+  const manifestPath = path.join(runtimeConfigDir, 'config-manifest.json');
+  let existingManifest = null;
+
+  if (existsSync(manifestPath)) {
+    try {
+      existingManifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+    } catch {
+      existingManifest = null;
+    }
+  }
+
+  const files = {};
+  for (const fileName of configFiles) {
+    const filePath = path.join(runtimeConfigDir, fileName);
+    if (!existsSync(filePath)) continue;
+    const digest = createHash('sha256').update(readFileSync(filePath)).digest('hex');
+    files[fileName] = digest;
+  }
+
+  const manifest = {
+    version: ((existingManifest && existingManifest.version) || 0) + 1,
+    lastSync: new Date().toISOString(),
+    machineId: hostname(),
+    files,
+  };
+
+  writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+}
+
 function main() {
   ensureDir(TARGET_CONFIG_DIR);
   ensureDir(TARGET_DATA_DIR);
@@ -237,6 +268,7 @@ function main() {
   }
 
   syncRuntimeSafeUserConfig();
+  writeConfigManifest(TARGET_CONFIG_DIR, CONFIG_FILES);
   console.log('[copy-config] Configuration sync complete');
 }
 

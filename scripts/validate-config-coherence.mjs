@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
-import { createHash } from 'node:crypto';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { createHash, randomUUID } from 'node:crypto';
+import { appendFileSync, existsSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolvePath, userConfigDir } from './resolve-root.mjs';
@@ -17,6 +18,60 @@ const FALLBACK_MERGE_DIRS = ['skills'];
 const ENRICHED_JSON_FILES = {
   'opencode.json': { ignoreKeys: new Set(['mcp', 'mcpServers']) },
 };
+
+const UNKNOWN_MACHINE = { id: 'unknown', hostname: 'unknown', platform: 'unknown', arch: 'unknown', created: null };
+
+export function getMachineId(options = {}) {
+  const machineIdPath = options.machineIdPath || path.join(options.configDir || userConfigDir(), '.machine-id.json');
+  try {
+    if (existsSync(machineIdPath)) {
+      return JSON.parse(readFileSync(machineIdPath, 'utf8'));
+    }
+    const identity = {
+      id: randomUUID(),
+      hostname: os.hostname(),
+      platform: os.platform(),
+      arch: os.arch(),
+      created: new Date().toISOString(),
+    };
+    writeFileSync(machineIdPath, `${JSON.stringify(identity, null, 2)}\n`, 'utf8');
+    return identity;
+  } catch {
+    return { ...UNKNOWN_MACHINE };
+  }
+}
+
+export function appendAuditEntry(result, action = 'coherence-check', options = {}) {
+  const auditPath = options.auditPath || path.join(options.configDir || userConfigDir(), 'config-audit.ndjson');
+  const rotatedPath = `${auditPath}.1`;
+  const rotateBytes = 1048576;
+
+  if (existsSync(auditPath) && statSync(auditPath).size > rotateBytes) {
+    rmSync(rotatedPath, { force: true });
+    renameSync(auditPath, rotatedPath);
+  }
+
+  const machineId = getMachineId(options).id;
+  const entry = {
+    timestamp: new Date().toISOString(),
+    action,
+    ok: result.ok,
+    machineId,
+    driftCount: result.drift.length,
+    drift: result.drift,
+    repoConfigDir: result.repoConfigDir,
+    runtimeConfigDir: result.runtimeConfigDir,
+  };
+  appendFileSync(auditPath, `${JSON.stringify(entry)}\n`, 'utf8');
+}
+
+export function readConfigManifest(options = {}) {
+  const manifestPath = options.manifestPath || path.join(options.configDir || userConfigDir(), 'config-manifest.json');
+  if (!existsSync(manifestPath)) {
+    return null;
+  }
+  return JSON.parse(readFileSync(manifestPath, 'utf8'));
+}
 
 function choose(value, fallback) {
   return Array.isArray(value) ? value : fallback;
@@ -207,6 +262,18 @@ export function validateConfigCoherence(options = {}) {
   compareTrackedDirs(result, repoConfigDir, runtimeConfigDir, configDirs);
   compareMergeDirs(result, repoConfigDir, runtimeConfigDir, mergeDirs);
   result.ok = result.drift.length === 0;
+
+  const manifest = readConfigManifest({ configDir: runtimeConfigDir });
+  const currentMachine = getMachineId({ configDir: runtimeConfigDir });
+  if (manifest && manifest.machineId && manifest.machineId !== currentMachine.hostname) {
+    addDrift(
+      result,
+      'cross-machine-warning',
+      'config-manifest.json',
+      `Config was last synced on machine: ${manifest.machineId}, current: ${currentMachine.hostname}`
+    );
+  }
+
   return result;
 }
 
@@ -215,6 +282,12 @@ function runCli() {
   const quiet = args.includes('--quiet');
   const json = args.includes('--json');
   const result = validateConfigCoherence();
+
+  try {
+    appendAuditEntry(result);
+  } catch {
+    // Best-effort audit logging.
+  }
 
   if (!quiet) {
     if (json) {

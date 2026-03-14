@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-03-14T20:16:11.789Z",
+  "generated_at": "2026-03-14T20:21:21.358Z",
   "schema_version": 1,
-  "total_records": 325,
+  "total_records": 326,
   "source_files": {
-    "learning_updates": 325,
+    "learning_updates": 326,
     "agents_md": 7
   },
   "by_category": {
@@ -75,6 +75,17 @@
         "risk_level": "low",
         "affected_paths": [
           "scripts/validate-config-coherence.mjs",
+          "scripts/tests/validate-config-coherence.test.js"
+        ],
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "config-coherence-wave-2026-03-14",
+        "summary": "Config coherence wave: added machine identity (getMachineId with persistent .machine-id.json), audit logging (appendAuditEntry writing NDJSON with 1MB rotation), version manifest tracking (writeConfigManifest in copy-config.mjs, readConfigManifest in validate-config-coherence.mjs), and cross-machine warning detection. CLI now appends audit entries on every coherence check.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "scripts/validate-config-coherence.mjs",
+          "scripts/copy-config.mjs",
           "scripts/tests/validate-config-coherence.test.js"
         ],
         "timestamp": "2026-03-14T00:00:00.000Z"
@@ -6984,6 +6995,17 @@
         "timestamp": "2026-03-14T00:00:00.000Z"
       },
       {
+        "id": "config-coherence-wave-2026-03-14",
+        "summary": "Config coherence wave: added machine identity (getMachineId with persistent .machine-id.json), audit logging (appendAuditEntry writing NDJSON with 1MB rotation), version manifest tracking (writeConfigManifest in copy-config.mjs, readConfigManifest in validate-config-coherence.mjs), and cross-machine warning detection. CLI now appends audit entries on every coherence check.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "scripts/validate-config-coherence.mjs",
+          "scripts/copy-config.mjs",
+          "scripts/tests/validate-config-coherence.test.js"
+        ],
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
         "id": "dashboard-auth-hardening-2026-03-14",
         "summary": "Gate all 10 POST endpoints with requireWriteAccess and specific permissions. Add 4 new permissions (skills:promote, usage:write, providers:manage, orchestration:write) to admin+operator ROLE_MATRIX. Fix skills/promotions missing permission arg. Add regression test scanning all route.ts POST exports for universal auth coverage.",
         "risk_level": "medium",
@@ -7804,6 +7826,12 @@
         "timestamp": "2026-03-14T00:00:00.000Z"
       },
       {
+        "id": "config-coherence-wave-2026-03-14",
+        "summary": "Config coherence wave: added machine identity (getMachineId with persistent .machine-id.json), audit logging (appendAuditEntry writing NDJSON with 1MB rotation), version manifest tracking (writeConfigManifest in copy-config.mjs, readConfigManifest in validate-config-coherence.mjs), and cross-machine warning detection. CLI now appends audit entries on every coherence check.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
         "id": "model-routing-and-environment-hardening-2-22-2026",
         "summary": "Further harden model routing and environment configuration with post-mid-2025 policy alignment, resiliency improvements, and Symbiotic reference cleanup.",
         "risk_level": "low",
@@ -7845,6 +7873,12 @@
         "id": "config-coherence-drift-detection-2026-03-14",
         "summary": "Rewrote validate-config-coherence.mjs from model-reference validation into SHA256-based config drift detection. Compares repo opencode-config/ against runtime ~/.config/opencode/ for CONFIG_FILES, CONFIG_DIRS, and MERGE_DIRS. Exports validateConfigCoherence() for programmatic use. Supports --json and --quiet CLI flags. MERGE_DIRS only check repo entries exist in runtime (user-custom entries preserved). Unblocks protocol-compliance-pass.mjs line 69 which calls bun run config:coherence.",
         "risk_level": "low",
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "config-coherence-wave-2026-03-14",
+        "summary": "Config coherence wave: added machine identity (getMachineId with persistent .machine-id.json), audit logging (appendAuditEntry writing NDJSON with 1MB rotation), version manifest tracking (writeConfigManifest in copy-config.mjs, readConfigManifest in validate-config-coherence.mjs), and cross-machine warning detection. CLI now appends audit entries on every coherence check.",
+        "risk_level": "medium",
         "timestamp": "2026-03-14T00:00:00.000Z"
       },
       {
@@ -8320,6 +8354,12 @@
         "summary": "Hardened plugin-managed agent source-of-truth: removed last anomalous agent prompt (librarian.md), stopped wholesale agents/ directory sync in copy-config.mjs, added pruneDeprecatedRuntimeAgentPrompts() that removes only known deprecated filenames while preserving user-custom agents, updated check-agents-drift.mjs to count named agents from oh-my-opencode.json config instead of filesystem, and corrected stale documentation in README.md and agents-list.md.",
         "risk_level": "medium",
         "timestamp": "2026-03-14T08:00:00.000Z"
+      },
+      {
+        "id": "config-coherence-wave-2026-03-14",
+        "summary": "Config coherence wave: added machine identity (getMachineId with persistent .machine-id.json), audit logging (appendAuditEntry writing NDJSON with 1MB rotation), version manifest tracking (writeConfigManifest in copy-config.mjs, readConfigManifest in validate-config-coherence.mjs), and cross-machine warning detection. CLI now appends audit entries on every coherence check.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-14T00:00:00.000Z"
       },
       {
         "id": "mcp-runtime-safe-copy-sync-20260313",
