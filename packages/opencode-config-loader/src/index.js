@@ -87,6 +87,13 @@ class ConfigLoader {
         opencodeDir: resolveDataDir(),
         logsDir: resolveDataDir(),
         databaseDir: resolveDataDir()
+      },
+      exploration: {
+        active: true,
+        mode: 'balanced',
+        budget: 20,
+        tokenBudgetRatio: 0.1,
+        minTokens: 500
       }
     };
   }

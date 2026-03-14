@@ -221,12 +221,21 @@ function bootstrap(options = {}) {
       const configLoader = ConfigLoaderClass ? new ConfigLoaderClass() : null;
       const featureFlags = createFeatureFlags ? createFeatureFlags() : null;
       const learningEngine = LearningEngineClass ? new LearningEngineClass() : null;
+      // Wire exploration config from ConfigLoader → ModelRouter
+      const explorationConfig = configLoader ? {
+        active: configLoader.get('exploration.active', false),
+        mode: configLoader.get('exploration.mode', 'balanced'),
+        budget: configLoader.get('exploration.budget', 20),
+        tokenBudgetRatio: configLoader.get('exploration.tokenBudgetRatio', 0.1),
+        minTokens: configLoader.get('exploration.minTokens', 500),
+      } : undefined;
       config.modelRouter = new ModelRouter({
         skillRLManager: config.skillRLManager || null,
         fallbackDoctor: config.fallbackDoctor || null,
         configLoader,
         featureFlags,
         learningEngine,
+        exploration: explorationConfig,
         logger: bootstrapLogger,
         validator: ValidatorModule || null,
         openCodeErrors: ErrorTaxonomy || null,

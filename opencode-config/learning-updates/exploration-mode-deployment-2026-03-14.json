@@ -1,0 +1,16 @@
+{
+  "id": "exploration-mode-deployment-2026-03-14",
+  "timestamp": "2026-03-14T00:00:00.000Z",
+  "summary": "Deployed exploration mode (adaptive routing Phases 1-4) by wiring ConfigLoader defaults through bootstrap.js to ModelRouter constructor. Added exploration section to central-config.json with RL-tunable params (budget, token_budget_ratio, min_tokens). Exploration mode now activates via config (active:true default), CLI flags, or env vars.",
+  "affected_paths": [
+    "packages/opencode-config-loader/src/index.js",
+    "packages/opencode-integration-layer/src/bootstrap.js",
+    "opencode-config/central-config.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}
