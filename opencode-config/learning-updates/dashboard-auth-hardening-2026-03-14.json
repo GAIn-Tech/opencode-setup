@@ -1,0 +1,21 @@
+{
+  "id": "dashboard-auth-hardening-2026-03-14",
+  "timestamp": "2026-03-14T00:00:00.000Z",
+  "summary": "Gate all 10 POST endpoints with requireWriteAccess and specific permissions. Add 4 new permissions (skills:promote, usage:write, providers:manage, orchestration:write) to admin+operator ROLE_MATRIX. Fix skills/promotions missing permission arg. Add regression test scanning all route.ts POST exports for universal auth coverage.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/_lib/write-access.ts",
+    "packages/opencode-dashboard/src/app/api/skills/promotions/route.ts",
+    "packages/opencode-dashboard/src/app/api/status/usage/route.ts",
+    "packages/opencode-dashboard/src/app/api/providers/route.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/route.ts",
+    "integration-tests/dashboard-write-guard.test.ts",
+    "integration-tests/orchestration-atomic-write.test.js",
+    "docs/model-management/HARDENING-BACKLOG.md"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

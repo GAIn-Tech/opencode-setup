@@ -18,27 +18,29 @@ Last updated: 2026-02-24
 
 ## Active Concerns (Keep On List)
 
-1. **Dashboard↔Model Manager boundary refinement**
-   - Current state now uses package imports (`opencode-model-manager/lifecycle`, `opencode-model-manager/monitoring`).
-   - Next: enforce stricter public API contracts and forbid raw internal subpath imports in lint/governance.
+1. ~~**Dashboard↔Model Manager boundary refinement**~~ **RESOLVED**
+   - `scripts/ci-boundary-enforce.mjs` extended to scan all packages (not just dashboard).
+   - Forbids `opencode-model-manager/(src|lib)/` direct imports across entire repo.
 
-2. **Mutable dashboard APIs require operational hardening**
-   - Auth gate and append-only write audit now exist.
-   - Next: role-scoped authorization policy and actor identity verification.
+2. ~~**Mutable dashboard APIs require operational hardening**~~ **RESOLVED**
+   - All 10 POST endpoints now guarded by `requireWriteAccess` with specific permissions.
+   - 4 new permissions added: `skills:promote`, `usage:write`, `providers:manage`, `orchestration:write`.
+   - Regression test in `integration-tests/dashboard-write-guard.test.ts` scans all `route.ts` files to ensure every POST export calls `requireWriteAccess` with a permission string.
 
-3. **Rollback safety pre-validation**
-   - Snapshot schema pre-validation now blocks invalid restore candidates.
-   - Next: formal schema object + reusable validator shared with snapshot writer.
+3. ~~**Rollback safety pre-validation**~~ **RESOLVED**
+   - Shared `packages/opencode-model-manager/src/snapshot/snapshot-schema.js` with `validateSnapshot()` and `normalizeSnapshot()`.
+   - Both `model-rollback.mjs` and `snapshot-store.js` consume the shared module.
 
-4. **Multi-process transition safety**
-   - Upgrade lifecycle transition persistence from process-local lock guarantees to DB-level atomic guards.
+4. ~~**Multi-process transition safety**~~ **RESOLVED**
+   - Atomic compare-and-swap added to `_persistTransition()` in `state-machine.js`.
+   - State verification now happens inside `BEGIN IMMEDIATE` transaction; throws `STALE_STATE` on mismatch.
 
-5. **Build/runtime warning cleanup**
-   - Dynamic require expression warning eliminated in lifecycle loaders.
-   - Next: keep module warnings as CI budget (fail on new critical-dependency warnings).
+5. ~~**Build/runtime warning cleanup**~~ **RESOLVED**
+   - `opencode-config/warning-baseline.json` + `scripts/ci-warning-budget.mjs` enforce warning budget.
+   - Integrated into `bun run governance:check`.
 
-6. **Repo-wide test health still blocked by unrelated regressions**
-   - Keep full-suite green as ship gate.
+6. ~~**Repo-wide test health still blocked by unrelated regressions**~~ **RESOLVED**
+   - `context-management.test.js` test isolation fixed (SQLite persistence cleanup in `beforeEach`).
 
 ## Regression-Loss Protocol (Verifiable Workflow)
 

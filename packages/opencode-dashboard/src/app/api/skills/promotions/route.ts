@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     return rateLimited();
   }
 
-  const accessError = requireWriteAccess(request);
+  const accessError = requireWriteAccess(request, 'skills:promote');
   if (accessError) {
     return accessError;
   }
