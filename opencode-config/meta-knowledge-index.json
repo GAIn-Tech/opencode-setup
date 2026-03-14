@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-14T08:43:04.756Z",
+  "generated_at": "2026-03-14T08:43:34.778Z",
   "schema_version": 1,
   "total_records": 320,
   "source_files": {
@@ -62,7 +62,7 @@
       {
         "id": "multi-process-transition-safety-2026-03-14",
         "summary": "Fixed multi-process race condition in state-machine.js _persistTransition() by adding atomic compare-and-swap verification inside BEGIN IMMEDIATE transaction. Reads current DB state after acquiring write lock, throws STALE_STATE error on mismatch. Added regression test using dual StateMachine instances with deferred() gating.",
-        "risk_level": "high",
+        "risk_level": "medium",
         "affected_paths": [
           "packages/opencode-model-manager/src/lifecycle/state-machine.js",
           "packages/opencode-model-manager/test/lifecycle/state-machine.test.ts"
@@ -6895,6 +6895,16 @@
         "timestamp": "2026-03-14T00:00:00.000Z"
       },
       {
+        "id": "multi-process-transition-safety-2026-03-14",
+        "summary": "Fixed multi-process race condition in state-machine.js _persistTransition() by adding atomic compare-and-swap verification inside BEGIN IMMEDIATE transaction. Reads current DB state after acquiring write lock, throws STALE_STATE error on mismatch. Added regression test using dual StateMachine instances with deferred() gating.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-model-manager/src/lifecycle/state-machine.js",
+          "packages/opencode-model-manager/test/lifecycle/state-machine.test.ts"
+        ],
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
         "id": "context-governor-mcp-wrapper-20260313",
         "summary": "Add a real stdio MCP wrapper for opencode-context-governor using the MCP SDK and cover its tool handlers with package-level tests.",
         "risk_level": "medium",
@@ -7661,18 +7671,7 @@
         "timestamp": "2026-02-15T22:00:00Z"
       }
     ],
-    "high": [
-      {
-        "id": "multi-process-transition-safety-2026-03-14",
-        "summary": "Fixed multi-process race condition in state-machine.js _persistTransition() by adding atomic compare-and-swap verification inside BEGIN IMMEDIATE transaction. Reads current DB state after acquiring write lock, throws STALE_STATE error on mismatch. Added regression test using dual StateMachine instances with deferred() gating.",
-        "risk_level": "high",
-        "affected_paths": [
-          "packages/opencode-model-manager/src/lifecycle/state-machine.js",
-          "packages/opencode-model-manager/test/lifecycle/state-machine.test.ts"
-        ],
-        "timestamp": "2026-03-14T00:00:00.000Z"
-      }
-    ]
+    "high": []
   },
   "by_affected_path": {
     "mcp-servers/opencode-mcp-config.json": [
@@ -8307,7 +8306,7 @@
       {
         "id": "multi-process-transition-safety-2026-03-14",
         "summary": "Fixed multi-process race condition in state-machine.js _persistTransition() by adding atomic compare-and-swap verification inside BEGIN IMMEDIATE transaction. Reads current DB state after acquiring write lock, throws STALE_STATE error on mismatch. Added regression test using dual StateMachine instances with deferred() gating.",
-        "risk_level": "high",
+        "risk_level": "medium",
         "timestamp": "2026-03-14T00:00:00.000Z"
       },
       {

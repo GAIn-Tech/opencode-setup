@@ -437,6 +437,21 @@ class StateMachine {
       this.db.exec('BEGIN IMMEDIATE');
       transactionOpen = true;
 
+      // Verify state hasn't changed since we read it
+      const currentRow = this.db.get(
+        'SELECT current_state FROM model_lifecycle_states WHERE model_id = ?',
+        [payload.modelId]
+      );
+      const currentDbState = currentRow ? currentRow.current_state : null;
+      if (currentDbState !== null && currentDbState !== payload.fromState) {
+        this.db.run('ROLLBACK');
+        transactionOpen = false;
+        throw createStateError(
+          'STALE_STATE',
+          `Transition conflict for model ${payload.modelId}: expected state "${payload.fromState}" but database has "${currentDbState}" (concurrent modification detected)`
+        );
+      }
+
       this.db.run(
         `
         INSERT INTO model_lifecycle_states (
