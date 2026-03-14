@@ -375,7 +375,7 @@ async function main() {
     return;
   }
 
-  const governedChanges = changedFiles.filter((file) => matchPath(file, policy.governed_paths));
+  const governedChanges = changedFiles.filter((file) => isGovernedConfigFile(file, policy));
   if (governedChanges.length === 0) {
     console.log('learning-gate: no governed changes detected');
     return;
