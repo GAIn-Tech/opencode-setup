@@ -1,12 +1,526 @@
 {
-  "generated_at": "2026-03-16T18:32:51.416Z",
+  "generated_at": "2026-03-16T18:37:20.692Z",
   "schema_version": 1,
-  "total_records": 330,
+  "total_records": 331,
   "source_files": {
-    "learning_updates": 330,
+    "learning_updates": 331,
     "agents_md": 7
   },
   "by_category": {
+    "testing": [
+      {
+        "id": "codebase-memory-indexer-2026-03-16",
+        "summary": "Implemented Indexer class for opencode-codebase-memory with incremental change detection via SHA256 content hashing. Walks directory trees, skips IGNORE_DIRS (node_modules, .git, dist, etc.), indexes supported JS/TS files via parser, stores nodes/edges/files in GraphStore. Re-indexing unchanged files is skipped. 5 tests covering directory indexing, incremental skip, modified file re-index, IGNORE_DIRS filtering, and getStats.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-codebase-memory/src/indexer.js",
+          "packages/opencode-codebase-memory/test/indexer.test.js"
+        ],
+        "timestamp": "2026-03-16T18:00:00Z"
+      },
+      {
+        "id": "config-coherence-enriched-json-2026-03-14",
+        "summary": "Config coherence script now handles enriched JSON files (e.g., opencode.json with MCP path resolution) via structural comparison of non-enriched keys instead of SHA256 hash. Added ENRICHED_JSON_FILES map, deepEqual(), and compareEnrichedJson(). Unblocks protocol-compliance-pass.mjs.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/validate-config-coherence.mjs",
+          "scripts/tests/validate-config-coherence.test.js"
+        ],
+        "timestamp": "2026-03-14T18:45:00Z"
+      },
+      {
+        "id": "mcp-boundary-reconciliation-2026-03-14",
+        "summary": "Reconciled MCP boundary docs and config with active runtime policy: aligned opencode-mcp-config.json dormant entries with mcp-dormant-policy.json, rewrote server-list.md to remove stale tavily/github entries and add 3 active internal wrappers plus dormant section, updated setup-instructions.md to reflect active internal MCP wrappers, added canonical source-of-truth note to cli-mcp-surface-policy.md, and extended mcp-inventory-regression tests to assert dormant/active alignment across config files.",
+        "risk_level": "low",
+        "affected_paths": [
+          "mcp-servers/opencode-mcp-config.json",
+          "mcp-servers/server-list.md",
+          "setup-instructions.md",
+          "docs/architecture/cli-mcp-surface-policy.md",
+          "scripts/tests/mcp-inventory-regression.test.js"
+        ],
+        "timestamp": "2026-03-14T08:30:00.000Z"
+      },
+      {
+        "id": "config-coherence-wave-2026-03-14",
+        "summary": "Config coherence wave: added machine identity (getMachineId with persistent .machine-id.json), audit logging (appendAuditEntry writing NDJSON with 1MB rotation), version manifest tracking (writeConfigManifest in copy-config.mjs, readConfigManifest in validate-config-coherence.mjs), and cross-machine warning detection. CLI now appends audit entries on every coherence check.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "scripts/validate-config-coherence.mjs",
+          "scripts/copy-config.mjs",
+          "scripts/tests/validate-config-coherence.test.js"
+        ],
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "multi-process-transition-safety-2026-03-14",
+        "summary": "Fixed multi-process race condition in state-machine.js _persistTransition() by adding atomic compare-and-swap verification inside BEGIN IMMEDIATE transaction. Reads current DB state after acquiring write lock, throws STALE_STATE error on mismatch. Added regression test using dual StateMachine instances with deferred() gating.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-model-manager/src/lifecycle/state-machine.js",
+          "packages/opencode-model-manager/test/lifecycle/state-machine.test.ts"
+        ],
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "remove-anomalous-agents-2026-03-14",
+        "summary": "Remove 7 anomalous agent .md files from opencode-config/agents/ that were erroneously created during Wave 8-10 skill activation. These files caused phantom agent options (thinker, playwright-browser, memory-keeper, code-searcher, codebase-auditor, distill-compressor, researcher) to appear in the opencode interface. Agent definitions are managed by oh-my-opencode plugin, not on-disk markdown. Updated 2 test files that asserted agent file existence.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/agents/code-searcher.md",
+          "opencode-config/agents/codebase-auditor.md",
+          "opencode-config/agents/distill-compressor.md",
+          "opencode-config/agents/memory-keeper.md",
+          "opencode-config/agents/playwright-browser.md",
+          "opencode-config/agents/researcher.md",
+          "opencode-config/agents/thinker.md",
+          "scripts/tests/mcp-audit-classification.test.js",
+          "scripts/tests/skill-surface-regression.test.js"
+        ],
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "uncapped-concurrency-2026-03-14",
+        "summary": "Remove artificial concurrency ceiling from deriveDefaultParallelConcurrency(); enable continuous scaling with host compute resources (CPU and memory).",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-sisyphus-state/src/executor.js",
+          "packages/opencode-sisyphus-state/tests/basic.test.js"
+        ],
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "mcp-runtime-safe-copy-sync-20260313",
+        "summary": "Apply dormant MCP filtering during copy-config sync so the actual user config only exposes host-safe MCP entries while preserving user-installed skills and custom MCPs.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/copy-config.mjs",
+          "scripts/tests/copy-config.test.js",
+          "opencode-config/learning-updates/mcp-runtime-safe-copy-sync-20260313.json"
+        ],
+        "timestamp": "2026-03-13T04:23:00Z"
+      },
+      {
+        "id": "runbooks-copy-sync-20260313",
+        "summary": "Keep runtime-safe copy-config merges preserving the runbooks MCP now that it has a supported stdio wrapper.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/tests/copy-config.test.js",
+          "opencode-config/learning-updates/runbooks-copy-sync-20260313.json"
+        ],
+        "timestamp": "2026-03-13T01:25:00Z"
+      },
+      {
+        "id": "runbooks-host-policy-20260313",
+        "summary": "Re-enable runbooks in the host-facing MCP policy now that a dedicated stdio MCP wrapper exists and update generator regression coverage.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/mcp-dormant-policy.json",
+          "scripts/tests/generate-mcp-config.test.js",
+          "opencode-config/learning-updates/runbooks-host-policy-20260313.json"
+        ],
+        "timestamp": "2026-03-13T01:20:00Z"
+      },
+      {
+        "id": "runbooks-mcp-wrapper-20260313",
+        "summary": "Add a stdio MCP wrapper for opencode-runbooks and package metadata needed to expose runbook diagnostics/remedy tools over MCP.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-runbooks/package.json",
+          "packages/opencode-runbooks/src/mcp-server.mjs",
+          "packages/opencode-runbooks/test/mcp-server.test.mjs",
+          "bun.lock",
+          "opencode-config/learning-updates/runbooks-mcp-wrapper-20260313.json"
+        ],
+        "timestamp": "2026-03-13T01:10:00Z"
+      },
+      {
+        "id": "opencode-beads-portability-20260312",
+        "summary": "Require the bd CLI whenever opencode-beads is configured so strict portability/setup catches missing local beads dependencies.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/verify-portability.mjs",
+          "scripts/tests/verify-portability.test.js",
+          "opencode-config/learning-updates/opencode-beads-portability-20260312.json"
+        ],
+        "timestamp": "2026-03-12T23:20:00Z"
+      },
+      {
+        "id": "runtime-workflow-scenarios-20260312",
+        "summary": "Add a live runtime workflow scenario suite that exercises healthy and compressed execution paths, standalone touchpoints, and workflow persistence through the real runtime, and include it in the protocol compliance pass.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "package.json",
+          "scripts/protocol-compliance-pass.mjs",
+          "scripts/runtime-workflow-scenarios.mjs",
+          "scripts/tests/protocol-compliance-pass.test.js",
+          "scripts/tests/runtime-workflow-scenarios.test.mjs"
+        ],
+        "timestamp": "2026-03-12T16:45:00Z"
+      },
+      {
+        "id": "runtime-workflow-compliance-20260312",
+        "summary": "Add a runtime workflow compliance harness that exercises executeTaskWithEvidence end-to-end and validates DCP/context-budget/distill recommendations propagate into real execution.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "package.json",
+          "scripts/protocol-compliance-pass.mjs",
+          "scripts/runtime-context-compliance.mjs",
+          "scripts/tests/protocol-compliance-pass.test.js",
+          "scripts/tests/runtime-context-compliance.test.mjs"
+        ],
+        "timestamp": "2026-03-12T15:58:30Z"
+      },
+      {
+        "id": "fallback-doctor-wiring-20260312",
+        "summary": "Wire fallback-doctor into IntegrationLayer with validateFallbackChain() and diagnoseFallbacks() delegation methods",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-integration-layer/src/index.js",
+          "packages/opencode-integration-layer/tests/fallback-doctor-wiring.test.js"
+        ],
+        "timestamp": "2026-03-12T01:30:00Z"
+      },
+      {
+        "id": "sisyphus-state-wiring-20260312",
+        "summary": "Wire sisyphus-state (WorkflowStore + WorkflowExecutor) into bootstrap and IntegrationLayer for durable workflow execution",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-integration-layer/src/bootstrap.js",
+          "packages/opencode-integration-layer/src/index.js",
+          "packages/opencode-integration-layer/tests/sisyphus-state-wiring.test.js"
+        ],
+        "timestamp": "2026-03-12T01:00:00.000Z"
+      },
+      {
+        "id": "preload-runtime-contract-20260310",
+        "summary": "Clarify the preload-skills runtime contract by testing the IntegrationLayer boundary and updating the README to document selectTools(), callable tool IDs, and the external host's responsibility to consume them.",
+        "risk_level": "low",
+        "affected_paths": [
+          "integration-tests/critical-plugin-contracts.test.js",
+          "packages/opencode-plugin-preload-skills/README.md"
+        ],
+        "timestamp": "2026-03-10T14:45:00-04:00"
+      },
+      {
+        "id": "enabled-custom-skill-contracts-20260310",
+        "summary": "Broaden skill surface regression coverage so every enabled custom skill must have an on-disk definition, not just one-off spot checks.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/tests/skill-surface-regression.test.js"
+        ],
+        "timestamp": "2026-03-10T12:57:00-04:00"
+      },
+      {
+        "id": "workspace-package-smoke-runner-20260310",
+        "summary": "Add a workspace package smoke runner and top-level packages:smoke command so package entrypoint exercise becomes as discoverable as mcp:smoke.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "package.json",
+          "scripts/run-package-smokes.mjs",
+          "scripts/tests/package-smoke-runner.test.js"
+        ],
+        "timestamp": "2026-03-10T12:56:00-04:00"
+      },
+      {
+        "id": "dormant-mcp-policy-surfacing-20260310",
+        "summary": "Surface explicit dormant MCP reactivation metadata in the lifecycle report so disabled internal MCPs are actionable rather than just classified.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/mcp-dormant-policy.json",
+          "scripts/report-mcp-lifecycle.mjs",
+          "scripts/tests/mcp-lifecycle-report.test.js"
+        ],
+        "timestamp": "2026-03-10T12:32:00-04:00"
+      },
+      {
+        "id": "preload-tier-mcps-20260310",
+        "summary": "Fix the preload-skills plugin so Tier 0 and Tier 1 MCP matches are carried into the selected tool surface instead of being silently dropped.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-plugin-preload-skills/src/index.js",
+          "packages/opencode-plugin-preload-skills/test/mcp-selection.test.js"
+        ],
+        "timestamp": "2026-03-10T12:31:00-04:00"
+      },
+      {
+        "id": "codebase-auditor-regression-20260310",
+        "summary": "Add a regression test ensuring the codebase-auditor skill is registered, enabled, and present on disk with its paired agent surface.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/tests/skill-surface-regression.test.js"
+        ],
+        "timestamp": "2026-03-10T11:58:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-dormant-and-recency-20260310",
+        "summary": "Extend the MCP lifecycle report with DORMANT classification for intentionally disabled internal MCPs and a recently-exercised signal sourced from invocation timestamps.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/report-mcp-lifecycle.mjs",
+          "scripts/tests/mcp-lifecycle-report.test.js"
+        ],
+        "timestamp": "2026-03-10T11:55:00-04:00"
+      },
+      {
+        "id": "mcp-direct-path-regressions-20260310",
+        "summary": "Update MCP lifecycle and inventory regressions so Playwright and Distill direct paths are required and reflected in the generated lifecycle report.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/report-mcp-lifecycle.mjs",
+          "scripts/tests/mcp-audit-classification.test.js",
+          "scripts/tests/mcp-inventory-regression.test.js",
+          "scripts/tests/mcp-lifecycle-report.test.js"
+        ],
+        "timestamp": "2026-03-10T11:38:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-heuristic-notes-20260310",
+        "summary": "Refine the MCP lifecycle report to emit heuristic notes for alias-based or partially integrated MCP states, and add regression coverage for those notes.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/report-mcp-lifecycle.mjs",
+          "scripts/tests/mcp-lifecycle-report.test.js"
+        ],
+        "timestamp": "2026-03-10T02:00:00-04:00"
+      },
+      {
+        "id": "mcp-report-command-test-20260310",
+        "summary": "Add regression coverage ensuring package.json exposes the `mcp:report` command entrypoint for the generated MCP lifecycle report.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/tests/mcp-lifecycle-report.test.js"
+        ],
+        "timestamp": "2026-03-10T01:48:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-report-test-20260310",
+        "summary": "Add a regression test for the generated MCP lifecycle report so current live inventory expectations stay aligned with the reporting script.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/tests/mcp-lifecycle-report.test.js"
+        ],
+        "timestamp": "2026-03-10T01:41:00-04:00"
+      },
+      {
+        "id": "mcp-audit-classification-regression-20260310",
+        "summary": "Add a regression test covering the post-activation MCP classification so the canonical live inventory and superseded historical audit markers stay aligned.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/tests/mcp-audit-classification.test.js"
+        ],
+        "timestamp": "2026-03-10T00:49:00-04:00"
+      },
+      {
+        "id": "mcp-inventory-regression-suite-20260310",
+        "summary": "Add a dedicated MCP inventory regression suite covering canonical live services, enabled skill registry state, and required MCP skill and agent files.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/tests/mcp-inventory-regression.test.js"
+        ],
+        "timestamp": "2026-03-10T00:35:00-04:00"
+      },
+      {
+        "id": "mcp-config-regression-test-20260310",
+        "summary": "Add a canonical MCP inventory regression test so dead entries stay removed and playwright stays enabled in the source config.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/tests/generate-mcp-config.test.js"
+        ],
+        "timestamp": "2026-03-10T00:34:00-04:00"
+      },
+      {
+        "id": "wave11-t22-phase2-component-tests",
+        "summary": "T22: Added 21 isolation-pattern tests (46 assertions) for Phase 2 components — ContextBridge threshold logic (9 tests: none/compress/compress_urgent at 50%/65%/72%/80%/95%, fail-open, null budget, custom thresholds), IntegrationLayer checkContextBudget (3 tests), recordTokenUsage (3 tests), task context eviction with 1-hour TTL (6 tests).",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-integration-layer/tests/wave11-phase2-components.test.js"
+        ],
+        "timestamp": "2026-03-08T23:20:00Z"
+      },
+      {
+        "id": "mcp-manifest-enabled-20260227",
+        "summary": "Align MCP tool-manifest enabled flag with config enabled field and add manifest mapping tests.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/generate-mcp-config.mjs",
+          "scripts/tests/generate-mcp-config.test.js"
+        ],
+        "timestamp": "2026-02-28T00:02:00Z"
+      },
+      {
+        "id": "portability-strict-env-20260227",
+        "summary": "Allow strict portability verification to pass when configs have zero env placeholders, while still failing on missing required placeholders.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/verify-portability.mjs",
+          "scripts/tests/verify-portability.test.js"
+        ],
+        "timestamp": "2026-02-27T23:59:00Z"
+      },
+      {
+        "id": "strict-portability-setup-20260227",
+        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
+        "risk_level": "low",
+        "affected_paths": [
+          "package.json",
+          "README.md",
+          "scripts/setup-resilient.mjs",
+          "scripts/verify-portability.mjs",
+          "scripts/generate-mcp-config.mjs",
+          "scripts/tests/verify-portability.test.js"
+        ],
+        "timestamp": "2026-02-27T22:30:00Z"
+      },
+      {
+        "id": "smoke-tests-16-packages-20260225",
+        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-backup-manager/test/smoke.test.js",
+          "packages/opencode-dashboard-launcher/test/smoke.test.js",
+          "packages/opencode-errors/test/smoke.test.js",
+          "packages/opencode-eval-harness/test/smoke.test.js",
+          "packages/opencode-fallback-doctor/test/smoke.test.js",
+          "packages/opencode-feature-flags/test/smoke.test.js",
+          "packages/opencode-feature-flags/src/index.js",
+          "packages/opencode-goraphdb-bridge/test/smoke.test.js",
+          "packages/opencode-graphdb-bridge/test/smoke.test.js",
+          "packages/opencode-logger/test/smoke.test.js",
+          "packages/opencode-model-sync/test/smoke.test.js",
+          "packages/opencode-plugin-healthd/test/smoke.test.js",
+          "packages/opencode-plugin-lifecycle/test/smoke.test.js",
+          "packages/opencode-plugin-preload-skills/test/smoke.test.js",
+          "packages/opencode-proofcheck/test/smoke.test.js",
+          "packages/opencode-runbooks/test/smoke.test.js",
+          "packages/opencode-shared-orchestration/test/smoke.test.js"
+        ],
+        "timestamp": "2026-02-25T16:55:00Z"
+      },
+      {
+        "id": "learning-opencode-safe-io-created-20260225",
+        "summary": "Created opencode-safe-io shared utility package with safeJsonParse, safeJsonRead, SafeJSON, managedInterval, managedListener. Leaf-only, zero external deps, dual CJS/ESM.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-safe-io/package.json",
+          "packages/opencode-safe-io/src/index.js",
+          "packages/opencode-safe-io/src/index.mjs",
+          "packages/opencode-safe-io/test/index.test.js"
+        ],
+        "timestamp": "2026-02-25T01:30:00-05:00"
+      },
+      {
+        "id": "config-loader-async-io-20260225",
+        "summary": "Converted all sync file I/O to async in central-config-state.js and central-config.js. Added in-memory RL state cache and atomic write pattern (tmp+rename).",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-config-loader/src/central-config-state.js",
+          "packages/opencode-config-loader/src/central-config.js",
+          "packages/opencode-config-loader/src/index.js",
+          "packages/opencode-config-loader/test/central-config.test.js"
+        ],
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "validation-wave7-20260224",
+        "summary": "Added catalog validation pipeline with comprehensive checks",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-manager/src/validation/catalog-validator.js",
+          "packages/opencode-model-manager/test/validation/catalog-validator.test.ts",
+          ".github/workflows/model-catalog-sync.yml"
+        ],
+        "timestamp": "2026-02-24T08:30:00Z"
+      },
+      {
+        "id": "automation-wave7-20260224",
+        "summary": "Added PR automation and CI workflow for model catalog sync",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-manager/src/automation/pr-generator.js",
+          "packages/opencode-model-manager/test/automation/pr-generator.test.ts",
+          ".github/workflows/model-catalog-sync.yml"
+        ],
+        "timestamp": "2026-02-24T08:00:00Z"
+      },
+      {
+        "id": "model-manager-lifecycle-wave5-20260224",
+        "summary": "Implement Wave 5 of automated model management protocol: 5-state lifecycle state machine, tamper-evident audit logger, and risk-based auto-approval rules engine.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-manager/src/lifecycle/state-machine.js",
+          "packages/opencode-model-manager/src/lifecycle/audit-logger.js",
+          "packages/opencode-model-manager/src/lifecycle/auto-approval-rules.js",
+          "packages/opencode-model-manager/test/lifecycle/state-machine.test.ts",
+          "packages/opencode-model-manager/test/lifecycle/audit-logger.test.ts",
+          "packages/opencode-model-manager/test/lifecycle/auto-approval-rules.test.ts",
+          ".sisyphus/plans/model-management-protocol.md"
+        ],
+        "timestamp": "2026-02-24T02:35:00Z"
+      },
+      {
+        "id": "config-loader-safe-json-parse-20260224",
+        "summary": "Added safeJsonParse helper and replaced all unguarded JSON.parse calls in file-read paths in central-config.js and central-config-state.js",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-config-loader/src/safe-json-parse.js",
+          "packages/opencode-config-loader/test/safe-json-parse.test.js",
+          "packages/opencode-config-loader/src/central-config.js",
+          "packages/opencode-config-loader/src/central-config-state.js"
+        ],
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "model-management-wave1-20260224",
+        "summary": "Wave 1: Provider Adapter Framework - Foundation for automated model management protocol",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-manager/src/adapters/adapter-interface.js",
+          "packages/opencode-model-manager/src/adapters/base-adapter.js",
+          "packages/opencode-model-manager/src/adapters/openai.js",
+          "packages/opencode-model-manager/src/adapters/anthropic.js",
+          "packages/opencode-model-manager/src/adapters/google.js",
+          "packages/opencode-model-manager/src/adapters/groq.js",
+          "packages/opencode-model-manager/src/adapters/cerebras.js",
+          "packages/opencode-model-manager/src/adapters/nvidia.js",
+          "packages/opencode-model-manager/test/adapter-interface.test.ts",
+          "packages/opencode-model-manager/test/adapters/openai.test.ts",
+          "packages/opencode-model-manager/test/adapters/anthropic.test.ts",
+          "packages/opencode-model-manager/test/adapters/google.test.ts",
+          "packages/opencode-model-manager/test/adapters/groq.test.ts",
+          "packages/opencode-model-manager/test/adapters/cerebras.test.ts",
+          "packages/opencode-model-manager/test/adapters/nvidia.test.ts",
+          ".sisyphus/plans/model-management-protocol.md"
+        ],
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "model-management-wave3-20260224",
+        "summary": "Wave 3: Snapshot Store & Diff Engine - Change detection and audit logging for automated model management",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-manager/src/snapshot/snapshot-store.js",
+          "packages/opencode-model-manager/src/diff/diff-engine.js",
+          "packages/opencode-model-manager/src/events/change-event-system.js",
+          "packages/opencode-model-manager/test/snapshot/snapshot-store.test.ts",
+          "packages/opencode-model-manager/test/diff/diff-engine.test.ts",
+          "packages/opencode-model-manager/test/events/change-event-system.test.ts",
+          ".sisyphus/plans/model-management-protocol.md"
+        ],
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "skillrl-stabilization-and-api-regression-20260215",
+        "summary": "Stabilized SkillRL persistence and added API regression coverage for /api/rl and /api/skills",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-skill-rl-manager/src/index.js",
+          "integration-tests/skillrl-api-regression.test.js",
+          "package.json"
+        ],
+        "timestamp": "2026-02-15T23:45:00Z"
+      }
+    ],
     "type-safety": [
       {
         "id": "codebase-memory-ast-parser-2026-03-16",
@@ -794,510 +1308,6 @@
           "packages/opencode-model-manager/test/pipeline-metrics-collector.test.ts"
         ],
         "timestamp": "2026-02-25T02:32:00.000Z"
-      }
-    ],
-    "testing": [
-      {
-        "id": "config-coherence-enriched-json-2026-03-14",
-        "summary": "Config coherence script now handles enriched JSON files (e.g., opencode.json with MCP path resolution) via structural comparison of non-enriched keys instead of SHA256 hash. Added ENRICHED_JSON_FILES map, deepEqual(), and compareEnrichedJson(). Unblocks protocol-compliance-pass.mjs.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/validate-config-coherence.mjs",
-          "scripts/tests/validate-config-coherence.test.js"
-        ],
-        "timestamp": "2026-03-14T18:45:00Z"
-      },
-      {
-        "id": "mcp-boundary-reconciliation-2026-03-14",
-        "summary": "Reconciled MCP boundary docs and config with active runtime policy: aligned opencode-mcp-config.json dormant entries with mcp-dormant-policy.json, rewrote server-list.md to remove stale tavily/github entries and add 3 active internal wrappers plus dormant section, updated setup-instructions.md to reflect active internal MCP wrappers, added canonical source-of-truth note to cli-mcp-surface-policy.md, and extended mcp-inventory-regression tests to assert dormant/active alignment across config files.",
-        "risk_level": "low",
-        "affected_paths": [
-          "mcp-servers/opencode-mcp-config.json",
-          "mcp-servers/server-list.md",
-          "setup-instructions.md",
-          "docs/architecture/cli-mcp-surface-policy.md",
-          "scripts/tests/mcp-inventory-regression.test.js"
-        ],
-        "timestamp": "2026-03-14T08:30:00.000Z"
-      },
-      {
-        "id": "config-coherence-wave-2026-03-14",
-        "summary": "Config coherence wave: added machine identity (getMachineId with persistent .machine-id.json), audit logging (appendAuditEntry writing NDJSON with 1MB rotation), version manifest tracking (writeConfigManifest in copy-config.mjs, readConfigManifest in validate-config-coherence.mjs), and cross-machine warning detection. CLI now appends audit entries on every coherence check.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "scripts/validate-config-coherence.mjs",
-          "scripts/copy-config.mjs",
-          "scripts/tests/validate-config-coherence.test.js"
-        ],
-        "timestamp": "2026-03-14T00:00:00.000Z"
-      },
-      {
-        "id": "multi-process-transition-safety-2026-03-14",
-        "summary": "Fixed multi-process race condition in state-machine.js _persistTransition() by adding atomic compare-and-swap verification inside BEGIN IMMEDIATE transaction. Reads current DB state after acquiring write lock, throws STALE_STATE error on mismatch. Added regression test using dual StateMachine instances with deferred() gating.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-model-manager/src/lifecycle/state-machine.js",
-          "packages/opencode-model-manager/test/lifecycle/state-machine.test.ts"
-        ],
-        "timestamp": "2026-03-14T00:00:00.000Z"
-      },
-      {
-        "id": "remove-anomalous-agents-2026-03-14",
-        "summary": "Remove 7 anomalous agent .md files from opencode-config/agents/ that were erroneously created during Wave 8-10 skill activation. These files caused phantom agent options (thinker, playwright-browser, memory-keeper, code-searcher, codebase-auditor, distill-compressor, researcher) to appear in the opencode interface. Agent definitions are managed by oh-my-opencode plugin, not on-disk markdown. Updated 2 test files that asserted agent file existence.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/agents/code-searcher.md",
-          "opencode-config/agents/codebase-auditor.md",
-          "opencode-config/agents/distill-compressor.md",
-          "opencode-config/agents/memory-keeper.md",
-          "opencode-config/agents/playwright-browser.md",
-          "opencode-config/agents/researcher.md",
-          "opencode-config/agents/thinker.md",
-          "scripts/tests/mcp-audit-classification.test.js",
-          "scripts/tests/skill-surface-regression.test.js"
-        ],
-        "timestamp": "2026-03-14T00:00:00.000Z"
-      },
-      {
-        "id": "uncapped-concurrency-2026-03-14",
-        "summary": "Remove artificial concurrency ceiling from deriveDefaultParallelConcurrency(); enable continuous scaling with host compute resources (CPU and memory).",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-sisyphus-state/src/executor.js",
-          "packages/opencode-sisyphus-state/tests/basic.test.js"
-        ],
-        "timestamp": "2026-03-14T00:00:00.000Z"
-      },
-      {
-        "id": "mcp-runtime-safe-copy-sync-20260313",
-        "summary": "Apply dormant MCP filtering during copy-config sync so the actual user config only exposes host-safe MCP entries while preserving user-installed skills and custom MCPs.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/copy-config.mjs",
-          "scripts/tests/copy-config.test.js",
-          "opencode-config/learning-updates/mcp-runtime-safe-copy-sync-20260313.json"
-        ],
-        "timestamp": "2026-03-13T04:23:00Z"
-      },
-      {
-        "id": "runbooks-copy-sync-20260313",
-        "summary": "Keep runtime-safe copy-config merges preserving the runbooks MCP now that it has a supported stdio wrapper.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/tests/copy-config.test.js",
-          "opencode-config/learning-updates/runbooks-copy-sync-20260313.json"
-        ],
-        "timestamp": "2026-03-13T01:25:00Z"
-      },
-      {
-        "id": "runbooks-host-policy-20260313",
-        "summary": "Re-enable runbooks in the host-facing MCP policy now that a dedicated stdio MCP wrapper exists and update generator regression coverage.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/mcp-dormant-policy.json",
-          "scripts/tests/generate-mcp-config.test.js",
-          "opencode-config/learning-updates/runbooks-host-policy-20260313.json"
-        ],
-        "timestamp": "2026-03-13T01:20:00Z"
-      },
-      {
-        "id": "runbooks-mcp-wrapper-20260313",
-        "summary": "Add a stdio MCP wrapper for opencode-runbooks and package metadata needed to expose runbook diagnostics/remedy tools over MCP.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-runbooks/package.json",
-          "packages/opencode-runbooks/src/mcp-server.mjs",
-          "packages/opencode-runbooks/test/mcp-server.test.mjs",
-          "bun.lock",
-          "opencode-config/learning-updates/runbooks-mcp-wrapper-20260313.json"
-        ],
-        "timestamp": "2026-03-13T01:10:00Z"
-      },
-      {
-        "id": "opencode-beads-portability-20260312",
-        "summary": "Require the bd CLI whenever opencode-beads is configured so strict portability/setup catches missing local beads dependencies.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/verify-portability.mjs",
-          "scripts/tests/verify-portability.test.js",
-          "opencode-config/learning-updates/opencode-beads-portability-20260312.json"
-        ],
-        "timestamp": "2026-03-12T23:20:00Z"
-      },
-      {
-        "id": "runtime-workflow-scenarios-20260312",
-        "summary": "Add a live runtime workflow scenario suite that exercises healthy and compressed execution paths, standalone touchpoints, and workflow persistence through the real runtime, and include it in the protocol compliance pass.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "package.json",
-          "scripts/protocol-compliance-pass.mjs",
-          "scripts/runtime-workflow-scenarios.mjs",
-          "scripts/tests/protocol-compliance-pass.test.js",
-          "scripts/tests/runtime-workflow-scenarios.test.mjs"
-        ],
-        "timestamp": "2026-03-12T16:45:00Z"
-      },
-      {
-        "id": "runtime-workflow-compliance-20260312",
-        "summary": "Add a runtime workflow compliance harness that exercises executeTaskWithEvidence end-to-end and validates DCP/context-budget/distill recommendations propagate into real execution.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "package.json",
-          "scripts/protocol-compliance-pass.mjs",
-          "scripts/runtime-context-compliance.mjs",
-          "scripts/tests/protocol-compliance-pass.test.js",
-          "scripts/tests/runtime-context-compliance.test.mjs"
-        ],
-        "timestamp": "2026-03-12T15:58:30Z"
-      },
-      {
-        "id": "fallback-doctor-wiring-20260312",
-        "summary": "Wire fallback-doctor into IntegrationLayer with validateFallbackChain() and diagnoseFallbacks() delegation methods",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-integration-layer/src/index.js",
-          "packages/opencode-integration-layer/tests/fallback-doctor-wiring.test.js"
-        ],
-        "timestamp": "2026-03-12T01:30:00Z"
-      },
-      {
-        "id": "sisyphus-state-wiring-20260312",
-        "summary": "Wire sisyphus-state (WorkflowStore + WorkflowExecutor) into bootstrap and IntegrationLayer for durable workflow execution",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-integration-layer/src/bootstrap.js",
-          "packages/opencode-integration-layer/src/index.js",
-          "packages/opencode-integration-layer/tests/sisyphus-state-wiring.test.js"
-        ],
-        "timestamp": "2026-03-12T01:00:00.000Z"
-      },
-      {
-        "id": "preload-runtime-contract-20260310",
-        "summary": "Clarify the preload-skills runtime contract by testing the IntegrationLayer boundary and updating the README to document selectTools(), callable tool IDs, and the external host's responsibility to consume them.",
-        "risk_level": "low",
-        "affected_paths": [
-          "integration-tests/critical-plugin-contracts.test.js",
-          "packages/opencode-plugin-preload-skills/README.md"
-        ],
-        "timestamp": "2026-03-10T14:45:00-04:00"
-      },
-      {
-        "id": "enabled-custom-skill-contracts-20260310",
-        "summary": "Broaden skill surface regression coverage so every enabled custom skill must have an on-disk definition, not just one-off spot checks.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/tests/skill-surface-regression.test.js"
-        ],
-        "timestamp": "2026-03-10T12:57:00-04:00"
-      },
-      {
-        "id": "workspace-package-smoke-runner-20260310",
-        "summary": "Add a workspace package smoke runner and top-level packages:smoke command so package entrypoint exercise becomes as discoverable as mcp:smoke.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "package.json",
-          "scripts/run-package-smokes.mjs",
-          "scripts/tests/package-smoke-runner.test.js"
-        ],
-        "timestamp": "2026-03-10T12:56:00-04:00"
-      },
-      {
-        "id": "dormant-mcp-policy-surfacing-20260310",
-        "summary": "Surface explicit dormant MCP reactivation metadata in the lifecycle report so disabled internal MCPs are actionable rather than just classified.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/mcp-dormant-policy.json",
-          "scripts/report-mcp-lifecycle.mjs",
-          "scripts/tests/mcp-lifecycle-report.test.js"
-        ],
-        "timestamp": "2026-03-10T12:32:00-04:00"
-      },
-      {
-        "id": "preload-tier-mcps-20260310",
-        "summary": "Fix the preload-skills plugin so Tier 0 and Tier 1 MCP matches are carried into the selected tool surface instead of being silently dropped.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-plugin-preload-skills/src/index.js",
-          "packages/opencode-plugin-preload-skills/test/mcp-selection.test.js"
-        ],
-        "timestamp": "2026-03-10T12:31:00-04:00"
-      },
-      {
-        "id": "codebase-auditor-regression-20260310",
-        "summary": "Add a regression test ensuring the codebase-auditor skill is registered, enabled, and present on disk with its paired agent surface.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/tests/skill-surface-regression.test.js"
-        ],
-        "timestamp": "2026-03-10T11:58:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-dormant-and-recency-20260310",
-        "summary": "Extend the MCP lifecycle report with DORMANT classification for intentionally disabled internal MCPs and a recently-exercised signal sourced from invocation timestamps.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/report-mcp-lifecycle.mjs",
-          "scripts/tests/mcp-lifecycle-report.test.js"
-        ],
-        "timestamp": "2026-03-10T11:55:00-04:00"
-      },
-      {
-        "id": "mcp-direct-path-regressions-20260310",
-        "summary": "Update MCP lifecycle and inventory regressions so Playwright and Distill direct paths are required and reflected in the generated lifecycle report.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/report-mcp-lifecycle.mjs",
-          "scripts/tests/mcp-audit-classification.test.js",
-          "scripts/tests/mcp-inventory-regression.test.js",
-          "scripts/tests/mcp-lifecycle-report.test.js"
-        ],
-        "timestamp": "2026-03-10T11:38:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-heuristic-notes-20260310",
-        "summary": "Refine the MCP lifecycle report to emit heuristic notes for alias-based or partially integrated MCP states, and add regression coverage for those notes.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/report-mcp-lifecycle.mjs",
-          "scripts/tests/mcp-lifecycle-report.test.js"
-        ],
-        "timestamp": "2026-03-10T02:00:00-04:00"
-      },
-      {
-        "id": "mcp-report-command-test-20260310",
-        "summary": "Add regression coverage ensuring package.json exposes the `mcp:report` command entrypoint for the generated MCP lifecycle report.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/tests/mcp-lifecycle-report.test.js"
-        ],
-        "timestamp": "2026-03-10T01:48:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-report-test-20260310",
-        "summary": "Add a regression test for the generated MCP lifecycle report so current live inventory expectations stay aligned with the reporting script.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/tests/mcp-lifecycle-report.test.js"
-        ],
-        "timestamp": "2026-03-10T01:41:00-04:00"
-      },
-      {
-        "id": "mcp-audit-classification-regression-20260310",
-        "summary": "Add a regression test covering the post-activation MCP classification so the canonical live inventory and superseded historical audit markers stay aligned.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/tests/mcp-audit-classification.test.js"
-        ],
-        "timestamp": "2026-03-10T00:49:00-04:00"
-      },
-      {
-        "id": "mcp-inventory-regression-suite-20260310",
-        "summary": "Add a dedicated MCP inventory regression suite covering canonical live services, enabled skill registry state, and required MCP skill and agent files.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/tests/mcp-inventory-regression.test.js"
-        ],
-        "timestamp": "2026-03-10T00:35:00-04:00"
-      },
-      {
-        "id": "mcp-config-regression-test-20260310",
-        "summary": "Add a canonical MCP inventory regression test so dead entries stay removed and playwright stays enabled in the source config.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/tests/generate-mcp-config.test.js"
-        ],
-        "timestamp": "2026-03-10T00:34:00-04:00"
-      },
-      {
-        "id": "wave11-t22-phase2-component-tests",
-        "summary": "T22: Added 21 isolation-pattern tests (46 assertions) for Phase 2 components — ContextBridge threshold logic (9 tests: none/compress/compress_urgent at 50%/65%/72%/80%/95%, fail-open, null budget, custom thresholds), IntegrationLayer checkContextBudget (3 tests), recordTokenUsage (3 tests), task context eviction with 1-hour TTL (6 tests).",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-integration-layer/tests/wave11-phase2-components.test.js"
-        ],
-        "timestamp": "2026-03-08T23:20:00Z"
-      },
-      {
-        "id": "mcp-manifest-enabled-20260227",
-        "summary": "Align MCP tool-manifest enabled flag with config enabled field and add manifest mapping tests.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/generate-mcp-config.mjs",
-          "scripts/tests/generate-mcp-config.test.js"
-        ],
-        "timestamp": "2026-02-28T00:02:00Z"
-      },
-      {
-        "id": "portability-strict-env-20260227",
-        "summary": "Allow strict portability verification to pass when configs have zero env placeholders, while still failing on missing required placeholders.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/verify-portability.mjs",
-          "scripts/tests/verify-portability.test.js"
-        ],
-        "timestamp": "2026-02-27T23:59:00Z"
-      },
-      {
-        "id": "strict-portability-setup-20260227",
-        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
-        "risk_level": "low",
-        "affected_paths": [
-          "package.json",
-          "README.md",
-          "scripts/setup-resilient.mjs",
-          "scripts/verify-portability.mjs",
-          "scripts/generate-mcp-config.mjs",
-          "scripts/tests/verify-portability.test.js"
-        ],
-        "timestamp": "2026-02-27T22:30:00Z"
-      },
-      {
-        "id": "smoke-tests-16-packages-20260225",
-        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-backup-manager/test/smoke.test.js",
-          "packages/opencode-dashboard-launcher/test/smoke.test.js",
-          "packages/opencode-errors/test/smoke.test.js",
-          "packages/opencode-eval-harness/test/smoke.test.js",
-          "packages/opencode-fallback-doctor/test/smoke.test.js",
-          "packages/opencode-feature-flags/test/smoke.test.js",
-          "packages/opencode-feature-flags/src/index.js",
-          "packages/opencode-goraphdb-bridge/test/smoke.test.js",
-          "packages/opencode-graphdb-bridge/test/smoke.test.js",
-          "packages/opencode-logger/test/smoke.test.js",
-          "packages/opencode-model-sync/test/smoke.test.js",
-          "packages/opencode-plugin-healthd/test/smoke.test.js",
-          "packages/opencode-plugin-lifecycle/test/smoke.test.js",
-          "packages/opencode-plugin-preload-skills/test/smoke.test.js",
-          "packages/opencode-proofcheck/test/smoke.test.js",
-          "packages/opencode-runbooks/test/smoke.test.js",
-          "packages/opencode-shared-orchestration/test/smoke.test.js"
-        ],
-        "timestamp": "2026-02-25T16:55:00Z"
-      },
-      {
-        "id": "learning-opencode-safe-io-created-20260225",
-        "summary": "Created opencode-safe-io shared utility package with safeJsonParse, safeJsonRead, SafeJSON, managedInterval, managedListener. Leaf-only, zero external deps, dual CJS/ESM.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-safe-io/package.json",
-          "packages/opencode-safe-io/src/index.js",
-          "packages/opencode-safe-io/src/index.mjs",
-          "packages/opencode-safe-io/test/index.test.js"
-        ],
-        "timestamp": "2026-02-25T01:30:00-05:00"
-      },
-      {
-        "id": "config-loader-async-io-20260225",
-        "summary": "Converted all sync file I/O to async in central-config-state.js and central-config.js. Added in-memory RL state cache and atomic write pattern (tmp+rename).",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-config-loader/src/central-config-state.js",
-          "packages/opencode-config-loader/src/central-config.js",
-          "packages/opencode-config-loader/src/index.js",
-          "packages/opencode-config-loader/test/central-config.test.js"
-        ],
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "validation-wave7-20260224",
-        "summary": "Added catalog validation pipeline with comprehensive checks",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-manager/src/validation/catalog-validator.js",
-          "packages/opencode-model-manager/test/validation/catalog-validator.test.ts",
-          ".github/workflows/model-catalog-sync.yml"
-        ],
-        "timestamp": "2026-02-24T08:30:00Z"
-      },
-      {
-        "id": "automation-wave7-20260224",
-        "summary": "Added PR automation and CI workflow for model catalog sync",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-manager/src/automation/pr-generator.js",
-          "packages/opencode-model-manager/test/automation/pr-generator.test.ts",
-          ".github/workflows/model-catalog-sync.yml"
-        ],
-        "timestamp": "2026-02-24T08:00:00Z"
-      },
-      {
-        "id": "model-manager-lifecycle-wave5-20260224",
-        "summary": "Implement Wave 5 of automated model management protocol: 5-state lifecycle state machine, tamper-evident audit logger, and risk-based auto-approval rules engine.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-manager/src/lifecycle/state-machine.js",
-          "packages/opencode-model-manager/src/lifecycle/audit-logger.js",
-          "packages/opencode-model-manager/src/lifecycle/auto-approval-rules.js",
-          "packages/opencode-model-manager/test/lifecycle/state-machine.test.ts",
-          "packages/opencode-model-manager/test/lifecycle/audit-logger.test.ts",
-          "packages/opencode-model-manager/test/lifecycle/auto-approval-rules.test.ts",
-          ".sisyphus/plans/model-management-protocol.md"
-        ],
-        "timestamp": "2026-02-24T02:35:00Z"
-      },
-      {
-        "id": "config-loader-safe-json-parse-20260224",
-        "summary": "Added safeJsonParse helper and replaced all unguarded JSON.parse calls in file-read paths in central-config.js and central-config-state.js",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-config-loader/src/safe-json-parse.js",
-          "packages/opencode-config-loader/test/safe-json-parse.test.js",
-          "packages/opencode-config-loader/src/central-config.js",
-          "packages/opencode-config-loader/src/central-config-state.js"
-        ],
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "model-management-wave1-20260224",
-        "summary": "Wave 1: Provider Adapter Framework - Foundation for automated model management protocol",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-manager/src/adapters/adapter-interface.js",
-          "packages/opencode-model-manager/src/adapters/base-adapter.js",
-          "packages/opencode-model-manager/src/adapters/openai.js",
-          "packages/opencode-model-manager/src/adapters/anthropic.js",
-          "packages/opencode-model-manager/src/adapters/google.js",
-          "packages/opencode-model-manager/src/adapters/groq.js",
-          "packages/opencode-model-manager/src/adapters/cerebras.js",
-          "packages/opencode-model-manager/src/adapters/nvidia.js",
-          "packages/opencode-model-manager/test/adapter-interface.test.ts",
-          "packages/opencode-model-manager/test/adapters/openai.test.ts",
-          "packages/opencode-model-manager/test/adapters/anthropic.test.ts",
-          "packages/opencode-model-manager/test/adapters/google.test.ts",
-          "packages/opencode-model-manager/test/adapters/groq.test.ts",
-          "packages/opencode-model-manager/test/adapters/cerebras.test.ts",
-          "packages/opencode-model-manager/test/adapters/nvidia.test.ts",
-          ".sisyphus/plans/model-management-protocol.md"
-        ],
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "model-management-wave3-20260224",
-        "summary": "Wave 3: Snapshot Store & Diff Engine - Change detection and audit logging for automated model management",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-manager/src/snapshot/snapshot-store.js",
-          "packages/opencode-model-manager/src/diff/diff-engine.js",
-          "packages/opencode-model-manager/src/events/change-event-system.js",
-          "packages/opencode-model-manager/test/snapshot/snapshot-store.test.ts",
-          "packages/opencode-model-manager/test/diff/diff-engine.test.ts",
-          "packages/opencode-model-manager/test/events/change-event-system.test.ts",
-          ".sisyphus/plans/model-management-protocol.md"
-        ],
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "skillrl-stabilization-and-api-regression-20260215",
-        "summary": "Stabilized SkillRL persistence and added API regression coverage for /api/rl and /api/skills",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-skill-rl-manager/src/index.js",
-          "integration-tests/skillrl-api-regression.test.js",
-          "package.json"
-        ],
-        "timestamp": "2026-02-15T23:45:00Z"
       }
     ],
     "agent-config": [
@@ -4008,6 +4018,16 @@
   },
   "by_risk_level": {
     "low": [
+      {
+        "id": "codebase-memory-indexer-2026-03-16",
+        "summary": "Implemented Indexer class for opencode-codebase-memory with incremental change detection via SHA256 content hashing. Walks directory trees, skips IGNORE_DIRS (node_modules, .git, dist, etc.), indexes supported JS/TS files via parser, stores nodes/edges/files in GraphStore. Re-indexing unchanged files is skipped. 5 tests covering directory indexing, incremental skip, modified file re-index, IGNORE_DIRS filtering, and getStats.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-codebase-memory/src/indexer.js",
+          "packages/opencode-codebase-memory/test/indexer.test.js"
+        ],
+        "timestamp": "2026-03-16T18:00:00Z"
+      },
       {
         "id": "codebase-memory-ast-parser-2026-03-16",
         "summary": "Implemented JS/TS AST parser for opencode-codebase-memory using @typescript-eslint/typescript-estree. Extracts function declarations, class/method declarations, call expressions as edges, and import edges. Gracefully handles unparseable files. 5 tests covering all extraction types and error handling.",
@@ -7923,6 +7943,12 @@
   },
   "by_affected_path": {
     "packages/opencode-codebase-memory": [
+      {
+        "id": "codebase-memory-indexer-2026-03-16",
+        "summary": "Implemented Indexer class for opencode-codebase-memory with incremental change detection via SHA256 content hashing. Walks directory trees, skips IGNORE_DIRS (node_modules, .git, dist, etc.), indexes supported JS/TS files via parser, stores nodes/edges/files in GraphStore. Re-indexing unchanged files is skipped. 5 tests covering directory indexing, incremental skip, modified file re-index, IGNORE_DIRS filtering, and getStats.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T18:00:00Z"
+      },
       {
         "id": "codebase-memory-ast-parser-2026-03-16",
         "summary": "Implemented JS/TS AST parser for opencode-codebase-memory using @typescript-eslint/typescript-estree. Extracts function declarations, class/method declarations, call expressions as edges, and import edges. Gracefully handles unparseable files. 5 tests covering all extraction types and error handling.",
