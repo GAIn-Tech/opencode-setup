@@ -13,7 +13,7 @@ class CodebaseMemory {
    * @param {string} [opts.stateDir] - Override state dir (for testing). Defaults to ~/.opencode/codebase-memory
    */
   constructor({ stateDir } = {}) {
-    this.stateDir = stateDir || DEFAULT_STATE_DIR;
+    this.stateDir = stateDir || process.env.CODEBASE_MEMORY_STATE_DIR || DEFAULT_STATE_DIR;
     this.registryPath = path.join(this.stateDir, 'repos.json');
     this.registry = this._loadRegistry();
   }

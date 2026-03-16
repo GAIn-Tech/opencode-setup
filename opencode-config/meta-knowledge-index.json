@@ -1,13 +1,24 @@
 {
-  "generated_at": "2026-03-16T18:43:10.214Z",
+  "generated_at": "2026-03-16T18:52:49.382Z",
   "schema_version": 1,
-  "total_records": 332,
+  "total_records": 334,
   "source_files": {
-    "learning_updates": 332,
+    "learning_updates": 334,
     "agents_md": 7
   },
   "by_category": {
     "testing": [
+      {
+        "id": "codebase-memory-cli-2026-03-16",
+        "summary": "Implemented CLI (cli.mjs) for opencode-codebase-memory with 8 commands: analyze, query, context, impact, detect-changes, list-repos, health, enrich-error. All output is JSON to stdout. Exits 0 on success, 1 on error with JSON error on stderr. Added CODEBASE_MEMORY_STATE_DIR env var support to index.js constructor for test isolation. 18 CLI subprocess tests via Bun.spawn covering all commands, flags, error paths, and unknown command handling.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-codebase-memory/src/cli.mjs",
+          "packages/opencode-codebase-memory/src/index.js",
+          "packages/opencode-codebase-memory/test/cli.test.js"
+        ],
+        "timestamp": "2026-03-16T21:00:00Z"
+      },
       {
         "id": "codebase-memory-main-class-2026-03-16",
         "summary": "Implemented CodebaseMemory main class with repo registry for opencode-codebase-memory. Configurable stateDir (constructor param) for test isolation. Methods: analyze() indexes repo via Indexer and registers in repos.json, query() FTS search across symbols, context() returns symbol node + callers/callees, impact() blast radius via recursive CTE, detectChanges() mtime-based change detection, enrichErrorContext() extracts symbol names from error text and looks up across repos, listRepos() enumerates all registered repos. Registry persists to {stateDir}/repos.json. 16 tests covering all methods including persistence, error handling, and edge cases.",
@@ -529,6 +540,29 @@
           "package.json"
         ],
         "timestamp": "2026-02-15T23:45:00Z"
+      }
+    ],
+    "integration": [
+      {
+        "id": "codebase-memory-learning-pipeline-wiring-2026-03-16",
+        "summary": "Wired opencode-codebase-memory into learning pipeline and system health monitoring. (1) ingest-sessions.mjs: added enrichErrorContext call after processDelegationLog to enrich anti-pattern descriptions with symbol context from indexed repos. (2) system-health.mjs: added auditCodebaseMemory() function that loads CodebaseMemory, lists indexed repos, opens GraphStore for each repo to get node/edge stats, returns DORMANT if no repos indexed, HEALTHY if nodes>0, UNKNOWN if package unavailable (expected in Node.js context). Wired into main audit loop as 9th subsystem. (3) package.json: added 'codebase:analyze' script to run opencode-codebase CLI. All changes wrapped in try/catch for graceful degradation.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/ingest-sessions.mjs",
+          "scripts/system-health.mjs",
+          "package.json"
+        ],
+        "timestamp": "2026-03-16T20:52:00Z"
+      },
+      {
+        "id": "wave9-meta-kb-wiring-20260308",
+        "summary": "Wire MetaKBReader into LearningEngine.advise() method. Advice output now includes meta_context field with warnings, suggestions, and conventions from the meta-knowledge index. Fail-open: returns empty arrays if index unavailable. Adds meta_context_stale flag when index > 24h old. 6 integration tests.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-learning-engine/src/index.js",
+          "packages/opencode-learning-engine/test/meta-kb-integration.test.js"
+        ],
+        "timestamp": "2026-03-08T00:00:00Z"
       }
     ],
     "type-safety": [
@@ -3641,18 +3675,6 @@
         "timestamp": "2026-03-08T00:00:00Z"
       }
     ],
-    "integration": [
-      {
-        "id": "wave9-meta-kb-wiring-20260308",
-        "summary": "Wire MetaKBReader into LearningEngine.advise() method. Advice output now includes meta_context field with warnings, suggestions, and conventions from the meta-knowledge index. Fail-open: returns empty arrays if index unavailable. Adds meta_context_stale flag when index > 24h old. 6 integration tests.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-learning-engine/src/index.js",
-          "packages/opencode-learning-engine/test/meta-kb-integration.test.js"
-        ],
-        "timestamp": "2026-03-08T00:00:00Z"
-      }
-    ],
     "regression-coverage": [
       {
         "id": "sisyphus-budget-enforcer-tests-20260307",
@@ -4028,6 +4050,28 @@
   },
   "by_risk_level": {
     "low": [
+      {
+        "id": "codebase-memory-cli-2026-03-16",
+        "summary": "Implemented CLI (cli.mjs) for opencode-codebase-memory with 8 commands: analyze, query, context, impact, detect-changes, list-repos, health, enrich-error. All output is JSON to stdout. Exits 0 on success, 1 on error with JSON error on stderr. Added CODEBASE_MEMORY_STATE_DIR env var support to index.js constructor for test isolation. 18 CLI subprocess tests via Bun.spawn covering all commands, flags, error paths, and unknown command handling.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-codebase-memory/src/cli.mjs",
+          "packages/opencode-codebase-memory/src/index.js",
+          "packages/opencode-codebase-memory/test/cli.test.js"
+        ],
+        "timestamp": "2026-03-16T21:00:00Z"
+      },
+      {
+        "id": "codebase-memory-learning-pipeline-wiring-2026-03-16",
+        "summary": "Wired opencode-codebase-memory into learning pipeline and system health monitoring. (1) ingest-sessions.mjs: added enrichErrorContext call after processDelegationLog to enrich anti-pattern descriptions with symbol context from indexed repos. (2) system-health.mjs: added auditCodebaseMemory() function that loads CodebaseMemory, lists indexed repos, opens GraphStore for each repo to get node/edge stats, returns DORMANT if no repos indexed, HEALTHY if nodes>0, UNKNOWN if package unavailable (expected in Node.js context). Wired into main audit loop as 9th subsystem. (3) package.json: added 'codebase:analyze' script to run opencode-codebase CLI. All changes wrapped in try/catch for graceful degradation.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/ingest-sessions.mjs",
+          "scripts/system-health.mjs",
+          "package.json"
+        ],
+        "timestamp": "2026-03-16T20:52:00Z"
+      },
       {
         "id": "codebase-memory-main-class-2026-03-16",
         "summary": "Implemented CodebaseMemory main class with repo registry for opencode-codebase-memory. Configurable stateDir (constructor param) for test isolation. Methods: analyze() indexes repo via Indexer and registers in repos.json, query() FTS search across symbols, context() returns symbol node + callers/callees, impact() blast radius via recursive CTE, detectChanges() mtime-based change detection, enrichErrorContext() extracts symbol names from error text and looks up across repos, listRepos() enumerates all registered repos. Registry persists to {stateDir}/repos.json. 16 tests covering all methods including persistence, error handling, and edge cases.",
@@ -7964,6 +8008,12 @@
   "by_affected_path": {
     "packages/opencode-codebase-memory": [
       {
+        "id": "codebase-memory-cli-2026-03-16",
+        "summary": "Implemented CLI (cli.mjs) for opencode-codebase-memory with 8 commands: analyze, query, context, impact, detect-changes, list-repos, health, enrich-error. All output is JSON to stdout. Exits 0 on success, 1 on error with JSON error on stderr. Added CODEBASE_MEMORY_STATE_DIR env var support to index.js constructor for test isolation. 18 CLI subprocess tests via Bun.spawn covering all commands, flags, error paths, and unknown command handling.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T21:00:00Z"
+      },
+      {
         "id": "codebase-memory-main-class-2026-03-16",
         "summary": "Implemented CodebaseMemory main class with repo registry for opencode-codebase-memory. Configurable stateDir (constructor param) for test isolation. Methods: analyze() indexes repo via Indexer and registers in repos.json, query() FTS search across symbols, context() returns symbol node + callers/callees, impact() blast radius via recursive CTE, detectChanges() mtime-based change detection, enrichErrorContext() extracts symbol names from error text and looks up across repos, listRepos() enumerates all registered repos. Registry persists to {stateDir}/repos.json. 16 tests covering all methods including persistence, error handling, and edge cases.",
         "risk_level": "low",
@@ -7986,6 +8036,162 @@
         "summary": "Implemented GraphStore class for opencode-codebase-memory: SQLite-backed symbol/edge/file storage with FTS5 full-text search, recursive CTE blast radius analysis, WAL mode, and prepared statements. 6 tests covering schema init, CRUD, FTS search, transitive caller traversal, and file metadata.",
         "risk_level": "low",
         "timestamp": "2026-03-16T14:30:00Z"
+      }
+    ],
+    "scripts/ingest-sessions.mjs": [
+      {
+        "id": "codebase-memory-learning-pipeline-wiring-2026-03-16",
+        "summary": "Wired opencode-codebase-memory into learning pipeline and system health monitoring. (1) ingest-sessions.mjs: added enrichErrorContext call after processDelegationLog to enrich anti-pattern descriptions with symbol context from indexed repos. (2) system-health.mjs: added auditCodebaseMemory() function that loads CodebaseMemory, lists indexed repos, opens GraphStore for each repo to get node/edge stats, returns DORMANT if no repos indexed, HEALTHY if nodes>0, UNKNOWN if package unavailable (expected in Node.js context). Wired into main audit loop as 9th subsystem. (3) package.json: added 'codebase:analyze' script to run opencode-codebase CLI. All changes wrapped in try/catch for graceful degradation.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T20:52:00Z"
+      }
+    ],
+    "scripts/system-health.mjs": [
+      {
+        "id": "codebase-memory-learning-pipeline-wiring-2026-03-16",
+        "summary": "Wired opencode-codebase-memory into learning pipeline and system health monitoring. (1) ingest-sessions.mjs: added enrichErrorContext call after processDelegationLog to enrich anti-pattern descriptions with symbol context from indexed repos. (2) system-health.mjs: added auditCodebaseMemory() function that loads CodebaseMemory, lists indexed repos, opens GraphStore for each repo to get node/edge stats, returns DORMANT if no repos indexed, HEALTHY if nodes>0, UNKNOWN if package unavailable (expected in Node.js context). Wired into main audit loop as 9th subsystem. (3) package.json: added 'codebase:analyze' script to run opencode-codebase CLI. All changes wrapped in try/catch for graceful degradation.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T20:52:00Z"
+      }
+    ],
+    "package.json": [
+      {
+        "id": "codebase-memory-learning-pipeline-wiring-2026-03-16",
+        "summary": "Wired opencode-codebase-memory into learning pipeline and system health monitoring. (1) ingest-sessions.mjs: added enrichErrorContext call after processDelegationLog to enrich anti-pattern descriptions with symbol context from indexed repos. (2) system-health.mjs: added auditCodebaseMemory() function that loads CodebaseMemory, lists indexed repos, opens GraphStore for each repo to get node/edge stats, returns DORMANT if no repos indexed, HEALTHY if nodes>0, UNKNOWN if package unavailable (expected in Node.js context). Wired into main audit loop as 9th subsystem. (3) package.json: added 'codebase:analyze' script to run opencode-codebase CLI. All changes wrapped in try/catch for graceful degradation.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T20:52:00Z"
+      },
+      {
+        "id": "warning-budget-governance-2026-03-14",
+        "summary": "Created warning budget baseline and CI enforcement system. warning-baseline.json defines 5 intentional warning categories with regex patterns and maxCount thresholds. ci-warning-budget.mjs runs bun test, matches warnings against baseline, detects unknowns, supports --json and --update-baseline. Added to governance:check in package.json.",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "runtime-workflow-scenarios-20260312",
+        "summary": "Add a live runtime workflow scenario suite that exercises healthy and compressed execution paths, standalone touchpoints, and workflow persistence through the real runtime, and include it in the protocol compliance pass.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-12T16:45:00Z"
+      },
+      {
+        "id": "runtime-workflow-compliance-20260312",
+        "summary": "Add a runtime workflow compliance harness that exercises executeTaskWithEvidence end-to-end and validates DCP/context-budget/distill recommendations propagate into real execution.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-12T15:58:30Z"
+      },
+      {
+        "id": "protocol-compliance-pass-20260311",
+        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T21:20:00Z"
+      },
+      {
+        "id": "mcp-exercise-harness-20260310",
+        "summary": "Add an MCP exercise harness and top-level command that safely records smoke verification for local live MCPs without polluting real runtime usage telemetry.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T13:35:00-04:00"
+      },
+      {
+        "id": "workspace-package-smoke-runner-20260310",
+        "summary": "Add a workspace package smoke runner and top-level packages:smoke command so package entrypoint exercise becomes as discoverable as mcp:smoke.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:56:00-04:00"
+      },
+      {
+        "id": "mcp-smoke-harness-20260310",
+        "summary": "Add an MCP smoke harness and top-level package command so recent exercise coverage for live MCPs can be measured directly from telemetry after restarts.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:30:00-04:00"
+      },
+      {
+        "id": "mcp-report-command-entrypoint-20260310",
+        "summary": "Expose the generated MCP lifecycle report through a top-level `bun run mcp:report` command and document that entrypoint in setup instructions.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T01:47:00-04:00"
+      },
+      {
+        "id": "skills-manage-cli-20260308",
+        "summary": "Add skills-manage.mjs CLI for atomic skill management: list, add, enable, disable, audit, sync commands. Sync package.json with 7 new skills:* script entries.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave9-phase1-validation-20260308",
+        "summary": "Add meta-KB npm scripts (meta-kb:synthesize, meta-kb:drift, meta-kb:check) to root package.json. Phase 1 validated: synthesis produces 165 records, drift detects 7 issues, advise() includes meta_context with warnings/suggestions/conventions. All tests pass.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave8-setup-fixes-20260307",
+        "summary": "Setup script improvements: auto-load .env, set SHELL, fix PowerShell policy, non-strict verify; Bun version bump 1.3.9->1.3.10; remove dead import",
+        "risk_level": "low",
+        "timestamp": "2026-03-07T23:45:00Z"
+      },
+      {
+        "id": "strict-portability-setup-20260227",
+        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T22:30:00Z"
+      },
+      {
+        "id": "symbiotic-removal-and-config-hardening-20260222",
+        "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T16:45:00Z"
+      },
+      {
+        "id": "bun-1-3-9-upgrade-alignment-20260222",
+        "summary": "Upgrade repository Bun policy from 1.2.23 to 1.3.9 to align with post-Feb-2026 shell GC/use-after-free fix timeline and keep setup/verify/docs consistent.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T05:35:00Z"
+      },
+      {
+        "id": "bun-q-recovery-stabilization-20260221",
+        "summary": "Stabilize q recovery by pinning Bun 1.2.23, locking q entrypoint to Node, and skipping crash-prone cross-platform compile step by default.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-21T15:05:00-05:00"
+      },
+      {
+        "id": "integration-automation-20260218",
+        "summary": "Add automated integration verification system for packages, skills, plugins, and MCPs",
+        "risk_level": "medium",
+        "timestamp": "2026-02-18T23:00:00.000Z"
+      },
+      {
+        "id": "living-docs-governance-system-20260218",
+        "summary": "Add living-docs governance system with drift gate enforcement",
+        "risk_level": "medium",
+        "timestamp": "2026-02-18T18:00:00.000Z"
+      },
+      {
+        "id": "dashboard-autostart-wrapper-and-windows-launch-fix-20260216",
+        "summary": "Fixed dashboard launcher reliability on Windows and added opencode wrapper for guaranteed dashboard startup",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T02:40:00Z"
+      },
+      {
+        "id": "p2-hardening-policies-fallback-sse-20260216",
+        "summary": "Completed P2 hardening for policies validation, fallback reason typing, and SSE client cleanup",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T02:05:00Z"
+      },
+      {
+        "id": "skillrl-stabilization-and-api-regression-20260215",
+        "summary": "Stabilized SkillRL persistence and added API regression coverage for /api/rl and /api/skills",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T23:45:00Z"
+      },
+      {
+        "id": "weekly-model-sync-and-health-verification-20260215",
+        "summary": "Added weekly model sync automation and model catalog verification in health endpoint",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T22:45:00Z"
+      },
+      {
+        "id": "learning-2026-02-11-governance-bootstrap",
+        "summary": "Bootstrap governance controls for learning updates and deployment-state tracking.",
+        "risk_level": "low",
+        "timestamp": "2026-02-11T13:45:00-05:00"
       }
     ],
     "packages/opencode-model-manager": [
@@ -9628,140 +9834,6 @@
         "summary": "Created warning budget baseline and CI enforcement system. warning-baseline.json defines 5 intentional warning categories with regex patterns and maxCount thresholds. ci-warning-budget.mjs runs bun test, matches warnings against baseline, detects unknowns, supports --json and --update-baseline. Added to governance:check in package.json.",
         "risk_level": "low",
         "timestamp": "2026-03-14T00:00:00.000Z"
-      }
-    ],
-    "package.json": [
-      {
-        "id": "warning-budget-governance-2026-03-14",
-        "summary": "Created warning budget baseline and CI enforcement system. warning-baseline.json defines 5 intentional warning categories with regex patterns and maxCount thresholds. ci-warning-budget.mjs runs bun test, matches warnings against baseline, detects unknowns, supports --json and --update-baseline. Added to governance:check in package.json.",
-        "risk_level": "low",
-        "timestamp": "2026-03-14T00:00:00.000Z"
-      },
-      {
-        "id": "runtime-workflow-scenarios-20260312",
-        "summary": "Add a live runtime workflow scenario suite that exercises healthy and compressed execution paths, standalone touchpoints, and workflow persistence through the real runtime, and include it in the protocol compliance pass.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-12T16:45:00Z"
-      },
-      {
-        "id": "runtime-workflow-compliance-20260312",
-        "summary": "Add a runtime workflow compliance harness that exercises executeTaskWithEvidence end-to-end and validates DCP/context-budget/distill recommendations propagate into real execution.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-12T15:58:30Z"
-      },
-      {
-        "id": "protocol-compliance-pass-20260311",
-        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T21:20:00Z"
-      },
-      {
-        "id": "mcp-exercise-harness-20260310",
-        "summary": "Add an MCP exercise harness and top-level command that safely records smoke verification for local live MCPs without polluting real runtime usage telemetry.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T13:35:00-04:00"
-      },
-      {
-        "id": "workspace-package-smoke-runner-20260310",
-        "summary": "Add a workspace package smoke runner and top-level packages:smoke command so package entrypoint exercise becomes as discoverable as mcp:smoke.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:56:00-04:00"
-      },
-      {
-        "id": "mcp-smoke-harness-20260310",
-        "summary": "Add an MCP smoke harness and top-level package command so recent exercise coverage for live MCPs can be measured directly from telemetry after restarts.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:30:00-04:00"
-      },
-      {
-        "id": "mcp-report-command-entrypoint-20260310",
-        "summary": "Expose the generated MCP lifecycle report through a top-level `bun run mcp:report` command and document that entrypoint in setup instructions.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T01:47:00-04:00"
-      },
-      {
-        "id": "skills-manage-cli-20260308",
-        "summary": "Add skills-manage.mjs CLI for atomic skill management: list, add, enable, disable, audit, sync commands. Sync package.json with 7 new skills:* script entries.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave9-phase1-validation-20260308",
-        "summary": "Add meta-KB npm scripts (meta-kb:synthesize, meta-kb:drift, meta-kb:check) to root package.json. Phase 1 validated: synthesis produces 165 records, drift detects 7 issues, advise() includes meta_context with warnings/suggestions/conventions. All tests pass.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave8-setup-fixes-20260307",
-        "summary": "Setup script improvements: auto-load .env, set SHELL, fix PowerShell policy, non-strict verify; Bun version bump 1.3.9->1.3.10; remove dead import",
-        "risk_level": "low",
-        "timestamp": "2026-03-07T23:45:00Z"
-      },
-      {
-        "id": "strict-portability-setup-20260227",
-        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T22:30:00Z"
-      },
-      {
-        "id": "symbiotic-removal-and-config-hardening-20260222",
-        "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T16:45:00Z"
-      },
-      {
-        "id": "bun-1-3-9-upgrade-alignment-20260222",
-        "summary": "Upgrade repository Bun policy from 1.2.23 to 1.3.9 to align with post-Feb-2026 shell GC/use-after-free fix timeline and keep setup/verify/docs consistent.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T05:35:00Z"
-      },
-      {
-        "id": "bun-q-recovery-stabilization-20260221",
-        "summary": "Stabilize q recovery by pinning Bun 1.2.23, locking q entrypoint to Node, and skipping crash-prone cross-platform compile step by default.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-21T15:05:00-05:00"
-      },
-      {
-        "id": "integration-automation-20260218",
-        "summary": "Add automated integration verification system for packages, skills, plugins, and MCPs",
-        "risk_level": "medium",
-        "timestamp": "2026-02-18T23:00:00.000Z"
-      },
-      {
-        "id": "living-docs-governance-system-20260218",
-        "summary": "Add living-docs governance system with drift gate enforcement",
-        "risk_level": "medium",
-        "timestamp": "2026-02-18T18:00:00.000Z"
-      },
-      {
-        "id": "dashboard-autostart-wrapper-and-windows-launch-fix-20260216",
-        "summary": "Fixed dashboard launcher reliability on Windows and added opencode wrapper for guaranteed dashboard startup",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T02:40:00Z"
-      },
-      {
-        "id": "p2-hardening-policies-fallback-sse-20260216",
-        "summary": "Completed P2 hardening for policies validation, fallback reason typing, and SSE client cleanup",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T02:05:00Z"
-      },
-      {
-        "id": "skillrl-stabilization-and-api-regression-20260215",
-        "summary": "Stabilized SkillRL persistence and added API regression coverage for /api/rl and /api/skills",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T23:45:00Z"
-      },
-      {
-        "id": "weekly-model-sync-and-health-verification-20260215",
-        "summary": "Added weekly model sync automation and model catalog verification in health endpoint",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T22:45:00Z"
-      },
-      {
-        "id": "learning-2026-02-11-governance-bootstrap",
-        "summary": "Bootstrap governance controls for learning updates and deployment-state tracking.",
-        "risk_level": "low",
-        "timestamp": "2026-02-11T13:45:00-05:00"
       }
     ],
     "scripts/mcp-exercise-harness.mjs": [

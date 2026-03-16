@@ -22,6 +22,8 @@
     "runtime:workflow-scenarios": "node scripts/runtime-workflow-scenarios.mjs",
     "fix:bun-path": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { .\\scripts\\fix-bun-path.ps1 -PersistUser; node .\\scripts\\verify-setup.mjs }\"",
     "health": "node scripts/health-check.mjs",
+    "health:system": "node scripts/system-health.mjs",
+    "health:system:verbose": "node scripts/system-health.mjs --verbose",
     "integrity:check": "node scripts/integrity-guard.mjs",
     "config:coherence": "node scripts/validate-config-coherence.mjs",
     "models:validate": "node scripts/validate-models.mjs",
@@ -50,7 +52,8 @@
     "skills:sync": "node scripts/skills-manage.mjs sync",
     "meta-kb:synthesize": "node scripts/synthesize-meta-kb.mjs",
     "meta-kb:drift": "node scripts/check-agents-drift.mjs",
-    "meta-kb:check": "node scripts/synthesize-meta-kb.mjs && node scripts/check-agents-drift.mjs"
+    "meta-kb:check": "node scripts/synthesize-meta-kb.mjs && node scripts/check-agents-drift.mjs",
+    "codebase:analyze": "node packages/opencode-codebase-memory/src/cli.mjs analyze . --name opencode-setup"
   },
   "main": "index.js",
   "devDependencies": {},
