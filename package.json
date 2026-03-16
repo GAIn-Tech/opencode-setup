@@ -25,6 +25,7 @@
     "health:system": "node scripts/system-health.mjs",
     "health:system:verbose": "node scripts/system-health.mjs --verbose",
     "integrity:check": "node scripts/integrity-guard.mjs",
+    "config:migrate": "node scripts/migrate-central-config.mjs",
     "config:coherence": "node scripts/validate-config-coherence.mjs",
     "models:validate": "node scripts/validate-models.mjs",
     "ci:boundary": "node scripts/ci-boundary-enforce.mjs",

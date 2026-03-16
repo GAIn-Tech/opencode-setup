@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-03-16T21:38:56.414Z",
+  "generated_at": "2026-03-16T21:50:39.656Z",
   "schema_version": 1,
-  "total_records": 345,
+  "total_records": 346,
   "source_files": {
-    "learning_updates": 345,
+    "learning_updates": 346,
     "agents_md": 7
   },
   "by_category": {
@@ -1322,6 +1322,20 @@
           "packages/opencode-dashboard/src/app/api/models/route.ts"
         ],
         "timestamp": "2026-03-16T20:00:00Z"
+      },
+      {
+        "id": "central-config-dashboard-api-rollback-2026-03-16",
+        "summary": "Central config tasks 4-8: add ?view=raw to dashboard config API, expand migration script to read opencode.json and config.yaml, add rollback(targetVersion) and validateIntegrity(configPath) to central-config-state.js, update docs/central-config.md with raw endpoint and rollback sections.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/config/route.ts",
+          "packages/opencode-config-loader/src/central-config-state.js",
+          "packages/opencode-config-loader/src/index.js",
+          "scripts/migrate-central-config.mjs",
+          "docs/central-config.md",
+          "package.json"
+        ],
+        "timestamp": "2026-03-16T18:00:00Z"
       },
       {
         "id": "dashboard-auth-coverage-test-2026-03-16",
@@ -4270,6 +4284,20 @@
           "package.json"
         ],
         "timestamp": "2026-03-16T18:58:00.000Z"
+      },
+      {
+        "id": "central-config-dashboard-api-rollback-2026-03-16",
+        "summary": "Central config tasks 4-8: add ?view=raw to dashboard config API, expand migration script to read opencode.json and config.yaml, add rollback(targetVersion) and validateIntegrity(configPath) to central-config-state.js, update docs/central-config.md with raw endpoint and rollback sections.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/config/route.ts",
+          "packages/opencode-config-loader/src/central-config-state.js",
+          "packages/opencode-config-loader/src/index.js",
+          "scripts/migrate-central-config.mjs",
+          "docs/central-config.md",
+          "package.json"
+        ],
+        "timestamp": "2026-03-16T18:00:00Z"
       },
       {
         "id": "codebase-memory-indexer-2026-03-16",
@@ -8594,6 +8622,12 @@
         "timestamp": "2026-03-16T20:00:00Z"
       },
       {
+        "id": "central-config-dashboard-api-rollback-2026-03-16",
+        "summary": "Central config tasks 4-8: add ?view=raw to dashboard config API, expand migration script to read opencode.json and config.yaml, add rollback(targetVersion) and validateIntegrity(configPath) to central-config-state.js, update docs/central-config.md with raw endpoint and rollback sections.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T18:00:00Z"
+      },
+      {
         "id": "dashboard-reliability-fixes-2026-03-16",
         "summary": "Standardized error responses, fixed silent catch blocks, verified error boundaries and RBAC",
         "risk_level": "low",
@@ -9180,6 +9214,12 @@
         "timestamp": "2026-03-16T18:58:00.000Z"
       },
       {
+        "id": "central-config-dashboard-api-rollback-2026-03-16",
+        "summary": "Central config tasks 4-8: add ?view=raw to dashboard config API, expand migration script to read opencode.json and config.yaml, add rollback(targetVersion) and validateIntegrity(configPath) to central-config-state.js, update docs/central-config.md with raw endpoint and rollback sections.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T18:00:00Z"
+      },
+      {
         "id": "warning-budget-v2-enforcement-2026-03-16",
         "summary": "Rewrote warning budget baseline and CI enforcement. Baseline now uses object-keyed categories with max/description (was array-based). Script supports --capture (write baseline from test output) and --check (default, compare against baseline). Hardcoded 5 category regex patterns. Added warning:check and warning:capture scripts to package.json. Updated governance:check to use bun run warning:check.",
         "risk_level": "low",
@@ -9320,6 +9360,12 @@
     ],
     "packages/opencode-config-loader": [
       {
+        "id": "central-config-dashboard-api-rollback-2026-03-16",
+        "summary": "Central config tasks 4-8: add ?view=raw to dashboard config API, expand migration script to read opencode.json and config.yaml, add rollback(targetVersion) and validateIntegrity(configPath) to central-config-state.js, update docs/central-config.md with raw endpoint and rollback sections.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T18:00:00Z"
+      },
+      {
         "id": "central-config-loader-2026-03-16",
         "summary": "Rewrite central config loader with sync loadCentralConfig (manual field validation) and mergeCentralConfig returning {effective, diff, metadata} format. RL confidence threshold from central.rl.override_min_confidence, locked field protection, hard bound clamping. TDD: 8 tests RED→GREEN.",
         "risk_level": "low",
@@ -9378,6 +9424,34 @@
         "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
         "risk_level": "low",
         "timestamp": "2026-02-15T20:00:00Z"
+      }
+    ],
+    "scripts/migrate-central-config.mjs": [
+      {
+        "id": "central-config-dashboard-api-rollback-2026-03-16",
+        "summary": "Central config tasks 4-8: add ?view=raw to dashboard config API, expand migration script to read opencode.json and config.yaml, add rollback(targetVersion) and validateIntegrity(configPath) to central-config-state.js, update docs/central-config.md with raw endpoint and rollback sections.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T18:00:00Z"
+      },
+      {
+        "id": "central-config-foundation-20260223",
+        "summary": "Introduce central config schema/state machinery with migration tooling and setup verification so dashboard-managed policy can persist safely with recovery and audit support.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-23T23:20:00Z"
+      }
+    ],
+    "docs/central-config.md": [
+      {
+        "id": "central-config-dashboard-api-rollback-2026-03-16",
+        "summary": "Central config tasks 4-8: add ?view=raw to dashboard config API, expand migration script to read opencode.json and config.yaml, add rollback(targetVersion) and validateIntegrity(configPath) to central-config-state.js, update docs/central-config.md with raw endpoint and rollback sections.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T18:00:00Z"
+      },
+      {
+        "id": "orchestration-intelligence-foundation-20260224",
+        "summary": "Add orchestration intelligence foundation with meta-awareness telemetry, scoring, stability guardrails, dashboard APIs/UI, and central-config controls.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-24T22:10:00Z"
       }
     ],
     "scripts/tests": [
@@ -13562,14 +13636,6 @@
         "timestamp": "2026-02-15T22:00:00Z"
       }
     ],
-    "docs/central-config.md": [
-      {
-        "id": "orchestration-intelligence-foundation-20260224",
-        "summary": "Add orchestration intelligence foundation with meta-awareness telemetry, scoring, stability guardrails, dashboard APIs/UI, and central-config controls.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-24T22:10:00Z"
-      }
-    ],
     ".sisyphus/plans": [
       {
         "id": "model-manager-lifecycle-wave5-20260224",
@@ -13623,14 +13689,6 @@
       }
     ],
     "opencode-config/central-config.schema.json": [
-      {
-        "id": "central-config-foundation-20260223",
-        "summary": "Introduce central config schema/state machinery with migration tooling and setup verification so dashboard-managed policy can persist safely with recovery and audit support.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-23T23:20:00Z"
-      }
-    ],
-    "scripts/migrate-central-config.mjs": [
       {
         "id": "central-config-foundation-20260223",
         "summary": "Introduce central config schema/state machinery with migration tooling and setup verification so dashboard-managed policy can persist safely with recovery and audit support.",

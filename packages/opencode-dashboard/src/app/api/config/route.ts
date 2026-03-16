@@ -168,6 +168,13 @@ export async function GET(request: Request) {
       }
     }
 
+    // If view=raw, return only raw central-config JSON
+    if (view === 'raw') {
+      return NextResponse.json(redactSecrets({
+        centralConfig: configs.centralConfig
+      }));
+    }
+
     // If view=effective, return only effective config
     if (view === 'effective') {
       return NextResponse.json(redactSecrets({

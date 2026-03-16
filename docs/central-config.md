@@ -168,7 +168,10 @@ const timeout = effective.sections.routing.request_timeout_ms.value;
 # Get all configs (including centralConfig)
 GET /api/config
 
-# Get effective config only
+# Get raw central-config JSON only
+GET /api/config?view=raw
+
+# Get effective config only (merged with RL state)
 GET /api/config?view=effective
 
 # Save central config (with optimistic concurrency)
@@ -178,6 +181,7 @@ POST /api/config
   "data": { ... },
   "config_version": 1
 }
+# Returns 409 on version mismatch, 422 on schema validation failure
 ```
 
 ## Concurrency Control
@@ -227,21 +231,57 @@ node scripts/migrate-central-config.mjs --shadow
 node scripts/migrate-central-config.mjs
 ```
 
-## Rollback
+## Rollback and Recovery
 
-The system maintains snapshots for recovery:
+### Snapshot-based rollback
 
 ```javascript
 const { createSnapshot, restoreSnapshot, listSnapshots } = require('opencode-config-loader');
 
 // Create snapshot before risky change
-await createSnapshot('pre-experiment');
+await createSnapshot('pre-experiment', centralConfigPath);
 
 // List available snapshots
 const snapshots = await listSnapshots();
 
 // Restore if needed
-await restoreSnapshot('pre-experiment');
+await restoreSnapshot(snapshots[0].id, centralConfigPath);
+```
+
+### Version-based rollback (from audit log)
+
+Roll back to a specific `config_version` by replaying from the audit log:
+
+```javascript
+const { rollback } = require('./central-config-state');
+
+// Restore central-config.json to a previous version
+const result = await rollback(targetVersion, centralConfigPath);
+// result: { restored: true, version: targetVersion, timestamp }
+```
+
+### Corruption recovery
+
+Validate config integrity and auto-recover from corruption:
+
+```javascript
+const { validateIntegrity } = require('./central-config-state');
+
+// Check config for corruption (invalid JSON, NaN, null numerics, missing fields)
+const result = validateIntegrity(centralConfigPath);
+// result: { valid: true } or { valid: false, errors: [...] }
+```
+
+If corruption is detected, `loadWithRecovery(configPath)` automatically falls back to the most recent snapshot.
+
+### Reset from scratch
+
+```bash
+# Re-run migration to rebuild from source configs
+node scripts/migrate-central-config.mjs --force
+
+# Or restore from a named snapshot
+node -e "require('./packages/opencode-config-loader/src/central-config-state').restoreSnapshot('snapshot-id', 'opencode-config/central-config.json')"
 ```
 
 ## Best Practices

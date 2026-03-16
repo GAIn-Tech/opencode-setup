@@ -12,6 +12,8 @@ const {
 const {
   loadRlState,
   appendAuditEntry,
+  rollback,
+  validateIntegrity,
 } = require('./central-config-state');
 
 /**
@@ -316,6 +318,8 @@ module.exports = {
   mergeCentralConfig,
   loadRlState,
   appendAuditEntry,
+  rollback,
+  validateIntegrity,
   createOrchestrationId,
   pickSessionId,
   normalizeQuotaSignal,

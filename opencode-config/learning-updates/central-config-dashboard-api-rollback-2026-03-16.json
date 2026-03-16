@@ -1,0 +1,20 @@
+{
+  "id": "central-config-dashboard-api-rollback-2026-03-16",
+  "timestamp": "2026-03-16T18:00:00Z",
+  "summary": "Central config tasks 4-8: add ?view=raw to dashboard config API, expand migration script to read opencode.json and config.yaml, add rollback(targetVersion) and validateIntegrity(configPath) to central-config-state.js, update docs/central-config.md with raw endpoint and rollback sections.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/config/route.ts",
+    "packages/opencode-config-loader/src/central-config-state.js",
+    "packages/opencode-config-loader/src/index.js",
+    "scripts/migrate-central-config.mjs",
+    "docs/central-config.md",
+    "package.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "config-loader: 12 pass, 0 fail. dashboard: 104 pass, 15 fail (pre-existing). rollback() restores config from audit log entries. validateIntegrity() checks JSON validity, required fields, and finite numeric bounds."
+}
