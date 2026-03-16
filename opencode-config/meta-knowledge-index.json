@@ -1,13 +1,23 @@
 {
-  "generated_at": "2026-03-16T18:37:20.692Z",
+  "generated_at": "2026-03-16T18:43:10.214Z",
   "schema_version": 1,
-  "total_records": 331,
+  "total_records": 332,
   "source_files": {
-    "learning_updates": 331,
+    "learning_updates": 332,
     "agents_md": 7
   },
   "by_category": {
     "testing": [
+      {
+        "id": "codebase-memory-main-class-2026-03-16",
+        "summary": "Implemented CodebaseMemory main class with repo registry for opencode-codebase-memory. Configurable stateDir (constructor param) for test isolation. Methods: analyze() indexes repo via Indexer and registers in repos.json, query() FTS search across symbols, context() returns symbol node + callers/callees, impact() blast radius via recursive CTE, detectChanges() mtime-based change detection, enrichErrorContext() extracts symbol names from error text and looks up across repos, listRepos() enumerates all registered repos. Registry persists to {stateDir}/repos.json. 16 tests covering all methods including persistence, error handling, and edge cases.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-codebase-memory/src/index.js",
+          "packages/opencode-codebase-memory/test/index.test.js"
+        ],
+        "timestamp": "2026-03-16T20:00:00Z"
+      },
       {
         "id": "codebase-memory-indexer-2026-03-16",
         "summary": "Implemented Indexer class for opencode-codebase-memory with incremental change detection via SHA256 content hashing. Walks directory trees, skips IGNORE_DIRS (node_modules, .git, dist, etc.), indexes supported JS/TS files via parser, stores nodes/edges/files in GraphStore. Re-indexing unchanged files is skipped. 5 tests covering directory indexing, incremental skip, modified file re-index, IGNORE_DIRS filtering, and getStats.",
@@ -4019,6 +4029,16 @@
   "by_risk_level": {
     "low": [
       {
+        "id": "codebase-memory-main-class-2026-03-16",
+        "summary": "Implemented CodebaseMemory main class with repo registry for opencode-codebase-memory. Configurable stateDir (constructor param) for test isolation. Methods: analyze() indexes repo via Indexer and registers in repos.json, query() FTS search across symbols, context() returns symbol node + callers/callees, impact() blast radius via recursive CTE, detectChanges() mtime-based change detection, enrichErrorContext() extracts symbol names from error text and looks up across repos, listRepos() enumerates all registered repos. Registry persists to {stateDir}/repos.json. 16 tests covering all methods including persistence, error handling, and edge cases.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-codebase-memory/src/index.js",
+          "packages/opencode-codebase-memory/test/index.test.js"
+        ],
+        "timestamp": "2026-03-16T20:00:00Z"
+      },
+      {
         "id": "codebase-memory-indexer-2026-03-16",
         "summary": "Implemented Indexer class for opencode-codebase-memory with incremental change detection via SHA256 content hashing. Walks directory trees, skips IGNORE_DIRS (node_modules, .git, dist, etc.), indexes supported JS/TS files via parser, stores nodes/edges/files in GraphStore. Re-indexing unchanged files is skipped. 5 tests covering directory indexing, incremental skip, modified file re-index, IGNORE_DIRS filtering, and getStats.",
         "risk_level": "low",
@@ -7943,6 +7963,12 @@
   },
   "by_affected_path": {
     "packages/opencode-codebase-memory": [
+      {
+        "id": "codebase-memory-main-class-2026-03-16",
+        "summary": "Implemented CodebaseMemory main class with repo registry for opencode-codebase-memory. Configurable stateDir (constructor param) for test isolation. Methods: analyze() indexes repo via Indexer and registers in repos.json, query() FTS search across symbols, context() returns symbol node + callers/callees, impact() blast radius via recursive CTE, detectChanges() mtime-based change detection, enrichErrorContext() extracts symbol names from error text and looks up across repos, listRepos() enumerates all registered repos. Registry persists to {stateDir}/repos.json. 16 tests covering all methods including persistence, error handling, and edge cases.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T20:00:00Z"
+      },
       {
         "id": "codebase-memory-indexer-2026-03-16",
         "summary": "Implemented Indexer class for opencode-codebase-memory with incremental change detection via SHA256 content hashing. Walks directory trees, skips IGNORE_DIRS (node_modules, .git, dist, etc.), indexes supported JS/TS files via parser, stores nodes/edges/files in GraphStore. Re-indexing unchanged files is skipped. 5 tests covering directory indexing, incremental skip, modified file re-index, IGNORE_DIRS filtering, and getStats.",
