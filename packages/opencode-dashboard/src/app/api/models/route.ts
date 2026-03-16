@@ -67,10 +67,15 @@ function getRealModelUsage(): Record<string, any> | null {
 // POST: Save model policies (for UI editing)
 export async function POST(request: Request) {
   // Rate limiting
-  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? request.headers.get('x-real-ip') ?? 'unknown';
   const { rateLimit } = await import('../_lib/rate-limit');
-  if (!rateLimit(`write:${ip}`, 10, 60000)) {
-    return rateLimited();
+  const rateLimitResult = rateLimit(`write:${ip}`, 10, 60000);
+  if (!rateLimitResult.allowed) {
+    return rateLimited('Too many requests', {
+      limit: rateLimitResult.limit,
+      remaining: rateLimitResult.remaining,
+      resetAt: rateLimitResult.resetAt
+    });
   }
 
   const accessError = requireWriteAccess(request, 'models:write');
@@ -179,6 +184,175 @@ export async function GET() {
       fallbackConfig,
       realModelUsage
     });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function PUT(request: Request) {
+  // Rate limiting
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? request.headers.get('x-real-ip') ?? 'unknown';
+  const { rateLimit } = await import('../_lib/rate-limit');
+  const rateLimitResult = rateLimit(`write:${ip}`, 10, 60000);
+  if (!rateLimitResult.allowed) {
+    return rateLimited('Too many requests', {
+      limit: rateLimitResult.limit,
+      remaining: rateLimitResult.remaining,
+      resetAt: rateLimitResult.resetAt
+    });
+  }
+
+  const accessError = requireWriteAccess(request, 'models:write');
+  if (accessError) {
+    return accessError;
+  }
+
+  try {
+    const projectRoot = process.cwd().replace(/[\/\\]packages[\/\\]opencode-dashboard$/, '');
+    const policiesPath = path.join(projectRoot, 'packages', 'opencode-model-router-x', 'src', 'policies.json');
+    
+    const body = await request.json();
+    const { policies } = body;
+    const actor = getWriteActor(request);
+    
+    if (!policies) {
+      return NextResponse.json({ error: 'No policies provided' }, { status: 400 });
+    }
+    
+    let existingPolicies = {};
+    if (fs.existsSync(policiesPath)) {
+      try {
+        existingPolicies = JSON.parse(fs.readFileSync(policiesPath, 'utf-8'));
+      } catch (e) {
+        console.error('Failed to parse existing policies:', e);
+      }
+    }
+
+    const mergedPolicies = {
+      ...existingPolicies,
+      ...policies,
+    };
+    
+    await writeJsonAtomic(policiesPath, mergedPolicies);
+
+    await appendWriteAuditEntry({
+      route: '/api/models',
+      actor,
+      action: 'update-model-policies',
+      metadata: {
+        policiesPath,
+        sectionCount: Object.keys(policies || {}).length
+      }
+    });
+    
+    return NextResponse.json({ success: true, message: 'Policies updated' });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  // Rate limiting
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? request.headers.get('x-real-ip') ?? 'unknown';
+  const { rateLimit } = await import('../_lib/rate-limit');
+  const rateLimitResult = rateLimit(`write:${ip}`, 10, 60000);
+  if (!rateLimitResult.allowed) {
+    return rateLimited('Too many requests', {
+      limit: rateLimitResult.limit,
+      remaining: rateLimitResult.remaining,
+      resetAt: rateLimitResult.resetAt
+    });
+  }
+
+  const accessError = requireWriteAccess(request, 'models:write');
+  if (accessError) {
+    return accessError;
+  }
+
+  try {
+    const projectRoot = process.cwd().replace(/[\/\\]packages[\/\\]opencode-dashboard$/, '');
+    const policiesPath = path.join(projectRoot, 'packages', 'opencode-model-router-x', 'src', 'policies.json');
+    
+    const body = await request.json();
+    const { policies } = body;
+    const actor = getWriteActor(request);
+    
+    if (!policies) {
+      return NextResponse.json({ error: 'No policies provided' }, { status: 400 });
+    }
+    
+    let existingPolicies = {};
+    if (fs.existsSync(policiesPath)) {
+      try {
+        existingPolicies = JSON.parse(fs.readFileSync(policiesPath, 'utf-8'));
+      } catch (e) {
+        console.error('Failed to parse existing policies:', e);
+      }
+    }
+
+    const mergedPolicies = {
+      ...existingPolicies,
+      ...policies,
+    };
+    
+    await writeJsonAtomic(policiesPath, mergedPolicies);
+
+    await appendWriteAuditEntry({
+      route: '/api/models',
+      actor,
+      action: 'update-model-policies',
+      metadata: {
+        policiesPath,
+        sectionCount: Object.keys(policies || {}).length
+      }
+    });
+    
+    return NextResponse.json({ success: true, message: 'Policies patched' });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  // Rate limiting
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? request.headers.get('x-real-ip') ?? 'unknown';
+  const { rateLimit } = await import('../_lib/rate-limit');
+  const rateLimitResult = rateLimit(`write:${ip}`, 10, 60000);
+  if (!rateLimitResult.allowed) {
+    return rateLimited('Too many requests', {
+      limit: rateLimitResult.limit,
+      remaining: rateLimitResult.remaining,
+      resetAt: rateLimitResult.resetAt
+    });
+  }
+
+  const accessError = requireWriteAccess(request, 'models:write');
+  if (accessError) {
+    return accessError;
+  }
+
+  try {
+    const projectRoot = process.cwd().replace(/[\/\\]packages[\/\\]opencode-dashboard$/, '');
+    const policiesPath = path.join(projectRoot, 'packages', 'opencode-model-router-x', 'src', 'policies.json');
+    const actor = getWriteActor(request);
+    
+    if (fs.existsSync(policiesPath)) {
+      fs.unlinkSync(policiesPath);
+    }
+
+    await appendWriteAuditEntry({
+      route: '/api/models',
+      actor,
+      action: 'delete-model-policies',
+      metadata: {
+        policiesPath
+      }
+    });
+    
+    return NextResponse.json({ success: true, message: 'Policies deleted' });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 500 });

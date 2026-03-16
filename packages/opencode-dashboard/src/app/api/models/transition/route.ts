@@ -24,10 +24,15 @@ const getAuditLogger = () => {
 
 export async function POST(request: Request) {
   // Rate limiting
-  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? request.headers.get('x-real-ip') ?? 'unknown';
   const { rateLimit } = await import('../../_lib/rate-limit');
-  if (!rateLimit(`write:${ip}`, 10, 60000)) {
-    return rateLimited();
+  const rateLimitResult = rateLimit(`write:${ip}`, 10, 60000);
+  if (!rateLimitResult.allowed) {
+    return rateLimited('Too many requests', {
+      limit: rateLimitResult.limit,
+      remaining: rateLimitResult.remaining,
+      resetAt: rateLimitResult.resetAt
+    });
   }
 
   const accessError = requireWriteAccess(request, 'models:transition');

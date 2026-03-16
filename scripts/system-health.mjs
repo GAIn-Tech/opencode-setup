@@ -407,8 +407,8 @@ function auditToolTelemetry() {
   if (unknownCount > 20) {
     issues.push(`${unknownCount} invocations with unknown category/priority`);
   }
-  if (total >= 1000) {
-    issues.push('At cap (1000 entries) — oldest entries being overwritten');
+  if (total >= 5000) {
+    issues.push('At cap (5000 entries) — oldest entries being overwritten');
   }
 
   return {
@@ -543,51 +543,42 @@ function auditMemoryGraph() {
 }
 
 function auditCodebaseMemory() {
+  // bun:sqlite requires Bun runtime — spawn subprocess to avoid Node.js incompatibility
   try {
-    const { CodebaseMemory } = require(join(ROOT, 'packages', 'opencode-codebase-memory', 'src', 'index.js'));
-    const mem = new CodebaseMemory();
-    const repos = mem.listRepos();
+    const { execFileSync } = require('child_process');
+    const cliPath = join(ROOT, 'packages', 'opencode-codebase-memory', 'src', 'cli.mjs');
+    const raw = execFileSync('bun', [cliPath, 'health'], { encoding: 'utf-8', timeout: 15000 });
+    const repos = JSON.parse(raw);
 
-    if (repos.length === 0) {
+    if (!Array.isArray(repos) || repos.length === 0) {
       return {
         status: 'DORMANT',
-        summary: 'No indexed repositories — run: opencode-codebase analyze . --name opencode-setup',
-        metrics: {
-          repos_indexed: 0,
-          total_nodes: 0,
-          total_edges: 0,
-        },
-        issues: ['No repos indexed yet — codebase symbol graph unavailable for error enrichment'],
+        summary: 'No indexed repositories — run: bun run codebase:analyze',
+        metrics: { repos_indexed: 0, total_nodes: 0, total_edges: 0 },
+        issues: ['No repos indexed yet — run: bun run codebase:analyze'],
       };
     }
 
     let totalNodes = 0;
     let totalEdges = 0;
     const repoStats = [];
-
     for (const repo of repos) {
-      try {
-        const { GraphStore } = require(join(ROOT, 'packages', 'opencode-codebase-memory', 'src', 'graph-store.js'));
-        const store = new GraphStore(repo.dbPath);
-        const stats = store.getStats();
-        totalNodes += stats.nodes || 0;
-        totalEdges += stats.edges || 0;
-        repoStats.push(`${repo.name}(${stats.nodes || 0}n/${stats.edges || 0}e)`);
-        store.close();
-      } catch (_) {
-        // Non-fatal — repo may be corrupted
-      }
+      const n = repo.stats?.nodes || 0;
+      const e = repo.stats?.edges || 0;
+      totalNodes += n;
+      totalEdges += e;
+      repoStats.push(`${repo.name}(${n}n/${e}e)`);
     }
 
     const status = totalNodes > 0 ? 'HEALTHY' : 'WARNING';
     const issues = [];
     if (totalNodes === 0) {
-      issues.push('Repos indexed but no symbols extracted — run: opencode-codebase analyze . --name opencode-setup');
+      issues.push('Repos indexed but no symbols extracted — re-run: bun run codebase:analyze');
     }
 
     return {
       status,
-      summary: `${repos.length} repo(s) indexed | ${totalNodes} nodes, ${totalEdges} edges`,
+      summary: `${repos.length} repo(s) | ${totalNodes} nodes, ${totalEdges} edges`,
       metrics: {
         repos_indexed: repos.length,
         total_nodes: totalNodes,
@@ -599,7 +590,7 @@ function auditCodebaseMemory() {
   } catch (err) {
     return {
       status: 'UNKNOWN',
-      summary: 'codebase-memory package not available',
+      summary: 'codebase-memory unavailable (bun not in PATH or package missing)',
       metrics: {},
       issues: [`Failed to load: ${err.message}`],
     };

@@ -53,7 +53,7 @@
     "meta-kb:synthesize": "node scripts/synthesize-meta-kb.mjs",
     "meta-kb:drift": "node scripts/check-agents-drift.mjs",
     "meta-kb:check": "node scripts/synthesize-meta-kb.mjs && node scripts/check-agents-drift.mjs",
-    "codebase:analyze": "node packages/opencode-codebase-memory/src/cli.mjs analyze . --name opencode-setup"
+    "codebase:analyze": "bun packages/opencode-codebase-memory/src/cli.mjs analyze . --name opencode-setup"
   },
   "main": "index.js",
   "devDependencies": {},

@@ -1,12 +1,502 @@
 {
-  "generated_at": "2026-03-16T18:52:49.382Z",
+  "generated_at": "2026-03-16T19:34:22.913Z",
   "schema_version": 1,
-  "total_records": 334,
+  "total_records": 336,
   "source_files": {
-    "learning_updates": 334,
+    "learning_updates": 336,
     "agents_md": 7
   },
   "by_category": {
+    "routing": [
+      {
+        "id": "dashboard-rate-limiting-2026-03-16",
+        "summary": "Implemented rate limiting middleware for dashboard write API routes (debt-refinement-phase2 Task 3). Enhanced rate-limit.ts to return RateLimitResult interface with allowed, remaining, resetAt, limit fields. Updated api-response.ts rateLimited() to accept rate limit headers (X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset). Applied rate limiting to 3 write routes: config/route.ts (POST/PUT/PATCH/DELETE), models/route.ts (POST/PUT/PATCH/DELETE), models/transition/route.ts (POST). Rate limit: 10 requests per minute per IP. IP extraction from x-forwarded-for (first) or x-real-ip header. Returns 429 Too Many Requests with rate limit headers when limit exceeded. Added comprehensive rate-limit.test.ts with 10 unit tests (all passing). In-memory Map store with automatic cleanup every 60 seconds.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/_lib/rate-limit.ts",
+          "packages/opencode-dashboard/src/app/api/_lib/api-response.ts",
+          "packages/opencode-dashboard/src/app/api/config/route.ts",
+          "packages/opencode-dashboard/src/app/api/models/route.ts",
+          "packages/opencode-dashboard/src/app/api/models/transition/route.ts",
+          "packages/opencode-dashboard/test/rate-limit.test.ts"
+        ],
+        "timestamp": "2026-03-16T21:30:00Z"
+      },
+      {
+        "id": "dashboard-internal-runtime-observability-20260313",
+        "summary": "Expose internal runtime observability in the dashboard orchestration API and page, including bootstrap package status, context budget pressure, workflow hooks, model-router collaborators, and meta-awareness source state.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/orchestration/route.ts",
+          "packages/opencode-dashboard/src/app/orchestration/page.tsx",
+          "packages/opencode-dashboard/test/orchestration-route.test.ts",
+          "opencode-config/learning-updates/dashboard-internal-runtime-observability-20260313.json"
+        ],
+        "timestamp": "2026-03-13T00:05:00Z"
+      },
+      {
+        "id": "model-router-bootstrap-collaborators-20260312",
+        "summary": "Inject config-loader, feature-flags, and learning-engine into ModelRouter from IntegrationLayer bootstrap and verify those runtime collaborators are exposed in bootstrap wiring tests.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-integration-layer/src/bootstrap.js",
+          "packages/opencode-integration-layer/tests/model-router-wiring.test.js",
+          "opencode-config/learning-updates/model-router-bootstrap-collaborators-20260312.json"
+        ],
+        "timestamp": "2026-03-12T21:40:00Z"
+      },
+      {
+        "id": "model-router-wiring-20260312",
+        "summary": "Wire model-router-x into bootstrap for orchestrated model selection with injected skillRLManager and fallbackDoctor",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-integration-layer/src/bootstrap.js",
+          "packages/opencode-integration-layer/tests/model-router-wiring.test.js"
+        ],
+        "timestamp": "2026-03-12T03:30:00.000Z"
+      },
+      {
+        "id": "circuit-breaker-dep-fix-20260311",
+        "summary": "Re-add circuit-breaker workspace dep to model-router-x that was incorrectly removed as phantom. The @jackoatmon/ scoped and ../../ relative path import patterns were missed by audit grep.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-router-x/package.json"
+        ],
+        "timestamp": "2026-03-12T01:20:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "bun.lock",
+          "integration-tests/critical-plugin-contracts.test.js",
+          "mcp-servers/tool-manifest.json",
+          "opencode-config/.governance-hashes.json",
+          "opencode-config/opencode.json",
+          "opencode-config/skills/registry.json",
+          "opencode-config/tool-tiers.json",
+          "packages/opencode-integration-layer/src/index.js",
+          "packages/opencode-integration-layer/tests/entourage-v2.test.js",
+          "packages/opencode-integration-layer/tests/entourage.test.js",
+          "packages/opencode-integration-layer/tests/rotator-synergy.test.js",
+          "packages/opencode-model-router-x/package.json",
+          "packages/opencode-model-router-x/src/index.js",
+          "packages/opencode-plugin-preload-skills/package.json",
+          "packages/opencode-plugin-preload-skills/src/index.js",
+          "packages/opencode-plugin-preload-skills/test/mcp-selection.test.js",
+          "packages/opencode-plugin-preload-skills/test/routing-seeds.test.js",
+          "packages/opencode-sisyphus-state/package.json",
+          "scripts/generate-mcp-config.mjs",
+          "scripts/mcp-exercise-harness.mjs",
+          "scripts/mcp-smoke-harness.mjs",
+          "scripts/report-mcp-lifecycle.mjs",
+          "scripts/run-distill-mcp.mjs",
+          "scripts/runtime-tool-surface-proof.mjs",
+          "scripts/runtime-tool-telemetry.mjs",
+          "scripts/tests/distill-wrapper.test.js",
+          "scripts/tests/generate-mcp-config.test.js",
+          "scripts/tests/mcp-exercise-harness.test.js",
+          "scripts/tests/mcp-inventory-regression.test.js",
+          "scripts/tests/mcp-lifecycle-report.test.js",
+          "scripts/tests/mcp-smoke-harness.test.js",
+          "scripts/tests/package-smoke-runner.test.js",
+          "scripts/tests/runtime-tool-surface-proof.test.js",
+          "scripts/tests/runtime-tool-telemetry.test.js"
+        ],
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "package-wiring-cleanup-20260311",
+        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-memory-bus/",
+          "packages/opencode-goraphdb-bridge/",
+          "packages/opencode-shared-orchestration/",
+          "packages/opencode-model-sync/",
+          "packages/opencode-integration-layer/",
+          "packages/opencode-config-loader/",
+          "packages/opencode-model-router-x/",
+          "packages/opencode-test-utils/",
+          "scripts/generate-mcp-config.mjs",
+          "scripts/bootstrap-runtime.mjs",
+          "integration-tests/"
+        ],
+        "timestamp": "2026-03-11T20:20:00Z"
+      },
+      {
+        "id": "preload-mcp-tool-expansion-20260310",
+        "summary": "Expand abstract MCP selections in the preload-skills plugin into actual callable tool IDs so implicit routing can point at invocable runtime tools instead of server-name hints.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-plugin-preload-skills/src/index.js",
+          "packages/opencode-plugin-preload-skills/test/mcp-selection.test.js",
+          "packages/opencode-plugin-preload-skills/test/routing-seeds.test.js"
+        ],
+        "timestamp": "2026-03-10T14:20:00-04:00"
+      },
+      {
+        "id": "implicit-routing-patterns-20260310",
+        "summary": "Tune the tool-tier routing manifest so library/API questions implicitly surface Context7 and codebase audit prompts implicitly surface codebase-auditor without explicit user naming.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/tool-tiers.json"
+        ],
+        "timestamp": "2026-03-10T13:20:00-04:00"
+      },
+      {
+        "id": "wave10-capability-routing-tracing",
+        "summary": "Add MODEL_CAPABILITIES registry and filterByCapabilities() pre-filter to tier-router for capability-based model selection (vision, tools, reasoning, large_context). Add AgentTracer class to opencode-logger for high-level execution tracing (task dispatch, model selection, skill loading) with Langfuse and structured log output.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-model-router-x/src/tier-router.js",
+          "packages/opencode-logger/src/index.js"
+        ],
+        "timestamp": "2026-03-08T22:51:00Z"
+      },
+      {
+        "id": "wave10-t17-benchmark-cost-tests",
+        "summary": "Add 17 tests for benchmark bonus (T12) and cost-efficiency scoring (T13) in isolation pattern. Tests cover: bonus range, unknown models, cap enforcement, monotonicity, provider coverage, cost ordering, and integration bounds.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-router-x/test/benchmark-cost-scoring.test.js"
+        ],
+        "timestamp": "2026-03-08T19:25:00Z"
+      },
+      {
+        "id": "wave11-t19-startup-instrumentation",
+        "summary": "Add performance.now() startup time instrumentation to IntegrationLayer, ModelRouter, and LearningEngine constructors. Logs [Startup] ComponentName: Xms on initialization.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-integration-layer/src/index.js",
+          "packages/opencode-model-router-x/src/index.js",
+          "packages/opencode-learning-engine/src/index.js"
+        ],
+        "timestamp": "2026-03-08T19:25:00Z"
+      },
+      {
+        "id": "wave10-t12-t13-benchmark-cost-scoring",
+        "summary": "Add benchmark bonus scoring (T12) and cost-efficiency factor (T13) to ModelRouter._scoreModel(). BENCHMARK_SCORES registry with HumanEval/MBPP pass@1 for 16 models. _applyBenchmarkBonus() gives 0-0.15 supplementary bonus. _applyCostEfficiency() uses TokenCostCalculator pricing for 0-0.05 cost bonus. Neither changes existing scoring weights.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-model-router-x/src/index.js"
+        ],
+        "timestamp": "2026-03-08T19:20:00Z"
+      },
+      {
+        "id": "wave8-readme-infra-packages-20260308",
+        "summary": "Add README.md to five infrastructure packages that had none: opencode-backup-manager, opencode-circuit-breaker, opencode-dashboard-launcher, opencode-errors, opencode-safe-io. Completes Wave 8C task 8 for the infrastructure tier.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-backup-manager",
+          "packages/opencode-circuit-breaker",
+          "packages/opencode-dashboard-launcher",
+          "packages/opencode-errors",
+          "packages/opencode-safe-io"
+        ],
+        "timestamp": "2026-03-08T00:15:00Z"
+      },
+      {
+        "id": "skill-routing-hardening-wave2-20260227",
+        "summary": "Medium-priority skill routing hardening: --full-report mode for gate runner, fixture schema validation in evaluator, expanded DEFAULT_TASKS covering browser/git/code-review/meta domains, learning update for governance compliance",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/run-skill-routing-gates.mjs",
+          "scripts/skill-routing-evaluator.mjs",
+          "scripts/skill-routing-thresholds.json",
+          "scripts/tests/skill-hierarchical-routing.test.js",
+          "opencode-config/learning-updates/"
+        ],
+        "timestamp": "2026-02-27T12:00:00Z"
+      },
+      {
+        "id": "skill-routing-hardening-wave3-20260227",
+        "summary": "Harden hierarchical routing no-match semantics and conflict validation safety checks",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/skill-profile-loader.mjs",
+          "scripts/tests/skill-hierarchical-routing.test.js"
+        ],
+        "timestamp": "2026-02-27T06:20:00Z"
+      },
+      {
+        "id": "skill-routing-governance-gates-20260227",
+        "summary": "Add overlap governance checks, gate runner, byzantine fixtures, and rollout documentation for skill routing",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/check-skill-overlap-governance.mjs",
+          "scripts/run-skill-routing-gates.mjs",
+          "scripts/evals/skill-routing-byzantine-fixtures.json",
+          "docs/skills/OVERVIEW.md",
+          "docs/skills/CREATING-SKILLS.md",
+          "docs/skills/COMPOSITION.md",
+          "docs/plans/2026-02-27-skill-selection-architecture-upgrade.md",
+          ".sisyphus/evidence/skill-routing-governance/release-summary.md"
+        ],
+        "timestamp": "2026-02-27T04:40:00Z"
+      },
+      {
+        "id": "skill-routing-architecture-upgrade-20260227",
+        "summary": "Introduce hierarchical skill routing metadata, overlap governance, and quality gates for skill selection",
+        "risk_level": "medium",
+        "affected_paths": [
+          "opencode-config/skills/registry.json",
+          "opencode-config/skills/registry.schema.json",
+          "scripts/skill-profile-loader.mjs",
+          "scripts/skill-routing-evaluator.mjs",
+          "scripts/skill-routing-thresholds.json",
+          "scripts/check-skill-overlap-governance.mjs",
+          "scripts/run-skill-routing-gates.mjs",
+          "scripts/evals/skill-routing-byzantine-fixtures.json",
+          "docs/skills/OVERVIEW.md",
+          "docs/skills/CREATING-SKILLS.md",
+          "docs/skills/COMPOSITION.md",
+          "packages/opencode-learning-engine/src/orchestration-advisor.js"
+        ],
+        "timestamp": "2026-02-27T04:35:00Z"
+      },
+      {
+        "id": "workspace-deps-standardization-20260225",
+        "summary": "Standardized all internal workspace dependencies to use workspace:* spec instead of file: references. Updated opencode-integration-layer peerDependencies and restored opencode-model-router-x dependencies with proper workspace resolution.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-integration-layer/package.json",
+          "packages/opencode-model-router-x/package.json"
+        ],
+        "timestamp": "2026-02-25T16:30:00Z"
+      },
+      {
+        "id": "json-parse-migration-20260225",
+        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-feature-flags/src/index.js",
+          "packages/opencode-plugin-lifecycle/src/index.js",
+          "packages/opencode-model-router-x/src/thompson-sampling-router.js",
+          "packages/opencode-model-router-x/src/dynamic-exploration-controller.js",
+          "packages/opencode-learning-engine/src/meta-awareness-tracker.js",
+          "packages/opencode-learning-engine/src/tool-usage-tracker.js",
+          "packages/opencode-learning-engine/src/positive-patterns.js",
+          "packages/opencode-plugin-healthd/src/checks.js",
+          "packages/opencode-proofcheck/src/checks.js",
+          "packages/opencode-runbooks/src/remedies.js",
+          "packages/opencode-plugin-preload-skills/src/tier-resolver.js",
+          "packages/opencode-dashboard-launcher/src/index.js",
+          "packages/opencode-safe-io/test/index.test.js"
+        ],
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "zen-model-restoration-and-dashboard-loader-fix-20260224",
+        "summary": "Restore Zen GLM-5/Kimi K2.5 aliases across config catalogs and fix dashboard API module resolution to remove build warnings.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "opencode-config/models/catalog-2026.json",
+          "opencode-config/opencode.json",
+          "opencode-config/rate-limit-fallback.json",
+          "packages/opencode-dashboard/src/app/api/config/route.ts",
+          "packages/opencode-dashboard/src/app/api/learning/route.ts",
+          "packages/opencode-model-router-x/src/policies.json",
+          "rate-limit-fallback.json"
+        ],
+        "timestamp": "2026-02-24T22:50:00Z"
+      },
+      {
+        "id": "orchestration-intelligence-foundation-20260224",
+        "summary": "Add orchestration intelligence foundation with meta-awareness telemetry, scoring, stability guardrails, dashboard APIs/UI, and central-config controls.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "docs/central-config.md",
+          "docs/plans/2026-02-23-orchestration-intelligence-design.md",
+          "opencode-config/central-config.json",
+          "packages/opencode-dashboard/src/app/api/orchestration/correlation/route.ts",
+          "packages/opencode-dashboard/src/app/api/orchestration/forensics/route.ts",
+          "packages/opencode-dashboard/src/app/api/orchestration/meta-awareness/route.ts",
+          "packages/opencode-dashboard/src/app/api/orchestration/meta-awareness/timeline/route.ts",
+          "packages/opencode-dashboard/src/app/api/orchestration/stability/route.ts",
+          "packages/opencode-dashboard/src/app/orchestration/intelligence/page.tsx",
+          "packages/opencode-dashboard/src/components/Sidebar.tsx",
+          "packages/opencode-dashboard/src/lib/meta-awareness.ts",
+          "packages/opencode-learning-engine/src/index.js",
+          "packages/opencode-learning-engine/src/meta-awareness-rollups.js",
+          "packages/opencode-learning-engine/src/meta-awareness-rules.js",
+          "packages/opencode-learning-engine/src/meta-awareness-stability.js",
+          "packages/opencode-learning-engine/src/meta-awareness-tracker.js",
+          "packages/opencode-learning-engine/src/tool-usage-tracker.js",
+          "packages/opencode-model-router-x/src/index.js"
+        ],
+        "timestamp": "2026-02-24T22:10:00Z"
+      },
+      {
+        "id": "model-discovery-all-providers-fail-20260224",
+        "summary": "Detect and surface when all providers fail in ModelDiscovery.pollOnce() instead of silently returning stale cache",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-router-x/src/model-discovery.js"
+        ],
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "model-management-wave2-20260224",
+        "summary": "Wave 2: Discovery Engine & Caching - Resilient model discovery with two-tier caching and circuit breaker protection",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-manager/src/discovery/discovery-engine.js",
+          "packages/opencode-model-manager/src/cache/cache-layer.js",
+          "packages/opencode-model-manager/src/circuit-breaker/circuit-breaker.js",
+          "packages/opencode-model-manager/test/discovery/discovery-engine.test.ts",
+          "packages/opencode-model-manager/test/cache/cache-layer.test.ts",
+          "packages/opencode-model-manager/test/circuit-breaker/circuit-breaker.test.ts",
+          ".sisyphus/plans/model-management-protocol.md"
+        ],
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "resilient-routing-components-20260223",
+        "summary": "Add resilient subagent routing components and antigravity model mappings with dedicated tests and design plan coverage.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "docs/plans/2026-02-23-resilient-subagent-routing.md",
+          "opencode-config/learning-updates/resilient-routing-components-20260223.json",
+          "opencode-config/oh-my-opencode.json",
+          "packages/opencode-model-router-x/src/model-alias-resolver.js",
+          "packages/opencode-model-router-x/src/response-validator.js",
+          "packages/opencode-model-router-x/src/subagent-retry-manager.js",
+          "packages/opencode-model-router-x/test/model-alias-resolver.test.js",
+          "packages/opencode-model-router-x/test/response-validator.test.js",
+          "packages/opencode-model-router-x/test/subagent-retry-manager.test.js"
+        ],
+        "timestamp": "2026-02-23T23:24:00Z"
+      },
+      {
+        "id": "audit-hardening-20260223",
+        "summary": "Comprehensive audit hardening: timeouts, path resolver, strict schema/env checks, goraphdb retries, health check classification",
+        "risk_level": "medium",
+        "affected_paths": [
+          "scripts/api-sanity.mjs",
+          "scripts/verify-setup.mjs",
+          "packages/opencode-model-router-x/src/model-discovery.js",
+          "packages/opencode-model-router-x/src/model-comprehension-memory.js",
+          "packages/opencode-model-router-x/package.json",
+          "packages/opencode-config-loader/src/index.js",
+          "packages/opencode-config-loader/src/paths.js",
+          "packages/opencode-goraphdb-bridge/src/client.js",
+          "packages/opencode-graphdb-bridge/src/client.js",
+          "packages/opencode-health-check/src/index.js"
+        ],
+        "timestamp": "2026-02-23T17:38:39Z"
+      },
+      {
+        "id": "model-routing-and-environment-hardening-2-22-2026",
+        "summary": "Further harden model routing and environment configuration with post-mid-2025 policy alignment, resiliency improvements, and Symbiotic reference cleanup.",
+        "risk_level": "low",
+        "affected_paths": [
+          "README.md",
+          "setup-instructions.md",
+          "opencode-config/models/catalog-2026.json",
+          "opencode-config/opencode.json",
+          "opencode-config/oh-my-opencode.json",
+          "opencode-config/rate-limit-fallback.json",
+          "packages/opencode-model-router-x/src/model-discovery.js",
+          "packages/opencode-model-router-x/src/policies.json",
+          "packages/opencode-model-router-x/src/strategies/fallback-layer-strategy.js",
+          "packages/opencode-model-router-x/src/thompson-sampling-router.js",
+          "rate-limit-fallback.json",
+          "scripts/copy-config.mjs",
+          "scripts/health-check.mjs",
+          "scripts/install-git-hooks.mjs",
+          "scripts/resolve-root.mjs",
+          "scripts/smoke-pipeline.mjs",
+          "scripts/sync-model-ids.js",
+          "scripts/validate-config-coherence.mjs",
+          "scripts/validate-fallback-consistency.mjs",
+          "scripts/validate-models.mjs"
+        ],
+        "timestamp": "2026-02-22T17:30:00Z"
+      },
+      {
+        "id": "frontier-control-plane-foundation-20260222",
+        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/frontier-status/route.ts",
+          "packages/opencode-dashboard/src/app/api/orchestration/route.ts",
+          "packages/opencode-dashboard/src/app/api/orchestration/policy-sim/route.ts",
+          "packages/opencode-dashboard/src/app/api/plugin-supervisor/route.ts",
+          "packages/opencode-dashboard/src/app/api/policy-review/route.ts",
+          "packages/opencode-dashboard/src/app/api/retrieval-quality/route.ts",
+          "packages/opencode-dashboard/src/app/orchestration/page.tsx",
+          "packages/opencode-model-benchmark/src/*",
+          "packages/opencode-model-router-x/src/*",
+          "packages/opencode-plugin-lifecycle/src/index.js",
+          "packages/opencode-feature-flags/src/index.js",
+          "scripts/evals/*",
+          "scripts/frontier/*",
+          "scripts/fault/*",
+          "scripts/perf/*",
+          "scripts/replay/*",
+          "scripts/security/*",
+          "scripts/ops/*",
+          "scripts/governance/*",
+          "opencode-config/skills/*"
+        ],
+        "timestamp": "2026-02-22T03:55:00Z"
+      },
+      {
+        "id": "quota-routing-providerid-fix-20260216",
+        "summary": "Fixed provider ID normalization in quota-aware routing",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-sisyphus-state/src/integrations/quota-routing.js"
+        ],
+        "timestamp": "2026-02-16T00:52:00Z"
+      },
+      {
+        "id": "rotator-sync-contract-fix-20260216",
+        "summary": "Fixed key rotator/model router contract mismatch by restoring synchronous key selection",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-router-x/src/key-rotator.js"
+        ],
+        "timestamp": "2026-02-16T00:40:00Z"
+      },
+      {
+        "id": "model-validation-critical-fixes-20260215",
+        "summary": "Fixed critical model issues, provider key rotation race conditions, and added model catalog validation groundwork.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-model-router-x/src/key-rotator.js",
+          "packages/opencode-model-router-x/src/key-rotator-factory.js",
+          "packages/opencode-model-router-x/src/index.js",
+          "packages/opencode-model-router-x/src/strategies/token-cost-calculator.js",
+          "packages/opencode-model-router-x/src/strategies/fallback-layer-strategy.js",
+          "packages/opencode-dashboard/src/app/api/providers/route.ts",
+          "rate-limit-fallback.json"
+        ],
+        "timestamp": "2026-02-15T22:00:00Z"
+      },
+      {
+        "id": "dashboards-full-implementation-20260215",
+        "summary": "Complete dashboard implementation with all 6 roadmap features: SkillsRL APIs stabilized, Knowledge Graph interactive with React Flow, provider status unified tracking, ConfigViewer with Zod forms editors, Models 10x6 routing matrix UI, fresh-machine smoke pipeline.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/rl/",
+          "packages/opencode-dashboard/src/app/api/skills/route.ts",
+          "packages/opencode-dashboard/src/app/api/learning/route.ts",
+          "packages/opencode-dashboard/src/app/api/status/",
+          "packages/opencode-dashboard/src/components/dashboard/InteractiveKnowledgeGraph.tsx",
+          "packages/opencode-dashboard/src/components/dashboard/ConfigViewer.tsx",
+          "packages/opencode-dashboard/src/app/models/page.tsx",
+          "packages/opencode-dashboard/src/lib/provider-status-store.ts",
+          "scripts/smoke-pipeline.mjs",
+          "scripts/api-sanity.mjs",
+          "packages/opencode-plugin-preload-skills/",
+          "opencode-config/tool-tiers.json"
+        ],
+        "timestamp": "2026-02-15T21:00:00Z"
+      }
+    ],
     "testing": [
       {
         "id": "codebase-memory-cli-2026-03-16",
@@ -563,6 +1053,285 @@
           "packages/opencode-learning-engine/test/meta-kb-integration.test.js"
         ],
         "timestamp": "2026-03-08T00:00:00Z"
+      }
+    ],
+    "telemetry": [
+      {
+        "id": "system-health-codebase-memory-2026-03-16",
+        "summary": "Fixed system-health.mjs to spawn bun subprocess for codebase-memory check (avoids bun:sqlite incompatibility with Node.js). Updated telemetry cap threshold from 1000 to 5000. Fixed package.json codebase:analyze script to use bun instead of node. System health now 100% (18/18).",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/system-health.mjs",
+          "package.json"
+        ],
+        "timestamp": "2026-03-16T18:58:00.000Z"
+      },
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "affected_paths": [
+          "mcp-servers/tool-manifest.json",
+          "opencode-config/.governance-hashes.json",
+          "opencode-config/meta-knowledge-index.json",
+          "opencode-config/opencode.json",
+          "opencode-config/skills/registry.json",
+          "opencode-config/tool-tiers.json",
+          "scripts/generate-mcp-config.mjs",
+          "scripts/mcp-exercise-harness.mjs",
+          "scripts/mcp-smoke-harness.mjs",
+          "scripts/report-mcp-lifecycle.mjs",
+          "scripts/run-distill-mcp.mjs",
+          "scripts/runtime-tool-surface-proof.mjs",
+          "scripts/runtime-tool-telemetry.mjs",
+          "scripts/tests/distill-wrapper.test.js",
+          "scripts/tests/generate-mcp-config.test.js",
+          "scripts/tests/mcp-exercise-harness.test.js",
+          "scripts/tests/mcp-inventory-regression.test.js",
+          "scripts/tests/mcp-lifecycle-report.test.js",
+          "scripts/tests/mcp-smoke-harness.test.js",
+          "scripts/tests/package-smoke-runner.test.js",
+          "scripts/tests/runtime-tool-surface-proof.test.js",
+          "scripts/tests/runtime-tool-telemetry.test.js"
+        ],
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "mcp-smoke-verified-status-20260310",
+        "summary": "Extend the MCP smoke report to surface smoke-verified status separately from recent runtime telemetry so cold-but-live MCPs can be proven exerciseable without faking usage.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/mcp-smoke-harness.mjs",
+          "scripts/tests/mcp-smoke-harness.test.js"
+        ],
+        "timestamp": "2026-03-10T13:36:00-04:00"
+      },
+      {
+        "id": "mcp-exercise-harness-20260310",
+        "summary": "Add an MCP exercise harness and top-level command that safely records smoke verification for local live MCPs without polluting real runtime usage telemetry.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/mcp-exercise-harness.mjs",
+          "package.json"
+        ],
+        "timestamp": "2026-03-10T13:35:00-04:00"
+      },
+      {
+        "id": "mcp-smoke-harness-20260310",
+        "summary": "Add an MCP smoke harness and top-level package command so recent exercise coverage for live MCPs can be measured directly from telemetry after restarts.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "scripts/mcp-smoke-harness.mjs",
+          "scripts/tests/mcp-smoke-harness.test.js",
+          "package.json",
+          "setup-instructions.md"
+        ],
+        "timestamp": "2026-03-10T12:30:00-04:00"
+      },
+      {
+        "id": "runtime-telemetry-session-isolation-20260310",
+        "summary": "Isolate missing or invalid runtime telemetry session IDs so bad hook payloads do not collapse multiple calls into a shared unknown budget file.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "scripts/runtime-tool-telemetry.mjs",
+          "scripts/tests/runtime-tool-telemetry.test.js"
+        ],
+        "timestamp": "2026-03-10T12:16:00-04:00"
+      },
+      {
+        "id": "mcp-report-input-warnings-20260310",
+        "summary": "Warn when the MCP lifecycle report falls back from unreadable telemetry/config inputs so missing or corrupt data does not silently flatten usage visibility.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/report-mcp-lifecycle.mjs",
+          "scripts/tests/mcp-lifecycle-report.test.js"
+        ],
+        "timestamp": "2026-03-10T12:15:00-04:00"
+      },
+      {
+        "id": "mcp-lifecycle-report-generator-20260310",
+        "summary": "Add a generated MCP lifecycle report script that classifies current servers from canonical config, wiring evidence, and runtime telemetry and writes a report artifact under .sisyphus/reports/.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/report-mcp-lifecycle.mjs"
+        ],
+        "timestamp": "2026-03-10T01:40:00-04:00"
+      },
+      {
+        "id": "runtime-mcp-telemetry-coverage-20260310",
+        "summary": "Extend runtime MCP telemetry so Supermemory mode-specific calls and GitHub grep searches are recorded with canonical tool identities, and mirror those identities in the learning-engine catalog.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "scripts/runtime-tool-telemetry.mjs",
+          "scripts/tests/runtime-tool-telemetry.test.js",
+          "packages/opencode-learning-engine/src/tool-usage-tracker.js"
+        ],
+        "timestamp": "2026-03-10T00:32:00-04:00"
+      },
+      {
+        "id": "context7-failure-telemetry-20260309",
+        "summary": "Refine runtime Context7 telemetry so explicit error and unresolved signals are recorded as failed lookups in shared monitoring history.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/runtime-tool-telemetry.mjs",
+          "scripts/tests/runtime-tool-telemetry.test.js"
+        ],
+        "timestamp": "2026-03-09T23:05:00-04:00"
+      },
+      {
+        "id": "runtime-telemetry-docs-20260309",
+        "summary": "Document runtime telemetry hook architecture in AGENTS.md: hook config path, data flow, PascalCase reverse mapping, and silent-exit contract",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/AGENTS.md"
+        ],
+        "timestamp": "2026-03-10T02:04:14.897Z"
+      },
+      {
+        "id": "runtime-tool-telemetry-hook-20260309",
+        "summary": "Add PostToolUse runtime hook script that bridges oh-my-opencode tool.execute.after events into the learning-engine invocations.json, enabling MCP tool_affinities to accumulate from real runtime usage",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/runtime-tool-telemetry.mjs",
+          "scripts/tests/runtime-tool-telemetry.test.js"
+        ],
+        "timestamp": "2026-03-10T02:04:06.915Z"
+      },
+      {
+        "id": "runtime-hook-budget-tests-20260309",
+        "summary": "Add 10 tests for PostToolUse hook budget tracking and distill indicators. Covers session budget state creation, token accumulation, threshold warnings (50%/65%/80%), warning deduplication, distill_run_tool metric capture, distill_browse_tools pipeline listing, and distill event persistence.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/tests/runtime-tool-telemetry.test.js"
+        ],
+        "timestamp": "2026-03-09T12:35:00Z"
+      },
+      {
+        "id": "runtime-hook-budget-indicators-20260309",
+        "summary": "Enhance PostToolUse runtime hook with session budget tracking and distill CLI indicators. Adds per-session token estimation, budget threshold warnings at 50%/65%/80% emitted to stderr, and distill compression metric capture (tokens_before/after, savings ratio, pipeline list). Session state persisted at ~/.opencode/tool-usage/sessions/{session_id}-budget.json.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/runtime-tool-telemetry.mjs"
+        ],
+        "timestamp": "2026-03-09T12:30:00Z"
+      },
+      {
+        "id": "architectural-constraints-docs-20260309",
+        "summary": "Document known architectural constraints: local/ gitignore drift affecting MCP telemetry params, and the new MCP → SkillRL affinity bridge data flow.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/AGENTS.md"
+        ],
+        "timestamp": "2026-03-09T04:55:00Z"
+      },
+      {
+        "id": "wave11-t16-t17-compression-context7-metrics",
+        "summary": "Add distill compression tracking (recordCompression, getCompressionStats) and Context7 lookup tracking (recordContext7Lookup, getContext7Stats) to PipelineMetricsCollector with SQLite persistence tables",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-manager/src/monitoring/metrics-collector.js"
+        ],
+        "timestamp": "2026-03-08T19:15:00Z"
+      },
+      {
+        "id": "telemetry-pass2-hardening-20260227",
+        "summary": "Pass 2 addendum: hardened telemetry pipeline with canonical tool name normalization, MCP invocation depth upgrade, runtime parity verification, E2E contract tests, session key contract fix, health check config alignment, and context management completeness check.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-learning-engine/src/tool-usage-tracker.js",
+          "packages/opencode-plugin-healthd/src/checks.js",
+          "packages/opencode-plugin-healthd/src/index.js",
+          "packages/opencode-plugin-healthd/test/config-aware.test.js",
+          "integration-tests/telemetry-contract.test.js",
+          "integration-tests/session-key-contract.test.js",
+          "scripts/verify-plugin-parity.mjs"
+        ],
+        "timestamp": "2026-02-27T12:45:00Z"
+      },
+      {
+        "id": "tool-usage-tracker-logInvocation-export-20260227",
+        "summary": "Export logInvocation from tool-usage-tracker and add missing readJsonAsync/initAsync helpers. logInvocation was fully implemented but not exported in module.exports, making it dead code. readJsonAsync and initAsync were called inside logInvocation but never defined in the file or imported from opencode-safe-io. Added minimal implementations of both helpers. This change is the foundation for Task 2–4 of context-distill-tracking-fixes plan: wire MCP tool telemetry into the tracking pipeline.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-learning-engine/src/tool-usage-tracker.js"
+        ],
+        "timestamp": "2026-02-27T00:00:00Z"
+      },
+      {
+        "id": "model-manager-alert-writequeue-bounds-20260225",
+        "summary": "Added maxHistorySize cap to AlertManager and maxPendingWrites backpressure to AuditLogger writeQueue",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-manager/src/monitoring/alert-manager.js",
+          "packages/opencode-model-manager/src/lifecycle/audit-logger.js",
+          "packages/opencode-model-manager/test/monitoring/alert-manager.test.ts",
+          "packages/opencode-model-manager/test/lifecycle/audit-logger.test.ts"
+        ],
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "model-manager-bounded-arrays-20260225",
+        "summary": "Added maxEvents cap with FIFO eviction to PipelineMetricsCollector event arrays",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-manager/src/monitoring/metrics-collector.js",
+          "packages/opencode-model-manager/test/monitoring/pipeline-metrics-collector.test.ts"
+        ],
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "orphan-module-wiring-20260225",
+        "summary": "Wire orphan modules: getSchedulerTelemetry + tool-usage-tracker export",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-health-check/src/index.js",
+          "packages/opencode-health-check/test/scheduler-telemetry.test.js",
+          "packages/opencode-learning-engine/src/index.js"
+        ],
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "learning-engine-jsonl-rotation-20260224",
+        "summary": "Added JSONL rotation to MetaAwarenessTracker._appendEvent() to prevent unbounded telemetry file growth",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-learning-engine/src/meta-awareness-tracker.js",
+          "packages/opencode-learning-engine/test/meta-awareness.test.js"
+        ],
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "model-manager-assessment-wave4-20260224",
+        "summary": "Implement Wave 4 assessment infrastructure for automated model management: model assessor with real benchmark execution (HumanEval, MBPP, latency) and metrics collector for 4-pillar metrics (accuracy, latency, cost, robustness) with SQLite persistence and z-score normalization.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-manager/src/assessment/model-assessor.js",
+          "packages/opencode-model-manager/src/metrics/metrics-collector.js",
+          "packages/opencode-model-manager/test/assessment/model-assessor.test.ts",
+          "packages/opencode-model-manager/test/metrics/metrics-collector.test.ts",
+          ".sisyphus/plans/model-management-protocol.md"
+        ],
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "provider-cache-metrics-and-fallback-reason-tests-20260216",
+        "summary": "Added provider probe cache metrics visibility and fallback-reason regression coverage",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/providers/route.ts",
+          "packages/opencode-dashboard/src/components/dashboard/ProviderHealth.tsx",
+          "packages/opencode-skill-rl-manager/tests/selection.test.js"
+        ],
+        "timestamp": "2026-02-16T02:20:00Z"
+      },
+      {
+        "id": "provider-probe-cache-backoff-20260216",
+        "summary": "Added in-memory cache/backoff for provider health probes",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/providers/route.ts"
+        ],
+        "timestamp": "2026-02-16T01:35:00Z"
       }
     ],
     "type-safety": [
@@ -2282,482 +3051,6 @@
         "timestamp": "2026-02-15T22:20:00Z"
       }
     ],
-    "routing": [
-      {
-        "id": "dashboard-internal-runtime-observability-20260313",
-        "summary": "Expose internal runtime observability in the dashboard orchestration API and page, including bootstrap package status, context budget pressure, workflow hooks, model-router collaborators, and meta-awareness source state.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/orchestration/route.ts",
-          "packages/opencode-dashboard/src/app/orchestration/page.tsx",
-          "packages/opencode-dashboard/test/orchestration-route.test.ts",
-          "opencode-config/learning-updates/dashboard-internal-runtime-observability-20260313.json"
-        ],
-        "timestamp": "2026-03-13T00:05:00Z"
-      },
-      {
-        "id": "model-router-bootstrap-collaborators-20260312",
-        "summary": "Inject config-loader, feature-flags, and learning-engine into ModelRouter from IntegrationLayer bootstrap and verify those runtime collaborators are exposed in bootstrap wiring tests.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-integration-layer/src/bootstrap.js",
-          "packages/opencode-integration-layer/tests/model-router-wiring.test.js",
-          "opencode-config/learning-updates/model-router-bootstrap-collaborators-20260312.json"
-        ],
-        "timestamp": "2026-03-12T21:40:00Z"
-      },
-      {
-        "id": "model-router-wiring-20260312",
-        "summary": "Wire model-router-x into bootstrap for orchestrated model selection with injected skillRLManager and fallbackDoctor",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-integration-layer/src/bootstrap.js",
-          "packages/opencode-integration-layer/tests/model-router-wiring.test.js"
-        ],
-        "timestamp": "2026-03-12T03:30:00.000Z"
-      },
-      {
-        "id": "circuit-breaker-dep-fix-20260311",
-        "summary": "Re-add circuit-breaker workspace dep to model-router-x that was incorrectly removed as phantom. The @jackoatmon/ scoped and ../../ relative path import patterns were missed by audit grep.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-router-x/package.json"
-        ],
-        "timestamp": "2026-03-12T01:20:00Z"
-      },
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "bun.lock",
-          "integration-tests/critical-plugin-contracts.test.js",
-          "mcp-servers/tool-manifest.json",
-          "opencode-config/.governance-hashes.json",
-          "opencode-config/opencode.json",
-          "opencode-config/skills/registry.json",
-          "opencode-config/tool-tiers.json",
-          "packages/opencode-integration-layer/src/index.js",
-          "packages/opencode-integration-layer/tests/entourage-v2.test.js",
-          "packages/opencode-integration-layer/tests/entourage.test.js",
-          "packages/opencode-integration-layer/tests/rotator-synergy.test.js",
-          "packages/opencode-model-router-x/package.json",
-          "packages/opencode-model-router-x/src/index.js",
-          "packages/opencode-plugin-preload-skills/package.json",
-          "packages/opencode-plugin-preload-skills/src/index.js",
-          "packages/opencode-plugin-preload-skills/test/mcp-selection.test.js",
-          "packages/opencode-plugin-preload-skills/test/routing-seeds.test.js",
-          "packages/opencode-sisyphus-state/package.json",
-          "scripts/generate-mcp-config.mjs",
-          "scripts/mcp-exercise-harness.mjs",
-          "scripts/mcp-smoke-harness.mjs",
-          "scripts/report-mcp-lifecycle.mjs",
-          "scripts/run-distill-mcp.mjs",
-          "scripts/runtime-tool-surface-proof.mjs",
-          "scripts/runtime-tool-telemetry.mjs",
-          "scripts/tests/distill-wrapper.test.js",
-          "scripts/tests/generate-mcp-config.test.js",
-          "scripts/tests/mcp-exercise-harness.test.js",
-          "scripts/tests/mcp-inventory-regression.test.js",
-          "scripts/tests/mcp-lifecycle-report.test.js",
-          "scripts/tests/mcp-smoke-harness.test.js",
-          "scripts/tests/package-smoke-runner.test.js",
-          "scripts/tests/runtime-tool-surface-proof.test.js",
-          "scripts/tests/runtime-tool-telemetry.test.js"
-        ],
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "package-wiring-cleanup-20260311",
-        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-memory-bus/",
-          "packages/opencode-goraphdb-bridge/",
-          "packages/opencode-shared-orchestration/",
-          "packages/opencode-model-sync/",
-          "packages/opencode-integration-layer/",
-          "packages/opencode-config-loader/",
-          "packages/opencode-model-router-x/",
-          "packages/opencode-test-utils/",
-          "scripts/generate-mcp-config.mjs",
-          "scripts/bootstrap-runtime.mjs",
-          "integration-tests/"
-        ],
-        "timestamp": "2026-03-11T20:20:00Z"
-      },
-      {
-        "id": "preload-mcp-tool-expansion-20260310",
-        "summary": "Expand abstract MCP selections in the preload-skills plugin into actual callable tool IDs so implicit routing can point at invocable runtime tools instead of server-name hints.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-plugin-preload-skills/src/index.js",
-          "packages/opencode-plugin-preload-skills/test/mcp-selection.test.js",
-          "packages/opencode-plugin-preload-skills/test/routing-seeds.test.js"
-        ],
-        "timestamp": "2026-03-10T14:20:00-04:00"
-      },
-      {
-        "id": "implicit-routing-patterns-20260310",
-        "summary": "Tune the tool-tier routing manifest so library/API questions implicitly surface Context7 and codebase audit prompts implicitly surface codebase-auditor without explicit user naming.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/tool-tiers.json"
-        ],
-        "timestamp": "2026-03-10T13:20:00-04:00"
-      },
-      {
-        "id": "wave10-capability-routing-tracing",
-        "summary": "Add MODEL_CAPABILITIES registry and filterByCapabilities() pre-filter to tier-router for capability-based model selection (vision, tools, reasoning, large_context). Add AgentTracer class to opencode-logger for high-level execution tracing (task dispatch, model selection, skill loading) with Langfuse and structured log output.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-model-router-x/src/tier-router.js",
-          "packages/opencode-logger/src/index.js"
-        ],
-        "timestamp": "2026-03-08T22:51:00Z"
-      },
-      {
-        "id": "wave10-t17-benchmark-cost-tests",
-        "summary": "Add 17 tests for benchmark bonus (T12) and cost-efficiency scoring (T13) in isolation pattern. Tests cover: bonus range, unknown models, cap enforcement, monotonicity, provider coverage, cost ordering, and integration bounds.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-router-x/test/benchmark-cost-scoring.test.js"
-        ],
-        "timestamp": "2026-03-08T19:25:00Z"
-      },
-      {
-        "id": "wave11-t19-startup-instrumentation",
-        "summary": "Add performance.now() startup time instrumentation to IntegrationLayer, ModelRouter, and LearningEngine constructors. Logs [Startup] ComponentName: Xms on initialization.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-integration-layer/src/index.js",
-          "packages/opencode-model-router-x/src/index.js",
-          "packages/opencode-learning-engine/src/index.js"
-        ],
-        "timestamp": "2026-03-08T19:25:00Z"
-      },
-      {
-        "id": "wave10-t12-t13-benchmark-cost-scoring",
-        "summary": "Add benchmark bonus scoring (T12) and cost-efficiency factor (T13) to ModelRouter._scoreModel(). BENCHMARK_SCORES registry with HumanEval/MBPP pass@1 for 16 models. _applyBenchmarkBonus() gives 0-0.15 supplementary bonus. _applyCostEfficiency() uses TokenCostCalculator pricing for 0-0.05 cost bonus. Neither changes existing scoring weights.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-model-router-x/src/index.js"
-        ],
-        "timestamp": "2026-03-08T19:20:00Z"
-      },
-      {
-        "id": "wave8-readme-infra-packages-20260308",
-        "summary": "Add README.md to five infrastructure packages that had none: opencode-backup-manager, opencode-circuit-breaker, opencode-dashboard-launcher, opencode-errors, opencode-safe-io. Completes Wave 8C task 8 for the infrastructure tier.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-backup-manager",
-          "packages/opencode-circuit-breaker",
-          "packages/opencode-dashboard-launcher",
-          "packages/opencode-errors",
-          "packages/opencode-safe-io"
-        ],
-        "timestamp": "2026-03-08T00:15:00Z"
-      },
-      {
-        "id": "skill-routing-hardening-wave2-20260227",
-        "summary": "Medium-priority skill routing hardening: --full-report mode for gate runner, fixture schema validation in evaluator, expanded DEFAULT_TASKS covering browser/git/code-review/meta domains, learning update for governance compliance",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/run-skill-routing-gates.mjs",
-          "scripts/skill-routing-evaluator.mjs",
-          "scripts/skill-routing-thresholds.json",
-          "scripts/tests/skill-hierarchical-routing.test.js",
-          "opencode-config/learning-updates/"
-        ],
-        "timestamp": "2026-02-27T12:00:00Z"
-      },
-      {
-        "id": "skill-routing-hardening-wave3-20260227",
-        "summary": "Harden hierarchical routing no-match semantics and conflict validation safety checks",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/skill-profile-loader.mjs",
-          "scripts/tests/skill-hierarchical-routing.test.js"
-        ],
-        "timestamp": "2026-02-27T06:20:00Z"
-      },
-      {
-        "id": "skill-routing-governance-gates-20260227",
-        "summary": "Add overlap governance checks, gate runner, byzantine fixtures, and rollout documentation for skill routing",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/check-skill-overlap-governance.mjs",
-          "scripts/run-skill-routing-gates.mjs",
-          "scripts/evals/skill-routing-byzantine-fixtures.json",
-          "docs/skills/OVERVIEW.md",
-          "docs/skills/CREATING-SKILLS.md",
-          "docs/skills/COMPOSITION.md",
-          "docs/plans/2026-02-27-skill-selection-architecture-upgrade.md",
-          ".sisyphus/evidence/skill-routing-governance/release-summary.md"
-        ],
-        "timestamp": "2026-02-27T04:40:00Z"
-      },
-      {
-        "id": "skill-routing-architecture-upgrade-20260227",
-        "summary": "Introduce hierarchical skill routing metadata, overlap governance, and quality gates for skill selection",
-        "risk_level": "medium",
-        "affected_paths": [
-          "opencode-config/skills/registry.json",
-          "opencode-config/skills/registry.schema.json",
-          "scripts/skill-profile-loader.mjs",
-          "scripts/skill-routing-evaluator.mjs",
-          "scripts/skill-routing-thresholds.json",
-          "scripts/check-skill-overlap-governance.mjs",
-          "scripts/run-skill-routing-gates.mjs",
-          "scripts/evals/skill-routing-byzantine-fixtures.json",
-          "docs/skills/OVERVIEW.md",
-          "docs/skills/CREATING-SKILLS.md",
-          "docs/skills/COMPOSITION.md",
-          "packages/opencode-learning-engine/src/orchestration-advisor.js"
-        ],
-        "timestamp": "2026-02-27T04:35:00Z"
-      },
-      {
-        "id": "workspace-deps-standardization-20260225",
-        "summary": "Standardized all internal workspace dependencies to use workspace:* spec instead of file: references. Updated opencode-integration-layer peerDependencies and restored opencode-model-router-x dependencies with proper workspace resolution.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-integration-layer/package.json",
-          "packages/opencode-model-router-x/package.json"
-        ],
-        "timestamp": "2026-02-25T16:30:00Z"
-      },
-      {
-        "id": "json-parse-migration-20260225",
-        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-feature-flags/src/index.js",
-          "packages/opencode-plugin-lifecycle/src/index.js",
-          "packages/opencode-model-router-x/src/thompson-sampling-router.js",
-          "packages/opencode-model-router-x/src/dynamic-exploration-controller.js",
-          "packages/opencode-learning-engine/src/meta-awareness-tracker.js",
-          "packages/opencode-learning-engine/src/tool-usage-tracker.js",
-          "packages/opencode-learning-engine/src/positive-patterns.js",
-          "packages/opencode-plugin-healthd/src/checks.js",
-          "packages/opencode-proofcheck/src/checks.js",
-          "packages/opencode-runbooks/src/remedies.js",
-          "packages/opencode-plugin-preload-skills/src/tier-resolver.js",
-          "packages/opencode-dashboard-launcher/src/index.js",
-          "packages/opencode-safe-io/test/index.test.js"
-        ],
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "zen-model-restoration-and-dashboard-loader-fix-20260224",
-        "summary": "Restore Zen GLM-5/Kimi K2.5 aliases across config catalogs and fix dashboard API module resolution to remove build warnings.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "opencode-config/models/catalog-2026.json",
-          "opencode-config/opencode.json",
-          "opencode-config/rate-limit-fallback.json",
-          "packages/opencode-dashboard/src/app/api/config/route.ts",
-          "packages/opencode-dashboard/src/app/api/learning/route.ts",
-          "packages/opencode-model-router-x/src/policies.json",
-          "rate-limit-fallback.json"
-        ],
-        "timestamp": "2026-02-24T22:50:00Z"
-      },
-      {
-        "id": "orchestration-intelligence-foundation-20260224",
-        "summary": "Add orchestration intelligence foundation with meta-awareness telemetry, scoring, stability guardrails, dashboard APIs/UI, and central-config controls.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "docs/central-config.md",
-          "docs/plans/2026-02-23-orchestration-intelligence-design.md",
-          "opencode-config/central-config.json",
-          "packages/opencode-dashboard/src/app/api/orchestration/correlation/route.ts",
-          "packages/opencode-dashboard/src/app/api/orchestration/forensics/route.ts",
-          "packages/opencode-dashboard/src/app/api/orchestration/meta-awareness/route.ts",
-          "packages/opencode-dashboard/src/app/api/orchestration/meta-awareness/timeline/route.ts",
-          "packages/opencode-dashboard/src/app/api/orchestration/stability/route.ts",
-          "packages/opencode-dashboard/src/app/orchestration/intelligence/page.tsx",
-          "packages/opencode-dashboard/src/components/Sidebar.tsx",
-          "packages/opencode-dashboard/src/lib/meta-awareness.ts",
-          "packages/opencode-learning-engine/src/index.js",
-          "packages/opencode-learning-engine/src/meta-awareness-rollups.js",
-          "packages/opencode-learning-engine/src/meta-awareness-rules.js",
-          "packages/opencode-learning-engine/src/meta-awareness-stability.js",
-          "packages/opencode-learning-engine/src/meta-awareness-tracker.js",
-          "packages/opencode-learning-engine/src/tool-usage-tracker.js",
-          "packages/opencode-model-router-x/src/index.js"
-        ],
-        "timestamp": "2026-02-24T22:10:00Z"
-      },
-      {
-        "id": "model-discovery-all-providers-fail-20260224",
-        "summary": "Detect and surface when all providers fail in ModelDiscovery.pollOnce() instead of silently returning stale cache",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-router-x/src/model-discovery.js"
-        ],
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "model-management-wave2-20260224",
-        "summary": "Wave 2: Discovery Engine & Caching - Resilient model discovery with two-tier caching and circuit breaker protection",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-manager/src/discovery/discovery-engine.js",
-          "packages/opencode-model-manager/src/cache/cache-layer.js",
-          "packages/opencode-model-manager/src/circuit-breaker/circuit-breaker.js",
-          "packages/opencode-model-manager/test/discovery/discovery-engine.test.ts",
-          "packages/opencode-model-manager/test/cache/cache-layer.test.ts",
-          "packages/opencode-model-manager/test/circuit-breaker/circuit-breaker.test.ts",
-          ".sisyphus/plans/model-management-protocol.md"
-        ],
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "resilient-routing-components-20260223",
-        "summary": "Add resilient subagent routing components and antigravity model mappings with dedicated tests and design plan coverage.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "docs/plans/2026-02-23-resilient-subagent-routing.md",
-          "opencode-config/learning-updates/resilient-routing-components-20260223.json",
-          "opencode-config/oh-my-opencode.json",
-          "packages/opencode-model-router-x/src/model-alias-resolver.js",
-          "packages/opencode-model-router-x/src/response-validator.js",
-          "packages/opencode-model-router-x/src/subagent-retry-manager.js",
-          "packages/opencode-model-router-x/test/model-alias-resolver.test.js",
-          "packages/opencode-model-router-x/test/response-validator.test.js",
-          "packages/opencode-model-router-x/test/subagent-retry-manager.test.js"
-        ],
-        "timestamp": "2026-02-23T23:24:00Z"
-      },
-      {
-        "id": "audit-hardening-20260223",
-        "summary": "Comprehensive audit hardening: timeouts, path resolver, strict schema/env checks, goraphdb retries, health check classification",
-        "risk_level": "medium",
-        "affected_paths": [
-          "scripts/api-sanity.mjs",
-          "scripts/verify-setup.mjs",
-          "packages/opencode-model-router-x/src/model-discovery.js",
-          "packages/opencode-model-router-x/src/model-comprehension-memory.js",
-          "packages/opencode-model-router-x/package.json",
-          "packages/opencode-config-loader/src/index.js",
-          "packages/opencode-config-loader/src/paths.js",
-          "packages/opencode-goraphdb-bridge/src/client.js",
-          "packages/opencode-graphdb-bridge/src/client.js",
-          "packages/opencode-health-check/src/index.js"
-        ],
-        "timestamp": "2026-02-23T17:38:39Z"
-      },
-      {
-        "id": "model-routing-and-environment-hardening-2-22-2026",
-        "summary": "Further harden model routing and environment configuration with post-mid-2025 policy alignment, resiliency improvements, and Symbiotic reference cleanup.",
-        "risk_level": "low",
-        "affected_paths": [
-          "README.md",
-          "setup-instructions.md",
-          "opencode-config/models/catalog-2026.json",
-          "opencode-config/opencode.json",
-          "opencode-config/oh-my-opencode.json",
-          "opencode-config/rate-limit-fallback.json",
-          "packages/opencode-model-router-x/src/model-discovery.js",
-          "packages/opencode-model-router-x/src/policies.json",
-          "packages/opencode-model-router-x/src/strategies/fallback-layer-strategy.js",
-          "packages/opencode-model-router-x/src/thompson-sampling-router.js",
-          "rate-limit-fallback.json",
-          "scripts/copy-config.mjs",
-          "scripts/health-check.mjs",
-          "scripts/install-git-hooks.mjs",
-          "scripts/resolve-root.mjs",
-          "scripts/smoke-pipeline.mjs",
-          "scripts/sync-model-ids.js",
-          "scripts/validate-config-coherence.mjs",
-          "scripts/validate-fallback-consistency.mjs",
-          "scripts/validate-models.mjs"
-        ],
-        "timestamp": "2026-02-22T17:30:00Z"
-      },
-      {
-        "id": "frontier-control-plane-foundation-20260222",
-        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/frontier-status/route.ts",
-          "packages/opencode-dashboard/src/app/api/orchestration/route.ts",
-          "packages/opencode-dashboard/src/app/api/orchestration/policy-sim/route.ts",
-          "packages/opencode-dashboard/src/app/api/plugin-supervisor/route.ts",
-          "packages/opencode-dashboard/src/app/api/policy-review/route.ts",
-          "packages/opencode-dashboard/src/app/api/retrieval-quality/route.ts",
-          "packages/opencode-dashboard/src/app/orchestration/page.tsx",
-          "packages/opencode-model-benchmark/src/*",
-          "packages/opencode-model-router-x/src/*",
-          "packages/opencode-plugin-lifecycle/src/index.js",
-          "packages/opencode-feature-flags/src/index.js",
-          "scripts/evals/*",
-          "scripts/frontier/*",
-          "scripts/fault/*",
-          "scripts/perf/*",
-          "scripts/replay/*",
-          "scripts/security/*",
-          "scripts/ops/*",
-          "scripts/governance/*",
-          "opencode-config/skills/*"
-        ],
-        "timestamp": "2026-02-22T03:55:00Z"
-      },
-      {
-        "id": "quota-routing-providerid-fix-20260216",
-        "summary": "Fixed provider ID normalization in quota-aware routing",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-sisyphus-state/src/integrations/quota-routing.js"
-        ],
-        "timestamp": "2026-02-16T00:52:00Z"
-      },
-      {
-        "id": "rotator-sync-contract-fix-20260216",
-        "summary": "Fixed key rotator/model router contract mismatch by restoring synchronous key selection",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-router-x/src/key-rotator.js"
-        ],
-        "timestamp": "2026-02-16T00:40:00Z"
-      },
-      {
-        "id": "model-validation-critical-fixes-20260215",
-        "summary": "Fixed critical model issues, provider key rotation race conditions, and added model catalog validation groundwork.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-model-router-x/src/key-rotator.js",
-          "packages/opencode-model-router-x/src/key-rotator-factory.js",
-          "packages/opencode-model-router-x/src/index.js",
-          "packages/opencode-model-router-x/src/strategies/token-cost-calculator.js",
-          "packages/opencode-model-router-x/src/strategies/fallback-layer-strategy.js",
-          "packages/opencode-dashboard/src/app/api/providers/route.ts",
-          "rate-limit-fallback.json"
-        ],
-        "timestamp": "2026-02-15T22:00:00Z"
-      },
-      {
-        "id": "dashboards-full-implementation-20260215",
-        "summary": "Complete dashboard implementation with all 6 roadmap features: SkillsRL APIs stabilized, Knowledge Graph interactive with React Flow, provider status unified tracking, ConfigViewer with Zod forms editors, Models 10x6 routing matrix UI, fresh-machine smoke pipeline.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/rl/",
-          "packages/opencode-dashboard/src/app/api/skills/route.ts",
-          "packages/opencode-dashboard/src/app/api/learning/route.ts",
-          "packages/opencode-dashboard/src/app/api/status/",
-          "packages/opencode-dashboard/src/components/dashboard/InteractiveKnowledgeGraph.tsx",
-          "packages/opencode-dashboard/src/components/dashboard/ConfigViewer.tsx",
-          "packages/opencode-dashboard/src/app/models/page.tsx",
-          "packages/opencode-dashboard/src/lib/provider-status-store.ts",
-          "scripts/smoke-pipeline.mjs",
-          "scripts/api-sanity.mjs",
-          "packages/opencode-plugin-preload-skills/",
-          "opencode-config/tool-tiers.json"
-        ],
-        "timestamp": "2026-02-15T21:00:00Z"
-      }
-    ],
     "learning": [
       {
         "id": "learning-gate-hash-refresh-ordering-20260312",
@@ -3122,275 +3415,6 @@
           "packages/opencode-learning-engine/src/anti-patterns.js"
         ],
         "timestamp": "2026-02-18T00:00:00Z"
-      }
-    ],
-    "telemetry": [
-      {
-        "id": "mcp-runtime-governance-20260311",
-        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
-        "risk_level": "low",
-        "affected_paths": [
-          "mcp-servers/tool-manifest.json",
-          "opencode-config/.governance-hashes.json",
-          "opencode-config/meta-knowledge-index.json",
-          "opencode-config/opencode.json",
-          "opencode-config/skills/registry.json",
-          "opencode-config/tool-tiers.json",
-          "scripts/generate-mcp-config.mjs",
-          "scripts/mcp-exercise-harness.mjs",
-          "scripts/mcp-smoke-harness.mjs",
-          "scripts/report-mcp-lifecycle.mjs",
-          "scripts/run-distill-mcp.mjs",
-          "scripts/runtime-tool-surface-proof.mjs",
-          "scripts/runtime-tool-telemetry.mjs",
-          "scripts/tests/distill-wrapper.test.js",
-          "scripts/tests/generate-mcp-config.test.js",
-          "scripts/tests/mcp-exercise-harness.test.js",
-          "scripts/tests/mcp-inventory-regression.test.js",
-          "scripts/tests/mcp-lifecycle-report.test.js",
-          "scripts/tests/mcp-smoke-harness.test.js",
-          "scripts/tests/package-smoke-runner.test.js",
-          "scripts/tests/runtime-tool-surface-proof.test.js",
-          "scripts/tests/runtime-tool-telemetry.test.js"
-        ],
-        "timestamp": "2026-03-11T23:10:00Z"
-      },
-      {
-        "id": "mcp-smoke-verified-status-20260310",
-        "summary": "Extend the MCP smoke report to surface smoke-verified status separately from recent runtime telemetry so cold-but-live MCPs can be proven exerciseable without faking usage.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/mcp-smoke-harness.mjs",
-          "scripts/tests/mcp-smoke-harness.test.js"
-        ],
-        "timestamp": "2026-03-10T13:36:00-04:00"
-      },
-      {
-        "id": "mcp-exercise-harness-20260310",
-        "summary": "Add an MCP exercise harness and top-level command that safely records smoke verification for local live MCPs without polluting real runtime usage telemetry.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/mcp-exercise-harness.mjs",
-          "package.json"
-        ],
-        "timestamp": "2026-03-10T13:35:00-04:00"
-      },
-      {
-        "id": "mcp-smoke-harness-20260310",
-        "summary": "Add an MCP smoke harness and top-level package command so recent exercise coverage for live MCPs can be measured directly from telemetry after restarts.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "scripts/mcp-smoke-harness.mjs",
-          "scripts/tests/mcp-smoke-harness.test.js",
-          "package.json",
-          "setup-instructions.md"
-        ],
-        "timestamp": "2026-03-10T12:30:00-04:00"
-      },
-      {
-        "id": "runtime-telemetry-session-isolation-20260310",
-        "summary": "Isolate missing or invalid runtime telemetry session IDs so bad hook payloads do not collapse multiple calls into a shared unknown budget file.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "scripts/runtime-tool-telemetry.mjs",
-          "scripts/tests/runtime-tool-telemetry.test.js"
-        ],
-        "timestamp": "2026-03-10T12:16:00-04:00"
-      },
-      {
-        "id": "mcp-report-input-warnings-20260310",
-        "summary": "Warn when the MCP lifecycle report falls back from unreadable telemetry/config inputs so missing or corrupt data does not silently flatten usage visibility.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/report-mcp-lifecycle.mjs",
-          "scripts/tests/mcp-lifecycle-report.test.js"
-        ],
-        "timestamp": "2026-03-10T12:15:00-04:00"
-      },
-      {
-        "id": "mcp-lifecycle-report-generator-20260310",
-        "summary": "Add a generated MCP lifecycle report script that classifies current servers from canonical config, wiring evidence, and runtime telemetry and writes a report artifact under .sisyphus/reports/.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/report-mcp-lifecycle.mjs"
-        ],
-        "timestamp": "2026-03-10T01:40:00-04:00"
-      },
-      {
-        "id": "runtime-mcp-telemetry-coverage-20260310",
-        "summary": "Extend runtime MCP telemetry so Supermemory mode-specific calls and GitHub grep searches are recorded with canonical tool identities, and mirror those identities in the learning-engine catalog.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "scripts/runtime-tool-telemetry.mjs",
-          "scripts/tests/runtime-tool-telemetry.test.js",
-          "packages/opencode-learning-engine/src/tool-usage-tracker.js"
-        ],
-        "timestamp": "2026-03-10T00:32:00-04:00"
-      },
-      {
-        "id": "context7-failure-telemetry-20260309",
-        "summary": "Refine runtime Context7 telemetry so explicit error and unresolved signals are recorded as failed lookups in shared monitoring history.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/runtime-tool-telemetry.mjs",
-          "scripts/tests/runtime-tool-telemetry.test.js"
-        ],
-        "timestamp": "2026-03-09T23:05:00-04:00"
-      },
-      {
-        "id": "runtime-telemetry-docs-20260309",
-        "summary": "Document runtime telemetry hook architecture in AGENTS.md: hook config path, data flow, PascalCase reverse mapping, and silent-exit contract",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/AGENTS.md"
-        ],
-        "timestamp": "2026-03-10T02:04:14.897Z"
-      },
-      {
-        "id": "runtime-tool-telemetry-hook-20260309",
-        "summary": "Add PostToolUse runtime hook script that bridges oh-my-opencode tool.execute.after events into the learning-engine invocations.json, enabling MCP tool_affinities to accumulate from real runtime usage",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/runtime-tool-telemetry.mjs",
-          "scripts/tests/runtime-tool-telemetry.test.js"
-        ],
-        "timestamp": "2026-03-10T02:04:06.915Z"
-      },
-      {
-        "id": "runtime-hook-budget-tests-20260309",
-        "summary": "Add 10 tests for PostToolUse hook budget tracking and distill indicators. Covers session budget state creation, token accumulation, threshold warnings (50%/65%/80%), warning deduplication, distill_run_tool metric capture, distill_browse_tools pipeline listing, and distill event persistence.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/tests/runtime-tool-telemetry.test.js"
-        ],
-        "timestamp": "2026-03-09T12:35:00Z"
-      },
-      {
-        "id": "runtime-hook-budget-indicators-20260309",
-        "summary": "Enhance PostToolUse runtime hook with session budget tracking and distill CLI indicators. Adds per-session token estimation, budget threshold warnings at 50%/65%/80% emitted to stderr, and distill compression metric capture (tokens_before/after, savings ratio, pipeline list). Session state persisted at ~/.opencode/tool-usage/sessions/{session_id}-budget.json.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/runtime-tool-telemetry.mjs"
-        ],
-        "timestamp": "2026-03-09T12:30:00Z"
-      },
-      {
-        "id": "architectural-constraints-docs-20260309",
-        "summary": "Document known architectural constraints: local/ gitignore drift affecting MCP telemetry params, and the new MCP → SkillRL affinity bridge data flow.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/AGENTS.md"
-        ],
-        "timestamp": "2026-03-09T04:55:00Z"
-      },
-      {
-        "id": "wave11-t16-t17-compression-context7-metrics",
-        "summary": "Add distill compression tracking (recordCompression, getCompressionStats) and Context7 lookup tracking (recordContext7Lookup, getContext7Stats) to PipelineMetricsCollector with SQLite persistence tables",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-manager/src/monitoring/metrics-collector.js"
-        ],
-        "timestamp": "2026-03-08T19:15:00Z"
-      },
-      {
-        "id": "telemetry-pass2-hardening-20260227",
-        "summary": "Pass 2 addendum: hardened telemetry pipeline with canonical tool name normalization, MCP invocation depth upgrade, runtime parity verification, E2E contract tests, session key contract fix, health check config alignment, and context management completeness check.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-learning-engine/src/tool-usage-tracker.js",
-          "packages/opencode-plugin-healthd/src/checks.js",
-          "packages/opencode-plugin-healthd/src/index.js",
-          "packages/opencode-plugin-healthd/test/config-aware.test.js",
-          "integration-tests/telemetry-contract.test.js",
-          "integration-tests/session-key-contract.test.js",
-          "scripts/verify-plugin-parity.mjs"
-        ],
-        "timestamp": "2026-02-27T12:45:00Z"
-      },
-      {
-        "id": "tool-usage-tracker-logInvocation-export-20260227",
-        "summary": "Export logInvocation from tool-usage-tracker and add missing readJsonAsync/initAsync helpers. logInvocation was fully implemented but not exported in module.exports, making it dead code. readJsonAsync and initAsync were called inside logInvocation but never defined in the file or imported from opencode-safe-io. Added minimal implementations of both helpers. This change is the foundation for Task 2–4 of context-distill-tracking-fixes plan: wire MCP tool telemetry into the tracking pipeline.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-learning-engine/src/tool-usage-tracker.js"
-        ],
-        "timestamp": "2026-02-27T00:00:00Z"
-      },
-      {
-        "id": "model-manager-alert-writequeue-bounds-20260225",
-        "summary": "Added maxHistorySize cap to AlertManager and maxPendingWrites backpressure to AuditLogger writeQueue",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-manager/src/monitoring/alert-manager.js",
-          "packages/opencode-model-manager/src/lifecycle/audit-logger.js",
-          "packages/opencode-model-manager/test/monitoring/alert-manager.test.ts",
-          "packages/opencode-model-manager/test/lifecycle/audit-logger.test.ts"
-        ],
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "model-manager-bounded-arrays-20260225",
-        "summary": "Added maxEvents cap with FIFO eviction to PipelineMetricsCollector event arrays",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-manager/src/monitoring/metrics-collector.js",
-          "packages/opencode-model-manager/test/monitoring/pipeline-metrics-collector.test.ts"
-        ],
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "orphan-module-wiring-20260225",
-        "summary": "Wire orphan modules: getSchedulerTelemetry + tool-usage-tracker export",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-health-check/src/index.js",
-          "packages/opencode-health-check/test/scheduler-telemetry.test.js",
-          "packages/opencode-learning-engine/src/index.js"
-        ],
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "learning-engine-jsonl-rotation-20260224",
-        "summary": "Added JSONL rotation to MetaAwarenessTracker._appendEvent() to prevent unbounded telemetry file growth",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-learning-engine/src/meta-awareness-tracker.js",
-          "packages/opencode-learning-engine/test/meta-awareness.test.js"
-        ],
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "model-manager-assessment-wave4-20260224",
-        "summary": "Implement Wave 4 assessment infrastructure for automated model management: model assessor with real benchmark execution (HumanEval, MBPP, latency) and metrics collector for 4-pillar metrics (accuracy, latency, cost, robustness) with SQLite persistence and z-score normalization.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-manager/src/assessment/model-assessor.js",
-          "packages/opencode-model-manager/src/metrics/metrics-collector.js",
-          "packages/opencode-model-manager/test/assessment/model-assessor.test.ts",
-          "packages/opencode-model-manager/test/metrics/metrics-collector.test.ts",
-          ".sisyphus/plans/model-management-protocol.md"
-        ],
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "provider-cache-metrics-and-fallback-reason-tests-20260216",
-        "summary": "Added provider probe cache metrics visibility and fallback-reason regression coverage",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/providers/route.ts",
-          "packages/opencode-dashboard/src/components/dashboard/ProviderHealth.tsx",
-          "packages/opencode-skill-rl-manager/tests/selection.test.js"
-        ],
-        "timestamp": "2026-02-16T02:20:00Z"
-      },
-      {
-        "id": "provider-probe-cache-backoff-20260216",
-        "summary": "Added in-memory cache/backoff for provider health probes",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/providers/route.ts"
-        ],
-        "timestamp": "2026-02-16T01:35:00Z"
       }
     ],
     "integration-layer-wiring": [
@@ -4051,6 +4075,20 @@
   "by_risk_level": {
     "low": [
       {
+        "id": "dashboard-rate-limiting-2026-03-16",
+        "summary": "Implemented rate limiting middleware for dashboard write API routes (debt-refinement-phase2 Task 3). Enhanced rate-limit.ts to return RateLimitResult interface with allowed, remaining, resetAt, limit fields. Updated api-response.ts rateLimited() to accept rate limit headers (X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset). Applied rate limiting to 3 write routes: config/route.ts (POST/PUT/PATCH/DELETE), models/route.ts (POST/PUT/PATCH/DELETE), models/transition/route.ts (POST). Rate limit: 10 requests per minute per IP. IP extraction from x-forwarded-for (first) or x-real-ip header. Returns 429 Too Many Requests with rate limit headers when limit exceeded. Added comprehensive rate-limit.test.ts with 10 unit tests (all passing). In-memory Map store with automatic cleanup every 60 seconds.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/_lib/rate-limit.ts",
+          "packages/opencode-dashboard/src/app/api/_lib/api-response.ts",
+          "packages/opencode-dashboard/src/app/api/config/route.ts",
+          "packages/opencode-dashboard/src/app/api/models/route.ts",
+          "packages/opencode-dashboard/src/app/api/models/transition/route.ts",
+          "packages/opencode-dashboard/test/rate-limit.test.ts"
+        ],
+        "timestamp": "2026-03-16T21:30:00Z"
+      },
+      {
         "id": "codebase-memory-cli-2026-03-16",
         "summary": "Implemented CLI (cli.mjs) for opencode-codebase-memory with 8 commands: analyze, query, context, impact, detect-changes, list-repos, health, enrich-error. All output is JSON to stdout. Exits 0 on success, 1 on error with JSON error on stderr. Added CODEBASE_MEMORY_STATE_DIR env var support to index.js constructor for test isolation. 18 CLI subprocess tests via Bun.spawn covering all commands, flags, error paths, and unknown command handling.",
         "risk_level": "low",
@@ -4081,6 +4119,16 @@
           "packages/opencode-codebase-memory/test/index.test.js"
         ],
         "timestamp": "2026-03-16T20:00:00Z"
+      },
+      {
+        "id": "system-health-codebase-memory-2026-03-16",
+        "summary": "Fixed system-health.mjs to spawn bun subprocess for codebase-memory check (avoids bun:sqlite incompatibility with Node.js). Updated telemetry cap threshold from 1000 to 5000. Fixed package.json codebase:analyze script to use bun instead of node. System health now 100% (18/18).",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/system-health.mjs",
+          "package.json"
+        ],
+        "timestamp": "2026-03-16T18:58:00.000Z"
       },
       {
         "id": "codebase-memory-indexer-2026-03-16",
@@ -8006,6 +8054,284 @@
     "high": []
   },
   "by_affected_path": {
+    "packages/opencode-dashboard": [
+      {
+        "id": "dashboard-rate-limiting-2026-03-16",
+        "summary": "Implemented rate limiting middleware for dashboard write API routes (debt-refinement-phase2 Task 3). Enhanced rate-limit.ts to return RateLimitResult interface with allowed, remaining, resetAt, limit fields. Updated api-response.ts rateLimited() to accept rate limit headers (X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset). Applied rate limiting to 3 write routes: config/route.ts (POST/PUT/PATCH/DELETE), models/route.ts (POST/PUT/PATCH/DELETE), models/transition/route.ts (POST). Rate limit: 10 requests per minute per IP. IP extraction from x-forwarded-for (first) or x-real-ip header. Returns 429 Too Many Requests with rate limit headers when limit exceeded. Added comprehensive rate-limit.test.ts with 10 unit tests (all passing). In-memory Map store with automatic cleanup every 60 seconds.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T21:30:00Z"
+      },
+      {
+        "id": "dashboard-auth-hardening-2026-03-14",
+        "summary": "Gate all 10 POST endpoints with requireWriteAccess and specific permissions. Add 4 new permissions (skills:promote, usage:write, providers:manage, orchestration:write) to admin+operator ROLE_MATRIX. Fix skills/promotions missing permission arg. Add regression test scanning all route.ts POST exports for universal auth coverage.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "dashboard-internal-runtime-observability-20260313",
+        "summary": "Expose internal runtime observability in the dashboard orchestration API and page, including bootstrap package status, context budget pressure, workflow hooks, model-router collaborators, and meta-awareness source state.",
+        "risk_level": "low",
+        "timestamp": "2026-03-13T00:05:00Z"
+      },
+      {
+        "id": "package-smoke-entrypoints-20260310",
+        "summary": "Add test:smoke entrypoints for critical packages so workspace-level smoke orchestration can verify package surfaces consistently.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:55:00-04:00"
+      },
+      {
+        "id": "dashboard-budget-route-20260310",
+        "summary": "Add the missing dashboard budget API route so observability can aggregate per-session runtime budget files that the PostToolUse hook already writes.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T01:58:00-04:00"
+      },
+      {
+        "id": "dashboard-monitoring-routes-20260309",
+        "summary": "Add dashboard endpoints and monitoring-route support for compression and Context7 observability, backed by the shared monitoring collector.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T22:47:00-04:00"
+      },
+      {
+        "id": "wave10-dashboard-deploy-security",
+        "summary": "Add dashboard observability page (pipeline metrics, cache rates, meta-KB health), deployment automation workflow (dev/staging/prod stages), and CI security scanning (dependency audit + integrity-guard)",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T22:50:00Z"
+      },
+      {
+        "id": "wave10-ci-matrix-test-consolidation",
+        "summary": "Add per-package CI test matrix (28 packages), consolidate dashboard tests/ into test/, and add critical plugin contract integration tests (healthd, lifecycle, preload-skills)",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T22:36:00Z"
+      },
+      {
+        "id": "wave11-t18-t15-budget-alerts-dashboard",
+        "summary": "Add BUDGET_THRESHOLD alert type with evaluateBudget() to AlertManager (75/80/95% thresholds). Add Context Budget dashboard widget with compression stats, Context7 stats, and color-coded budget bars to observability page.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:20:00Z"
+      },
+      {
+        "id": "dashboard-api-docs-complete-20260308",
+        "summary": "Rewrote packages/opencode-dashboard/API.md from source: expanded from 20 to all 31 endpoints, corrected inaccurate response shapes, added SSE events, config read/write, docs browser, frontier-status, retrieval-quality, plugin-supervisor, policy-review, runs, all orchestration sub-routes, model lifecycle/audit/transition, skills promotions, status unified/providers/usage, and monitoring ingest.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave9-dashboard-meta-kb-20260308",
+        "summary": "Add /api/meta-kb dashboard endpoint — returns index age, record counts, category/risk breakdown, anti-pattern/convention/command counts, and inline drift status",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "skill-rl-path-standardization-20260227",
+        "summary": "Standardize SkillRLManager persistence path to ~/.opencode/skill-rl.json across all consumers. Fixed 3 divergent path references: (1) index.js:130 was using ./skill-rl-state.json (relative, wrong), (2) models/route.ts:156 was using skill-rl-state.json (wrong suffix), (3) file-watcher.ts:45 was using skill-rl-state.json (wrong suffix). Added os.homedir() canonical path with one-time migration from legacy ./skill-rl-state.json. Added production SkillRLManager instantiation in create-managers.ts (previously only instantiated in 5 test files — never in production).",
+        "risk_level": "medium",
+        "timestamp": "2026-02-27T00:01:00Z"
+      },
+      {
+        "id": "nextjs-cve-patch-20260225",
+        "summary": "Patch critical CVE in Next.js by updating from 14.2.3 to 14.2.10 in opencode-dashboard.",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00Z"
+      },
+      {
+        "id": "unused-deps-removal-20260225",
+        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00.000Z"
+      },
+      {
+        "id": "reduce-explicit-any-types-20260225",
+        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "event-store-lost-update-fix-20260225",
+        "summary": "Fixed lost-update race condition in persistEvents by moving read-merge-write inside the serialized write queue. Previously, callers read stale existingEvents outside the queue, so concurrent writers overwrote each other's events.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T10:00:00Z"
+      },
+      {
+        "id": "dashboard-async-migration-20260225",
+        "summary": "Converted sync I/O to async in 9 dashboard files + 7 callers. Write paths use serialized write queue (_writePromise pattern) to prevent concurrent corruption. Verification read in write-json-atomic.ts intentionally kept sync. Added 7 regression tests for event-store async atomicWrite.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "env-validation-20260225",
+        "summary": "Added startup validation for security-critical environment variables in dashboard routes to warn operators of missing signing keys and write tokens",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "event-store-error-logging-20260225",
+        "summary": "Added console.warn logging to 2 empty catch blocks in event-store.js that were swallowing cleanup errors after write/rename failures.",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "prototype-pollution-fix-20260225",
+        "summary": "Security hardening: prevent prototype pollution in plugin lifecycle supervisor",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "zen-model-restoration-and-dashboard-loader-fix-20260224",
+        "summary": "Restore Zen GLM-5/Kimi K2.5 aliases across config catalogs and fix dashboard API module resolution to remove build warnings.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-24T22:50:00Z"
+      },
+      {
+        "id": "orchestration-intelligence-foundation-20260224",
+        "summary": "Add orchestration intelligence foundation with meta-awareness telemetry, scoring, stability guardrails, dashboard APIs/UI, and central-config controls.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-24T22:10:00Z"
+      },
+      {
+        "id": "dashboard-api-wave6-20260224",
+        "summary": "Added lifecycle management API endpoints to dashboard for model state management",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T07:30:00Z"
+      },
+      {
+        "id": "dashboard-frontend-stability-20260223",
+        "summary": "Stabilize dashboard data APIs and rendering behavior, including learning schema normalization, knowledge graph scaling, resilient workflow naming, and orchestration endpoint latency reduction.",
+        "risk_level": "low",
+        "timestamp": "2026-02-23T22:50:00Z"
+      },
+      {
+        "id": "frontier-control-plane-foundation-20260222",
+        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T03:55:00Z"
+      },
+      {
+        "id": "knowledge-graph-hierarchy-lod-20260220",
+        "summary": "Added hierarchical knowledge graph views with adaptive edge decluttering and API shaping controls",
+        "risk_level": "medium",
+        "timestamp": "2026-02-20T06:00:00-05:00"
+      },
+      {
+        "id": "token-counts-workflows-20260219",
+        "summary": "Add token counts to workflow runs in dashboard",
+        "risk_level": "low",
+        "timestamp": "2026-02-19T02:30:00.000Z"
+      },
+      {
+        "id": "token-counting-dashboard-20260219",
+        "summary": "Add true token counting to workflows dashboard with input/output/total token tracking",
+        "risk_level": "low",
+        "timestamp": "2026-02-19T01:00:00.000Z"
+      },
+      {
+        "id": "fullframe-graph-and-workflow-monitor-population-20260216",
+        "summary": "Moved interactive graph to dedicated full-frame route and wired workflow monitor to real run/thread data",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T03:10:00Z"
+      },
+      {
+        "id": "provider-cache-metrics-and-fallback-reason-tests-20260216",
+        "summary": "Added provider probe cache metrics visibility and fallback-reason regression coverage",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T02:20:00Z"
+      },
+      {
+        "id": "p2-hardening-policies-fallback-sse-20260216",
+        "summary": "Completed P2 hardening for policies validation, fallback reason typing, and SSE client cleanup",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T02:05:00Z"
+      },
+      {
+        "id": "api-fallback-envelope-normalization-20260216",
+        "summary": "Normalized fallback envelope semantics across RL, Skills, and Learning APIs",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T01:45:00Z"
+      },
+      {
+        "id": "provider-probe-cache-backoff-20260216",
+        "summary": "Added in-memory cache/backoff for provider health probes",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T01:35:00Z"
+      },
+      {
+        "id": "gemini-model-correction-20260215",
+        "summary": "Corrected Gemini model names from non-existent gemini-2.5-* to official gemini-2.0-* across entire codebase",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:27:00-05:00"
+      },
+      {
+        "id": "model-validation-script-20260215",
+        "summary": "Created validate-models.mjs script for automated model catalog validation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T19:48:00-05:00"
+      },
+      {
+        "id": "configviewer-typed-intent-routing-20260215",
+        "summary": "Extended ConfigViewer with typed intent-routing editor controls",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T00:05:00Z"
+      },
+      {
+        "id": "provider-telemetry-ui-enhancements-20260215",
+        "summary": "Enhanced provider telemetry dashboard with pressure analytics and hot model visibility",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T23:55:00Z"
+      },
+      {
+        "id": "knowledge-graph-drag-zoom-20260215",
+        "summary": "Improved knowledge graph drag/zoom UX with viewport persistence and position retention",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T23:30:00Z"
+      },
+      {
+        "id": "models-routing-matrix-ui-20260215",
+        "summary": "Enhanced models routing matrix UI with filtering, sorting, and coverage analytics",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T23:05:00Z"
+      },
+      {
+        "id": "weekly-model-sync-and-health-verification-20260215",
+        "summary": "Added weekly model sync automation and model catalog verification in health endpoint",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T22:45:00Z"
+      },
+      {
+        "id": "model-validation-critical-fixes-20260215",
+        "summary": "Fixed critical model issues, provider key rotation race conditions, and added model catalog validation groundwork.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-15T22:00:00Z"
+      },
+      {
+        "id": "dashboards-full-implementation-20260215",
+        "summary": "Complete dashboard implementation with all 6 roadmap features: SkillsRL APIs stabilized, Knowledge Graph interactive with React Flow, provider status unified tracking, ConfigViewer with Zod forms editors, Models 10x6 routing matrix UI, fresh-machine smoke pipeline.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T21:00:00Z"
+      },
+      {
+        "id": "provider-status-atomicity-20260215",
+        "summary": "Fixed provider-status.json write to use atomic temp-file pattern, preventing corruption on mid-write interruption.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:15:00Z"
+      },
+      {
+        "id": "dashboard-v2-implementation-20260215",
+        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:00:00Z"
+      },
+      {
+        "id": "skillsrl-api-fixes-20260215",
+        "summary": "Stabilized Skills RL backend APIs with contracts normalization and missing /api/rl endpoint creation.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T19:30:00Z"
+      },
+      {
+        "id": "portability-integrity-pass-20260215",
+        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T12:30:00Z"
+      }
+    ],
     "packages/opencode-codebase-memory": [
       {
         "id": "codebase-memory-cli-2026-03-16",
@@ -8052,6 +8378,12 @@
         "summary": "Wired opencode-codebase-memory into learning pipeline and system health monitoring. (1) ingest-sessions.mjs: added enrichErrorContext call after processDelegationLog to enrich anti-pattern descriptions with symbol context from indexed repos. (2) system-health.mjs: added auditCodebaseMemory() function that loads CodebaseMemory, lists indexed repos, opens GraphStore for each repo to get node/edge stats, returns DORMANT if no repos indexed, HEALTHY if nodes>0, UNKNOWN if package unavailable (expected in Node.js context). Wired into main audit loop as 9th subsystem. (3) package.json: added 'codebase:analyze' script to run opencode-codebase CLI. All changes wrapped in try/catch for graceful degradation.",
         "risk_level": "low",
         "timestamp": "2026-03-16T20:52:00Z"
+      },
+      {
+        "id": "system-health-codebase-memory-2026-03-16",
+        "summary": "Fixed system-health.mjs to spawn bun subprocess for codebase-memory check (avoids bun:sqlite incompatibility with Node.js). Updated telemetry cap threshold from 1000 to 5000. Fixed package.json codebase:analyze script to use bun instead of node. System health now 100% (18/18).",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T18:58:00.000Z"
       }
     ],
     "package.json": [
@@ -8060,6 +8392,12 @@
         "summary": "Wired opencode-codebase-memory into learning pipeline and system health monitoring. (1) ingest-sessions.mjs: added enrichErrorContext call after processDelegationLog to enrich anti-pattern descriptions with symbol context from indexed repos. (2) system-health.mjs: added auditCodebaseMemory() function that loads CodebaseMemory, lists indexed repos, opens GraphStore for each repo to get node/edge stats, returns DORMANT if no repos indexed, HEALTHY if nodes>0, UNKNOWN if package unavailable (expected in Node.js context). Wired into main audit loop as 9th subsystem. (3) package.json: added 'codebase:analyze' script to run opencode-codebase CLI. All changes wrapped in try/catch for graceful degradation.",
         "risk_level": "low",
         "timestamp": "2026-03-16T20:52:00Z"
+      },
+      {
+        "id": "system-health-codebase-memory-2026-03-16",
+        "summary": "Fixed system-health.mjs to spawn bun subprocess for codebase-memory check (avoids bun:sqlite incompatibility with Node.js). Updated telemetry cap threshold from 1000 to 5000. Fixed package.json codebase:analyze script to use bun instead of node. System health now 100% (18/18).",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T18:58:00.000Z"
       },
       {
         "id": "warning-budget-governance-2026-03-14",
@@ -9104,278 +9442,6 @@
         "summary": "Extended ci-boundary-enforce.mjs to scan ALL packages (not just dashboard API) for forbidden opencode-model-manager internal imports. Created shared CJS snapshot-schema.js module with validateSnapshot() and normalizeSnapshot(), refactored snapshot-store.js and model-rollback.mjs to use it, eliminating schema validation duplication.",
         "risk_level": "medium",
         "timestamp": "2026-03-14T00:00:00.000Z"
-      }
-    ],
-    "packages/opencode-dashboard": [
-      {
-        "id": "dashboard-auth-hardening-2026-03-14",
-        "summary": "Gate all 10 POST endpoints with requireWriteAccess and specific permissions. Add 4 new permissions (skills:promote, usage:write, providers:manage, orchestration:write) to admin+operator ROLE_MATRIX. Fix skills/promotions missing permission arg. Add regression test scanning all route.ts POST exports for universal auth coverage.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-14T00:00:00.000Z"
-      },
-      {
-        "id": "dashboard-internal-runtime-observability-20260313",
-        "summary": "Expose internal runtime observability in the dashboard orchestration API and page, including bootstrap package status, context budget pressure, workflow hooks, model-router collaborators, and meta-awareness source state.",
-        "risk_level": "low",
-        "timestamp": "2026-03-13T00:05:00Z"
-      },
-      {
-        "id": "package-smoke-entrypoints-20260310",
-        "summary": "Add test:smoke entrypoints for critical packages so workspace-level smoke orchestration can verify package surfaces consistently.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:55:00-04:00"
-      },
-      {
-        "id": "dashboard-budget-route-20260310",
-        "summary": "Add the missing dashboard budget API route so observability can aggregate per-session runtime budget files that the PostToolUse hook already writes.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T01:58:00-04:00"
-      },
-      {
-        "id": "dashboard-monitoring-routes-20260309",
-        "summary": "Add dashboard endpoints and monitoring-route support for compression and Context7 observability, backed by the shared monitoring collector.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T22:47:00-04:00"
-      },
-      {
-        "id": "wave10-dashboard-deploy-security",
-        "summary": "Add dashboard observability page (pipeline metrics, cache rates, meta-KB health), deployment automation workflow (dev/staging/prod stages), and CI security scanning (dependency audit + integrity-guard)",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T22:50:00Z"
-      },
-      {
-        "id": "wave10-ci-matrix-test-consolidation",
-        "summary": "Add per-package CI test matrix (28 packages), consolidate dashboard tests/ into test/, and add critical plugin contract integration tests (healthd, lifecycle, preload-skills)",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T22:36:00Z"
-      },
-      {
-        "id": "wave11-t18-t15-budget-alerts-dashboard",
-        "summary": "Add BUDGET_THRESHOLD alert type with evaluateBudget() to AlertManager (75/80/95% thresholds). Add Context Budget dashboard widget with compression stats, Context7 stats, and color-coded budget bars to observability page.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:20:00Z"
-      },
-      {
-        "id": "dashboard-api-docs-complete-20260308",
-        "summary": "Rewrote packages/opencode-dashboard/API.md from source: expanded from 20 to all 31 endpoints, corrected inaccurate response shapes, added SSE events, config read/write, docs browser, frontier-status, retrieval-quality, plugin-supervisor, policy-review, runs, all orchestration sub-routes, model lifecycle/audit/transition, skills promotions, status unified/providers/usage, and monitoring ingest.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave9-dashboard-meta-kb-20260308",
-        "summary": "Add /api/meta-kb dashboard endpoint — returns index age, record counts, category/risk breakdown, anti-pattern/convention/command counts, and inline drift status",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "skill-rl-path-standardization-20260227",
-        "summary": "Standardize SkillRLManager persistence path to ~/.opencode/skill-rl.json across all consumers. Fixed 3 divergent path references: (1) index.js:130 was using ./skill-rl-state.json (relative, wrong), (2) models/route.ts:156 was using skill-rl-state.json (wrong suffix), (3) file-watcher.ts:45 was using skill-rl-state.json (wrong suffix). Added os.homedir() canonical path with one-time migration from legacy ./skill-rl-state.json. Added production SkillRLManager instantiation in create-managers.ts (previously only instantiated in 5 test files — never in production).",
-        "risk_level": "medium",
-        "timestamp": "2026-02-27T00:01:00Z"
-      },
-      {
-        "id": "nextjs-cve-patch-20260225",
-        "summary": "Patch critical CVE in Next.js by updating from 14.2.3 to 14.2.10 in opencode-dashboard.",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00Z"
-      },
-      {
-        "id": "unused-deps-removal-20260225",
-        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00.000Z"
-      },
-      {
-        "id": "reduce-explicit-any-types-20260225",
-        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "event-store-lost-update-fix-20260225",
-        "summary": "Fixed lost-update race condition in persistEvents by moving read-merge-write inside the serialized write queue. Previously, callers read stale existingEvents outside the queue, so concurrent writers overwrote each other's events.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T10:00:00Z"
-      },
-      {
-        "id": "dashboard-async-migration-20260225",
-        "summary": "Converted sync I/O to async in 9 dashboard files + 7 callers. Write paths use serialized write queue (_writePromise pattern) to prevent concurrent corruption. Verification read in write-json-atomic.ts intentionally kept sync. Added 7 regression tests for event-store async atomicWrite.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "env-validation-20260225",
-        "summary": "Added startup validation for security-critical environment variables in dashboard routes to warn operators of missing signing keys and write tokens",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "event-store-error-logging-20260225",
-        "summary": "Added console.warn logging to 2 empty catch blocks in event-store.js that were swallowing cleanup errors after write/rename failures.",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "prototype-pollution-fix-20260225",
-        "summary": "Security hardening: prevent prototype pollution in plugin lifecycle supervisor",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "zen-model-restoration-and-dashboard-loader-fix-20260224",
-        "summary": "Restore Zen GLM-5/Kimi K2.5 aliases across config catalogs and fix dashboard API module resolution to remove build warnings.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-24T22:50:00Z"
-      },
-      {
-        "id": "orchestration-intelligence-foundation-20260224",
-        "summary": "Add orchestration intelligence foundation with meta-awareness telemetry, scoring, stability guardrails, dashboard APIs/UI, and central-config controls.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-24T22:10:00Z"
-      },
-      {
-        "id": "dashboard-api-wave6-20260224",
-        "summary": "Added lifecycle management API endpoints to dashboard for model state management",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T07:30:00Z"
-      },
-      {
-        "id": "dashboard-frontend-stability-20260223",
-        "summary": "Stabilize dashboard data APIs and rendering behavior, including learning schema normalization, knowledge graph scaling, resilient workflow naming, and orchestration endpoint latency reduction.",
-        "risk_level": "low",
-        "timestamp": "2026-02-23T22:50:00Z"
-      },
-      {
-        "id": "frontier-control-plane-foundation-20260222",
-        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T03:55:00Z"
-      },
-      {
-        "id": "knowledge-graph-hierarchy-lod-20260220",
-        "summary": "Added hierarchical knowledge graph views with adaptive edge decluttering and API shaping controls",
-        "risk_level": "medium",
-        "timestamp": "2026-02-20T06:00:00-05:00"
-      },
-      {
-        "id": "token-counts-workflows-20260219",
-        "summary": "Add token counts to workflow runs in dashboard",
-        "risk_level": "low",
-        "timestamp": "2026-02-19T02:30:00.000Z"
-      },
-      {
-        "id": "token-counting-dashboard-20260219",
-        "summary": "Add true token counting to workflows dashboard with input/output/total token tracking",
-        "risk_level": "low",
-        "timestamp": "2026-02-19T01:00:00.000Z"
-      },
-      {
-        "id": "fullframe-graph-and-workflow-monitor-population-20260216",
-        "summary": "Moved interactive graph to dedicated full-frame route and wired workflow monitor to real run/thread data",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T03:10:00Z"
-      },
-      {
-        "id": "provider-cache-metrics-and-fallback-reason-tests-20260216",
-        "summary": "Added provider probe cache metrics visibility and fallback-reason regression coverage",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T02:20:00Z"
-      },
-      {
-        "id": "p2-hardening-policies-fallback-sse-20260216",
-        "summary": "Completed P2 hardening for policies validation, fallback reason typing, and SSE client cleanup",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T02:05:00Z"
-      },
-      {
-        "id": "api-fallback-envelope-normalization-20260216",
-        "summary": "Normalized fallback envelope semantics across RL, Skills, and Learning APIs",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T01:45:00Z"
-      },
-      {
-        "id": "provider-probe-cache-backoff-20260216",
-        "summary": "Added in-memory cache/backoff for provider health probes",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T01:35:00Z"
-      },
-      {
-        "id": "gemini-model-correction-20260215",
-        "summary": "Corrected Gemini model names from non-existent gemini-2.5-* to official gemini-2.0-* across entire codebase",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:27:00-05:00"
-      },
-      {
-        "id": "model-validation-script-20260215",
-        "summary": "Created validate-models.mjs script for automated model catalog validation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T19:48:00-05:00"
-      },
-      {
-        "id": "configviewer-typed-intent-routing-20260215",
-        "summary": "Extended ConfigViewer with typed intent-routing editor controls",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T00:05:00Z"
-      },
-      {
-        "id": "provider-telemetry-ui-enhancements-20260215",
-        "summary": "Enhanced provider telemetry dashboard with pressure analytics and hot model visibility",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T23:55:00Z"
-      },
-      {
-        "id": "knowledge-graph-drag-zoom-20260215",
-        "summary": "Improved knowledge graph drag/zoom UX with viewport persistence and position retention",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T23:30:00Z"
-      },
-      {
-        "id": "models-routing-matrix-ui-20260215",
-        "summary": "Enhanced models routing matrix UI with filtering, sorting, and coverage analytics",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T23:05:00Z"
-      },
-      {
-        "id": "weekly-model-sync-and-health-verification-20260215",
-        "summary": "Added weekly model sync automation and model catalog verification in health endpoint",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T22:45:00Z"
-      },
-      {
-        "id": "model-validation-critical-fixes-20260215",
-        "summary": "Fixed critical model issues, provider key rotation race conditions, and added model catalog validation groundwork.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-15T22:00:00Z"
-      },
-      {
-        "id": "dashboards-full-implementation-20260215",
-        "summary": "Complete dashboard implementation with all 6 roadmap features: SkillsRL APIs stabilized, Knowledge Graph interactive with React Flow, provider status unified tracking, ConfigViewer with Zod forms editors, Models 10x6 routing matrix UI, fresh-machine smoke pipeline.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T21:00:00Z"
-      },
-      {
-        "id": "provider-status-atomicity-20260215",
-        "summary": "Fixed provider-status.json write to use atomic temp-file pattern, preventing corruption on mid-write interruption.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:15:00Z"
-      },
-      {
-        "id": "dashboard-v2-implementation-20260215",
-        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:00:00Z"
-      },
-      {
-        "id": "skillsrl-api-fixes-20260215",
-        "summary": "Stabilized Skills RL backend APIs with contracts normalization and missing /api/rl endpoint creation.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T19:30:00Z"
-      },
-      {
-        "id": "portability-integrity-pass-20260215",
-        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T12:30:00Z"
       }
     ],
     "integration-tests/dashboard-write-guard.test.ts": [

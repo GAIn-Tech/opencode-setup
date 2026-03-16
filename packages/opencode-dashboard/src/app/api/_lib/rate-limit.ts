@@ -2,7 +2,14 @@
 const requestCounts = new Map<string, { count: number; resetAt: number }>();
 const MAX_ENTRIES = 10000;
 
-export function rateLimit(key: string, limit: number = 100, windowMs: number = 60000): boolean {
+export interface RateLimitResult {
+  allowed: boolean;
+  remaining: number;
+  resetAt: number;
+  limit: number;
+}
+
+export function rateLimit(key: string, limit: number = 100, windowMs: number = 60000): RateLimitResult {
   const now = Date.now();
   const record = requestCounts.get(key);
   
@@ -14,16 +21,29 @@ export function rateLimit(key: string, limit: number = 100, windowMs: number = 6
         requestCounts.delete(oldestKey);
       }
     }
-    requestCounts.set(key, { count: 1, resetAt: now + windowMs });
-    return true;
+    const resetAt = now + windowMs;
+    requestCounts.set(key, { count: 1, resetAt });
+    return {
+      allowed: true,
+      remaining: limit - 1,
+      resetAt,
+      limit
+    };
   }
   
-  if (record.count >= limit) {
-    return false;
+  const allowed = record.count < limit;
+  const remaining = Math.max(0, limit - record.count);
+  
+  if (allowed) {
+    record.count++;
   }
   
-  record.count++;
-  return true;
+  return {
+    allowed,
+    remaining: allowed ? remaining - 1 : 0,
+    resetAt: record.resetAt,
+    limit
+  };
 }
 
 // Cleanup old entries periodically
