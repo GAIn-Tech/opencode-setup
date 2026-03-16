@@ -1,0 +1,17 @@
+{
+  "id": "snapshot-schema-unification-2026-03-16",
+  "timestamp": "2026-03-16T22:00:00Z",
+  "summary": "Unified snapshot schema validation into shared module with exact spec content. Updated validateSnapshot error messages and normalizeSnapshot behavior (rawPayloadHash defaults to undefined, metadata only set when present). Fixed cloneSnapshot null-safety for undefined metadata. Added 8 comprehensive tests.",
+  "affected_paths": [
+    "packages/opencode-model-manager/src/snapshot/snapshot-schema.js",
+    "packages/opencode-model-manager/src/snapshot/snapshot-store.js",
+    "packages/opencode-model-manager/test/snapshot/snapshot-schema.test.js"
+  ],
+  "risk_level": "low",
+  "breaking_changes": false,
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "pass"
+  }
+}

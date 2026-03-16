@@ -260,10 +260,12 @@ function cloneSnapshot(snapshot) {
 
       return { ...model };
     }),
-    metadata: {
-      discoveryDuration: snapshot.metadata.discoveryDuration,
-      modelCount: snapshot.metadata.modelCount
-    }
+    metadata: snapshot.metadata
+      ? {
+          discoveryDuration: snapshot.metadata.discoveryDuration,
+          modelCount: snapshot.metadata.modelCount
+        }
+      : undefined
   };
 }
 
