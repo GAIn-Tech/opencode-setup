@@ -112,12 +112,13 @@
       "priority": 11,
       "plan": "model-management-protocol",
       "plan_path": ".sisyphus/plans/model-management-protocol.md",
-      "status": "pending",
+      "status": "done",
       "requires": ["wave2-package-wiring", "dynamic-model-learning"],
       "rationale": "Capstone: full automated model discovery (6 providers), lifecycle state machine, automated PR generation. Largest plan, highest long-term leverage.",
       "effort": "xl",
       "estimated_hours": "40-60",
-      "lines": 957
+      "lines": 957,
+      "completed_at": "2026-03-16"
     }
   ],
   "completed_plans": [
