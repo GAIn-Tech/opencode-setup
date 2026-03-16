@@ -982,6 +982,428 @@
         "librarian"
       ],
       "compatible_agents": []
+    },
+    "budget-aware-router": {
+      "description": "Token and cost-aware model routing. Optimizes cost/performance tradeoffs by selecting appropriate models based on task complexity and budget constraints.",
+      "category": "optimization",
+      "tags": [
+        "cost",
+        "routing",
+        "models",
+        "budget",
+        "optimization"
+      ],
+      "source": "custom",
+      "dependencies": [],
+      "synergies": [
+        "skill-orchestrator-runtime",
+        "context-governor",
+        "distill",
+        "token-reporter"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "optimize cost",
+        "choose model",
+        "budget constraint",
+        "cheaper model",
+        "cost-performance tradeoff"
+      ],
+      "recommended_agents": [
+        "atlas"
+      ],
+      "compatible_agents": [
+        "sisyphus",
+        "oracle"
+      ]
+    },
+    "dispatching-parallel-agents": {
+      "description": "Dispatch independent tasks to parallel agents for concurrent execution when problems have no shared state or sequential dependencies.",
+      "category": "implementation",
+      "tags": [
+        "parallel",
+        "agents",
+        "concurrency",
+        "dispatch",
+        "multi-agent"
+      ],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": [
+        "subagent-driven-development",
+        "executing-plans",
+        "task-orchestrator"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "parallel work",
+        "multiple failures",
+        "independent tasks",
+        "dispatch agents",
+        "concurrent execution"
+      ],
+      "recommended_agents": [
+        "atlas",
+        "prometheus"
+      ],
+      "compatible_agents": [
+        "sisyphus"
+      ]
+    },
+    "evaluation-harness-builder": {
+      "description": "Builds regression test harnesses and evaluation frameworks for validating AI code quality and functional correctness.",
+      "category": "testing",
+      "tags": [
+        "testing",
+        "regression",
+        "evaluation",
+        "harness",
+        "quality"
+      ],
+      "source": "custom",
+      "dependencies": [
+        "test-driven-development"
+      ],
+      "synergies": [
+        "test-driven-development",
+        "verification-before-completion",
+        "receiving-code-review"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "build test harness",
+        "evaluation framework",
+        "regression suite",
+        "benchmark quality",
+        "test infrastructure"
+      ],
+      "recommended_agents": [
+        "hephaestus"
+      ],
+      "compatible_agents": [
+        "momus"
+      ]
+    },
+    "finishing-a-development-branch": {
+      "description": "Guides completion of development work by verifying tests, presenting structured options for merge, PR, or cleanup.",
+      "category": "git",
+      "tags": [
+        "git",
+        "branch",
+        "merge",
+        "pr",
+        "completion"
+      ],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": [
+        "verification-before-completion",
+        "git-master",
+        "requesting-code-review"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "finish branch",
+        "merge back",
+        "create PR",
+        "branch complete",
+        "integrate work"
+      ],
+      "recommended_agents": [
+        "sisyphus"
+      ],
+      "compatible_agents": [
+        "hephaestus"
+      ]
+    },
+    "incident-commander": {
+      "description": "Multi-turn incident triage and debugging orchestration. Manages complex issues through structured diagnosis with investigation tracking.",
+      "category": "debugging",
+      "tags": [
+        "incident",
+        "triage",
+        "debugging",
+        "orchestration",
+        "diagnosis"
+      ],
+      "source": "custom",
+      "dependencies": [
+        "systematic-debugging"
+      ],
+      "synergies": [
+        "systematic-debugging",
+        "test-driven-development",
+        "receiving-code-review"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "incident response",
+        "complex bug",
+        "multi-file debug",
+        "investigation tracking",
+        "unclear root cause"
+      ],
+      "recommended_agents": [
+        "metis"
+      ],
+      "compatible_agents": [
+        "sisyphus",
+        "oracle"
+      ]
+    },
+    "receiving-code-review": {
+      "description": "Technical evaluation of code review feedback — verify before implementing, push back with reasoning when wrong, never performative agreement.",
+      "category": "review",
+      "tags": [
+        "code-review",
+        "feedback",
+        "verification",
+        "technical-rigor"
+      ],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": [
+        "requesting-code-review",
+        "verification-before-completion",
+        "git-master"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "received review feedback",
+        "code review response",
+        "implement review suggestions",
+        "review comments"
+      ],
+      "recommended_agents": [
+        "sisyphus",
+        "hephaestus"
+      ],
+      "compatible_agents": [
+        "momus"
+      ]
+    },
+    "requesting-code-review": {
+      "description": "Dispatch code-reviewer subagent to catch issues before they cascade — review early, review often.",
+      "category": "review",
+      "tags": [
+        "code-review",
+        "quality",
+        "pr",
+        "review-request"
+      ],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": [
+        "receiving-code-review",
+        "verification-before-completion",
+        "subagent-driven-development"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "request review",
+        "before merge",
+        "after feature complete",
+        "code review",
+        "fresh perspective"
+      ],
+      "recommended_agents": [
+        "momus"
+      ],
+      "compatible_agents": [
+        "sisyphus"
+      ]
+    },
+    "skill-orchestrator-runtime": {
+      "description": "Runtime skill orchestration that dynamically selects and chains skills based on context analysis and registry data.",
+      "category": "meta",
+      "tags": [
+        "orchestration",
+        "skill-selection",
+        "chaining",
+        "runtime",
+        "meta"
+      ],
+      "source": "custom",
+      "dependencies": [],
+      "synergies": [
+        "systematic-debugging",
+        "test-driven-development",
+        "brainstorming",
+        "incident-commander"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "which skill to use",
+        "skill recommendation",
+        "multi-skill task",
+        "orchestrate skills",
+        "skill chaining"
+      ],
+      "recommended_agents": [
+        "atlas"
+      ],
+      "compatible_agents": [
+        "prometheus",
+        "oracle"
+      ]
+    },
+    "subagent-driven-development": {
+      "description": "Execute implementation plans by dispatching fresh subagent per task with two-stage review (spec compliance then code quality).",
+      "category": "implementation",
+      "tags": [
+        "subagent",
+        "implementation",
+        "review",
+        "execution",
+        "spec-compliance"
+      ],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": [
+        "executing-plans",
+        "requesting-code-review",
+        "writing-plans"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "dispatch subagent",
+        "implement plan tasks",
+        "two-stage review",
+        "fresh agent per task"
+      ],
+      "recommended_agents": [
+        "atlas",
+        "sisyphus"
+      ],
+      "compatible_agents": [
+        "hephaestus"
+      ]
+    },
+    "task-orchestrator": {
+      "description": "Dynamic workflow selection across skills, tools, MCP servers, and subagents for multi-step or ambiguous requests.",
+      "category": "meta",
+      "tags": [
+        "orchestration",
+        "workflow",
+        "routing",
+        "planning",
+        "execution"
+      ],
+      "source": "custom",
+      "dependencies": [],
+      "synergies": [
+        "brainstorming",
+        "writing-plans",
+        "executing-plans",
+        "dispatching-parallel-agents"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "complex workflow",
+        "unclear approach",
+        "multi-step task",
+        "orchestrate work",
+        "decompose task"
+      ],
+      "recommended_agents": [
+        "atlas",
+        "prometheus"
+      ],
+      "compatible_agents": [
+        "oracle"
+      ]
+    },
+    "using-git-worktrees": {
+      "description": "Creates isolated git worktrees with smart directory selection and safety verification for parallel branch work.",
+      "category": "git",
+      "tags": [
+        "git",
+        "worktree",
+        "isolation",
+        "branches",
+        "parallel-work"
+      ],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": [
+        "git-master",
+        "executing-plans",
+        "finishing-a-development-branch"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "create worktree",
+        "isolated workspace",
+        "parallel branches",
+        "feature isolation",
+        "start feature work"
+      ],
+      "recommended_agents": [
+        "sisyphus"
+      ],
+      "compatible_agents": [
+        "hephaestus"
+      ]
+    },
+    "using-superpowers": {
+      "description": "Meta-skill for skill discovery and usage — establishes that skills must be invoked before any response including clarifying questions.",
+      "category": "meta",
+      "tags": [
+        "meta",
+        "skill-discovery",
+        "skill-usage",
+        "onboarding"
+      ],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": [
+        "writing-skills",
+        "skill-orchestrator-runtime",
+        "task-orchestrator"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "how to use skills",
+        "find skill",
+        "skill discovery",
+        "starting conversation"
+      ],
+      "recommended_agents": [
+        "atlas"
+      ],
+      "compatible_agents": []
+    },
+    "writing-skills": {
+      "description": "TDD-based skill authoring — create, edit, and verify skills using pressure scenarios with subagents before deployment.",
+      "category": "meta",
+      "tags": [
+        "meta",
+        "skill-authoring",
+        "tdd",
+        "documentation",
+        "testing"
+      ],
+      "source": "superpowers",
+      "dependencies": [],
+      "synergies": [
+        "test-driven-development",
+        "using-superpowers",
+        "verification-before-completion"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "create skill",
+        "write skill",
+        "edit skill",
+        "skill authoring",
+        "verify skill"
+      ],
+      "recommended_agents": [
+        "prometheus"
+      ],
+      "compatible_agents": [
+        "oracle"
+      ]
     }
   },
   "profiles": {

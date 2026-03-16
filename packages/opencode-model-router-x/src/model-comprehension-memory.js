@@ -8,7 +8,8 @@
  * Part of: dynamic-exploration-mode.md
  */
 
-const Database = require('better-sqlite3');
+let Database = null;
+try { Database = require('better-sqlite3'); } catch { /* Fail-open: SQLite persistence unavailable, in-memory only */ }
 const path = require('path');
 const fs = require('fs');
 let resolveDataDir;
@@ -38,6 +39,10 @@ class ModelComprehensionMemory {
    * Initialize database and schema
    */
   async initialize() {
+    if (!Database) {
+      console.warn('[ModelComprehensionMemory] better-sqlite3 not available — running in-memory only');
+      return;
+    }
     try {
       this.db = new Database(this.dbPath);
 
@@ -172,6 +177,7 @@ class ModelComprehensionMemory {
    * @param {Object} metrics - Performance metrics
    */
   async store(metrics) {
+    if (!this.db) return;
     const stmt = this.db.prepare(`
       INSERT INTO model_performance (
         task_id, intent_category, model_id, provider, timestamp,
@@ -222,6 +228,7 @@ class ModelComprehensionMemory {
    * @returns {Object} Aggregated stats
    */
   async getModelStats(modelId) {
+    if (!this.db) return null;
     const rows = this.db.prepare(`
       SELECT 
         COUNT(*) as total_attempts,
@@ -242,6 +249,7 @@ class ModelComprehensionMemory {
    * @param {Object} benchmark - Benchmark data
    */
   async storeBenchmark(benchmark) {
+    if (!this.db) return;
     const stmt = this.db.prepare(`
       INSERT INTO model_benchmarks (
         model_id, benchmark_name, score, normalized_score, details, timestamp
@@ -264,6 +272,7 @@ class ModelComprehensionMemory {
    * @returns {Array} Benchmark records
    */
   async getBenchmarks(modelId) {
+    if (!this.db) return [];
     return this.db.prepare(`
       SELECT * FROM model_benchmarks
       WHERE model_id = ?
@@ -272,6 +281,7 @@ class ModelComprehensionMemory {
   }
 
   async exportBenchmarks(format = 'json') {
+    if (!this.db) return format === 'csv' ? '' : '[]';
     const rows = this.db.prepare('SELECT * FROM model_benchmarks ORDER BY timestamp DESC').all();
     if (format === 'csv') {
       const header = 'model_id,benchmark_name,score,normalized_score,timestamp';
@@ -292,6 +302,7 @@ class ModelComprehensionMemory {
    * @param {Object} model - Model data from discovery
    */
   async storeDiscoveredModel(model) {
+    if (!this.db) return;
     const stmt = this.db.prepare(`
       INSERT OR REPLACE INTO discovered_models (
         provider, model_id, context_tokens, output_tokens, deprecated, discovered_at
@@ -313,6 +324,7 @@ class ModelComprehensionMemory {
    * @returns {Array} Discovered models
    */
   async getDiscoveredModels() {
+    if (!this.db) return [];
     return this.db.prepare(`
       SELECT * FROM discovered_models
       ORDER BY provider, model_id
@@ -324,6 +336,7 @@ class ModelComprehensionMemory {
    * @param {number} daysToKeep - Days of history to retain
    */
   async cleanup(daysToKeep = 90) {
+    if (!this.db) return;
     const cutoffTime = Date.now() - (daysToKeep * 24 * 60 * 60 * 1000);
     
     const result = this.db.prepare(`

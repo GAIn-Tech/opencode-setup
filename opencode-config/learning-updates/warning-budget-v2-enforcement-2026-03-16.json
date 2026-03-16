@@ -1,0 +1,17 @@
+{
+  "id": "warning-budget-v2-enforcement-2026-03-16",
+  "timestamp": "2026-03-16T00:00:00.000Z",
+  "summary": "Rewrote warning budget baseline and CI enforcement. Baseline now uses object-keyed categories with max/description (was array-based). Script supports --capture (write baseline from test output) and --check (default, compare against baseline). Hardcoded 5 category regex patterns. Added warning:check and warning:capture scripts to package.json. Updated governance:check to use bun run warning:check.",
+  "affected_paths": [
+    "opencode-config/warning-baseline.json",
+    "scripts/ci-warning-budget.mjs",
+    "scripts/tests/ci-warning-budget.test.js",
+    "package.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}
