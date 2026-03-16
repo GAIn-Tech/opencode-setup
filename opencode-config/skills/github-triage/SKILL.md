@@ -103,7 +103,7 @@ Do NOT use this skill for:
 
 - Dispatch one background agent per item — never process items sequentially
 - Collect all background_output results before applying changes
-- Use `gh` CLI for all GitHub operations
+- Use `gh` CLI for all GitHub operations (fallback to `bun scripts/github-tool.js` if gh unavailable)
 - Cancel all background tasks when done: `background_cancel(all=true)`
 
 ## Must Not Do

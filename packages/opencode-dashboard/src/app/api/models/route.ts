@@ -5,7 +5,7 @@ import * as os from 'os';
 import { getWriteActor, requireWriteAccess } from '../_lib/write-access';
 import { writeJsonAtomic } from '../_lib/write-json-atomic';
 import { appendWriteAuditEntry } from '../_lib/write-audit';
-import { rateLimited } from '../_lib/api-response';
+import { rateLimited, badRequest, internalError } from '../_lib/api-response';
 
 // Extract real model usage from message files
 function getRealModelUsage(): Record<string, any> | null {
@@ -91,9 +91,9 @@ export async function POST(request: Request) {
     const { policies } = body;
     const actor = getWriteActor(request);
     
-    if (!policies) {
-      return NextResponse.json({ error: 'No policies provided' }, { status: 400 });
-    }
+     if (!policies) {
+       return badRequest('No policies provided');
+     }
     
     // Read existing policies to preserve keys not sent by frontend (e.g. tuning, cost_tiers)
     let existingPolicies = {};
@@ -127,14 +127,15 @@ export async function POST(request: Request) {
       }
     });
     
-    return NextResponse.json({ success: true, message: 'Policies saved' });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
-}
-
-export async function GET() {
+     return NextResponse.json({ success: true, message: 'Policies saved' });
+   } catch (error: unknown) {
+     const message = error instanceof Error ? error.message : 'Unknown error';
+     console.error('[Models API] POST error:', error);
+     return internalError(message);
+   }
+ }
+ 
+ export async function GET() {
   try {
     const projectRoot = process.cwd().replace(/[\/\\]packages[\/\\]opencode-dashboard$/, '');
     
@@ -177,20 +178,21 @@ export async function GET() {
     // 5. Real model usage from messages (computed from actual sessions)
     const realModelUsage = getRealModelUsage();
 
-    return NextResponse.json({
-      policies,
-      routerState,
-      rlState,
-      fallbackConfig,
-      realModelUsage
-    });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
-}
-
-export async function PUT(request: Request) {
+     return NextResponse.json({
+       policies,
+       routerState,
+       rlState,
+       fallbackConfig,
+       realModelUsage
+     });
+   } catch (error: unknown) {
+     const message = error instanceof Error ? error.message : 'Unknown error';
+     console.error('[Models API] GET error:', error);
+     return internalError(message);
+   }
+ }
+ 
+ export async function PUT(request: Request) {
   // Rate limiting
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? request.headers.get('x-real-ip') ?? 'unknown';
   const { rateLimit } = await import('../_lib/rate-limit');
@@ -216,44 +218,45 @@ export async function PUT(request: Request) {
     const { policies } = body;
     const actor = getWriteActor(request);
     
-    if (!policies) {
-      return NextResponse.json({ error: 'No policies provided' }, { status: 400 });
-    }
-    
-    let existingPolicies = {};
-    if (fs.existsSync(policiesPath)) {
-      try {
-        existingPolicies = JSON.parse(fs.readFileSync(policiesPath, 'utf-8'));
-      } catch (e) {
-        console.error('Failed to parse existing policies:', e);
-      }
-    }
+     if (!policies) {
+       return badRequest('No policies provided');
+     }
+     
+     let existingPolicies = {};
+     if (fs.existsSync(policiesPath)) {
+       try {
+         existingPolicies = JSON.parse(fs.readFileSync(policiesPath, 'utf-8'));
+       } catch (e) {
+         console.error('Failed to parse existing policies:', e);
+       }
+     }
 
-    const mergedPolicies = {
-      ...existingPolicies,
-      ...policies,
-    };
-    
-    await writeJsonAtomic(policiesPath, mergedPolicies);
+     const mergedPolicies = {
+       ...existingPolicies,
+       ...policies,
+     };
+     
+     await writeJsonAtomic(policiesPath, mergedPolicies);
 
-    await appendWriteAuditEntry({
-      route: '/api/models',
-      actor,
-      action: 'update-model-policies',
-      metadata: {
-        policiesPath,
-        sectionCount: Object.keys(policies || {}).length
-      }
-    });
-    
-    return NextResponse.json({ success: true, message: 'Policies updated' });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
-}
-
-export async function PATCH(request: Request) {
+     await appendWriteAuditEntry({
+       route: '/api/models',
+       actor,
+       action: 'update-model-policies',
+       metadata: {
+         policiesPath,
+         sectionCount: Object.keys(policies || {}).length
+       }
+     });
+     
+     return NextResponse.json({ success: true, message: 'Policies updated' });
+   } catch (error: unknown) {
+     const message = error instanceof Error ? error.message : 'Unknown error';
+     console.error('[Models API] PUT error:', error);
+     return internalError(message);
+   }
+ }
+ 
+ export async function PATCH(request: Request) {
   // Rate limiting
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? request.headers.get('x-real-ip') ?? 'unknown';
   const { rateLimit } = await import('../_lib/rate-limit');
@@ -279,44 +282,45 @@ export async function PATCH(request: Request) {
     const { policies } = body;
     const actor = getWriteActor(request);
     
-    if (!policies) {
-      return NextResponse.json({ error: 'No policies provided' }, { status: 400 });
-    }
-    
-    let existingPolicies = {};
-    if (fs.existsSync(policiesPath)) {
-      try {
-        existingPolicies = JSON.parse(fs.readFileSync(policiesPath, 'utf-8'));
-      } catch (e) {
-        console.error('Failed to parse existing policies:', e);
-      }
-    }
+     if (!policies) {
+       return badRequest('No policies provided');
+     }
+     
+     let existingPolicies = {};
+     if (fs.existsSync(policiesPath)) {
+       try {
+         existingPolicies = JSON.parse(fs.readFileSync(policiesPath, 'utf-8'));
+       } catch (e) {
+         console.error('Failed to parse existing policies:', e);
+       }
+     }
 
-    const mergedPolicies = {
-      ...existingPolicies,
-      ...policies,
-    };
-    
-    await writeJsonAtomic(policiesPath, mergedPolicies);
+     const mergedPolicies = {
+       ...existingPolicies,
+       ...policies,
+     };
+     
+     await writeJsonAtomic(policiesPath, mergedPolicies);
 
-    await appendWriteAuditEntry({
-      route: '/api/models',
-      actor,
-      action: 'update-model-policies',
-      metadata: {
-        policiesPath,
-        sectionCount: Object.keys(policies || {}).length
-      }
-    });
-    
-    return NextResponse.json({ success: true, message: 'Policies patched' });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
-}
-
-export async function DELETE(request: Request) {
+     await appendWriteAuditEntry({
+       route: '/api/models',
+       actor,
+       action: 'update-model-policies',
+       metadata: {
+         policiesPath,
+         sectionCount: Object.keys(policies || {}).length
+       }
+     });
+     
+     return NextResponse.json({ success: true, message: 'Policies patched' });
+   } catch (error: unknown) {
+     const message = error instanceof Error ? error.message : 'Unknown error';
+     console.error('[Models API] PATCH error:', error);
+     return internalError(message);
+   }
+ }
+ 
+ export async function DELETE(request: Request) {
   // Rate limiting
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? request.headers.get('x-real-ip') ?? 'unknown';
   const { rateLimit } = await import('../_lib/rate-limit');
@@ -352,9 +356,10 @@ export async function DELETE(request: Request) {
       }
     });
     
-    return NextResponse.json({ success: true, message: 'Policies deleted' });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
-}
+     return NextResponse.json({ success: true, message: 'Policies deleted' });
+   } catch (error: unknown) {
+     const message = error instanceof Error ? error.message : 'Unknown error';
+     console.error('[Models API] DELETE error:', error);
+     return internalError(message);
+   }
+ }

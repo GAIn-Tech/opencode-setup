@@ -45,8 +45,11 @@ Do NOT use this skill for:
 
 ## Workflow
 
-1. Use `grep_grep_query` for straightforward GitHub code search by query/language/repo/path
-2. Use `grep_app_searchGitHub` when you need richer pattern filtering or regex-oriented example hunting
+1. Use CLI wrapper for GitHub code search:
+   ```bash
+   bun scripts/grep-tool.js --query "useState(" --language "JavaScript"
+   ```
+2. For richer pattern filtering or regex-oriented searches, use grep.app API directly
 3. Pull only enough examples to answer the implementation question
 
 ## Must Do
@@ -64,6 +67,15 @@ Do NOT use this skill for:
 ## Quick Start
 
 ```
-1. grep_grep_query { query: "useState(", language: "TypeScript" }
-2. grep_app_searchGitHub { query: "getServerSession", language: ["TypeScript"], repo: "vercel/" }
+1. bun scripts/grep-tool.js --query "useState(" --language "JavaScript"
+   # grep-tool.js is a CLI wrapper for grep search
+2. For advanced searches, use grep.app API directly:
+   # curl "https://grep.app/api/search?q=useState%28&lang=JavaScript"
 ```
+
+**CLI Wrapper Advantages:**
+- Auditable command execution (bash history)
+- No MCP server startup failures
+- Consistent output format
+- Better error handling
+- Works across all environments

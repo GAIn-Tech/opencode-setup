@@ -1,0 +1,104 @@
+{
+  "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json",
+  "version": "1.0.0",
+  "description": "Local mirror of oh-my-opencode agent prompts for auditability",
+  "generated": "2026-03-15T03:22:00Z",
+  "source": "Based on oh-my-opencode.json and agents-list.md analysis",
+  
+  "agents": {
+    "atlas": {
+      "description": "Task execution — implementation and code changes",
+      "model": "anthropic/claude-sonnet-4-5",
+      "category_mappings": ["unspecified-high", "visual-engineering", "routine", "complex", "advanced"],
+      "default_prompt_template": "Execute this task: {task}. Follow existing patterns in the codebase. Use appropriate skills.",
+      "recommended_skills": ["git-master", "frontend-ui-ux", "dev-browser", "code-doctor", "systematic-debugging"]
+    },
+    "hephaestus": {
+      "description": "Builder/executor — focused task implementation",
+      "model": "openai/gpt-5.3-codex",
+      "variant": "medium",
+      "category_mappings": ["quick", "unspecified-low"],
+      "default_prompt_template": "Quick implementation task: {task}. Be concise and direct.",
+      "recommended_skills": ["git-master", "quick"]
+    },
+    "librarian": {
+      "description": "Research — docs, OSS examples, web search, Context7",
+      "model": "anthropic/claude-sonnet-4-5",
+      "category_mappings": ["research"],
+      "default_prompt_template": "Research: {query}. Find documentation, examples, and best practices from external sources.",
+      "recommended_skills": ["context7", "websearch", "grep", "research-builder"]
+    },
+    "metis": {
+      "description": "Pre-planning analysis — scope clarification, ambiguity detection",
+      "model": "anthropic/claude-opus-4-6",
+      "variant": "max",
+      "category_mappings": ["pre-planning"],
+      "default_prompt_template": "Analyze this request for hidden intentions, ambiguities, and failure points: {request}",
+      "recommended_skills": ["sequentialthinking", "task-orchestrator"]
+    },
+    "momus": {
+      "description": "Plan review & QA — catches gaps, ambiguities, missing context",
+      "model": "openai/gpt-5.2",
+      "variant": "medium",
+      "category_mappings": ["review"],
+      "default_prompt_template": "Review this plan/work for clarity, verifiability, and completeness: {work}",
+      "recommended_skills": ["verification-before-completion", "writing-plans"]
+    },
+    "oracle": {
+      "description": "Read-only consultant — architecture, debugging, tradeoffs",
+      "model": "openai/gpt-5.2",
+      "variant": "high",
+      "category_mappings": ["deep", "ultrabrain", "architectural", "critical"],
+      "default_prompt_template": "Consultation request: {problem}. Provide expert analysis, tradeoff evaluation, and recommendations.",
+      "recommended_skills": ["codebase-auditor", "incident-commander", "innovation-migration-planner"]
+    },
+    "prometheus": {
+      "description": "Planning — strategic plans, interviews, brainstorming",
+      "model": "anthropic/claude-opus-4-6",
+      "variant": "max",
+      "category_mappings": ["writing", "planning"],
+      "default_prompt_template": "Create a comprehensive plan for: {scope}. Include requirements, constraints, and implementation steps.",
+      "recommended_skills": ["brainstorming", "writing-plans", "research-builder", "executing-plans"]
+    },
+    "sisyphus": {
+      "description": "Main orchestrator — delegates, coordinates, verifies",
+      "model": "anthropic/claude-opus-4-6",
+      "variant": "max",
+      "category_mappings": ["orchestration"],
+      "default_prompt_template": "Orchestrate this request: {request}. Delegate appropriately, verify outcomes, ensure completion.",
+      "recommended_skills": ["task-orchestrator", "dispatching-parallel-agents", "subagent-driven-development", "verification-before-completion"]
+    },
+    "explore": {
+      "description": "Background exploration — internal codebase grep",
+      "model": "anthropic/claude-haiku-4-5",
+      "category_mappings": ["exploration"],
+      "default_prompt_template": "Explore the codebase for patterns matching: {pattern}. Return file paths and descriptions.",
+      "recommended_skills": ["codebase-auditor", "grep"]
+    }
+  },
+  
+  "category_agent_mappings": {
+    "quick": ["hephaestus"],
+    "unspecified-low": ["hephaestus", "atlas"],
+    "unspecified-high": ["atlas", "oracle"],
+    "deep": ["oracle"],
+    "ultrabrain": ["oracle"],
+    "visual-engineering": ["atlas"],
+    "writing": ["prometheus"],
+    "research": ["librarian"],
+    "pre-planning": ["metis"],
+    "review": ["momus"],
+    "orchestration": ["sisyphus"],
+    "exploration": ["explore"]
+  },
+  
+  "model_complexity_mapping": {
+    "mechanical": "kimi-k2.5-free",
+    "trivial": "gemini-2.5-flash",
+    "routine": "antigravity-gemini-3-flash",
+    "complex": "claude-sonnet-4-5",
+    "advanced": "claude-sonnet-4-5-thinking",
+    "architectural": "claude-opus-4-6",
+    "critical": "claude-opus-4-6-thinking"
+  }
+}

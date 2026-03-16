@@ -12,8 +12,25 @@ tags: [reasoning, decomposition, analysis, planning, hypotheses]
 
 # COMPOSITION METADATA
 dependencies: []
-synergies: ["systematic-debugging", "writing-plans", "research-builder"]
+synergies: ["systematic-debugging", "writing-plans", "research-builder", "task-orchestrator", "incident-commander"]
 conflicts: []
+recommended_agents: ["oracle", "metis"]
+compatible_agents: ["atlas", "prometheus"]
+auto_triggers:
+  - context: "complex-debugging-needed"
+    description: "When debugging complex failures with multiple potential causes"
+    threshold: "high-confidence"
+  - context: "architecture-tradeoff-analysis"
+    description: "During architectural decisions requiring explicit tradeoff analysis"
+    threshold: "medium-confidence"
+  - context: "multi-hypothesis-testing"
+    description: "When testing multiple competing hypotheses systematically"
+    threshold: "medium-confidence"
+tool_affinities:
+  sequentialthinking: 0.95
+  supermemory: 0.5
+  grep: 0.4
+  websearch: 0.3
 outputs:
   - type: decision
     name: reasoning-trace

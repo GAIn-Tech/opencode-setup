@@ -13,8 +13,24 @@ tags: [memory, persistence, recall, project-knowledge, preferences]
 
 # COMPOSITION METADATA
 dependencies: []
-synergies: ["writing-plans", "research-builder", "verification-before-completion"]
+synergies: ["writing-plans", "research-builder", "verification-before-completion", "task-orchestrator", "codebase-auditor"]
 conflicts: []
+recommended_agents: ["librarian", "oracle"]
+compatible_agents: ["atlas", "sisyphus"]
+auto_triggers:
+  - context: "project-knowledge-recall-needed"
+    description: "When user asks about previous decisions or known solutions"
+    threshold: "high-confidence"
+  - context: "complex-task-start"
+    description: "At beginning of multi-step tasks for historical context"
+    threshold: "medium-confidence"
+  - context: "architecture-decision-point"
+    description: "During architectural discussions or system design"
+    threshold: "medium-confidence"
+tool_affinities:
+  supermemory: 0.9
+  sequentialthinking: 0.4
+  context7: 0.3
 outputs:
   - type: artifact
     name: persisted-memory

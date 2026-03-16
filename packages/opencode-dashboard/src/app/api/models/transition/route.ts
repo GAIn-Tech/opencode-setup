@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as os from 'os';
 import { getWriteActor, requireWriteAccess } from '../../_lib/write-access';
 import { appendWriteAuditEntry } from '../../_lib/write-audit';
-import { rateLimited } from '../../_lib/api-response';
+import { rateLimited, badRequest, internalError } from '../../_lib/api-response';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,36 +46,26 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { modelId, toState, actor, reason, metadata } = body;
     
-    // Validate required fields
-    if (!modelId || !toState) {
-      return NextResponse.json({
-        error: 'Missing required fields',
-        message: 'modelId and toState are required'
-      }, { status: 400 });
-    }
+     // Validate required fields
+     if (!modelId || !toState) {
+       return badRequest('Missing required fields: modelId and toState are required');
+     }
     
     stateMachine = getStateMachine();
     auditLogger = getAuditLogger();
     
-    // Check if transition is valid
-    const canTransition = await stateMachine.canTransition(modelId, toState);
-    if (!canTransition) {
-      const currentState = await stateMachine.getState(modelId);
-      return NextResponse.json({
-        error: 'Invalid transition',
-        message: `Cannot transition from ${currentState} to ${toState}`,
-        currentState
-      }, { status: 400 });
-    }
+     // Check if transition is valid
+     const canTransition = await stateMachine.canTransition(modelId, toState);
+     if (!canTransition) {
+       const currentState = await stateMachine.getState(modelId);
+       return badRequest(`Cannot transition from ${currentState} to ${toState}`);
+     }
     
-    // Get current state for audit log
-    const fromState = await stateMachine.getState(modelId);
-    if (!fromState) {
-      return NextResponse.json({
-        error: 'Missing current state',
-        message: `Model ${modelId} does not have an initialized lifecycle state`
-      }, { status: 400 });
-    }
+     // Get current state for audit log
+     const fromState = await stateMachine.getState(modelId);
+     if (!fromState) {
+       return badRequest(`Model ${modelId} does not have an initialized lifecycle state`);
+     }
 
     const timestamp = Date.now();
     
@@ -115,20 +105,17 @@ export async function POST(request: Request) {
       }
     });
     
-    return NextResponse.json({
-      success: true,
-      modelId,
-      fromState,
-      toState,
-      timestamp
-    });
-  } catch (error: unknown) {
-    console.error('Error executing transition:', error);
-    return NextResponse.json({
-      error: 'Failed to execute transition',
-      message: error instanceof Error ? error.message : String(error)
-    }, { status: 500 });
-  } finally {
+     return NextResponse.json({
+       success: true,
+       modelId,
+       fromState,
+       toState,
+       timestamp
+     });
+   } catch (error: unknown) {
+     console.error('[Models Transition API] Error executing transition:', error);
+     return internalError(error instanceof Error ? error.message : String(error));
+   } finally {
     stateMachine?.close();
     auditLogger?.close();
   }

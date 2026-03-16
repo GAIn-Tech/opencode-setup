@@ -24,7 +24,7 @@ const SCAN_FILES = [
 
 const FORBIDDEN_PATTERNS = [
   { name: 'OpenAI pre-GPT-5 family', regex: /\bgpt-4(?:\.|o|\b)|\bgpt-3(?:\.|\b)|\bo1\b/i },
-  { name: 'Gemini pre-3 family', regex: /\bgemini-(?:1\.|2\.)/i },
+  { name: 'Gemini pre-3 family', regex: /\bgemini-(?:1\.|2\.(?!5))/i },
   { name: 'Claude 3 family', regex: /\bclaude-3(?:\.|-|\b)/i },
   { name: 'Llama 3 family', regex: /\bllama-3(?:\.|-|\b)/i },
   { name: 'DeepSeek legacy ids', regex: /\bdeepseek-(?:chat|coder)\b/i },

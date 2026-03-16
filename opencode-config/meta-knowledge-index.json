@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-03-16T19:34:22.913Z",
+  "generated_at": "2026-03-16T19:43:58.812Z",
   "schema_version": 1,
-  "total_records": 336,
+  "total_records": 338,
   "source_files": {
-    "learning_updates": 336,
+    "learning_updates": 338,
     "agents_md": 7
   },
   "by_category": {
@@ -1055,6 +1055,81 @@
         "timestamp": "2026-03-08T00:00:00Z"
       }
     ],
+    "performance": [
+      {
+        "id": "perf-optimization-indexes-2026-03-16",
+        "summary": "Added DB indexes to audit-logger.js for query performance. Tasks 5 and 6 already implemented.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-manager/src/lifecycle/audit-logger.js"
+        ],
+        "timestamp": "2026-03-16T19:35:00Z"
+      },
+      {
+        "id": "benchmark-pipeline-functional-2026-03-14",
+        "summary": "Made opencode-model-benchmark production-functional: BenchmarkRunner with pluggable model client, evaluator, SQLite storage, built-in mini problems, real pass@k formula. Added BenchmarkPipeline orchestrator chaining Runner → Comparator → HierarchyPlacer → DocumentUpdater. 32 tests across 5 files.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-benchmark/src/benchmark-runner.js",
+          "packages/opencode-model-benchmark/src/benchmark-pipeline.js",
+          "packages/opencode-model-benchmark/src/index.js",
+          "packages/opencode-model-benchmark/package.json",
+          "packages/opencode-model-benchmark/test/benchmark-runner.test.js",
+          "packages/opencode-model-benchmark/test/model-comparator.test.js",
+          "packages/opencode-model-benchmark/test/hierarchy-placer.test.js",
+          "packages/opencode-model-benchmark/test/document-updater.test.js",
+          "packages/opencode-model-benchmark/test/benchmark-pipeline.test.js"
+        ],
+        "timestamp": "2026-03-14T19:06:00Z"
+      },
+      {
+        "id": "plugin-lifecycle-wiring-20260312",
+        "summary": "Wire PluginLifecycleSupervisor into bootstrap.js and expose evaluatePluginHealth + listPlugins methods in IntegrationLayer",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-integration-layer/src/bootstrap.js",
+          "packages/opencode-integration-layer/src/index.js",
+          "packages/opencode-integration-layer/tests/plugin-lifecycle-wiring.test.js"
+        ],
+        "timestamp": "2026-03-12T01:30:00Z"
+      },
+      {
+        "id": "wave8-readme-model-plugin-packages-20260308",
+        "summary": "Add README.md to four model and plugin packages that had none: opencode-model-benchmark, opencode-model-sync, opencode-plugin-lifecycle, opencode-plugin-preload-skills. Completes Wave 8C task 8 for the model/plugin tier.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-benchmark",
+          "packages/opencode-model-sync",
+          "packages/opencode-plugin-lifecycle",
+          "packages/opencode-plugin-preload-skills"
+        ],
+        "timestamp": "2026-03-08T00:20:00Z"
+      },
+      {
+        "id": "model-router-x-discovery-cache-perf-20260225",
+        "summary": "Optimize model-discovery.js: bounded cache with TTL, parallel provider fetching, early exit on invalid JSON",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-router-x/src/model-discovery.js"
+        ],
+        "timestamp": "2026-02-25T03:15:00.000Z"
+      },
+      {
+        "id": "wave-1-async-io-complete-20260225",
+        "summary": "Wave 1: Async I/O conversion for config-loader, learning-engine, and model-manager to eliminate event loop blocking",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-config-loader/src/central-config-state.js",
+          "packages/opencode-config-loader/src/central-config.js",
+          "packages/opencode-config-loader/src/index.js",
+          "packages/opencode-config-loader/test/central-config.test.js",
+          "packages/opencode-learning-engine/src/meta-awareness-tracker.js",
+          "packages/opencode-model-manager/src/monitoring/metrics-collector.js",
+          "packages/opencode-model-manager/test/pipeline-metrics-collector.test.ts"
+        ],
+        "timestamp": "2026-02-25T02:32:00.000Z"
+      }
+    ],
     "telemetry": [
       {
         "id": "system-health-codebase-memory-2026-03-16",
@@ -1373,6 +1448,19 @@
           "packages/opencode-codebase-memory/test/graph-store.test.js"
         ],
         "timestamp": "2026-03-16T14:30:00Z"
+      },
+      {
+        "id": "dashboard-reliability-fixes-2026-03-16",
+        "summary": "Standardized error responses, fixed silent catch blocks, verified error boundaries and RBAC",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/config/route.ts",
+          "packages/opencode-dashboard/src/app/api/models/route.ts",
+          "packages/opencode-dashboard/src/app/api/models/transition/route.ts",
+          "packages/opencode-dashboard/src/app/api/health/route.ts",
+          "packages/opencode-dashboard/src/app/api/memory-graph/route.ts"
+        ],
+        "timestamp": "2026-03-16T00:00:00Z"
       },
       {
         "id": "fix-context-management-test-isolation-2026-03-14",
@@ -2055,72 +2143,6 @@
           "mcp-servers/tool-manifest.json"
         ],
         "timestamp": "2026-02-15T18:55:00Z"
-      }
-    ],
-    "performance": [
-      {
-        "id": "benchmark-pipeline-functional-2026-03-14",
-        "summary": "Made opencode-model-benchmark production-functional: BenchmarkRunner with pluggable model client, evaluator, SQLite storage, built-in mini problems, real pass@k formula. Added BenchmarkPipeline orchestrator chaining Runner → Comparator → HierarchyPlacer → DocumentUpdater. 32 tests across 5 files.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-benchmark/src/benchmark-runner.js",
-          "packages/opencode-model-benchmark/src/benchmark-pipeline.js",
-          "packages/opencode-model-benchmark/src/index.js",
-          "packages/opencode-model-benchmark/package.json",
-          "packages/opencode-model-benchmark/test/benchmark-runner.test.js",
-          "packages/opencode-model-benchmark/test/model-comparator.test.js",
-          "packages/opencode-model-benchmark/test/hierarchy-placer.test.js",
-          "packages/opencode-model-benchmark/test/document-updater.test.js",
-          "packages/opencode-model-benchmark/test/benchmark-pipeline.test.js"
-        ],
-        "timestamp": "2026-03-14T19:06:00Z"
-      },
-      {
-        "id": "plugin-lifecycle-wiring-20260312",
-        "summary": "Wire PluginLifecycleSupervisor into bootstrap.js and expose evaluatePluginHealth + listPlugins methods in IntegrationLayer",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-integration-layer/src/bootstrap.js",
-          "packages/opencode-integration-layer/src/index.js",
-          "packages/opencode-integration-layer/tests/plugin-lifecycle-wiring.test.js"
-        ],
-        "timestamp": "2026-03-12T01:30:00Z"
-      },
-      {
-        "id": "wave8-readme-model-plugin-packages-20260308",
-        "summary": "Add README.md to four model and plugin packages that had none: opencode-model-benchmark, opencode-model-sync, opencode-plugin-lifecycle, opencode-plugin-preload-skills. Completes Wave 8C task 8 for the model/plugin tier.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-benchmark",
-          "packages/opencode-model-sync",
-          "packages/opencode-plugin-lifecycle",
-          "packages/opencode-plugin-preload-skills"
-        ],
-        "timestamp": "2026-03-08T00:20:00Z"
-      },
-      {
-        "id": "model-router-x-discovery-cache-perf-20260225",
-        "summary": "Optimize model-discovery.js: bounded cache with TTL, parallel provider fetching, early exit on invalid JSON",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-router-x/src/model-discovery.js"
-        ],
-        "timestamp": "2026-02-25T03:15:00.000Z"
-      },
-      {
-        "id": "wave-1-async-io-complete-20260225",
-        "summary": "Wave 1: Async I/O conversion for config-loader, learning-engine, and model-manager to eliminate event loop blocking",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-config-loader/src/central-config-state.js",
-          "packages/opencode-config-loader/src/central-config.js",
-          "packages/opencode-config-loader/src/index.js",
-          "packages/opencode-config-loader/test/central-config.test.js",
-          "packages/opencode-learning-engine/src/meta-awareness-tracker.js",
-          "packages/opencode-model-manager/src/monitoring/metrics-collector.js",
-          "packages/opencode-model-manager/test/pipeline-metrics-collector.test.ts"
-        ],
-        "timestamp": "2026-02-25T02:32:00.000Z"
       }
     ],
     "agent-config": [
@@ -4121,6 +4143,15 @@
         "timestamp": "2026-03-16T20:00:00Z"
       },
       {
+        "id": "perf-optimization-indexes-2026-03-16",
+        "summary": "Added DB indexes to audit-logger.js for query performance. Tasks 5 and 6 already implemented.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-manager/src/lifecycle/audit-logger.js"
+        ],
+        "timestamp": "2026-03-16T19:35:00Z"
+      },
+      {
         "id": "system-health-codebase-memory-2026-03-16",
         "summary": "Fixed system-health.mjs to spawn bun subprocess for codebase-memory check (avoids bun:sqlite incompatibility with Node.js). Updated telemetry cap threshold from 1000 to 5000. Fixed package.json codebase:analyze script to use bun instead of node. System health now 100% (18/18).",
         "risk_level": "low",
@@ -4159,6 +4190,19 @@
           "packages/opencode-codebase-memory/test/graph-store.test.js"
         ],
         "timestamp": "2026-03-16T14:30:00Z"
+      },
+      {
+        "id": "dashboard-reliability-fixes-2026-03-16",
+        "summary": "Standardized error responses, fixed silent catch blocks, verified error boundaries and RBAC",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/config/route.ts",
+          "packages/opencode-dashboard/src/app/api/models/route.ts",
+          "packages/opencode-dashboard/src/app/api/models/transition/route.ts",
+          "packages/opencode-dashboard/src/app/api/health/route.ts",
+          "packages/opencode-dashboard/src/app/api/memory-graph/route.ts"
+        ],
+        "timestamp": "2026-03-16T00:00:00Z"
       },
       {
         "id": "portability-fixes-canonical-paths-2026-03-14",
@@ -8062,6 +8106,12 @@
         "timestamp": "2026-03-16T21:30:00Z"
       },
       {
+        "id": "dashboard-reliability-fixes-2026-03-16",
+        "summary": "Standardized error responses, fixed silent catch blocks, verified error boundaries and RBAC",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T00:00:00Z"
+      },
+      {
         "id": "dashboard-auth-hardening-2026-03-14",
         "summary": "Gate all 10 POST endpoints with requireWriteAccess and specific permissions. Add 4 new permissions (skills:promote, usage:write, providers:manage, orchestration:write) to admin+operator ROLE_MATRIX. Fix skills/promotions missing permission arg. Add regression test scanning all route.ts POST exports for universal auth coverage.",
         "risk_level": "medium",
@@ -8533,6 +8583,12 @@
       }
     ],
     "packages/opencode-model-manager": [
+      {
+        "id": "perf-optimization-indexes-2026-03-16",
+        "summary": "Added DB indexes to audit-logger.js for query performance. Tasks 5 and 6 already implemented.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T19:35:00Z"
+      },
       {
         "id": "portability-fixes-canonical-paths-2026-03-14",
         "summary": "Fixed cross-machine portability: replaced relative DB paths with canonical ~/.opencode/ paths in audit-logger and state-machine, added dir creation before audit writes, replaced hardcoded Windows path with os.homedir(), added learning-updates to CONFIG_DIRS, documented plugins architecture",

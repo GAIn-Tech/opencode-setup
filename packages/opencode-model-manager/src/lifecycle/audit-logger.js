@@ -288,6 +288,15 @@ class AuditLogger {
       CREATE INDEX IF NOT EXISTS idx_audit_log_timestamp
         ON model_lifecycle_audit_log(timestamp DESC);
 
+      CREATE INDEX IF NOT EXISTS idx_audit_log_timestamp_single
+        ON model_lifecycle_audit_log(timestamp);
+
+      CREATE INDEX IF NOT EXISTS idx_audit_log_model_id
+        ON model_lifecycle_audit_log(model_id);
+
+      CREATE INDEX IF NOT EXISTS idx_audit_log_action
+        ON model_lifecycle_audit_log(to_state);
+
       CREATE TABLE IF NOT EXISTS audit_log_meta (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL

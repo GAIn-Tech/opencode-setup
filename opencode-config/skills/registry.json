@@ -2,572 +2,1200 @@
   "$schema": "./registry.schema.json",
   "version": "1.0.0",
   "lastUpdated": "2026-02-26T12:00:00Z",
-  
   "skills": {
     "distill": {
       "description": "AST-aware context compression via distill MCP. Use when context is ≥65% full or before long subagent tasks to reclaim 50-70% token budget.",
       "category": "optimization",
-      "tags": ["context", "compression", "tokens", "budget"],
+      "tags": [
+        "context",
+        "compression",
+        "tokens",
+        "budget"
+      ],
       "source": "custom",
       "dependencies": [],
-      "synergies": ["budget-aware-router", "token-reporter", "dispatching-parallel-agents", "dcp"],
+      "synergies": [
+        "budget-aware-router",
+        "token-reporter",
+        "dispatching-parallel-agents",
+        "dcp"
+      ],
       "conflicts": [],
-      "triggers": ["context full", "compress context", "token budget low", "before subagent task", "context over 65%"]
+      "triggers": [
+        "context full",
+        "compress context",
+        "token budget low",
+        "before subagent task",
+        "context over 65%",
+        "use context-governor",
+        "context-governor tool",
+        "context-governor integration"
+      ],
+      "recommended_agents": [
+        "atlas"
+      ],
+      "compatible_agents": [
+        "sisyphus",
+        "oracle"
+      ]
     },
     "dcp": {
       "description": "Dynamic Context Pruning — prunes irrelevant context segments to reduce token usage. Works alongside distill for complementary compression strategies.",
       "category": "optimization",
-      "tags": ["context", "pruning", "tokens", "budget", "relevance"],
+      "tags": [
+        "context",
+        "pruning",
+        "tokens",
+        "budget",
+        "relevance"
+      ],
       "source": "plugin",
       "dependencies": [],
-      "synergies": ["distill", "context-governor", "budget-aware-router"],
+      "synergies": [
+        "distill",
+        "context-governor",
+        "budget-aware-router"
+      ],
       "conflicts": [],
-      "triggers": ["prune context", "remove irrelevant context", "context too long", "trim conversation"]
+      "triggers": [
+        "prune context",
+        "remove irrelevant context",
+        "context too long",
+        "trim conversation",
+        "use distill",
+        "distill tool",
+        "distill integration"
+      ],
+      "recommended_agents": [
+        "atlas"
+      ],
+      "compatible_agents": [
+        "sisyphus",
+        "oracle"
+      ]
     },
     "context7": {
-      "description": "Fetch up-to-date library documentation and code examples via Context7 MCP instead of relying on stale training data.",
+      "description": "Fetch up-to-date library documentation and code examples via Context7 CLI (ctx7 command) instead of relying on stale training data.",
       "category": "research",
-      "tags": ["documentation", "libraries", "api-reference", "frameworks"],
+      "tags": [
+        "documentation",
+        "libraries",
+        "api-reference",
+        "frameworks"
+      ],
       "source": "custom",
       "dependencies": [],
-      "synergies": ["research-builder", "writing-plans", "test-driven-development"],
+      "synergies": [
+        "research-builder",
+        "writing-plans",
+        "test-driven-development"
+      ],
       "conflicts": [],
-      "triggers": ["library docs", "api reference", "framework documentation", "how to use library", "correct syntax for"]
+      "triggers": [
+        "library docs",
+        "api reference",
+        "framework documentation",
+        "how to use library",
+        "correct syntax for",
+        "use websearch",
+        "websearch tool",
+        "websearch integration",
+        "use grep",
+        "grep tool",
+        "grep integration",
+        "ctx7 library",
+        "ctx7 query"
+      ],
+      "recommended_agents": [
+        "librarian"
+      ],
+      "compatible_agents": []
     },
     "supermemory": {
       "description": "Persistent memory retrieval and storage via Supermemory for cross-session project knowledge, preferences, and reusable findings.",
       "category": "memory",
-      "tags": ["memory", "persistence", "recall", "preferences", "project-knowledge"],
+      "tags": [
+        "memory",
+        "persistence",
+        "recall",
+        "preferences",
+        "project-knowledge"
+      ],
       "source": "custom",
       "dependencies": [],
-      "synergies": ["writing-plans", "research-builder", "verification-before-completion"],
+      "synergies": [
+        "writing-plans",
+        "research-builder",
+        "verification-before-completion"
+      ],
       "conflicts": [],
-      "triggers": ["remember this", "recall previous decision", "save for later", "persistent memory", "across sessions"]
+      "triggers": [
+        "remember this",
+        "recall previous decision",
+        "save for later",
+        "persistent memory",
+        "across sessions"
+      ],
+      "recommended_agents": [
+        "librarian"
+      ],
+      "compatible_agents": []
     },
     "sequentialthinking": {
       "description": "Structured step-by-step reasoning for hard problems that need explicit decomposition, branching, or revisions.",
       "category": "reasoning",
-      "tags": ["reasoning", "analysis", "decomposition", "hypotheses", "planning"],
+      "tags": [
+        "reasoning",
+        "analysis",
+        "decomposition",
+        "hypotheses",
+        "planning"
+      ],
       "source": "custom",
       "dependencies": [],
-      "synergies": ["systematic-debugging", "writing-plans", "research-builder"],
+      "synergies": [
+        "systematic-debugging",
+        "writing-plans",
+        "research-builder"
+      ],
       "conflicts": [],
-      "triggers": ["think step by step", "break this down", "reason through", "analyze carefully", "multiple hypotheses"]
+      "triggers": [
+        "think step by step",
+        "break this down",
+        "reason through",
+        "analyze carefully",
+        "multiple hypotheses"
+      ],
+      "recommended_agents": [
+        "oracle"
+      ],
+      "compatible_agents": []
     },
     "websearch": {
       "description": "Live web search and page extraction for current information, screenshots, transcripts, and structured web data.",
       "category": "research",
-      "tags": ["web", "search", "current-events", "scraping", "screenshots", "transcripts"],
+      "tags": [
+        "web",
+        "search",
+        "current-events",
+        "scraping",
+        "screenshots",
+        "transcripts"
+      ],
       "source": "custom",
       "dependencies": [],
-      "synergies": ["research-builder", "context7", "writing-plans"],
+      "synergies": [
+        "research-builder",
+        "context7",
+        "writing-plans"
+      ],
       "conflicts": [],
-      "triggers": ["search the web", "find current info", "latest update", "web research", "scrape website"]
+      "triggers": [
+        "search the web",
+        "find current info",
+        "latest update",
+        "web research",
+        "scrape website"
+      ],
+      "recommended_agents": [
+        "oracle",
+        "librarian",
+        "explore"
+      ],
+      "compatible_agents": []
     },
     "grep": {
-      "description": "External code search across public repositories for real-world implementation examples and usage patterns.",
+      "description": "External code search across public repositories via CLI wrapper for real-world implementation examples and usage patterns.",
       "category": "research",
-      "tags": ["code-search", "github", "examples", "patterns", "repositories"],
+      "tags": [
+        "code-search",
+        "github",
+        "examples",
+        "patterns",
+        "repositories"
+      ],
       "source": "custom",
       "dependencies": [],
-      "synergies": ["context7", "research-builder", "writing-plans"],
+      "synergies": [
+        "context7",
+        "research-builder",
+        "writing-plans"
+      ],
       "conflicts": [],
-      "triggers": ["search code", "find github example", "public repo example", "grep github", "code pattern example"]
+      "triggers": [
+        "search code",
+        "find github example",
+        "public repo example",
+        "grep github",
+        "code pattern example",
+        "grep tool",
+        "grep app search"
+      ],
+      "recommended_agents": [
+        "oracle",
+        "explore"
+      ],
+      "compatible_agents": []
     },
     "context-governor": {
       "description": "Context window budget management — tracks token consumption per session/model, warns at 75%/80% thresholds, and provides budget status for cost-aware model routing.",
       "category": "optimization",
-      "tags": ["context", "budget", "tokens", "governor", "thresholds"],
+      "tags": [
+        "context",
+        "budget",
+        "tokens",
+        "governor",
+        "thresholds"
+      ],
       "source": "custom",
       "dependencies": [],
-      "synergies": ["budget-aware-router", "distill", "token-reporter"],
+      "synergies": [
+        "budget-aware-router",
+        "distill",
+        "token-reporter"
+      ],
       "conflicts": [],
-      "triggers": ["token budget", "context budget", "budget status", "remaining tokens", "budget check"]
+      "triggers": [
+        "token budget",
+        "context budget",
+        "budget status",
+        "remaining tokens",
+        "budget check",
+        "use distill",
+        "distill tool",
+        "distill integration"
+      ],
+      "recommended_agents": [
+        "atlas"
+      ],
+      "compatible_agents": []
     },
     "git-master": {
       "description": "Atomic commits, rebase/squash, history search (blame, bisect, log -S)",
       "category": "git",
-      "tags": ["commits", "history", "rebase"],
+      "tags": [
+        "commits",
+        "history",
+        "rebase"
+      ],
       "source": "builtin",
       "dependencies": [],
-      "synergies": ["verification-before-completion", "code-doctor"],
+      "synergies": [
+        "verification-before-completion",
+        "code-doctor"
+      ],
       "conflicts": [],
-      "triggers": ["commit", "rebase", "squash", "who wrote", "when was X added", "find the commit that"]
+      "triggers": [
+        "commit",
+        "rebase",
+        "squash",
+        "who wrote",
+        "when was X added",
+        "find the commit that"
+      ],
+      "recommended_agents": [
+        "sisyphus"
+      ],
+      "compatible_agents": [
+        "momus",
+        "metis"
+      ]
     },
     "frontend-ui-ux": {
       "description": "Designer-turned-developer who crafts stunning UI/UX even without design mockups",
       "category": "implementation",
-      "tags": ["ui", "ux", "design", "frontend"],
+      "tags": [
+        "ui",
+        "ux",
+        "design",
+        "frontend"
+      ],
       "source": "builtin",
       "dependencies": [],
-      "synergies": ["dev-browser", "verification-before-completion"],
+      "synergies": [
+        "dev-browser",
+        "verification-before-completion"
+      ],
       "conflicts": [],
-      "triggers": ["build UI", "design component", "style", "make it look"]
+      "triggers": [
+        "build UI",
+        "design component",
+        "style",
+        "make it look",
+        "use playwright",
+        "playwright tool",
+        "playwright integration"
+      ],
+      "recommended_agents": [
+        "hephaestus"
+      ],
+      "compatible_agents": []
     },
     "dev-browser": {
       "description": "Browser automation with persistent page state via Playwright MCP",
       "category": "browser",
-      "tags": ["playwright", "testing", "automation"],
+      "tags": [
+        "playwright",
+        "testing",
+        "automation"
+      ],
       "source": "builtin",
       "dependencies": [],
-      "synergies": ["frontend-ui-ux", "test-driven-development"],
-      "conflicts": ["agent-browser"],
-      "triggers": ["go to url", "click on", "fill form", "take screenshot", "test the website"],
+      "synergies": [
+        "frontend-ui-ux",
+        "test-driven-development"
+      ],
+      "conflicts": [
+        "agent-browser"
+      ],
+      "triggers": [
+        "go to url",
+        "click on",
+        "fill form",
+        "take screenshot",
+        "test the website",
+        "use playwright",
+        "playwright tool",
+        "playwright integration"
+      ],
       "overlapCluster": "browser",
       "canonicalEntrypoint": true,
       "selectionHints": {
-        "useWhen": ["need persistent page state across steps", "Playwright MCP is available", "complex multi-step browser interaction"],
-        "avoidWhen": ["simple one-shot page fetch", "no Playwright MCP configured", "prefer CLI-based browser automation"]
-      }
+        "useWhen": [
+          "need persistent page state across steps",
+          "Playwright MCP is available",
+          "complex multi-step browser interaction"
+        ],
+        "avoidWhen": [
+          "simple one-shot page fetch",
+          "no Playwright MCP configured",
+          "prefer CLI-based browser automation"
+        ]
+      },
+      "recommended_agents": [
+        "explore",
+        "multimodal-looker"
+      ],
+      "compatible_agents": []
     },
     "playwright": {
       "description": "Direct browser automation through the Playwright MCP for navigation, interaction, screenshots, and UI verification.",
       "category": "browser",
-      "tags": ["playwright", "browser", "automation", "screenshots", "verification"],
+      "tags": [
+        "playwright",
+        "browser",
+        "automation",
+        "screenshots",
+        "verification"
+      ],
       "source": "custom",
       "dependencies": [],
-      "synergies": ["frontend-ui-ux", "verification-before-completion"],
-      "conflicts": ["agent-browser"],
-      "triggers": ["playwright", "browser automation", "take screenshot", "click through UI", "test page"],
+      "synergies": [
+        "frontend-ui-ux",
+        "verification-before-completion"
+      ],
+      "conflicts": [
+        "agent-browser"
+      ],
+      "triggers": [
+        "playwright",
+        "browser automation",
+        "take screenshot",
+        "click through UI",
+        "test page"
+      ],
       "overlapCluster": "browser",
       "canonicalEntrypoint": true,
       "selectionHints": {
-        "useWhen": ["want direct MCP browser path", "need screenshots or visual verification", "browser interaction should map clearly to Playwright telemetry"],
-        "avoidWhen": ["prefer CLI-based browser automation", "browser not actually required"]
-      }
+        "useWhen": [
+          "want direct MCP browser path",
+          "need screenshots or visual verification",
+          "browser interaction should map clearly to Playwright telemetry"
+        ],
+        "avoidWhen": [
+          "prefer CLI-based browser automation",
+          "browser not actually required"
+        ]
+      },
+      "recommended_agents": [
+        "hephaestus",
+        "explore",
+        "multimodal-looker"
+      ],
+      "compatible_agents": []
     },
     "agent-browser": {
       "description": "Browser automation using Vercel's agent-browser CLI with ref-based selection",
       "category": "browser",
-      "tags": ["browser", "automation", "cli"],
+      "tags": [
+        "browser",
+        "automation",
+        "cli"
+      ],
       "source": "builtin",
       "dependencies": [],
-      "synergies": ["frontend-ui-ux"],
-      "conflicts": ["dev-browser", "playwright"],
-      "triggers": ["browse website", "fill form", "click button", "web automation"],
+      "synergies": [
+        "frontend-ui-ux"
+      ],
+      "conflicts": [
+        "dev-browser",
+        "playwright"
+      ],
+      "triggers": [
+        "browse website",
+        "fill form",
+        "click button",
+        "web automation"
+      ],
       "overlapCluster": "browser",
       "canonicalEntrypoint": false,
       "selectionHints": {
-        "useWhen": ["prefer CLI-based browser automation", "ref-based element selection needed", "Playwright MCP not available"],
-        "avoidWhen": ["need persistent page state across steps", "complex multi-step interactions", "Playwright MCP is configured and preferred"]
-      }
+        "useWhen": [
+          "prefer CLI-based browser automation",
+          "ref-based element selection needed",
+          "Playwright MCP not available"
+        ],
+        "avoidWhen": [
+          "need persistent page state across steps",
+          "complex multi-step interactions",
+          "Playwright MCP is configured and preferred"
+        ]
+      },
+      "recommended_agents": [
+        "hephaestus"
+      ],
+      "compatible_agents": [
+        "atlas",
+        "oracle"
+      ]
     },
     "innovation-migration-planner": {
       "description": "Weighted hotspot scoring for identifying high-leverage innovation opportunities",
       "category": "planning",
-      "tags": ["innovation", "migration", "planning", "scoring"],
+      "tags": [
+        "innovation",
+        "migration",
+        "planning",
+        "scoring"
+      ],
       "source": "custom",
       "dependencies": [],
-      "synergies": ["writing-plans", "executing-plans"],
+      "synergies": [
+        "writing-plans",
+        "executing-plans"
+      ],
       "conflicts": [],
-      "triggers": ["find innovation areas", "push boundaries", "draft migration plan", "rank opportunities"]
+      "triggers": [
+        "find innovation areas",
+        "push boundaries",
+        "draft migration plan",
+        "rank opportunities"
+      ],
+      "recommended_agents": [
+        "prometheus"
+      ],
+      "compatible_agents": []
     },
     "codebase-auditor": {
       "description": "Systematic codebase health audit with inventory, drift detection, and prioritized remediation guidance.",
       "category": "analysis",
-      "tags": ["audit", "codebase", "inventory", "architecture", "health", "drift"],
+      "tags": [
+        "audit",
+        "codebase",
+        "inventory",
+        "architecture",
+        "health",
+        "drift"
+      ],
       "source": "custom",
       "dependencies": [],
-      "synergies": ["innovation-migration-planner", "code-doctor", "evaluation-harness-builder", "research-builder"],
+      "synergies": [
+        "innovation-migration-planner",
+        "code-doctor",
+        "evaluation-harness-builder",
+        "research-builder"
+      ],
       "conflicts": [],
-      "triggers": ["audit codebase", "system audit", "coherence pass", "what is disconnected", "architecture review"]
+      "triggers": [
+        "audit codebase",
+        "system audit",
+        "coherence pass",
+        "what is disconnected",
+        "architecture review"
+      ],
+      "recommended_agents": [
+        "metis"
+      ],
+      "compatible_agents": []
     },
     "token-reporter": {
       "description": "Manual token tracking to dashboard API for usage monitoring",
       "category": "observability",
-      "tags": ["tokens", "usage", "dashboard"],
+      "tags": [
+        "tokens",
+        "usage",
+        "dashboard"
+      ],
       "source": "custom",
       "dependencies": [],
       "synergies": [],
       "conflicts": [],
-      "triggers": ["report tokens", "track usage", "token count"]
+      "triggers": [
+        "report tokens",
+        "track usage",
+        "token count",
+        "use distill",
+        "distill tool",
+        "distill integration",
+        "use context-governor",
+        "context-governor tool",
+        "context-governor integration"
+      ],
+      "recommended_agents": [
+        "atlas"
+      ],
+      "compatible_agents": [
+        "sisyphus",
+        "oracle"
+      ]
     },
     "github-triage": {
       "description": "Parallel issue/PR triage with background tasks",
       "category": "review",
-      "tags": ["github", "issues", "pr", "triage"],
+      "tags": [
+        "github",
+        "issues",
+        "pr",
+        "triage"
+      ],
       "source": "custom",
       "dependencies": [],
-      "synergies": ["requesting-code-review", "receiving-code-review"],
+      "synergies": [
+        "requesting-code-review",
+        "receiving-code-review"
+      ],
       "conflicts": [],
-      "triggers": ["triage issues", "review PRs", "github cleanup"]
+      "triggers": [
+        "triage issues",
+        "review PRs",
+        "github cleanup"
+      ],
+      "recommended_agents": [
+        "sisyphus"
+      ],
+      "compatible_agents": [
+        "momus",
+        "metis"
+      ]
     },
     "code-doctor": {
       "description": "Diagnostic and self-healing workflow for failures with escalation after bounded retries",
       "category": "debugging",
-      "tags": ["diagnostics", "self-healing", "rca", "triage"],
+      "tags": [
+        "diagnostics",
+        "self-healing",
+        "rca",
+        "triage"
+      ],
       "source": "custom",
-      "dependencies": ["systematic-debugging"],
-      "synergies": ["test-driven-development", "git-master", "verification-before-completion"],
+      "dependencies": [
+        "systematic-debugging"
+      ],
+      "synergies": [
+        "test-driven-development",
+        "git-master",
+        "verification-before-completion"
+      ],
       "conflicts": [],
-      "triggers": ["fix failing test", "diagnose bug", "self-heal", "triage incident", "regression"],
+      "triggers": [
+        "fix failing test",
+        "diagnose bug",
+        "self-heal",
+        "triage incident",
+        "regression"
+      ],
       "processPhase": "analysis",
       "domain": "debugging",
       "overlapCluster": "debugging",
       "canonicalEntrypoint": false,
       "selectionHints": {
-        "useWhen": ["recurring failure with unknown root cause", "self-healing or auto-repair needed", "bounded retry escalation required"],
-        "avoidWhen": ["simple known fix", "first-time shallow bug", "no prior debugging attempt"]
-      }
+        "useWhen": [
+          "recurring failure with unknown root cause",
+          "self-healing or auto-repair needed",
+          "bounded retry escalation required"
+        ],
+        "avoidWhen": [
+          "simple known fix",
+          "first-time shallow bug",
+          "no prior debugging attempt"
+        ]
+      },
+      "recommended_agents": [
+        "sisyphus"
+      ],
+      "compatible_agents": []
     },
     "research-builder": {
       "description": "Research-to-spec-to-build workflow with quality gates before implementation",
       "category": "research",
-      "tags": ["research", "spec", "quality-gate", "implementation"],
+      "tags": [
+        "research",
+        "spec",
+        "quality-gate",
+        "implementation"
+      ],
       "source": "custom",
-      "dependencies": ["writing-plans"],
-      "synergies": ["executing-plans", "verification-before-completion", "innovation-migration-planner", "context7"],
+      "dependencies": [
+        "writing-plans"
+      ],
+      "synergies": [
+        "executing-plans",
+        "verification-before-completion",
+        "innovation-migration-planner",
+        "context7"
+      ],
       "conflicts": [],
-      "triggers": ["research and build", "investigate before implementation", "deep research", "spec first"]
+      "triggers": [
+        "research and build",
+        "investigate before implementation",
+        "deep research",
+        "spec first",
+        "use context7",
+        "context7 tool",
+        "context7 integration",
+        "save to supermemory",
+        "retrieve from supermemory",
+        "supermemory recall",
+        "use sequentialthinking reasoning",
+        "sequentialthinking analysis",
+        "sequentialthinking step-by-step",
+        "use websearch",
+        "websearch tool",
+        "websearch integration",
+        "use grep",
+        "grep tool",
+        "grep integration"
+      ],
+      "recommended_agents": [
+        "oracle",
+        "librarian"
+      ],
+      "compatible_agents": []
     },
     "systematic-debugging": {
       "description": "Root cause analysis with evidence-based debugging and defense-in-depth fixes",
       "category": "debugging",
-      "tags": ["debugging", "rca", "troubleshooting"],
+      "tags": [
+        "debugging",
+        "rca",
+        "troubleshooting"
+      ],
       "source": "superpowers",
       "dependencies": [],
-      "synergies": ["test-driven-development", "code-doctor", "git-master"],
+      "synergies": [
+        "test-driven-development",
+        "code-doctor",
+        "git-master"
+      ],
       "conflicts": [],
-      "triggers": ["debug", "why is this failing", "root cause", "unexpected behavior"],
+      "triggers": [
+        "debug",
+        "why is this failing",
+        "root cause",
+        "unexpected behavior",
+        "use sequentialthinking reasoning",
+        "sequentialthinking analysis",
+        "sequentialthinking step-by-step"
+      ],
       "processPhase": "analysis",
       "domain": "debugging",
       "overlapCluster": "debugging",
       "canonicalEntrypoint": true,
       "selectionHints": {
-        "useWhen": ["unexpected behavior or test failure", "need evidence-based root cause analysis", "bug reproduction required before fix"],
-        "avoidWhen": ["implementing new feature from scratch", "code review without active bug", "planning phase"]
-      }
+        "useWhen": [
+          "unexpected behavior or test failure",
+          "need evidence-based root cause analysis",
+          "bug reproduction required before fix"
+        ],
+        "avoidWhen": [
+          "implementing new feature from scratch",
+          "code review without active bug",
+          "planning phase"
+        ]
+      },
+      "recommended_agents": [
+        "metis"
+      ],
+      "compatible_agents": []
     },
     "test-driven-development": {
       "description": "TDD workflow with anti-patterns guide - write tests before implementation",
       "category": "testing",
-      "tags": ["tdd", "testing", "red-green-refactor"],
+      "tags": [
+        "tdd",
+        "testing",
+        "red-green-refactor"
+      ],
       "source": "superpowers",
       "dependencies": [],
-      "synergies": ["systematic-debugging", "verification-before-completion"],
+      "synergies": [
+        "systematic-debugging",
+        "verification-before-completion"
+      ],
       "conflicts": [],
-      "triggers": ["implement feature", "add tests first", "TDD", "test-driven"],
+      "triggers": [
+        "implement feature",
+        "add tests first",
+        "TDD",
+        "test-driven",
+        "use context7",
+        "context7 tool",
+        "context7 integration"
+      ],
       "processPhase": "implementation",
       "domain": "testing",
       "selectionHints": {
-        "useWhen": ["implementing new feature or bugfix", "behavior change needs regression safety", "refactoring existing code"],
-        "avoidWhen": ["throwaway prototype", "configuration-only change", "pure documentation task"]
-      }
+        "useWhen": [
+          "implementing new feature or bugfix",
+          "behavior change needs regression safety",
+          "refactoring existing code"
+        ],
+        "avoidWhen": [
+          "throwaway prototype",
+          "configuration-only change",
+          "pure documentation task"
+        ]
+      },
+      "recommended_agents": [
+        "hephaestus"
+      ],
+      "compatible_agents": []
     },
     "brainstorming": {
       "description": "Pre-implementation ideation to explore intent, approaches, and design decisions",
       "category": "planning",
-      "tags": ["ideation", "design", "exploration"],
+      "tags": [
+        "ideation",
+        "design",
+        "exploration"
+      ],
       "source": "superpowers",
       "dependencies": [],
-      "synergies": ["writing-plans", "innovation-migration-planner"],
+      "synergies": [
+        "writing-plans",
+        "innovation-migration-planner"
+      ],
       "conflicts": [],
-      "triggers": ["let's brainstorm", "help me think through", "explore approaches", "what should we build"],
+      "triggers": [
+        "let's brainstorm",
+        "help me think through",
+        "explore approaches",
+        "what should we build"
+      ],
       "processPhase": "pre-analysis",
       "domain": "planning",
       "selectionHints": {
-        "useWhen": ["ambiguous requirements", "multiple valid approaches", "greenfield feature design"],
-        "avoidWhen": ["task is already specified", "executing an existing plan", "single obvious implementation"]
-      }
+        "useWhen": [
+          "ambiguous requirements",
+          "multiple valid approaches",
+          "greenfield feature design"
+        ],
+        "avoidWhen": [
+          "task is already specified",
+          "executing an existing plan",
+          "single obvious implementation"
+        ]
+      },
+      "recommended_agents": [
+        "prometheus"
+      ],
+      "compatible_agents": []
     },
     "writing-plans": {
       "description": "Create detailed implementation plans before touching code",
       "category": "planning",
-      "tags": ["planning", "specs", "documentation"],
+      "tags": [
+        "planning",
+        "specs",
+        "documentation"
+      ],
       "source": "superpowers",
       "dependencies": [],
-      "synergies": ["brainstorming", "executing-plans"],
+      "synergies": [
+        "brainstorming",
+        "executing-plans"
+      ],
       "conflicts": [],
-      "triggers": ["write a plan", "spec this out", "before we code"],
+      "triggers": [
+        "write a plan",
+        "spec this out",
+        "before we code",
+        "use context7",
+        "context7 tool",
+        "context7 integration",
+        "save to supermemory",
+        "retrieve from supermemory",
+        "supermemory recall",
+        "use sequentialthinking reasoning",
+        "sequentialthinking analysis",
+        "sequentialthinking step-by-step",
+        "use websearch",
+        "websearch tool",
+        "websearch integration",
+        "use grep",
+        "grep tool",
+        "grep integration"
+      ],
       "processPhase": "pre-analysis",
       "domain": "planning",
       "selectionHints": {
-        "useWhen": ["multi-step task needs breakdown", "spec or requirements exist but no plan", "complex feature before implementation"],
-        "avoidWhen": ["plan already exists", "trivial single-file change", "pure debugging task"]
-      }
+        "useWhen": [
+          "multi-step task needs breakdown",
+          "spec or requirements exist but no plan",
+          "complex feature before implementation"
+        ],
+        "avoidWhen": [
+          "plan already exists",
+          "trivial single-file change",
+          "pure debugging task"
+        ]
+      },
+      "recommended_agents": [
+        "prometheus"
+      ],
+      "compatible_agents": []
     },
     "executing-plans": {
       "description": "Execute implementation plans with review checkpoints",
       "category": "implementation",
-      "tags": ["execution", "implementation", "checkpoints"],
+      "tags": [
+        "execution",
+        "implementation",
+        "checkpoints"
+      ],
       "source": "superpowers",
-      "dependencies": ["writing-plans"],
-      "synergies": ["subagent-driven-development", "verification-before-completion"],
+      "dependencies": [
+        "writing-plans"
+      ],
+      "synergies": [
+        "subagent-driven-development",
+        "verification-before-completion"
+      ],
       "conflicts": [],
-      "triggers": ["execute plan", "start implementation", "follow the plan"],
+      "triggers": [
+        "execute plan",
+        "start implementation",
+        "follow the plan"
+      ],
       "processPhase": "implementation",
       "domain": "execution",
       "selectionHints": {
-        "useWhen": ["written plan exists and is ready for execution", "multi-task implementation with checkpoints", "parallel session plan execution"],
-        "avoidWhen": ["no plan written yet", "single trivial task", "exploratory or research phase"]
-      }
+        "useWhen": [
+          "written plan exists and is ready for execution",
+          "multi-task implementation with checkpoints",
+          "parallel session plan execution"
+        ],
+        "avoidWhen": [
+          "no plan written yet",
+          "single trivial task",
+          "exploratory or research phase"
+        ]
+      },
+      "recommended_agents": [
+        "hephaestus"
+      ],
+      "compatible_agents": []
     },
     "verification-before-completion": {
       "description": "Pre-completion verification gates - evidence before assertions",
       "category": "review",
-      "tags": ["verification", "quality", "gates"],
+      "tags": [
+        "verification",
+        "quality",
+        "gates"
+      ],
       "source": "superpowers",
       "dependencies": [],
-      "synergies": ["test-driven-development", "git-master"],
+      "synergies": [
+        "test-driven-development",
+        "git-master"
+      ],
       "conflicts": [],
-      "triggers": ["verify before done", "check completion", "before PR"],
+      "triggers": [
+        "verify before done",
+        "check completion",
+        "before PR",
+        "save to supermemory",
+        "retrieve from supermemory",
+        "supermemory recall",
+        "use playwright",
+        "playwright tool",
+        "playwright integration"
+      ],
       "processPhase": "verification",
       "domain": "quality",
       "selectionHints": {
-        "useWhen": ["about to claim work is complete", "before committing or creating PR", "before moving to next task"],
-        "avoidWhen": ["still in active implementation", "exploratory phase", "brainstorming or planning"]
-      }
+        "useWhen": [
+          "about to claim work is complete",
+          "before committing or creating PR",
+          "before moving to next task"
+        ],
+        "avoidWhen": [
+          "still in active implementation",
+          "exploratory phase",
+          "brainstorming or planning"
+        ]
+      },
+"recommended_agents": [
+        "sisyphus",
+        "momus"
+      ],
+      "compatible_agents": []
     },
-    "requesting-code-review": {
-      "description": "Code review request workflow for completed work",
-      "category": "review",
-      "tags": ["code-review", "pr", "feedback"],
-      "source": "superpowers",
-      "dependencies": [],
-      "synergies": ["receiving-code-review", "verification-before-completion"],
-      "conflicts": [],
-      "triggers": ["request review", "ready for review", "need feedback"]
-    },
-    "receiving-code-review": {
-      "description": "Handle code review feedback with technical rigor",
-      "category": "review",
-      "tags": ["code-review", "feedback", "iteration"],
-      "source": "superpowers",
-      "dependencies": [],
-      "synergies": ["requesting-code-review", "git-master"],
-      "conflicts": [],
-      "triggers": ["received feedback", "review comments", "address feedback"]
-    },
-    "dispatching-parallel-agents": {
-      "description": "Multi-agent parallel dispatch for independent tasks",
-      "category": "implementation",
-      "tags": ["parallel", "agents", "concurrency"],
-      "source": "superpowers",
-      "dependencies": [],
-      "synergies": ["subagent-driven-development", "executing-plans"],
-      "conflicts": [],
-      "triggers": ["parallel tasks", "multiple agents", "concurrent work"]
-    },
-    "subagent-driven-development": {
-      "description": "Implementer/reviewer/spec prompts for complex implementations",
-      "category": "implementation",
-      "tags": ["subagents", "delegation", "complex"],
-      "source": "superpowers",
-      "dependencies": [],
-      "synergies": ["dispatching-parallel-agents", "executing-plans"],
-      "conflicts": [],
-      "triggers": ["complex implementation", "need subagents", "delegate work"]
-    },
-    "finishing-a-development-branch": {
-      "description": "Branch completion workflow with merge/PR/cleanup options",
-      "category": "git",
-      "tags": ["git", "branch", "merge", "pr"],
-      "source": "superpowers",
-      "dependencies": [],
-      "synergies": ["git-master", "verification-before-completion"],
-      "conflicts": [],
-      "triggers": ["finish branch", "ready to merge", "branch complete"]
-    },
-    "using-git-worktrees": {
-      "description": "Isolated git worktrees for parallel development",
-      "category": "git",
-      "tags": ["git", "worktrees", "isolation"],
-      "source": "superpowers",
-      "dependencies": [],
-      "synergies": ["git-master", "dispatching-parallel-agents"],
-      "conflicts": [],
-      "triggers": ["worktree", "isolated branch", "parallel branches"]
-    },
-    "using-superpowers": {
-      "description": "Meta-skill for discovering and using available skills",
-      "category": "meta",
-      "tags": ["discovery", "skills", "meta"],
-      "source": "superpowers",
-      "dependencies": [],
-      "synergies": [],
-      "conflicts": [],
-      "triggers": ["what skills", "help me find", "skill discovery"]
-    },
-    "writing-skills": {
-      "description": "Skill authoring with testing and persuasion principles",
-      "category": "meta",
-      "tags": ["authoring", "skills", "meta"],
-      "source": "superpowers",
-      "dependencies": [],
-      "synergies": [],
-      "conflicts": [],
-      "triggers": ["create skill", "write skill", "new skill"]
-    },
-    "task-orchestrator": {
-      "description": "Dynamic workflow selection across skills, tools, MCP servers, and subagents for multi-step or ambiguous requests",
-      "category": "meta",
-      "tags": ["orchestration", "workflow", "routing", "capabilities"],
+    "tavily": {
+      "description": "Web search and research automation via Tavily API CLI wrapper for information discovery and content extraction.",
+      "category": "research",
+      "tags": [
+        "websearch",
+        "research",
+        "api",
+        "content",
+        "crawling"
+      ],
       "source": "custom",
       "dependencies": [],
-      "synergies": ["brainstorming", "writing-plans", "executing-plans", "dispatching-parallel-agents"],
+      "synergies": [
+        "research-builder",
+        "context7",
+        "websearch"
+      ],
       "conflicts": [],
-      "triggers": ["multi-step task", "ambiguous request", "cross-cutting", "dynamic workflow", "supertask"],
-      "processPhase": "pre-analysis",
-      "domain": "orchestration",
-      "overlapCluster": "orchestration",
-      "canonicalEntrypoint": true,
-      "selectionHints": {
-        "useWhen": ["multi-step or cross-cutting request", "right tools or skills are not obvious", "task mixes research, planning, and implementation"],
-        "avoidWhen": ["single obvious file change", "workflow already specified", "narrow well-defined task"]
-      }
-    },
-    "budget-aware-router": {
-      "description": "Token and cost-aware model routing. Optimizes cost/performance tradeoffs by selecting appropriate models.",
-      "category": "optimization",
-      "tags": ["tokens", "cost", "routing", "models"],
-      "source": "custom",
-      "dependencies": [],
-      "synergies": ["skill-orchestrator-runtime"],
-      "conflicts": [],
-      "triggers": ["optimize cost", "budget constraints", "model routing", "token budget"]
-    },
-    "skill-orchestrator-runtime": {
-      "description": "Runtime skill orchestration that dynamically selects and chains skills based on context analysis.",
-      "category": "meta",
-      "tags": ["orchestration", "selection", "chaining", "runtime"],
-      "source": "custom",
-      "dependencies": [],
-      "synergies": ["systematic-debugging", "test-driven-development", "brainstorming", "incident-commander"],
-      "conflicts": [],
-      "triggers": ["which skill to use", "skill recommendation", "cross-domain task", "multi-skill chain"],
-      "processPhase": "pre-analysis",
-      "domain": "orchestration",
-      "overlapCluster": "orchestration",
-      "canonicalEntrypoint": false,
-      "selectionHints": {
-        "useWhen": ["runtime skill selection needed", "dynamic chaining across domains", "context-dependent skill recommendation"],
-        "avoidWhen": ["skill already chosen explicitly", "single-skill task", "user specified exact workflow"]
-      }
-    },
-    "evaluation-harness-builder": {
-      "description": "Builds regression test harnesses and evaluation frameworks for validating AI code quality.",
-      "category": "testing",
-      "tags": ["regression", "harness", "evaluation", "quality"],
-      "source": "custom",
-      "dependencies": ["test-driven-development"],
-      "synergies": ["test-driven-development", "verification-before-completion", "receiving-code-review"],
-      "conflicts": [],
-      "triggers": ["build test harness", "regression suite", "evaluation framework", "benchmark quality"]
-    },
-    "incident-commander": {
-      "description": "Multi-turn incident triage and debugging orchestration. Manages complex issues through structured diagnosis.",
-      "category": "debugging",
-      "tags": ["incident", "triage", "multi-turn", "diagnosis"],
-      "source": "custom",
-      "dependencies": ["systematic-debugging"],
-      "synergies": ["systematic-debugging", "test-driven-development", "receiving-code-review"],
-      "conflicts": [],
-      "triggers": ["complex bug", "incident response", "multi-file debug", "track investigation"],
-      "processPhase": "analysis",
-      "domain": "debugging",
-      "overlapCluster": "debugging",
-      "canonicalEntrypoint": false,
-      "selectionHints": {
-        "useWhen": ["complex multi-file incident", "structured triage needed across systems", "investigation spans multiple turns or domains"],
-        "avoidWhen": ["simple single-file bug", "known root cause", "no active incident"]
-      }
+      "triggers": [
+        "tavily search",
+        "web research",
+        "find information",
+        "search API",
+        "crawl web"
+      ],
+      "recommended_agents": [
+        "oracle",
+        "librarian"
+      ],
+      "compatible_agents": []
     }
   },
-
   "profiles": {
     "deep-refactoring": {
       "description": "Comprehensive refactoring with TDD, debugging, and atomic commits",
-      "skills": ["test-driven-development", "systematic-debugging", "git-master", "verification-before-completion"],
-      "triggers": ["refactor", "clean up code", "improve architecture"]
+      "skills": [
+        "test-driven-development",
+        "systematic-debugging",
+        "git-master",
+        "verification-before-completion"
+      ],
+      "triggers": [
+        "refactor",
+        "clean up code",
+        "improve architecture"
+      ]
     },
     "planning-cycle": {
       "description": "Full planning workflow from ideation to execution",
-      "skills": ["brainstorming", "writing-plans", "executing-plans"],
-      "triggers": ["plan feature", "design system", "architect"]
+      "skills": [
+        "brainstorming",
+        "writing-plans",
+        "executing-plans"
+      ],
+      "triggers": [
+        "plan feature",
+        "design system",
+        "architect"
+      ]
     },
     "review-cycle": {
       "description": "Complete code review workflow",
-      "skills": ["requesting-code-review", "receiving-code-review", "verification-before-completion"],
-      "triggers": ["code review", "PR review", "review cycle"]
+      "skills": [
+        "requesting-code-review",
+        "receiving-code-review",
+        "verification-before-completion"
+      ],
+      "triggers": [
+        "code review",
+        "PR review",
+        "review cycle"
+      ]
     },
     "parallel-implementation": {
       "description": "Multi-agent parallel execution for complex work",
-      "skills": ["dispatching-parallel-agents", "subagent-driven-development", "executing-plans"],
-      "triggers": ["parallel work", "divide and conquer", "complex implementation"]
+      "skills": [
+        "dispatching-parallel-agents",
+        "subagent-driven-development",
+        "executing-plans"
+      ],
+      "triggers": [
+        "parallel work",
+        "divide and conquer",
+        "complex implementation"
+      ]
     },
     "browser-testing": {
       "description": "UI testing and verification workflow",
-      "skills": ["dev-browser", "frontend-ui-ux", "verification-before-completion"],
-      "triggers": ["test UI", "browser test", "visual verification"]
+      "skills": [
+        "dev-browser",
+        "frontend-ui-ux",
+        "verification-before-completion"
+      ],
+      "triggers": [
+        "test UI",
+        "browser test",
+        "visual verification"
+      ]
     },
     "diagnostic-healing": {
       "description": "Problem diagnosis and self-healing workflow",
-      "skills": ["code-doctor", "systematic-debugging", "incident-commander", "git-master"],
-      "triggers": ["diagnose", "fix bug", "heal code", "auto-fix", "incident"]
+      "skills": [
+        "code-doctor",
+        "systematic-debugging",
+        "incident-commander",
+        "git-master"
+      ],
+      "triggers": [
+        "diagnose",
+        "fix bug",
+        "heal code",
+        "auto-fix",
+        "incident"
+      ]
     },
     "research-to-code": {
       "description": "Research, spec, and implementation pipeline with documentation lookups",
-      "skills": ["research-builder", "context7", "writing-plans", "executing-plans"],
-      "triggers": ["research and build", "investigate then implement", "deep dive"]
+      "skills": [
+        "research-builder",
+        "context7",
+        "github",
+        "tavily",
+        "grep",
+        "writing-plans",
+        "executing-plans"
+      ],
+      "triggers": [
+        "research and build",
+        "investigate then implement",
+        "deep dive"
+      ]
     }
   },
-
   "categories": {
     "planning": {
       "description": "Skills for planning and design work",
-      "skills": ["brainstorming", "writing-plans", "innovation-migration-planner"]
+      "skills": [
+        "brainstorming",
+        "writing-plans",
+        "innovation-migration-planner"
+      ]
     },
     "implementation": {
       "description": "Skills for building and implementing features",
-      "skills": ["executing-plans", "subagent-driven-development", "dispatching-parallel-agents", "frontend-ui-ux"]
+      "skills": [
+        "executing-plans",
+        "subagent-driven-development",
+        "dispatching-parallel-agents",
+        "frontend-ui-ux"
+      ]
     },
     "debugging": {
       "description": "Skills for troubleshooting and fixing issues",
-      "skills": ["systematic-debugging", "code-doctor", "incident-commander"]
+      "skills": [
+        "systematic-debugging",
+        "code-doctor",
+        "incident-commander"
+      ]
     },
     "testing": {
       "description": "Skills for testing and verification",
-      "skills": ["test-driven-development", "verification-before-completion", "evaluation-harness-builder"]
+      "skills": [
+        "test-driven-development",
+        "verification-before-completion",
+        "evaluation-harness-builder"
+      ]
     },
     "review": {
       "description": "Skills for code review workflows",
-      "skills": ["requesting-code-review", "receiving-code-review", "github-triage"]
+      "skills": [
+        "requesting-code-review",
+        "receiving-code-review",
+        "github-triage"
+      ]
     },
     "git": {
       "description": "Skills for git operations",
-      "skills": ["git-master", "finishing-a-development-branch", "using-git-worktrees"]
+      "skills": [
+        "git-master",
+        "finishing-a-development-branch",
+        "using-git-worktrees"
+      ]
     },
     "browser": {
       "description": "Skills for browser automation",
-      "skills": ["dev-browser", "agent-browser"]
+      "skills": [
+        "dev-browser",
+        "agent-browser"
+      ]
     },
     "research": {
       "description": "Skills for research and discovery",
-      "skills": ["research-builder", "context7", "websearch", "grep"]
+      "skills": [
+        "research-builder",
+        "context7",
+        "websearch",
+        "grep",
+        "github",
+        "tavily"
+      ]
     },
     "analysis": {
       "description": "Skills for codebase and architecture analysis",
-      "skills": ["codebase-auditor"]
+      "skills": [
+        "codebase-auditor"
+      ]
     },
     "memory": {
       "description": "Skills for persistent memory and recall",
-      "skills": ["supermemory"]
+      "skills": [
+        "supermemory"
+      ]
     },
     "reasoning": {
       "description": "Skills for explicit reasoning workflows",
-      "skills": ["sequentialthinking"]
+      "skills": [
+        "sequentialthinking"
+      ]
     },
     "meta": {
       "description": "Skills about skills",
-      "skills": ["using-superpowers", "writing-skills", "task-orchestrator", "skill-orchestrator-runtime"]
+      "skills": [
+        "using-superpowers",
+        "writing-skills",
+        "task-orchestrator",
+        "skill-orchestrator-runtime"
+      ]
     },
     "observability": {
       "description": "Skills for monitoring and tracking",
-      "skills": ["token-reporter"]
+      "skills": [
+        "token-reporter"
+      ]
     },
     "optimization": {
       "description": "Skills for cost and performance optimization",
-      "skills": ["budget-aware-router", "context-governor", "dcp", "distill"]
+      "skills": [
+        "budget-aware-router",
+        "context-governor",
+        "dcp",
+        "distill"
+      ]
     }
-  }
+  },
+  "enhanced_at": "2026-03-15T03:45:21.522Z",
+  "enhanced_by": "enhance-skill-registry.js"
 }

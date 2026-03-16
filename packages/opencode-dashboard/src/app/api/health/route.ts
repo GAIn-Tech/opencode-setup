@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
+import { internalError } from '../_lib/api-response';
 
 export const dynamic = 'force-dynamic';
 
@@ -156,19 +157,23 @@ export async function GET() {
               message: line
             });
           }
-        }
-      } catch {}
-    }
-    
-    // Read session budgets
+         }
+       } catch (err) {
+         console.warn('[Health API] Failed to parse health log:', err);
+       }
+     }
+     
+     // Read session budgets
     const budgetsPath = path.join(opencodePath, 'session-budgets.json');
     let budgets: Record<string, { used: number; limit: number }> = {};
     
-    if (fs.existsSync(budgetsPath)) {
-      try {
-        budgets = JSON.parse(fs.readFileSync(budgetsPath, 'utf-8'));
-      } catch {}
-    }
+     if (fs.existsSync(budgetsPath)) {
+       try {
+         budgets = JSON.parse(fs.readFileSync(budgetsPath, 'utf-8'));
+       } catch (err) {
+         console.warn('[Health API] Failed to parse session budgets:', err);
+       }
+     }
     
     const modelCatalog = verifyModelCatalog(projectRoot);
 

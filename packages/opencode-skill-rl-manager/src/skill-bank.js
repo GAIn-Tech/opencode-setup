@@ -333,7 +333,7 @@ class SkillBank {
     skill.success_rate = alpha * newRate + (1 - alpha) * skill.success_rate;
     skill.last_updated = Date.now();
 
-    return true;
+    return skill;  // Return skill object so learnFromOutcome can validate it (not boolean)
   }
 
   /**

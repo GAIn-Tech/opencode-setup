@@ -181,6 +181,69 @@ function parseCommands(sectionText, sourceFile) {
   return results;
 }
 
+// --- Semantic auto-categorization ---
+
+/**
+ * Infer a canonical category from an update record's id, summary, and paths.
+ * Applied only when the record has no explicit `category` field.
+ * Rules are ordered from most-specific to least-specific.
+ */
+const CATEGORY_RULES = [
+  // Security concerns first (narrow patterns)
+  { keywords: ['injection', 'command-injection', 'xss', 'csrf', 'auth-bypass', 'vulnerability'], category: 'security' },
+  // Specific subsystems
+  { keywords: ['context-governor', 'context-bridge', 'context-management', 'memory-graph', 'token-budget'], category: 'context-management' },
+  { keywords: ['skill-rl', 'skill-activation', 'skill-bank', 'exploration-rl', 'skill-orchestrat'], category: 'skill-activation' },
+  { keywords: ['model-router', 'circuit-breaker', 'routing', 'rate-limit', 'quota', 'fallback-chain'], category: 'routing' },
+  { keywords: ['dashboard', 'observability', 'ui-widget', 'frontend'], category: 'dashboard' },
+  { keywords: ['telemetry', 'tool-telemetry', 'metrics-collector', 'alert-manager'], category: 'telemetry' },
+  { keywords: ['learning-engine', 'learning-gate', 'orchestration-advisor', 'pattern-extractor', 'meta-kb', 'meta-knowledge'], category: 'learning' },
+  { keywords: ['governance', 'commit-governance', 'deployment-state', 'pr-governance'], category: 'governance' },
+  { keywords: ['agents-md', 'agent-source', 'agent-config', 'agents-drift'], category: 'agent-config' },
+  { keywords: ['benchmark', 'eval', 'ml-evaluation', 'performance', 'perf-track', 'latency'], category: 'performance' },
+  { keywords: ['dead-code', 'dead_code', 'dead-code-elim', 'unused-import', 'dead-export'], category: 'dead-code' },
+  { keywords: ['drift', 'namespace-drift', 'drift-fix', 'count-drift'], category: 'drift-fix' },
+  { keywords: ['type-safety', 'typescript', 'ts-strict', 'type-error'], category: 'type-safety' },
+  { keywords: ['test', 'regression', 'coverage', 'jest', 'vitest', 'spec'], category: 'testing' },
+  { keywords: ['api-compat', 'api-compatibility', 'api-version', 'openai-compat', 'vertex-ai'], category: 'api-compatibility' },
+  { keywords: ['dependency', 'dep-cleanup', 'package-upgrade', 'bun-upgrade', 'npm-upgrade', 'node-upgrade', 'bun-1-3'], category: 'infrastructure' },
+  { keywords: ['setup', 'bootstrap', 'install', 'init', 'verify-setup'], category: 'infrastructure' },
+  { keywords: ['security', 'hardening', 'audit-log', 'audit-hardening', 'boundary-hardening', 'schema-hardening'], category: 'reliability' },
+  { keywords: ['config', 'central-config', 'opencode-config', 'configuration'], category: 'configuration' },
+  { keywords: ['codebase-auditor', 'codebase-audit'], category: 'tooling' },
+  { keywords: ['browser-mcp', 'playwright', 'browser-automation'], category: 'tooling' },
+  { keywords: ['doc', 'documentation', 'readme', 'agents-md-doc'], category: 'documentation' },
+  { keywords: ['bugfix', 'bug-fix', 'fix-reversal', 'critical-fix', 'hotfix'], category: 'bugfix' },
+  { keywords: ['integration', 'integration-layer', 'integration-hardening', 'wiring'], category: 'integration' },
+  { keywords: ['model-manager', 'model-catalog', 'model-sync', 'model-rollback', 'model-valid'], category: 'model-management' },
+  { keywords: ['api'], category: 'api' },
+  { keywords: ['memory'], category: 'context-management' },
+  { keywords: ['infra', 'infrastructure', 'wave', 'automation-wave'], category: 'infrastructure' },
+];
+
+/**
+ * Return a canonical category for a learning-update record.
+ * Uses explicit category if present; falls back to keyword inference.
+ */
+function inferCategory(update) {
+  if (update.category) return update.category;
+
+  // Build a search corpus from id, summary, and affected_paths
+  const corpus = [
+    update.id || '',
+    update.summary || '',
+    ...(update.affected_paths || []),
+  ].join(' ').toLowerCase().replace(/[_/\\]/g, '-');
+
+  for (const rule of CATEGORY_RULES) {
+    if (rule.keywords.some(kw => corpus.includes(kw))) {
+      return rule.category;
+    }
+  }
+
+  return 'uncategorized';
+}
+
 // --- Main synthesis ---
 
 function synthesize() {
@@ -255,8 +318,8 @@ function synthesize() {
       timestamp: update.timestamp || null,
     };
 
-    // by_category
-    const category = update.category || 'uncategorized';
+    // by_category (use semantic inference when explicit category missing)
+    const category = inferCategory(update);
     if (!index.by_category[category]) index.by_category[category] = [];
     index.by_category[category].push(entry);
 
@@ -340,12 +403,14 @@ function prepareOutputIndex(nextIndex, existingIndex) {
   const normalizedNext = normalizeIndexForComparison(nextIndex);
 
   if (JSON.stringify(normalizedExisting) === JSON.stringify(normalizedNext)) {
+    // Always freshen generated_at so health checks see the last synthesis run time,
+    // not the original creation time (which causes false staleness warnings).
     return {
       index: {
         ...nextIndex,
-        generated_at: existingIndex.generated_at || nextIndex.generated_at,
+        generated_at: nextIndex.generated_at,  // use current run's timestamp
       },
-      changed: false,
+      changed: true,  // always write so mtime reflects latest run
     };
   }
 
