@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-03-16T21:16:09.586Z",
+  "generated_at": "2026-03-16T21:38:56.414Z",
   "schema_version": 1,
-  "total_records": 344,
+  "total_records": 345,
   "source_files": {
-    "learning_updates": 344,
+    "learning_updates": 345,
     "agents_md": 7
   },
   "by_category": {
@@ -275,6 +275,17 @@
           "packages/opencode-codebase-memory/test/indexer.test.js"
         ],
         "timestamp": "2026-03-16T18:00:00Z"
+      },
+      {
+        "id": "central-config-loader-2026-03-16",
+        "summary": "Rewrite central config loader with sync loadCentralConfig (manual field validation) and mergeCentralConfig returning {effective, diff, metadata} format. RL confidence threshold from central.rl.override_min_confidence, locked field protection, hard bound clamping. TDD: 8 tests RED→GREEN.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-config-loader/package.json",
+          "packages/opencode-config-loader/src/central-config.js",
+          "packages/opencode-config-loader/test/central-config.test.js"
+        ],
+        "timestamp": "2026-03-16T12:00:00Z"
       },
       {
         "id": "config-coherence-enriched-json-2026-03-14",
@@ -4289,6 +4300,17 @@
           "packages/opencode-codebase-memory/test/graph-store.test.js"
         ],
         "timestamp": "2026-03-16T14:30:00Z"
+      },
+      {
+        "id": "central-config-loader-2026-03-16",
+        "summary": "Rewrite central config loader with sync loadCentralConfig (manual field validation) and mergeCentralConfig returning {effective, diff, metadata} format. RL confidence threshold from central.rl.override_min_confidence, locked field protection, hard bound clamping. TDD: 8 tests RED→GREEN.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-config-loader/package.json",
+          "packages/opencode-config-loader/src/central-config.js",
+          "packages/opencode-config-loader/test/central-config.test.js"
+        ],
+        "timestamp": "2026-03-16T12:00:00Z"
       },
       {
         "id": "dashboard-auth-coverage-test-2026-03-16",
@@ -9296,6 +9318,68 @@
         "timestamp": "2026-02-11T13:45:00-05:00"
       }
     ],
+    "packages/opencode-config-loader": [
+      {
+        "id": "central-config-loader-2026-03-16",
+        "summary": "Rewrite central config loader with sync loadCentralConfig (manual field validation) and mergeCentralConfig returning {effective, diff, metadata} format. RL confidence threshold from central.rl.override_min_confidence, locked field protection, hard bound clamping. TDD: 8 tests RED→GREEN.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T12:00:00Z"
+      },
+      {
+        "id": "exploration-mode-deployment-2026-03-14",
+        "summary": "Deployed exploration mode (adaptive routing Phases 1-4) by wiring ConfigLoader defaults through bootstrap.js to ModelRouter constructor. Added exploration section to central-config.json with RL-tunable params (budget, token_budget_ratio, min_tokens). Exploration mode now activates via config (active:true default), CLI flags, or env vars.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "package-wiring-cleanup-20260311",
+        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T20:20:00Z"
+      },
+      {
+        "id": "wave-1-async-io-complete-20260225",
+        "summary": "Wave 1: Async I/O conversion for config-loader, learning-engine, and model-manager to eliminate event loop blocking",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T02:32:00.000Z"
+      },
+      {
+        "id": "config-loader-async-io-20260225",
+        "summary": "Converted all sync file I/O to async in central-config-state.js and central-config.js. Added in-memory RL state cache and atomic write pattern (tmp+rename).",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "unused-exports-removal-20260225",
+        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "config-loader-safe-json-parse-20260224",
+        "summary": "Added safeJsonParse helper and replaced all unguarded JSON.parse calls in file-read paths in central-config.js and central-config-state.js",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "central-config-foundation-20260223",
+        "summary": "Introduce central config schema/state machinery with migration tooling and setup verification so dashboard-managed policy can persist safely with recovery and audit support.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-23T23:20:00Z"
+      },
+      {
+        "id": "audit-hardening-20260223",
+        "summary": "Comprehensive audit hardening: timeouts, path resolver, strict schema/env checks, goraphdb retries, health check classification",
+        "risk_level": "medium",
+        "timestamp": "2026-02-23T17:38:39Z"
+      },
+      {
+        "id": "dashboard-v2-implementation-20260215",
+        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:00:00Z"
+      }
+    ],
     "scripts/tests": [
       {
         "id": "dashboard-auth-coverage-test-2026-03-16",
@@ -10124,62 +10208,6 @@
         "summary": "Gate all 10 POST endpoints with requireWriteAccess and specific permissions. Add 4 new permissions (skills:promote, usage:write, providers:manage, orchestration:write) to admin+operator ROLE_MATRIX. Fix skills/promotions missing permission arg. Add regression test scanning all route.ts POST exports for universal auth coverage.",
         "risk_level": "medium",
         "timestamp": "2026-03-14T00:00:00.000Z"
-      }
-    ],
-    "packages/opencode-config-loader": [
-      {
-        "id": "exploration-mode-deployment-2026-03-14",
-        "summary": "Deployed exploration mode (adaptive routing Phases 1-4) by wiring ConfigLoader defaults through bootstrap.js to ModelRouter constructor. Added exploration section to central-config.json with RL-tunable params (budget, token_budget_ratio, min_tokens). Exploration mode now activates via config (active:true default), CLI flags, or env vars.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-14T00:00:00.000Z"
-      },
-      {
-        "id": "package-wiring-cleanup-20260311",
-        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T20:20:00Z"
-      },
-      {
-        "id": "wave-1-async-io-complete-20260225",
-        "summary": "Wave 1: Async I/O conversion for config-loader, learning-engine, and model-manager to eliminate event loop blocking",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T02:32:00.000Z"
-      },
-      {
-        "id": "config-loader-async-io-20260225",
-        "summary": "Converted all sync file I/O to async in central-config-state.js and central-config.js. Added in-memory RL state cache and atomic write pattern (tmp+rename).",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "unused-exports-removal-20260225",
-        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "config-loader-safe-json-parse-20260224",
-        "summary": "Added safeJsonParse helper and replaced all unguarded JSON.parse calls in file-read paths in central-config.js and central-config-state.js",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "central-config-foundation-20260223",
-        "summary": "Introduce central config schema/state machinery with migration tooling and setup verification so dashboard-managed policy can persist safely with recovery and audit support.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-23T23:20:00Z"
-      },
-      {
-        "id": "audit-hardening-20260223",
-        "summary": "Comprehensive audit hardening: timeouts, path resolver, strict schema/env checks, goraphdb retries, health check classification",
-        "risk_level": "medium",
-        "timestamp": "2026-02-23T17:38:39Z"
-      },
-      {
-        "id": "dashboard-v2-implementation-20260215",
-        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:00:00Z"
       }
     ],
     "packages/opencode-integration-layer": [
