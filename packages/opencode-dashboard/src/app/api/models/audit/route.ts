@@ -3,7 +3,7 @@ import { AuditLogger } from 'opencode-model-manager/lifecycle';
 import * as path from 'path';
 import * as os from 'os';
 import { requireReadAccess } from '../../_lib/write-access';
-import { forbidden, badRequest } from '../../_lib/api-response';
+import { forbidden, badRequest, internalError } from '../../_lib/api-response';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,8 +15,10 @@ const getAuditLogger = () => {
 };
 
 export async function GET(request: Request) {
-  // RBAC: Require read access for audit logs
-  const accessError = requireReadAccess(request, 'models:read');
+  // RBAC: Require authenticated read access for sensitive audit logs
+  // Uses 'audit:read' (not 'models:read') to enforce authentication — audit logs
+  // contain sensitive model lifecycle data and should not be publicly accessible.
+  const accessError = requireReadAccess(request, 'audit:read');
   if (accessError) {
     return accessError;
   }
@@ -43,10 +45,7 @@ export async function GET(request: Request) {
         parseInt(endTime)
       );
     } else {
-      return NextResponse.json({
-        error: 'Missing required parameters',
-        message: 'Provide either modelId or both startTime and endTime'
-      }, { status: 400 });
+      return badRequest('Missing required parameters: provide either modelId or both startTime and endTime');
     }
     
     // Apply limit if specified
@@ -60,11 +59,8 @@ export async function GET(request: Request) {
       count: entries.length
     });
   } catch (error: unknown) {
-    console.error('Error fetching audit log:', error);
-    return NextResponse.json({
-      error: 'Failed to fetch audit log',
-      message: error instanceof Error ? error.message : String(error)
-    }, { status: 500 });
+    console.error('[Audit API] Error fetching audit log:', error);
+    return internalError(error instanceof Error ? error.message : 'Failed to fetch audit log');
   } finally {
     auditLogger?.close();
   }

@@ -146,7 +146,9 @@ export async function POST(request: Request) {
       if (fs.existsSync(policiesPath)) {
         policies = JSON.parse(fs.readFileSync(policiesPath, 'utf-8'));
       }
-    } catch {}
+    } catch (err) {
+      console.warn('[Models API] Failed to parse policies.json:', err);
+    }
 
     // 2. Model router live state (real data only - no mock)
     let routerState: Record<string, unknown> | null = null;
@@ -155,7 +157,9 @@ export async function POST(request: Request) {
       if (fs.existsSync(routerStatePath)) {
         routerState = JSON.parse(fs.readFileSync(routerStatePath, 'utf-8'));
       }
-    } catch {}
+    } catch (err) {
+      console.warn('[Models API] Failed to parse model-router-state.json:', err);
+    }
 
     // 3. RL manager state
     let rlState = null;
@@ -164,7 +168,9 @@ export async function POST(request: Request) {
       if (fs.existsSync(rlStatePath)) {
         rlState = JSON.parse(fs.readFileSync(rlStatePath, 'utf-8'));
       }
-    } catch {}
+    } catch (err) {
+      console.warn('[Models API] Failed to parse skill-rl.json:', err);
+    }
 
     // 4. Rate-limit fallback config
     let fallbackConfig = null;
@@ -173,7 +179,9 @@ export async function POST(request: Request) {
       if (fs.existsSync(fallbackPath)) {
         fallbackConfig = JSON.parse(fs.readFileSync(fallbackPath, 'utf-8'));
       }
-    } catch {}
+    } catch (err) {
+      console.warn('[Models API] Failed to parse rate-limit-fallback.json:', err);
+    }
 
     // 5. Real model usage from messages (computed from actual sessions)
     const realModelUsage = getRealModelUsage();
