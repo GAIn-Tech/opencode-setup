@@ -1,12 +1,41 @@
 {
-  "generated_at": "2026-03-16T18:26:48.285Z",
+  "generated_at": "2026-03-16T18:32:51.416Z",
   "schema_version": 1,
-  "total_records": 329,
+  "total_records": 330,
   "source_files": {
-    "learning_updates": 329,
+    "learning_updates": 330,
     "agents_md": 7
   },
   "by_category": {
+    "type-safety": [
+      {
+        "id": "codebase-memory-ast-parser-2026-03-16",
+        "summary": "Implemented JS/TS AST parser for opencode-codebase-memory using @typescript-eslint/typescript-estree. Extracts function declarations, class/method declarations, call expressions as edges, and import edges. Gracefully handles unparseable files. 5 tests covering all extraction types and error handling.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-codebase-memory/src/parser.js",
+          "packages/opencode-codebase-memory/test/parser.test.js"
+        ],
+        "timestamp": "2026-03-16T16:00:00Z"
+      },
+      {
+        "id": "reduce-explicit-any-types-20260225",
+        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/",
+          "packages/opencode-dashboard/src/components/dashboard/",
+          "packages/opencode-dashboard/src/lib/",
+          "packages/opencode-crash-guard/src/",
+          "packages/opencode-learning-engine/src/index.js",
+          "packages/opencode-memory-graph/src/graph-v3.js",
+          "packages/opencode-model-manager/src/discovery/discovery-engine.js",
+          "packages/opencode-proofcheck/src/index.js",
+          "packages/opencode-sisyphus-state/src/database.js"
+        ],
+        "timestamp": "2026-02-25T12:00:00Z"
+      }
+    ],
     "context-management": [
       {
         "id": "codebase-memory-graph-store-2026-03-16",
@@ -3826,25 +3855,6 @@
         "timestamp": "2026-02-25T12:00:00Z"
       }
     ],
-    "type-safety": [
-      {
-        "id": "reduce-explicit-any-types-20260225",
-        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/",
-          "packages/opencode-dashboard/src/components/dashboard/",
-          "packages/opencode-dashboard/src/lib/",
-          "packages/opencode-crash-guard/src/",
-          "packages/opencode-learning-engine/src/index.js",
-          "packages/opencode-memory-graph/src/graph-v3.js",
-          "packages/opencode-model-manager/src/discovery/discovery-engine.js",
-          "packages/opencode-proofcheck/src/index.js",
-          "packages/opencode-sisyphus-state/src/database.js"
-        ],
-        "timestamp": "2026-02-25T12:00:00Z"
-      }
-    ],
     "dead-code-elimination": [
       {
         "id": "deprecated-functions-removal-20260225",
@@ -3998,6 +4008,16 @@
   },
   "by_risk_level": {
     "low": [
+      {
+        "id": "codebase-memory-ast-parser-2026-03-16",
+        "summary": "Implemented JS/TS AST parser for opencode-codebase-memory using @typescript-eslint/typescript-estree. Extracts function declarations, class/method declarations, call expressions as edges, and import edges. Gracefully handles unparseable files. 5 tests covering all extraction types and error handling.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-codebase-memory/src/parser.js",
+          "packages/opencode-codebase-memory/test/parser.test.js"
+        ],
+        "timestamp": "2026-03-16T16:00:00Z"
+      },
       {
         "id": "codebase-memory-graph-store-2026-03-16",
         "summary": "Implemented GraphStore class for opencode-codebase-memory: SQLite-backed symbol/edge/file storage with FTS5 full-text search, recursive CTE blast radius analysis, WAL mode, and prepared statements. 6 tests covering schema init, CRUD, FTS search, transitive caller traversal, and file metadata.",
@@ -7903,6 +7923,12 @@
   },
   "by_affected_path": {
     "packages/opencode-codebase-memory": [
+      {
+        "id": "codebase-memory-ast-parser-2026-03-16",
+        "summary": "Implemented JS/TS AST parser for opencode-codebase-memory using @typescript-eslint/typescript-estree. Extracts function declarations, class/method declarations, call expressions as edges, and import edges. Gracefully handles unparseable files. 5 tests covering all extraction types and error handling.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T16:00:00Z"
+      },
       {
         "id": "codebase-memory-graph-store-2026-03-16",
         "summary": "Implemented GraphStore class for opencode-codebase-memory: SQLite-backed symbol/edge/file storage with FTS5 full-text search, recursive CTE blast radius analysis, WAL mode, and prepared statements. 6 tests covering schema init, CRUD, FTS search, transitive caller traversal, and file metadata.",
