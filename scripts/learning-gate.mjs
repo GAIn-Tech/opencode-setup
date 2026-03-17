@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import { resolveRoot } from './resolve-root.mjs';
+import { synthesize } from './synthesize-meta-kb.mjs';
 
 const ROOT = resolveRoot();
 const POLICY_PATH = path.join(ROOT, 'opencode-config', 'learning-update-policy.json');
@@ -347,6 +348,36 @@ function validateLearningUpdate(update, file, policy, governedChanges) {
     if (update.validation[field] !== 'pass') {
       throw new Error(`${file}: risk_level '${update.risk_level}' requires validation.${field} to be 'pass'`);
     }
+  }
+}
+
+/**
+ * Trigger meta-KB synthesis after learning update validation passes.
+ * Skips synthesis if the commit itself was a meta-KB synthesis update
+ * (source: "meta-kb-auto") to prevent circular amplification.
+ */
+function triggerMetaKBSynthesis(learningUpdateFiles) {
+  // Guard: Skip if this is a meta-KB auto-generated update
+  for (const relFile of learningUpdateFiles) {
+    const absPath = path.join(ROOT, relFile);
+    try {
+      const payload = JSON.parse(fs.readFileSync(absPath, 'utf8'));
+      if (payload.source === 'meta-kb-auto') {
+        console.log('learning-gate: skipping meta-KB synthesis (source: meta-kb-auto)');
+        return;
+      }
+    } catch {
+      // Skip invalid files
+    }
+  }
+
+  // Run synthesis
+  try {
+    synthesize({ dryRun: false });
+    console.log('learning-gate: meta-KB index refreshed');
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`learning-gate: meta-KB synthesis failed (non-blocking): ${msg}`);
   }
 }
 
