@@ -57,8 +57,8 @@ class ModelComprehensionMemory {
 
       console.log(`[ModelComprehensionMemory] Initialized at: ${this.dbPath}`);
     } catch (err) {
-      console.error('[ModelComprehensionMemory] Initialization failed:', err.message);
-      throw err;
+      console.warn('[ModelComprehensionMemory] Initialization failed, running in-memory only:', err.message);
+      this.db = null;
     }
   }
 

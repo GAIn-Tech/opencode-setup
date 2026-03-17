@@ -1,0 +1,18 @@
+{
+  "id": "fix-post-reset-test-failures-20260314",
+  "timestamp": "2026-03-14T03:00:00Z",
+  "summary": "Fix 3 test failures after hard-reset to force-pushed remote: learning-gate.mjs import.meta.main Node compat re-applied; rate-limit.test.js updated to use .allowed since rateLimit() now returns RateLimitResult object; model-comprehension-memory.js changed throw to warn+fail-open so better-sqlite3 DLOPEN on Bun degrades gracefully.",
+  "affected_paths": [
+    "scripts/learning-gate.mjs",
+    "integration-tests/rate-limit.test.js",
+    "packages/opencode-model-router-x/src/model-comprehension-memory.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "scripts": "bun test bootstrap-e2e learning-gate-hashes rate-limit — 7 pass 0 fail"
+  },
+  "risk_level": "low",
+  "notes": "All pre-existing on remote after force push. rateLimit API changed to rich object; model-comprehension-memory intended fail-open but rethrew on new Database()."
+}

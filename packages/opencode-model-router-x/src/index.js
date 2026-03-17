@@ -108,6 +108,7 @@ class RouterIntegrationAdapter {
   
   /**
    * Get learning engine advice - returns null if not available
+   * Transforms raw advice into metaKBAdvice format for routing pipeline
    */
   getLearningAdvice(context) {
     if (!this.layer?.advisor) {
@@ -115,7 +116,31 @@ class RouterIntegrationAdapter {
       return null;
     }
     try {
-      return this.layer.advisor.advise(context);
+      const advice = this.layer.advisor.advise(context);
+      if (!advice) return null;
+      
+      // Transform advice into metaKBAdvice format for routing
+      // Look for anti-patterns that mention specific models to penalize
+      const modelPenalties = {};
+      const antiPatterns = advice.antiPatterns || advice.patterns || [];
+      
+      for (const pattern of antiPatterns) {
+        if (pattern.affected_models || pattern.models) {
+          const models = pattern.affected_models || pattern.models;
+          const severity = pattern.severity === 'high' ? -0.3 : pattern.severity === 'medium' ? -0.15 : -0.05;
+          for (const modelId of models) {
+            modelPenalties[modelId] = (modelPenalties[modelId] || 0) + severity;
+          }
+        }
+      }
+      
+      return {
+        ...advice,
+        metaKBAdvice: {
+          modelPenalties,
+          source: 'meta-kb',
+        }
+      };
     } catch (e) {
       this._log?.error('[ModelRouter] Learning advice failed:', e.message);
       return null;
@@ -261,6 +286,9 @@ class ModelRouter {
     this.tuning.min_samples_for_tuning = this.tuning.min_samples_for_tuning ?? 5;
     const MetaAwarenessTrackerClass = options.metaAwarenessTrackerClass || MetaAwarenessTracker;
     this.metaAwarenessTracker = options.metaAwarenessTracker || (MetaAwarenessTrackerClass ? new MetaAwarenessTrackerClass() : null);
+
+    // T4 (Wave 11): Context Governor for budget-aware routing
+    this.contextGovernor = options.contextGovernor || null;
     
     // P1: Atomic Write for Stats - add stats persistence path
     this.statsPersistPath = options.statsPersistPath || null;
@@ -271,6 +299,9 @@ class ModelRouter {
     this._learningAdviceCache = new Map();
     this._learningAdviceCacheTTL = 300000; // 5 minutes cache - longer for anti-pattern learning
     this._learningAdviceCacheMaxSize = 1000; // Prevent unbounded growth - evict oldest at limit
+
+    // T5 (Wave 11): Model ID resolution cache - O(1) lookup after first resolution
+    this._modelIdCache = null; // Lazy-init Map for O(1) resolution
     
     // P1: KeyRotator → Learning - connect key rotation to learning
     if (this.learningEngine) {
@@ -693,7 +724,11 @@ class ModelRouter {
       }
     }
 
-    const candidates = this._filterByConstraints(ctx || {});
+    let candidates = this._filterByConstraints(ctx || {});
+    
+    // Pre-selection health verification: Filter out unavailable models before scoring
+    // This prevents tool timeouts by checking circuit breaker state and key availability
+    candidates = this._filterByHealth(candidates);
     
     // Skill-RL Integration: Get skill-based model recommendations (T7: memoized)
     let skillBoost = {};
@@ -733,13 +768,29 @@ class ModelRouter {
       }
     }
     
+    // P1: Meta-KB Integration: Get learning engine advice for model selection
+    // Query meta-KB for anti-patterns that should penalize specific models
+    let metaKBPenalty = {};
+    if (this.learningEngine) {
+      try {
+        const advice = this.getLearningAdvice(ctx);
+        if (advice?.metaKBAdvice) {
+          // metaKBAdvice format: { modelPenalties: { 'model-id': -0.2, ... } }
+          metaKBPenalty = advice.metaKBAdvice.modelPenalties || {};
+        }
+      } catch (e) {
+        // Silently skip meta-KB advice if unavailable
+      }
+    }
+    
     const scored = candidates.map((modelId) => {
       const baseScore = this._scoreModel(modelId, ctx);
       const boost = skillBoost[modelId] || 0;
+      const penalty = metaKBPenalty[modelId] || 0;
       return {
         modelId,
         ...baseScore,
-        score: baseScore.score + (boost * 0.1), // 10% weight for skill-based recommendations
+        score: baseScore.score + (boost * 0.1) + penalty, // 10% weight for skill, meta-KB penalty applied
       };
     });
     scored.sort((a, b) => b.score - a.score);
@@ -1024,6 +1075,57 @@ class ModelRouter {
   }
 
   /**
+   * Pre-selection health verification: Filter out unavailable models before scoring.
+   * This prevents tool timeouts by checking:
+   * 1. Circuit breaker state (provider-level)
+   * 2. Key availability (rotator health)
+   * 
+   * @private
+   * @param {string[]} candidateIds - Model IDs to filter
+   * @returns {string[]} - Available model IDs
+   */
+  _filterByHealth(candidateIds) {
+    return candidateIds.filter((modelId) => {
+      const model = this.models[modelId];
+      if (!model) return false;
+      
+      // Check circuit breaker state for this provider
+      const cb = this.circuitBreakers[model.provider];
+      if (cb) {
+        const state = cb.getState();
+        // Exclude models from providers with open or half-open circuit breakers
+        if (state === 'open' || state === 'half-open') {
+          return false;
+        }
+      }
+      
+      // Check key availability via rotator
+      const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
+      if (rotator) {
+        // Check if rotator has any healthy keys available
+        if (typeof rotator.getProviderStatus === 'function') {
+          const status = rotator.getProviderStatus();
+          if (status?.isExhausted || status?.healthyKeys === 0) {
+            return false;
+          }
+        }
+        // Also check if we can get a key (more direct check)
+        try {
+          const key = rotator.getNextKey();
+          if (!key) {
+            return false;
+          }
+        } catch (e) {
+          // If getNextKey throws, exclude this model
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  }
+
+  /**
    * Score model using policy + live signals.
    * @private
    */
@@ -1108,12 +1210,13 @@ class ModelRouter {
     }
 
     // T4 (Wave 11): Budget-aware penalty — deprioritize expensive models when budget is tight
+    // Threshold lowered from 80% to 70% to proactively prevent tool timeouts from model unavailability
     if (this.tokenBudgetManager?.governor) {
       try {
         const sessionId = ctx?.sessionId || ctx?.session_id || 'default';
         const budgetCheck = this.tokenBudgetManager.governor.getRemainingBudget(sessionId, modelId);
-        if (budgetCheck && budgetCheck.pct >= 0.80) {
-          // Budget is >=80% consumed: penalize high-cost models
+        if (budgetCheck && budgetCheck.pct >= 0.70) {
+          // Budget is >=70% consumed: penalize high-cost models
           const costTier = model.cost_tier || 'medium';
           const costPenalties = { high: 0.15, critical: 0.15, emergency: 0.15, medium: 0.08, low: 0.03, trivial: 0, mechanical: 0 };
           const penalty = costPenalties[costTier] || 0.05;
@@ -1438,6 +1541,112 @@ class ModelRouter {
   }
 
   /**
+   * T4 (Wave 11): Apply budget-aware penalty to model score.
+   * If session budget is >= 70% consumed, penalize high-cost models to encourage cheaper alternatives.
+   * Does NOT block model selection - only adjusts scores.
+   * @private
+   * @param {string} modelId - Canonical model ID
+   * @param {object} ctx - Routing context (may include sessionId)
+   * @returns {{ penalty: number, reason: string|null }}
+   */
+  _applyBudgetPenalty(modelId, ctx) {
+    // Need session context to check budget
+    const sessionId = ctx?.sessionId;
+    if (!sessionId || !this.contextGovernor) {
+      return { penalty: 0, reason: null };
+    }
+
+    // Get budget status for this session
+    const budgetStatus = this.contextGovernor.getRemainingBudget(sessionId, modelId);
+    if (!budgetStatus) {
+      return { penalty: 0, reason: null };
+    }
+
+    const pct = budgetStatus.pct ?? 0;
+    // T4: Apply penalty at 70% threshold (lowered from 80%)
+    if (pct < 0.70) {
+      return { penalty: 0, reason: null };
+    }
+
+    // Get model cost - penalize more expensive models more
+    const model = this.models[modelId];
+    if (!model) {
+      return { penalty: 0, reason: null };
+    }
+
+    // Initialize calculator lazily
+    if (!this._tokenCostCalc) {
+      this._tokenCostCalc = new TokenCostCalculator();
+    }
+
+    const modelName = modelId.includes('/') ? modelId.split('/').pop() : modelId;
+    const pricing = this._tokenCostCalc.getPricing(model.provider, modelName);
+
+    if (!pricing) {
+      return { penalty: 0, reason: null };
+    }
+
+    // Calculate penalty based on cost and budget severity
+    const avgCostPer1K = (pricing.input + pricing.output) / 2;
+
+    // Penalty scales with budget severity:
+    // 70-80%: mild penalty (-0.05 for expensive models)
+    // 80-95%: moderate penalty (-0.10 for expensive models)
+    // 95%+: severe penalty (-0.15 for expensive models)
+    let severity = 0.05;
+    if (pct >= 0.95) severity = 0.15;
+    else if (pct >= 0.80) severity = 0.10;
+
+    // Scale penalty by cost: $0-3/1K = 0, $15+/1K = full penalty
+    const maxCostThreshold = 15.0;
+    const costFactor = Math.min(1.0, avgCostPer1K / maxCostThreshold);
+    const penalty = -(severity * costFactor);
+
+    return {
+      penalty: Math.round(penalty * 1000) / 1000,
+      reason: `budget(${Math.round(pct * 100)}%,$${avgCostPer1K.toFixed(2)}/1K,${penalty.toFixed(3)})`
+    };
+  }
+
+  /**
+   * Score a single model based on multiple signals.
+   * Called by selectModel() for each candidate.
+   * @private
+   */
+  _scoreModel(modelId, ctx) {
+    const model = this.models[modelId];
+    if (!model) {
+      return { score: -Infinity, reason: 'model-not-found' };
+    }
+
+    // Base score from success rate
+    const successRate = this._getSuccessRate(modelId);
+    let score = successRate;
+
+    // Apply benchmark bonus (T12)
+    const benchBonus = this._applyBenchmarkBonus(modelId);
+    score += benchBonus.bonus;
+
+    // Apply cost efficiency bonus (T13)
+    const costBonus = this._applyCostEfficiency(modelId);
+    score += costBonus.bonus;
+
+    // T4: Apply budget-aware penalty
+    const budgetPenalty = this._applyBudgetPenalty(modelId, ctx);
+    score += budgetPenalty.penalty;
+
+    const reasons = [];
+    if (benchBonus.reason) reasons.push(benchBonus.reason);
+    if (costBonus.reason) reasons.push(costBonus.reason);
+    if (budgetPenalty.reason) reasons.push(budgetPenalty.reason);
+
+    return {
+      score,
+      reason: reasons.length > 0 ? reasons.join('; ') : `success_rate(${successRate.toFixed(2)})`
+    };
+  }
+
+  /**
    * Get the effective success rate for a model, blending default + live data.
    * @private
    */
@@ -1465,6 +1674,74 @@ class ModelRouter {
     const s = this.stats[modelId];
     if (!s || s.calls === 0) return 0;
     return s.total_latency_ms / s.calls;
+  }
+
+  /**
+   * T5 (Wave 11): Resolve model ID with O(1) cache lookup
+   * 
+   * Resolves a model ID to its full namespaced form (e.g., 'claude-opus-4-6' → 'anthropic/claude-opus-4-6')
+   * Uses a cache for O(1) lookup after first resolution.
+   * 
+   * @param {string} modelId - Model ID to resolve
+   * @returns {string|null} - Resolved model ID or null if not found
+   */
+  resolveModelId(modelId) {
+    if (!modelId) return null;
+
+    // Initialize cache lazily (O(1) Map)
+    if (!this._modelIdCache) {
+      this._modelIdCache = new Map();
+    }
+
+    // Cache hit path - O(1) lookup
+    if (this._modelIdCache.has(modelId)) {
+      return this._modelIdCache.get(modelId);
+    }
+
+    // Direct key match (already namespaced)
+    if (this.models[modelId]) {
+      this._modelIdCache.set(modelId, modelId);
+      return modelId;
+    }
+
+    // Try provider-prefix inference
+    const modelToProvider = {
+      'claude': 'anthropic',
+      'gpt': 'openai',
+      'gemini': 'google',
+      'llama': 'groq',
+      'mistral': 'mistral',
+      'deepseek': 'deepseek',
+    };
+    const modelLower = modelId.toLowerCase();
+    for (const [pattern, provider] of Object.entries(modelToProvider)) {
+      if (modelLower.startsWith(pattern) || modelLower.includes(pattern)) {
+        const namespaced = `${provider}/${modelId}`;
+        if (this.models[namespaced]) {
+          this._modelIdCache.set(modelId, namespaced);
+          return namespaced;
+        }
+      }
+    }
+
+    // Try all provider prefixes
+    const prefixes = ['anthropic/', 'openai/', 'groq/', 'google/', 'deepseek/', 'antigravity/'];
+    for (const prefix of prefixes) {
+      const namespaced = `${prefix}${modelId}`;
+      if (this.models[namespaced]) {
+        this._modelIdCache.set(modelId, namespaced);
+        return namespaced;
+      }
+    }
+
+    // Also try alias resolution
+    const aliased = resolveModelAlias(modelId);
+    if (aliased && this.models[aliased]) {
+      this._modelIdCache.set(modelId, aliased);
+      return aliased;
+    }
+
+    return null;
   }
 
   // ─── Backward Compatibility Aliases ─────────────────────────────────────

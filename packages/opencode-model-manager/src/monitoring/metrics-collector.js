@@ -64,6 +64,11 @@ class PipelineMetricsCollector {
     this._dbPath = options.dbPath || path.join(os.homedir(), '.opencode', 'metrics-history.db');
     this._historyFilePath = options.historyFilePath || `${this._dbPath}.events.json`;
     this._historyRetentionDays = DEFAULT_HISTORY_RETENTION_DAYS;
+    
+    // T11: Prepared statement cache for SQLite performance
+    this._stmtCache = new Map();
+    this._maxStmtCacheSize = 20; // Cache most frequently used statements
+    
     this._initDb();
   }
 
@@ -428,7 +433,7 @@ class PipelineMetricsCollector {
           created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
       `);
-      this._db.prepare(`
+      this._getPreparedStatement(`
         INSERT INTO compression_history (session_id, tokens_before, tokens_after, tokens_saved, ratio, pipeline, duration_ms, timestamp)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `).run(event.sessionId, event.tokensBefore, event.tokensAfter, event.tokensSaved, event.ratio, event.pipeline, event.durationMs, event.timestamp);
@@ -520,7 +525,7 @@ class PipelineMetricsCollector {
           created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
       `);
-      this._db.prepare(`
+      this._getPreparedStatement(`
         INSERT INTO context7_lookups (library_name, resolved, snippet_count, duration_ms, timestamp)
         VALUES (?, ?, ?, ?, ?)
       `).run(event.libraryName, event.resolved ? 1 : 0, event.snippetCount, event.durationMs, event.timestamp);
@@ -558,7 +563,7 @@ class PipelineMetricsCollector {
 
     try {
       const cutoff = this.nowFn() - (windowMs || this.retentionMs);
-      const rows = this._db.prepare(`
+      const rows = this._getPreparedStatement(`
         SELECT tokens_saved, ratio, duration_ms, pipeline
         FROM compression_history
         WHERE timestamp >= ?
@@ -601,7 +606,7 @@ class PipelineMetricsCollector {
 
     try {
       const cutoff = this.nowFn() - (windowMs || this.retentionMs);
-      const rows = this._db.prepare(`
+      const rows = this._getPreparedStatement(`
         SELECT library_name, resolved, snippet_count, duration_ms
         FROM context7_lookups
         WHERE timestamp >= ?
@@ -748,7 +753,7 @@ class PipelineMetricsCollector {
       const prsCreated = snapshot.prCreation.total;
       const prsMerged = snapshot.prCreation.successes;
 
-      this._db.prepare(`
+      this._getPreparedStatement(`
         INSERT OR REPLACE INTO daily_metrics (
           date, discovery_total, discovery_successes, discovery_failures,
           cache_hits, cache_misses, cache_l1_hits, cache_l2_hits,
@@ -764,7 +769,7 @@ class PipelineMetricsCollector {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - this._historyRetentionDays);
       const cutoff = cutoffDate.toISOString().slice(0, 10);
-      this._db.prepare('DELETE FROM daily_metrics WHERE date < ?').run(cutoff);
+      this._getPreparedStatement('DELETE FROM daily_metrics WHERE date < ?').run(cutoff);
     } catch (_err) {
       // Never throw from flush — degrade gracefully
     }
@@ -783,7 +788,7 @@ class PipelineMetricsCollector {
       cutoffDate.setDate(cutoffDate.getDate() - numDays);
       const cutoff = cutoffDate.toISOString().slice(0, 10);
 
-      const rows = this._db.prepare(
+      const rows = this._getPreparedStatement(
         'SELECT * FROM daily_metrics WHERE date >= ? ORDER BY date ASC'
       ).all(cutoff);
 
@@ -968,6 +973,28 @@ class PipelineMetricsCollector {
       // SQLite unavailable (missing module, permissions, etc.) — continue in-memory only
       this._db = null;
     }
+  }
+
+  /**
+   * T11: Get or create a cached prepared statement
+   * @private
+   */
+  _getPreparedStatement(sql) {
+    if (!this._db) return null;
+    
+    if (this._stmtCache.has(sql)) {
+      return this._stmtCache.get(sql);
+    }
+    
+    // Evict oldest if cache is full
+    if (this._stmtCache.size >= this._maxStmtCacheSize) {
+      const firstKey = this._stmtCache.keys().next().value;
+      this._stmtCache.delete(firstKey);
+    }
+    
+    const stmt = this._db.prepare(sql);
+    this._stmtCache.set(sql, stmt);
+    return stmt;
   }
 
   _appendEventHistory(kind, event) {

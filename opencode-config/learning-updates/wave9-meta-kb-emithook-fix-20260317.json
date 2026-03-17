@@ -1,0 +1,19 @@
+{
+  "id": "wave9-meta-kb-emithook-fix-20260317",
+  "timestamp": "2026-03-17T00:00:00Z",
+  "category": "bugfix",
+  "summary": "Fix missing _emitHook method in LearningEngine. The adviceGenerated hook was registered but never called because _emitHook method was missing. All 22 meta-kb tests now pass.",
+  "affected_paths": [
+    "packages/opencode-learning-engine/src/index.js"
+  ],
+  "root_cause": "Hook was registered in constructor but _emitHook method was never implemented, so hooks never fired.",
+  "fix_approach": "Added _emitHook method that iterates through registered hooks and calls each handler with the payload.",
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["bun test meta-kb"],
+    "notes": "All 22 meta-kb tests pass. Phase 1 complete."
+  }
+}

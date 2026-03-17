@@ -1,0 +1,14 @@
+{
+  "id": "model-timeout-fix-2026-03-17",
+  "timestamp": "2026-03-17T01:53:00Z",
+  "summary": "Lowered budget-aware penalty threshold to 70% and added pre-selection health verification to prevent model unavailability tool timeouts",
+  "affected_paths": [
+    "packages/opencode-model-router-x/src/index.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

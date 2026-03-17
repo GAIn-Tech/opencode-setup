@@ -111,6 +111,24 @@ class LearningEngine extends EventEmitter {
   }
 
   /**
+   * Emit a hook by name with payload.
+   * @param {string} hookName
+   * @param {Object} payload
+   * @private
+   */
+  _emitHook(hookName, payload) {
+    const handlers = this.hooks[hookName];
+    if (!handlers || !Array.isArray(handlers)) return;
+    for (const handler of handlers) {
+      try {
+        handler(payload);
+      } catch (err) {
+        console.warn(`[LearningEngine] Hook "${hookName}" threw:`, err.message);
+      }
+    }
+  }
+
+  /**
    * Quality gates for learnings - prevents corrupted data from entering system
    */
   validateLearning(learning) {
