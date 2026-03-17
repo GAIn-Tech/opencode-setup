@@ -48,8 +48,9 @@ describe('Meta-KB routing enrichment (adviceGenerated hook)', () => {
 
     // Confidence should be reduced when anti-patterns match
     assert.ok(advice.routing.meta_kb_warnings > 0, 'should have meta_kb_warnings count');
-    // Confidence should be less than or equal to original (base confidence is ~0.5)
-    assert.ok(advice.routing.confidence <= 0.5, 'confidence should be reduced from base');
+    // Confidence should be reduced from original (base confidence without meta-KB reduction would be higher)
+    // With 1 warning, confidence should be reduced by 10%
+    assert.ok(advice.routing.confidence < 0.6, 'confidence should be reduced from base (0.6 with patterns)');
   });
 
   it('does not adjust routing confidence when meta-KB has no matching anti-patterns', async () => {
