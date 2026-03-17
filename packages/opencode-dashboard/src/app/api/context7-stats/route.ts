@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { errorResponse } from '../_lib/error-response';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,9 +35,6 @@ export async function GET(request: Request) {
     const stats = getMetricsCollector().getContext7Stats(windowMs);
     return NextResponse.json(stats);
   } catch (error: unknown) {
-    return NextResponse.json(
-      { error: 'Failed to fetch Context7 metrics', message: error instanceof Error ? error.message : String(error) },
-      { status: 500 }
-    );
+    return errorResponse('Failed to fetch Context7 metrics', 500, error instanceof Error ? error.message : String(error));
   }
 }

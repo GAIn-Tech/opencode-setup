@@ -1,12 +1,418 @@
 {
-  "generated_at": "2026-03-17T13:52:50.750Z",
+  "generated_at": "2026-03-17T13:58:59.039Z",
   "schema_version": 1,
-  "total_records": 347,
+  "total_records": 348,
   "source_files": {
-    "learning_updates": 347,
+    "learning_updates": 348,
     "agents_md": 7
   },
   "by_category": {
+    "dashboard": [
+      {
+        "id": "replace-silent-catch-blocks-2026-03-17",
+        "summary": "Updated three API route files to use standardized errorResponse() utility for consistent error formatting instead of manual NextResponse.json() calls",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/budget/route.ts",
+          "packages/opencode-dashboard/src/app/api/compression/route.ts",
+          "packages/opencode-dashboard/src/app/api/context7-stats/route.ts"
+        ],
+        "timestamp": "2026-03-17T00:00:00.000Z"
+      },
+      {
+        "id": "dashboard-reliability-hardening-2026-03-16",
+        "summary": "Replaced raw NextResponse.json error calls in audit/route.ts with badRequest()/internalError() helpers. Fixed 4 silent catch {} blocks in models/route.ts GET handler with console.warn logging. Changed audit endpoint permission from 'models:read' to 'audit:read' to enforce authentication for sensitive audit logs.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/models/audit/route.ts",
+          "packages/opencode-dashboard/src/app/api/models/route.ts"
+        ],
+        "timestamp": "2026-03-16T20:00:00Z"
+      },
+      {
+        "id": "central-config-dashboard-api-rollback-2026-03-16",
+        "summary": "Central config tasks 4-8: add ?view=raw to dashboard config API, expand migration script to read opencode.json and config.yaml, add rollback(targetVersion) and validateIntegrity(configPath) to central-config-state.js, update docs/central-config.md with raw endpoint and rollback sections.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/config/route.ts",
+          "packages/opencode-config-loader/src/central-config-state.js",
+          "packages/opencode-config-loader/src/index.js",
+          "scripts/migrate-central-config.mjs",
+          "docs/central-config.md",
+          "package.json"
+        ],
+        "timestamp": "2026-03-16T18:00:00Z"
+      },
+      {
+        "id": "dashboard-auth-coverage-test-2026-03-16",
+        "summary": "Add standalone auth coverage regression test (scripts/tests/dashboard-auth-coverage.test.js) with explicit allowlist of all 10 POST routes. Test ensures every POST export calls requireWriteAccess with a permission string and detects new unguarded routes.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/tests/dashboard-auth-coverage.test.js"
+        ],
+        "timestamp": "2026-03-16T00:00:00.000Z"
+      },
+      {
+        "id": "boundary-and-schema-hardening-2026-03-14",
+        "summary": "Extended ci-boundary-enforce.mjs to scan ALL packages (not just dashboard API) for forbidden opencode-model-manager internal imports. Created shared CJS snapshot-schema.js module with validateSnapshot() and normalizeSnapshot(), refactored snapshot-store.js and model-rollback.mjs to use it, eliminating schema validation duplication.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "scripts/ci-boundary-enforce.mjs",
+          "scripts/tests/ci-boundary-enforce.test.js",
+          "packages/opencode-model-manager/src/snapshot/snapshot-schema.js",
+          "packages/opencode-model-manager/src/snapshot/snapshot-store.js",
+          "packages/opencode-model-manager/test/snapshot/snapshot-schema.test.js",
+          "scripts/model-rollback.mjs"
+        ],
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "dashboard-auth-hardening-2026-03-14",
+        "summary": "Gate all 10 POST endpoints with requireWriteAccess and specific permissions. Add 4 new permissions (skills:promote, usage:write, providers:manage, orchestration:write) to admin+operator ROLE_MATRIX. Fix skills/promotions missing permission arg. Add regression test scanning all route.ts POST exports for universal auth coverage.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/_lib/write-access.ts",
+          "packages/opencode-dashboard/src/app/api/skills/promotions/route.ts",
+          "packages/opencode-dashboard/src/app/api/status/usage/route.ts",
+          "packages/opencode-dashboard/src/app/api/providers/route.ts",
+          "packages/opencode-dashboard/src/app/api/orchestration/route.ts",
+          "integration-tests/dashboard-write-guard.test.ts",
+          "integration-tests/orchestration-atomic-write.test.js",
+          "docs/model-management/HARDENING-BACKLOG.md"
+        ],
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "standalone-touchpoints-wiring-20260312",
+        "summary": "Add light orchestration touchpoints for dashboard-launcher and plugin-healthd in IntegrationLayer while keeping model-manager standalone.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-integration-layer/src/bootstrap.js",
+          "packages/opencode-integration-layer/src/index.js",
+          "packages/opencode-integration-layer/tests/standalone-touchpoints-wiring.test.js"
+        ],
+        "timestamp": "2026-03-12T16:32:00Z"
+      },
+      {
+        "id": "dashboard-budget-route-20260310",
+        "summary": "Add the missing dashboard budget API route so observability can aggregate per-session runtime budget files that the PostToolUse hook already writes.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/budget/route.ts",
+          "packages/opencode-dashboard/test/budget-route.test.ts"
+        ],
+        "timestamp": "2026-03-10T01:58:00-04:00"
+      },
+      {
+        "id": "meta-knowledge-index-refresh-20260309",
+        "summary": "Refresh the generated meta-knowledge index so it includes the latest governed learning updates for observability and runtime telemetry work.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/meta-knowledge-index.json"
+        ],
+        "timestamp": "2026-03-09T23:15:00-04:00"
+      },
+      {
+        "id": "dashboard-monitoring-routes-20260309",
+        "summary": "Add dashboard endpoints and monitoring-route support for compression and Context7 observability, backed by the shared monitoring collector.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/monitoring/route.ts",
+          "packages/opencode-dashboard/src/app/api/compression/route.ts",
+          "packages/opencode-dashboard/src/app/api/context7-stats/route.ts",
+          "packages/opencode-dashboard/test/compression-route.test.ts",
+          "packages/opencode-dashboard/test/monitoring-observability-route.test.ts"
+        ],
+        "timestamp": "2026-03-09T22:47:00-04:00"
+      },
+      {
+        "id": "metrics-persistence-observability-20260309",
+        "summary": "Unify compression and Context7 monitoring collection, expose them in snapshots, and read persisted history so fresh processes can serve observability data.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-model-manager/src/monitoring/metrics-collector.js",
+          "packages/opencode-model-manager/test/monitoring/pipeline-metrics-collector.test.ts"
+        ],
+        "timestamp": "2026-03-09T22:46:00-04:00"
+      },
+      {
+        "id": "runtime-telemetry-monitoring-history-20260309",
+        "summary": "Extend the PostToolUse runtime hook to persist distill and Context7 monitoring events into shared observability history alongside existing tool-usage telemetry.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/runtime-tool-telemetry.mjs",
+          "scripts/tests/runtime-tool-telemetry.test.js"
+        ],
+        "timestamp": "2026-03-09T22:45:00-04:00"
+      },
+      {
+        "id": "wave10-dashboard-deploy-security",
+        "summary": "Add dashboard observability page (pipeline metrics, cache rates, meta-KB health), deployment automation workflow (dev/staging/prod stages), and CI security scanning (dependency audit + integrity-guard)",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/observability/page.tsx",
+          "packages/opencode-dashboard/src/components/Sidebar.tsx",
+          ".github/workflows/deployment.yml",
+          ".github/workflows/opencode-ci.yml"
+        ],
+        "timestamp": "2026-03-08T22:50:00Z"
+      },
+      {
+        "id": "wave10-ci-matrix-test-consolidation",
+        "summary": "Add per-package CI test matrix (28 packages), consolidate dashboard tests/ into test/, and add critical plugin contract integration tests (healthd, lifecycle, preload-skills)",
+        "risk_level": "low",
+        "affected_paths": [
+          ".github/workflows/opencode-ci.yml",
+          "packages/opencode-dashboard/test/correlation-async.test.js",
+          "packages/opencode-dashboard/test/event-store-async.test.js",
+          "packages/opencode-dashboard/test/meta-kb-route.test.js",
+          "packages/opencode-dashboard/test/fixtures/workflow-run.json",
+          "integration-tests/critical-plugin-contracts.test.js"
+        ],
+        "timestamp": "2026-03-08T22:36:00Z"
+      },
+      {
+        "id": "wave10-observability-persistence",
+        "summary": "Add opt-in Langfuse tracing to opencode-logger (WARN+ levels) and SQLite daily-metrics persistence to pipeline metrics collector (bun:sqlite with better-sqlite3 fallback)",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-logger/src/index.js",
+          "packages/opencode-model-manager/src/monitoring/metrics-collector.js"
+        ],
+        "timestamp": "2026-03-08T22:35:00Z"
+      },
+      {
+        "id": "wave11-t18-t15-budget-alerts-dashboard",
+        "summary": "Add BUDGET_THRESHOLD alert type with evaluateBudget() to AlertManager (75/80/95% thresholds). Add Context Budget dashboard widget with compression stats, Context7 stats, and color-coded budget bars to observability page.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-manager/src/monitoring/alert-manager.js",
+          "packages/opencode-dashboard/src/app/observability/page.tsx"
+        ],
+        "timestamp": "2026-03-08T19:20:00Z"
+      },
+      {
+        "id": "skill-upgrade-advisor-affinity-fix-20260308",
+        "summary": "Fixed 3 dangling SKILL_AFFINITY references in orchestration-advisor.js: refactor->using-git-worktrees, playwright->agent-browser, frontend-design->dev-browser. All advisor skill references now resolve to canonical registry entries.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-learning-engine/src/orchestration-advisor.js"
+        ],
+        "timestamp": "2026-03-08T15:30:00Z"
+      },
+      {
+        "id": "stale-docs-cleanup-20260227",
+        "summary": "Task 6: Final regression sweep and stale documentation cleanup after pipeline fixes. (1) mcp-setup-commands.sh: updated 'Current servers (8)' → '(9)' — distill was registered in opencode.json but not counted in this reference script. (2) tool-manifest.json: added opencode-dashboard-launcher entry to match opencode-mcp-config.json — 4 servers were listed, 5th was missing. (3) system-prompts.md: updated '8 MCP server definitions' → '9'. All integration tests pass: 5 pass, 0 fail for skillrl-api-regression. All plan acceptance criteria verified.",
+        "risk_level": "low",
+        "affected_paths": [
+          "mcp-servers/mcp-setup-commands.sh",
+          "mcp-servers/tool-manifest.json",
+          "system-prompts.md"
+        ],
+        "timestamp": "2026-02-27T00:04:00Z"
+      },
+      {
+        "id": "nextjs-cve-patch-20260225",
+        "summary": "Patch critical CVE in Next.js by updating from 14.2.3 to 14.2.10 in opencode-dashboard.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/package.json"
+        ],
+        "timestamp": "2026-02-25T16:00:00Z"
+      },
+      {
+        "id": "event-store-lost-update-fix-20260225",
+        "summary": "Fixed lost-update race condition in persistEvents by moving read-merge-write inside the serialized write queue. Previously, callers read stale existingEvents outside the queue, so concurrent writers overwrote each other's events.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/orchestration/lib/event-store.js",
+          "packages/opencode-dashboard/test/event-store-race.test.js"
+        ],
+        "timestamp": "2026-02-25T10:00:00Z"
+      },
+      {
+        "id": "dashboard-async-migration-20260225",
+        "summary": "Converted sync I/O to async in 9 dashboard files + 7 callers. Write paths use serialized write queue (_writePromise pattern) to prevent concurrent corruption. Verification read in write-json-atomic.ts intentionally kept sync. Added 7 regression tests for event-store async atomicWrite.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/orchestration/lib/event-store.js",
+          "packages/opencode-dashboard/src/app/api/_lib/write-json-atomic.ts",
+          "packages/opencode-dashboard/src/app/api/learning/route.ts",
+          "packages/opencode-dashboard/src/app/api/rl/route.ts",
+          "packages/opencode-dashboard/src/app/api/frontier-status/route.ts",
+          "packages/opencode-dashboard/src/app/api/policy-review/route.ts",
+          "packages/opencode-dashboard/src/app/api/retrieval-quality/route.ts",
+          "packages/opencode-dashboard/src/lib/meta-awareness.ts",
+          "packages/opencode-dashboard/src/lib/data-sources/index.ts",
+          "packages/opencode-dashboard/tests/event-store-async.test.js",
+          "integration-tests/orchestration-atomic-write.test.js"
+        ],
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "env-validation-20260225",
+        "summary": "Added startup validation for security-critical environment variables in dashboard routes to warn operators of missing signing keys and write tokens",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/orchestration/policy-sim/route.ts",
+          "packages/opencode-dashboard/src/app/api/_lib/write-access.ts"
+        ],
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "event-store-error-logging-20260225",
+        "summary": "Added console.warn logging to 2 empty catch blocks in event-store.js that were swallowing cleanup errors after write/rename failures.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/orchestration/lib/event-store.js"
+        ],
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "prototype-pollution-fix-20260225",
+        "summary": "Security hardening: prevent prototype pollution in plugin lifecycle supervisor",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-plugin-lifecycle/src/index.js",
+          "packages/opencode-plugin-lifecycle/test/prototype-pollution.test.js",
+          "packages/opencode-dashboard/src/app/api/plugin-supervisor/route.ts",
+          "packages/opencode-dashboard/src/app/api/_lib/write-access.ts"
+        ],
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "dashboard-api-wave6-20260224",
+        "summary": "Added lifecycle management API endpoints to dashboard for model state management",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/models/lifecycle/route.ts",
+          "packages/opencode-dashboard/src/app/api/models/transition/route.ts",
+          "packages/opencode-dashboard/src/app/api/models/audit/route.ts"
+        ],
+        "timestamp": "2026-02-24T07:30:00Z"
+      },
+      {
+        "id": "central-config-foundation-20260223",
+        "summary": "Introduce central config schema/state machinery with migration tooling and setup verification so dashboard-managed policy can persist safely with recovery and audit support.",
+        "risk_level": "medium",
+        "affected_paths": [
+          ".gitignore",
+          "docs/plans/2026-02-23-central-config-dashboard.md",
+          "opencode-config/central-config.schema.json",
+          "opencode-config/learning-updates/central-config-foundation-20260223.json",
+          "packages/opencode-config-loader/src/central-config-state.js",
+          "packages/opencode-config-loader/src/central-config.js",
+          "packages/opencode-config-loader/src/index.js",
+          "packages/opencode-config-loader/test/central-config.test.js",
+          "scripts/migrate-central-config.mjs",
+          "scripts/verify-setup.mjs"
+        ],
+        "timestamp": "2026-02-23T23:20:00Z"
+      },
+      {
+        "id": "token-counts-workflows-20260219",
+        "summary": "Add token counts to workflow runs in dashboard",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/runs/route.ts",
+          "packages/opencode-dashboard/src/app/page.tsx",
+          "packages/opencode-dashboard/src/components/dashboard/WorkflowTree.tsx",
+          "packages/opencode-dashboard/src/lib/provider-status-store.ts"
+        ],
+        "timestamp": "2026-02-19T02:30:00.000Z"
+      },
+      {
+        "id": "token-counting-dashboard-20260219",
+        "summary": "Add true token counting to workflows dashboard with input/output/total token tracking",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/status/usage/route.ts",
+          "packages/opencode-dashboard/src/lib/provider-status-store.ts"
+        ],
+        "timestamp": "2026-02-19T01:00:00.000Z"
+      },
+      {
+        "id": "fullframe-graph-and-workflow-monitor-population-20260216",
+        "summary": "Moved interactive graph to dedicated full-frame route and wired workflow monitor to real run/thread data",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/graph/page.tsx",
+          "packages/opencode-dashboard/src/components/Sidebar.tsx",
+          "packages/opencode-dashboard/src/app/memory/page.tsx",
+          "packages/opencode-dashboard/src/app/page.tsx",
+          "packages/opencode-dashboard/src/components/dashboard/WorkflowTree.tsx",
+          "packages/opencode-dashboard/src/components/dashboard/EvidenceViewer.tsx"
+        ],
+        "timestamp": "2026-02-16T03:10:00Z"
+      },
+      {
+        "id": "dashboard-autostart-wrapper-and-windows-launch-fix-20260216",
+        "summary": "Fixed dashboard launcher reliability on Windows and added opencode wrapper for guaranteed dashboard startup",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard-launcher/src/index.js",
+          "scripts/opencode-with-dashboard.mjs",
+          "package.json"
+        ],
+        "timestamp": "2026-02-16T02:40:00Z"
+      },
+      {
+        "id": "configviewer-typed-intent-routing-20260215",
+        "summary": "Extended ConfigViewer with typed intent-routing editor controls",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/components/dashboard/ConfigViewer.tsx"
+        ],
+        "timestamp": "2026-02-16T00:05:00Z"
+      },
+      {
+        "id": "provider-telemetry-ui-enhancements-20260215",
+        "summary": "Enhanced provider telemetry dashboard with pressure analytics and hot model visibility",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/components/dashboard/ProviderHealth.tsx"
+        ],
+        "timestamp": "2026-02-15T23:55:00Z"
+      },
+      {
+        "id": "knowledge-graph-drag-zoom-20260215",
+        "summary": "Improved knowledge graph drag/zoom UX with viewport persistence and position retention",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/components/dashboard/InteractiveKnowledgeGraph.tsx"
+        ],
+        "timestamp": "2026-02-15T23:30:00Z"
+      },
+      {
+        "id": "models-routing-matrix-ui-20260215",
+        "summary": "Enhanced models routing matrix UI with filtering, sorting, and coverage analytics",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/models/page.tsx"
+        ],
+        "timestamp": "2026-02-15T23:05:00Z"
+      },
+      {
+        "id": "provider-status-atomicity-20260215",
+        "summary": "Fixed provider-status.json write to use atomic temp-file pattern, preventing corruption on mid-write interruption.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/lib/provider-status-store.ts"
+        ],
+        "timestamp": "2026-02-15T20:15:00Z"
+      },
+      {
+        "id": "skillsrl-api-fixes-20260215",
+        "summary": "Stabilized Skills RL backend APIs with contracts normalization and missing /api/rl endpoint creation.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/rl/route.ts",
+          "packages/opencode-dashboard/src/app/api/skills/route.ts",
+          "packages/opencode-dashboard/src/app/api/learning/route.ts"
+        ],
+        "timestamp": "2026-02-15T19:30:00Z"
+      }
+    ],
     "context-management": [
       {
         "id": "standardize-error-response-2026-03-17",
@@ -1813,401 +2219,6 @@
           "packages/opencode-learning-engine/test/meta-kb-integration.test.js"
         ],
         "timestamp": "2026-03-08T00:00:00Z"
-      }
-    ],
-    "dashboard": [
-      {
-        "id": "dashboard-reliability-hardening-2026-03-16",
-        "summary": "Replaced raw NextResponse.json error calls in audit/route.ts with badRequest()/internalError() helpers. Fixed 4 silent catch {} blocks in models/route.ts GET handler with console.warn logging. Changed audit endpoint permission from 'models:read' to 'audit:read' to enforce authentication for sensitive audit logs.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/models/audit/route.ts",
-          "packages/opencode-dashboard/src/app/api/models/route.ts"
-        ],
-        "timestamp": "2026-03-16T20:00:00Z"
-      },
-      {
-        "id": "central-config-dashboard-api-rollback-2026-03-16",
-        "summary": "Central config tasks 4-8: add ?view=raw to dashboard config API, expand migration script to read opencode.json and config.yaml, add rollback(targetVersion) and validateIntegrity(configPath) to central-config-state.js, update docs/central-config.md with raw endpoint and rollback sections.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/config/route.ts",
-          "packages/opencode-config-loader/src/central-config-state.js",
-          "packages/opencode-config-loader/src/index.js",
-          "scripts/migrate-central-config.mjs",
-          "docs/central-config.md",
-          "package.json"
-        ],
-        "timestamp": "2026-03-16T18:00:00Z"
-      },
-      {
-        "id": "dashboard-auth-coverage-test-2026-03-16",
-        "summary": "Add standalone auth coverage regression test (scripts/tests/dashboard-auth-coverage.test.js) with explicit allowlist of all 10 POST routes. Test ensures every POST export calls requireWriteAccess with a permission string and detects new unguarded routes.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/tests/dashboard-auth-coverage.test.js"
-        ],
-        "timestamp": "2026-03-16T00:00:00.000Z"
-      },
-      {
-        "id": "boundary-and-schema-hardening-2026-03-14",
-        "summary": "Extended ci-boundary-enforce.mjs to scan ALL packages (not just dashboard API) for forbidden opencode-model-manager internal imports. Created shared CJS snapshot-schema.js module with validateSnapshot() and normalizeSnapshot(), refactored snapshot-store.js and model-rollback.mjs to use it, eliminating schema validation duplication.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "scripts/ci-boundary-enforce.mjs",
-          "scripts/tests/ci-boundary-enforce.test.js",
-          "packages/opencode-model-manager/src/snapshot/snapshot-schema.js",
-          "packages/opencode-model-manager/src/snapshot/snapshot-store.js",
-          "packages/opencode-model-manager/test/snapshot/snapshot-schema.test.js",
-          "scripts/model-rollback.mjs"
-        ],
-        "timestamp": "2026-03-14T00:00:00.000Z"
-      },
-      {
-        "id": "dashboard-auth-hardening-2026-03-14",
-        "summary": "Gate all 10 POST endpoints with requireWriteAccess and specific permissions. Add 4 new permissions (skills:promote, usage:write, providers:manage, orchestration:write) to admin+operator ROLE_MATRIX. Fix skills/promotions missing permission arg. Add regression test scanning all route.ts POST exports for universal auth coverage.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/_lib/write-access.ts",
-          "packages/opencode-dashboard/src/app/api/skills/promotions/route.ts",
-          "packages/opencode-dashboard/src/app/api/status/usage/route.ts",
-          "packages/opencode-dashboard/src/app/api/providers/route.ts",
-          "packages/opencode-dashboard/src/app/api/orchestration/route.ts",
-          "integration-tests/dashboard-write-guard.test.ts",
-          "integration-tests/orchestration-atomic-write.test.js",
-          "docs/model-management/HARDENING-BACKLOG.md"
-        ],
-        "timestamp": "2026-03-14T00:00:00.000Z"
-      },
-      {
-        "id": "standalone-touchpoints-wiring-20260312",
-        "summary": "Add light orchestration touchpoints for dashboard-launcher and plugin-healthd in IntegrationLayer while keeping model-manager standalone.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-integration-layer/src/bootstrap.js",
-          "packages/opencode-integration-layer/src/index.js",
-          "packages/opencode-integration-layer/tests/standalone-touchpoints-wiring.test.js"
-        ],
-        "timestamp": "2026-03-12T16:32:00Z"
-      },
-      {
-        "id": "dashboard-budget-route-20260310",
-        "summary": "Add the missing dashboard budget API route so observability can aggregate per-session runtime budget files that the PostToolUse hook already writes.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/budget/route.ts",
-          "packages/opencode-dashboard/test/budget-route.test.ts"
-        ],
-        "timestamp": "2026-03-10T01:58:00-04:00"
-      },
-      {
-        "id": "meta-knowledge-index-refresh-20260309",
-        "summary": "Refresh the generated meta-knowledge index so it includes the latest governed learning updates for observability and runtime telemetry work.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/meta-knowledge-index.json"
-        ],
-        "timestamp": "2026-03-09T23:15:00-04:00"
-      },
-      {
-        "id": "dashboard-monitoring-routes-20260309",
-        "summary": "Add dashboard endpoints and monitoring-route support for compression and Context7 observability, backed by the shared monitoring collector.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/monitoring/route.ts",
-          "packages/opencode-dashboard/src/app/api/compression/route.ts",
-          "packages/opencode-dashboard/src/app/api/context7-stats/route.ts",
-          "packages/opencode-dashboard/test/compression-route.test.ts",
-          "packages/opencode-dashboard/test/monitoring-observability-route.test.ts"
-        ],
-        "timestamp": "2026-03-09T22:47:00-04:00"
-      },
-      {
-        "id": "metrics-persistence-observability-20260309",
-        "summary": "Unify compression and Context7 monitoring collection, expose them in snapshots, and read persisted history so fresh processes can serve observability data.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-model-manager/src/monitoring/metrics-collector.js",
-          "packages/opencode-model-manager/test/monitoring/pipeline-metrics-collector.test.ts"
-        ],
-        "timestamp": "2026-03-09T22:46:00-04:00"
-      },
-      {
-        "id": "runtime-telemetry-monitoring-history-20260309",
-        "summary": "Extend the PostToolUse runtime hook to persist distill and Context7 monitoring events into shared observability history alongside existing tool-usage telemetry.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/runtime-tool-telemetry.mjs",
-          "scripts/tests/runtime-tool-telemetry.test.js"
-        ],
-        "timestamp": "2026-03-09T22:45:00-04:00"
-      },
-      {
-        "id": "wave10-dashboard-deploy-security",
-        "summary": "Add dashboard observability page (pipeline metrics, cache rates, meta-KB health), deployment automation workflow (dev/staging/prod stages), and CI security scanning (dependency audit + integrity-guard)",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/observability/page.tsx",
-          "packages/opencode-dashboard/src/components/Sidebar.tsx",
-          ".github/workflows/deployment.yml",
-          ".github/workflows/opencode-ci.yml"
-        ],
-        "timestamp": "2026-03-08T22:50:00Z"
-      },
-      {
-        "id": "wave10-ci-matrix-test-consolidation",
-        "summary": "Add per-package CI test matrix (28 packages), consolidate dashboard tests/ into test/, and add critical plugin contract integration tests (healthd, lifecycle, preload-skills)",
-        "risk_level": "low",
-        "affected_paths": [
-          ".github/workflows/opencode-ci.yml",
-          "packages/opencode-dashboard/test/correlation-async.test.js",
-          "packages/opencode-dashboard/test/event-store-async.test.js",
-          "packages/opencode-dashboard/test/meta-kb-route.test.js",
-          "packages/opencode-dashboard/test/fixtures/workflow-run.json",
-          "integration-tests/critical-plugin-contracts.test.js"
-        ],
-        "timestamp": "2026-03-08T22:36:00Z"
-      },
-      {
-        "id": "wave10-observability-persistence",
-        "summary": "Add opt-in Langfuse tracing to opencode-logger (WARN+ levels) and SQLite daily-metrics persistence to pipeline metrics collector (bun:sqlite with better-sqlite3 fallback)",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-logger/src/index.js",
-          "packages/opencode-model-manager/src/monitoring/metrics-collector.js"
-        ],
-        "timestamp": "2026-03-08T22:35:00Z"
-      },
-      {
-        "id": "wave11-t18-t15-budget-alerts-dashboard",
-        "summary": "Add BUDGET_THRESHOLD alert type with evaluateBudget() to AlertManager (75/80/95% thresholds). Add Context Budget dashboard widget with compression stats, Context7 stats, and color-coded budget bars to observability page.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-manager/src/monitoring/alert-manager.js",
-          "packages/opencode-dashboard/src/app/observability/page.tsx"
-        ],
-        "timestamp": "2026-03-08T19:20:00Z"
-      },
-      {
-        "id": "skill-upgrade-advisor-affinity-fix-20260308",
-        "summary": "Fixed 3 dangling SKILL_AFFINITY references in orchestration-advisor.js: refactor->using-git-worktrees, playwright->agent-browser, frontend-design->dev-browser. All advisor skill references now resolve to canonical registry entries.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-learning-engine/src/orchestration-advisor.js"
-        ],
-        "timestamp": "2026-03-08T15:30:00Z"
-      },
-      {
-        "id": "stale-docs-cleanup-20260227",
-        "summary": "Task 6: Final regression sweep and stale documentation cleanup after pipeline fixes. (1) mcp-setup-commands.sh: updated 'Current servers (8)' → '(9)' — distill was registered in opencode.json but not counted in this reference script. (2) tool-manifest.json: added opencode-dashboard-launcher entry to match opencode-mcp-config.json — 4 servers were listed, 5th was missing. (3) system-prompts.md: updated '8 MCP server definitions' → '9'. All integration tests pass: 5 pass, 0 fail for skillrl-api-regression. All plan acceptance criteria verified.",
-        "risk_level": "low",
-        "affected_paths": [
-          "mcp-servers/mcp-setup-commands.sh",
-          "mcp-servers/tool-manifest.json",
-          "system-prompts.md"
-        ],
-        "timestamp": "2026-02-27T00:04:00Z"
-      },
-      {
-        "id": "nextjs-cve-patch-20260225",
-        "summary": "Patch critical CVE in Next.js by updating from 14.2.3 to 14.2.10 in opencode-dashboard.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/package.json"
-        ],
-        "timestamp": "2026-02-25T16:00:00Z"
-      },
-      {
-        "id": "event-store-lost-update-fix-20260225",
-        "summary": "Fixed lost-update race condition in persistEvents by moving read-merge-write inside the serialized write queue. Previously, callers read stale existingEvents outside the queue, so concurrent writers overwrote each other's events.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/orchestration/lib/event-store.js",
-          "packages/opencode-dashboard/test/event-store-race.test.js"
-        ],
-        "timestamp": "2026-02-25T10:00:00Z"
-      },
-      {
-        "id": "dashboard-async-migration-20260225",
-        "summary": "Converted sync I/O to async in 9 dashboard files + 7 callers. Write paths use serialized write queue (_writePromise pattern) to prevent concurrent corruption. Verification read in write-json-atomic.ts intentionally kept sync. Added 7 regression tests for event-store async atomicWrite.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/orchestration/lib/event-store.js",
-          "packages/opencode-dashboard/src/app/api/_lib/write-json-atomic.ts",
-          "packages/opencode-dashboard/src/app/api/learning/route.ts",
-          "packages/opencode-dashboard/src/app/api/rl/route.ts",
-          "packages/opencode-dashboard/src/app/api/frontier-status/route.ts",
-          "packages/opencode-dashboard/src/app/api/policy-review/route.ts",
-          "packages/opencode-dashboard/src/app/api/retrieval-quality/route.ts",
-          "packages/opencode-dashboard/src/lib/meta-awareness.ts",
-          "packages/opencode-dashboard/src/lib/data-sources/index.ts",
-          "packages/opencode-dashboard/tests/event-store-async.test.js",
-          "integration-tests/orchestration-atomic-write.test.js"
-        ],
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "env-validation-20260225",
-        "summary": "Added startup validation for security-critical environment variables in dashboard routes to warn operators of missing signing keys and write tokens",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/orchestration/policy-sim/route.ts",
-          "packages/opencode-dashboard/src/app/api/_lib/write-access.ts"
-        ],
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "event-store-error-logging-20260225",
-        "summary": "Added console.warn logging to 2 empty catch blocks in event-store.js that were swallowing cleanup errors after write/rename failures.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/orchestration/lib/event-store.js"
-        ],
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "prototype-pollution-fix-20260225",
-        "summary": "Security hardening: prevent prototype pollution in plugin lifecycle supervisor",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-plugin-lifecycle/src/index.js",
-          "packages/opencode-plugin-lifecycle/test/prototype-pollution.test.js",
-          "packages/opencode-dashboard/src/app/api/plugin-supervisor/route.ts",
-          "packages/opencode-dashboard/src/app/api/_lib/write-access.ts"
-        ],
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "dashboard-api-wave6-20260224",
-        "summary": "Added lifecycle management API endpoints to dashboard for model state management",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/models/lifecycle/route.ts",
-          "packages/opencode-dashboard/src/app/api/models/transition/route.ts",
-          "packages/opencode-dashboard/src/app/api/models/audit/route.ts"
-        ],
-        "timestamp": "2026-02-24T07:30:00Z"
-      },
-      {
-        "id": "central-config-foundation-20260223",
-        "summary": "Introduce central config schema/state machinery with migration tooling and setup verification so dashboard-managed policy can persist safely with recovery and audit support.",
-        "risk_level": "medium",
-        "affected_paths": [
-          ".gitignore",
-          "docs/plans/2026-02-23-central-config-dashboard.md",
-          "opencode-config/central-config.schema.json",
-          "opencode-config/learning-updates/central-config-foundation-20260223.json",
-          "packages/opencode-config-loader/src/central-config-state.js",
-          "packages/opencode-config-loader/src/central-config.js",
-          "packages/opencode-config-loader/src/index.js",
-          "packages/opencode-config-loader/test/central-config.test.js",
-          "scripts/migrate-central-config.mjs",
-          "scripts/verify-setup.mjs"
-        ],
-        "timestamp": "2026-02-23T23:20:00Z"
-      },
-      {
-        "id": "token-counts-workflows-20260219",
-        "summary": "Add token counts to workflow runs in dashboard",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/runs/route.ts",
-          "packages/opencode-dashboard/src/app/page.tsx",
-          "packages/opencode-dashboard/src/components/dashboard/WorkflowTree.tsx",
-          "packages/opencode-dashboard/src/lib/provider-status-store.ts"
-        ],
-        "timestamp": "2026-02-19T02:30:00.000Z"
-      },
-      {
-        "id": "token-counting-dashboard-20260219",
-        "summary": "Add true token counting to workflows dashboard with input/output/total token tracking",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/status/usage/route.ts",
-          "packages/opencode-dashboard/src/lib/provider-status-store.ts"
-        ],
-        "timestamp": "2026-02-19T01:00:00.000Z"
-      },
-      {
-        "id": "fullframe-graph-and-workflow-monitor-population-20260216",
-        "summary": "Moved interactive graph to dedicated full-frame route and wired workflow monitor to real run/thread data",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/graph/page.tsx",
-          "packages/opencode-dashboard/src/components/Sidebar.tsx",
-          "packages/opencode-dashboard/src/app/memory/page.tsx",
-          "packages/opencode-dashboard/src/app/page.tsx",
-          "packages/opencode-dashboard/src/components/dashboard/WorkflowTree.tsx",
-          "packages/opencode-dashboard/src/components/dashboard/EvidenceViewer.tsx"
-        ],
-        "timestamp": "2026-02-16T03:10:00Z"
-      },
-      {
-        "id": "dashboard-autostart-wrapper-and-windows-launch-fix-20260216",
-        "summary": "Fixed dashboard launcher reliability on Windows and added opencode wrapper for guaranteed dashboard startup",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard-launcher/src/index.js",
-          "scripts/opencode-with-dashboard.mjs",
-          "package.json"
-        ],
-        "timestamp": "2026-02-16T02:40:00Z"
-      },
-      {
-        "id": "configviewer-typed-intent-routing-20260215",
-        "summary": "Extended ConfigViewer with typed intent-routing editor controls",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/components/dashboard/ConfigViewer.tsx"
-        ],
-        "timestamp": "2026-02-16T00:05:00Z"
-      },
-      {
-        "id": "provider-telemetry-ui-enhancements-20260215",
-        "summary": "Enhanced provider telemetry dashboard with pressure analytics and hot model visibility",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/components/dashboard/ProviderHealth.tsx"
-        ],
-        "timestamp": "2026-02-15T23:55:00Z"
-      },
-      {
-        "id": "knowledge-graph-drag-zoom-20260215",
-        "summary": "Improved knowledge graph drag/zoom UX with viewport persistence and position retention",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/components/dashboard/InteractiveKnowledgeGraph.tsx"
-        ],
-        "timestamp": "2026-02-15T23:30:00Z"
-      },
-      {
-        "id": "models-routing-matrix-ui-20260215",
-        "summary": "Enhanced models routing matrix UI with filtering, sorting, and coverage analytics",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/models/page.tsx"
-        ],
-        "timestamp": "2026-02-15T23:05:00Z"
-      },
-      {
-        "id": "provider-status-atomicity-20260215",
-        "summary": "Fixed provider-status.json write to use atomic temp-file pattern, preventing corruption on mid-write interruption.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/lib/provider-status-store.ts"
-        ],
-        "timestamp": "2026-02-15T20:15:00Z"
-      },
-      {
-        "id": "skillsrl-api-fixes-20260215",
-        "summary": "Stabilized Skills RL backend APIs with contracts normalization and missing /api/rl endpoint creation.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-dashboard/src/app/api/rl/route.ts",
-          "packages/opencode-dashboard/src/app/api/skills/route.ts",
-          "packages/opencode-dashboard/src/app/api/learning/route.ts"
-        ],
-        "timestamp": "2026-02-15T19:30:00Z"
       }
     ],
     "performance": [
@@ -4200,6 +4211,17 @@
   },
   "by_risk_level": {
     "low": [
+      {
+        "id": "replace-silent-catch-blocks-2026-03-17",
+        "summary": "Updated three API route files to use standardized errorResponse() utility for consistent error formatting instead of manual NextResponse.json() calls",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard/src/app/api/budget/route.ts",
+          "packages/opencode-dashboard/src/app/api/compression/route.ts",
+          "packages/opencode-dashboard/src/app/api/context7-stats/route.ts"
+        ],
+        "timestamp": "2026-03-17T00:00:00.000Z"
+      },
       {
         "id": "standardize-error-response-2026-03-17",
         "summary": "Standardized error response format across OpenCode dashboard API routes by creating centralized error-response.ts utility and updating all routes to use consistent errorResponse() and successResponse() functions",
@@ -8307,6 +8329,12 @@
   },
   "by_affected_path": {
     "packages/opencode-dashboard": [
+      {
+        "id": "replace-silent-catch-blocks-2026-03-17",
+        "summary": "Updated three API route files to use standardized errorResponse() utility for consistent error formatting instead of manual NextResponse.json() calls",
+        "risk_level": "low",
+        "timestamp": "2026-03-17T00:00:00.000Z"
+      },
       {
         "id": "standardize-error-response-2026-03-17",
         "summary": "Standardized error response format across OpenCode dashboard API routes by creating centralized error-response.ts utility and updating all routes to use consistent errorResponse() and successResponse() functions",
