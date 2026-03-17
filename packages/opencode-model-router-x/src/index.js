@@ -693,7 +693,11 @@ class ModelRouter {
       }
     }
 
-    const candidates = this._filterByConstraints(ctx || {});
+    let candidates = this._filterByConstraints(ctx || {});
+    
+    // Pre-selection health verification: Filter out unavailable models before scoring
+    // This prevents tool timeouts by checking circuit breaker state and key availability
+    candidates = this._filterByHealth(candidates);
     
     // Skill-RL Integration: Get skill-based model recommendations (T7: memoized)
     let skillBoost = {};
@@ -1024,6 +1028,57 @@ class ModelRouter {
   }
 
   /**
+   * Pre-selection health verification: Filter out unavailable models before scoring.
+   * This prevents tool timeouts by checking:
+   * 1. Circuit breaker state (provider-level)
+   * 2. Key availability (rotator health)
+   * 
+   * @private
+   * @param {string[]} candidateIds - Model IDs to filter
+   * @returns {string[]} - Available model IDs
+   */
+  _filterByHealth(candidateIds) {
+    return candidateIds.filter((modelId) => {
+      const model = this.models[modelId];
+      if (!model) return false;
+      
+      // Check circuit breaker state for this provider
+      const cb = this.circuitBreakers[model.provider];
+      if (cb) {
+        const state = cb.getState();
+        // Exclude models from providers with open or half-open circuit breakers
+        if (state === 'open' || state === 'half-open') {
+          return false;
+        }
+      }
+      
+      // Check key availability via rotator
+      const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
+      if (rotator) {
+        // Check if rotator has any healthy keys available
+        if (typeof rotator.getProviderStatus === 'function') {
+          const status = rotator.getProviderStatus();
+          if (status?.isExhausted || status?.healthyKeys === 0) {
+            return false;
+          }
+        }
+        // Also check if we can get a key (more direct check)
+        try {
+          const key = rotator.getNextKey();
+          if (!key) {
+            return false;
+          }
+        } catch (e) {
+          // If getNextKey throws, exclude this model
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  }
+
+  /**
    * Score model using policy + live signals.
    * @private
    */
@@ -1108,12 +1163,13 @@ class ModelRouter {
     }
 
     // T4 (Wave 11): Budget-aware penalty — deprioritize expensive models when budget is tight
+    // Threshold lowered from 80% to 70% to proactively prevent tool timeouts from model unavailability
     if (this.tokenBudgetManager?.governor) {
       try {
         const sessionId = ctx?.sessionId || ctx?.session_id || 'default';
         const budgetCheck = this.tokenBudgetManager.governor.getRemainingBudget(sessionId, modelId);
-        if (budgetCheck && budgetCheck.pct >= 0.80) {
-          // Budget is >=80% consumed: penalize high-cost models
+        if (budgetCheck && budgetCheck.pct >= 0.70) {
+          // Budget is >=70% consumed: penalize high-cost models
           const costTier = model.cost_tier || 'medium';
           const costPenalties = { high: 0.15, critical: 0.15, emergency: 0.15, medium: 0.08, low: 0.03, trivial: 0, mechanical: 0 };
           const penalty = costPenalties[costTier] || 0.05;
