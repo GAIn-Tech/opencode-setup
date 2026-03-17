@@ -1,12 +1,247 @@
 {
-  "generated_at": "2026-03-17T14:49:45.593Z",
+  "generated_at": "2026-03-17T14:51:55.492Z",
   "schema_version": 1,
-  "total_records": 349,
+  "total_records": 350,
   "source_files": {
-    "learning_updates": 349,
+    "learning_updates": 350,
     "agents_md": 7
   },
   "by_category": {
+    "configuration": [
+      {
+        "id": "atomic-write-verification-2026-03-17",
+        "summary": "Added integrity verification to atomicWriteFile() in packages/opencode-config-loader/src/central-config-state.js to prevent silent data corruption.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-config-loader/src/central-config-state.js"
+        ],
+        "timestamp": "2026-03-17T01:53:20.000Z"
+      },
+      {
+        "id": "skill-registry-13-missing-skills-2026-03-16",
+        "summary": "Added 13 skill entries to opencode-config/skills/registry.json that had SKILL.md files and were enabled in compound-engineering.json but were missing from the registry. This closes all skill audit gaps except the intentional tavily placeholder.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/skills/registry.json"
+        ],
+        "timestamp": "2026-03-16T22:00:00Z"
+      },
+      {
+        "id": "runbooks-mcp-config-20260313",
+        "summary": "Point the host-facing runbooks MCP entries at the new stdio wrapper entrypoint in canonical OpenCode config sources.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/opencode.json",
+          "mcp-servers/opencode-mcp-config.json",
+          "mcp-servers/opencode-mcp-config.template.json",
+          "opencode-config/learning-updates/runbooks-mcp-config-20260313.json"
+        ],
+        "timestamp": "2026-03-13T01:15:00Z"
+      },
+      {
+        "id": "opencode-beads-plugin-20260312",
+        "summary": "Add the upstream opencode-beads plugin to the main OpenCode plugin configuration so synced user configs load the beads integration.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/opencode.json",
+          "opencode-config/learning-updates/opencode-beads-plugin-20260312.json"
+        ],
+        "timestamp": "2026-03-12T23:10:00Z"
+      },
+      {
+        "id": "codebase-auditor-skill-surface-20260310",
+        "summary": "Add the missing codebase-auditor skill and paired agent so systematic repo audits become a first-class workflow instead of an undocumented gap.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/skills/codebase-auditor/SKILL.md",
+          "opencode-config/agents/codebase-auditor.md"
+        ],
+        "timestamp": "2026-03-10T11:56:00-04:00"
+      },
+      {
+        "id": "playwright-direct-mcp-surface-20260310",
+        "summary": "Add a direct Playwright MCP skill and paired browser agent so browser automation has a first-class MCP path instead of relying only on indirect alias wiring.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/skills/playwright/SKILL.md",
+          "opencode-config/agents/playwright-browser.md"
+        ],
+        "timestamp": "2026-03-10T11:35:00-04:00"
+      },
+      {
+        "id": "mcp-audit-doc-refresh-20260310",
+        "summary": "Refresh the historical MCP audit artifacts so they are clearly marked as superseded and point readers to the Mar 10 activation and cleanup follow-up state.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/supermemory/mcp-audit-20260308.md",
+          "opencode-config/supermemory/mcp-audit-summary-20260308.md",
+          "opencode-config/supermemory/mcp-wiring-plan-20260308.md"
+        ],
+        "timestamp": "2026-03-10T00:48:00-04:00"
+      },
+      {
+        "id": "research-mcp-skill-guides-20260310",
+        "summary": "Add Websearch and Grep skill guides plus paired research agents so live web research and external code-example lookup follow the same discoverable MCP pattern as Context7.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/skills/websearch/SKILL.md",
+          "opencode-config/skills/grep/SKILL.md",
+          "opencode-config/agents/researcher.md",
+          "opencode-config/agents/code-searcher.md"
+        ],
+        "timestamp": "2026-03-10T00:07:00-04:00"
+      },
+      {
+        "id": "supermemory-mcp-audit-artifacts-20260309",
+        "summary": "Add MCP audit, summary, and wiring-plan artifacts documenting passive and dead MCP gaps plus the downstream wiring pattern to follow.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/supermemory/mcp-audit-20260308.md",
+          "opencode-config/supermemory/mcp-audit-summary-20260308.md",
+          "opencode-config/supermemory/mcp-wiring-plan-20260308.md"
+        ],
+        "timestamp": "2026-03-09T23:25:00-04:00"
+      },
+      {
+        "id": "wave11-t14-dcp-skill-20260308",
+        "summary": "T14: Create DCP skill file and expand plugin documentation. Add DCP entry to registry.json and compound-engineering.json enabled/optimization lists. Document DCP integration with ContextBridge and distill compression stack.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/skills/dcp/SKILL.md",
+          "opencode-config/skills/registry.json",
+          "opencode-config/compound-engineering.json"
+        ],
+        "timestamp": "2026-03-08T23:10:00Z"
+      },
+      {
+        "id": "distill-context7-config-wiring-20260308",
+        "summary": "Wire distill and context7 skills into the active system: enable both (plus budget-aware-router) in compound-engineering.json enabled list; add distill to oh-my-opencode.json MCP toggles; add @tarquinen/opencode-dcp@latest plugin to opencode.json plugin array (was documented in README and plugins/opencode-dcp/info.md but missing from active config).",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/compound-engineering.json",
+          "opencode-config/oh-my-opencode.json",
+          "opencode-config/opencode.json"
+        ],
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "namespace-drift-part1-20260308",
+        "summary": "Fix namespace drift in 6 package.json name fields: opencode-context-governor, opencode-crash-guard, opencode-eval-harness, opencode-fallback-doctor, opencode-plugin-healthd, opencode-plugin-preload-skills. Renamed from @jackoatmon/* and @opencode/* scoped names to flat opencode-* names matching directory layout.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-context-governor/package.json",
+          "packages/opencode-crash-guard/package.json",
+          "packages/opencode-eval-harness/package.json",
+          "packages/opencode-fallback-doctor/package.json",
+          "packages/opencode-plugin-healthd/package.json",
+          "packages/opencode-plugin-preload-skills/package.json"
+        ],
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "namespace-drift-part2-20260308",
+        "summary": "Fix namespace drift in 5 remaining package.json name fields and repair 2 broken cross-package dependency references. Packages fixed: integration-layer, model-router-x, plugin-lifecycle, proofcheck, shared-orchestration. Cross-deps fixed: model-router-x deps on context-governor and fallback-doctor; integration-layer peerDeps on skill-rl-manager, learning-engine, shared-orchestration.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-integration-layer/package.json",
+          "packages/opencode-model-router-x/package.json",
+          "packages/opencode-plugin-lifecycle/package.json",
+          "packages/opencode-proofcheck/package.json",
+          "packages/opencode-shared-orchestration/package.json"
+        ],
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "context7-distill-calling-conventions-20260227",
+        "summary": "Add explicit Context7 and Distill MCP tool calling conventions to the 3 most impactful skill files. research-builder/SKILL.md now has concrete mcp_context7_resolve-library-id and mcp_context7_query-docs steps (replaces vague 'Use Context7 for library docs'). budget-aware-router/SKILL.md now has Phase 3a with mcp_distill_browse_tools and mcp_distill_run_tool steps including cold-start warning. system-prompts.md has a new 'Context Management MCP Tools' section with global rules for when to trigger each tool.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/skills/research-builder/SKILL.md",
+          "opencode-config/skills/budget-aware-router/SKILL.md",
+          "system-prompts.md"
+        ],
+        "timestamp": "2026-02-27T00:03:00Z"
+      },
+      {
+        "id": "skill-registry-compound-alignment-20260226",
+        "summary": "Reconcile skill inventory between registry.json (canonical) and compound-engineering.json (consumer)",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/skills/registry.json",
+          "docs/skills/OVERVIEW.md",
+          "scripts/check-skill-consistency.mjs"
+        ],
+        "timestamp": "2026-02-26T22:00:00Z"
+      },
+      {
+        "id": "schema-v2-contracts-20260226",
+        "summary": "Extended registry schema for v2 machine-visible contracts while preserving v1 compatibility",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/skills/registry.schema.json"
+        ],
+        "timestamp": "2026-02-26T21:30:00Z"
+      },
+      {
+        "id": "phantom-skill-reconciliation-20260226",
+        "summary": "Register 4 orphan skills with SKILL.md directories missing from registry.json; fix dangling cross-references",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/skills/registry.json"
+        ],
+        "timestamp": "2026-02-26T12:00:00Z"
+      },
+      {
+        "id": "skill-ecosystem-cohesion-20260219",
+        "summary": "Implement cohesive skill ecosystem with profiles, composition system, and new skills",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/skills/SKILL-TEMPLATE.md",
+          "opencode-config/skills/registry.json",
+          "opencode-config/skills/code-doctor/",
+          "opencode-config/skills/research-builder/",
+          "opencode-config/skills/superpowers/",
+          "scripts/consolidate-skills.mjs",
+          "scripts/skill-profile-loader.mjs",
+          ".sisyphus/plans/skill-ecosystem-cohesion.md"
+        ],
+        "timestamp": "2026-02-19T08:45:00.000Z"
+      },
+      {
+        "id": "token-reporter-skill-20260219",
+        "summary": "Add token-reporter skill for manual token tracking",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/skills/token-reporter/"
+        ],
+        "timestamp": "2026-02-19T02:35:00.000Z"
+      },
+      {
+        "id": "integration-automation-20260218",
+        "summary": "Add automated integration verification system for packages, skills, plugins, and MCPs",
+        "risk_level": "medium",
+        "affected_paths": [
+          "ADDITION-PROCEDURE.md",
+          "scripts/verify-integration.mjs",
+          "package.json",
+          "scripts/copy-config.mjs"
+        ],
+        "timestamp": "2026-02-18T23:00:00.000Z"
+      },
+      {
+        "id": "provider-config-and-cerebras-tpm-20260215",
+        "summary": "Expanded provider config coverage and hardened Cerebras TPM handling",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/opencode.json",
+          "opencode-config/oh-my-opencode.json",
+          "rate-limit-fallback.json",
+          "packages/opencode-model-router-x/src/key-rotator.js",
+          "packages/opencode-sisyphus-state/src/config/providers.js"
+        ],
+        "timestamp": "2026-02-15T22:20:00Z"
+      }
+    ],
     "dashboard": [
       {
         "id": "check-command-existence-before-spawn-2026-03-17",
@@ -930,232 +1165,6 @@
           "packages/opencode-proofcheck/src/cli.js"
         ],
         "timestamp": "2026-02-15T08:00:00Z"
-      }
-    ],
-    "configuration": [
-      {
-        "id": "skill-registry-13-missing-skills-2026-03-16",
-        "summary": "Added 13 skill entries to opencode-config/skills/registry.json that had SKILL.md files and were enabled in compound-engineering.json but were missing from the registry. This closes all skill audit gaps except the intentional tavily placeholder.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/skills/registry.json"
-        ],
-        "timestamp": "2026-03-16T22:00:00Z"
-      },
-      {
-        "id": "runbooks-mcp-config-20260313",
-        "summary": "Point the host-facing runbooks MCP entries at the new stdio wrapper entrypoint in canonical OpenCode config sources.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/opencode.json",
-          "mcp-servers/opencode-mcp-config.json",
-          "mcp-servers/opencode-mcp-config.template.json",
-          "opencode-config/learning-updates/runbooks-mcp-config-20260313.json"
-        ],
-        "timestamp": "2026-03-13T01:15:00Z"
-      },
-      {
-        "id": "opencode-beads-plugin-20260312",
-        "summary": "Add the upstream opencode-beads plugin to the main OpenCode plugin configuration so synced user configs load the beads integration.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/opencode.json",
-          "opencode-config/learning-updates/opencode-beads-plugin-20260312.json"
-        ],
-        "timestamp": "2026-03-12T23:10:00Z"
-      },
-      {
-        "id": "codebase-auditor-skill-surface-20260310",
-        "summary": "Add the missing codebase-auditor skill and paired agent so systematic repo audits become a first-class workflow instead of an undocumented gap.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/skills/codebase-auditor/SKILL.md",
-          "opencode-config/agents/codebase-auditor.md"
-        ],
-        "timestamp": "2026-03-10T11:56:00-04:00"
-      },
-      {
-        "id": "playwright-direct-mcp-surface-20260310",
-        "summary": "Add a direct Playwright MCP skill and paired browser agent so browser automation has a first-class MCP path instead of relying only on indirect alias wiring.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/skills/playwright/SKILL.md",
-          "opencode-config/agents/playwright-browser.md"
-        ],
-        "timestamp": "2026-03-10T11:35:00-04:00"
-      },
-      {
-        "id": "mcp-audit-doc-refresh-20260310",
-        "summary": "Refresh the historical MCP audit artifacts so they are clearly marked as superseded and point readers to the Mar 10 activation and cleanup follow-up state.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/supermemory/mcp-audit-20260308.md",
-          "opencode-config/supermemory/mcp-audit-summary-20260308.md",
-          "opencode-config/supermemory/mcp-wiring-plan-20260308.md"
-        ],
-        "timestamp": "2026-03-10T00:48:00-04:00"
-      },
-      {
-        "id": "research-mcp-skill-guides-20260310",
-        "summary": "Add Websearch and Grep skill guides plus paired research agents so live web research and external code-example lookup follow the same discoverable MCP pattern as Context7.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/skills/websearch/SKILL.md",
-          "opencode-config/skills/grep/SKILL.md",
-          "opencode-config/agents/researcher.md",
-          "opencode-config/agents/code-searcher.md"
-        ],
-        "timestamp": "2026-03-10T00:07:00-04:00"
-      },
-      {
-        "id": "supermemory-mcp-audit-artifacts-20260309",
-        "summary": "Add MCP audit, summary, and wiring-plan artifacts documenting passive and dead MCP gaps plus the downstream wiring pattern to follow.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/supermemory/mcp-audit-20260308.md",
-          "opencode-config/supermemory/mcp-audit-summary-20260308.md",
-          "opencode-config/supermemory/mcp-wiring-plan-20260308.md"
-        ],
-        "timestamp": "2026-03-09T23:25:00-04:00"
-      },
-      {
-        "id": "wave11-t14-dcp-skill-20260308",
-        "summary": "T14: Create DCP skill file and expand plugin documentation. Add DCP entry to registry.json and compound-engineering.json enabled/optimization lists. Document DCP integration with ContextBridge and distill compression stack.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/skills/dcp/SKILL.md",
-          "opencode-config/skills/registry.json",
-          "opencode-config/compound-engineering.json"
-        ],
-        "timestamp": "2026-03-08T23:10:00Z"
-      },
-      {
-        "id": "distill-context7-config-wiring-20260308",
-        "summary": "Wire distill and context7 skills into the active system: enable both (plus budget-aware-router) in compound-engineering.json enabled list; add distill to oh-my-opencode.json MCP toggles; add @tarquinen/opencode-dcp@latest plugin to opencode.json plugin array (was documented in README and plugins/opencode-dcp/info.md but missing from active config).",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/compound-engineering.json",
-          "opencode-config/oh-my-opencode.json",
-          "opencode-config/opencode.json"
-        ],
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "namespace-drift-part1-20260308",
-        "summary": "Fix namespace drift in 6 package.json name fields: opencode-context-governor, opencode-crash-guard, opencode-eval-harness, opencode-fallback-doctor, opencode-plugin-healthd, opencode-plugin-preload-skills. Renamed from @jackoatmon/* and @opencode/* scoped names to flat opencode-* names matching directory layout.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-context-governor/package.json",
-          "packages/opencode-crash-guard/package.json",
-          "packages/opencode-eval-harness/package.json",
-          "packages/opencode-fallback-doctor/package.json",
-          "packages/opencode-plugin-healthd/package.json",
-          "packages/opencode-plugin-preload-skills/package.json"
-        ],
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "namespace-drift-part2-20260308",
-        "summary": "Fix namespace drift in 5 remaining package.json name fields and repair 2 broken cross-package dependency references. Packages fixed: integration-layer, model-router-x, plugin-lifecycle, proofcheck, shared-orchestration. Cross-deps fixed: model-router-x deps on context-governor and fallback-doctor; integration-layer peerDeps on skill-rl-manager, learning-engine, shared-orchestration.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-integration-layer/package.json",
-          "packages/opencode-model-router-x/package.json",
-          "packages/opencode-plugin-lifecycle/package.json",
-          "packages/opencode-proofcheck/package.json",
-          "packages/opencode-shared-orchestration/package.json"
-        ],
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "context7-distill-calling-conventions-20260227",
-        "summary": "Add explicit Context7 and Distill MCP tool calling conventions to the 3 most impactful skill files. research-builder/SKILL.md now has concrete mcp_context7_resolve-library-id and mcp_context7_query-docs steps (replaces vague 'Use Context7 for library docs'). budget-aware-router/SKILL.md now has Phase 3a with mcp_distill_browse_tools and mcp_distill_run_tool steps including cold-start warning. system-prompts.md has a new 'Context Management MCP Tools' section with global rules for when to trigger each tool.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/skills/research-builder/SKILL.md",
-          "opencode-config/skills/budget-aware-router/SKILL.md",
-          "system-prompts.md"
-        ],
-        "timestamp": "2026-02-27T00:03:00Z"
-      },
-      {
-        "id": "skill-registry-compound-alignment-20260226",
-        "summary": "Reconcile skill inventory between registry.json (canonical) and compound-engineering.json (consumer)",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/skills/registry.json",
-          "docs/skills/OVERVIEW.md",
-          "scripts/check-skill-consistency.mjs"
-        ],
-        "timestamp": "2026-02-26T22:00:00Z"
-      },
-      {
-        "id": "schema-v2-contracts-20260226",
-        "summary": "Extended registry schema for v2 machine-visible contracts while preserving v1 compatibility",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/skills/registry.schema.json"
-        ],
-        "timestamp": "2026-02-26T21:30:00Z"
-      },
-      {
-        "id": "phantom-skill-reconciliation-20260226",
-        "summary": "Register 4 orphan skills with SKILL.md directories missing from registry.json; fix dangling cross-references",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/skills/registry.json"
-        ],
-        "timestamp": "2026-02-26T12:00:00Z"
-      },
-      {
-        "id": "skill-ecosystem-cohesion-20260219",
-        "summary": "Implement cohesive skill ecosystem with profiles, composition system, and new skills",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/skills/SKILL-TEMPLATE.md",
-          "opencode-config/skills/registry.json",
-          "opencode-config/skills/code-doctor/",
-          "opencode-config/skills/research-builder/",
-          "opencode-config/skills/superpowers/",
-          "scripts/consolidate-skills.mjs",
-          "scripts/skill-profile-loader.mjs",
-          ".sisyphus/plans/skill-ecosystem-cohesion.md"
-        ],
-        "timestamp": "2026-02-19T08:45:00.000Z"
-      },
-      {
-        "id": "token-reporter-skill-20260219",
-        "summary": "Add token-reporter skill for manual token tracking",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/skills/token-reporter/"
-        ],
-        "timestamp": "2026-02-19T02:35:00.000Z"
-      },
-      {
-        "id": "integration-automation-20260218",
-        "summary": "Add automated integration verification system for packages, skills, plugins, and MCPs",
-        "risk_level": "medium",
-        "affected_paths": [
-          "ADDITION-PROCEDURE.md",
-          "scripts/verify-integration.mjs",
-          "package.json",
-          "scripts/copy-config.mjs"
-        ],
-        "timestamp": "2026-02-18T23:00:00.000Z"
-      },
-      {
-        "id": "provider-config-and-cerebras-tpm-20260215",
-        "summary": "Expanded provider config coverage and hardened Cerebras TPM handling",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/opencode.json",
-          "opencode-config/oh-my-opencode.json",
-          "rate-limit-fallback.json",
-          "packages/opencode-model-router-x/src/key-rotator.js",
-          "packages/opencode-sisyphus-state/src/config/providers.js"
-        ],
-        "timestamp": "2026-02-15T22:20:00Z"
       }
     ],
     "testing": [
@@ -4227,6 +4236,15 @@
   },
   "by_risk_level": {
     "low": [
+      {
+        "id": "atomic-write-verification-2026-03-17",
+        "summary": "Added integrity verification to atomicWriteFile() in packages/opencode-config-loader/src/central-config-state.js to prevent silent data corruption.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-config-loader/src/central-config-state.js"
+        ],
+        "timestamp": "2026-03-17T01:53:20.000Z"
+      },
       {
         "id": "check-command-existence-before-spawn-2026-03-17",
         "summary": "Updated 8 files to check command existence before spawn to prevent Bun v1.3.x ENOENT segfault, added 'which' dependency to 2 packages",
@@ -8360,6 +8378,80 @@
     "high": []
   },
   "by_affected_path": {
+    "packages/opencode-config-loader": [
+      {
+        "id": "atomic-write-verification-2026-03-17",
+        "summary": "Added integrity verification to atomicWriteFile() in packages/opencode-config-loader/src/central-config-state.js to prevent silent data corruption.",
+        "risk_level": "low",
+        "timestamp": "2026-03-17T01:53:20.000Z"
+      },
+      {
+        "id": "central-config-dashboard-api-rollback-2026-03-16",
+        "summary": "Central config tasks 4-8: add ?view=raw to dashboard config API, expand migration script to read opencode.json and config.yaml, add rollback(targetVersion) and validateIntegrity(configPath) to central-config-state.js, update docs/central-config.md with raw endpoint and rollback sections.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T18:00:00Z"
+      },
+      {
+        "id": "central-config-loader-2026-03-16",
+        "summary": "Rewrite central config loader with sync loadCentralConfig (manual field validation) and mergeCentralConfig returning {effective, diff, metadata} format. RL confidence threshold from central.rl.override_min_confidence, locked field protection, hard bound clamping. TDD: 8 tests RED→GREEN.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T12:00:00Z"
+      },
+      {
+        "id": "exploration-mode-deployment-2026-03-14",
+        "summary": "Deployed exploration mode (adaptive routing Phases 1-4) by wiring ConfigLoader defaults through bootstrap.js to ModelRouter constructor. Added exploration section to central-config.json with RL-tunable params (budget, token_budget_ratio, min_tokens). Exploration mode now activates via config (active:true default), CLI flags, or env vars.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "package-wiring-cleanup-20260311",
+        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T20:20:00Z"
+      },
+      {
+        "id": "wave-1-async-io-complete-20260225",
+        "summary": "Wave 1: Async I/O conversion for config-loader, learning-engine, and model-manager to eliminate event loop blocking",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T02:32:00.000Z"
+      },
+      {
+        "id": "config-loader-async-io-20260225",
+        "summary": "Converted all sync file I/O to async in central-config-state.js and central-config.js. Added in-memory RL state cache and atomic write pattern (tmp+rename).",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "unused-exports-removal-20260225",
+        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "config-loader-safe-json-parse-20260224",
+        "summary": "Added safeJsonParse helper and replaced all unguarded JSON.parse calls in file-read paths in central-config.js and central-config-state.js",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "central-config-foundation-20260223",
+        "summary": "Introduce central config schema/state machinery with migration tooling and setup verification so dashboard-managed policy can persist safely with recovery and audit support.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-23T23:20:00Z"
+      },
+      {
+        "id": "audit-hardening-20260223",
+        "summary": "Comprehensive audit hardening: timeouts, path resolver, strict schema/env checks, goraphdb retries, health check classification",
+        "risk_level": "medium",
+        "timestamp": "2026-02-23T17:38:39Z"
+      },
+      {
+        "id": "dashboard-v2-implementation-20260215",
+        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:00:00Z"
+      }
+    ],
     "packages/opencode-dashboard-launcher": [
       {
         "id": "check-command-existence-before-spawn-2026-03-17",
@@ -9578,74 +9670,6 @@
         "summary": "Bootstrap governance controls for learning updates and deployment-state tracking.",
         "risk_level": "low",
         "timestamp": "2026-02-11T13:45:00-05:00"
-      }
-    ],
-    "packages/opencode-config-loader": [
-      {
-        "id": "central-config-dashboard-api-rollback-2026-03-16",
-        "summary": "Central config tasks 4-8: add ?view=raw to dashboard config API, expand migration script to read opencode.json and config.yaml, add rollback(targetVersion) and validateIntegrity(configPath) to central-config-state.js, update docs/central-config.md with raw endpoint and rollback sections.",
-        "risk_level": "low",
-        "timestamp": "2026-03-16T18:00:00Z"
-      },
-      {
-        "id": "central-config-loader-2026-03-16",
-        "summary": "Rewrite central config loader with sync loadCentralConfig (manual field validation) and mergeCentralConfig returning {effective, diff, metadata} format. RL confidence threshold from central.rl.override_min_confidence, locked field protection, hard bound clamping. TDD: 8 tests RED→GREEN.",
-        "risk_level": "low",
-        "timestamp": "2026-03-16T12:00:00Z"
-      },
-      {
-        "id": "exploration-mode-deployment-2026-03-14",
-        "summary": "Deployed exploration mode (adaptive routing Phases 1-4) by wiring ConfigLoader defaults through bootstrap.js to ModelRouter constructor. Added exploration section to central-config.json with RL-tunable params (budget, token_budget_ratio, min_tokens). Exploration mode now activates via config (active:true default), CLI flags, or env vars.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-14T00:00:00.000Z"
-      },
-      {
-        "id": "package-wiring-cleanup-20260311",
-        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T20:20:00Z"
-      },
-      {
-        "id": "wave-1-async-io-complete-20260225",
-        "summary": "Wave 1: Async I/O conversion for config-loader, learning-engine, and model-manager to eliminate event loop blocking",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T02:32:00.000Z"
-      },
-      {
-        "id": "config-loader-async-io-20260225",
-        "summary": "Converted all sync file I/O to async in central-config-state.js and central-config.js. Added in-memory RL state cache and atomic write pattern (tmp+rename).",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "unused-exports-removal-20260225",
-        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "config-loader-safe-json-parse-20260224",
-        "summary": "Added safeJsonParse helper and replaced all unguarded JSON.parse calls in file-read paths in central-config.js and central-config-state.js",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "central-config-foundation-20260223",
-        "summary": "Introduce central config schema/state machinery with migration tooling and setup verification so dashboard-managed policy can persist safely with recovery and audit support.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-23T23:20:00Z"
-      },
-      {
-        "id": "audit-hardening-20260223",
-        "summary": "Comprehensive audit hardening: timeouts, path resolver, strict schema/env checks, goraphdb retries, health check classification",
-        "risk_level": "medium",
-        "timestamp": "2026-02-23T17:38:39Z"
-      },
-      {
-        "id": "dashboard-v2-implementation-20260215",
-        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:00:00Z"
       }
     ],
     "scripts/migrate-central-config.mjs": [

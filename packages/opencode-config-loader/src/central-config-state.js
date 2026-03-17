@@ -21,10 +21,29 @@ async function ensureDir(dirPath) {
 /**
  * Atomic write: write to tmp file, then rename in place.
  * Prevents partial writes on crash.
+ * Verifies integrity by reading back the file and comparing content.
  */
 async function atomicWriteFile(filePath, data) {
   const tmpPath = filePath + '.tmp.' + process.pid;
+  
+  // Write to temporary file
   await fs.promises.writeFile(tmpPath, data, 'utf8');
+  
+  // Verify integrity by reading back and comparing
+  const writtenData = await fs.promises.readFile(tmpPath, 'utf8');
+  if (writtenData !== data) {
+    // Clean up temporary file on verification failure
+    try {
+      await fs.promises.unlink(tmpPath);
+    } catch (cleanupError) {
+      // Ignore cleanup errors
+    }
+    throw new Error(
+      `Integrity verification failed for ${tmpPath}: written data does not match original`
+    );
+  }
+  
+  // Rename to final destination
   await fs.promises.rename(tmpPath, filePath);
 }
 
