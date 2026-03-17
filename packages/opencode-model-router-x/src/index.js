@@ -108,6 +108,7 @@ class RouterIntegrationAdapter {
   
   /**
    * Get learning engine advice - returns null if not available
+   * Transforms raw advice into metaKBAdvice format for routing pipeline
    */
   getLearningAdvice(context) {
     if (!this.layer?.advisor) {
@@ -115,7 +116,31 @@ class RouterIntegrationAdapter {
       return null;
     }
     try {
-      return this.layer.advisor.advise(context);
+      const advice = this.layer.advisor.advise(context);
+      if (!advice) return null;
+      
+      // Transform advice into metaKBAdvice format for routing
+      // Look for anti-patterns that mention specific models to penalize
+      const modelPenalties = {};
+      const antiPatterns = advice.antiPatterns || advice.patterns || [];
+      
+      for (const pattern of antiPatterns) {
+        if (pattern.affected_models || pattern.models) {
+          const models = pattern.affected_models || pattern.models;
+          const severity = pattern.severity === 'high' ? -0.3 : pattern.severity === 'medium' ? -0.15 : -0.05;
+          for (const modelId of models) {
+            modelPenalties[modelId] = (modelPenalties[modelId] || 0) + severity;
+          }
+        }
+      }
+      
+      return {
+        ...advice,
+        metaKBAdvice: {
+          modelPenalties,
+          source: 'meta-kb',
+        }
+      };
     } catch (e) {
       this._log?.error('[ModelRouter] Learning advice failed:', e.message);
       return null;
@@ -737,13 +762,29 @@ class ModelRouter {
       }
     }
     
+    // P1: Meta-KB Integration: Get learning engine advice for model selection
+    // Query meta-KB for anti-patterns that should penalize specific models
+    let metaKBPenalty = {};
+    if (this.learningEngine) {
+      try {
+        const advice = this.getLearningAdvice(ctx);
+        if (advice?.metaKBAdvice) {
+          // metaKBAdvice format: { modelPenalties: { 'model-id': -0.2, ... } }
+          metaKBPenalty = advice.metaKBAdvice.modelPenalties || {};
+        }
+      } catch (e) {
+        // Silently skip meta-KB advice if unavailable
+      }
+    }
+    
     const scored = candidates.map((modelId) => {
       const baseScore = this._scoreModel(modelId, ctx);
       const boost = skillBoost[modelId] || 0;
+      const penalty = metaKBPenalty[modelId] || 0;
       return {
         modelId,
         ...baseScore,
-        score: baseScore.score + (boost * 0.1), // 10% weight for skill-based recommendations
+        score: baseScore.score + (boost * 0.1) + penalty, // 10% weight for skill, meta-KB penalty applied
       };
     });
     scored.sort((a, b) => b.score - a.score);

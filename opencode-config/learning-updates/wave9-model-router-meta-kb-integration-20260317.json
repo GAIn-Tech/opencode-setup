@@ -1,0 +1,19 @@
+{
+  "id": "wave9-model-router-meta-kb-integration-20260317",
+  "timestamp": "2026-03-17T20:20:00Z",
+  "category": "feature",
+  "summary": "Integrate Meta-KB into ModelRouter selection pipeline. Added meta-KB advice query after Skill-RL but before scoring. Transforms anti-pattern advice into model penalties (high=-0.3, medium=-0.15, low=-0.05).",
+  "affected_paths": [
+    "packages/opencode-model-router-x/src/index.js"
+  ],
+  "root_cause": "getLearningAdvice method existed but was never called in the routing pipeline",
+  "fix_approach": "Added meta-KB penalty lookup after Skill-RL boost, applied during model scoring. Updated getLearningAdvice to transform raw advice into modelPenalties format.",
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["bun test"],
+    "notes": "Model router tests pass. Full suite shows pre-existing learning-gate.mjs issue."
+  }
+}
