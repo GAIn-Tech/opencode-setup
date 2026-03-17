@@ -286,6 +286,9 @@ class ModelRouter {
     this.tuning.min_samples_for_tuning = this.tuning.min_samples_for_tuning ?? 5;
     const MetaAwarenessTrackerClass = options.metaAwarenessTrackerClass || MetaAwarenessTracker;
     this.metaAwarenessTracker = options.metaAwarenessTracker || (MetaAwarenessTrackerClass ? new MetaAwarenessTrackerClass() : null);
+
+    // T4 (Wave 11): Context Governor for budget-aware routing
+    this.contextGovernor = options.contextGovernor || null;
     
     // P1: Atomic Write for Stats - add stats persistence path
     this.statsPersistPath = options.statsPersistPath || null;
@@ -296,6 +299,9 @@ class ModelRouter {
     this._learningAdviceCache = new Map();
     this._learningAdviceCacheTTL = 300000; // 5 minutes cache - longer for anti-pattern learning
     this._learningAdviceCacheMaxSize = 1000; // Prevent unbounded growth - evict oldest at limit
+
+    // T5 (Wave 11): Model ID resolution cache - O(1) lookup after first resolution
+    this._modelIdCache = null; // Lazy-init Map for O(1) resolution
     
     // P1: KeyRotator → Learning - connect key rotation to learning
     if (this.learningEngine) {
@@ -1535,6 +1541,112 @@ class ModelRouter {
   }
 
   /**
+   * T4 (Wave 11): Apply budget-aware penalty to model score.
+   * If session budget is >= 70% consumed, penalize high-cost models to encourage cheaper alternatives.
+   * Does NOT block model selection - only adjusts scores.
+   * @private
+   * @param {string} modelId - Canonical model ID
+   * @param {object} ctx - Routing context (may include sessionId)
+   * @returns {{ penalty: number, reason: string|null }}
+   */
+  _applyBudgetPenalty(modelId, ctx) {
+    // Need session context to check budget
+    const sessionId = ctx?.sessionId;
+    if (!sessionId || !this.contextGovernor) {
+      return { penalty: 0, reason: null };
+    }
+
+    // Get budget status for this session
+    const budgetStatus = this.contextGovernor.getRemainingBudget(sessionId, modelId);
+    if (!budgetStatus) {
+      return { penalty: 0, reason: null };
+    }
+
+    const pct = budgetStatus.pct ?? 0;
+    // T4: Apply penalty at 70% threshold (lowered from 80%)
+    if (pct < 0.70) {
+      return { penalty: 0, reason: null };
+    }
+
+    // Get model cost - penalize more expensive models more
+    const model = this.models[modelId];
+    if (!model) {
+      return { penalty: 0, reason: null };
+    }
+
+    // Initialize calculator lazily
+    if (!this._tokenCostCalc) {
+      this._tokenCostCalc = new TokenCostCalculator();
+    }
+
+    const modelName = modelId.includes('/') ? modelId.split('/').pop() : modelId;
+    const pricing = this._tokenCostCalc.getPricing(model.provider, modelName);
+
+    if (!pricing) {
+      return { penalty: 0, reason: null };
+    }
+
+    // Calculate penalty based on cost and budget severity
+    const avgCostPer1K = (pricing.input + pricing.output) / 2;
+
+    // Penalty scales with budget severity:
+    // 70-80%: mild penalty (-0.05 for expensive models)
+    // 80-95%: moderate penalty (-0.10 for expensive models)
+    // 95%+: severe penalty (-0.15 for expensive models)
+    let severity = 0.05;
+    if (pct >= 0.95) severity = 0.15;
+    else if (pct >= 0.80) severity = 0.10;
+
+    // Scale penalty by cost: $0-3/1K = 0, $15+/1K = full penalty
+    const maxCostThreshold = 15.0;
+    const costFactor = Math.min(1.0, avgCostPer1K / maxCostThreshold);
+    const penalty = -(severity * costFactor);
+
+    return {
+      penalty: Math.round(penalty * 1000) / 1000,
+      reason: `budget(${Math.round(pct * 100)}%,$${avgCostPer1K.toFixed(2)}/1K,${penalty.toFixed(3)})`
+    };
+  }
+
+  /**
+   * Score a single model based on multiple signals.
+   * Called by selectModel() for each candidate.
+   * @private
+   */
+  _scoreModel(modelId, ctx) {
+    const model = this.models[modelId];
+    if (!model) {
+      return { score: -Infinity, reason: 'model-not-found' };
+    }
+
+    // Base score from success rate
+    const successRate = this._getSuccessRate(modelId);
+    let score = successRate;
+
+    // Apply benchmark bonus (T12)
+    const benchBonus = this._applyBenchmarkBonus(modelId);
+    score += benchBonus.bonus;
+
+    // Apply cost efficiency bonus (T13)
+    const costBonus = this._applyCostEfficiency(modelId);
+    score += costBonus.bonus;
+
+    // T4: Apply budget-aware penalty
+    const budgetPenalty = this._applyBudgetPenalty(modelId, ctx);
+    score += budgetPenalty.penalty;
+
+    const reasons = [];
+    if (benchBonus.reason) reasons.push(benchBonus.reason);
+    if (costBonus.reason) reasons.push(costBonus.reason);
+    if (budgetPenalty.reason) reasons.push(budgetPenalty.reason);
+
+    return {
+      score,
+      reason: reasons.length > 0 ? reasons.join('; ') : `success_rate(${successRate.toFixed(2)})`
+    };
+  }
+
+  /**
    * Get the effective success rate for a model, blending default + live data.
    * @private
    */
@@ -1562,6 +1674,74 @@ class ModelRouter {
     const s = this.stats[modelId];
     if (!s || s.calls === 0) return 0;
     return s.total_latency_ms / s.calls;
+  }
+
+  /**
+   * T5 (Wave 11): Resolve model ID with O(1) cache lookup
+   * 
+   * Resolves a model ID to its full namespaced form (e.g., 'claude-opus-4-6' → 'anthropic/claude-opus-4-6')
+   * Uses a cache for O(1) lookup after first resolution.
+   * 
+   * @param {string} modelId - Model ID to resolve
+   * @returns {string|null} - Resolved model ID or null if not found
+   */
+  resolveModelId(modelId) {
+    if (!modelId) return null;
+
+    // Initialize cache lazily (O(1) Map)
+    if (!this._modelIdCache) {
+      this._modelIdCache = new Map();
+    }
+
+    // Cache hit path - O(1) lookup
+    if (this._modelIdCache.has(modelId)) {
+      return this._modelIdCache.get(modelId);
+    }
+
+    // Direct key match (already namespaced)
+    if (this.models[modelId]) {
+      this._modelIdCache.set(modelId, modelId);
+      return modelId;
+    }
+
+    // Try provider-prefix inference
+    const modelToProvider = {
+      'claude': 'anthropic',
+      'gpt': 'openai',
+      'gemini': 'google',
+      'llama': 'groq',
+      'mistral': 'mistral',
+      'deepseek': 'deepseek',
+    };
+    const modelLower = modelId.toLowerCase();
+    for (const [pattern, provider] of Object.entries(modelToProvider)) {
+      if (modelLower.startsWith(pattern) || modelLower.includes(pattern)) {
+        const namespaced = `${provider}/${modelId}`;
+        if (this.models[namespaced]) {
+          this._modelIdCache.set(modelId, namespaced);
+          return namespaced;
+        }
+      }
+    }
+
+    // Try all provider prefixes
+    const prefixes = ['anthropic/', 'openai/', 'groq/', 'google/', 'deepseek/', 'antigravity/'];
+    for (const prefix of prefixes) {
+      const namespaced = `${prefix}${modelId}`;
+      if (this.models[namespaced]) {
+        this._modelIdCache.set(modelId, namespaced);
+        return namespaced;
+      }
+    }
+
+    // Also try alias resolution
+    const aliased = resolveModelAlias(modelId);
+    if (aliased && this.models[aliased]) {
+      this._modelIdCache.set(modelId, aliased);
+      return aliased;
+    }
+
+    return null;
   }
 
   // ─── Backward Compatibility Aliases ─────────────────────────────────────
