@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { requireWriteAccess } from '../_lib/write-access';
 
 const RATE_LIMIT_FILE = path.join(process.cwd(), '.opencode', 'rate-limits.json');
 
@@ -349,6 +350,9 @@ export async function GET(request: NextRequest) {
 
 // POST: Run health test for a specific provider
 export async function POST(request: NextRequest) {
+  const authError = requireWriteAccess(request, 'providers:manage');
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     const { action, provider, data } = body;

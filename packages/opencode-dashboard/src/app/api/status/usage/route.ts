@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ingestUsageEvent, UsageEvent } from '@/lib/provider-status-store';
+import { requireWriteAccess } from '../../_lib/write-access';
 
 export const dynamic = 'force-dynamic';
 
@@ -66,6 +67,9 @@ function validateEvent(payload: unknown): { ok: true; event: UsageEvent } | { ok
 }
 
 export async function POST(request: NextRequest) {
+  const authError = requireWriteAccess(request, 'usage:write');
+  if (authError) return authError;
+
   try {
     const payload = await request.json();
     const validation = validateEvent(payload);

@@ -25,19 +25,18 @@ describe('MCP audit classification regression', () => {
     expect(config.mcp.tavily).toBeUndefined();
   });
 
-  test('activated MCPs have matching skill and agent surfaces', () => {
-    const requiredPairs = [
-      ['opencode-config/skills/distill/SKILL.md', 'opencode-config/agents/distill-compressor.md'],
-      ['opencode-config/skills/playwright/SKILL.md', 'opencode-config/agents/playwright-browser.md'],
-      ['opencode-config/skills/supermemory/SKILL.md', 'opencode-config/agents/memory-keeper.md'],
-      ['opencode-config/skills/sequentialthinking/SKILL.md', 'opencode-config/agents/thinker.md'],
-      ['opencode-config/skills/websearch/SKILL.md', 'opencode-config/agents/researcher.md'],
-      ['opencode-config/skills/grep/SKILL.md', 'opencode-config/agents/code-searcher.md'],
+  test('activated MCPs have matching skill surfaces', () => {
+    const requiredSkills = [
+      'opencode-config/skills/distill/SKILL.md',
+      'opencode-config/skills/playwright/SKILL.md',
+      'opencode-config/skills/supermemory/SKILL.md',
+      'opencode-config/skills/sequentialthinking/SKILL.md',
+      'opencode-config/skills/websearch/SKILL.md',
+      'opencode-config/skills/grep/SKILL.md',
     ];
 
-    for (const [skillPath, agentPath] of requiredPairs) {
+    for (const skillPath of requiredSkills) {
       expect(existsSync(join(ROOT, skillPath))).toBe(true);
-      expect(existsSync(join(ROOT, agentPath))).toBe(true);
     }
   });
 

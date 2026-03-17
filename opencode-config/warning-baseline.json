@@ -1,0 +1,11 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2026-03-16T00:00:00.000Z",
+  "categories": {
+    "integration-layer-degraded": { "max": 5, "description": "IntegrationLayer degraded mode warnings" },
+    "orchestration-advisor-stub": { "max": 3, "description": "OrchestrationAdvisor operating in stub mode" },
+    "dashboard-write-token": { "max": 5, "description": "Dashboard write token missing/invalid warnings" },
+    "skills-api-parse": { "max": 10, "description": "Skills API JSON parse warnings" },
+    "skillrl-corrupted": { "max": 5, "description": "SkillRL corrupted skill update rejections" }
+  }
+}

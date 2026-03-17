@@ -1,0 +1,16 @@
+{
+  "id": "replace-silent-catch-blocks-2026-03-17",
+  "timestamp": "2026-03-17T00:00:00.000Z",
+  "summary": "Updated three API route files to use standardized errorResponse() utility for consistent error formatting instead of manual NextResponse.json() calls",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/budget/route.ts",
+    "packages/opencode-dashboard/src/app/api/compression/route.ts",
+    "packages/opencode-dashboard/src/app/api/context7-stats/route.ts"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

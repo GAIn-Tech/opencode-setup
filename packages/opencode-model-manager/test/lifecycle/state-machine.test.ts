@@ -220,4 +220,44 @@ describe('StateMachine', () => {
     expect(updateCatalog.mock.calls).toHaveLength(1);
     expect(await machine.getState(modelId)).toBe(LIFECYCLE_STATES.APPROVED);
   });
+
+  test('rejects stale transition when another process commits first', async () => {
+    const gate = deferred();
+    const blockingMachine = new StateMachine({
+      dbPath,
+      updateCatalog: mock(async () => {
+        await gate.promise;
+        return { ok: true };
+      })
+    });
+    machine = blockingMachine;
+
+    const competingMachine = new StateMachine({ dbPath });
+    const modelId = 'stale-state-model';
+
+    try {
+      await blockingMachine.setState(modelId, LIFECYCLE_STATES.DETECTED);
+      await blockingMachine.transition(modelId, LIFECYCLE_STATES.ASSESSED, {
+        assessmentResults: createAssessmentResults()
+      });
+
+      const blockedTransition = blockingMachine.transition(modelId, LIFECYCLE_STATES.APPROVED, {
+        approvedBy: 'reviewer-blocked'
+      });
+
+      await Promise.resolve();
+
+      await competingMachine.transition(modelId, LIFECYCLE_STATES.APPROVED, {
+        approvedBy: 'reviewer-competing'
+      });
+
+      gate.resolve();
+
+      await expect(blockedTransition).rejects.toMatchObject({ code: 'STALE_STATE' });
+      expect(await blockingMachine.getState(modelId)).toBe(LIFECYCLE_STATES.APPROVED);
+      expect(await blockingMachine.getHistory(modelId)).toHaveLength(3);
+    } finally {
+      competingMachine.close();
+    }
+  });
 });

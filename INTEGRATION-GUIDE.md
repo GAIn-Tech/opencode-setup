@@ -121,6 +121,8 @@ Never put `#` or `//` comments in any `.json` config file. OpenCode uses strict 
 
 ## 📦 Custom Packages Integration
 
+Before exposing a package publicly, review `docs/architecture/cli-mcp-surface-policy.md` and decide whether the package should remain library-only or be surfaced as CLI-first, MCP-first, or hybrid. Do not add a public wrapper until that surface choice is justified.
+
 ### 1. **opencode-context-governor** (Token Budget Management)
 
 **What it does:** Prevents token budget overruns by tracking tokens per session/model.

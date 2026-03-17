@@ -2,7 +2,8 @@
 
 import { spawnSync, execFileSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import os from 'node:os';
+import path, { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -129,7 +130,7 @@ function checkPrerequisites() {
     if (uvResult.status !== 0) {
       // Try alternate locations on Windows
       const altUv = process.platform === 'win32' 
-        ? spawnSync('C:\\Users\\' + (process.env.USERNAME || 'user') + '\\.local\\bin\\uvx.exe', ['--version'], { stdio: 'pipe' })
+        ? spawnSync(path.join(os.homedir(), '.local', 'bin', 'uvx.exe'), ['--version'], { stdio: 'pipe' })
         : null;
       if (!altUv || altUv.status !== 0) {
         missing.push('uv (for uvx - required for grep MCP; install via: pip install uv)');

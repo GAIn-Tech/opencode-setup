@@ -26,8 +26,8 @@ type TokenClaims = {
 const LEGACY_SUBJECT = 'legacy-token';
 
 export const ROLE_MATRIX: Record<RoleName, string[]> = {
-  admin: ['config:write', 'models:write', 'models:transition', 'models:rollback', 'audit:read', 'audit:write', 'lifecycle:manage', 'metrics:ingest', 'policy:simulate'],
-  operator: ['config:write', 'models:write', 'models:transition', 'lifecycle:manage', 'metrics:ingest', 'policy:simulate', 'audit:read'],
+  admin: ['config:write', 'models:write', 'models:transition', 'models:rollback', 'audit:read', 'audit:write', 'lifecycle:manage', 'metrics:ingest', 'policy:simulate', 'skills:promote', 'usage:write', 'providers:manage', 'orchestration:write'],
+  operator: ['config:write', 'models:write', 'models:transition', 'lifecycle:manage', 'metrics:ingest', 'policy:simulate', 'audit:read', 'skills:promote', 'usage:write', 'providers:manage', 'orchestration:write'],
   viewer: ['models:read', 'audit:read'],
 };
 

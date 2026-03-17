@@ -4,7 +4,8 @@
   "description": "Active token budget controller for OpenCode sessions. Tracks per-model, per-session token consumption with configurable warn/error thresholds.",
   "main": "src/index.js",
   "bin": {
-    "opencode-context-governor-mcp": "src/mcp-server.mjs"
+    "opencode-context-governor-mcp": "src/mcp-server.mjs",
+    "opencode-context-governor-cli": "src/cli.mjs"
   },
   "keywords": [
     "opencode",

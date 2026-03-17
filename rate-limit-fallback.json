@@ -53,11 +53,15 @@
     },
     {
       "providerID": "google",
-      "modelID": "gemini-3-pro"
+      "modelID": "gemini-3-pro-preview"
     },
     {
       "providerID": "google",
-      "modelID": "gemini-3-flash"
+      "modelID": "gemini-3-flash-preview"
+    },
+    {
+      "providerID": "google",
+      "modelID": "gemini-2.5-flash"
     },
     {
       "providerID": "nvidia",

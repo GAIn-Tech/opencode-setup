@@ -63,11 +63,15 @@ Do NOT use this skill for:
 
 ### Phase 1: Resolve Library ID
 
-1. Call `mcp_context7_resolve-library-id` with the library name:
-   ```json
-   { "libraryName": "react", "query": "useEffect hook cleanup function" }
+1. Run CLI command via bash or use the wrapper script:
+   ```bash
+   bun scripts/context7-resolve-library-id.js "react" "useEffect hook cleanup function"
    ```
-2. Review the returned list — pick the best match based on:
+   OR directly:
+   ```bash
+   ctx7 library "react" "useEffect hook cleanup function" --json
+   ```
+2. Parse JSON output and pick the best match based on:
    - Name similarity (exact match preferred)
    - Source reputation (`High` > `Medium` > `Low`)
    - Benchmark score (higher = better documentation coverage)
@@ -76,14 +80,15 @@ Do NOT use this skill for:
 
 ### Phase 2: Query Documentation
 
-1. Call `mcp_context7_query-docs` with the resolved library ID:
-   ```json
-   {
-     "libraryId": "/facebook/react",
-     "query": "useEffect cleanup function with event listeners"
-   }
+1. Run CLI command via bash or use the wrapper script:
+   ```bash
+   bun scripts/context7-query-docs.js "/facebook/react" "useEffect cleanup function with event listeners"
    ```
-2. Read the returned documentation and code examples
+   OR directly:
+   ```bash
+   ctx7 query "/facebook/react" "useEffect cleanup function with event listeners" --json
+   ```
+2. Parse JSON output containing documentation and code examples
 3. Apply to the current implementation task
 
 ### Phase 3: Version-Specific Lookup (if needed)
@@ -94,19 +99,21 @@ Do NOT use this skill for:
 
 ## Must Do
 
-- ALWAYS call `resolve-library-id` first — never hardcode a library ID without resolving
+- ALWAYS resolve library ID first — never hardcode a library ID without resolving
 - Use the `query` parameter in resolve to get relevance-ranked results
 - Pick libraries with `High` or `Medium` source reputation when available
 - Prefer results with higher benchmark scores and more code snippets
-- Do NOT call `resolve-library-id` more than 3 times per question (API limit)
-- Do NOT call `query-docs` more than 3 times per question (API limit)
+- Do NOT call `resolve-library-id` more than 3 times per question (CLI limit)
+- Do NOT call `query-docs` more than 3 times per question (CLI limit)
+- Use CLI wrapper scripts (`context7-resolve-library-id.js`, `context7-query-docs.js`) for better error handling
 
 ## Must Not Do
 
 - Don't guess or invent library IDs — always resolve first
 - Don't use Context7 for internal, private, or undocumented libraries
-- Don't call the tools more than 3 times each per task (use best result available)
+- Don't call the CLI tools more than 3 times each per task (use best result available)
 - Don't ignore the source reputation field — low-reputation results may be inaccurate
+- Don't assume MCP server is running — use CLI fallback if MCP unavailable
 
 ## Handoff Protocol
 
@@ -128,11 +135,20 @@ Do NOT use this skill for:
 ## Quick Start
 
 ```
-1. mcp_context7_resolve-library-id  → { libraryName: "bun", query: "file I/O" }
+1. bun scripts/context7-resolve-library-id.js "bun" "file I/O"
+   # OR ctx7 library "bun" "file I/O" --json
 2. Pick best match from results      → note the libraryId
-3. mcp_context7_query-docs          → { libraryId: "/oven-sh/bun", query: "file I/O read write" }
+3. bun scripts/context7-query-docs.js "/oven-sh/bun" "file I/O read write"
+   # OR ctx7 query "/oven-sh/bun" "file I/O read write" --json
 4. Apply returned docs to your code
 ```
+
+**CLI Wrapper Advantages:**
+- Auditable command execution (bash history)
+- No MCP server startup failures
+- Consistent output format
+- Better error handling
+- Works across all environments
 
 ## Common Library IDs (Resolved Examples)
 

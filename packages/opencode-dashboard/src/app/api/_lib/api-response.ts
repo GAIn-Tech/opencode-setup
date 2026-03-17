@@ -62,8 +62,24 @@ export function notFound(message: string = 'Resource not found'): NextResponse<A
   return createErrorResponse(message, 404, { code: 'NOT_FOUND' });
 }
 
-export function rateLimited(message: string = 'Rate limit exceeded'): NextResponse<ApiErrorResponse> {
-  return createErrorResponse(message, 429, { code: 'RATE_LIMITED' });
+export function rateLimited(message: string = 'Rate limit exceeded', options?: {
+  limit?: number;
+  remaining?: number;
+  resetAt?: number;
+}): NextResponse<ApiErrorResponse> {
+  const response = createErrorResponse(message, 429, { code: 'RATE_LIMITED' });
+  
+  if (options?.limit !== undefined) {
+    response.headers.set('X-RateLimit-Limit', String(options.limit));
+  }
+  if (options?.remaining !== undefined) {
+    response.headers.set('X-RateLimit-Remaining', String(options.remaining));
+  }
+  if (options?.resetAt !== undefined) {
+    response.headers.set('X-RateLimit-Reset', String(Math.ceil(options.resetAt / 1000)));
+  }
+  
+  return response;
 }
 
 export function internalError(message: string = 'Internal server error', details?: unknown): NextResponse<ApiErrorResponse> {

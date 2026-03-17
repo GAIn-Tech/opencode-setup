@@ -45,8 +45,10 @@ const DATA_DIR = join(HOME, '.opencode', 'tool-usage');
 const SESSIONS_DIR = join(DATA_DIR, 'sessions');
 const INVOCATIONS_FILE = join(DATA_DIR, 'invocations.json');
 const METRICS_HISTORY_FILE = join(HOME, '.opencode', 'metrics-history.db.events.json');
-const MAX_INVOCATIONS = 1000;
+const DELEGATION_LOG_FILE = join(HOME, '.opencode', 'delegation-log.json');
+const MAX_INVOCATIONS = 5000;
 const MAX_METRICS_EVENTS = 5000;
+const MAX_DELEGATION_EVENTS = 2000;
 const DEFAULT_MODEL_LIMIT = 200000;
 
 // ---- Tool catalog (mirrors AVAILABLE_TOOLS from tool-usage-tracker.js) ----
@@ -111,6 +113,8 @@ const AVAILABLE_TOOLS = {
   // Distill sub-tools
   distill_browse_tools:  { category: 'context', priority: 'low' },
   distill_run_tool:      { category: 'context', priority: 'medium' },
+  // Compress tool (context management)
+  compress:              { category: 'context', priority: 'high' },
   // Agent tools
   call_omo_agent:        { category: 'delegation', priority: 'high' },
   // Supermemory sub-tools
@@ -618,6 +622,54 @@ function captureMonitoringMetrics(toolName, toolInput, toolResponse) {
   }
 }
 
+// ---- Delegation Event Capture ----
+// Written to ~/.opencode/delegation-log.json for post-processing by ingest-sessions.mjs.
+// Captures task tool invocations so OrchestrationAdvisor and SkillRL can learn from
+// real delegation patterns without paying the cost of loading CJS modules on every hook call.
+
+function captureDelegationEvent(sessionId, toolInput, toolResponse) {
+  try {
+    const category = typeof toolInput?.category === 'string' ? toolInput.category.trim() : '';
+    const subagentType = typeof toolInput?.subagent_type === 'string' ? toolInput.subagent_type.trim() : '';
+    const description = typeof toolInput?.description === 'string' ? toolInput.description.trim().slice(0, 200) : '';
+    const loadSkills = Array.isArray(toolInput?.load_skills) ? toolInput.load_skills.filter(s => typeof s === 'string') : [];
+    const background = !!toolInput?.run_in_background;
+    const continuedSession = typeof toolInput?.session_id === 'string' ? toolInput.session_id : null;
+    const success = !hasFailureSignal(toolResponse);
+    // Derive a task_type hint from description keywords for OrchestrationAdvisor routing
+    const descLower = description.toLowerCase();
+    let taskType = category || subagentType || 'general';
+    if (descLower.includes('debug') || descLower.includes('fix') || descLower.includes('error')) taskType = 'debug';
+    else if (descLower.includes('refactor') || descLower.includes('rename') || descLower.includes('restructure')) taskType = 'refactor';
+    else if (descLower.includes('feature') || descLower.includes('implement') || descLower.includes('add')) taskType = 'feature';
+    else if (descLower.includes('test') || descLower.includes('spec')) taskType = 'test';
+    else if (descLower.includes('git') || descLower.includes('commit') || descLower.includes('branch')) taskType = 'git';
+    else if (descLower.includes('ui') || descLower.includes('frontend') || descLower.includes('style')) taskType = 'ui';
+    else if (descLower.includes('research') || descLower.includes('find') || descLower.includes('explore')) taskType = 'research';
+
+    const event = {
+      timestamp: new Date().toISOString(),
+      session_id: sessionId,
+      category: category || subagentType || 'unspecified',
+      task_type: taskType,
+      description,
+      load_skills: loadSkills,
+      background,
+      continued_session: continuedSession,
+      success,
+      processed: false,
+    };
+
+    const data = readJsonSync(DELEGATION_LOG_FILE, { events: [] });
+    const events = Array.isArray(data.events) ? data.events : [];
+    events.push(event);
+    if (events.length > MAX_DELEGATION_EVENTS) events.splice(0, events.length - MAX_DELEGATION_EVENTS);
+    writeJsonAtomicSync(DELEGATION_LOG_FILE, { events });
+  } catch (_) {
+    // Never crash the hook for delegation logging
+  }
+}
+
 // ---- Main ----
 
 function main() {
@@ -654,7 +706,7 @@ function main() {
     tool: toolName,
     category: toolInfo.category,
     priority: toolInfo.priority,
-    params: {},  // PostToolUse hook doesn't reliably pass full params
+    params: input.tool_input || {},
     success: true,  // If the hook fires, the tool succeeded
     context: {
       session: sessionId,
@@ -695,6 +747,11 @@ function main() {
   state.last_updated = new Date().toISOString();
 
   writeJsonAtomicSync(stateFile, state);
+
+  // Capture delegation events for OrchestrationAdvisor + SkillRL post-processing
+  if (toolName === 'task') {
+    captureDelegationEvent(sessionId, input.tool_input, input.tool_response);
+  }
 
   // Exit cleanly — no stdout means "allow" decision
   process.exit(0);

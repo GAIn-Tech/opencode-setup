@@ -1,0 +1,21 @@
+{
+  "id": "check-command-existence-before-spawn-2026-03-17",
+  "timestamp": "2026-03-17T01:53:20.000Z",
+  "summary": "Updated 8 files to check command existence before spawn to prevent Bun v1.3.x ENOENT segfault, added 'which' dependency to 2 packages",
+  "affected_paths": [
+    "packages/opencode-dashboard-launcher/src/index.js",
+    "packages/opencode-dashboard-launcher/package.json",
+    "scripts/context7-resolve-library-id.js",
+    "scripts/github-tool.js",
+    "scripts/context7-query-docs.js",
+    "scripts/runtime-tool-surface-proof.mjs",
+    "packages/opencode-model-manager/src/assessment/model-assessor.js",
+    "packages/opencode-model-manager/package.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

@@ -5,7 +5,11 @@ const fs = require('fs');
 const path = require('path');
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const DEFAULT_DB_PATH = './audit.db';
+const DEFAULT_DB_PATH = require('path').join(
+  process.env.HOME || process.env.USERPROFILE || require('os').homedir(),
+  '.opencode',
+  'audit.db'
+);
 const DEFAULT_RETENTION_DAYS = 365;
 const GENESIS_PREVIOUS_HASH = '0';
 
@@ -261,28 +265,41 @@ class AuditLogger {
     this.db.pragma('journal_mode = WAL');
     this.db.pragma('synchronous = NORMAL');
 
-    this.db.exec(`
-      CREATE TABLE IF NOT EXISTS model_lifecycle_audit_log (
-        sequence INTEGER PRIMARY KEY AUTOINCREMENT,
-        id TEXT NOT NULL UNIQUE,
-        timestamp INTEGER NOT NULL,
-        model_id TEXT NOT NULL,
-        from_state TEXT NOT NULL,
-        to_state TEXT NOT NULL,
-        actor TEXT NOT NULL,
-        reason TEXT NOT NULL,
-        diff_hash TEXT NOT NULL,
-        metadata_json TEXT NOT NULL,
-        previous_hash TEXT NOT NULL,
-        entry_hash TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
+this.db.exec(`
+       CREATE TABLE IF NOT EXISTS model_lifecycle_audit_log (
+         sequence INTEGER PRIMARY KEY AUTOINCREMENT,
+         id TEXT NOT NULL UNIQUE,
+         timestamp INTEGER NOT NULL,
+         model_id TEXT NOT NULL,
+         from_state TEXT NOT NULL,
+         to_state TEXT NOT NULL,
+         actor TEXT NOT NULL,
+         reason TEXT NOT NULL,
+         diff_hash TEXT NOT NULL,
+         metadata_json TEXT NOT NULL,
+         previous_hash TEXT NOT NULL,
+         entry_hash TEXT NOT NULL,
+         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+       );
+
+       CREATE INDEX IF NOT EXISTS idx_audit_model_id ON model_lifecycle_audit_log(model_id);
+       CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON model_lifecycle_audit_log(timestamp);
+       CREATE INDEX IF NOT EXISTS idx_audit_model_timestamp ON model_lifecycle_audit_log(model_id, timestamp DESC);
 
       CREATE INDEX IF NOT EXISTS idx_audit_log_model_timestamp
         ON model_lifecycle_audit_log(model_id, timestamp DESC);
 
       CREATE INDEX IF NOT EXISTS idx_audit_log_timestamp
         ON model_lifecycle_audit_log(timestamp DESC);
+
+      CREATE INDEX IF NOT EXISTS idx_audit_log_timestamp_single
+        ON model_lifecycle_audit_log(timestamp);
+
+      CREATE INDEX IF NOT EXISTS idx_audit_log_model_id
+        ON model_lifecycle_audit_log(model_id);
+
+      CREATE INDEX IF NOT EXISTS idx_audit_log_action
+        ON model_lifecycle_audit_log(to_state);
 
       CREATE TABLE IF NOT EXISTS audit_log_meta (
         key TEXT PRIMARY KEY,

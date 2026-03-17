@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { WorkflowStore, WorkflowExecutor, BudgetEnforcer } from '../src/index.js';
+import { deriveDefaultParallelConcurrency } from '../src/executor.js';
 import { AgentSandbox } from '../src/agent-sandbox.js';
 
 const TEST_DB_BASE = path.join(os.tmpdir(), 'sisyphus-test');
@@ -175,6 +176,82 @@ describe('Sisyphus State Machine', () => {
     expect(state.steps.find(s => s.step_id === 'p1:0').status).toBe('completed');
     expect(state.steps.find(s => s.step_id === 'p1:1').status).toBe('completed');
     expect(state.steps.find(s => s.step_id === 'p1:2').status).toBe('completed');
+  });
+
+  it('should derive parallel-for concurrency from host specs', async () => {
+    const executor = new WorkflowExecutor(store, {}, {
+      systemInfo: {
+        cpuCount: 8,
+        totalMemoryBytes: 16 * 1024 * 1024 * 1024,
+      },
+    });
+
+    const workflow = {
+      name: 'parallel-derived-concurrency-test',
+      steps: [{
+        id: 'p1',
+        type: 'parallel-for',
+        foreach: '${items}',
+        substep: { id: 'worker', type: 'worker' },
+      }],
+    };
+
+    let active = 0;
+    let maxActive = 0;
+    executor.registerHandler('worker', async (step, context) => {
+      active += 1;
+      maxActive = Math.max(maxActive, active);
+      await Bun.sleep(10);
+      active -= 1;
+      return { result: context.item };
+    });
+
+    await executor.execute(workflow, { items: [1, 2, 3, 4, 5, 6] });
+
+    expect(executor.defaultParallelConcurrency).toBe(7);
+    expect(maxActive).toBe(6);
+  });
+
+  it('should respect explicit step concurrency over host-derived default', async () => {
+    const executor = new WorkflowExecutor(store, {}, {
+      systemInfo: {
+        cpuCount: 16,
+        totalMemoryBytes: 64 * 1024 * 1024 * 1024,
+      },
+    });
+
+    const workflow = {
+      name: 'parallel-explicit-concurrency-test',
+      steps: [{
+        id: 'p1',
+        type: 'parallel-for',
+        foreach: '${items}',
+        concurrency: 2,
+        substep: { id: 'worker', type: 'worker' },
+      }],
+    };
+
+    let active = 0;
+    let maxActive = 0;
+    executor.registerHandler('worker', async () => {
+      active += 1;
+      maxActive = Math.max(maxActive, active);
+      await Bun.sleep(10);
+      active -= 1;
+      return { ok: true };
+    });
+
+    await executor.execute(workflow, { items: [1, 2, 3, 4] });
+
+    expect(executor.defaultParallelConcurrency).toBe(15);
+    expect(maxActive).toBe(2);
+  });
+
+  it('should keep low-spec systems at a safe minimum parallelism', () => {
+    expect(deriveDefaultParallelConcurrency({
+      cpuCount: 2,
+      totalMemoryBytes: 2 * 1024 * 1024 * 1024,
+    })).toBe(2);
   });
 
   it('should stop workflow when budget limits are exhausted', async () => {

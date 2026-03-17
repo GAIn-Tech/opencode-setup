@@ -2,24 +2,15 @@
   "opencode_root": "{{OPENCODE_ROOT}}",
   "mcp_servers": [
     {
-      "name": "tavily",
-      "command": [
-        "npx",
-        "-y",
-        "tavily-mcp@0.2.16"
-      ],
-      "enabled": false,
-      "type": "local"
-    },
-    {
       "name": "supermemory",
       "enabled": true,
       "type": "remote"
     },
     {
       "name": "context7",
-      "enabled": true,
-      "type": "remote"
+      "enabled": false,
+      "type": "remote",
+      "notes": "Replaced by CLI wrapper: bun scripts/context7-*.js or ctx7 command"
     },
     {
       "name": "playwright",
@@ -50,24 +41,27 @@
       "enabled": true,
       "type": "local"
     },
-    {
+{
       "name": "grep",
       "command": [
         "uvx",
         "grep-mcp"
       ],
-      "enabled": true,
-      "type": "local"
+      "enabled": false,
+      "type": "local",
+      "notes": "Replaced by CLI wrapper: bun scripts/grep-tool.js"
     },
     {
       "name": "github",
-      "command": [
-        "npx",
-        "-y",
-        "@modelcontextprotocol/server-github@2025.4.8"
-      ],
       "enabled": false,
-      "type": "local"
+      "type": "local",
+      "notes": "Replaced by CLI: gh command"
+    },
+    {
+      "name": "tavily",
+      "enabled": false,
+      "type": "local",
+      "notes": "Replaced by CLI: curl/wget to Tavily API"
     },
     {
       "name": "distill",

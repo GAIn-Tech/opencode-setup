@@ -28,9 +28,13 @@ inputs:
 
 ## Overview
 
-Playwright is the direct MCP path for browser automation in this repo. Use it when a task
+Playwright is the **primary and recommended** MCP path for browser automation in this repo. Use it when a task
  needs explicit browser control, screenshots, UI verification, navigation, or interaction with
- live pages. Prefer this over indirect browser aliases when there is no compelling reason not to.
+ live pages.
+
+**Note**: This is the only fully implemented browser skill in the OpenCode setup. Other browser-related
+skills (`dev-browser`, `agent-browser`) are listed in the registry but have no skill definitions.
+Always prefer playwright for browser automation tasks.
 
 ## When to Use
 

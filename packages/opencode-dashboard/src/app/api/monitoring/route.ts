@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireWriteAccess } from '../_lib/write-access';
+import { rateLimited } from '../_lib/api-response';
 
 export const dynamic = 'force-dynamic';
 

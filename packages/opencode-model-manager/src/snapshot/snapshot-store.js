@@ -3,6 +3,7 @@
 const crypto = require('crypto');
 const fs = require('fs/promises');
 const path = require('path');
+const { normalizeSnapshot } = require('./snapshot-schema');
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_RETENTION_DAYS = 30;
@@ -180,46 +181,6 @@ class SnapshotStore {
   }
 }
 
-function normalizeSnapshot(snapshot) {
-  if (!snapshot || typeof snapshot !== 'object') {
-    return null;
-  }
-
-  const timestamp = Number(snapshot.timestamp);
-  if (!Number.isFinite(timestamp)) {
-    return null;
-  }
-
-  const models = Array.isArray(snapshot.models) ? snapshot.models : [];
-  const metadata = snapshot.metadata && typeof snapshot.metadata === 'object'
-    ? snapshot.metadata
-    : {};
-  const discoveryDuration = Number(metadata.discoveryDuration);
-  const normalizedDiscoveryDuration = Number.isFinite(discoveryDuration) && discoveryDuration >= 0
-    ? discoveryDuration
-    : 0;
-  const modelCount = Number(metadata.modelCount);
-  const normalizedModelCount = Number.isFinite(modelCount) && modelCount >= 0
-    ? Math.floor(modelCount)
-    : models.length;
-
-  return {
-    id: typeof snapshot.id === 'string' && snapshot.id.length > 0
-      ? snapshot.id
-      : crypto.randomUUID(),
-    timestamp: Math.floor(timestamp),
-    provider: String(snapshot.provider || ''),
-    models,
-    rawPayloadHash: typeof snapshot.rawPayloadHash === 'string' && snapshot.rawPayloadHash.length > 0
-      ? snapshot.rawPayloadHash
-      : hashRawPayload(null),
-    metadata: {
-      discoveryDuration: normalizedDiscoveryDuration,
-      modelCount: normalizedModelCount
-    }
-  };
-}
-
 function coerceRetentionDays(value, fallback) {
   const numericValue = Number(value);
   if (!Number.isFinite(numericValue)) {
@@ -299,13 +260,16 @@ function cloneSnapshot(snapshot) {
 
       return { ...model };
     }),
-    metadata: {
-      discoveryDuration: snapshot.metadata.discoveryDuration,
-      modelCount: snapshot.metadata.modelCount
-    }
+    metadata: snapshot.metadata
+      ? {
+          discoveryDuration: snapshot.metadata.discoveryDuration,
+          modelCount: snapshot.metadata.modelCount
+        }
+      : undefined
   };
 }
 
 module.exports = {
-  SnapshotStore
+  SnapshotStore,
+  normalizeSnapshot
 };

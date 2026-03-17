@@ -9,6 +9,9 @@ import { POST as postOrchestration } from '../packages/opencode-dashboard/src/ap
 const originalRename = fsPromises.rename;
 const originalUserProfile = process.env.USERPROFILE;
 const originalHome = process.env.HOME;
+const WRITE_TOKEN_ENV = 'OPENCODE_DASHBOARD_WRITE_TOKEN';
+const ORIGINAL_TOKEN = process.env[WRITE_TOKEN_ENV];
+const TEST_TOKEN = 'test-atomic-write-token';
 
 function createTempPaths() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'orchestration-atomic-write-'));
@@ -40,6 +43,12 @@ afterEach(() => {
   } else {
     process.env.HOME = originalHome;
   }
+
+  if (ORIGINAL_TOKEN === undefined) {
+    delete process.env[WRITE_TOKEN_ENV];
+  } else {
+    process.env[WRITE_TOKEN_ENV] = ORIGINAL_TOKEN;
+  }
 });
 
 describe('orchestration atomic write', () => {
@@ -47,10 +56,11 @@ describe('orchestration atomic write', () => {
     const { dir, opencodeDir, filePath } = createTempPaths();
     process.env.USERPROFILE = dir;
     process.env.HOME = dir;
+    process.env[WRITE_TOKEN_ENV] = TEST_TOKEN;
 
     const request = new Request('http://localhost/api/orchestration', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', 'x-opencode-write-token': TEST_TOKEN },
       body: JSON.stringify({ events: [{ model: 'test-model', total_tokens: 5 }] })
     });
 
@@ -67,6 +77,7 @@ describe('orchestration atomic write', () => {
     const { dir, opencodeDir, filePath } = createTempPaths();
     process.env.USERPROFILE = dir;
     process.env.HOME = dir;
+    process.env[WRITE_TOKEN_ENV] = TEST_TOKEN;
 
     fsPromises.rename = () => {
       return Promise.reject(new Error('simulated rename interruption'));
@@ -74,7 +85,7 @@ describe('orchestration atomic write', () => {
 
     const request = new Request('http://localhost/api/orchestration', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', 'x-opencode-write-token': TEST_TOKEN },
       body: JSON.stringify({ events: [{ model: 'test-model', total_tokens: 9 }] })
     });
 

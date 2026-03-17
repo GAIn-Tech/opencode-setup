@@ -14,6 +14,7 @@
 
 const { SkillBank } = require('./skill-bank');
 const { EvolutionEngine } = require('./evolution-engine');
+const { ExplorationRLAdapter } = require('./exploration-adapter');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -144,6 +145,16 @@ class SkillRLManager {
 
     // Learning validation enabled by default
     this._validationEnabled = options.validationEnabled !== false;
+
+    // Load persisted state BEFORE syncWithRegistry so existing usage_count/success_rate are preserved.
+    // syncWithRegistry is additive (skips skills already in the Map), so it won't overwrite loaded data.
+    if (fs.existsSync(this.persistencePath)) {
+      try {
+        const _persisted = SafeJSON.parse(fs.readFileSync(this.persistencePath, 'utf-8'));
+        if (_persisted.skillBank) this.skillBank.import(_persisted.skillBank);
+        if (_persisted.evolutionEngine) this.evolutionEngine.import(_persisted.evolutionEngine);
+      } catch (_err) { /* non-fatal — fresh state on corruption */ }
+    }
 
     // Sync with skill registry on startup — additive, never overwrites existing data
     const _registryPath = path.resolve(__dirname, '../../../opencode-config/skills/registry.json');
@@ -396,4 +407,5 @@ class SkillRLManager {
 module.exports = {
   SkillRLManager,
   EvolutionEngine,
+  ExplorationRLAdapter,
 };

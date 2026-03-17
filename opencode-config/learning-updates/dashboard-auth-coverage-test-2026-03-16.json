@@ -1,0 +1,14 @@
+{
+  "id": "dashboard-auth-coverage-test-2026-03-16",
+  "timestamp": "2026-03-16T00:00:00.000Z",
+  "summary": "Add standalone auth coverage regression test (scripts/tests/dashboard-auth-coverage.test.js) with explicit allowlist of all 10 POST routes. Test ensures every POST export calls requireWriteAccess with a permission string and detects new unguarded routes.",
+  "affected_paths": [
+    "scripts/tests/dashboard-auth-coverage.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

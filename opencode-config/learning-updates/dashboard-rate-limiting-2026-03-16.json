@@ -1,0 +1,19 @@
+{
+  "id": "dashboard-rate-limiting-2026-03-16",
+  "timestamp": "2026-03-16T21:30:00Z",
+  "summary": "Implemented rate limiting middleware for dashboard write API routes (debt-refinement-phase2 Task 3). Enhanced rate-limit.ts to return RateLimitResult interface with allowed, remaining, resetAt, limit fields. Updated api-response.ts rateLimited() to accept rate limit headers (X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset). Applied rate limiting to 3 write routes: config/route.ts (POST/PUT/PATCH/DELETE), models/route.ts (POST/PUT/PATCH/DELETE), models/transition/route.ts (POST). Rate limit: 10 requests per minute per IP. IP extraction from x-forwarded-for (first) or x-real-ip header. Returns 429 Too Many Requests with rate limit headers when limit exceeded. Added comprehensive rate-limit.test.ts with 10 unit tests (all passing). In-memory Map store with automatic cleanup every 60 seconds.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/_lib/rate-limit.ts",
+    "packages/opencode-dashboard/src/app/api/_lib/api-response.ts",
+    "packages/opencode-dashboard/src/app/api/config/route.ts",
+    "packages/opencode-dashboard/src/app/api/models/route.ts",
+    "packages/opencode-dashboard/src/app/api/models/transition/route.ts",
+    "packages/opencode-dashboard/test/rate-limit.test.ts"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

@@ -100,6 +100,17 @@ function countSubdirs(dirPath) {
   }
 }
 
+function countNamedAgentsFromConfig() {
+  const configPath = join(ROOT, 'opencode-config', 'oh-my-opencode.json');
+  if (!existsSync(configPath)) return 0;
+  try {
+    const parsed = JSON.parse(readFileSync(configPath, 'utf8'));
+    return Array.isArray(parsed.agents?.enabled) ? parsed.agents.enabled.length : 0;
+  } catch {
+    return 0;
+  }
+}
+
 /**
  * Extract numeric claims from AGENTS.md text using known patterns.
  */
@@ -178,7 +189,7 @@ function extractNumericClaims(content, filePath) {
     claims.push({
       claim: 'Named agents',
       documented: parseInt(namedAgentMatch[1], 10),
-      countFn: () => countFiles(join(ROOT, 'opencode-config', 'agents')),
+      countFn: () => countNamedAgentsFromConfig(),
     });
   }
 

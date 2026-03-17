@@ -1,0 +1,19 @@
+{
+  "id": "boundary-and-schema-hardening-2026-03-14",
+  "timestamp": "2026-03-14T00:00:00.000Z",
+  "summary": "Extended ci-boundary-enforce.mjs to scan ALL packages (not just dashboard API) for forbidden opencode-model-manager internal imports. Created shared CJS snapshot-schema.js module with validateSnapshot() and normalizeSnapshot(), refactored snapshot-store.js and model-rollback.mjs to use it, eliminating schema validation duplication.",
+  "affected_paths": [
+    "scripts/ci-boundary-enforce.mjs",
+    "scripts/tests/ci-boundary-enforce.test.js",
+    "packages/opencode-model-manager/src/snapshot/snapshot-schema.js",
+    "packages/opencode-model-manager/src/snapshot/snapshot-store.js",
+    "packages/opencode-model-manager/test/snapshot/snapshot-schema.test.js",
+    "scripts/model-rollback.mjs"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

@@ -2,24 +2,24 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { resolvePath } from './resolve-root.mjs';
 
-const API_ROOT = resolvePath('packages', 'opencode-dashboard', 'src', 'app', 'api');
-const TS_FILE_EXTENSIONS = new Set(['.ts', '.tsx']);
+const SOURCE_FILE_EXTENSIONS = new Set(['.js', '.mjs', '.ts', '.tsx']);
+const PACKAGES_DIRNAME = 'packages';
+const MODELS_PACKAGE_NAME = 'opencode-model-manager';
 const FORBIDDEN_PATH_PATTERN = /(?:^|\/)opencode-model-manager\/(?:src|lib)\//;
 
-function collectTypeScriptFiles(dirPath, results = []) {
+function collectSourceFiles(dirPath, results = []) {
   if (!fs.existsSync(dirPath)) return results;
 
   const entries = fs.readdirSync(dirPath, { withFileTypes: true });
   for (const entry of entries) {
     const fullPath = path.join(dirPath, entry.name);
     if (entry.isDirectory()) {
-      collectTypeScriptFiles(fullPath, results);
+      collectSourceFiles(fullPath, results);
       continue;
     }
 
-    if (entry.isFile() && TS_FILE_EXTENSIONS.has(path.extname(entry.name))) {
+    if (entry.isFile() && SOURCE_FILE_EXTENSIONS.has(path.extname(entry.name))) {
       results.push(fullPath);
     }
   }
@@ -49,6 +49,47 @@ function isForbiddenImport(specifier) {
   return FORBIDDEN_PATH_PATTERN.test(normalized);
 }
 
+function collectPackageSourceFiles(projectRoot) {
+  const packagesDir = path.join(projectRoot, PACKAGES_DIRNAME);
+  if (!fs.existsSync(packagesDir)) return [];
+
+  const packageEntries = fs.readdirSync(packagesDir, { withFileTypes: true });
+  const files = [];
+
+  for (const entry of packageEntries) {
+    if (!entry.isDirectory()) continue;
+    if (entry.name === MODELS_PACKAGE_NAME) continue;
+
+    const sourceDir = path.join(packagesDir, entry.name, 'src');
+    collectSourceFiles(sourceDir, files);
+  }
+
+  return files;
+}
+
+function parseArgs(argv) {
+  let rootDir = process.cwd();
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+
+    if (arg === '--root') {
+      const value = argv[index + 1];
+      if (!value || value.startsWith('--')) {
+        throw new Error('Missing value for --root');
+      }
+
+      rootDir = path.resolve(value);
+      index += 1;
+      continue;
+    }
+
+    throw new Error(`Unknown argument: ${arg}`);
+  }
+
+  return { rootDir };
+}
+
 function findViolations(filePath) {
   const content = fs.readFileSync(filePath, 'utf8');
   const lines = content.split(/\r?\n/);
@@ -72,7 +113,15 @@ function findViolations(filePath) {
 }
 
 function main() {
-  const files = collectTypeScriptFiles(API_ROOT);
+  let rootDir;
+  try {
+    ({ rootDir } = parseArgs(process.argv.slice(2)));
+  } catch (error) {
+    console.error(`boundary-enforce: ${error.message}`);
+    process.exit(1);
+  }
+
+  const files = collectPackageSourceFiles(rootDir);
   const allViolations = [];
 
   for (const filePath of files) {
@@ -86,7 +135,7 @@ function main() {
   }
 
   if (allViolations.length === 0) {
-    console.log(`boundary-enforce: PASS (${files.length} TypeScript file${files.length === 1 ? '' : 's'} scanned)`);
+    console.log(`boundary-enforce: PASS (${files.length} source file${files.length === 1 ? '' : 's'} scanned)`);
     process.exit(0);
   }
 
@@ -97,7 +146,7 @@ function main() {
   );
 
   for (const entry of allViolations) {
-    const relativePath = path.relative(resolvePath(), entry.filePath).replace(/\\/g, '/');
+    const relativePath = path.relative(rootDir, entry.filePath).replace(/\\/g, '/');
     console.error(`\n- ${relativePath}`);
 
     for (const violation of entry.violations) {

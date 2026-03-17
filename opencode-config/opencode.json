@@ -15,7 +15,7 @@
     "google": {
       "npm": "@ai-sdk/google",
       "options": {
-        "apiKey": "{env:GOOGLE_API_KEYS}"
+        "apiKey": "{env:GOOGLE_API_KEY}"
       },
       "models": {
         "antigravity-gemini-3-pro": {
@@ -173,8 +173,41 @@
             }
           },
           "priority": "secondary"
+},
+        "gemini-2.5-flash": {
+          "name": "Gemini 2.5 Flash",
+          "limit": {
+            "context": 1000000,
+            "output": 65535
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "video",
+              "audio"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "provider": "google",
+          "providerId": "google-ai-gemini-2.5-flash",
+          "cost": {
+            "input": 0.000075,
+            "output": 0.0003
+          },
+          "capabilities": [
+            "multimodal",
+            "vision",
+            "function_calling",
+            "json_mode"
+          ],
+          "description": "Gemini 2.5 Flash - stable fast model",
+          "released": "2025-06-01",
+          "status": "active"
         },
-        "gemini-3-flash": {
+        "gemini-3-flash-preview": {
           "name": "Gemini 3 Flash (Gemini CLI)",
           "limit": {
             "context": 1000000,
@@ -184,15 +217,30 @@
             "input": [
               "text",
               "image",
-              "pdf",
-              "video"
+              "video",
+              "audio"
             ],
             "output": [
               "text"
             ]
-          }
+          },
+          "provider": "google",
+          "providerId": "google-ai-gemini-3-flash-preview",
+          "cost": {
+            "input": 0.000075,
+            "output": 0.0003
+          },
+          "capabilities": [
+            "multimodal",
+            "vision",
+            "function_calling",
+            "json_mode"
+          ],
+          "description": "Latest Gemini 3 Flash",
+          "released": "2026-03-15",
+          "status": "active"
         },
-        "gemini-3-pro": {
+        "gemini-3-pro-preview": {
           "name": "Gemini 3 Pro (Gemini CLI)",
           "limit": {
             "context": 1000000,
@@ -202,13 +250,96 @@
             "input": [
               "text",
               "image",
-              "pdf",
-              "video"
+              "video",
+              "audio"
             ],
             "output": [
               "text"
             ]
-          }
+          },
+          "provider": "google",
+          "providerId": "google-ai-gemini-3-pro-preview",
+          "cost": {
+            "input": 0.00125,
+            "output": 0.005
+          },
+          "capabilities": [
+            "multimodal",
+            "vision",
+            "function_calling",
+            "json_mode",
+            "reasoning"
+          ],
+          "description": "Latest Gemini 3 Pro for complex reasoning",
+          "released": "2026-03-15",
+          "status": "active"
+        },
+        "gemini-3.1-flash-lite-preview": {
+          "name": "Gemini 3.1 Flash Lite",
+          "limit": {
+            "context": 1000000,
+            "output": 65535
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "video",
+              "audio"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "provider": "google",
+          "providerId": "google-ai-gemini-3.1-flash-lite-preview",
+          "cost": {
+            "input": 0.000075,
+            "output": 0.0003
+          },
+          "capabilities": [
+            "multimodal",
+            "vision",
+            "function_calling",
+            "json_mode"
+          ],
+          "description": "Gemini 3.1 Flash - latest fast model",
+          "released": "2026-03-15",
+          "status": "active"
+        },
+        "gemini-3.1-pro-preview": {
+          "name": "Gemini 3.1 Pro",
+          "limit": {
+            "context": 1000000,
+            "output": 65535
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "video",
+              "audio"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "provider": "google",
+          "providerId": "google-ai-gemini-3.1-pro-preview",
+          "cost": {
+            "input": 0.00125,
+            "output": 0.005
+          },
+          "capabilities": [
+            "multimodal",
+            "vision",
+            "function_calling",
+            "json_mode",
+            "reasoning"
+          ],
+          "description": "Gemini 3.1 Pro - latest model for complex reasoning",
+          "released": "2026-03-15",
+          "status": "active"
         }
       }
     },
@@ -451,26 +582,13 @@
         }
       }
     },
-    "groq": {
+"groq": {
       "npm": "@ai-sdk/openai-compatible",
       "options": {
         "baseURL": "https://api.groq.com/openai/v1",
         "apiKey": "{env:GROQ_API_KEY}"
       },
-      "models": {
-        "groq-70b-general": {
-          "name": "Groq 70B General",
-          "limit": {
-            "context": 128000,
-            "output": 4096
-          },
-          "modalities": {
-            "input": ["text"],
-            "output": ["text"]
-          },
-          "priority": "secondary"
-        }
-      }
+      "models": {}
     },
     "cerebras": {
       "npm": "@ai-sdk/openai-compatible",
@@ -478,20 +596,7 @@
         "baseURL": "https://api.cerebras.ai/v1",
         "apiKey": "{env:CEREBRAS_API_KEY}"
       },
-      "models": {
-        "cerebras-70b-general": {
-          "name": "Cerebras 70B General",
-          "limit": {
-            "context": 8192,
-            "output": 4096
-          },
-          "modalities": {
-            "input": ["text"],
-            "output": ["text"]
-          },
-          "priority": "secondary"
-        }
-      }
+      "models": {}
     },
     "nvidia": {
       "npm": "@ai-sdk/openai-compatible",

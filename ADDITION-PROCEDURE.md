@@ -101,6 +101,7 @@ Update central documentation following the opencode-setup Documentation Style Gu
 - `README.md` - Add to feature list
 - `INTEGRATION-GUIDE.md` - Document usage if applicable
 - `TROUBLESHOOTING.md` - Add troubleshooting notes if needed
+- `docs/architecture/cli-mcp-surface-policy.md` - Update or confirm when a package gains or changes a CLI, MCP, hybrid, or library-only public surface
 - All new documentation must use consistent heading levels, code block syntax highlighting, and visual hierarchy principles
 
 ### Step 6: Run Automated Verification
@@ -175,6 +176,8 @@ Before submitting a PR, confirm:
 - [ ] New directories added to `CONFIG_DIRS` in copy-config.mjs
 - [ ] If adding a skill: `registry.json` updated with dependencies/synergies/conflicts/triggers
 - [ ] If adding profile behavior: docs in `docs/skills/` updated
+- [ ] If changing a package surface: `docs/architecture/cli-mcp-surface-policy.md` reviewed and the choice is justified as CLI-first, MCP-first, hybrid, or library-only
+- [ ] If changing a package surface: PR body includes `Surface-Policy: <package-or-path> => <CLI-first|MCP-first|hybrid|library-only> because <reason>`
 - [ ] Documentation updated
 - [ ] `npm run verify` passes
 - [ ] `npm run governance:check` passes
@@ -205,4 +208,5 @@ Before submitting a PR, confirm:
 - `LIVING-DOCS.md` - Documentation governance
 - `PORTABILITY.md` - Environment setup
 - `INTEGRATION-GUIDE.md` - Integration patterns
+- `docs/architecture/cli-mcp-surface-policy.md` - Package surface decision policy
 - `opencode-config/docs-governance.json` - Doc enforcement rules

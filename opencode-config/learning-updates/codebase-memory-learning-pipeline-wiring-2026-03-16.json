@@ -1,0 +1,16 @@
+{
+  "id": "codebase-memory-learning-pipeline-wiring-2026-03-16",
+  "timestamp": "2026-03-16T20:52:00Z",
+  "summary": "Wired opencode-codebase-memory into learning pipeline and system health monitoring. (1) ingest-sessions.mjs: added enrichErrorContext call after processDelegationLog to enrich anti-pattern descriptions with symbol context from indexed repos. (2) system-health.mjs: added auditCodebaseMemory() function that loads CodebaseMemory, lists indexed repos, opens GraphStore for each repo to get node/edge stats, returns DORMANT if no repos indexed, HEALTHY if nodes>0, UNKNOWN if package unavailable (expected in Node.js context). Wired into main audit loop as 9th subsystem. (3) package.json: added 'codebase:analyze' script to run opencode-codebase CLI. All changes wrapped in try/catch for graceful degradation.",
+  "affected_paths": [
+    "scripts/ingest-sessions.mjs",
+    "scripts/system-health.mjs",
+    "package.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

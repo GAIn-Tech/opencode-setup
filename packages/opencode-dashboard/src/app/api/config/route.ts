@@ -5,8 +5,9 @@ import fs from 'fs';
 import { getWriteActor, requireWriteAccess, requireReadAccess } from '../_lib/write-access';
 import { writeJsonAtomic } from '../_lib/write-json-atomic';
 import { appendWriteAuditEntry } from '../_lib/write-audit';
-import { rateLimited } from '../_lib/api-response';
+import { rateLimited, badRequest, internalError, validationError } from '../_lib/api-response';
 import { redactSecrets } from '../_lib/redact';
+import { errorResponse } from '../_lib/error-response';
 
 export const dynamic = 'force-dynamic';
 
@@ -168,6 +169,13 @@ export async function GET(request: Request) {
       }
     }
 
+    // If view=raw, return only raw central-config JSON
+    if (view === 'raw') {
+      return NextResponse.json(redactSecrets({
+        centralConfig: configs.centralConfig
+      }));
+    }
+
     // If view=effective, return only effective config
     if (view === 'effective') {
       return NextResponse.json(redactSecrets({
@@ -176,18 +184,23 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json(redactSecrets(configs));
-  } catch (error) {
-    console.error('[Config API] Error:', error);
-    return NextResponse.json({ error: String(error) }, { status: 500 });
-  }
+   } catch (error) {
+     console.error('[Config API] Error:', error);
+     return errorResponse(String(error));
+   }
 }
 
 export async function POST(request: Request) {
   // Rate limiting
-  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? request.headers.get('x-real-ip') ?? 'unknown';
   const { rateLimit } = await import('../_lib/rate-limit');
-  if (!rateLimit(`write:${ip}`, 10, 60000)) {
-    return rateLimited();
+  const rateLimitResult = rateLimit(`write:${ip}`, 10, 60000);
+  if (!rateLimitResult.allowed) {
+    return rateLimited('Too many requests', {
+      limit: rateLimitResult.limit,
+      remaining: rateLimitResult.remaining,
+      resetAt: rateLimitResult.resetAt
+    });
   }
 
   const accessError = requireWriteAccess(request, 'config:write');
@@ -201,7 +214,7 @@ export async function POST(request: Request) {
     const actor = getWriteActor(request);
 
     if (!configKey || data === undefined) {
-      return NextResponse.json({ error: 'Missing configKey or data' }, { status: 400 });
+      return badRequest('Missing configKey or data');
     }
 
     const projectRoot = process.cwd().replace('/packages/opencode-dashboard', '').replace('\\packages\\opencode-dashboard', '');
@@ -225,7 +238,7 @@ export async function POST(request: Request) {
 
     const filePath = configPaths[configKey];
     if (!filePath) {
-      return NextResponse.json({ error: `Unknown config key: ${configKey}` }, { status: 400 });
+      return badRequest(`Unknown config key: ${configKey}`);
     }
 
     // Special handling for centralConfig: validate schema and handle concurrency
@@ -239,31 +252,28 @@ export async function POST(request: Request) {
           const schemaPath = path.join(ocConfig, 'central-config.schema.json');
           let schema;
           try {
-            schema = JSON.parse(fs.readFileSync(schemaPath, 'utf-8'));
-          } catch (err) {
-            return NextResponse.json({ error: `Failed to load schema: ${err}` }, { status: 500 });
-          }
+             schema = JSON.parse(fs.readFileSync(schemaPath, 'utf-8'));
+            } catch (err) {
+              return errorResponse(`Failed to load schema: ${err}`);
+            }
           
-          const validationErrors = configLoader.validateSchema(data, schema);
-          if (validationErrors.length > 0) {
-            return NextResponse.json({ 
-              error: 'Schema validation failed',
-              details: validationErrors 
-            }, { status: 400 });
-          }
+           const validationErrors = configLoader.validateSchema(data, schema);
+           if (validationErrors.length > 0) {
+             return validationError('Schema validation failed', validationErrors);
+           }
           
           // Check optimistic concurrency control
-          if (config_version !== undefined) {
-            const currentData = readJsonSafe(filePath);
-            const currentVersion = (currentData as Record<string, unknown> | null)?.config_version || 0;
-            if (config_version !== currentVersion) {
-              return NextResponse.json({ 
-                error: 'Stale config version',
-                expected: config_version,
-                current: currentVersion
-              }, { status: 409 });
-            }
-          }
+           if (config_version !== undefined) {
+             const currentData = readJsonSafe(filePath);
+             const currentVersion = (currentData as Record<string, unknown> | null)?.config_version || 0;
+             if (config_version !== currentVersion) {
+               return NextResponse.json({ 
+                 error: 'Stale config version',
+                 code: 'CONFLICT',
+                 details: { expected: config_version, current: currentVersion }
+               }, { status: 409 });
+             }
+           }
           
           // Increment config_version
           const newData = {
@@ -303,9 +313,9 @@ export async function POST(request: Request) {
             config_version: newData.config_version
           });
         } catch (err) {
-          console.error('[Config API] centralConfig error:', err);
-          return NextResponse.json({ error: String(err) }, { status: 500 });
-        }
+            console.error('[Config API] centralConfig error:', err);
+            return errorResponse(String(err));
+         }
       }
     }
 
@@ -323,8 +333,217 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, path: filePath });
-  } catch (error) {
-    console.error('[Config API] Save error:', error);
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+   } catch (error) {
+      console.error('[Config API] Save error:', error);
+      return errorResponse(String(error));
+   }
+ }
+ 
+ export async function PUT(request: Request) {
+  // Rate limiting
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? request.headers.get('x-real-ip') ?? 'unknown';
+  const { rateLimit } = await import('../_lib/rate-limit');
+  const rateLimitResult = rateLimit(`write:${ip}`, 10, 60000);
+  if (!rateLimitResult.allowed) {
+    return rateLimited('Too many requests', {
+      limit: rateLimitResult.limit,
+      remaining: rateLimitResult.remaining,
+      resetAt: rateLimitResult.resetAt
+    });
   }
-}
+
+  const accessError = requireWriteAccess(request, 'config:write');
+  if (accessError) {
+    return accessError;
+  }
+
+   try {
+     const body = await request.json();
+     const { configKey, data } = body;
+     const actor = getWriteActor(request);
+
+     if (!configKey || data === undefined) {
+       return badRequest('Missing configKey or data');
+     }
+
+     const projectRoot = process.cwd().replace('/packages/opencode-dashboard', '').replace('\\packages\\opencode-dashboard', '');
+     const ocConfig = path.join(projectRoot, 'opencode-config');
+
+     const configPaths: Record<string, string> = {
+       projectConfig: path.join(projectRoot, '.opencode.config.json'),
+       userConfig: path.join(os.homedir(), '.config', 'opencode', 'opencode.json'),
+       ohMyConfig: path.join(ocConfig, 'oh-my-opencode.json'),
+       compoundConfig: path.join(os.homedir(), '.config', 'opencode', 'compound-engineering.json'),
+       rateLimitFallback: path.join(ocConfig, 'rate-limit-fallback.json'),
+       modelPolicies: path.join(projectRoot, 'packages', 'opencode-model-router-x', 'src', 'policies.json'),
+       antigravity: path.join(ocConfig, 'antigravity.json'),
+       supermemory: path.join(ocConfig, 'supermemory.json'),
+       deploymentState: path.join(ocConfig, 'deployment-state.json'),
+       learningUpdatePolicy: path.join(ocConfig, 'learning-update-policy.json'),
+       sessionBudgets: path.join(os.homedir(), '.opencode', 'session-budgets.json'),
+       centralConfig: path.join(ocConfig, 'central-config.json'),
+     };
+
+     const filePath = configPaths[configKey];
+     if (!filePath) {
+       return badRequest(`Unknown config key: ${configKey}`);
+     }
+
+     await writeJsonAtomic(filePath, data);
+
+     await appendWriteAuditEntry({
+       route: '/api/config',
+       actor,
+       action: 'update-config',
+       metadata: {
+         configKey,
+         filePath
+       }
+     });
+
+     return NextResponse.json({ success: true, path: filePath });
+   } catch (error) {
+      console.error('[Config API] Update error:', error);
+      return errorResponse(String(error));
+   }
+ }
+ 
+ export async function PATCH(request: Request) {
+  // Rate limiting
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? request.headers.get('x-real-ip') ?? 'unknown';
+  const { rateLimit } = await import('../_lib/rate-limit');
+  const rateLimitResult = rateLimit(`write:${ip}`, 10, 60000);
+  if (!rateLimitResult.allowed) {
+    return rateLimited('Too many requests', {
+      limit: rateLimitResult.limit,
+      remaining: rateLimitResult.remaining,
+      resetAt: rateLimitResult.resetAt
+    });
+  }
+
+  const accessError = requireWriteAccess(request, 'config:write');
+  if (accessError) {
+    return accessError;
+  }
+
+   try {
+     const body = await request.json();
+     const { configKey, data } = body;
+     const actor = getWriteActor(request);
+
+     if (!configKey || data === undefined) {
+       return badRequest('Missing configKey or data');
+     }
+
+     const projectRoot = process.cwd().replace('/packages/opencode-dashboard', '').replace('\\packages\\opencode-dashboard', '');
+     const ocConfig = path.join(projectRoot, 'opencode-config');
+
+     const configPaths: Record<string, string> = {
+       projectConfig: path.join(projectRoot, '.opencode.config.json'),
+       userConfig: path.join(os.homedir(), '.config', 'opencode', 'opencode.json'),
+       ohMyConfig: path.join(ocConfig, 'oh-my-opencode.json'),
+       compoundConfig: path.join(os.homedir(), '.config', 'opencode', 'compound-engineering.json'),
+       rateLimitFallback: path.join(ocConfig, 'rate-limit-fallback.json'),
+       modelPolicies: path.join(projectRoot, 'packages', 'opencode-model-router-x', 'src', 'policies.json'),
+       antigravity: path.join(ocConfig, 'antigravity.json'),
+       supermemory: path.join(ocConfig, 'supermemory.json'),
+       deploymentState: path.join(ocConfig, 'deployment-state.json'),
+       learningUpdatePolicy: path.join(ocConfig, 'learning-update-policy.json'),
+       sessionBudgets: path.join(os.homedir(), '.opencode', 'session-budgets.json'),
+       centralConfig: path.join(ocConfig, 'central-config.json'),
+     };
+
+     const filePath = configPaths[configKey];
+     if (!filePath) {
+       return badRequest(`Unknown config key: ${configKey}`);
+     }
+
+     await writeJsonAtomic(filePath, data);
+
+     await appendWriteAuditEntry({
+       route: '/api/config',
+       actor,
+       action: 'update-config',
+       metadata: {
+         configKey,
+         filePath
+       }
+     });
+
+     return NextResponse.json({ success: true, path: filePath });
+    } catch (error) {
+      console.error('[Config API] Patch error:', error);
+      return errorResponse(String(error));
+    }
+ }
+ 
+ export async function DELETE(request: Request) {
+  // Rate limiting
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? request.headers.get('x-real-ip') ?? 'unknown';
+  const { rateLimit } = await import('../_lib/rate-limit');
+  const rateLimitResult = rateLimit(`write:${ip}`, 10, 60000);
+  if (!rateLimitResult.allowed) {
+    return rateLimited('Too many requests', {
+      limit: rateLimitResult.limit,
+      remaining: rateLimitResult.remaining,
+      resetAt: rateLimitResult.resetAt
+    });
+  }
+
+  const accessError = requireWriteAccess(request, 'config:write');
+  if (accessError) {
+    return accessError;
+  }
+
+   try {
+     const body = await request.json();
+     const { configKey } = body;
+     const actor = getWriteActor(request);
+
+     if (!configKey) {
+       return badRequest('Missing configKey');
+     }
+
+     const projectRoot = process.cwd().replace('/packages/opencode-dashboard', '').replace('\\packages\\opencode-dashboard', '');
+     const ocConfig = path.join(projectRoot, 'opencode-config');
+
+     const configPaths: Record<string, string> = {
+       projectConfig: path.join(projectRoot, '.opencode.config.json'),
+       userConfig: path.join(os.homedir(), '.config', 'opencode', 'opencode.json'),
+       ohMyConfig: path.join(ocConfig, 'oh-my-opencode.json'),
+       compoundConfig: path.join(os.homedir(), '.config', 'opencode', 'compound-engineering.json'),
+       rateLimitFallback: path.join(ocConfig, 'rate-limit-fallback.json'),
+       modelPolicies: path.join(projectRoot, 'packages', 'opencode-model-router-x', 'src', 'policies.json'),
+       antigravity: path.join(ocConfig, 'antigravity.json'),
+       supermemory: path.join(ocConfig, 'supermemory.json'),
+       deploymentState: path.join(ocConfig, 'deployment-state.json'),
+       learningUpdatePolicy: path.join(ocConfig, 'learning-update-policy.json'),
+       sessionBudgets: path.join(os.homedir(), '.opencode', 'session-budgets.json'),
+       centralConfig: path.join(ocConfig, 'central-config.json'),
+     };
+
+     const filePath = configPaths[configKey];
+     if (!filePath) {
+       return badRequest(`Unknown config key: ${configKey}`);
+     }
+
+     if (fs.existsSync(filePath)) {
+       fs.unlinkSync(filePath);
+     }
+
+     await appendWriteAuditEntry({
+       route: '/api/config',
+       actor,
+       action: 'delete-config',
+       metadata: {
+         configKey,
+         filePath
+       }
+     });
+
+     return NextResponse.json({ success: true, path: filePath });
+   } catch (error) {
+      console.error('[Config API] Delete error:', error);
+      return errorResponse(String(error));
+   }
+ }

@@ -6,6 +6,7 @@
 
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import fs from 'fs/promises';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -40,7 +41,32 @@ export class ModelBenchmarkRunner {
     this.dbPath = options.dbPath || join(__dirname, '..', '..', 'data', 'benchmark-results.db');
     this.results = [];
     this.benchmarks = options.benchmarks || Object.keys(BENCHMARKS);
+    this.modelClient = options.modelClient || null;
+    this.evaluator = options.evaluator || null;
+    this.db = options.db || null;
     this._sandbox = null;
+    this._dbInitPromise = Promise.resolve();
+
+    if (!this.db && options.dbPath) {
+      this._dbInitPromise = this.initializeDatabase(options.dbPath);
+    }
+  }
+
+  async initializeDatabase(dbPath) {
+    try {
+      const { Database } = await import('bun:sqlite');
+      this.db = new Database(dbPath);
+      this.db.run(
+        'CREATE TABLE IF NOT EXISTS benchmark_results (id INTEGER PRIMARY KEY AUTOINCREMENT, model_id TEXT, benchmark TEXT, timestamp TEXT, summary TEXT, problems TEXT)'
+      );
+    } catch {
+      this.db = null;
+    }
+  }
+
+  async ensureDatabase() {
+    await this._dbInitPromise;
+    return this.db;
   }
 
   /**
@@ -84,9 +110,85 @@ export class ModelBenchmarkRunner {
    */
   async loadProblems(benchmarkName) {
     const config = BENCHMARKS[benchmarkName];
-    // In production, load from actual benchmark files
-    // For now, return mock structure
-    return [];
+    if (!config) {
+      return this.getBuiltInProblems();
+    }
+
+    try {
+      const raw = await fs.readFile(config.testFile, 'utf8');
+      const parsed = JSON.parse(raw);
+      const records = Array.isArray(parsed)
+        ? parsed
+        : parsed.problems || parsed.tasks || parsed.items || [];
+
+      const normalized = records
+        .map((problem, index) => this.normalizeProblem(problem, index))
+        .filter(Boolean);
+
+      if (normalized.length > 0) {
+        return normalized;
+      }
+    } catch {
+      // Fall through to built-in problems when benchmark files are unavailable.
+    }
+
+    return this.getBuiltInProblems();
+  }
+
+  normalizeProblem(problem, index) {
+    if (!problem || typeof problem !== 'object') {
+      return null;
+    }
+
+    const taskId = problem.task_id || problem.taskId || `${index + 1}`;
+    const prompt = problem.prompt || problem.text || problem.question || '';
+    const test = problem.test || problem.tests || problem.assertion || '';
+    const entryPoint = problem.entry_point || problem.entryPoint || 'solution';
+
+    if (!prompt || !test) {
+      return null;
+    }
+
+    return {
+      task_id: String(taskId),
+      prompt: String(prompt),
+      test: String(test),
+      language: 'python',
+      entry_point: String(entryPoint)
+    };
+  }
+
+  getBuiltInProblems() {
+    return [
+      {
+        task_id: 'mini-1',
+        prompt: 'Write a function reverse_words(text) that reverses the order of words in a space-separated string.',
+        test: 'assert reverse_words("hello world") == "world hello"\nassert reverse_words("a b c") == "c b a"',
+        language: 'python',
+        entry_point: 'reverse_words'
+      },
+      {
+        task_id: 'mini-2',
+        prompt: 'Write a function remove_duplicates(items) that preserves order while removing repeated values from a list.',
+        test: 'assert remove_duplicates([1, 2, 2, 3, 1]) == [1, 2, 3]\nassert remove_duplicates([]) == []',
+        language: 'python',
+        entry_point: 'remove_duplicates'
+      },
+      {
+        task_id: 'mini-3',
+        prompt: 'Write a function count_vowels(text) that returns the number of vowels in a string.',
+        test: 'assert count_vowels("OpenCode") == 4\nassert count_vowels("rhythm") == 0',
+        language: 'python',
+        entry_point: 'count_vowels'
+      },
+      {
+        task_id: 'mini-4',
+        prompt: 'Write a function flatten_once(values) that flattens a list by one level.',
+        test: 'assert flatten_once([[1, 2], [3], [], [4, 5]]) == [1, 2, 3, 4, 5]',
+        language: 'python',
+        entry_point: 'flatten_once'
+      }
+    ];
   }
 
   /**
@@ -105,16 +207,51 @@ export class ModelBenchmarkRunner {
     };
 
     if (problem?.language === 'python') {
-      const sandbox = await this.getPythonSandbox();
-      if (sandbox) {
+      if (this.modelClient) {
         try {
-          await sandbox.run(problem?.test || '');
-          result.passed = true;
+          const completion = await this.modelClient.complete({
+            model: modelId,
+            prompt: problem.prompt,
+            maxTokens: 500,
+            temperature: 0.2
+          });
+          result.completion = completion?.text || '';
         } catch (error) {
           result.error = error.message || String(error);
         }
       }
+
+      if (this.evaluator) {
+        try {
+          result.passed = await this.evaluator.evaluate(
+            result.completion,
+            problem.test,
+            problem.language
+          );
+        } catch (error) {
+          result.error = error.message || String(error);
+          result.passed = false;
+        }
+      } else {
+        const sandbox = await this.getPythonSandbox();
+        if (sandbox) {
+          try {
+            await sandbox.run(problem?.test || '');
+            result.passed = true;
+          } catch (error) {
+            result.error = error.message || String(error);
+          }
+        } else {
+          result.passed = false;
+        }
+      }
     }
+
+    if (!problem?.language || problem.language !== 'python') {
+      result.passed = false;
+    }
+
+    result.latency = Date.now() - startTime;
 
     return result;
   }
@@ -154,27 +291,83 @@ export class ModelBenchmarkRunner {
    * Calculate pass@k metric
    */
   calculatePassAtK(results, k) {
-    const n = Math.min(results.length, k);
-    if (n === 0) return 0;
-    
-    // Simplified calculation - in production use proper pass@k formula
-    const passCount = results.slice(0, n).filter(r => r.passed).length;
-    return passCount / n;
+    const n = results.length;
+    if (n === 0 || k <= 0) return 0;
+
+    const c = results.filter((result) => result.passed).length;
+    if (c === 0) return 0;
+    if (k > n) return 1;
+
+    const numerator = this.binomialCoefficient(n - c, k);
+    const denominator = this.binomialCoefficient(n, k);
+    if (denominator === 0) return 0;
+
+    return 1 - numerator / denominator;
+  }
+
+  binomialCoefficient(n, k) {
+    if (k < 0 || k > n) return 0;
+    if (k === 0 || k === n) return 1;
+
+    const m = Math.min(k, n - k);
+    let result = 1;
+    for (let i = 1; i <= m; i += 1) {
+      result = (result * (n - m + i)) / i;
+    }
+
+    return result;
   }
 
   /**
    * Store results to database
    */
   async storeResults(results) {
+    const db = await this.ensureDatabase();
+
+    if (db) {
+      db.run(
+        'INSERT INTO benchmark_results (model_id, benchmark, timestamp, summary, problems) VALUES (?, ?, ?, ?, ?)',
+        [
+          results.modelId,
+          results.benchmark,
+          results.timestamp,
+          JSON.stringify(results.summary || {}),
+          JSON.stringify(results.problems || [])
+        ]
+      );
+      return;
+    }
+
     this.results.push(results);
-    // In production, write to SQLite
-    console.log(`Stored ${results.problems.length} results for ${results.modelId}`);
   }
 
   /**
    * Get historical results for a model
    */
   async getHistory(modelId, benchmarkName) {
+    const db = await this.ensureDatabase();
+    if (db) {
+      let query =
+        'SELECT model_id, benchmark, timestamp, summary, problems FROM benchmark_results WHERE model_id = ?';
+      const params = [modelId];
+
+      if (benchmarkName) {
+        query += ' AND benchmark = ?';
+        params.push(benchmarkName);
+      }
+
+      query += ' ORDER BY timestamp ASC';
+
+      const rows = db.query(query).all(...params);
+      return rows.map((row) => ({
+        modelId: row.model_id,
+        benchmark: row.benchmark,
+        timestamp: row.timestamp,
+        summary: JSON.parse(row.summary || '{}'),
+        problems: JSON.parse(row.problems || '[]')
+      }));
+    }
+
     return this.results.filter(r => 
       r.modelId === modelId && 
       (!benchmarkName || r.benchmark === benchmarkName)

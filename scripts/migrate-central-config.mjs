@@ -57,6 +57,114 @@ function writeJsonSafe(filePath, data) {
   }
 }
 
+/**
+ * Simple YAML key-value parser for flat/shallow config.yaml.
+ * Handles top-level keys and one level of nesting (key: value under a section).
+ */
+function readConfigYamlSimple(filePath) {
+  try {
+    if (!fs.existsSync(filePath)) return null;
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const result = {};
+    let currentSection = null;
+
+    for (const line of content.split('\n')) {
+      const trimmed = line.trimEnd();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+
+      const sectionMatch = trimmed.match(/^([a-zA-Z_][a-zA-Z0-9_]*):\s*$/);
+      if (sectionMatch) {
+        currentSection = sectionMatch[1];
+        result[currentSection] = {};
+        continue;
+      }
+
+      const kvMatch = trimmed.match(/^\s+([a-zA-Z_][a-zA-Z0-9_]*):\s*(.+)$/);
+      if (kvMatch && currentSection) {
+        let value = kvMatch[2].trim();
+        if (value === 'true') value = true;
+        else if (value === 'false') value = false;
+        else if (/^-?\d+(\.\d+)?$/.test(value)) value = Number(value);
+        result[currentSection][kvMatch[1]] = value;
+        continue;
+      }
+
+      const topKv = trimmed.match(/^([a-zA-Z_][a-zA-Z0-9_]*):\s+(.+)$/);
+      if (topKv) {
+        currentSection = null;
+        let value = topKv[2].trim();
+        if (value === 'true') value = true;
+        else if (value === 'false') value = false;
+        else if (/^-?\d+(\.\d+)?$/.test(value)) value = Number(value);
+        result[topKv[1]] = value;
+      }
+    }
+
+    return result;
+  } catch (err) {
+    console.warn(`[WARN] Failed to read ${filePath}: ${err.message}`);
+    return null;
+  }
+}
+
+function extractOperationalParams(yamlConfig) {
+  const params = {};
+
+  if (yamlConfig?.cost_tracking) {
+    const ct = yamlConfig.cost_tracking;
+    if (typeof ct.daily_budget_usd === 'number') {
+      params.daily_budget_usd = {
+        value: ct.daily_budget_usd,
+        soft: { min: 1, max: 50 },
+        hard: { min: 0.5, max: 200 },
+        locked: false,
+        rl_allowed: true,
+      };
+    }
+    if (typeof ct.alert_at_percent === 'number') {
+      params.cost_alert_percent = {
+        value: ct.alert_at_percent,
+        soft: { min: 50, max: 95 },
+        hard: { min: 10, max: 100 },
+        locked: false,
+        rl_allowed: true,
+      };
+    }
+  }
+
+  if (yamlConfig?.escalation) {
+    const esc = yamlConfig.escalation;
+    if (typeof esc.max_retries_per_tier === 'number') {
+      params.escalation_max_retries = {
+        value: esc.max_retries_per_tier,
+        soft: { min: 1, max: 5 },
+        hard: { min: 0, max: 10 },
+        locked: false,
+        rl_allowed: true,
+      };
+    }
+  }
+
+  return params;
+}
+
+function extractProviderParams(opencodeJson) {
+  const params = {};
+
+  if (opencodeJson?.provider) {
+    const providerNames = Object.keys(opencodeJson.provider);
+    params.enabled_providers = {
+      value: providerNames.join(','),
+      soft: null,
+      hard: null,
+      locked: true,
+      rl_allowed: false,
+    };
+  }
+
+  return params;
+}
+
 function diffValues(source, target, path = '') {
   const diffs = [];
   
@@ -255,11 +363,16 @@ async function runMigration() {
   console.log();
 
   // Read source configs
-  const rateLimitPath = path.join(PROJECT_ROOT, 'opencode-config', 'rate-limit-fallback.json');
-  const centralConfigPath = path.join(PROJECT_ROOT, 'opencode-config', 'central-config.json');
+  const ocConfigDir = path.join(PROJECT_ROOT, 'opencode-config');
+  const rateLimitPath = path.join(ocConfigDir, 'rate-limit-fallback.json');
+  const centralConfigPath = path.join(ocConfigDir, 'central-config.json');
+  const opencodeJsonPath = path.join(ocConfigDir, 'opencode.json');
+  const configYamlPath = path.join(ocConfigDir, 'config.yaml');
   
   const rateLimitConfig = readJsonSafe(rateLimitPath);
   const centralConfig = readJsonSafe(centralConfigPath);
+  const opencodeJson = readJsonSafe(opencodeJsonPath);
+  const configYaml = readConfigYamlSimple(configYamlPath);
   
   if (!centralConfig) {
     console.error('[ERROR] central-config.json not found. Run setup first.');
@@ -268,7 +381,9 @@ async function runMigration() {
   
   console.log('Source configs:');
   console.log(`  rate-limit-fallback.json: ${rateLimitConfig ? 'Found' : 'Not found'}`);
-  console.log(`  central-config.json: Found (v${centralConfig.config_version})`);
+  console.log(`  opencode.json:            ${opencodeJson ? 'Found' : 'Not found'}`);
+  console.log(`  config.yaml:              ${configYaml ? 'Found' : 'Not found'}`);
+  console.log(`  central-config.json:      Found (v${centralConfig.config_version})`);
   console.log();
 
   if (SHADOW_MODE) {
@@ -338,6 +453,36 @@ async function runMigration() {
       if (!newConfig.sections.fallback[key]) {
         console.log(`  [ADD] fallback.${key} = ${param.value}`);
         newConfig.sections.fallback[key] = param;
+        updated = true;
+      }
+    }
+  }
+
+  // Extract from config.yaml → operational section
+  if (configYaml) {
+    console.log('Extracting values from config.yaml...');
+    const operationalParams = extractOperationalParams(configYaml);
+
+    if (!newConfig.sections.operational) newConfig.sections.operational = {};
+    for (const [key, param] of Object.entries(operationalParams)) {
+      if (!newConfig.sections.operational[key]) {
+        console.log(`  [ADD] operational.${key} = ${param.value}`);
+        newConfig.sections.operational[key] = param;
+        updated = true;
+      }
+    }
+  }
+
+  // Extract from opencode.json → providers section
+  if (opencodeJson) {
+    console.log('Extracting values from opencode.json...');
+    const providerParams = extractProviderParams(opencodeJson);
+
+    if (!newConfig.sections.providers) newConfig.sections.providers = {};
+    for (const [key, param] of Object.entries(providerParams)) {
+      if (!newConfig.sections.providers[key]) {
+        console.log(`  [ADD] providers.${key} = ${param.value}`);
+        newConfig.sections.providers[key] = param;
         updated = true;
       }
     }

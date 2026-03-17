@@ -196,24 +196,28 @@ function readOpenCodeData(opencodePath: string, options: GraphQueryOptions) {
   // 1. Read messages (sessions)
   const messagesPath = path.join(opencodePath, 'messages');
   if (fs.existsSync(messagesPath)) {
-    const sessionDirs = fs.readdirSync(messagesPath).filter(f => {
-      try {
-        return fs.statSync(path.join(messagesPath, f)).isDirectory();
-      } catch { return false; }
-    });
+     const sessionDirs = fs.readdirSync(messagesPath).filter(f => {
+       try {
+         return fs.statSync(path.join(messagesPath, f)).isDirectory();
+       } catch (err) {
+         console.warn('[memory-graph] Failed to stat session dir:', err);
+         return false;
+       }
+     });
     
     const cutoffTime = Date.now() - options.sinceDays * 24 * 60 * 60 * 1000;
 
     for (const sessionId of sessionDirs) {
       const sessionPath = path.join(messagesPath, sessionId);
-      try {
-        const stats = fs.statSync(sessionPath);
-        if (stats.mtimeMs < cutoffTime) {
-          continue;
-        }
-      } catch {
-        continue;
-      }
+       try {
+         const stats = fs.statSync(sessionPath);
+         if (stats.mtimeMs < cutoffTime) {
+           continue;
+         }
+       } catch (err) {
+         console.warn('[memory-graph] Failed to stat session path:', err);
+         continue;
+       }
 
       addNode(sessionId, 'session', 1, { source: 'messages' });
 
@@ -221,14 +225,14 @@ function readOpenCodeData(opencodePath: string, options: GraphQueryOptions) {
       
       for (const file of files) {
         try {
-          const content = fs.readFileSync(path.join(sessionPath, file), 'utf-8');
-          let msg: MemoryGraphMessage;
-          try {
-            msg = JSON.parse(content);
-} catch (e: unknown) {
-            console.warn('[memory-graph] Skipping malformed entry:', e instanceof Error ? e.message : e);
-            continue;
-          }
+           const content = fs.readFileSync(path.join(sessionPath, file), 'utf-8');
+           let msg: MemoryGraphMessage;
+           try {
+             msg = JSON.parse(content);
+           } catch (e: unknown) {
+             console.warn('[memory-graph] Skipping malformed entry:', e instanceof Error ? e.message : e);
+             continue;
+           }
           
           // Extract agent
           if (msg.agent) {
@@ -276,14 +280,14 @@ function readOpenCodeData(opencodePath: string, options: GraphQueryOptions) {
           if (msg.taskType || msg.intent || msg.action) {
             const solution = (msg.taskType || msg.intent || msg.action) as string;
             addNode(solution, 'solution', 1);
-            addEdge(sessionId, solution, 'solves_with');
-          }
-} catch (e: unknown) {
-          console.warn('[memory-graph] Skipping malformed entry:', e instanceof Error ? e.message : e);
-        }
-      }
-    }
-    data.meta.sessions = sessionDirs.length;
+             addEdge(sessionId, solution, 'solves_with');
+           }
+         } catch (e: unknown) {
+           console.warn('[memory-graph] Skipping malformed entry:', e instanceof Error ? e.message : e);
+         }
+       }
+     }
+     data.meta.sessions = sessionDirs.length;
   }
   
   // 2. Read learning data (patterns)
@@ -292,15 +296,15 @@ function readOpenCodeData(opencodePath: string, options: GraphQueryOptions) {
     const files = fs.readdirSync(learningPath).filter(f => f.endsWith('.json'));
     
     for (const file of files) {
-      try {
-        const content = fs.readFileSync(path.join(learningPath, file), 'utf-8');
-        let parsed: Record<string, unknown>;
-        try {
-          parsed = JSON.parse(content);
-} catch (e: unknown) {
-          console.warn('[memory-graph] Skipping malformed entry:', e instanceof Error ? e.message : e);
-          continue;
-        }
+       try {
+         const content = fs.readFileSync(path.join(learningPath, file), 'utf-8');
+         let parsed: Record<string, unknown>;
+         try {
+           parsed = JSON.parse(content);
+         } catch (e: unknown) {
+           console.warn('[memory-graph] Skipping malformed entry:', e instanceof Error ? e.message : e);
+           continue;
+         }
         const patternsArray = Array.isArray(parsed)
           ? parsed
           : (parsed.patterns || parsed.items || []);
@@ -326,30 +330,30 @@ function readOpenCodeData(opencodePath: string, options: GraphQueryOptions) {
               addNode(pattern.context.task_type, 'solution', 1);
               addEdge(patternId, pattern.context.task_type, 'solves_with', 1);
             }
-            if (pattern.severity) {
-              addNode(`severity:${pattern.severity}`, 'concept', 1);
-              addEdge(patternId, `severity:${pattern.severity}`, 'follows_pattern', 1);
-            }
-          }
-        }
-    } catch (e: unknown) {
-      console.warn('[memory-graph] Skipping malformed entry:', e instanceof Error ? e.message : e);
-      }
-    }
-  }
-  
-  // 3. Read skills data (skill-rl.json + local skill definitions)
+             if (pattern.severity) {
+               addNode(`severity:${pattern.severity}`, 'concept', 1);
+               addEdge(patternId, `severity:${pattern.severity}`, 'follows_pattern', 1);
+             }
+           }
+         }
+       } catch (e: unknown) {
+         console.warn('[memory-graph] Skipping malformed entry:', e instanceof Error ? e.message : e);
+       }
+     }
+   }
+   
+   // 3. Read skills data (skill-rl.json + local skill definitions)
   const skillRLPath = path.join(opencodePath, 'skill-rl.json');
   if (fs.existsSync(skillRLPath)) {
     try {
-      const content = fs.readFileSync(skillRLPath, 'utf-8');
-      let skillData: Record<string, unknown> | null;
-      try {
-        skillData = JSON.parse(content);
-    } catch (e: unknown) {
-      console.warn('[memory-graph] Skipping malformed entry:', e instanceof Error ? e.message : e);
-        skillData = null;
-      }
+       const content = fs.readFileSync(skillRLPath, 'utf-8');
+       let skillData: Record<string, unknown> | null;
+       try {
+         skillData = JSON.parse(content);
+       } catch (e: unknown) {
+         console.warn('[memory-graph] Skipping malformed entry:', e instanceof Error ? e.message : e);
+         skillData = null;
+       }
       if (skillData) {
         const skillBank = skillData.skillBank as Record<string, unknown> | undefined;
         const general = (skillBank?.general || []) as Array<Record<string, unknown>>;
@@ -371,18 +375,21 @@ function readOpenCodeData(opencodePath: string, options: GraphQueryOptions) {
             addNode(String(skill.task_type), 'solution', 1);
             addEdge(skillId, String(skill.task_type), 'solves_with', 1);
           }
-        }
-      }
-      } catch (e: unknown) {
-        console.warn('[memory-graph] Skipping malformed entry:', e instanceof Error ? e.message : e);
-    }
-  }
-  
-  const skillsPath = path.join(os.homedir(), '.config', 'opencode', 'skills');
-  if (fs.existsSync(skillsPath)) {
-    const skillDirs = fs.readdirSync(skillsPath).filter(f => {
-      try { return fs.statSync(path.join(skillsPath, f)).isDirectory(); } catch { return false; }
-    });
+         }
+       }
+     } catch (e: unknown) {
+       console.warn('[memory-graph] Skipping malformed entry:', e instanceof Error ? e.message : e);
+     }
+   }
+   
+   const skillsPath = path.join(os.homedir(), '.config', 'opencode', 'skills');
+   if (fs.existsSync(skillsPath)) {
+     const skillDirs = fs.readdirSync(skillsPath).filter(f => {
+       try { return fs.statSync(path.join(skillsPath, f)).isDirectory(); } catch (err) {
+         console.warn('[memory-graph] Failed to stat skill dir:', err);
+         return false;
+       }
+     });
     
     for (const dir of skillDirs) {
       addNode(dir, 'skill', 1, { source: 'skill-definition' });
@@ -462,16 +469,18 @@ function readOpenCodeData(opencodePath: string, options: GraphQueryOptions) {
   if (fs.existsSync(partsPath)) {
     const parts = fs.readdirSync(partsPath).filter(f => f.endsWith('.json'));
     
-    for (const file of parts) {
-      try {
-        const content = fs.readFileSync(path.join(partsPath, file), 'utf-8');
-        const part = JSON.parse(content);
-        
-        if (part.name || part.id) {
-          addNode(part.name || part.id, 'concept', 1, part);
-        }
-      } catch { /* skip */ }
-    }
+     for (const file of parts) {
+       try {
+         const content = fs.readFileSync(path.join(partsPath, file), 'utf-8');
+         const part = JSON.parse(content);
+         
+         if (part.name || part.id) {
+           addNode(part.name || part.id, 'concept', 1, part);
+         }
+       } catch (err) {
+         console.warn('[memory-graph] Failed to parse part:', err);
+       }
+     }
     data.meta.parts = parts.length;
   }
   

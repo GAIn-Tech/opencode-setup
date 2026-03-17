@@ -10,9 +10,15 @@
  *   - Task context eviction (TTL)
  */
 
-import { describe, expect, test, beforeEach, afterEach } from 'bun:test';
-import { tmpdir } from 'node:os';
-import { unlinkSync, existsSync } from 'node:fs';
+import { describe, expect, test, beforeEach } from 'bun:test';
+import { unlinkSync } from 'node:fs';
+
+/** Remove SQLite DB and event-history JSON files to prevent cross-test pollution. */
+function cleanupDbFiles(dbPath) {
+  for (const f of [dbPath, `${dbPath}-shm`, `${dbPath}-wal`, `${dbPath}.events.json`]) {
+    try { unlinkSync(f); } catch (_) { /* may not exist */ }
+  }
+}
 
 // --- Governor ---
 import { Governor } from '../packages/opencode-context-governor/src/index.js';
@@ -135,21 +141,14 @@ describe('ContextBridge evaluateAndCompress', () => {
 
 describe('PipelineMetricsCollector compression tracking (T16)', () => {
   let collector;
-  let _dbPath;
+  const DB_PATH = '/tmp/test-metrics-t20.db';
 
   beforeEach(() => {
-    _dbPath = `${tmpdir()}/test-metrics-t20-${Date.now()}-${Math.random().toString(36).slice(2)}.db`;
+    cleanupDbFiles(DB_PATH);
     collector = new PipelineMetricsCollector({
       autoCleanup: false,
-      dbPath: _dbPath,
+      dbPath: DB_PATH,
     });
-  });
-
-  afterEach(() => {
-    collector.close();
-    for (const suffix of ['', '-shm', '-wal', '.events.json']) {
-      try { unlinkSync(_dbPath + suffix); } catch (_e) { /* ok */ }
-    }
   });
 
   test('recordCompression stores events and getCompressionStats aggregates', () => {
@@ -184,21 +183,14 @@ describe('PipelineMetricsCollector compression tracking (T16)', () => {
 
 describe('PipelineMetricsCollector Context7 tracking (T17)', () => {
   let collector;
-  let _dbPath;
+  const DB_PATH = '/tmp/test-metrics-t20-c7.db';
 
   beforeEach(() => {
-    _dbPath = `${tmpdir()}/test-metrics-t20-c7-${Date.now()}-${Math.random().toString(36).slice(2)}.db`;
+    cleanupDbFiles(DB_PATH);
     collector = new PipelineMetricsCollector({
       autoCleanup: false,
-      dbPath: _dbPath,
+      dbPath: DB_PATH,
     });
-  });
-
-  afterEach(() => {
-    collector.close();
-    for (const suffix of ['', '-shm', '-wal', '.events.json']) {
-      try { unlinkSync(_dbPath + suffix); } catch (_e) { /* ok */ }
-    }
   });
 
   test('recordContext7Lookup stores events and getContext7Stats aggregates', () => {
@@ -325,25 +317,19 @@ describe('PipelineMetricsCollector cleanup includes new event types', () => {
 
 describe('PipelineMetricsCollector reset clears compression and context7', () => {
   test('reset clears all event arrays including new ones', () => {
-    const dbPath = `${tmpdir()}/test-metrics-t20-reset-${Date.now()}-${Math.random().toString(36).slice(2)}.db`;
+    const resetDbPath = '/tmp/test-metrics-t20-reset.db';
+    cleanupDbFiles(resetDbPath);
     const collector = new PipelineMetricsCollector({
       autoCleanup: false,
-      dbPath,
+      dbPath: resetDbPath,
     });
 
-    try {
-      collector.recordCompression({ sessionId: 's', inputTokens: 100, outputTokens: 50, ratio: 0.5, strategy: 'x' });
-      collector.recordContext7Lookup({ libraryId: '/a/b', resolved: true, durationMs: 10, source: 's' });
+    collector.recordCompression({ sessionId: 's', inputTokens: 100, outputTokens: 50, ratio: 0.5, strategy: 'x' });
+    collector.recordContext7Lookup({ libraryId: '/a/b', resolved: true, durationMs: 10, source: 's' });
 
-      collector.reset();
+    collector.reset();
 
-      expect(collector.getCompressionStats().totalEvents).toBe(0);
-      expect(collector.getContext7Stats().totalLookups).toBe(0);
-    } finally {
-      collector.close();
-      for (const suffix of ['', '-shm', '-wal', '.events.json']) {
-        try { unlinkSync(dbPath + suffix); } catch (_e) { /* ok */ }
-      }
-    }
+    expect(collector.getCompressionStats().totalEvents).toBe(0);
+    expect(collector.getContext7Stats().totalLookups).toBe(0);
   });
 });

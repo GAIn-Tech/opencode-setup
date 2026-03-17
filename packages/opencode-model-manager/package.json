@@ -15,5 +15,8 @@
   },
   "scripts": {
     "test:smoke": "node -e \"const mod=require('./src/index.js'); if(!mod || Object.keys(mod).length===0) throw new Error('model-manager exports missing'); console.log('model-manager smoke ok');\""
+  },
+  "dependencies": {
+    "which": "^3.0.1"
   }
 }

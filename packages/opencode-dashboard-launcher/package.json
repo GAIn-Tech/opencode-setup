@@ -17,6 +17,6 @@
   "author": "OpenCode",
   "license": "MIT",
   "dependencies": {
-    "opencode-safe-io": "workspace:*"
+    "which": "^3.0.1"
   }
 }

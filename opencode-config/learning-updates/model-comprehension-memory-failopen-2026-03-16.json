@@ -1,0 +1,28 @@
+{
+  "id": "model-comprehension-memory-failopen-2026-03-16",
+  "timestamp": "2026-03-16T21:00:00Z",
+  "date": "2026-03-16",
+  "type": "bugfix",
+  "summary": "Make better-sqlite3 dependency fail-open in ModelComprehensionMemory — prevents uncaught require errors from crashing bootstrap and integration tests when native dependency is unavailable",
+  "description": "Make better-sqlite3 dependency fail-open in ModelComprehensionMemory — prevents uncaught require errors from crashing bootstrap and integration tests when native dependency is unavailable",
+  "affected_paths": [
+    "packages/opencode-model-router-x/src/model-comprehension-memory.js"
+  ],
+  "risk_level": "low",
+  "pattern": "fail-open-native-dep",
+  "details": {
+    "root_cause": "Top-level require('better-sqlite3') threw uncaught error when native dep unavailable, propagating through bootstrap and failing 3 integration tests",
+    "fix": "Wrapped require in try-catch, added null guards on all public methods, initialize() returns early when Database unavailable — class operates in-memory-only mode",
+    "tests_fixed": [
+      "model-router-wiring.test.js: ModelRouter receives skillRLManager reference via bootstrap",
+      "model-router-wiring.test.js: bootstrap injects runtime collaborators into ModelRouter when available",
+      "plugin-lifecycle-wiring.test.js: bootstrap tracks plugin-lifecycle status"
+    ]
+  },
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "pass"
+  },
+  "breaking_changes": false
+}

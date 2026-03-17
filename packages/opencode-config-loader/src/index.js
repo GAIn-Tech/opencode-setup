@@ -12,6 +12,8 @@ const {
 const {
   loadRlState,
   appendAuditEntry,
+  rollback,
+  validateIntegrity,
 } = require('./central-config-state');
 
 /**
@@ -87,6 +89,13 @@ class ConfigLoader {
         opencodeDir: resolveDataDir(),
         logsDir: resolveDataDir(),
         databaseDir: resolveDataDir()
+      },
+      exploration: {
+        active: true,
+        mode: 'balanced',
+        budget: 20,
+        tokenBudgetRatio: 0.1,
+        minTokens: 500
       }
     };
   }
@@ -309,6 +318,8 @@ module.exports = {
   mergeCentralConfig,
   loadRlState,
   appendAuditEntry,
+  rollback,
+  validateIntegrity,
   createOrchestrationId,
   pickSessionId,
   normalizeQuotaSignal,

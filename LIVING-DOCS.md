@@ -15,6 +15,7 @@ This repository treats central documentation as continuously maintained system i
 - `setup-instructions.md`
 - `TROUBLESHOOTING.md`
 - `PORTABILITY.md`
+- `docs/architecture/cli-mcp-surface-policy.md`
 
 ## Governance Rules
 
@@ -39,3 +40,4 @@ Rules currently enforce documentation updates for:
 - Update existing central docs first; avoid adding new docs unless needed.
 - Prefer short, accurate operational guidance over duplicated narrative.
 - Remove or rewrite stale sections instead of appending contradictory notes.
+- When changing a package's public surface, update `docs/architecture/cli-mcp-surface-policy.md` or confirm the existing policy still covers the decision.

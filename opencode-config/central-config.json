@@ -588,6 +588,47 @@
         "locked": false,
         "rl_allowed": true
       }
+    },
+    "exploration": {
+      "budget": {
+        "value": 20,
+        "soft": {
+          "min": 5,
+          "max": 50
+        },
+        "hard": {
+          "min": 1,
+          "max": 100
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "token_budget_ratio": {
+        "value": 0.1,
+        "soft": {
+          "min": 0.05,
+          "max": 0.25
+        },
+        "hard": {
+          "min": 0.01,
+          "max": 0.5
+        },
+        "locked": false,
+        "rl_allowed": true
+      },
+      "min_tokens": {
+        "value": 500,
+        "soft": {
+          "min": 100,
+          "max": 2000
+        },
+        "hard": {
+          "min": 50,
+          "max": 5000
+        },
+        "locked": false,
+        "rl_allowed": true
+      }
     }
   }
 }

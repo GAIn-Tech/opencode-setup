@@ -129,11 +129,11 @@ If you use VS Code Dev Containers/Codespaces, a baseline config is available in 
 |------|----------|---------|
 | `opencode.json` | `~/.config/opencode/` | Main config (models, plugins, MCPs) |
 | `antigravity.json` | `~/.config/opencode/` | Account rotation settings |
-| `oh-my-opencode.json` | `~/.config/opencode/` | Agent model overrides |
+| `oh-my-opencode.json` | `~/.config/opencode/` | Canonical named-agent registry and model overrides |
 | `compound-engineering.json` | `~/.config/opencode/` | Skills, commands, categories |
 | `config.yaml` | `~/.opencode/` | Global rules & delegation standards |
+| `docs/architecture/cli-mcp-surface-policy.md` | `docs/architecture/` | Decision policy for CLI, MCP, hybrid, or library-only package surfaces |
 | `global-rules/*.mdc` | `~/.opencode/` | Model delegation, coordination, dev standards |
-| `agents/*.md` | `~/.config/opencode/` | 29 specialized agent definitions |
 | `skills/*/SKILL.md` | `~/.config/opencode/` | 46 skill definitions |
 
 ## Setup on New Machine

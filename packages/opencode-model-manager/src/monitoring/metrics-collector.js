@@ -835,17 +835,16 @@ class PipelineMetricsCollector {
     this._detectedTimestamps.clear();
     this._lastCatalogUpdate = null;
 
-    // Clear persistence (SQLite + file fallback) so the fallback path doesn't return stale data
+    // Clear persisted data so stats return zeroes after reset
     if (this._db) {
-      try { this._db.prepare('DELETE FROM compression_history').run(); } catch (_e) { /* table may not exist yet */ }
-      try { this._db.prepare('DELETE FROM context7_lookups').run(); } catch (_e) { /* table may not exist yet */ }
+      try {
+        this._db.exec('DELETE FROM compression_history');
+        this._db.exec('DELETE FROM context7_lookups');
+      } catch (_) { /* tables may not exist yet */ }
     }
-    // Clear the JSON history file used when SQLite is unavailable (e.g. bun:sqlite lacks .pragma)
     try {
-      if (fs.existsSync(this._historyFilePath)) {
-        fs.writeFileSync(this._historyFilePath, '[]', 'utf8');
-      }
-    } catch (_e) { /* non-fatal */ }
+      fs.writeFileSync(this._historyFilePath, '[]', 'utf8');
+    } catch (_) { /* non-fatal */ }
   }
 
   /**

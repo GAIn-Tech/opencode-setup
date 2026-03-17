@@ -1139,6 +1139,62 @@ OPENCODE_BENCHMARK_SANDBOX=pyodide            # pyodide | docker
 
 ---
 
+## Implementation Status (Updated 2026-03-14)
+
+### Phase 1: Exploration Mode — COMPLETE
+- `packages/opencode-model-router-x/src/exploration-mode.js` — CLI flag, env var, runtime API
+- Thompson sampling, epsilon-greedy, UCB strategies implemented
+- Token budget manager integrated
+
+### Phase 2: Performance Tracking — COMPLETE
+- `packages/opencode-model-router-x/src/model-performance-tracker.js` (294 lines) — Percentile tracking, binary insertion sort
+- Metrics: accuracy, latency_ms, cost_usd, success rate, reasoning_efficiency
+
+### Phase 3: Comprehension Memory — COMPLETE
+- `packages/opencode-model-router-x/src/model-comprehension-memory.js` (356 lines) — SQLite + WAL mode
+- Table `model_performance`: id, task_id, intent_category, model_id, provider, timestamp, is_exploration, accuracy, latency_ms, cost_usd, success, tool_usage_count, context_tokens, output_tokens, reasoning_efficiency, error_type
+
+### Phase 4: Model Discovery — COMPLETE
+- `packages/opencode-model-router-x/src/model-discovery.js` — 3-tier fallback (API → docs → community)
+- Key rotation, subagent retry
+
+### Phase 5: BenchmarkRunner — FUNCTIONAL (Pyodide deferred)
+- `packages/opencode-model-benchmark/src/benchmark-runner.js` — Pluggable ModelClient + Evaluator interfaces, SQLite storage (bun:sqlite), built-in 4 mini Python problems, real pass@k formula (binomial coefficient)
+- `loadProblems()` loads from benchmark JSON or falls back to built-in set
+- `storeResults()` persists to SQLite with `benchmark_results` table
+- `getHistory()` reads from SQLite with JSON parsing
+- Pyodide sandbox (code execution) deferred — evaluator interface ready for it
+- 8 tests, all passing
+
+### Phase 6: Hierarchy & Pipeline — COMPLETE
+- `model-comparator.js` (137 lines) — Weighted multi-dimension comparison (benchmark, cost, latency, reliability). `compare()`, `rank()`
+- `hierarchy-placer.js` (176 lines) — 4-tier placement (premium/standard/economy/fallback). `determineLevels()`, `suggestChanges()`
+- `document-updater.js` (221 lines) — Auto-generates model docs, hierarchy overview, changelog. Updates opencode.json + rate-limit-fallback.json
+- `benchmark-pipeline.js` (NEW) — Orchestrates Runner → Comparator → HierarchyPlacer → DocumentUpdater. `runFullPipeline()`, `compareAndPlace()`, `updateDocumentation()`
+- 24 tests across 4 files, all passing
+
+### Phase 7: SkillRL Integration — COMPLETE
+- `packages/opencode-skill-rl-manager/src/exploration-adapter.js` (130 lines, CJS) — Bridges comprehension memory → SkillRL
+- Class `ExplorationRLAdapter({comprehensionMemory, skillRLManager})`
+- Methods: `updateFromExploration(taskCategory)`, `getAllMetricsForTask(taskCategory)`, `getBestModelRecommendation(taskCategory)`
+- Exported from `packages/opencode-skill-rl-manager/src/index.js`
+- Tests: 4 pass, 12 assertions
+
+### Config Coherence — COMPLETE
+- `scripts/validate-config-coherence.mjs` — SHA256-based drift detection (repo vs runtime)
+- Enriched JSON handling for post-copy modified files (opencode.json MCP section)
+- Audit logging (NDJSON), version manifest, machine identity, cross-machine warnings
+- Unblocks `protocol-compliance-pass.mjs` line 69 (`bun run config:coherence`)
+- Tests: 8 pass (5 coherence + 3 audit/manifest/machine)
+
+### Overall: ~90% complete (Phases 1-4 + 5-7 functional, only Pyodide sandbox deferred)
+### Exploration mode DEPLOYED via ConfigLoader → bootstrap → ModelRouter wiring
+### Benchmark pipeline FUNCTIONAL — ready for real model evaluation when model client is connected
+
+### Test Coverage: 32 benchmark tests + 16 routing tests + 8 coherence tests + 4 RL tests = 60+ tests passing
+
+---
+
 ## Related Plans
 
 - [Model Scoring Matrix v2.0](../docs/model-scoring-matrix-2025-v2.md)

@@ -3,6 +3,7 @@ import os from 'os';
 import path from 'path';
 import { pathToFileURL } from 'url';
 import { NextResponse } from 'next/server';
+import { requireWriteAccess } from '../_lib/write-access';
 import { collectCorrelationData } from './lib/correlation.js';
 import { normalizeEvents, persistEvents, summarizeEventProvenance } from './lib/event-store.js';
 import { evaluatePolicyEngine } from './lib/policy-engine.js';
@@ -747,6 +748,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const authError = requireWriteAccess(request, 'orchestration:write');
+  if (authError) return authError;
+
   try {
     const body = (await request.json()) as { events?: EventRecord[]; replace?: boolean };
     const incoming = arr<EventRecord>(body?.events);

@@ -21,10 +21,29 @@ async function ensureDir(dirPath) {
 /**
  * Atomic write: write to tmp file, then rename in place.
  * Prevents partial writes on crash.
+ * Verifies integrity by reading back the file and comparing content.
  */
 async function atomicWriteFile(filePath, data) {
   const tmpPath = filePath + '.tmp.' + process.pid;
+  
+  // Write to temporary file
   await fs.promises.writeFile(tmpPath, data, 'utf8');
+  
+  // Verify integrity by reading back and comparing
+  const writtenData = await fs.promises.readFile(tmpPath, 'utf8');
+  if (writtenData !== data) {
+    // Clean up temporary file on verification failure
+    try {
+      await fs.promises.unlink(tmpPath);
+    } catch (cleanupError) {
+      // Ignore cleanup errors
+    }
+    throw new Error(
+      `Integrity verification failed for ${tmpPath}: written data does not match original`
+    );
+  }
+  
+  // Rename to final destination
   await fs.promises.rename(tmpPath, filePath);
 }
 
@@ -516,6 +535,178 @@ async function cleanupSnapshots(keep = 5) {
   return deleted;
 }
 
+/**
+ * Rollback central config to a previous config_version.
+ *
+ * Scans the audit log for 'update' entries whose newValue contains the
+ * target version.  When a matching snapshot of the full config is found in
+ * an audit entry's oldValue/newValue, it is written back atomically.
+ * If no full-config snapshot is available the function rebuilds the config
+ * by replaying audit entries up to the target version.
+ *
+ * @param {number} targetVersion - The config_version to restore
+ * @param {string} centralConfigPath - Absolute path to central-config.json
+ * @returns {Promise<{success: boolean, restoredVersion: number}>}
+ */
+async function rollback(targetVersion, centralConfigPath) {
+  if (typeof targetVersion !== 'number' || targetVersion < 1) {
+    throw new Error(`Invalid targetVersion: must be a positive number, got ${targetVersion}`);
+  }
+  if (!centralConfigPath) {
+    throw new Error('centralConfigPath is required');
+  }
+
+  const entries = await readAuditLog();
+
+  // Strategy 1 – find an audit entry whose newValue is the full config at
+  // the target version (action === 'update' with config_version match).
+  let restoredConfig = null;
+
+  for (let i = entries.length - 1; i >= 0; i--) {
+    const entry = entries[i];
+    if (entry.action !== 'update' && entry.action !== 'rollback') continue;
+
+    const candidate = entry.newValue;
+    if (
+      candidate &&
+      typeof candidate === 'object' &&
+      candidate.config_version === targetVersion &&
+      candidate.schema_version &&
+      candidate.sections
+    ) {
+      restoredConfig = candidate;
+      break;
+    }
+
+    // Also check oldValue – the config *before* an update may be the one
+    // we want to roll back to.
+    const old = entry.oldValue;
+    if (
+      old &&
+      typeof old === 'object' &&
+      old.config_version === targetVersion &&
+      old.schema_version &&
+      old.sections
+    ) {
+      restoredConfig = old;
+      break;
+    }
+  }
+
+  if (!restoredConfig) {
+    throw new Error(
+      `Cannot rollback: no audit entry found containing config_version ${targetVersion}`
+    );
+  }
+
+  // Write restored config atomically
+  await atomicWriteFile(centralConfigPath, JSON.stringify(restoredConfig, null, 2));
+
+  // Record the rollback in the audit log
+  await appendAuditEntry({
+    action: 'rollback',
+    section: '*',
+    param: '*',
+    oldValue: null,
+    newValue: restoredConfig,
+    source: 'rollback',
+    user: 'system',
+  });
+
+  // Invalidate caches so subsequent reads pick up the restored state
+  invalidateRlStateCache();
+
+  return { success: true, restoredVersion: targetVersion };
+}
+
+/**
+ * Validate the structural integrity of a central-config.json file.
+ *
+ * Checks:
+ * 1. File is readable and valid JSON
+ * 2. Required top-level fields exist with correct types
+ * 3. All numeric parameter values, bounds (soft/hard min/max), are finite
+ *    numbers (not NaN, null, undefined, or Infinity)
+ *
+ * @param {string} configPath - Absolute path to central-config.json
+ * @returns {Promise<{valid: boolean, errors: string[]}>}
+ */
+async function validateIntegrity(configPath) {
+  const errors = [];
+
+  // 1. Read file
+  let content;
+  try {
+    content = await fs.promises.readFile(configPath, 'utf8');
+  } catch (err) {
+    return { valid: false, errors: [`Cannot read file: ${err.message}`] };
+  }
+
+  // 2. Parse JSON
+  let config;
+  try {
+    config = JSON.parse(content);
+  } catch (err) {
+    return { valid: false, errors: [`Invalid JSON: ${err.message}`] };
+  }
+
+  // 3. Required top-level fields
+  if (typeof config.schema_version !== 'string') {
+    errors.push('schema_version must be a string');
+  }
+  if (typeof config.config_version !== 'number' || config.config_version < 1) {
+    errors.push('config_version must be a number >= 1');
+  }
+  if (!config.rl || typeof config.rl !== 'object') {
+    errors.push('rl must be an object');
+  } else if (typeof config.rl.override_min_confidence !== 'number' ||
+             !Number.isFinite(config.rl.override_min_confidence)) {
+    errors.push('rl.override_min_confidence must be a finite number');
+  }
+  if (!config.sections || typeof config.sections !== 'object') {
+    errors.push('sections must be an object');
+  }
+
+  // 4. Walk all params in sections – validate numeric values and bounds
+  if (config.sections && typeof config.sections === 'object') {
+    for (const [sectionName, section] of Object.entries(config.sections)) {
+      if (!section || typeof section !== 'object') continue;
+      const params = section.params || section;
+
+      if (typeof params !== 'object') continue;
+
+      for (const [paramName, paramDef] of Object.entries(params)) {
+        if (!paramDef || typeof paramDef !== 'object') continue;
+        const prefix = `sections.${sectionName}.${paramName}`;
+
+        // Check value if present and numeric
+        if ('value' in paramDef && typeof paramDef.value === 'number') {
+          if (!Number.isFinite(paramDef.value)) {
+            errors.push(`${prefix}.value is not a finite number`);
+          }
+        }
+
+        // Check bounds (soft and hard)
+        for (const boundsType of ['soft', 'hard']) {
+          const bounds = paramDef[boundsType];
+          if (!bounds || typeof bounds !== 'object') continue;
+
+          for (const edge of ['min', 'max']) {
+            if (edge in bounds) {
+              const v = bounds[edge];
+              if (v === null || v === undefined || (typeof v === 'number' && !Number.isFinite(v))) {
+                errors.push(`${prefix}.${boundsType}.${edge} is not a finite number (got ${v})`);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
 module.exports = {
   loadRlState,
   saveRlState,
@@ -533,4 +724,7 @@ module.exports = {
   loadWithRecovery,
   cleanupSnapshots,
   getSnapshotsDir,
+  // Rollback and integrity
+  rollback,
+  validateIntegrity,
 };

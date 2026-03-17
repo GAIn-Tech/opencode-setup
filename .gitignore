@@ -72,3 +72,5 @@ nul
 # Test output directories
 **/test-output/
 evidence-*.md
+test-output*.txt
+test-regression*.txt

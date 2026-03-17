@@ -2,6 +2,7 @@ import { readdirSync, readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { NextResponse } from 'next/server';
+import { errorResponse } from '../_lib/error-response';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,9 +46,6 @@ export async function GET() {
   try {
     return NextResponse.json(readBudgetSummaries());
   } catch (error: unknown) {
-    return NextResponse.json(
-      { error: 'Failed to fetch budget summaries', message: error instanceof Error ? error.message : String(error) },
-      { status: 500 }
-    );
+    return errorResponse('Failed to fetch budget summaries', 500, error instanceof Error ? error.message : String(error));
   }
 }

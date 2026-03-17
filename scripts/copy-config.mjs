@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, renameSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { createHash } from 'node:crypto';
+import { hostname, tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolvePath, userConfigDir, userDataDir } from './resolve-root.mjs';
@@ -26,8 +27,8 @@ const CONFIG_FILES = [
 
 const CONFIG_DIRS = [
   'commands',
-  'agents',
   'docs',
+  'learning-updates',
   'models',
   'supermemory',
   // NOTE: 'skills' is intentionally excluded — handled below with MERGE logic
@@ -41,6 +42,17 @@ const MERGE_DIRS = [
 ];
 
 const backupEnabled = String(process.env.OPENCODE_COPY_CONFIG_BACKUP || '1') !== '0';
+
+export const DEPRECATED_REPO_AGENT_FILES = [
+  'code-searcher.md',
+  'codebase-auditor.md',
+  'distill-compressor.md',
+  'memory-keeper.md',
+  'playwright-browser.md',
+  'researcher.md',
+  'thinker.md',
+  'librarian.md',
+];
 
 function readDormantMcpNames(configDir = SOURCE_CONFIG_DIR) {
   const dormantPolicyPath = path.join(configDir, 'mcp-dormant-policy.json');
@@ -58,6 +70,25 @@ function readDormantMcpNames(configDir = SOURCE_CONFIG_DIR) {
 
 export function buildRuntimeSafeUserConfig(canonicalConfig, userConfig, dormantMcpNames = new Set()) {
   return mergeMcpIntoUserConfig(userConfig, canonicalConfig, { dormantMcpNames });
+}
+
+export function pruneDeprecatedRuntimeAgentPrompts(targetConfigDir = TARGET_CONFIG_DIR, deprecatedFiles = DEPRECATED_REPO_AGENT_FILES) {
+  const agentsDir = path.join(targetConfigDir, 'agents');
+  if (!existsSync(agentsDir)) {
+    return [];
+  }
+
+  const removed = [];
+  for (const fileName of deprecatedFiles) {
+    const filePath = path.join(agentsDir, fileName);
+    if (!existsSync(filePath)) {
+      continue;
+    }
+    rmSync(filePath, { force: true });
+    removed.push(fileName);
+  }
+
+  return removed;
 }
 
 function syncRuntimeSafeUserConfig() {
@@ -99,7 +130,7 @@ function stageOperations(stagingRoot) {
     operations.push({ label: fileName, stagedPath, targetPath });
   }
 
-  for (const dirName of [...CONFIG_DIRS, 'learning-updates']) {
+  for (const dirName of CONFIG_DIRS) {
     const sourcePath = path.join(SOURCE_CONFIG_DIR, dirName);
     const targetPath = path.join(TARGET_CONFIG_DIR, dirName);
     if (!existsSync(sourcePath)) {
@@ -158,6 +189,36 @@ function rollbackOperations(operations) {
   }
 }
 
+export function writeConfigManifest(runtimeConfigDir, configFiles) {
+  const manifestPath = path.join(runtimeConfigDir, 'config-manifest.json');
+  let existingManifest = null;
+
+  if (existsSync(manifestPath)) {
+    try {
+      existingManifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+    } catch {
+      existingManifest = null;
+    }
+  }
+
+  const files = {};
+  for (const fileName of configFiles) {
+    const filePath = path.join(runtimeConfigDir, fileName);
+    if (!existsSync(filePath)) continue;
+    const digest = createHash('sha256').update(readFileSync(filePath)).digest('hex');
+    files[fileName] = digest;
+  }
+
+  const manifest = {
+    version: ((existingManifest && existingManifest.version) || 0) + 1,
+    lastSync: new Date().toISOString(),
+    machineId: hostname(),
+    files,
+  };
+
+  writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+}
+
 function main() {
   ensureDir(TARGET_CONFIG_DIR);
   ensureDir(TARGET_DATA_DIR);
@@ -202,7 +263,13 @@ function main() {
     rmSync(stagingRoot, { recursive: true, force: true });
   }
 
+  const removedAgentPrompts = pruneDeprecatedRuntimeAgentPrompts();
+  if (removedAgentPrompts.length > 0) {
+    console.log(`[copy-config] Removed deprecated agent prompts: ${removedAgentPrompts.join(', ')}`);
+  }
+
   syncRuntimeSafeUserConfig();
+  writeConfigManifest(TARGET_CONFIG_DIR, CONFIG_FILES);
   console.log('[copy-config] Configuration sync complete');
 }
 
