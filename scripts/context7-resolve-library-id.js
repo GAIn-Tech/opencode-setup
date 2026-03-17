@@ -14,6 +14,7 @@
 import { spawn } from 'child_process';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { whichSync } from 'which';
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -26,18 +27,49 @@ if (!libraryName) {
   process.exit(1);
 }
 
+/**
+ * Check if a command exists before trying to spawn it
+ * Prevents Bun segfaults from ENOENT
+ * @param {string} command - Command or path to check
+ * @returns {boolean} True if executable exists
+ */
+function commandExists(command) {
+  // Guard against undefined/null/non-string command
+  if (!command || typeof command !== "string") {
+    return false;
+  }
+  // Check if it's a path
+  if (command.includes('/') || command.includes('\\')) {
+    return false; // We don't check file paths in this script
+  }
+  
+  // Check if it's in PATH using which
+  try {
+    return !!whichSync(command);
+  } catch {
+    return false;
+  }
+}
+
 // Check if npx is available
 async function checkNpx() {
-  return new Promise((resolve) => {
-    // Try npx first, fall back to npm exec
-    const check = spawn('npx', ['--version'], { stdio: 'pipe', shell: true });
-    check.on('close', (code) => resolve(code === 0));
-    check.on('error', () => {
-      // Fall back to npm exec
+  // Check if npx exists first to prevent ENOENT crash
+  if (!commandExists('npx')) {
+    // Fall back to npm exec check
+    if (!commandExists('npm')) {
+      return false;
+    }
+    return new Promise((resolve) => {
       const npmCheck = spawn('npm', ['exec', '--version'], { stdio: 'pipe', shell: true });
       npmCheck.on('close', (code) => resolve(code === 0));
       npmCheck.on('error', () => resolve(false));
     });
+  }
+  
+  return new Promise((resolve) => {
+    const check = spawn('npx', ['--version'], { stdio: 'pipe', shell: true });
+    check.on('close', (code) => resolve(code === 0));
+    check.on('error', () => resolve(false));
   });
 }
 
@@ -52,43 +84,14 @@ async function runContext7Library(libraryName, query) {
     
     console.error(`Running: npx ${cmdArgs.join(' ')}`);
     
-    // Try npx first, fall back to npm exec
-    const child = spawn('npx', cmdArgs, {
-      stdio: ['pipe', 'pipe', 'pipe'],
-      shell: true
-    });
-    
-    let stdout = '';
-    let stderr = '';
-    
-    child.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-    
-    child.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-    
-    child.on('close', (code) => {
-      if (code !== 0) {
-        console.error(`ctx7 exited with code ${code}: ${stderr}`);
-        reject(new Error(`ctx7 failed: ${stderr}`));
+    // Check if npx exists first to prevent ENOENT crash
+    if (!commandExists('npx')) {
+      // Try npm exec as fallback
+      if (!commandExists('npm')) {
+        reject(new Error('Neither npx nor npm found in PATH'));
         return;
       }
-      
-      try {
-        const result = JSON.parse(stdout);
-        resolve(result);
-      } catch (error) {
-        console.error(`Failed to parse JSON: ${error.message}`);
-        console.error(`Raw output: ${stdout}`);
-        reject(new Error(`Invalid JSON from ctx7: ${error.message}`));
-      }
-    });
-    
-    child.on('error', (error) => {
-      console.error(`Failed to spawn npx, trying npm exec: ${error.message}`);
-      // Fall back to npm exec
+      console.error('npx not found, falling back to npm exec');
       const npmCmdArgs = ['exec', ...cmdArgs];
       const npmChild = spawn('npm', npmCmdArgs, {
         stdio: ['pipe', 'pipe', 'pipe'],
@@ -127,6 +130,46 @@ async function runContext7Library(libraryName, query) {
         console.error(`Failed to spawn npm exec: ${npmError.message}`);
         reject(new Error(`npm exec failed: ${npmError.message}`));
       });
+      return;
+    }
+    
+    // Try npx first, fall back to npm exec
+    const child = spawn('npx', cmdArgs, {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      shell: true
+    });
+    
+    let stdout = '';
+    let stderr = '';
+    
+    child.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+    
+    child.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+    
+    child.on('close', (code) => {
+      if (code !== 0) {
+        console.error(`ctx7 exited with code ${code}: ${stderr}`);
+        reject(new Error(`ctx7 failed: ${stderr}`));
+        return;
+      }
+      
+      try {
+        const result = JSON.parse(stdout);
+        resolve(result);
+      } catch (error) {
+        console.error(`Failed to parse JSON: ${error.message}`);
+        console.error(`Raw output: ${stdout}`);
+        reject(new Error(`Invalid JSON from ctx7: ${error.message}`));
+      }
+    });
+    
+    child.on('error', (error) => {
+      console.error(`Failed to spawn npx: ${error.message}`);
+      reject(new Error(`npx spawn failed: ${error.message}`));
     });
   });
 }

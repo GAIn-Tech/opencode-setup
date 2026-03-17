@@ -3,6 +3,31 @@ const path = require('path');
 const { spawn } = require('child_process');
 const os = require('os');
 const { safeJsonParse } = require('opencode-safe-io');
+const { whichSync } = require('which');
+
+/**
+ * Check if a command exists before trying to spawn it
+ * Prevents Bun segfaults from ENOENT
+ * @param {string} command - Command or path to check
+ * @returns {boolean} True if executable exists
+ */
+function commandExists(command) {
+  // Guard against undefined/null/non-string command
+  if (!command || typeof command !== "string") {
+    return false;
+  }
+  // Check if it's a path
+  if (command.includes('/') || command.includes('\\')) {
+    return fs.existsSync(command);
+  }
+  
+  // Check if it's in PATH using which
+  try {
+    return !!whichSync(command);
+  } catch {
+    return false;
+  }
+}
 
 // Load config from file directly to avoid dependency issues
 function loadConfig() {
@@ -139,6 +164,12 @@ function openBrowser(port) {
   // Wait 2s for server to be ready
   setTimeout(() => {
     try {
+      // Check if command exists before spawn to prevent ENOENT crash
+      if (!commandExists(command)) {
+        console.warn(`[DashboardLauncher] Command not found: ${command}. Skipping browser open.`);
+        return;
+      }
+      
       const proc = spawn(command, [url], { 
         detached: true, 
         stdio: 'ignore',
@@ -184,6 +215,14 @@ function launchDashboard() {
   }
   
   const outFd = fs.openSync(LOG_FILE, 'a');
+
+  // Check if command exists before spawn to prevent ENOENT crash
+  if (!commandExists(command)) {
+    const error = `Command not found: ${command}. Cannot launch dashboard.`;
+    console.error(`[DashboardLauncher] ${error}`);
+    fs.closeSync(outFd);
+    throw new Error(error);
+  }
 
   const child = spawn(command, args, {
     cwd: DASHBOARD_DIR,

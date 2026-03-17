@@ -6,6 +6,7 @@ import { spawn } from 'child_process';
 import { setTimeout as sleep } from 'timers/promises';
 import { resolveRoot } from './resolve-root.mjs';
 import { createRequire } from 'module';
+import { whichSync } from 'which';
 
 const root = resolveRoot();
 const require = createRequire(import.meta.url);
@@ -107,7 +108,36 @@ async function fetchJson(url) {
   return response.json();
 }
 
+/**
+ * Check if a command exists before trying to spawn it
+ * Prevents Bun segfaults from ENOENT
+ * @param {string} command - Command or path to check
+ * @returns {boolean} True if executable exists
+ */
+function commandExists(command) {
+  // Guard against undefined/null/non-string command
+  if (!command || typeof command !== "string") {
+    return false;
+  }
+  // Check if it's a path
+  if (command.includes('/') || command.includes('\\')) {
+    return false; // We don't check file paths in this script
+  }
+  
+  // Check if it's in PATH using which
+  try {
+    return !!whichSync(command);
+  } catch {
+    return false;
+  }
+}
+
 async function withServer(port, fn) {
+  // Check if opencode exists first to prevent ENOENT crash
+  if (!commandExists('opencode')) {
+    throw new Error('Command not found: opencode. Cannot start server.');
+  }
+  
   const child = spawn('opencode', ['serve', '--port', String(port)], {
     cwd: root,
     stdio: ['ignore', 'pipe', 'pipe'],

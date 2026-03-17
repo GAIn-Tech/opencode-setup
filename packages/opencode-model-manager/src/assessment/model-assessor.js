@@ -547,6 +547,40 @@ class ModelAssessor {
   async _runPythonValidation(problem, generatedCode) {
     const script = buildPythonValidationScript(problem, generatedCode);
     const { spawn } = require('child_process');
+    const { whichSync } = require('which');
+
+    /**
+     * Check if a command exists before trying to spawn it
+     * Prevents Bun segfaults from ENOENT
+     * @param {string} command - Command or path to check
+     * @returns {boolean} True if executable exists
+     */
+    function commandExists(command) {
+      // Guard against undefined/null/non-string command
+      if (!command || typeof command !== "string") {
+        return false;
+      }
+      // Check if it's a path
+      if (command.includes('/') || command.includes('\\')) {
+        return false; // We don't check file paths in this script
+      }
+      
+      // Check if it's in PATH using which
+      try {
+        return !!whichSync(command);
+      } catch {
+        return false;
+      }
+    }
+
+    // Check if python exists first to prevent ENOENT crash
+    if (!commandExists('python')) {
+      return {
+        passed: false,
+        error: 'Command not found: python',
+        diagnostics: []
+      };
+    }
 
     const execution = new Promise((resolve, reject) => {
       const child = spawn('python', ['-c', script], {

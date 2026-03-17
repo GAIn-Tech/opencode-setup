@@ -16,5 +16,7 @@
   ],
   "author": "OpenCode",
   "license": "MIT",
-  "dependencies": {}
+  "dependencies": {
+    "which": "^3.0.1"
+  }
 }

@@ -20,6 +20,7 @@
 import { spawn } from 'child_process';
 import { existsSync } from 'fs';
 import { join } from 'path';
+import { whichSync } from 'which';
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -36,8 +37,37 @@ if (!command) {
   process.exit(1);
 }
 
+/**
+ * Check if a command exists before trying to spawn it
+ * Prevents Bun segfaults from ENOENT
+ * @param {string} command - Command or path to check
+ * @returns {boolean} True if executable exists
+ */
+function commandExists(command) {
+  // Guard against undefined/null/non-string command
+  if (!command || typeof command !== "string") {
+    return false;
+  }
+  // Check if it's a path
+  if (command.includes('/') || command.includes('\\')) {
+    return false; // We don't check file paths in this script
+  }
+  
+  // Check if it's in PATH using which
+  try {
+    return !!whichSync(command);
+  } catch {
+    return false;
+  }
+}
+
 // Check if gh command is available
 async function checkGhCommand() {
+  // Check if gh exists first to prevent ENOENT crash
+  if (!commandExists('gh')) {
+    return false;
+  }
+  
   return new Promise((resolve) => {
     const check = spawn('gh', ['--version'], { stdio: 'pipe', shell: true });
     check.on('close', (code) => resolve(code === 0));

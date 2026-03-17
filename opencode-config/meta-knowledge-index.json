@@ -1,13 +1,29 @@
 {
-  "generated_at": "2026-03-17T13:58:59.039Z",
+  "generated_at": "2026-03-17T14:49:45.593Z",
   "schema_version": 1,
-  "total_records": 348,
+  "total_records": 349,
   "source_files": {
-    "learning_updates": 348,
+    "learning_updates": 349,
     "agents_md": 7
   },
   "by_category": {
     "dashboard": [
+      {
+        "id": "check-command-existence-before-spawn-2026-03-17",
+        "summary": "Updated 8 files to check command existence before spawn to prevent Bun v1.3.x ENOENT segfault, added 'which' dependency to 2 packages",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard-launcher/src/index.js",
+          "packages/opencode-dashboard-launcher/package.json",
+          "scripts/context7-resolve-library-id.js",
+          "scripts/github-tool.js",
+          "scripts/context7-query-docs.js",
+          "scripts/runtime-tool-surface-proof.mjs",
+          "packages/opencode-model-manager/src/assessment/model-assessor.js",
+          "packages/opencode-model-manager/package.json"
+        ],
+        "timestamp": "2026-03-17T01:53:20.000Z"
+      },
       {
         "id": "replace-silent-catch-blocks-2026-03-17",
         "summary": "Updated three API route files to use standardized errorResponse() utility for consistent error formatting instead of manual NextResponse.json() calls",
@@ -4212,6 +4228,22 @@
   "by_risk_level": {
     "low": [
       {
+        "id": "check-command-existence-before-spawn-2026-03-17",
+        "summary": "Updated 8 files to check command existence before spawn to prevent Bun v1.3.x ENOENT segfault, added 'which' dependency to 2 packages",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-dashboard-launcher/src/index.js",
+          "packages/opencode-dashboard-launcher/package.json",
+          "scripts/context7-resolve-library-id.js",
+          "scripts/github-tool.js",
+          "scripts/context7-query-docs.js",
+          "scripts/runtime-tool-surface-proof.mjs",
+          "packages/opencode-model-manager/src/assessment/model-assessor.js",
+          "packages/opencode-model-manager/package.json"
+        ],
+        "timestamp": "2026-03-17T01:53:20.000Z"
+      },
+      {
         "id": "replace-silent-catch-blocks-2026-03-17",
         "summary": "Updated three API route files to use standardized errorResponse() utility for consistent error formatting instead of manual NextResponse.json() calls",
         "risk_level": "low",
@@ -8328,6 +8360,288 @@
     "high": []
   },
   "by_affected_path": {
+    "packages/opencode-dashboard-launcher": [
+      {
+        "id": "check-command-existence-before-spawn-2026-03-17",
+        "summary": "Updated 8 files to check command existence before spawn to prevent Bun v1.3.x ENOENT segfault, added 'which' dependency to 2 packages",
+        "risk_level": "low",
+        "timestamp": "2026-03-17T01:53:20.000Z"
+      },
+      {
+        "id": "wave8-readme-infra-packages-20260308",
+        "summary": "Add README.md to five infrastructure packages that had none: opencode-backup-manager, opencode-circuit-breaker, opencode-dashboard-launcher, opencode-errors, opencode-safe-io. Completes Wave 8C task 8 for the infrastructure tier.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:15:00Z"
+      },
+      {
+        "id": "external-call-timeouts-20260225",
+        "summary": "Add explicit timeouts to 7 external call sites that could hang indefinitely",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T17:00:00Z"
+      },
+      {
+        "id": "smoke-tests-16-packages-20260225",
+        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:55:00Z"
+      },
+      {
+        "id": "unused-deps-removal-20260225",
+        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00.000Z"
+      },
+      {
+        "id": "json-parse-migration-20260225",
+        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "round1-3-integrations-complete-20260217",
+        "summary": "All 30 integration items completed across 3 rounds - fully interconnected packages",
+        "risk_level": "low",
+        "timestamp": "2026-02-17T00:00:00Z"
+      },
+      {
+        "id": "dashboard-autostart-wrapper-and-windows-launch-fix-20260216",
+        "summary": "Fixed dashboard launcher reliability on Windows and added opencode wrapper for guaranteed dashboard startup",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T02:40:00Z"
+      },
+      {
+        "id": "dashboard-v2-implementation-20260215",
+        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:00:00Z"
+      }
+    ],
+    "scripts/context7-resolve-library-id.js": [
+      {
+        "id": "check-command-existence-before-spawn-2026-03-17",
+        "summary": "Updated 8 files to check command existence before spawn to prevent Bun v1.3.x ENOENT segfault, added 'which' dependency to 2 packages",
+        "risk_level": "low",
+        "timestamp": "2026-03-17T01:53:20.000Z"
+      }
+    ],
+    "scripts/github-tool.js": [
+      {
+        "id": "check-command-existence-before-spawn-2026-03-17",
+        "summary": "Updated 8 files to check command existence before spawn to prevent Bun v1.3.x ENOENT segfault, added 'which' dependency to 2 packages",
+        "risk_level": "low",
+        "timestamp": "2026-03-17T01:53:20.000Z"
+      }
+    ],
+    "scripts/context7-query-docs.js": [
+      {
+        "id": "check-command-existence-before-spawn-2026-03-17",
+        "summary": "Updated 8 files to check command existence before spawn to prevent Bun v1.3.x ENOENT segfault, added 'which' dependency to 2 packages",
+        "risk_level": "low",
+        "timestamp": "2026-03-17T01:53:20.000Z"
+      }
+    ],
+    "scripts/runtime-tool-surface-proof.mjs": [
+      {
+        "id": "check-command-existence-before-spawn-2026-03-17",
+        "summary": "Updated 8 files to check command existence before spawn to prevent Bun v1.3.x ENOENT segfault, added 'which' dependency to 2 packages",
+        "risk_level": "low",
+        "timestamp": "2026-03-17T01:53:20.000Z"
+      },
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "protocol-compliance-pass-20260311",
+        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T21:20:00Z"
+      }
+    ],
+    "packages/opencode-model-manager": [
+      {
+        "id": "check-command-existence-before-spawn-2026-03-17",
+        "summary": "Updated 8 files to check command existence before spawn to prevent Bun v1.3.x ENOENT segfault, added 'which' dependency to 2 packages",
+        "risk_level": "low",
+        "timestamp": "2026-03-17T01:53:20.000Z"
+      },
+      {
+        "id": "standardize-error-response-2026-03-17",
+        "summary": "Standardized error response format across OpenCode dashboard API routes by creating centralized error-response.ts utility and updating all routes to use consistent errorResponse() and successResponse() functions",
+        "risk_level": "low",
+        "timestamp": "2026-03-17T00:00:00.000Z"
+      },
+      {
+        "id": "snapshot-schema-unification-2026-03-16",
+        "summary": "Unified snapshot schema validation into shared module with exact spec content. Updated validateSnapshot error messages and normalizeSnapshot behavior (rawPayloadHash defaults to undefined, metadata only set when present). Fixed cloneSnapshot null-safety for undefined metadata. Added 8 comprehensive tests.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T22:00:00Z"
+      },
+      {
+        "id": "perf-optimization-indexes-2026-03-16",
+        "summary": "Added DB indexes to audit-logger.js for query performance. Tasks 5 and 6 already implemented.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T19:35:00Z"
+      },
+      {
+        "id": "portability-fixes-canonical-paths-2026-03-14",
+        "summary": "Fixed cross-machine portability: replaced relative DB paths with canonical ~/.opencode/ paths in audit-logger and state-machine, added dir creation before audit writes, replaced hardcoded Windows path with os.homedir(), added learning-updates to CONFIG_DIRS, documented plugins architecture",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T19:30:00Z"
+      },
+      {
+        "id": "fix-context-management-test-isolation-2026-03-14",
+        "summary": "Fix test isolation in context-management.test.js: clean up SQLite DB files between test runs, clear persistence in reset(), fix avgCompressionRatio empty defaults from 1 to 0",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T08:00:00.000Z"
+      },
+      {
+        "id": "boundary-and-schema-hardening-2026-03-14",
+        "summary": "Extended ci-boundary-enforce.mjs to scan ALL packages (not just dashboard API) for forbidden opencode-model-manager internal imports. Created shared CJS snapshot-schema.js module with validateSnapshot() and normalizeSnapshot(), refactored snapshot-store.js and model-rollback.mjs to use it, eliminating schema validation duplication.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "multi-process-transition-safety-2026-03-14",
+        "summary": "Fixed multi-process race condition in state-machine.js _persistTransition() by adding atomic compare-and-swap verification inside BEGIN IMMEDIATE transaction. Reads current DB state after acquiring write lock, throws STALE_STATE error on mismatch. Added regression test using dual StateMachine instances with deferred() gating.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "package-smoke-entrypoints-20260310",
+        "summary": "Add test:smoke entrypoints for critical packages so workspace-level smoke orchestration can verify package surfaces consistently.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:55:00-04:00"
+      },
+      {
+        "id": "metrics-persistence-observability-20260309",
+        "summary": "Unify compression and Context7 monitoring collection, expose them in snapshots, and read persisted history so fresh processes can serve observability data.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-09T22:46:00-04:00"
+      },
+      {
+        "id": "wave10-observability-persistence",
+        "summary": "Add opt-in Langfuse tracing to opencode-logger (WARN+ levels) and SQLite daily-metrics persistence to pipeline metrics collector (bun:sqlite with better-sqlite3 fallback)",
+        "risk_level": "medium",
+        "timestamp": "2026-03-08T22:35:00Z"
+      },
+      {
+        "id": "wave11-t18-t15-budget-alerts-dashboard",
+        "summary": "Add BUDGET_THRESHOLD alert type with evaluateBudget() to AlertManager (75/80/95% thresholds). Add Context Budget dashboard widget with compression stats, Context7 stats, and color-coded budget bars to observability page.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:20:00Z"
+      },
+      {
+        "id": "wave11-t16-t17-compression-context7-metrics",
+        "summary": "Add distill compression tracking (recordCompression, getCompressionStats) and Context7 lookup tracking (recordContext7Lookup, getContext7Stats) to PipelineMetricsCollector with SQLite persistence tables",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:15:00Z"
+      },
+      {
+        "id": "external-call-timeouts-20260225",
+        "summary": "Add explicit timeouts to 7 external call sites that could hang indefinitely",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T17:00:00Z"
+      },
+      {
+        "id": "audit-log-cap-rotation-20260225",
+        "summary": "Cap change-event-system audit log at 10k events with 7-day TTL to prevent unbounded memory growth and write latency spikes",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "reduce-explicit-any-types-20260225",
+        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "wave-1-async-io-complete-20260225",
+        "summary": "Wave 1: Async I/O conversion for config-loader, learning-engine, and model-manager to eliminate event loop blocking",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T02:32:00.000Z"
+      },
+      {
+        "id": "command-injection-fix-20260225",
+        "summary": "Security hardening: fix command injection in pr-generator execSync calls",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "model-manager-alert-writequeue-bounds-20260225",
+        "summary": "Added maxHistorySize cap to AlertManager and maxPendingWrites backpressure to AuditLogger writeQueue",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "model-manager-bounded-arrays-20260225",
+        "summary": "Added maxEvents cap with FIFO eviction to PipelineMetricsCollector event arrays",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "model-manager-readme-20260224",
+        "summary": "Added comprehensive README for opencode-model-manager package",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T10:15:00Z"
+      },
+      {
+        "id": "docs-wave7-20260224",
+        "summary": "Added comprehensive secrets and rollback documentation",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T09:00:00Z"
+      },
+      {
+        "id": "validation-wave7-20260224",
+        "summary": "Added catalog validation pipeline with comprehensive checks",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T08:30:00Z"
+      },
+      {
+        "id": "automation-wave7-20260224",
+        "summary": "Added PR automation and CI workflow for model catalog sync",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T08:00:00Z"
+      },
+      {
+        "id": "model-manager-lifecycle-wave5-20260224",
+        "summary": "Implement Wave 5 of automated model management protocol: 5-state lifecycle state machine, tamper-evident audit logger, and risk-based auto-approval rules engine.",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T02:35:00Z"
+      },
+      {
+        "id": "model-management-wave1-20260224",
+        "summary": "Wave 1: Provider Adapter Framework - Foundation for automated model management protocol",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "model-management-wave2-20260224",
+        "summary": "Wave 2: Discovery Engine & Caching - Resilient model discovery with two-tier caching and circuit breaker protection",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "model-management-wave3-20260224",
+        "summary": "Wave 3: Snapshot Store & Diff Engine - Change detection and audit logging for automated model management",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "model-manager-assessment-wave4-20260224",
+        "summary": "Implement Wave 4 assessment infrastructure for automated model management: model assessor with real benchmark execution (HumanEval, MBPP, latency) and metrics collector for 4-pillar metrics (accuracy, latency, cost, robustness) with SQLite persistence and z-score normalization.",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      }
+    ],
     "packages/opencode-dashboard": [
       {
         "id": "replace-silent-catch-blocks-2026-03-17",
@@ -8634,176 +8948,6 @@
         "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
         "risk_level": "low",
         "timestamp": "2026-02-15T12:30:00Z"
-      }
-    ],
-    "packages/opencode-model-manager": [
-      {
-        "id": "standardize-error-response-2026-03-17",
-        "summary": "Standardized error response format across OpenCode dashboard API routes by creating centralized error-response.ts utility and updating all routes to use consistent errorResponse() and successResponse() functions",
-        "risk_level": "low",
-        "timestamp": "2026-03-17T00:00:00.000Z"
-      },
-      {
-        "id": "snapshot-schema-unification-2026-03-16",
-        "summary": "Unified snapshot schema validation into shared module with exact spec content. Updated validateSnapshot error messages and normalizeSnapshot behavior (rawPayloadHash defaults to undefined, metadata only set when present). Fixed cloneSnapshot null-safety for undefined metadata. Added 8 comprehensive tests.",
-        "risk_level": "low",
-        "timestamp": "2026-03-16T22:00:00Z"
-      },
-      {
-        "id": "perf-optimization-indexes-2026-03-16",
-        "summary": "Added DB indexes to audit-logger.js for query performance. Tasks 5 and 6 already implemented.",
-        "risk_level": "low",
-        "timestamp": "2026-03-16T19:35:00Z"
-      },
-      {
-        "id": "portability-fixes-canonical-paths-2026-03-14",
-        "summary": "Fixed cross-machine portability: replaced relative DB paths with canonical ~/.opencode/ paths in audit-logger and state-machine, added dir creation before audit writes, replaced hardcoded Windows path with os.homedir(), added learning-updates to CONFIG_DIRS, documented plugins architecture",
-        "risk_level": "low",
-        "timestamp": "2026-03-14T19:30:00Z"
-      },
-      {
-        "id": "fix-context-management-test-isolation-2026-03-14",
-        "summary": "Fix test isolation in context-management.test.js: clean up SQLite DB files between test runs, clear persistence in reset(), fix avgCompressionRatio empty defaults from 1 to 0",
-        "risk_level": "low",
-        "timestamp": "2026-03-14T08:00:00.000Z"
-      },
-      {
-        "id": "boundary-and-schema-hardening-2026-03-14",
-        "summary": "Extended ci-boundary-enforce.mjs to scan ALL packages (not just dashboard API) for forbidden opencode-model-manager internal imports. Created shared CJS snapshot-schema.js module with validateSnapshot() and normalizeSnapshot(), refactored snapshot-store.js and model-rollback.mjs to use it, eliminating schema validation duplication.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-14T00:00:00.000Z"
-      },
-      {
-        "id": "multi-process-transition-safety-2026-03-14",
-        "summary": "Fixed multi-process race condition in state-machine.js _persistTransition() by adding atomic compare-and-swap verification inside BEGIN IMMEDIATE transaction. Reads current DB state after acquiring write lock, throws STALE_STATE error on mismatch. Added regression test using dual StateMachine instances with deferred() gating.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-14T00:00:00.000Z"
-      },
-      {
-        "id": "package-smoke-entrypoints-20260310",
-        "summary": "Add test:smoke entrypoints for critical packages so workspace-level smoke orchestration can verify package surfaces consistently.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:55:00-04:00"
-      },
-      {
-        "id": "metrics-persistence-observability-20260309",
-        "summary": "Unify compression and Context7 monitoring collection, expose them in snapshots, and read persisted history so fresh processes can serve observability data.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-09T22:46:00-04:00"
-      },
-      {
-        "id": "wave10-observability-persistence",
-        "summary": "Add opt-in Langfuse tracing to opencode-logger (WARN+ levels) and SQLite daily-metrics persistence to pipeline metrics collector (bun:sqlite with better-sqlite3 fallback)",
-        "risk_level": "medium",
-        "timestamp": "2026-03-08T22:35:00Z"
-      },
-      {
-        "id": "wave11-t18-t15-budget-alerts-dashboard",
-        "summary": "Add BUDGET_THRESHOLD alert type with evaluateBudget() to AlertManager (75/80/95% thresholds). Add Context Budget dashboard widget with compression stats, Context7 stats, and color-coded budget bars to observability page.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:20:00Z"
-      },
-      {
-        "id": "wave11-t16-t17-compression-context7-metrics",
-        "summary": "Add distill compression tracking (recordCompression, getCompressionStats) and Context7 lookup tracking (recordContext7Lookup, getContext7Stats) to PipelineMetricsCollector with SQLite persistence tables",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:15:00Z"
-      },
-      {
-        "id": "external-call-timeouts-20260225",
-        "summary": "Add explicit timeouts to 7 external call sites that could hang indefinitely",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T17:00:00Z"
-      },
-      {
-        "id": "audit-log-cap-rotation-20260225",
-        "summary": "Cap change-event-system audit log at 10k events with 7-day TTL to prevent unbounded memory growth and write latency spikes",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "reduce-explicit-any-types-20260225",
-        "summary": "Replace 125+ explicit any annotations and 8 as-any casts with proper types across the monorepo",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "wave-1-async-io-complete-20260225",
-        "summary": "Wave 1: Async I/O conversion for config-loader, learning-engine, and model-manager to eliminate event loop blocking",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T02:32:00.000Z"
-      },
-      {
-        "id": "command-injection-fix-20260225",
-        "summary": "Security hardening: fix command injection in pr-generator execSync calls",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "model-manager-alert-writequeue-bounds-20260225",
-        "summary": "Added maxHistorySize cap to AlertManager and maxPendingWrites backpressure to AuditLogger writeQueue",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "model-manager-bounded-arrays-20260225",
-        "summary": "Added maxEvents cap with FIFO eviction to PipelineMetricsCollector event arrays",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "model-manager-readme-20260224",
-        "summary": "Added comprehensive README for opencode-model-manager package",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T10:15:00Z"
-      },
-      {
-        "id": "docs-wave7-20260224",
-        "summary": "Added comprehensive secrets and rollback documentation",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T09:00:00Z"
-      },
-      {
-        "id": "validation-wave7-20260224",
-        "summary": "Added catalog validation pipeline with comprehensive checks",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T08:30:00Z"
-      },
-      {
-        "id": "automation-wave7-20260224",
-        "summary": "Added PR automation and CI workflow for model catalog sync",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T08:00:00Z"
-      },
-      {
-        "id": "model-manager-lifecycle-wave5-20260224",
-        "summary": "Implement Wave 5 of automated model management protocol: 5-state lifecycle state machine, tamper-evident audit logger, and risk-based auto-approval rules engine.",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T02:35:00Z"
-      },
-      {
-        "id": "model-management-wave1-20260224",
-        "summary": "Wave 1: Provider Adapter Framework - Foundation for automated model management protocol",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "model-management-wave2-20260224",
-        "summary": "Wave 2: Discovery Engine & Caching - Resilient model discovery with two-tier caching and circuit breaker protection",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "model-management-wave3-20260224",
-        "summary": "Wave 3: Snapshot Store & Diff Engine - Change detection and audit logging for automated model management",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "model-manager-assessment-wave4-20260224",
-        "summary": "Implement Wave 4 assessment infrastructure for automated model management: model assessor with real benchmark execution (HumanEval, MBPP, latency) and metrics collector for 4-pillar metrics (accuracy, latency, cost, robustness) with SQLite persistence and z-score normalization.",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
       }
     ],
     "opencode-config/skills": [
@@ -11860,26 +12004,6 @@
         "timestamp": "2026-03-11T22:05:00Z"
       }
     ],
-    "scripts/runtime-tool-surface-proof.mjs": [
-      {
-        "id": "mcp-runtime-governance-20260311",
-        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
-        "risk_level": "low",
-        "timestamp": "2026-03-11T23:10:00Z"
-      },
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "protocol-compliance-pass-20260311",
-        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T21:20:00Z"
-      }
-    ],
     "scripts/runtime-tool-telemetry.mjs": [
       {
         "id": "mcp-runtime-governance-20260311",
@@ -12810,56 +12934,6 @@
         "summary": "Removed 9 orphaned exports with zero cross-package imports: circuitBreakerRegistry/CircuitBreakerRegistry/CircuitOpenError from circuit-breaker, RequestTracer/LOG_LEVELS from logger, KNOWN_BAD_PLUGINS/DEFAULT_MCPS from plugin-healthd, toJSON/toCSV from memory-graph.",
         "risk_level": "low",
         "timestamp": "2026-02-25T22:00:00Z"
-      }
-    ],
-    "packages/opencode-dashboard-launcher": [
-      {
-        "id": "wave8-readme-infra-packages-20260308",
-        "summary": "Add README.md to five infrastructure packages that had none: opencode-backup-manager, opencode-circuit-breaker, opencode-dashboard-launcher, opencode-errors, opencode-safe-io. Completes Wave 8C task 8 for the infrastructure tier.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:15:00Z"
-      },
-      {
-        "id": "external-call-timeouts-20260225",
-        "summary": "Add explicit timeouts to 7 external call sites that could hang indefinitely",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T17:00:00Z"
-      },
-      {
-        "id": "smoke-tests-16-packages-20260225",
-        "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:55:00Z"
-      },
-      {
-        "id": "unused-deps-removal-20260225",
-        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00.000Z"
-      },
-      {
-        "id": "json-parse-migration-20260225",
-        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "round1-3-integrations-complete-20260217",
-        "summary": "All 30 integration items completed across 3 rounds - fully interconnected packages",
-        "risk_level": "low",
-        "timestamp": "2026-02-17T00:00:00Z"
-      },
-      {
-        "id": "dashboard-autostart-wrapper-and-windows-launch-fix-20260216",
-        "summary": "Fixed dashboard launcher reliability on Windows and added opencode wrapper for guaranteed dashboard startup",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T02:40:00Z"
-      },
-      {
-        "id": "dashboard-v2-implementation-20260215",
-        "summary": "Comprehensive dashboard v2 implementation: SkillsRL APIs, KG interactive graph, provider status tracking, ConfigViewer forms, Models routing matrix, and smoke pipeline.",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:00:00Z"
       }
     ],
     "packages/opencode-errors": [
