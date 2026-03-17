@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
+import { requireReadAccess } from '../_lib/write-access';
+import { rateLimited } from '../_lib/api-response';
 
 export const dynamic = 'force-dynamic';
 
@@ -117,6 +119,18 @@ async function findDocs(): Promise<DocEntry[]> {
 }
 
 export async function GET(request: NextRequest) {
+  // Rate limiting
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? request.headers.get('x-real-ip') ?? 'unknown';
+  const { rateLimit } = await import('../_lib/rate-limit');
+  const rateLimitResult = rateLimit(`read:${ip}`, 50, 60000);
+  if (!rateLimitResult.allowed) {
+    return rateLimited('Too many requests', {
+      limit: rateLimitResult.limit,
+      remaining: rateLimitResult.remaining,
+      resetAt: rateLimitResult.resetAt
+    });
+  }
+
   const { searchParams } = new URL(request.url);
   const file = searchParams.get('file');
 

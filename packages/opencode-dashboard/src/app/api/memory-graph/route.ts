@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
-import { internalError } from '../_lib/api-response';
 
 export const dynamic = 'force-dynamic';
 

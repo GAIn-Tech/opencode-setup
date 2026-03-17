@@ -1,5 +1,7 @@
 import { NextRequest } from 'next/server';
 import { fileWatcher, WatchEvent } from '@/lib/file-watcher';
+import { requireReadAccess } from '../../_lib/write-access';
+import { rateLimited } from '../../_lib/api-response';
 
 // Force dynamic rendering - SSE cannot be statically generated
 export const dynamic = 'force-dynamic';
@@ -51,6 +53,18 @@ setInterval(() => {
 }, 30000);
 
 export async function GET(request: NextRequest) {
+  // Rate limiting
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? request.headers.get('x-real-ip') ?? 'unknown';
+  const { rateLimit } = await import('../../_lib/rate-limit');
+  const rateLimitResult = rateLimit(`read:${ip}`, 50, 60000);
+  if (!rateLimitResult.allowed) {
+    return rateLimited('Too many requests', {
+      limit: rateLimitResult.limit,
+      remaining: rateLimitResult.remaining,
+      resetAt: rateLimitResult.resetAt
+    });
+  }
+
   // Start watcher if not already started
   startWatcher();
 

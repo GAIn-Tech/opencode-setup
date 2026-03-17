@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
-import { internalError } from '../_lib/api-response';
+import { rateLimited } from '../_lib/api-response';
 
 export const dynamic = 'force-dynamic';
 
@@ -99,6 +99,18 @@ function verifyModelCatalog(projectRoot: string): ModelCatalogHealth {
 }
 
 export async function GET() {
+  // Rate limiting
+  const ip = 'health-check'; // Using a fixed identifier for health checks since they don't come from specific IPs in this context
+  const { rateLimit } = await import('../_lib/rate-limit');
+  const rateLimitResult = rateLimit(`health:${ip}`, 10, 60000); // 10 requests per minute
+  if (!rateLimitResult.allowed) {
+    return rateLimited('Too many requests', {
+      limit: rateLimitResult.limit,
+      remaining: rateLimitResult.remaining,
+      resetAt: rateLimitResult.resetAt
+    });
+  }
+
   try {
     const projectRoot = process.cwd().replace('/packages/opencode-dashboard', '').replace('\\packages\\opencode-dashboard', '');
     const opencodePath = path.join(os.homedir(), '.opencode');

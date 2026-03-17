@@ -6,6 +6,7 @@ import { getWriteActor, requireWriteAccess } from '../_lib/write-access';
 import { writeJsonAtomic } from '../_lib/write-json-atomic';
 import { appendWriteAuditEntry } from '../_lib/write-audit';
 import { rateLimited, badRequest, internalError } from '../_lib/api-response';
+import { errorResponse } from '../_lib/error-response';
 
 // Extract real model usage from message files
 function getRealModelUsage(): Record<string, any> | null {
@@ -127,12 +128,12 @@ export async function POST(request: Request) {
       }
     });
     
-     return NextResponse.json({ success: true, message: 'Policies saved' });
-   } catch (error: unknown) {
-     const message = error instanceof Error ? error.message : 'Unknown error';
-     console.error('[Models API] POST error:', error);
-     return internalError(message);
-   }
+      return successResponse({ message: 'Policies saved' });
+     } catch (error: unknown) {
+       const message = error instanceof Error ? error.message : 'Unknown error';
+       console.error('[Models API] POST error:', error);
+       return errorResponse(message);
+     }
  }
  
  export async function GET() {
@@ -193,11 +194,11 @@ export async function POST(request: Request) {
        fallbackConfig,
        realModelUsage
      });
-   } catch (error: unknown) {
-     const message = error instanceof Error ? error.message : 'Unknown error';
-     console.error('[Models API] GET error:', error);
-     return internalError(message);
-   }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[Models API] GET error:', error);
+      return errorResponse(message);
+    }
  }
  
  export async function PUT(request: Request) {
@@ -257,11 +258,11 @@ export async function POST(request: Request) {
      });
      
      return NextResponse.json({ success: true, message: 'Policies updated' });
-   } catch (error: unknown) {
-     const message = error instanceof Error ? error.message : 'Unknown error';
-     console.error('[Models API] PUT error:', error);
-     return internalError(message);
-   }
+     } catch (error: unknown) {
+       const message = error instanceof Error ? error.message : 'Unknown error';
+       console.error('[Models API] PUT error:', error);
+       return errorResponse(message);
+     }
  }
  
  export async function PATCH(request: Request) {
@@ -320,12 +321,12 @@ export async function POST(request: Request) {
        }
      });
      
-     return NextResponse.json({ success: true, message: 'Policies patched' });
-   } catch (error: unknown) {
-     const message = error instanceof Error ? error.message : 'Unknown error';
-     console.error('[Models API] PATCH error:', error);
-     return internalError(message);
-   }
+      return successResponse({ message: 'Policies patched' });
+     } catch (error: unknown) {
+       const message = error instanceof Error ? error.message : 'Unknown error';
+       console.error('[Models API] PATCH error:', error);
+       return errorResponse(message);
+     }
  }
  
  export async function DELETE(request: Request) {
@@ -365,9 +366,9 @@ export async function POST(request: Request) {
     });
     
      return NextResponse.json({ success: true, message: 'Policies deleted' });
-   } catch (error: unknown) {
-     const message = error instanceof Error ? error.message : 'Unknown error';
-     console.error('[Models API] DELETE error:', error);
-     return internalError(message);
-   }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[Models API] DELETE error:', error);
+      return errorResponse(message);
+    }
  }

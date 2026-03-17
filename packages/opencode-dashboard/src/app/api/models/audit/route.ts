@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { AuditLogger } from 'opencode-model-manager/lifecycle';
 import * as path from 'path';
 import * as os from 'os';
-import { requireReadAccess } from '../../_lib/write-access';
-import { forbidden, badRequest, internalError } from '../../_lib/api-response';
+import { requireReadAccess, getWriteActor } from '../../_lib/write-access';
+import { forbidden, badRequest, internalError, rateLimited } from '../../_lib/api-response';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,6 +15,18 @@ const getAuditLogger = () => {
 };
 
 export async function GET(request: Request) {
+  // Rate limiting
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? request.headers.get('x-real-ip') ?? 'unknown';
+  const { rateLimit } = await import('../../_lib/rate-limit');
+  const rateLimitResult = rateLimit(`read:${ip}`, 100, 60000);
+  if (!rateLimitResult.allowed) {
+    return rateLimited('Too many requests', {
+      limit: rateLimitResult.limit,
+      remaining: rateLimitResult.remaining,
+      resetAt: rateLimitResult.resetAt
+    });
+  }
+
   // RBAC: Require authenticated read access for sensitive audit logs
   // Uses 'audit:read' (not 'models:read') to enforce authentication — audit logs
   // contain sensitive model lifecycle data and should not be publicly accessible.
@@ -58,10 +70,10 @@ export async function GET(request: Request) {
       entries,
       count: entries.length
     });
-  } catch (error: unknown) {
-    console.error('[Audit API] Error fetching audit log:', error);
-    return internalError(error instanceof Error ? error.message : 'Failed to fetch audit log');
-  } finally {
-    auditLogger?.close();
-  }
+   } catch (error: unknown) {
+     console.error('[Audit API] Error fetching audit log:', error);
+     return errorResponse(error instanceof Error ? error.message : 'Failed to fetch audit log');
+   } finally {
+     auditLogger?.close();
+   }
 }

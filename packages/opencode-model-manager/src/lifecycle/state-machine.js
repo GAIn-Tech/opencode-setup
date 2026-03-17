@@ -141,46 +141,34 @@ class StateMachine {
     return row ? row.currentState : null;
   }
 
-  async getHistory(modelId, options = {}) {
-    const resolvedModelId = this._resolveModelId(modelId);
-    const { limit = null, offset = 0 } = options;
-    
-    // Build query with optional pagination
-    let query = `
-      SELECT id, model_id, from_state, to_state, context_json, side_effects_json, timestamp
-      FROM model_lifecycle_history
-      WHERE model_id = ?
-      ORDER BY id ASC
-    `;
-    
-    const params = [resolvedModelId];
-    
-    if (limit !== null && Number.isInteger(limit) && limit > 0) {
-      query += ` LIMIT ?`;
-      params.push(limit);
-      
-      if (Number.isInteger(offset) && offset > 0) {
-        query += ` OFFSET ?`;
-        params.push(offset);
-      }
-    }
-    
-    const rows = this.db.all(query, params);
-
-    return rows.map((row) => {
-      return {
-        id: row.id,
-        modelId: row.model_id,
-        fromState: row.from_state || null,
-        toState: row.to_state,
-        context: parseJsonSafely(row.context_json, {}),
-        sideEffects: parseJsonSafely(row.side_effects_json, {}),
-        timestamp: Number.isFinite(Number(row.timestamp))
-          ? Number(row.timestamp)
-          : 0
-      };
-    });
-  }
+   async getHistory(modelId, options = {}) {
+     const resolvedModelId = this._resolveModelId(modelId);
+     const { limit = 100, offset = 0 } = options;
+     
+     const stmt = this.db.prepare(`
+       SELECT id, model_id, from_state, to_state, context_json, side_effects_json, timestamp
+       FROM model_lifecycle_history
+       WHERE model_id = ?
+       ORDER BY timestamp DESC
+       LIMIT ? OFFSET ?
+     `);
+     
+     const rows = stmt.all(resolvedModelId, limit, offset);
+     
+     return rows.map((row) => {
+       return {
+         id: row.id,
+         modelId: row.model_id,
+         fromState: row.from_state || null,
+         toState: row.to_state,
+         context: parseJsonSafely(row.context_json, {}),
+         sideEffects: parseJsonSafely(row.side_effects_json, {}),
+         timestamp: Number.isFinite(Number(row.timestamp))
+           ? Number(row.timestamp)
+           : 0
+       };
+     });
+   }
 
   async setState(modelId, state, context = {}) {
     const resolvedModelId = this._resolveModelId(modelId);

@@ -16,19 +16,34 @@
       "priority": 1,
       "plan": "debt-refinement-phase2",
       "plan_path": ".sisyphus/plans/2026-02-24-debt-refinement-phase2.md",
-      "status": "pending",
+      "status": "partial",
       "rationale": "SECURITY: fixes command injection in learning-gate.mjs (runs on every commit). Also improves CI reliability which all other work depends on.",
-      "unblocks": ["all CI-dependent work"],
+      "unblocks": [
+        "all CI-dependent work"
+      ],
       "effort": "medium",
-      "lines": 372
+      "lines": 372,
+      "completed_tasks": "Fix Command Injection in learning-gate.mjs, Fix Timing Attack in Token Validation, Add Rate Limiting Middleware, Add Database Indexes, Add Pagination to History Queries, Replace Sync File I/O with Async",
+      "remaining_tasks": [
+        "Standardize Error Response Format",
+        "Replace Silent Catch Blocks",
+        "Add Error Boundaries to React Components",
+        "Add RBAC to Audit Endpoint"
+      ]
     },
     {
       "priority": 2,
       "plan": "agent-surface-hardening",
       "plan_path": ".sisyphus/plans/agent-surface-hardening.md",
       "status": "partial",
-      "completed_tasks": ["remove librarian.md from opencode-config/agents/ (done)"],
-      "remaining_tasks": ["harden copy-config.mjs against phantom agent reintroduction", "update README/agents-list.md", "reconcile MCP boundary docs"],
+      "completed_tasks": [
+        "remove librarian.md from opencode-config/agents/ (done)"
+      ],
+      "remaining_tasks": [
+        "harden copy-config.mjs against phantom agent reintroduction",
+        "update README/agents-list.md",
+        "reconcile MCP boundary docs"
+      ],
       "rationale": "Foundation: ensures plugin-managed agent source of truth. Partially done, quick to finish. Foundational for agent config integrity.",
       "effort": "low"
     },
@@ -56,7 +71,10 @@
       "plan_path": "docs/plans/2026-03-12-wave2-package-wiring.md",
       "status": "pending",
       "rationale": "BLOCKER for plans 10+11: wires model-router-x into IntegrationLayer (prerequisite for dynamic-model-learning and model-management-protocol). Also enables full IntegrationLayer SkillRL path.",
-      "unblocks": ["dynamic-model-learning", "model-management-protocol"],
+      "unblocks": [
+        "dynamic-model-learning",
+        "model-management-protocol"
+      ],
       "effort": "medium",
       "lines": 467
     },
@@ -75,7 +93,9 @@
       "plan_path": ".sisyphus/plans/config-coherence-wave-plan.md",
       "status": "pending",
       "rationale": "Prerequisite for disaster-recovery-system: adds audit logging (NDJSON) and version manifest to config coherence system.",
-      "unblocks": ["disaster-recovery-system"],
+      "unblocks": [
+        "disaster-recovery-system"
+      ],
       "effort": "medium"
     },
     {
@@ -92,7 +112,9 @@
       "plan": "disaster-recovery-system",
       "plan_path": ".sisyphus/plans/disaster-recovery-system.md",
       "status": "pending",
-      "requires": ["config-coherence-wave"],
+      "requires": [
+        "config-coherence-wave"
+      ],
       "rationale": "Production reliability: git-style backup+recovery system. Requires config-coherence-wave audit logging first.",
       "effort": "large",
       "lines": 697
@@ -102,9 +124,13 @@
       "plan": "dynamic-model-learning",
       "plan_path": ".sisyphus/plans/dynamic-model-learning-assessment-plan.md",
       "status": "pending",
-      "requires": ["wave2-package-wiring"],
+      "requires": [
+        "wave2-package-wiring"
+      ],
       "rationale": "Adaptive orchestration with ModelComprehensionMemory and automated model assessment pipeline. Catalyzes model-management-protocol.",
-      "unblocks": ["model-management-protocol"],
+      "unblocks": [
+        "model-management-protocol"
+      ],
       "effort": "large",
       "lines": 1202
     },
@@ -113,7 +139,10 @@
       "plan": "model-management-protocol",
       "plan_path": ".sisyphus/plans/model-management-protocol.md",
       "status": "done",
-      "requires": ["wave2-package-wiring", "dynamic-model-learning"],
+      "requires": [
+        "wave2-package-wiring",
+        "dynamic-model-learning"
+      ],
       "rationale": "Capstone: full automated model discovery (6 providers), lifecycle state machine, automated PR generation. Largest plan, highest long-term leverage.",
       "effort": "xl",
       "estimated_hours": "40-60",
@@ -127,9 +156,14 @@
       "plan_name": "runtime-concurrency-and-governance-batch",
       "started_at": "2026-03-14T06:42:03.877Z",
       "completed_at": "2026-03-14T07:00:00.000Z",
-      "session_ids": ["ses_316a178b8ffe5dt30Jhhc1ZYmQ"],
+      "session_ids": [
+        "ses_316a178b8ffe5dt30Jhhc1ZYmQ"
+      ],
       "agent": "atlas",
-      "commits": ["2b9e496", "bf3dd94"],
+      "commits": [
+        "2b9e496",
+        "bf3dd94"
+      ],
       "tasks_completed": 4,
       "risk_points_reduced": 80
     },
@@ -138,9 +172,27 @@
       "plan_name": "wave11-perf-and-context-management",
       "started_at": "2026-03-09T00:00:00.000Z",
       "completed_at": "2026-03-09T00:30:00.000Z",
-      "session_ids": ["current"],
+      "session_ids": [
+        "current"
+      ],
       "agent": "atlas",
-      "commits": ["8db7698", "d869df7", "601cfe0", "1c60c7f", "7fb5ca2", "af13c46", "a0402b0", "b1cd9d6", "92f715d", "cef37f0", "592cfd5", "723a041", "6eed2c7", "fe09bb4", "d7f6adf"],
+      "commits": [
+        "8db7698",
+        "d869df7",
+        "601cfe0",
+        "1c60c7f",
+        "7fb5ca2",
+        "af13c46",
+        "a0402b0",
+        "b1cd9d6",
+        "92f715d",
+        "cef37f0",
+        "592cfd5",
+        "723a041",
+        "6eed2c7",
+        "fe09bb4",
+        "d7f6adf"
+      ],
       "tasks_completed": 25,
       "risk_points_reduced": 200
     },
@@ -149,9 +201,23 @@
       "plan_name": "wave10-system-hardening",
       "started_at": "2026-03-08T21:30:00.000Z",
       "completed_at": "2026-03-08T19:30:00.000Z",
-      "session_ids": ["current"],
+      "session_ids": [
+        "current"
+      ],
       "agent": "atlas",
-      "commits": ["2509b21", "032a397", "0f20149", "745c95f", "fddd96a", "d33dbc7", "b1035bc", "bf9b8c2", "7aae907", "a8bfcbb", "f74283c"],
+      "commits": [
+        "2509b21",
+        "032a397",
+        "0f20149",
+        "745c95f",
+        "fddd96a",
+        "d33dbc7",
+        "b1035bc",
+        "bf9b8c2",
+        "7aae907",
+        "a8bfcbb",
+        "f74283c"
+      ],
       "tasks_completed": 25,
       "risk_points_reduced": 400
     },
@@ -269,9 +335,17 @@
       "plan_name": "context-distill-tracking-fixes",
       "started_at": "2026-02-27T00:00:00.000Z",
       "completed_at": "2026-02-27T01:00:00.000Z",
-      "session_ids": ["current"],
+      "session_ids": [
+        "current"
+      ],
       "agent": "atlas",
-      "commits": ["6975aec", "37e2965", "7808097", "4b4489d", "08b4141"],
+      "commits": [
+        "6975aec",
+        "37e2965",
+        "7808097",
+        "4b4489d",
+        "08b4141"
+      ],
       "tasks_completed": 6,
       "risk_points_reduced": 200
     },
@@ -280,9 +354,14 @@
       "plan_name": "wave8-system-completion",
       "started_at": "2026-03-08T00:00:00.000Z",
       "completed_at": "2026-03-08T18:44:00.000Z",
-      "session_ids": ["current"],
+      "session_ids": [
+        "current"
+      ],
       "agent": "atlas",
-      "commits": ["04d937d", "4342f3b"],
+      "commits": [
+        "04d937d",
+        "4342f3b"
+      ],
       "tasks_completed": 13,
       "risk_points_reduced": 200
     },
@@ -291,9 +370,25 @@
       "plan_name": "wave9-meta-knowledge-base",
       "started_at": "2026-03-08T19:00:00.000Z",
       "completed_at": "2026-03-08T21:00:00.000Z",
-      "session_ids": ["current"],
+      "session_ids": [
+        "current"
+      ],
       "agent": "atlas",
-      "commits": ["9559768", "fc1eb46", "03b03af", "9d9a243", "0dc9e03", "549420f", "e717224", "bfe83fd", "8f5247e", "222ce63", "f595c45", "332f02f", "6597107"],
+      "commits": [
+        "9559768",
+        "fc1eb46",
+        "03b03af",
+        "9d9a243",
+        "0dc9e03",
+        "549420f",
+        "e717224",
+        "bfe83fd",
+        "8f5247e",
+        "222ce63",
+        "f595c45",
+        "332f02f",
+        "6597107"
+      ],
       "tasks_completed": 14,
       "risk_points_reduced": 300
     }

@@ -17,14 +17,16 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const modelId = searchParams.get('modelId');
-    
+    const limit = parseInt(searchParams.get('limit') || '100', 10);
+    const offset = parseInt(searchParams.get('offset') || '0', 10);
+
     stateMachine = getStateMachine();
-    
+
     if (modelId) {
       // Get specific model lifecycle state
       const state = await stateMachine.getState(modelId);
-      const history = await stateMachine.getHistory(modelId);
-      
+      const history = await stateMachine.getHistory(modelId, { limit, offset });
+
       return NextResponse.json({
         modelId,
         state,

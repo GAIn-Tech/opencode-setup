@@ -7,6 +7,7 @@ import { writeJsonAtomic } from '../_lib/write-json-atomic';
 import { appendWriteAuditEntry } from '../_lib/write-audit';
 import { rateLimited, badRequest, internalError, validationError } from '../_lib/api-response';
 import { redactSecrets } from '../_lib/redact';
+import { errorResponse } from '../_lib/error-response';
 
 export const dynamic = 'force-dynamic';
 
@@ -183,10 +184,10 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json(redactSecrets(configs));
-  } catch (error) {
-    console.error('[Config API] Error:', error);
-    return NextResponse.json({ error: String(error) }, { status: 500 });
-  }
+   } catch (error) {
+     console.error('[Config API] Error:', error);
+     return errorResponse(String(error));
+   }
 }
 
 export async function POST(request: Request) {
@@ -252,9 +253,9 @@ export async function POST(request: Request) {
           let schema;
           try {
              schema = JSON.parse(fs.readFileSync(schemaPath, 'utf-8'));
-           } catch (err) {
-             return internalError(`Failed to load schema: ${err}`);
-           }
+            } catch (err) {
+              return errorResponse(`Failed to load schema: ${err}`);
+            }
           
            const validationErrors = configLoader.validateSchema(data, schema);
            if (validationErrors.length > 0) {
@@ -312,8 +313,8 @@ export async function POST(request: Request) {
             config_version: newData.config_version
           });
         } catch (err) {
-           console.error('[Config API] centralConfig error:', err);
-           return internalError(String(err));
+            console.error('[Config API] centralConfig error:', err);
+            return errorResponse(String(err));
          }
       }
     }
@@ -333,8 +334,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, path: filePath });
    } catch (error) {
-     console.error('[Config API] Save error:', error);
-     return internalError(String(error));
+      console.error('[Config API] Save error:', error);
+      return errorResponse(String(error));
    }
  }
  
@@ -402,8 +403,8 @@ export async function POST(request: Request) {
 
      return NextResponse.json({ success: true, path: filePath });
    } catch (error) {
-     console.error('[Config API] Update error:', error);
-     return internalError(String(error));
+      console.error('[Config API] Update error:', error);
+      return errorResponse(String(error));
    }
  }
  
@@ -470,10 +471,10 @@ export async function POST(request: Request) {
      });
 
      return NextResponse.json({ success: true, path: filePath });
-   } catch (error) {
-     console.error('[Config API] Patch error:', error);
-     return internalError(String(error));
-   }
+    } catch (error) {
+      console.error('[Config API] Patch error:', error);
+      return errorResponse(String(error));
+    }
  }
  
  export async function DELETE(request: Request) {
@@ -542,7 +543,7 @@ export async function POST(request: Request) {
 
      return NextResponse.json({ success: true, path: filePath });
    } catch (error) {
-     console.error('[Config API] Delete error:', error);
-     return internalError(String(error));
+      console.error('[Config API] Delete error:', error);
+      return errorResponse(String(error));
    }
  }

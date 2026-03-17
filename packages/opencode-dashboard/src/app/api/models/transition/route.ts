@@ -112,11 +112,8 @@ export async function POST(request: Request) {
        toState,
        timestamp
      });
-   } catch (error: unknown) {
-     console.error('[Models Transition API] Error executing transition:', error);
-     return internalError(error instanceof Error ? error.message : String(error));
-   } finally {
-    stateMachine?.close();
-    auditLogger?.close();
-  }
+    } catch (error: unknown) {
+      console.error('[Models Transition API] Error executing transition:', error);
+      return errorResponse(error instanceof Error ? error.message : String(error));
+    }
 }
