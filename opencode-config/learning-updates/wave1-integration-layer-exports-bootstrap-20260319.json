@@ -1,0 +1,14 @@
+{
+  "id": "wave1-integration-layer-exports-bootstrap-20260319",
+  "timestamp": "2026-03-19T00:10:00.000Z",
+  "summary": "Expose integration-layer bootstrap entry in package exports map for runtime import compatibility.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/package.json"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

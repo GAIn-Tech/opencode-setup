@@ -4,7 +4,8 @@
   "description": "Wires SkillRL, Showboat, and orchestration components into OpenCode",
   "main": "src/index.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./src/index.js",
+    "./bootstrap": "./src/bootstrap.js"
   },
   "scripts": {
     "test": "node tests/integration.test.js",
