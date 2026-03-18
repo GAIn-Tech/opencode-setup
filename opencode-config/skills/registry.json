@@ -952,37 +952,6 @@
       ],
       "compatible_agents": []
     },
-    "tavily": {
-      "description": "Web search and research automation via Tavily API CLI wrapper for information discovery and content extraction.",
-      "category": "research",
-      "tags": [
-        "websearch",
-        "research",
-        "api",
-        "content",
-        "crawling"
-      ],
-      "source": "custom",
-      "dependencies": [],
-      "synergies": [
-        "research-builder",
-        "context7",
-        "websearch"
-      ],
-      "conflicts": [],
-      "triggers": [
-        "tavily search",
-        "web research",
-        "find information",
-        "search API",
-        "crawl web"
-      ],
-      "recommended_agents": [
-        "oracle",
-        "librarian"
-      ],
-      "compatible_agents": []
-    },
     "budget-aware-router": {
       "description": "Token and cost-aware model routing. Optimizes cost/performance tradeoffs by selecting appropriate models based on task complexity and budget constraints.",
       "category": "optimization",
@@ -1494,8 +1463,6 @@
       "skills": [
         "research-builder",
         "context7",
-        "github",
-        "tavily",
         "grep",
         "writing-plans",
         "executing-plans"
@@ -1570,9 +1537,7 @@
         "research-builder",
         "context7",
         "websearch",
-        "grep",
-        "github",
-        "tavily"
+        "grep"
       ]
     },
     "analysis": {
