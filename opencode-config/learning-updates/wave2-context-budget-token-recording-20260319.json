@@ -1,0 +1,14 @@
+{
+  "id": "wave2-context-budget-token-recording-20260319",
+  "timestamp": "2026-03-19T00:30:00.000Z",
+  "summary": "Wire checkContextBudget (T11) and recordTokenUsage (T10) into executeTaskWithEvidence hot path. Both are fail-open and advisory-only — never block execution.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/index.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

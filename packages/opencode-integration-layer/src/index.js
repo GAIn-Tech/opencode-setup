@@ -1328,6 +1328,23 @@ class IntegrationLayer {
     taskContext.runtime_context = runtimeContext;
     taskContext.runtimeContext = runtimeContext;
 
+    // [T11] Check context budget before execution — fail-open, never blocks
+    const _sessionId = taskContext.session_id || taskContext.sessionId;
+    const _model = taskContext.model || taskContext.modelId || runtimeContext?.model;
+    if (_sessionId && _model) {
+      try {
+        const budget = this.checkContextBudget(_sessionId, _model, 1000 /* estimated */);
+        if (budget.status === 'error') {
+          this.logger.error('Context budget CRITICAL before task', { session: _sessionId, model: _model });
+        } else if (budget.status === 'warn') {
+          this.logger.warn('Context budget WARNING before task', { session: _sessionId, model: _model });
+        }
+        // Never block — budget check is advisory only
+      } catch (e) {
+        // Fail-open: budget check failure does not block execution
+      }
+    }
+
     // Set context for showboat
     this.setTaskContext(taskContext);
 
@@ -1377,6 +1394,16 @@ class IntegrationLayer {
         result.success,
         executionError || (result.success ? (result.latencyMs || 0) : result)
       );
+    }
+
+    // [T10] Record actual token consumption — fail-open, advisory only
+    const _tokensUsed = result?.tokensUsed || result?.usage?.total_tokens || result?.usage?.output_tokens || 0;
+    if (_tokensUsed > 0 && _sessionId && _model) {
+      try {
+        this.recordTokenUsage(_sessionId, _model, _tokensUsed);
+      } catch (e) {
+        // Fail-open: token recording failure is non-fatal
+      }
     }
 
     // Update quota signal with fallback info from result if present
