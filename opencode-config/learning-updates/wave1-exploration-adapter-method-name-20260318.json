@@ -1,0 +1,14 @@
+{
+  "id": "wave1-exploration-adapter-method-name-20260318",
+  "timestamp": "2026-03-18T23:55:00.000Z",
+  "summary": "Align ExplorationRLAdapter with SkillRLManager API by switching recordOutcome references to learnFromOutcome.",
+  "affected_paths": [
+    "packages/opencode-skill-rl-manager/src/exploration-adapter.js"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}
