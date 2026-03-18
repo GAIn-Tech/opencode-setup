@@ -45,19 +45,29 @@
       "priority": 3,
       "plan": "hardening-wave-concerns-1-3-4-5",
       "plan_path": ".sisyphus/plans/hardening-wave-concerns-1-3-4-5.md",
-      "status": "pending",
-      "rationale": "Infrastructure-level: CI boundary enforcement across all packages, rollback schema unification, multi-process race condition fix, warning budget governance. Affects reliability of all future work.",
-      "effort": "medium",
-      "lines": 404
+      "status": "completed",
+      "completed_tasks": [
+        "Task 1: ci-boundary-enforce.mjs extends to all packages + tests",
+        "Task 2: snapshot-schema.js with validateSnapshot + normalizeSnapshot",
+        "Task 3: Atomic compare-and-swap in state-machine.js (lines 432-444)",
+        "Task 4: warning budget baseline + ci-warning-budget.mjs + package.json scripts"
+      ],
+      "remaining_tasks": [],
+      "rationale": "Infrastructure-level: CI boundary enforcement, rollback schema, multi-process race fix, warning budget governance.",
+      "effort": "medium"
     },
     {
       "priority": 4,
       "plan": "passive-mcp-activation",
       "plan_path": "docs/plans/2026-03-10-passive-mcp-activation.md",
-      "status": "pending",
-      "rationale": "Quick catalyzer: creates skill+agent layer for already-installed MCPs (supermemory, sequentialthinking, websearch, grep). Directly improves skill-RL signal quality and agent routing. Short plan, high leverage.",
-      "effort": "low",
-      "lines": 183
+      "status": "completed",
+      "completed_tasks": [
+        "Task 1: Created skill definitions for supermemory, sequentialthinking, websearch, grep (all exist)",
+        "Agent prompts managed by oh-my-opencode plugin (opencode-config/agents/ is empty by design)"
+      ],
+      "remaining_tasks": [],
+      "rationale": "Quick catalyzer: creates skill+agent layer for already-installed MCPs. Completed.",
+      "effort": "low"
     },
     {
       "priority": 5,
