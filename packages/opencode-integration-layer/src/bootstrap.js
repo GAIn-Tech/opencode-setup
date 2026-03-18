@@ -1,5 +1,7 @@
 'use strict';
 
+const os = require('os');
+const path = require('path');
 const { IntegrationLayer } = require('./index.js');
 
 // --- Fail-open package imports ---
@@ -52,6 +54,9 @@ ShowboatWrapper = tryLoad('showboat-wrapper', () =>
 );
 Runbooks = tryLoad('runbooks', () =>
   require('../../opencode-runbooks/src/index.js').Runbooks
+);
+CircuitBreaker = tryLoad('circuit-breaker', () =>
+  require('../../opencode-circuit-breaker/src/index.js').CircuitBreaker
 );
 Proofcheck = tryLoad('proofcheck', () =>
   require('../../opencode-proofcheck/src/index.js').Proofcheck
@@ -169,6 +174,13 @@ function bootstrap(options = {}) {
     } catch { bootstrapStatus.packages.runbooks = false; }
   }
 
+  if (CircuitBreaker) {
+    try {
+      config.circuitBreaker = CircuitBreaker;
+      bootstrapStatus.packages['circuit-breaker'] = true;
+    } catch { bootstrapStatus.packages['circuit-breaker'] = false; }
+  }
+
   if (Proofcheck) {
     try {
       config.proofcheck = new Proofcheck(options.proofcheck || {});
@@ -216,11 +228,30 @@ function bootstrap(options = {}) {
     } catch { bootstrapStatus.packages['sisyphus-state'] = false; }
   }
 
+  // Create LearningEngine before ModelRouter so both ModelRouter and
+  // OrchestrationAdvisor can use it.  Previously learningEngine was scoped
+  // inside the ModelRouter block, leaving config.advisor always null.
+  let learningEngine = null;
+  if (LearningEngineClass) {
+    try {
+      learningEngine = new LearningEngineClass();
+      bootstrapStatus.packages['learning-engine'] = true;
+    } catch { bootstrapStatus.packages['learning-engine'] = false; }
+  }
+
+  // Wire OrchestrationAdvisor from the LearningEngine into the IntegrationLayer.
+  // LearningEngine creates an OrchestrationAdvisor internally (engine.advisor)
+  // using its own antiPatterns + positivePatterns catalogs.
+  if (learningEngine && learningEngine.advisor) {
+    config.advisor = learningEngine.advisor;
+    bootstrapStatus.packages['orchestration-advisor'] = true;
+  }
+
   if (ModelRouter) {
     try {
       const configLoader = ConfigLoaderClass ? new ConfigLoaderClass() : null;
       const featureFlags = createFeatureFlags ? createFeatureFlags() : null;
-      const learningEngine = LearningEngineClass ? new LearningEngineClass() : null;
+      // learningEngine already created above (hoisted for advisor wiring)
       // Wire exploration config from ConfigLoader → ModelRouter
       const explorationConfig = configLoader ? {
         active: configLoader.get('exploration.active', false),
@@ -229,6 +260,7 @@ function bootstrap(options = {}) {
         tokenBudgetRatio: configLoader.get('exploration.tokenBudgetRatio', 0.1),
         minTokens: configLoader.get('exploration.minTokens', 500),
       } : undefined;
+      const statsPersistPath = path.join(os.homedir(), '.opencode', 'model-router-stats.json');
       config.modelRouter = new ModelRouter({
         skillRLManager: config.skillRLManager || null,
         fallbackDoctor: config.fallbackDoctor || null,
@@ -243,7 +275,21 @@ function bootstrap(options = {}) {
         metaAwarenessTracker: MetaAwarenessTracker ? new MetaAwarenessTracker() : null,
         circuitBreakerClass: CircuitBreaker || null,
         integrationLayerClass: IntegrationLayer,
+        statsPersistPath,
       });
+      // Load persisted RL stats so model routing benefits from historical outcomes.
+      // Also replay runtime outcomes captured by the PostToolUse hook so Thompson
+      // Sampling has real training data from prior delegations.
+      let runtimeOutcomes = [];
+      try {
+        const outcomesPath = path.join(os.homedir(), '.opencode', 'model-router-runtime-outcomes.json');
+        const raw = require('fs').readFileSync(outcomesPath, 'utf8');
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          runtimeOutcomes = parsed.filter(o => o && typeof o.modelId === 'string');
+        }
+      } catch { /* file missing or corrupt — start fresh, fail-open */ }
+      config.modelRouter.loadStatsFromDisk(runtimeOutcomes);
       bootstrapStatus.packages['model-router-x'] = true;
     } catch { bootstrapStatus.packages['model-router-x'] = false; }
   }
@@ -274,7 +320,34 @@ function bootstrap(options = {}) {
 }
 
 function getBootstrapStatus() {
-  return { ...bootstrapStatus };
+  const status = { ...bootstrapStatus };
+  
+  // Add read-only status for packages that bypass bootstrap
+  status.circuitBreaker = { loaded: loadAttempts['circuit-breaker'] || false };
+  
+  // Try-require checks for packages with their own init
+  try {
+    require('../../opencode-context-governor/src/index.js');
+    status.contextGovernor = { loaded: true };
+  } catch {
+    status.contextGovernor = { loaded: false };
+  }
+  
+  try {
+    require('../../opencode-memory-graph/src/index.js');
+    status.memoryGraph = { loaded: true };
+  } catch {
+    status.memoryGraph = { loaded: false };
+  }
+  
+  try {
+    require('../../opencode-backup-manager/src/index.js');
+    status.backupManager = { loaded: true };
+  } catch {
+    status.backupManager = { loaded: false };
+  }
+  
+  return status;
 }
 
 function resetBootstrap() {
@@ -285,4 +358,12 @@ function resetBootstrap() {
   bootstrapStatus.packages = {};
 }
 
-module.exports = { bootstrap, getBootstrapStatus, resetBootstrap };
+async function delegate(taskContext, executeTaskFn, options = {}) {
+  const runtime = bootstrap(options);
+  if (!runtime || typeof runtime.delegate !== 'function') {
+    throw new Error('IntegrationLayer delegate() is unavailable');
+  }
+  return runtime.delegate(taskContext, executeTaskFn);
+}
+
+module.exports = { bootstrap, getBootstrapStatus, resetBootstrap, delegate };
