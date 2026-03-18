@@ -192,6 +192,7 @@ class IntegrationLayer {
     this.preloadSkills = config.preloadSkills || null;
     this.runbooks = config.runbooks || null;
     this.crashGuard = config.crashGuard || null;
+    this.proofcheck = config.proofcheck || null;
     this.fallbackDoctor = config.fallbackDoctor || null;
     this.pluginLifecycle = config.pluginLifecycle || null;
     this.workflowStore = config.workflowStore || null;
