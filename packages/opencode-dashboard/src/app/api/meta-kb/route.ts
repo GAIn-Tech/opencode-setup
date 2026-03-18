@@ -83,8 +83,9 @@ export async function GET() {
           files_checked: driftReport.files?.length ?? 0,
         };
       }
-    } catch {
+    } catch (error) {
       // Drift check is best-effort — don't fail the endpoint
+      console.error('[meta-kb] Drift check failed:', error);
     }
 
     const summary: MetaKBSummary = {

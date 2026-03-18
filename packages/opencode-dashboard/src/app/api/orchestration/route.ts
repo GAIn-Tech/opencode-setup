@@ -241,8 +241,9 @@ async function collectInternalRuntime(repoRoot: string) {
         },
       };
     }
-  } catch {
+  } catch (error) {
     // fail-open: keep fallback payload
+    console.error('[orchestration] Failed to get runtime info:', error);
   }
 
   return runtimeInfo;
