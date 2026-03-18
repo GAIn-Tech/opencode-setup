@@ -27,6 +27,8 @@ let MetaAwarenessTracker = null;
 let ConfigLoaderClass = null;
 let createFeatureFlags = null;
 let LearningEngineClass = null;
+let AlertManagerClass = null;
+let PipelineMetricsCollectorClass = null;
 
 const loadAttempts = {};
 
@@ -111,6 +113,11 @@ createFeatureFlags = featureFlagsModule?.createFeatureFlags || featureFlagsModul
 LearningEngineClass = tryLoad('learning-engine', () =>
   require('../../opencode-learning-engine/src/index.js').LearningEngine
 );
+const _monitoring = tryLoad('monitoring', () =>
+  require('opencode-model-manager/monitoring')
+);
+AlertManagerClass = _monitoring?.AlertManager || null;
+PipelineMetricsCollectorClass = _monitoring?.PipelineMetricsCollector || null;
 
 // --- Bootstrap state ---
 let singleton = null;
@@ -245,6 +252,43 @@ function bootstrap(options = {}) {
   if (learningEngine && learningEngine.advisor) {
     config.advisor = learningEngine.advisor;
     bootstrapStatus.packages['orchestration-advisor'] = true;
+  }
+
+  // T15: Wire LearningEngine event consumers (fail-open, advisory logging)
+  if (learningEngine && typeof learningEngine.on === 'function') {
+    try {
+      learningEngine.on('outcomeRecorded', (data) => {
+        try { bootstrapLogger.info('[LearningEngine] Outcome recorded', { adviceId: data?.advice_id }); } catch {}
+      });
+      learningEngine.on('onFailureDistill', (data) => {
+        try { bootstrapLogger.warn('[LearningEngine] Failure distilled', { adviceId: data?.advice_id }); } catch {}
+      });
+      learningEngine.on('patternStored', (data) => {
+        try { bootstrapLogger.info('[LearningEngine] Pattern stored', { type: data?.type }); } catch {}
+      });
+    } catch { /* fail-open */ }
+  }
+
+  // T14: Instantiate AlertManager and wire alert event listeners
+  if (AlertManagerClass) {
+    try {
+      config.alertManager = new AlertManagerClass();
+      config.alertManager.on('alert:fired', (alert) => {
+        try { bootstrapLogger.warn('[AlertManager] Alert fired', { type: alert?.type, id: alert?.id, severity: alert?.severity }); } catch {}
+      });
+      config.alertManager.on('alert:resolved', (ev) => {
+        try { bootstrapLogger.info('[AlertManager] Alert resolved', { type: ev?.type, alertId: ev?.alertId }); } catch {}
+      });
+      bootstrapStatus.packages['alert-manager'] = true;
+    } catch { bootstrapStatus.packages['alert-manager'] = false; }
+  }
+
+  // T18: Instantiate PipelineMetricsCollector for runtime event feeding
+  if (PipelineMetricsCollectorClass) {
+    try {
+      config.pipelineMetrics = new PipelineMetricsCollectorClass({ autoCleanup: true });
+      bootstrapStatus.packages['pipeline-metrics'] = true;
+    } catch { bootstrapStatus.packages['pipeline-metrics'] = false; }
   }
 
   if (ModelRouter) {

@@ -199,6 +199,8 @@ class IntegrationLayer {
     this.workflowExecutor = config.workflowExecutor || null;
     this.dashboardLauncher = config.dashboardLauncher || null;
     this.healthd = config.healthd || null;
+    this.pipelineMetrics = config.pipelineMetrics || null;
+    this.alertManager = config.alertManager || null;
     // P1 FIX: Use Map keyed by task_id instead of global mutable state
     this.taskContextMap = new Map();
     this.currentSessionId = config.currentSessionId || config.sessionId || null;
@@ -1356,6 +1358,17 @@ class IntegrationLayer {
         skills: skills.map((s) => s.name),
         task: taskContext.task || 'unknown'
       });
+
+      // T18: Auto-feed PipelineMetricsCollector on skill selection
+      if (this.pipelineMetrics && typeof this.pipelineMetrics.recordDiscovery === 'function' && skills.length > 0) {
+        try {
+          this.pipelineMetrics.recordDiscovery({
+            skills: skills.map(s => s.name),
+            taskType: taskContext.task_type || taskContext.task || 'unknown',
+            timestamp: Date.now(),
+          });
+        } catch (_e) { /* fail-open */ }
+      }
     }
 
     // Execute the task with adaptive options

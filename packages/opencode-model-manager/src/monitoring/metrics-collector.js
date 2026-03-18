@@ -540,6 +540,63 @@ class PipelineMetricsCollector {
     }
   }
 
+  // ─── Discovery Metrics (Wave 3 T18) ──────────────────────────
+
+  /**
+   * Record a skill-selection discovery event from the runtime pipeline.
+   * @param {{ skills: string[], taskType: string, timestamp?: number }} data
+   * @returns {{ skills: string[], taskType: string, timestamp: number }}
+   */
+  recordDiscovery(data) {
+    const event = {
+      skills: Array.isArray(data.skills) ? data.skills.map(String) : [],
+      taskType: String(data.taskType || 'unknown'),
+      timestamp: data.timestamp || this.nowFn(),
+    };
+
+    if (!this._discoveryEvents) this._discoveryEvents = [];
+    this._discoveryEvents.push(event);
+    this._enforceLimit(this._discoveryEvents);
+    this._appendEventHistory('discovery', event);
+
+    return event;
+  }
+
+  /**
+   * Get discovery statistics.
+   * @param {number} [windowMs]
+   * @returns {{ totalEvents: number, uniqueSkills: string[], avgSkillsPerEvent: number, byTaskType: Object }}
+   */
+  getDiscoveryStats(windowMs) {
+    if (!this._discoveryEvents || this._discoveryEvents.length === 0) {
+      return { totalEvents: 0, uniqueSkills: [], avgSkillsPerEvent: 0, byTaskType: {} };
+    }
+
+    const cutoff = this.nowFn() - (windowMs || this.retentionMs);
+    const relevant = this._discoveryEvents.filter(e => e.timestamp >= cutoff);
+
+    if (relevant.length === 0) {
+      return { totalEvents: 0, uniqueSkills: [], avgSkillsPerEvent: 0, byTaskType: {} };
+    }
+
+    let totalSkills = 0;
+    const allSkills = new Set();
+    const byTaskType = {};
+
+    for (const e of relevant) {
+      totalSkills += e.skills.length;
+      for (const s of e.skills) allSkills.add(s);
+      byTaskType[e.taskType] = (byTaskType[e.taskType] || 0) + 1;
+    }
+
+    return {
+      totalEvents: relevant.length,
+      uniqueSkills: Array.from(allSkills),
+      avgSkillsPerEvent: round(totalSkills / relevant.length, 2),
+      byTaskType,
+    };
+  }
+
   // ─── Error Trend Analysis (T18) ──────────────────────────────
 
   getErrorTrends(windowMs) {

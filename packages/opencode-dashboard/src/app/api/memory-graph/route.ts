@@ -562,6 +562,45 @@ export async function GET(request: Request) {
       }
     }
 
+    // T16: Try opencode-memory-graph package first (richer session→error graph)
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { MemoryGraph } = require('opencode-memory-graph');
+      const mg = new MemoryGraph();
+      const logsDir = path.join(opencodePath, 'logs');
+      if (fs.existsSync(logsDir)) {
+        const pkgResult = mg.buildGraph(logsDir);
+        if (pkgResult && pkgResult.nodes && pkgResult.nodes.length > 0) {
+          // Merge package result into standard response shape
+          const pkgPayload = {
+            nodes: pkgResult.nodes,
+            edges: pkgResult.edges || [],
+            meta: {
+              ...(pkgResult.meta || {}),
+              source: 'opencode-memory-graph package',
+              sinceDays: options.sinceDays,
+              maxFanout: options.maxFanout,
+              maxNodes: options.maxNodes,
+              timestamp: new Date().toISOString(),
+            },
+          };
+          graphCache.set(cacheKey, {
+            expiresAt: Date.now() + GRAPH_CACHE_TTL_MS,
+            payload: pkgPayload as CachedGraphPayload['payload'],
+          });
+          if (format === 'dot') {
+            return new NextResponse(toDot(pkgPayload.nodes as GraphNode[], pkgPayload.edges as GraphEdge[]), {
+              status: 200,
+              headers: { 'Content-Type': 'text/vnd.graphviz' },
+            });
+          }
+          return NextResponse.json(pkgPayload);
+        }
+      }
+    } catch (_pkgErr) {
+      // Fall through to direct file-read (fail-open)
+    }
+
     // Read all OpenCode data sources
     const data = readOpenCodeData(opencodePath, options);
     

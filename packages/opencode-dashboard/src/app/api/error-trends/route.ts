@@ -1,32 +1,8 @@
 import { NextResponse } from 'next/server';
 import { errorResponse } from '../_lib/error-response';
+import { getMetricsCollector } from '../../../lib/metrics-singleton';
 
 export const dynamic = 'force-dynamic';
-
-interface MetricsCollectorInstance {
-  getErrorTrends: (windowMs?: number) => Record<string, unknown>;
-}
-
-interface MonitoringModule {
-  PipelineMetricsCollector: new (opts: Record<string, unknown>) => MetricsCollectorInstance;
-}
-
-let monitoringModule: MonitoringModule | null = null;
-let metricsCollector: MetricsCollectorInstance | null = null;
-
-function loadModules() {
-  if (!monitoringModule) {
-    monitoringModule = require('opencode-model-manager/monitoring');
-  }
-}
-
-function getMetricsCollector() {
-  if (!metricsCollector) {
-    loadModules();
-    metricsCollector = new monitoringModule!.PipelineMetricsCollector({ autoCleanup: true });
-  }
-  return metricsCollector;
-}
 
 export async function GET(request: Request) {
   try {
