@@ -116,7 +116,14 @@ class RouterIntegrationAdapter {
       return null;
     }
     try {
-      const advice = this.layer.advisor.advise(context);
+      const normalizedContext = this.layer?.normalizeTaskContext
+        ? this.layer.normalizeTaskContext(context || {})
+        : {
+            ...(context || {}),
+            task_type: context?.task_type || context?.taskType || context?.task || 'general',
+            attempt_number: context?.attempt_number ?? context?.attemptNumber ?? 1,
+          };
+      const advice = this.layer.advisor.advise(normalizedContext);
       if (!advice) return null;
       
       // Transform advice into metaKBAdvice format for routing
@@ -493,91 +500,6 @@ class ModelRouter {
   }
 
   /**
-   * P1: Canonical Model ID Resolver - Fix schema mismatch between strategies and registry
-   * Strategies return IDs like 'claude-opus-4-6' but registry keys are namespaced like 'anthropic/claude-opus-4-6'
-   * Also resolves model aliases (e.g., google/gemini-3-pro → antigravity/antigravity-gemini-3-pro)
-   * @param {string} modelId - Potentially non-namespaced model ID
-   * @returns {string|null} - Canonical namespaced model ID or null if not found
-   */
-  resolveModelId(modelId) {
-    if (!modelId) return null;
-
-    // T5 (Wave 11): Cached model ID resolution — O(1) for known models
-    if (this._modelIdCache && this._modelIdCache.has(modelId)) {
-      return this._modelIdCache.get(modelId);
-    }
-    
-    // First, resolve any aliases (e.g., raw Gemini → Antigravity)
-    const aliasResolved = resolveModelAlias(modelId);
-    
-    // Already namespaced and exists in registry
-    if (this.models[aliasResolved]) {
-      if (!this._modelIdCache) this._modelIdCache = new Map();
-      this._modelIdCache.set(modelId, aliasResolved);
-      return aliasResolved;
-    }
-    if (this.models[modelId]) {
-      if (!this._modelIdCache) this._modelIdCache = new Map();
-      this._modelIdCache.set(modelId, modelId);
-      return modelId;
-    }
-    
-    // Provider prefix mapping for common model name patterns
-    const modelToProvider = {
-      'claude': 'anthropic', 'gpt-4': 'openai', 'gpt-4o': 'openai', 'gpt-4-turbo': 'openai',
-      'gpt-3.5': 'openai', 'llama': 'groq', 'mixtral': 'mistral', 'gemini': 'google',
-      'command': 'cohere', 'mistral': 'mistral', 'deepseek': 'deepseek'
-    };
-    
-    // Try to infer provider from model name prefix
-    const modelLower = modelId.toLowerCase();
-    for (const [pattern, provider] of Object.entries(modelToProvider)) {
-      if (modelLower.startsWith(pattern) || modelLower.includes(pattern)) {
-        const namespaced = `${provider}/${modelId}`;
-        if (this.models[namespaced]) {
-          if (!this._modelIdCache) this._modelIdCache = new Map();
-          this._modelIdCache.set(modelId, namespaced);
-          return namespaced;
-        }
-      }
-    }
-    
-    // Try all provider prefixes
-    const providerPrefixes = ['anthropic/', 'openai/', 'groq/', 'cerebras/', 'deepseek/', 'nvidia/', 'google/', 'mistral/', 'cohere/', 'x/', 'antigravity/'];
-    
-    for (const prefix of providerPrefixes) {
-      const namespaced = `${prefix}${modelId}`;
-      if (this.models[namespaced]) {
-        if (!this._modelIdCache) this._modelIdCache = new Map();
-        this._modelIdCache.set(modelId, namespaced);
-        return namespaced;
-      }
-    }
-    
-    // Try partial match - extract base model name (e.g., claude-opus-4-20240229 -> claude-opus)
-    for (const [key, model] of Object.entries(this.models)) {
-      const modelBaseName = model.id?.replace(/-(\d{8})$/, '').replace(/-(\d{4})$/, '');
-      if (modelBaseName && modelId.includes(modelBaseName)) {
-        if (!this._modelIdCache) this._modelIdCache = new Map();
-        this._modelIdCache.set(modelId, key);
-        return key;
-      }
-      // Also try matching the suffix without provider prefix
-      const keySuffix = key.split('/').pop();
-      if (keySuffix) {
-        const keyBase = keySuffix.replace(/-(\d{8})$/, '').replace(/-(\d{4})$/, '');
-        if (modelId.includes(keyBase)) {
-          if (!this._modelIdCache) this._modelIdCache = new Map();
-          this._modelIdCache.set(modelId, key);
-          return key;
-        }
-      }
-    }
-    
-    return null;
-  }
-
-  /**
    * T5 (Wave 11): Invalidate model ID resolution cache.
    * Call when model registry changes.
    */
@@ -914,67 +836,6 @@ class ModelRouter {
   }
 
   /**
-   * Track call outcome for adaptive scoring and key health.
-   * @param {string} modelId
-   * @param {boolean} success
-   * @param {number|object} latencyOrError - Latency in ms or error object
-   */
-  recordResult(modelId, success, latencyOrError = 0) {
-    if (!this.stats[modelId]) return;
-    
-    const latencyMs = typeof latencyOrError === 'number' ? latencyOrError : 0;
-    const error = typeof latencyOrError === 'object' ? latencyOrError : null;
-
-    this.stats[modelId].calls += 1;
-    if (success) {
-      this.stats[modelId].successes += 1;
-      if (this.metaAwarenessTracker) {
-        this.metaAwarenessTracker.trackEvent({
-          event_type: 'orchestration.failure_recovery_step',
-          task_type: 'model_execution',
-          complexity: 'moderate',
-          outcome: 'recovered',
-          metadata: {
-            model: modelId,
-            latency_ms: latencyMs,
-            recovered: true,
-          },
-        });
-      }
-    } else {
-      this.stats[modelId].failures += 1;
-      if (this.metaAwarenessTracker) {
-        this.metaAwarenessTracker.trackEvent({
-          event_type: 'orchestration.failure_recovery_step',
-          task_type: 'model_execution',
-          complexity: 'moderate',
-          outcome: 'repeated_failure',
-          metadata: {
-            model: modelId,
-            latency_ms: latencyMs,
-            repeated_failure: true,
-            error: error?.message || null,
-          },
-        });
-      }
-      
-      // Update key health if we have error details
-      const model = this.models[modelId];
-      if (model && error) {
-        const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
-        const keyId = error.keyId || null; // Some clients might provide the keyId
-        if (rotator && keyId) {
-            rotator.recordFailure(keyId, error);
-        }
-      }
-    }
-    this.stats[modelId].total_latency_ms += Number.isFinite(latencyMs) ? latencyMs : 0;
-    
-    // P1: Atomic Write for Stats - persist after each update
-    this._persistStatsAtomic();
-  }
-
-  /**
    * Atomic stats persistence - write to temp file then rename.
    * @private
    */
@@ -1123,122 +984,6 @@ class ModelRouter {
       
       return true;
     });
-  }
-
-  /**
-   * Score model using policy + live signals.
-   * @private
-   */
-  _scoreModel(modelId, ctx = {}) {
-    const model = this.models[modelId];
-    if (!model) return { score: 0, reason: 'missing-model' };
-
-    let score = 0.50;
-    const reasons = [];
-
-    const successRate = this._getSuccessRate(modelId);
-    score += successRate * 0.30;
-    reasons.push(`success=${successRate.toFixed(2)}`);
-
-    const avgLatency = this._getAvgLatency(modelId);
-    const baselineLatency = model.default_latency_ms || avgLatency || 1000;
-    const latencyPenalty = Math.min(0.20, Math.max(0, avgLatency - baselineLatency) / 5000);
-    score -= latencyPenalty;
-    reasons.push(`latency=${Math.round(avgLatency || baselineLatency)}ms`);
-
-    if (ctx.taskType && Array.isArray(model.task_types)) {
-      if (model.task_types.includes(ctx.taskType)) {
-        score += 0.10;
-        reasons.push(`task=${ctx.taskType}`);
-      } else {
-        score -= 0.05;
-      }
-    }
-
-    if (Array.isArray(ctx.requiredStrengths) && ctx.requiredStrengths.length > 0) {
-      const modelStrengths = Array.isArray(model.strengths) ? model.strengths : [];
-      const matched = ctx.requiredStrengths.filter((s) => modelStrengths.includes(s));
-      score += (matched.length / ctx.requiredStrengths.length) * 0.10;
-      if (matched.length > 0) reasons.push(`strengths=${matched.join(',')}`);
-    }
-
-    const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
-    if (rotator && typeof rotator.getProviderStatus === 'function') {
-      const status = rotator.getProviderStatus();
-      if (status?.isExhausted) {
-        score -= 0.50;
-        reasons.push('rotator-exhausted');
-      } else if (status && Number.isFinite(status.healthyKeys) && Number.isFinite(status.totalKeys) && status.healthyKeys < status.totalKeys) {
-        score -= 0.10;
-        reasons.push(`rotator-pressure(${status.healthyKeys}/${status.totalKeys})`);
-      }
-    }
-
-    // Check circuit breaker state - heavily penalize if open
-    const cb = this.circuitBreakers[model.provider];
-    if (cb) {
-      const state = cb.getState();
-      if (state === 'open') {
-        score -= 0.80;
-        reasons.push('circuit-open');
-      } else if (state === 'half-open') {
-        score -= 0.30;
-        reasons.push('circuit-half-open');
-      }
-    }
-
-    if (ctx.maxBudget && Number.isFinite(model.cost_per_1k_tokens)) {
-      const estimatedCost = model.cost_per_1k_tokens * 2;
-      if (estimatedCost > ctx.maxBudget) {
-        score -= 0.15;
-        reasons.push(`over-budget($${estimatedCost.toFixed(3)}>$${ctx.maxBudget})`);
-      }
-    }
-
-    // T12: Apply benchmark bonus (supplementary signal, 0-0.15)
-    const benchmarkResult = this._applyBenchmarkBonus(modelId);
-    if (benchmarkResult.bonus > 0) {
-      score += benchmarkResult.bonus;
-      reasons.push(benchmarkResult.reason);
-    }
-
-    // T13: Apply cost-efficiency factor (supplementary signal, 0-0.05)
-    const costResult = this._applyCostEfficiency(modelId);
-    if (costResult.bonus > 0) {
-      score += costResult.bonus;
-      reasons.push(costResult.reason);
-    }
-
-    // T4 (Wave 11): Budget-aware penalty — deprioritize expensive models when budget is tight
-    // Threshold lowered from 80% to 70% to proactively prevent tool timeouts from model unavailability
-    if (this.tokenBudgetManager?.governor) {
-      try {
-        const sessionId = ctx?.sessionId || ctx?.session_id || 'default';
-        const budgetCheck = this.tokenBudgetManager.governor.getRemainingBudget(sessionId, modelId);
-        if (budgetCheck && budgetCheck.pct >= 0.70) {
-          // Budget is >=70% consumed: penalize high-cost models
-          const costTier = model.cost_tier || 'medium';
-          const costPenalties = { high: 0.15, critical: 0.15, emergency: 0.15, medium: 0.08, low: 0.03, trivial: 0, mechanical: 0 };
-          const penalty = costPenalties[costTier] || 0.05;
-          score -= penalty;
-          reasons.push(`budget-pressure(${(budgetCheck.pct * 100).toFixed(0)}%,-${penalty.toFixed(2)})`);
-        }
-      } catch (e) {
-        // Fail-open: budget check failure should not affect scoring
-      }
-    }
-
-    // P1: Apply learning-based penalties from LearningEngine
-    const learningPenalty = this._applyLearningPenalties(modelId, ctx);
-    if (learningPenalty.scorePenalty > 0) {
-      score -= learningPenalty.scorePenalty;
-      reasons.push(...learningPenalty.reasons);
-    }
-
-    return {
-      score: Math.max(0, Math.min(1, score)),
-      reason: reasons.join('; '),
-    };
   }
 
   /**
@@ -1619,9 +1364,73 @@ class ModelRouter {
       return { score: -Infinity, reason: 'model-not-found' };
     }
 
-    // Base score from success rate
     const successRate = this._getSuccessRate(modelId);
     let score = successRate;
+    const reasons = [`success_rate(${successRate.toFixed(2)})`];
+
+    const avgLatency = this._getAvgLatency(modelId);
+    const baselineLatency = model.default_latency_ms || avgLatency || 1000;
+    const latencyPenalty = Math.min(0.20, Math.max(0, avgLatency - baselineLatency) / 5000);
+    score -= latencyPenalty;
+    reasons.push(`latency(${Math.round(avgLatency || baselineLatency)}ms,-${latencyPenalty.toFixed(3)})`);
+
+    if (ctx?.taskType && Array.isArray(model.task_types)) {
+      if (model.task_types.includes(ctx.taskType)) {
+        score += 0.10;
+        reasons.push(`task(${ctx.taskType},+0.10)`);
+      } else {
+        score -= 0.05;
+        reasons.push(`task(${ctx.taskType},-0.05)`);
+      }
+    }
+
+    if (Array.isArray(ctx?.requiredStrengths) && ctx.requiredStrengths.length > 0) {
+      const modelStrengths = Array.isArray(model.strengths) ? model.strengths : [];
+      const matched = ctx.requiredStrengths.filter((s) => modelStrengths.includes(s));
+      const strengthBonus = (matched.length / ctx.requiredStrengths.length) * 0.10;
+      score += strengthBonus;
+      reasons.push(`strengths(${matched.length}/${ctx.requiredStrengths.length},+${strengthBonus.toFixed(3)})`);
+      if (matched.length > 0) {
+        reasons.push(`strengths_matched(${matched.join(',')})`);
+      }
+    }
+
+    const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
+    if (rotator && typeof rotator.getProviderStatus === 'function') {
+      const status = rotator.getProviderStatus();
+      if (status?.isExhausted) {
+        score -= 0.50;
+        reasons.push('rotator-exhausted(-0.50)');
+      } else if (
+        status
+        && Number.isFinite(status.healthyKeys)
+        && Number.isFinite(status.totalKeys)
+        && status.healthyKeys < status.totalKeys
+      ) {
+        score -= 0.10;
+        reasons.push(`rotator-pressure(${status.healthyKeys}/${status.totalKeys},-0.10)`);
+      }
+    }
+
+    const cb = this.circuitBreakers[model.provider];
+    if (cb) {
+      const state = cb.getState();
+      if (state === 'open') {
+        score -= 0.80;
+        reasons.push('circuit-open(-0.80)');
+      } else if (state === 'half-open') {
+        score -= 0.30;
+        reasons.push('circuit-half-open(-0.30)');
+      }
+    }
+
+    if (ctx?.maxBudget && Number.isFinite(model.cost_per_1k_tokens)) {
+      const estimatedCost = model.cost_per_1k_tokens * 2;
+      if (estimatedCost > ctx.maxBudget) {
+        score -= 0.15;
+        reasons.push(`over-budget($${estimatedCost.toFixed(3)}>$${ctx.maxBudget},-0.15)`);
+      }
+    }
 
     // Apply benchmark bonus (T12)
     const benchBonus = this._applyBenchmarkBonus(modelId);
@@ -1635,14 +1444,19 @@ class ModelRouter {
     const budgetPenalty = this._applyBudgetPenalty(modelId, ctx);
     score += budgetPenalty.penalty;
 
-    const reasons = [];
     if (benchBonus.reason) reasons.push(benchBonus.reason);
     if (costBonus.reason) reasons.push(costBonus.reason);
     if (budgetPenalty.reason) reasons.push(budgetPenalty.reason);
 
+    const learningPenalty = this._applyLearningPenalties(modelId, ctx || {});
+    if (learningPenalty.scorePenalty > 0) {
+      score -= learningPenalty.scorePenalty;
+      reasons.push(...learningPenalty.reasons);
+    }
+
     return {
-      score,
-      reason: reasons.length > 0 ? reasons.join('; ') : `success_rate(${successRate.toFixed(2)})`
+      score: Math.max(0, Math.min(1, score)),
+      reason: reasons.join('; ')
     };
   }
 
@@ -1698,6 +1512,12 @@ class ModelRouter {
       return this._modelIdCache.get(modelId);
     }
 
+    const resolvedAlias = resolveModelAlias(modelId);
+    if (this.models[resolvedAlias]) {
+      this._modelIdCache.set(modelId, resolvedAlias);
+      return resolvedAlias;
+    }
+
     // Direct key match (already namespaced)
     if (this.models[modelId]) {
       this._modelIdCache.set(modelId, modelId);
@@ -1707,9 +1527,15 @@ class ModelRouter {
     // Try provider-prefix inference
     const modelToProvider = {
       'claude': 'anthropic',
+      'gpt-4': 'openai',
+      'gpt-4o': 'openai',
+      'gpt-4-turbo': 'openai',
+      'gpt-3.5': 'openai',
       'gpt': 'openai',
       'gemini': 'google',
       'llama': 'groq',
+      'mixtral': 'mistral',
+      'command': 'cohere',
       'mistral': 'mistral',
       'deepseek': 'deepseek',
     };
@@ -1725,23 +1551,178 @@ class ModelRouter {
     }
 
     // Try all provider prefixes
-    const prefixes = ['anthropic/', 'openai/', 'groq/', 'google/', 'deepseek/', 'antigravity/'];
+    const prefixes = ['anthropic/', 'openai/', 'groq/', 'cerebras/', 'deepseek/', 'nvidia/', 'google/', 'mistral/', 'cohere/', 'x/', 'antigravity/'];
     for (const prefix of prefixes) {
       const namespaced = `${prefix}${modelId}`;
       if (this.models[namespaced]) {
         this._modelIdCache.set(modelId, namespaced);
         return namespaced;
       }
+
+      if (resolvedAlias !== modelId) {
+        const aliasedNamespaced = `${prefix}${resolvedAlias}`;
+        if (this.models[aliasedNamespaced]) {
+          this._modelIdCache.set(modelId, aliasedNamespaced);
+          return aliasedNamespaced;
+        }
+      }
     }
 
-    // Also try alias resolution
-    const aliased = resolveModelAlias(modelId);
-    if (aliased && this.models[aliased]) {
-      this._modelIdCache.set(modelId, aliased);
-      return aliased;
+    // Partial match fallback (e.g. version-suffixed IDs)
+    for (const [key, model] of Object.entries(this.models)) {
+      const modelBaseName = model.id?.replace(/-(\d{8})$/, '').replace(/-(\d{4})$/, '');
+      if (modelBaseName && (modelId.includes(modelBaseName) || resolvedAlias.includes(modelBaseName))) {
+        this._modelIdCache.set(modelId, key);
+        return key;
+      }
+
+      const keySuffix = key.split('/').pop();
+      if (keySuffix) {
+        const keyBase = keySuffix.replace(/-(\d{8})$/, '').replace(/-(\d{4})$/, '');
+        if (modelId.includes(keyBase) || resolvedAlias.includes(keyBase)) {
+          this._modelIdCache.set(modelId, key);
+          return key;
+        }
+      }
     }
 
     return null;
+  }
+
+  // ─── Model Outcome Recording ───────────────────────────────────────────────
+
+  /**
+   * Record a model outcome to update live success rates and latency tracking.
+   * Persists to statsPersistPath so outcomes survive across restarts.
+   *
+   * @param {string} modelId - Model ID (namespaced or bare)
+   * @param {boolean} success - Whether the model call succeeded
+   * @param {number} latencyMs - Latency in milliseconds (0 if unknown)
+   */
+  recordResult(modelId, success, latencyMs = 0) {
+    const resolved = this.resolveModelId(modelId) || modelId;
+    if (!this.stats[resolved]) {
+      // Initialize if model not in registry (e.g., new model)
+      this.stats[resolved] = { calls: 0, successes: 0, failures: 0, total_latency_ms: 0 };
+    }
+
+    const latencyValue = typeof latencyMs === 'number' ? latencyMs : 0;
+    const error = latencyMs && typeof latencyMs === 'object' ? latencyMs : null;
+
+    this.stats[resolved].calls++;
+    if (success) {
+      this.stats[resolved].successes++;
+      if (this.metaAwarenessTracker) {
+        this.metaAwarenessTracker.trackEvent({
+          event_type: 'orchestration.failure_recovery_step',
+          task_type: 'model_execution',
+          complexity: 'moderate',
+          outcome: 'recovered',
+          metadata: {
+            model: resolved,
+            latency_ms: latencyValue,
+            recovered: true,
+          },
+        });
+      }
+    } else {
+      this.stats[resolved].failures++;
+      if (this.metaAwarenessTracker) {
+        this.metaAwarenessTracker.trackEvent({
+          event_type: 'orchestration.failure_recovery_step',
+          task_type: 'model_execution',
+          complexity: 'moderate',
+          outcome: 'repeated_failure',
+          metadata: {
+            model: resolved,
+            latency_ms: latencyValue,
+            repeated_failure: true,
+            error: error?.message || null,
+          },
+        });
+      }
+
+      const model = this.models[resolved];
+      const keyId = error?.keyId || null;
+      if (model && keyId) {
+        const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
+        if (rotator && typeof rotator.recordFailure === 'function') {
+          rotator.recordFailure(keyId, error);
+        }
+      }
+    }
+    if (latencyValue > 0) {
+      this.stats[resolved].total_latency_ms += latencyValue;
+    }
+
+    if (this.explorationController?.recordExplorationOutcome) {
+      try {
+        this.explorationController.recordExplorationOutcome(resolved, {
+          success: Boolean(success),
+          latencyMs: latencyValue,
+        });
+      } catch (_) {
+        // Exploration updates are best-effort and must never block routing.
+      }
+    }
+
+    // Async persist to disk (non-blocking)
+    this._persistStats();
+
+    return this.stats[resolved];
+  }
+
+  /**
+   * Async stats persistence to statsPersistPath.
+   * @private
+   */
+  _persistStats() {
+    if (!this.statsPersistPath) return;
+    // Defer to avoid blocking hot path
+    setImmediate(() => {
+      try {
+        const fs = require('fs');
+        const json = JSON.stringify({ stats: this.stats, savedAt: new Date().toISOString() }, null, 2);
+        const tmp = this.statsPersistPath + '.tmp';
+        fs.writeFileSync(tmp, json, 'utf8');
+        try { require('fs').renameSync(tmp, this.statsPersistPath); } catch (_) { /* best-effort */ }
+      } catch (_) { /* never crash persistence */ }
+    });
+  }
+
+  /**
+   * Load persisted stats from statsPersistPath on startup.
+   * Seeds this.stats with historical outcomes so RL has memory from previous sessions.
+   * @param {Object} runtimeOutcomes - Outcomes from runtime-tool-telemetry (via model-selection file)
+   */
+  loadStatsFromDisk(runtimeOutcomes = []) {
+    if (!this.statsPersistPath) return;
+    try {
+      const fs = require('fs');
+      if (fs.existsSync(this.statsPersistPath)) {
+        const data = JSON.parse(fs.readFileSync(this.statsPersistPath, 'utf8'));
+        if (data.stats && typeof data.stats === 'object') {
+          for (const [modelId, s] of Object.entries(data.stats)) {
+            if (!this.stats[modelId]) {
+              this.stats[modelId] = { calls: 0, successes: 0, failures: 0, total_latency_ms: 0 };
+            }
+            this.stats[modelId].calls += s.calls || 0;
+            this.stats[modelId].successes += s.successes || 0;
+            this.stats[modelId].failures += s.failures || 0;
+            this.stats[modelId].total_latency_ms += s.total_latency_ms || 0;
+          }
+        }
+      }
+    } catch (_) { /* fail-open */ }
+
+    // Also ingest runtime outcomes captured by telemetry
+    if (Array.isArray(runtimeOutcomes)) {
+      for (const e of runtimeOutcomes) {
+        if (e.modelId && typeof e.success === 'boolean') {
+          this.recordResult(e.modelId, e.success, e.latencyMs || 0);
+        }
+      }
+    }
   }
 
   // ─── Backward Compatibility Aliases ─────────────────────────────────────
@@ -1754,14 +1735,14 @@ class ModelRouter {
   }
 
   /**
-   * Alias for recordResult() - backward compatibility
+   * Alias for recordResult() - forward compatibility
    */
   recordOutcome(modelId, success, latencyOrError = 0) {
     return this.recordResult(modelId, success, latencyOrError);
   }
 
   /**
-   * Alias for recordResult() - backward compatibility (old signature)
+   * Alias for getModelStats() - backward compatibility (old signature)
    */
   getModelStats(modelId) {
     return this.stats[modelId] || { calls: 0, successes: 0, failures: 0, total_latency_ms: 0 };
