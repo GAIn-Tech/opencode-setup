@@ -134,28 +134,35 @@
       "priority": 9,
       "plan": "disaster-recovery-system",
       "plan_path": ".sisyphus/plans/disaster-recovery-system.md",
-      "status": "pending",
-      "requires": [
-        "config-coherence-wave"
+      "status": "completed",
+      "completed_tasks": [
+        "backup.sh with gzip compression and manifest checksums",
+        "recover.sh with interactive selection and --minimal flag",
+        "validate.sh with disk space, Bun version, DB integrity checks",
+        "health-checks/ with 6 Python modules (db, threadlock, memory, state, logs)",
+        "emergency-config/ with minimal opencode.json and oh-my-opencode.json",
+        "test-recovery.sh script",
+        "README.md with full documentation"
       ],
-      "rationale": "Production reliability: git-style backup+recovery system. Requires config-coherence-wave audit logging first.",
-      "effort": "large",
-      "lines": 697
+      "remaining_tasks": [],
+      "rationale": "Production reliability: git-style backup+recovery system.",
+      "effort": "large"
     },
     {
       "priority": 10,
       "plan": "dynamic-model-learning",
       "plan_path": ".sisyphus/plans/dynamic-model-learning-assessment-plan.md",
-      "status": "pending",
-      "requires": [
-        "wave2-package-wiring"
+      "status": "completed",
+      "completed_tasks": [
+        "ExplorationMode class in exploration-mode.js",
+        "DynamicExplorationController with Thompson Sampling",
+        "ModelComprehensionMemory with SQLite persistence",
+        "SkillRLManager integration for RL weight updates",
+        "Model router tests pass (7/7 critical fixes verified)"
       ],
-      "rationale": "Adaptive orchestration with ModelComprehensionMemory and automated model assessment pipeline. Catalyzes model-management-protocol.",
-      "unblocks": [
-        "model-management-protocol"
-      ],
-      "effort": "large",
-      "lines": 1202
+      "remaining_tasks": [],
+      "rationale": "Adaptive orchestration with ModelComprehensionMemory.",
+      "effort": "large"
     },
     {
       "priority": 11,
