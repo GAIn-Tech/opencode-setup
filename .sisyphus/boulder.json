@@ -115,10 +115,20 @@
       "priority": 8,
       "plan": "central-config-dashboard",
       "plan_path": "docs/plans/2026-02-23-central-config-dashboard.md",
-      "status": "pending",
-      "rationale": "UX improvement: centralize settings in central-config.json with dashboard editing, hard/soft bounds + RL merge.",
-      "effort": "medium",
-      "lines": 363
+      "status": "completed",
+      "completed_tasks": [
+        "Task 1: central-config.schema.json + central-config.json exist",
+        "Task 2: mergeCentralConfig() with hard clamp + RL gating",
+        "Task 3: central-config-state.js with RL state + audit log + rollback",
+        "Task 4: Dashboard API loads central-config module",
+        "Task 5: migrate-central-config.mjs exists",
+        "Task 6: docs/central-config.md exists",
+        "Task 7: verify-setup.mjs validates central config (PASS)",
+        "Task 8: rollback() function exists in central-config-state.js"
+      ],
+      "remaining_tasks": [],
+      "rationale": "UX improvement: centralizes settings in central-config.json with dashboard editing, hard/soft bounds + RL merge.",
+      "effort": "medium"
     },
     {
       "priority": 9,
