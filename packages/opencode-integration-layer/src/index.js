@@ -1360,9 +1360,9 @@ class IntegrationLayer {
       });
 
       // T18: Auto-feed PipelineMetricsCollector on skill selection
-      if (this.pipelineMetrics && typeof this.pipelineMetrics.recordDiscovery === 'function' && skills.length > 0) {
+      if (this.pipelineMetrics && typeof this.pipelineMetrics.recordSkillSelection === 'function' && skills.length > 0) {
         try {
-          this.pipelineMetrics.recordDiscovery({
+          this.pipelineMetrics.recordSkillSelection({
             skills: skills.map(s => s.name),
             taskType: taskContext.task_type || taskContext.task || 'unknown',
             timestamp: Date.now(),

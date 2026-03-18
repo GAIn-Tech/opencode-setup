@@ -10,10 +10,10 @@ interface MetricsCollectorInstance {
   getCompressionStats: (windowMs?: number) => Record<string, unknown>;
   getContext7Stats: (windowMs?: number) => Record<string, unknown>;
   getErrorTrends: (windowMs?: number) => Record<string, unknown>;
-  getDiscoveryStats?: (windowMs?: number) => Record<string, unknown>;
+  getSkillSelectionStats?: (windowMs?: number) => Record<string, unknown>;
   recordCompression?: (data: Record<string, unknown>) => Record<string, unknown>;
   recordContext7Lookup?: (data: Record<string, unknown>) => Record<string, unknown>;
-  recordDiscovery?: (data: Record<string, unknown>) => Record<string, unknown>;
+  recordSkillSelection?: (data: Record<string, unknown>) => Record<string, unknown>;
 }
 
 interface MonitoringModule {

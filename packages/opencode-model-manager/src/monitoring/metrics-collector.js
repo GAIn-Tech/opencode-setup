@@ -540,40 +540,42 @@ class PipelineMetricsCollector {
     }
   }
 
-  // ─── Discovery Metrics (Wave 3 T18) ──────────────────────────
+  // ─── Skill Selection Metrics (Wave 3 T18) ─────────────────────
 
   /**
-   * Record a skill-selection discovery event from the runtime pipeline.
+   * Record a skill-selection event from the runtime pipeline.
+   * Named `recordSkillSelection` to avoid collision with the planned
+   * `recordDiscovery(provider, success, metadata)` for model provider discovery.
    * @param {{ skills: string[], taskType: string, timestamp?: number }} data
    * @returns {{ skills: string[], taskType: string, timestamp: number }}
    */
-  recordDiscovery(data) {
+  recordSkillSelection(data) {
     const event = {
       skills: Array.isArray(data.skills) ? data.skills.map(String) : [],
       taskType: String(data.taskType || 'unknown'),
       timestamp: data.timestamp || this.nowFn(),
     };
 
-    if (!this._discoveryEvents) this._discoveryEvents = [];
-    this._discoveryEvents.push(event);
-    this._enforceLimit(this._discoveryEvents);
-    this._appendEventHistory('discovery', event);
+    if (!this._skillSelectionEvents) this._skillSelectionEvents = [];
+    this._skillSelectionEvents.push(event);
+    this._enforceLimit(this._skillSelectionEvents);
+    this._appendEventHistory('skill_selection', event);
 
     return event;
   }
 
   /**
-   * Get discovery statistics.
+   * Get skill selection statistics.
    * @param {number} [windowMs]
    * @returns {{ totalEvents: number, uniqueSkills: string[], avgSkillsPerEvent: number, byTaskType: Object }}
    */
-  getDiscoveryStats(windowMs) {
-    if (!this._discoveryEvents || this._discoveryEvents.length === 0) {
+  getSkillSelectionStats(windowMs) {
+    if (!this._skillSelectionEvents || this._skillSelectionEvents.length === 0) {
       return { totalEvents: 0, uniqueSkills: [], avgSkillsPerEvent: 0, byTaskType: {} };
     }
 
     const cutoff = this.nowFn() - (windowMs || this.retentionMs);
-    const relevant = this._discoveryEvents.filter(e => e.timestamp >= cutoff);
+    const relevant = this._skillSelectionEvents.filter(e => e.timestamp >= cutoff);
 
     if (relevant.length === 0) {
       return { totalEvents: 0, uniqueSkills: [], avgSkillsPerEvent: 0, byTaskType: {} };

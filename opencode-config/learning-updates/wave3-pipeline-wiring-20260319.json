@@ -1,0 +1,22 @@
+{
+  "id": "wave3-pipeline-wiring-20260319",
+  "timestamp": "2026-03-19T02:48:00.000Z",
+  "summary": "Wave 3 pipeline wiring: T14 AlertManager event listeners, T15 LearningEngine event consumers, T16 memory-graph package delegation, T17 shared MetricsCollector singleton, T18 skill selection auto-feed. Renamed recordDiscovery to recordSkillSelection to avoid collision with planned provider discovery API.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/bootstrap.js",
+    "packages/opencode-integration-layer/src/index.js",
+    "packages/opencode-model-manager/src/monitoring/metrics-collector.js",
+    "packages/opencode-dashboard/src/lib/metrics-singleton.ts",
+    "packages/opencode-dashboard/src/app/api/compression/route.ts",
+    "packages/opencode-dashboard/src/app/api/context7-stats/route.ts",
+    "packages/opencode-dashboard/src/app/api/error-trends/route.ts",
+    "packages/opencode-dashboard/src/app/api/memory-graph/route.ts"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "build": "pass"
+  },
+  "risk_level": "low"
+}
