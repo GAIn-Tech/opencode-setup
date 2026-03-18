@@ -16,35 +16,29 @@
       "priority": 1,
       "plan": "debt-refinement-phase2",
       "plan_path": ".sisyphus/plans/2026-02-24-debt-refinement-phase2.md",
-      "status": "partial",
+      "status": "completed",
       "rationale": "SECURITY: fixes command injection in learning-gate.mjs (runs on every commit). Also improves CI reliability which all other work depends on.",
       "unblocks": [
         "all CI-dependent work"
       ],
       "effort": "medium",
       "lines": 372,
-      "completed_tasks": "Fix Command Injection in learning-gate.mjs, Fix Timing Attack in Token Validation, Add Rate Limiting Middleware, Add Database Indexes, Add Pagination to History Queries, Replace Sync File I/O with Async",
-      "remaining_tasks": [
-        "Standardize Error Response Format",
-        "Replace Silent Catch Blocks",
-        "Add Error Boundaries to React Components",
-        "Add RBAC to Audit Endpoint"
-      ]
+      "completed_tasks": "Fix Command Injection in learning-gate.mjs, Fix Timing Attack in Token Validation, Add Rate Limiting Middleware, Add Database Indexes, Add Pagination to History Queries, Replace Sync File I/O with Async, Standardize Error Response Format, Replace Silent Catch Blocks, Add Error Boundaries to React Components, Add RBAC to Audit Endpoint",
+      "remaining_tasks": []
     },
     {
       "priority": 2,
       "plan": "agent-surface-hardening",
       "plan_path": ".sisyphus/plans/agent-surface-hardening.md",
-      "status": "partial",
+      "status": "completed",
       "completed_tasks": [
-        "remove librarian.md from opencode-config/agents/ (done)"
+        "remove librarian.md from opencode-config/agents/ (done)",
+        "harden copy-config.mjs against phantom agent reintroduction (pruneDeprecatedRuntimeAgentPrompts + tests)",
+        "update README/agents-list.md (already accurate)",
+        "reconcile MCP boundary docs (aligned)"
       ],
-      "remaining_tasks": [
-        "harden copy-config.mjs against phantom agent reintroduction",
-        "update README/agents-list.md",
-        "reconcile MCP boundary docs"
-      ],
-      "rationale": "Foundation: ensures plugin-managed agent source of truth. Partially done, quick to finish. Foundational for agent config integrity.",
+      "remaining_tasks": [],
+      "rationale": "Foundation: ensures plugin-managed agent source of truth. Completed all tasks.",
       "effort": "low"
     },
     {
