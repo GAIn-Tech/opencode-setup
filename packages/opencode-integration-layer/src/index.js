@@ -341,11 +341,18 @@ class IntegrationLayer {
         stack: error.stack,
         name: error.name,
       } : error;
-      const result = await this.memoryGraph.buildGraph([{
+      const entry = {
         sessionId,
         ...errorData,
         timestamp: new Date().toISOString(),
-      }]);
+      };
+      const normalizedEntry = {
+        session_id: entry.sessionId || entry.session_id || sessionId,
+        error_type: entry.name || entry.error_type || entry.errorType || 'UnknownError',
+        message: entry.message || '',
+        timestamp: entry.timestamp || new Date().toISOString(),
+      };
+      const result = await this.memoryGraph.buildGraph([normalizedEntry]);
       this.recordPackageExecution('memoryGraph', 'buildGraph', true, Date.now() - t0, { sessionId });
       return result;
     } catch (err) {
