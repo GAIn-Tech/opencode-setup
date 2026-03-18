@@ -191,6 +191,7 @@ class IntegrationLayer {
     this.modelRouter = config.modelRouter || config.ModelRouter || null;
     this.preloadSkills = config.preloadSkills || null;
     this.runbooks = config.runbooks || null;
+    this.crashGuard = config.crashGuard || null;
     this.fallbackDoctor = config.fallbackDoctor || null;
     this.pluginLifecycle = config.pluginLifecycle || null;
     this.workflowStore = config.workflowStore || null;
@@ -642,14 +643,17 @@ class IntegrationLayer {
    * Check command availability via crash-guard spawn protection.
    */
   commandExists(command) {
-    if (!this.crashGuard || typeof this.crashGuard.commandExists !== 'function') {
-      return false;
+    if (!this.crashGuard) {
+      return true;
+    }
+    if (typeof this.crashGuard.commandExists !== 'function') {
+      return true;
     }
     try {
       return this.crashGuard.commandExists(command);
     } catch (err) {
       this.logger.warn('crash-guard commandExists failed', { command, error: err.message });
-      return false;
+      return true;
     }
   }
 
@@ -657,7 +661,10 @@ class IntegrationLayer {
    * Safe process spawn through crash-guard ENOENT protections.
    */
   safeSpawn(command, args = [], options = {}) {
-    if (!this.crashGuard || typeof this.crashGuard.safeSpawn !== 'function') {
+    if (!this.crashGuard) {
+      return null;
+    }
+    if (typeof this.crashGuard.safeSpawn !== 'function') {
       this.logger.warn('safeSpawn requested but crash-guard not available', { command });
       return null;
     }
