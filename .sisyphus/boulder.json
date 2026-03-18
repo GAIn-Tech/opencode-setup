@@ -73,20 +73,25 @@
       "priority": 5,
       "plan": "wave2-package-wiring",
       "plan_path": "docs/plans/2026-03-12-wave2-package-wiring.md",
-      "status": "pending",
+      "status": "completed",
+      "completed_at": "2026-03-17T22:00:00.000Z",
       "rationale": "BLOCKER for plans 10+11: wires model-router-x into IntegrationLayer (prerequisite for dynamic-model-learning and model-management-protocol). Also enables full IntegrationLayer SkillRL path.",
       "unblocks": [
         "dynamic-model-learning",
         "model-management-protocol"
       ],
       "effort": "medium",
-      "lines": 467
+      "lines": 467,
+      "verification": "All delegate methods exist in IntegrationLayer: recordSessionError, getSessionErrors, getErrorFrequency, activateMemoryGraph, isMemoryGraphActive (memory-graph); validateFallbackChain, diagnoseFallbacks (fallback-doctor); evaluatePluginHealth, listPlugins (plugin-lifecycle); executeWorkflow, resumeWorkflow, getWorkflowState (sisyphus-state). Bootstrap wires model-router-x, plugin-lifecycle, sisyphus-state. Tests pass (22 wiring tests)."
     },
     {
       "priority": 6,
       "plan": "dashboard-auth-hardening",
       "plan_path": ".sisyphus/plans/dashboard-auth-hardening.md",
-      "status": "pending",
+      "status": "completed",
+      "completed_at": "2026-03-17T22:30:00.000Z",
+      "verification": "All tasks complete: ROLE_MATRIX has new permissions (skills:promote, usage:write, providers:manage, orchestration:write), skills/promotions fixed with permission arg, 3 unprotected endpoints gated (status/usage, providers, orchestration), regression test passes (4 tests), dashboard-write-guard tests pass (10 tests), HARDENING-BACKLOG.md marked Concern 2 as RESOLVED."
+    },
       "rationale": "Security: gates 3 unprotected POST endpoints, fixes permission args. Should be done before any public dashboard exposure.",
       "effort": "low",
       "lines": 81
@@ -95,7 +100,11 @@
       "priority": 7,
       "plan": "config-coherence-wave",
       "plan_path": ".sisyphus/plans/config-coherence-wave-plan.md",
-      "status": "pending",
+      "status": "completed",
+      "completed_at": "2026-03-17T22:40:00.000Z",
+      "verification": "All features implemented: getMachineId() generates/reads machine-id.json, appendAuditEntry() writes config-audit.ndjson with rotation, readConfigManifest() checks config-manifest.json with cross-machine warning, copy-config.mjs calls writeConfigManifest() after sync. Tests pass (8 tests)."
+    },
+    {
       "rationale": "Prerequisite for disaster-recovery-system: adds audit logging (NDJSON) and version manifest to config coherence system.",
       "unblocks": [
         "disaster-recovery-system"
