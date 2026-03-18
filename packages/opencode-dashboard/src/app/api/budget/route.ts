@@ -28,15 +28,22 @@ function readBudgetSummaries() {
   return files.map((file) => {
     const raw = JSON.parse(readFileSync(join(sessionsDir, file), 'utf8'));
     const used = Number(raw.estimated_tokens) || 0;
+    const actual = Number(raw.actual_tokens) || used;
     const max = Number(raw.model_limit) || 0;
     const pct = max > 0 ? used / max : 0;
     return {
       sessionId: raw.session_id || file.replace(/-budget\.json$/, ''),
       model: raw.model_id || 'unknown',
+      provider: raw.provider || 'unknown',
       used,
+      actual_tokens: actual,
       max,
       pct: Number(pct.toFixed(4)),
+      pct_formatted: `${Math.round(pct * 100)}%`,
+      cost: raw.cumulative_cost || 0,
       status: toStatus(pct),
+      warnings: raw.warnings_emitted || [],
+      distill_event_count: (raw.distill_events || []).length,
       updatedAt: raw.last_updated || null,
     };
   }).sort((a, b) => b.used - a.used);

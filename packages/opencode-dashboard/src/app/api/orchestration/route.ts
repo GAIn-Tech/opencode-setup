@@ -4,9 +4,9 @@ import path from 'path';
 import { pathToFileURL } from 'url';
 import { NextResponse } from 'next/server';
 import { requireWriteAccess } from '../_lib/write-access';
-import { collectCorrelationData } from './lib/correlation.js';
+import { collectCorrelationData, type CorrelationData } from './lib/correlation.js';
 import { normalizeEvents, persistEvents, summarizeEventProvenance } from './lib/event-store.js';
-import { evaluatePolicyEngine } from './lib/policy-engine.js';
+import { evaluatePolicyEngine, type PolicyEngineResult } from './lib/policy-engine.js';
 import { loadMetaAwarenessTracker, readMetaAwarenessRollups } from '../../../lib/meta-awareness';
 
 export const dynamic = 'force-dynamic';
@@ -370,6 +370,12 @@ export async function GET(request: Request) {
     const fallbackConfigProject = path.join(repoRoot, 'opencode-config', 'rate-limit-fallback.json');
     const fallbackConfigRoot = path.join(repoRoot, 'rate-limit-fallback.json');
 
+    const correlationData: CorrelationData = await collectCorrelationData({
+      messagesPath,
+      customEventsPath,
+      cutoffMs,
+    });
+
     const {
       sessions,
       model,
@@ -394,11 +400,7 @@ export async function GET(request: Request) {
       outTok,
       totalTok,
       customEvents,
-    } = await collectCorrelationData({
-      messagesPath,
-      customEventsPath,
-      cutoffMs,
-    });
+    } = correlationData;
 
     const universe = countSkillUniverse();
     const rl = readJson<any>(skillRlPath, {});
@@ -483,15 +485,7 @@ export async function GET(request: Request) {
     const firstProviderRoot = parseFallbackFirstProvider(fallbackConfigRoot);
     const fallbackOrderAligned = !firstProviderProject || !firstProviderRoot || firstProviderProject === firstProviderRoot;
 
-    const {
-      integrationGaps,
-      governanceScore,
-      pluginScore,
-      observabilityScore,
-      adaptationScore,
-      closedLoopScore,
-      frontierScore,
-    } = evaluatePolicyEngine({
+    const policyResult: PolicyEngineResult = evaluatePolicyEngine({
       hasConfigValidationTodo,
       hasPluginLifecycle,
       hasPluginDependencyGraph,
@@ -518,6 +512,16 @@ export async function GET(request: Request) {
       antiTotal,
       posTotal,
     });
+
+    const {
+      integrationGaps,
+      governanceScore,
+      pluginScore,
+      observabilityScore,
+      adaptationScore,
+      closedLoopScore,
+      frontierScore,
+    } = policyResult;
 
     const hasMessages = fs.existsSync(messagesPath);
     const hasSkillRl = fs.existsSync(skillRlPath);

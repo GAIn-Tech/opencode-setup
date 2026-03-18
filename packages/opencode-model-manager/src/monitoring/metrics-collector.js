@@ -53,6 +53,12 @@ class PipelineMetricsCollector {
     // T17: Context7 lookup metrics
     this._context7Events = [];
 
+    // T18: Error trend metrics (backfilled from invocations.json)
+    this._invocationsPath = path.join(os.homedir(), '.opencode', 'tool-usage', 'invocations.json');
+    this._errorTrendCache = null;
+    this._errorTrendCacheMs = 0;
+    this._errorTrendCacheTTL = 60_000; // 60s cache
+
     // Cleanup timer
     this._cleanupTimer = null;
     if (typeof options.autoCleanup === 'undefined' || options.autoCleanup) {
@@ -534,6 +540,52 @@ class PipelineMetricsCollector {
     }
   }
 
+  // ─── Error Trend Analysis (T18) ──────────────────────────────
+
+  getErrorTrends(windowMs) {
+    const now = this.nowFn();
+    if (this._errorTrendCache && (now - this._errorTrendCacheMs) < this._errorTrendCacheTTL) {
+      return this._errorTrendCache;
+    }
+    const result = this._readFileErrorTrends(windowMs);
+    this._errorTrendCache = result;
+    this._errorTrendCacheMs = now;
+    return result;
+  }
+
+  _readFileErrorTrends(windowMs) {
+    const empty = { totalErrors: 0, totalInvocations: 0, errorRate: 0, byErrorClass: {}, byCategory: {}, byPriority: {}, recentTrend: [] };
+    try {
+      if (!fs.existsSync(this._invocationsPath)) return empty;
+      const data = safeJsonParse(fs.readFileSync(this._invocationsPath, 'utf8'), { invocations: [] });
+      const invocations = Array.isArray(data.invocations) ? data.invocations : [];
+      const cutoff = this.nowFn() - (windowMs || this.retentionMs);
+      const recent = invocations.filter((inv) => { try { return new Date(inv.timestamp).getTime() >= cutoff; } catch { return false; } });
+      const byErrorClass = {}, byCategory = {}, byPriority = {};
+      let totalErrors = 0;
+      const hourlyBuckets = {};
+      for (const inv of recent) {
+        const isError = inv.success === false || inv.errorClass || inv.errorCode;
+        if (isError) { totalErrors++; if (inv.errorClass) byErrorClass[inv.errorClass] = (byErrorClass[inv.errorClass] || 0) + 1; }
+        const cat = inv.category || 'unknown';
+        if (!byCategory[cat]) byCategory[cat] = { errors: 0, total: 0, rate: 0 };
+        byCategory[cat].total++; if (isError) byCategory[cat].errors++;
+        const pri = inv.priority || 'unknown';
+        if (!byPriority[pri]) byPriority[pri] = { errors: 0, total: 0 };
+        byPriority[pri].total++; if (isError) byPriority[pri].errors++;
+        try {
+          const ts = new Date(inv.timestamp).getTime();
+          const bucket = new Date(ts - (ts % 3600000)).toISOString().slice(0, 13);
+          if (!hourlyBuckets[bucket]) hourlyBuckets[bucket] = { errors: 0, total: 0 };
+          hourlyBuckets[bucket].total++; if (isError) hourlyBuckets[bucket].errors++;
+        } catch { /* skip malformed timestamp */ }
+      }
+      for (const c of Object.keys(byCategory)) byCategory[c].rate = byCategory[c].total > 0 ? round(byCategory[c].errors / byCategory[c].total, 4) : 0;
+      const recentTrend = Object.entries(hourlyBuckets).sort((a, b) => a[0].localeCompare(b[0])).slice(-24).map(([bucket, stats]) => ({ bucket, errors: stats.errors, total: stats.total }));
+      return { totalErrors, totalInvocations: recent.length, errorRate: recent.length > 0 ? round(totalErrors / recent.length, 4) : 0, byErrorClass, byCategory, byPriority, recentTrend };
+    } catch (_err) { return empty; }
+  }
+
   // ─── Aggregate ───────────────────────────────────────────────
 
   /**
@@ -551,7 +603,8 @@ class PipelineMetricsCollector {
       timeToApproval: this.getTimeToApproval(windowMs),
       catalogFreshness: this.getCatalogFreshness(),
       compression: this.getCompressionStats(windowMs),
-      context7: this.getContext7Stats(windowMs)
+      context7: this.getContext7Stats(windowMs),
+      errorTrends: this.getErrorTrends(windowMs)
     };
   }
 
@@ -715,6 +768,15 @@ class PipelineMetricsCollector {
     lines.push(`model_catalog_age_ms ${snapshot.catalogFreshness.ageMs}`);
     lines.push(`model_catalog_stale ${snapshot.catalogFreshness.stale ? 1 : 0}`);
 
+    if (snapshot.errorTrends) {
+      lines.push('# HELP tool_error_total Total tool invocation errors');
+      lines.push('# TYPE tool_error_total counter');
+      lines.push(`tool_error_total ${snapshot.errorTrends.totalErrors}`);
+      lines.push('# HELP tool_error_rate Error rate of tool invocations');
+      lines.push('# TYPE tool_error_rate gauge');
+      lines.push(`tool_error_rate ${snapshot.errorTrends.errorRate}`);
+    }
+
     return lines.join('\n') + '\n';
   }
 
@@ -825,6 +887,7 @@ class PipelineMetricsCollector {
     this._prEvents = this._prEvents.filter(e => e.timestamp >= cutoff);
     this._compressionEvents = this._compressionEvents.filter(e => e.timestamp >= cutoff);
     this._context7Events = this._context7Events.filter(e => e.timestamp >= cutoff);
+    this._errorTrendCache = null;
   }
 
   /**
@@ -839,6 +902,7 @@ class PipelineMetricsCollector {
     this._context7Events = [];
     this._detectedTimestamps.clear();
     this._lastCatalogUpdate = null;
+    this._errorTrendCache = null;
 
     // Clear persisted data so stats return zeroes after reset
     if (this._db) {
@@ -908,9 +972,11 @@ class PipelineMetricsCollector {
       }
 
       // Prefer bun:sqlite (Bun-native), fall back to better-sqlite3
+      // Use __non_webpack_require__ to prevent webpack from statically resolving bun:scheme
       let Database;
       try {
-        Database = require('bun:sqlite').Database;
+        // eslint-disable-next-line camelcase
+        Database = __non_webpack_require__('bun:sqlite').Database;
       } catch (_bunErr) {
         try {
           Database = require('better-sqlite3');
