@@ -85,6 +85,66 @@ try {
 // Context bridge for governor → distill advisory signals
 const { ContextBridge } = require('./context-bridge');
 
+// T21: Package-level execution instrumentation
+// Tracks which packages are invoked, call frequency, success/failure, and latency.
+// Persists to ~/.opencode/package-execution/events.json for dashboard backfill.
+let _pkgEvents = [];
+let _pkgEventsPath = null;
+let _pkgEventsFlushing = false;
+const MAX_PKG_EVENTS = 5000;
+
+function _getPkgEventsPath() {
+  if (_pkgEventsPath === null) {
+    try {
+      const os = require('os');
+      const path = require('path');
+      _pkgEventsPath = path.join(os.homedir(), '.opencode', 'package-execution', 'events.json');
+    } catch {
+      _pkgEventsPath = '';
+    }
+  }
+  return _pkgEventsPath;
+}
+
+function _appendPkgEvent(event) {
+  _pkgEvents.push(event);
+  while (_pkgEvents.length > MAX_PKG_EVENTS) {
+    _pkgEvents.shift();
+  }
+  // Async flush to file (non-blocking, fail-open)
+  if (!_pkgEventsFlushing) {
+    _pkgEventsFlushing = true;
+    setImmediate(() => {
+      try {
+        _pkgEventsFlushing = false;
+        const fp = _getPkgEventsPath();
+        if (!fp) return;
+        const fs = require('fs');
+        const dir = require('path').dirname(fp);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+        // Read existing events, append new ones, write back
+        let existing = [];
+        try {
+          if (fs.existsSync(fp)) {
+            existing = JSON.parse(fs.readFileSync(fp, 'utf8'));
+          }
+        } catch {
+          existing = [];
+        }
+        const cutoff = Date.now() - (7 * 24 * 60 * 60 * 1000); // Keep 7 days
+        const recent = existing.filter(e => e && e.timestamp && e.timestamp > cutoff);
+        const merged = [...recent, ..._pkgEvents].slice(-MAX_PKG_EVENTS);
+        fs.writeFileSync(fp, JSON.stringify(merged, null, 2), 'utf8');
+        _pkgEvents = [];
+      } catch {
+        _pkgEventsFlushing = false;
+      }
+    });
+  }
+}
+
 // Fail-open require for MCP → SkillRL affinity bridge
 let _getSessionMcpInvocations = null;
 try {
@@ -140,6 +200,9 @@ class IntegrationLayer {
     // P1 FIX: Use Map keyed by task_id instead of global mutable state
     this.taskContextMap = new Map();
     this.currentSessionId = config.currentSessionId || config.sessionId || null;
+
+    // T21: Package execution tracking
+    this._pkgTrackingEnabled = true;
 
     // Meta-KB index: fail-open loading for SkillRL integration
     this.metaKBIndex = null;
@@ -202,6 +265,36 @@ class IntegrationLayer {
   }
 
   /**
+   * T21: Record a package-level execution event for observability.
+   * Tracks package calls, success/failure, latency, and session context.
+   * Data is written to ~/.opencode/package-execution/events.json for dashboard backfill.
+   *
+   * @param {string} packageName - Name of the package invoked (e.g., 'skillRL', 'showboat', 'contextGovernor')
+   * @param {string} method - Method name called (e.g., 'selectSkills', 'captureEvidence', 'checkBudget')
+   * @param {boolean} success - Whether the call succeeded
+   * @param {number} durationMs - Call duration in milliseconds
+   * @param {object} [details={}] - Additional context { sessionId, taskType, error, ... }
+   */
+  recordPackageExecution(packageName, method, success, durationMs, details = {}) {
+    if (!this._pkgTrackingEnabled) return;
+    try {
+      const event = {
+        package: String(packageName),
+        method: String(method),
+        success: Boolean(success),
+        durationMs: Math.max(0, Number(durationMs) || 0),
+        timestamp: Date.now(),
+        sessionId: details.sessionId || this.currentSessionId || null,
+        taskType: details.taskType || details.task_type || null,
+        error: success ? null : String(details.error || 'unknown'),
+      };
+      _appendPkgEvent(event);
+    } catch {
+      // Non-fatal: instrumentation must never break normal operations
+    }
+  }
+
+  /**
    * Diagnose an error using runbooks auto-diagnosis.
    * Delegates to runbooks.diagnose() if available.
    * Fail-open: returns null if runbooks unavailable or throws.
@@ -212,9 +305,20 @@ class IntegrationLayer {
    */
   diagnose(error, context = {}) {
     if (!this.runbooks) return null;
+    const t0 = Date.now();
     try {
-      return this.runbooks.diagnose(error, context);
-    } catch {
+      const result = this.runbooks.diagnose(error, context);
+      this.recordPackageExecution('runbooks', 'diagnose', true, Date.now() - t0, {
+        sessionId: context?.sessionId,
+        taskType: context?.task,
+      });
+      return result;
+    } catch (err) {
+      this.recordPackageExecution('runbooks', 'diagnose', false, Date.now() - t0, {
+        sessionId: context?.sessionId,
+        taskType: context?.task,
+        error: err.message,
+      });
       return null;
     }
   }
@@ -230,18 +334,24 @@ class IntegrationLayer {
    */
   async recordSessionError(sessionId, error) {
     if (!this.memoryGraph) return null;
+    const t0 = Date.now();
     try {
       const errorData = error instanceof Error ? {
         message: error.message,
         stack: error.stack,
         name: error.name,
       } : error;
-      return await this.memoryGraph.buildGraph([{
+      const result = await this.memoryGraph.buildGraph([{
         sessionId,
         ...errorData,
         timestamp: new Date().toISOString(),
       }]);
-    } catch {
+      this.recordPackageExecution('memoryGraph', 'buildGraph', true, Date.now() - t0, { sessionId });
+      return result;
+    } catch (err) {
+      this.recordPackageExecution('memoryGraph', 'buildGraph', false, Date.now() - t0, {
+        sessionId, error: err.message,
+      });
       return null;
     }
   }
@@ -319,9 +429,13 @@ class IntegrationLayer {
    */
   validateFallbackChain(models) {
     if (!this.fallbackDoctor) return null;
+    const t0 = Date.now();
     try {
-      return this.fallbackDoctor.validateChain(models);
-    } catch {
+      const result = this.fallbackDoctor.validateChain(models);
+      this.recordPackageExecution('fallbackDoctor', 'validateChain', true, Date.now() - t0, {});
+      return result;
+    } catch (err) {
+      this.recordPackageExecution('fallbackDoctor', 'validateChain', false, Date.now() - t0, { error: err.message });
       return null;
     }
   }
@@ -333,9 +447,13 @@ class IntegrationLayer {
    */
   diagnoseFallbacks(config) {
     if (!this.fallbackDoctor) return null;
+    const t0 = Date.now();
     try {
-      return this.fallbackDoctor.diagnose(config);
-    } catch {
+      const result = this.fallbackDoctor.diagnose(config);
+      this.recordPackageExecution('fallbackDoctor', 'diagnose', true, Date.now() - t0, {});
+      return result;
+    } catch (err) {
+      this.recordPackageExecution('fallbackDoctor', 'diagnose', false, Date.now() - t0, { error: err.message });
       return null;
     }
   }
@@ -347,9 +465,13 @@ class IntegrationLayer {
    */
   async evaluatePluginHealth(inputs) {
     if (!this.pluginLifecycle) return null;
+    const t0 = Date.now();
     try {
-      return await this.pluginLifecycle.evaluateMany(inputs);
-    } catch {
+      const result = await this.pluginLifecycle.evaluateMany(inputs);
+      this.recordPackageExecution('pluginLifecycle', 'evaluateMany', true, Date.now() - t0, {});
+      return result;
+    } catch (err) {
+      this.recordPackageExecution('pluginLifecycle', 'evaluateMany', false, Date.now() - t0, { error: err.message });
       return null;
     }
   }
@@ -376,9 +498,18 @@ class IntegrationLayer {
    */
   async executeWorkflow(workflowDef, input, runId) {
     if (!this.workflowExecutor) return null;
+    const t0 = Date.now();
     try {
-      return await this.workflowExecutor.execute(workflowDef, input, runId);
+      const result = await this.workflowExecutor.execute(workflowDef, input, runId);
+      this.recordPackageExecution('workflowExecutor', 'execute', true, Date.now() - t0, {
+        taskType: workflowDef?.name,
+      });
+      return result;
     } catch (err) {
+      this.recordPackageExecution('workflowExecutor', 'execute', false, Date.now() - t0, {
+        taskType: workflowDef?.name,
+        error: err.message,
+      });
       this.logger.error('Workflow execution failed', { workflow: workflowDef?.name, error: err.message });
       return null;
     }
@@ -392,9 +523,15 @@ class IntegrationLayer {
    */
   async resumeWorkflow(runId, workflowDef) {
     if (!this.workflowExecutor) return null;
+    const t0 = Date.now();
     try {
-      return await this.workflowExecutor.resume(runId, workflowDef);
+      const result = await this.workflowExecutor.resume(runId, workflowDef);
+      this.recordPackageExecution('workflowExecutor', 'resume', true, Date.now() - t0, { runId });
+      return result;
     } catch (err) {
+      this.recordPackageExecution('workflowExecutor', 'resume', false, Date.now() - t0, {
+        runId, error: err.message,
+      });
       this.logger.error('Workflow resume failed', { runId, error: err.message });
       return null;
     }
@@ -567,9 +704,13 @@ class IntegrationLayer {
     if (!this.healthChecker) {
       return { status: 'unknown', reason: 'health-check not available' };
     }
+    const t0 = Date.now();
     try {
-      return await this.healthChecker.getHealth();
+      const result = await this.healthChecker.getHealth();
+      this.recordPackageExecution('healthChecker', 'getHealth', true, Date.now() - t0, {});
+      return result;
     } catch (err) {
+      this.recordPackageExecution('healthChecker', 'getHealth', false, Date.now() - t0, { error: err.message });
       this.logger.error('Health check failed', { error: err.message });
       return { status: 'unhealthy', error: err.message };
     }
@@ -583,9 +724,13 @@ class IntegrationLayer {
       this.logger.warn('createBackup called but backup-manager not available');
       return null;
     }
+    const t0 = Date.now();
     try {
-      return await this.backupManager.backup(label);
+      const result = await this.backupManager.backup(label);
+      this.recordPackageExecution('backupManager', 'backup', true, Date.now() - t0, {});
+      return result;
     } catch (err) {
+      this.recordPackageExecution('backupManager', 'backup', false, Date.now() - t0, { error: err.message });
       this.logger.error('Backup failed', { error: err.message });
       return null;
     }
@@ -619,9 +764,12 @@ class IntegrationLayer {
     if (!this.contextGovernor) {
       return { allowed: true, status: 'unknown', urgency: 0, remaining: Infinity, message: 'Governor not available — budget unchecked' };
     }
+    const t0 = Date.now();
     try {
       const gov = this._getGovernorInstance();
       const result = gov.checkBudget(sessionId, model, proposedTokens);
+      const durationMs = Date.now() - t0;
+      this.recordPackageExecution('contextGovernor', 'checkBudget', true, durationMs, { sessionId, model });
       // Log budget warnings at thresholds
       if (result.status === 'error') {
         this.logger.error('Context budget CRITICAL', { sessionId, model, pct: result.message });
@@ -630,6 +778,9 @@ class IntegrationLayer {
       }
       return result;
     } catch (err) {
+      this.recordPackageExecution('contextGovernor', 'checkBudget', false, Date.now() - t0, {
+        sessionId, model, error: err.message,
+      });
       this.logger.warn('checkContextBudget failed (fail-open)', { error: err.message });
       if (OpenCodeError && ErrorCategory && ErrorCode) {
         throw new OpenCodeError(`Context budget check failed: ${err.message}`, ErrorCategory.CONFIG, ErrorCode.CONFIG_INVALID, {
@@ -652,9 +803,11 @@ class IntegrationLayer {
    */
   recordTokenUsage(sessionId, model, count) {
     if (!this.contextGovernor) return null;
+    const t0 = Date.now();
     try {
       const gov = this._getGovernorInstance();
       const result = gov.consumeTokens(sessionId, model, count);
+      this.recordPackageExecution('contextGovernor', 'consumeTokens', true, Date.now() - t0, { sessionId, model });
       if (result.status === 'error') {
         this.logger.error('Token budget CRITICAL after consumption', { sessionId, model, used: result.used, remaining: result.remaining });
       } else if (result.status === 'warn') {
@@ -662,6 +815,9 @@ class IntegrationLayer {
       }
       return result;
     } catch (err) {
+      this.recordPackageExecution('contextGovernor', 'consumeTokens', false, Date.now() - t0, {
+        sessionId, model, error: err.message,
+      });
       this.logger.warn('recordTokenUsage failed (non-fatal)', { error: err.message });
       return null;
     }
@@ -686,10 +842,16 @@ class IntegrationLayer {
    */
   getContextBudgetStatus(sessionId, model) {
     if (!this.contextGovernor) return null;
+    const t0 = Date.now();
     try {
       const gov = this._getGovernorInstance();
-      return gov.getRemainingBudget(sessionId, model);
+      const result = gov.getRemainingBudget(sessionId, model);
+      this.recordPackageExecution('contextGovernor', 'getRemainingBudget', true, Date.now() - t0, { sessionId, model });
+      return result;
     } catch (err) {
+      this.recordPackageExecution('contextGovernor', 'getRemainingBudget', false, Date.now() - t0, {
+        sessionId, model, error: err.message,
+      });
       this.logger.warn('getContextBudgetStatus failed', { error: err.message });
       return null;
     }
@@ -716,9 +878,20 @@ class IntegrationLayer {
    */
   selectToolsForTask(taskContext) {
     if (!this.preloadSkills) return null;
+    const t0 = Date.now();
     try {
-      return this.preloadSkills.selectTools(taskContext);
+      const result = this.preloadSkills.selectTools(taskContext);
+      this.recordPackageExecution('preloadSkills', 'selectTools', true, Date.now() - t0, {
+        sessionId: taskContext?.sessionId,
+        taskType: taskContext?.task,
+      });
+      return result;
     } catch (err) {
+      this.recordPackageExecution('preloadSkills', 'selectTools', false, Date.now() - t0, {
+        sessionId: taskContext?.sessionId,
+        taskType: taskContext?.task,
+        error: err.message,
+      });
       this.logger.warn('preload-skills selectTools failed', { error: err.message });
       return null;
     }
@@ -767,9 +940,15 @@ class IntegrationLayer {
    */
   loadOnDemandSkill(skillName, taskType) {
     if (!this.preloadSkills) return null;
+    const t0 = Date.now();
     try {
-      return this.preloadSkills.loadOnDemand(skillName, taskType);
+      const result = this.preloadSkills.loadOnDemand(skillName, taskType);
+      this.recordPackageExecution('preloadSkills', 'loadOnDemand', true, Date.now() - t0, { skillName, taskType });
+      return result;
     } catch (err) {
+      this.recordPackageExecution('preloadSkills', 'loadOnDemand', false, Date.now() - t0, {
+        skillName, taskType, error: err.message,
+      });
       this.logger.warn('on-demand skill load failed', {
         skillName,
         taskType,
@@ -786,7 +965,11 @@ class IntegrationLayer {
     if (!this.preloadSkills) return;
     try {
       this.preloadSkills.recordUsage(usedTools, taskType);
+      this.recordPackageExecution('preloadSkills', 'recordUsage', true, 0, { taskType });
     } catch (err) {
+      this.recordPackageExecution('preloadSkills', 'recordUsage', false, 0, {
+        taskType, error: err.message,
+      });
       this.logger.warn('recordToolUsage failed', {
         usedTools,
         taskType,
@@ -905,6 +1088,34 @@ class IntegrationLayer {
   }
 
   /**
+   * Normalize task context shape for advisor and downstream learners.
+   */
+  normalizeTaskContext(taskContext = {}) {
+    const normalized = { ...taskContext };
+
+    const taskType = normalized.task_type || normalized.taskType || normalized.task || null;
+    if (taskType && !normalized.task_type) {
+      normalized.task_type = taskType;
+    }
+    if (taskType && !normalized.taskType) {
+      normalized.taskType = taskType;
+    }
+    if (taskType && !normalized.task) {
+      normalized.task = taskType;
+    }
+
+    const attemptNumber = normalized.attemptNumber ?? normalized.attempt_number ?? null;
+    if (attemptNumber !== null && normalized.attemptNumber === undefined) {
+      normalized.attemptNumber = attemptNumber;
+    }
+    if (attemptNumber !== null && normalized.attempt_number === undefined) {
+      normalized.attempt_number = attemptNumber;
+    }
+
+    return normalized;
+  }
+
+  /**
    * Create hooks for OrchestrationAdvisor
    * These hooks augment advice with SkillRL and track failures
    */
@@ -956,7 +1167,7 @@ class IntegrationLayer {
         // Record failure in SkillRL for evolution
         this.skillRL.evolutionEngine.learnFromFailure({
           task_id: taskContext.task_id || createOrchestrationId('task'),
-          task_type: taskContext.task || 'unknown',
+          task_type: taskContext.task_type || taskContext.task || 'unknown',
           skills_used: Array.isArray(outcome?.skills_used) ? outcome.skills_used : [],
           error_message: antiPattern.description,
           anti_pattern: {
@@ -969,7 +1180,7 @@ class IntegrationLayer {
 
         this.logger.info('Failure distilled into SkillRL', {
           antiPatternType: antiPattern.type,
-          task: taskContext.task || 'unknown'
+          task: taskContext.task_type || taskContext.task || 'unknown'
         });
       },
 
@@ -1076,11 +1287,26 @@ class IntegrationLayer {
   }
 
   /**
+   * Canonical delegation entrypoint.
+   */
+  async delegate(taskContext, executeTaskFn) {
+    return this.executeTaskWithEvidence(taskContext, executeTaskFn);
+  }
+
+  /**
+   * Backward-compatible alias for delegation entrypoint.
+   */
+  async executeDelegation(taskContext, executeTaskFn) {
+    return this.executeTaskWithEvidence(taskContext, executeTaskFn);
+  }
+
+  /**
    * Full workflow: task → SkillRL selection → execution → showboat evidence
    */
   async executeTaskWithEvidence(taskContext, executeTaskFn) {
     // Enrich context with system signals
     taskContext = this.enrichTaskContext(taskContext || {});
+    const advisorContext = this.normalizeTaskContext(taskContext);
 
     // Compute runtime context so DCP/budget/tool recommendations participate in live flows
     const runtimeContext = this.resolveRuntimeContext(taskContext);
@@ -1101,7 +1327,7 @@ class IntegrationLayer {
     }
 
     // Execute the task with adaptive options
-    const advice = this.advisor ? this.advisor.advise(taskContext) : null;
+    const advice = this.advisor ? this.advisor.advise(advisorContext) : null;
     const budgetAction = runtimeContext?.budget?.action || 'none';
     const compressionActive = runtimeContext?.compression?.active === true;
     const adaptiveOptions = {
@@ -1187,7 +1413,7 @@ class IntegrationLayer {
         task_id: taskContext.task_id,
         run_id: taskContext.run_id,
         step_id: taskContext.step_id,
-        task_type: taskContext.task || 'unknown',
+        task_type: taskContext.task_type || taskContext.task || 'unknown',
         skills_used: skills.map(s => s.name),
         skill_used: skills[0]?.name,
         error_message: result.error || 'Unknown error',
@@ -1203,7 +1429,7 @@ class IntegrationLayer {
         success: false,
         skill_used: skills[0]?.name,
         mcpToolsUsed: _mcpToolsUsed,
-        task_type: taskContext.task || 'unknown',
+        task_type: taskContext.task_type || taskContext.task || 'unknown',
       });
     } else if (result.success && this.skillRL && skills) {
       this.skillRL.learnFromOutcome({
@@ -1211,7 +1437,7 @@ class IntegrationLayer {
         task_id: taskContext.task_id,
         run_id: taskContext.run_id,
         step_id: taskContext.step_id,
-        task_type: taskContext.task || 'unknown',
+        task_type: taskContext.task_type || taskContext.task || 'unknown',
         skills_used: skills.map((s) => s.name),
         skill_used: skills[0]?.name,
         mcpToolsUsed: _mcpToolsUsed,
