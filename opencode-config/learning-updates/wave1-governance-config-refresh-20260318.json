@@ -1,0 +1,21 @@
+{
+  "id": "wave1-governance-config-refresh-20260318",
+  "timestamp": "2026-03-18T23:50:00.000Z",
+  "summary": "Refresh governance/config surfaces, workspace dependency metadata, and runtime plan state tracking files.",
+  "affected_paths": [
+    ".githooks/pre-commit",
+    "AGENTS.md",
+    "opencode-config/AGENTS.md",
+    "opencode-config/tool-tiers.json",
+    "package.json",
+    "bun.lock",
+    ".sisyphus/boulder.json",
+    ".sisyphus/plans/runtime-concurrency-and-governance-batch.md"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

@@ -17,6 +17,38 @@
   "tier_1": {
     "description": "Task-classified tools loaded via regex pattern matching on the user prompt. ~2-8 additional tools per match.",
     "categories": {
+      "brainstorming": {
+        "patterns": ["brainstorm|design session|think through|explore options|creative|mv p|design.*decisions|evaluate.*approach|compare.*options|trade.?offs|architectural decision|adx?"],
+        "skills": ["brainstorming"],
+        "mcps": ["sequentialthinking"],
+        "tools": [],
+        "priority": 1,
+        "notes": "Triggered when user asks for creative exploration or multi-option analysis"
+      },
+      "systematic_debugging": {
+        "patterns": ["error|fails|broken|crash|bug|fix|undefined|null.?ref|typeerror|segfault|panic|exception|stack.?trace|traceback|wrong|incorrect|unexpected|isn't working|not working|doesn't work|cannot|could not"],
+        "skills": ["systematic-debugging"],
+        "mcps": ["opencode-runbooks"],
+        "tools": ["lsp_diagnostics", "lsp_goto_definition", "lsp_find_references"],
+        "priority": 1,
+        "notes": "Triggered on any error/failure signal — high-value skill to have pre-loaded"
+      },
+      "test_driven_development": {
+        "patterns": ["test|spec|tdd|bdd|jest|vitest|pytest|mocha|cypress|coverage|assert|expect|mock|stub|fixture|unit.?test|integration.?test|regression.?test"],
+        "skills": ["test-driven-development", "evaluation-harness-builder"],
+        "mcps": [],
+        "tools": ["bash", "grep", "lsp_goto_definition"],
+        "priority": 1,
+        "notes": "Triggered when user mentions testing — pre-load TDD skill for red-green-refactor cycle"
+      },
+      "sequential_reasoning": {
+        "patterns": ["think through|step by step|reason about|analyze this|decompose|chain of thought|sequential|break down|plan out|logical steps|reasoning"],
+        "skills": ["sequentialthinking"],
+        "mcps": ["sequentialthinking"],
+        "tools": [],
+        "priority": 2,
+        "notes": "Triggered for complex multi-step reasoning tasks"
+      },
       "frontend": {
         "patterns": ["frontend|css|style|component|react|next\\.?js|tailwind|ui|ux|design|layout|responsive|animation|html|page\\.tsx|modal|button|form|dialog"],
         "skills": ["frontend-ui-ux", "frontend-design", "playwright"],
@@ -212,6 +244,110 @@
       "task-orchestrator": {
         "description": "Dynamic workflow selection across skills/tools/MCPs",
         "trigger_hint": "orchestrate, workflow, multi-step, classify task"
+      },
+      "brainstorming": {
+        "description": "Explore intent, requirements, and design before implementation",
+        "trigger_hint": "brainstorm, design session, explore options, trade-offs, creative"
+      },
+      "systematic-debugging": {
+        "description": "Fault localization, root cause analysis, and targeted repair",
+        "trigger_hint": "debug, bug, error, crash, broken, unexpected behavior"
+      },
+      "sequentialthinking": {
+        "description": "Structured step-by-step reasoning via Sequential Thinking MCP",
+        "trigger_hint": "step by step, reason about, decompose, chain of thought"
+      },
+      "frontend-ui-ux": {
+        "description": "UI/UX implementation with styling and design systems",
+        "trigger_hint": "frontend, React, Tailwind, UI, component, design"
+      },
+      "frontend-design": {
+        "description": "Visual design, layout, and CSS-in-JS patterns",
+        "trigger_hint": "CSS, layout, responsive, animation, visual design"
+      },
+      "playwright": {
+        "description": "Browser automation via Playwright MCP for testing and verification",
+        "trigger_hint": "playwright, browser test, screenshot, e2e, navigate page"
+      },
+      "git-master": {
+        "description": "Atomic commits, rebase, squash, and git history search",
+        "trigger_hint": "commit, rebase, squash, git blame, bisect, git history"
+      },
+      "test-driven-development": {
+        "description": "Red-green-refactor TDD cycle before writing implementation code",
+        "trigger_hint": "TDD, write tests first, test coverage, red-green"
+      },
+      "evaluation-harness-builder": {
+        "description": "Build regression test harnesses and evaluation frameworks",
+        "trigger_hint": "eval harness, regression tests, test suite, AI evaluation"
+      },
+      "supermemory": {
+        "description": "Persistent memory retrieval and storage via Supermemory MCP",
+        "trigger_hint": "remember, persistent memory, recall across sessions, save knowledge"
+      },
+      "dev-browser": {
+        "description": "Browser automation with persistent page state",
+        "trigger_hint": "navigate, click, fill form, scrape, log into site"
+      },
+      "writing-plans": {
+        "description": "Write detailed implementation plans before touching code",
+        "trigger_hint": "write plan, spec, implementation plan, before coding"
+      },
+      "dhh-rails-style": {
+        "description": "Rails idiom enforcement following DHH conventions",
+        "trigger_hint": "Rails, Ruby on Rails, DHH style, ActiveRecord, convention"
+      },
+      "andrew-kane-gem-writer": {
+        "description": "Ruby gem authoring patterns following andrew-kane style",
+        "trigger_hint": "Ruby gem, gem authoring, rails gem, andrew-kane"
+      },
+      "dspy-ruby": {
+        "description": "DSPy-style prompt programming patterns for Ruby",
+        "trigger_hint": "DSPy, prompt programming, Ruby LLM, structured prompts"
+      },
+      "agent-native-architecture": {
+        "description": "Design AI-native architectures with proper agent orchestration",
+        "trigger_hint": "agent architecture, LLM system design, multi-agent, AI native"
+      },
+      "context-governor": {
+        "description": "Context window budget tracking and compression advisory",
+        "trigger_hint": "context budget, token limit, compression advisory, budget status"
+      },
+      "budget-aware-router": {
+        "description": "Cost/performance model routing based on token budget",
+        "trigger_hint": "route model, cost-aware, cheap model, budget routing"
+      },
+      "receiving-code-review": {
+        "description": "Handle code review feedback with verification and rigor",
+        "trigger_hint": "code review feedback, address comments, PR review, reviewer suggestion"
+      },
+      "requesting-code-review": {
+        "description": "Request structured code review and verify implementation",
+        "trigger_hint": "request review, review my code, check my work, self-review"
+      },
+      "codebase-auditor": {
+        "description": "Systematic codebase audit for architecture drift and health issues",
+        "trigger_hint": "audit codebase, architecture review, repo health, drift detection"
+      },
+      "incident-commander": {
+        "description": "Multi-turn incident triage and debugging orchestration",
+        "trigger_hint": "incident, outage, sev1, production issue, triage, on-call"
+      },
+      "innovation-migration-planner": {
+        "description": "Identify high-upside opportunities and produce migration plans",
+        "trigger_hint": "innovation, migration plan, high-upside, underexplored, rollout"
+      },
+      "skill-creator": {
+        "description": "Create new OpenCode skills and slash commands",
+        "trigger_hint": "create skill, new skill, write skill, skill template"
+      },
+      "create-agent-skills": {
+        "description": "Author agent skill files with proper structure and discovery",
+        "trigger_hint": "agent skill, skill.md, new agent, opencode skill file"
+      },
+      "writing-skills": {
+        "description": "Create, edit, and verify OpenCode skills before deployment",
+        "trigger_hint": "write skill, edit skill, verify skill, skill deployment"
       }
     }
   },
