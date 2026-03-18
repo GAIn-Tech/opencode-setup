@@ -46,10 +46,71 @@ const SESSIONS_DIR = join(DATA_DIR, 'sessions');
 const INVOCATIONS_FILE = join(DATA_DIR, 'invocations.json');
 const METRICS_HISTORY_FILE = join(HOME, '.opencode', 'metrics-history.db.events.json');
 const DELEGATION_LOG_FILE = join(HOME, '.opencode', 'delegation-log.json');
+const PKG_EVENTS_FILE = join(HOME, '.opencode', 'package-execution', 'events.json');
+const MODEL_SELECTION_FILE = join(DATA_DIR, 'sessions', '~-model-selection.json');
+const MODEL_ROUTER_OUTCOMES_FILE = join(HOME, '.opencode', 'model-router-runtime-outcomes.json');
 const MAX_INVOCATIONS = 5000;
 const MAX_METRICS_EVENTS = 5000;
 const MAX_DELEGATION_EVENTS = 2000;
+const MAX_PKG_EVENTS = 5000;
+const MAX_MODEL_SELECTION_EVENTS = 5000;
+const MAX_MODEL_ROUTER_OUTCOMES = 5000;
 const DEFAULT_MODEL_LIMIT = 200000;
+const LOCK_MAX_RETRIES = 10;
+const LOCK_RETRY_DELAY_MS = 5;
+const WINDOWS_RENAME_RETRIES = 3;
+const WINDOWS_RENAME_RETRY_DELAY_MS = 10;
+
+// ---- Category/Agent → Model lookup (mirrors opencode-config/oh-my-opencode.json) ----
+// Updated from opencode-config/oh-my-opencode.json categories and agents sections.
+// These are the actual models assigned by oh-my-opencode for each category/agent.
+const CATEGORY_TO_MODEL = {
+  'visual-engineering':  { modelId: 'antigravity-gemini-3-pro',   provider: 'google' },
+  'ultrabrain':          { modelId: 'gpt-5.3-codex',              provider: 'openai' },
+  'deep':                { modelId: 'gpt-5.3-codex',              provider: 'openai' },
+  'artistry':            { modelId: 'antigravity-gemini-3-pro',   provider: 'google' },
+  'quick':               { modelId: 'claude-haiku-4-5',           provider: 'anthropic' },
+  'unspecified-low':     { modelId: 'claude-sonnet-4-5',          provider: 'anthropic' },
+  'unspecified-high':    { modelId: 'claude-opus-4-6',            provider: 'anthropic' },
+  'writing':             { modelId: 'antigravity-gemini-3-flash', provider: 'google' },
+};
+
+const AGENT_TO_MODEL = {
+  'atlas':               { modelId: 'claude-sonnet-4-5',          provider: 'anthropic' },
+  'hephaestus':          { modelId: 'gpt-5.3-codex',              provider: 'openai' },
+  'librarian':           { modelId: 'claude-sonnet-4-5',          provider: 'anthropic' },
+  'metis':               { modelId: 'claude-opus-4-6',            provider: 'anthropic' },
+  'momus':               { modelId: 'gpt-5.2',                    provider: 'openai' },
+  'oracle':              { modelId: 'gpt-5.2',                    provider: 'openai' },
+  'prometheus':          { modelId: 'claude-opus-4-6',            provider: 'anthropic' },
+  'sisyphus':            { modelId: 'claude-opus-4-6',            provider: 'anthropic' },
+  'explore':             { modelId: 'claude-haiku-4-5',           provider: 'anthropic' },
+  'multimodal-looker':   { modelId: 'antigravity-gemini-3-flash', provider: 'google' },
+};
+
+// ---- Per-Model Pricing (avg of input+output cost per 1K tokens) ----
+// Source: packages/opencode-model-router-x/src/strategies/token-cost-calculator.js
+const MODEL_PRICING = {
+  'claude-opus-4-6':     15.0,    // ($5 in + $25 out) / 2
+  'claude-sonnet-4-5':    9.0,    // ($3 in + $15 out) / 2
+  'claude-haiku-4-5':     3.0,    // ($1 in + $5 out) / 2
+  'gemini-3-pro':         6.0,    // ($2 in + $10 out) / 2
+  'gemini-3-flash':       1.75,   // ($0.50 in + $3 out) / 2
+  'gpt-5':                6.25,   // ($2.50 in + $10 out) / 2
+  'gpt-5.2':              0.375,  // ($0.15 in + $0.60 out) / 2
+  'gpt-5.3-codex':        6.25,   // ~gpt-5 tier estimate
+  'o1':                  37.5,    // ($15 in + $60 out) / 2
+  'o1-mini':              7.5,    // ($3 in + $12 out) / 2
+  'llama-4-maverick':     0.40,   // ($0.20 in + $0.60 out) / 2
+  'llama-4-scout':        0.30,   // ($0.15 in + $0.45 out) / 2
+};
+const DEFAULT_COST_PER_1K = 3.0; // conservative fallback (haiku-tier)
+
+function getModelCostPerToken(modelId) {
+  if (!modelId || modelId === 'unknown') return DEFAULT_COST_PER_1K / 1000;
+  const baseModel = modelId.replace(/^antigravity-/, '');
+  return (MODEL_PRICING[baseModel] ?? DEFAULT_COST_PER_1K) / 1000;
+}
 
 // ---- Tool catalog (mirrors AVAILABLE_TOOLS from tool-usage-tracker.js) ----
 const AVAILABLE_TOOLS = {
@@ -133,6 +194,54 @@ const AVAILABLE_TOOLS = {
   session_info:          { category: 'memory', priority: 'low' },
   // Google search
   google_search:         { category: 'web', priority: 'medium' },
+};
+
+// ---- Tool → Package/Method mapping for package-level execution tracking ----
+// Maps tool names to IntegrationLayer package.method pairs.
+// All tools are tracked, not just delegated ones, since every tool call passes
+// through this PostToolUse hook. "no-op" means the tool is a terminal operation
+// (no IntegrationLayer delegation path).
+const TOOL_TO_PACKAGE_METHOD = {
+  // opencode-runbooks
+  opencode_runbooks_matchrunbookerror:     { package: 'runbooks',           method: 'matchRunbookError' },
+  opencode_runbooks_matchallrunbookerrors: { package: 'runbooks',           method: 'matchAllRunbookErrors' },
+  opencode_runbooks_getrunbookremedy:     { package: 'runbooks',           method: 'getRunbookRemedy' },
+  opencode_runbooks_diagnoserunbookerror:  { package: 'runbooks',           method: 'diagnoseRunbookError' },
+  opencode_runbooks_executerunbookremedy: { package: 'runbooks',           method: 'executeRunbookRemedy' },
+  opencode_runbooks_listrunbookpatterns:   { package: 'runbooks',           method: 'listRunbookPatterns' },
+
+  // opencode-context-governor (MCP)
+  opencode_context_governor_checkcontextbudget:     { package: 'contextGovernor', method: 'checkBudget' },
+  opencode_context_governor_recordtokenusage:       { package: 'contextGovernor', method: 'consumeTokens' },
+  opencode_context_governor_getcontextbudgetstatus:  { package: 'contextGovernor', method: 'getRemainingBudget' },
+  opencode_context_governor_listbudgetsessions:      { package: 'contextGovernor', method: 'listBudgetSessions' },
+  opencode_context_governor_resetbudgetsession:      { package: 'contextGovernor', method: 'resetBudgetSession' },
+  opencode_context_governor_getmodelbudgets:          { package: 'contextGovernor', method: 'getModelBudgets' },
+
+  // opencode-skill-orchestrator (preloadSkills)
+  skill_mcp:                    { package: 'preloadSkills', method: 'loadOnDemand' },
+  skill:                        { package: 'preloadSkills', method: 'loadOnDemand' },
+  slashcommand:                 { package: 'preloadSkills', method: 'loadOnDemand' },
+  loaded_skills:               { package: 'preloadSkills', method: 'selectTools' },
+  opencode_skill_orchestrator_runtime: { package: 'skillOrchestrator', method: 'orchestrate' },
+
+  // opencode-model-manager (delegation events are captured from call_omo_agent/task)
+  call_omo_agent:               { package: 'modelManager', method: 'delegate' },
+  task:                         { package: 'modelManager', method: 'delegate' },
+  background_output:            { package: 'modelManager', method: 'getBackgroundOutput' },
+  background_cancel:             { package: 'modelManager', method: 'cancelBackground' },
+
+  // opencode-integration-layer (remaining methods)
+  opencode_runbooks_executerunbookremedy: { package: 'runbooks', method: 'executeRemedy' },
+
+  // Tool categories with no IntegrationLayer mapping (terminal operations)
+  // bash, read, write, edit, glob, grep, webfetch, websearch, codesearch,
+  // context7_resolve_library_id, context7_query_docs, supermemory_*,
+  // session_list, session_read, session_search, session_info,
+  // lsp_*, ast_grep_*, pty_*, distill_*, compress, prune,
+  // todowrite, question, antigravity_quota, google_search, playwright_*,
+  // websearch_*, grep_app_*, sequentialthinking_*, interactive_bash,
+  // look_at, opencode_memory_graph_*, distill_browse_tools
 };
 
 // ---- PascalCase → snake_case reverse mapping ----
@@ -268,21 +377,86 @@ function readJsonSync(filePath, defaultValue = {}) {
   }
 }
 
+function sleepSync(delayMs) {
+  if (!Number.isFinite(delayMs) || delayMs <= 0) return;
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, Math.floor(delayMs));
+}
+
+function withFileLockSync(filePath, operation) {
+  const lockFile = `${filePath}.lock`;
+  let locked = false;
+
+  for (let attempt = 0; attempt < LOCK_MAX_RETRIES; attempt++) {
+    try {
+      writeFileSync(lockFile, String(process.pid), { encoding: 'utf8', flag: 'wx' });
+      locked = true;
+      break;
+    } catch (err) {
+      if (err?.code !== 'EEXIST') break;
+      if (attempt < LOCK_MAX_RETRIES - 1) {
+        sleepSync(LOCK_RETRY_DELAY_MS);
+      }
+    }
+  }
+
+  if (!locked) {
+    process.stderr.write(`[runtime-telemetry] warning: lock acquisition failed for ${filePath}; proceeding without lock\n`);
+  }
+
+  try {
+    return operation();
+  } finally {
+    if (!locked) return;
+    try {
+      unlinkSync(lockFile);
+    } catch {
+      // best-effort
+    }
+  }
+}
+
+function renameWithWindowsRetrySync(tmpPath, filePath) {
+  for (let attempt = 0; attempt < WINDOWS_RENAME_RETRIES; attempt++) {
+    try {
+      renameSync(tmpPath, filePath);
+      return;
+    } catch (err) {
+      const isLastAttempt = attempt === WINDOWS_RENAME_RETRIES - 1;
+      if (err?.code === 'EPERM' && !isLastAttempt) {
+        sleepSync(WINDOWS_RENAME_RETRY_DELAY_MS);
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
 function writeJsonAtomicSync(filePath, data) {
   const json = JSON.stringify(data, null, 2);
   const tmp = filePath + '.tmp';
+  let tempWritten = false;
+
   try {
     writeFileSync(tmp, json, 'utf8');
+    tempWritten = true;
+
     try {
-      renameSync(tmp, filePath);
-    } catch {
-      // Windows: rename over existing can EPERM; fall back to direct write
-      writeFileSync(filePath, json, 'utf8');
-      try { unlinkSync(tmp); } catch { /* best-effort */ }
+      renameWithWindowsRetrySync(tmp, filePath);
+    } catch (err) {
+      if (err?.code === 'EPERM') {
+        // Last resort only after a successful temp write
+        writeFileSync(filePath, json, 'utf8');
+      } else {
+        throw err;
+      }
     }
-  } catch (err) {
-    // Last resort: direct write
-    writeFileSync(filePath, json, 'utf8');
+  } catch {
+    if (tempWritten) {
+      // Last resort only after temp write succeeded
+      writeFileSync(filePath, json, 'utf8');
+    }
+  } finally {
+    try { unlinkSync(tmp); } catch { /* best-effort */ }
   }
 }
 
@@ -329,6 +503,10 @@ function getDefaultSessionBudget(sessionId) {
     session_id: sessionId || `unknown-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     cumulative_chars: 0,
     estimated_tokens: 0,
+    actual_tokens: 0,
+    model_id: 'unknown',
+    provider: 'unknown',
+    cumulative_cost: 0,
     model_limit: DEFAULT_MODEL_LIMIT,
     warnings_emitted: [],
     distill_events: [],
@@ -344,6 +522,10 @@ function loadSessionBudgetState(sessionId) {
   state.session_id = state.session_id || defaults.session_id;
   state.cumulative_chars = Number(state.cumulative_chars) || 0;
   state.estimated_tokens = Number(state.estimated_tokens) || 0;
+  state.actual_tokens = Number(state.actual_tokens) || 0;
+  state.model_id = typeof state.model_id === 'string' ? state.model_id : defaults.model_id;
+  state.provider = typeof state.provider === 'string' ? state.provider : defaults.provider;
+  state.cumulative_cost = Number(state.cumulative_cost) || 0;
   state.model_limit = Number(state.model_limit) || DEFAULT_MODEL_LIMIT;
   state.warnings_emitted = Array.isArray(state.warnings_emitted) ? state.warnings_emitted : [];
   state.distill_events = Array.isArray(state.distill_events) ? state.distill_events : [];
@@ -358,15 +540,17 @@ function appendMetricsHistory(kind, event) {
     mkdirSync(dir, { recursive: true });
   }
 
-  const data = readJsonSync(METRICS_HISTORY_FILE, []);
-  const history = Array.isArray(data) ? data : [];
-  history.push({ kind, event });
+  withFileLockSync(METRICS_HISTORY_FILE, () => {
+    const data = readJsonSync(METRICS_HISTORY_FILE, []);
+    const history = Array.isArray(data) ? data : [];
+    history.push({ kind, event });
 
-  if (history.length > MAX_METRICS_EVENTS) {
-    history.splice(0, history.length - MAX_METRICS_EVENTS);
-  }
+    if (history.length > MAX_METRICS_EVENTS) {
+      history.splice(0, history.length - MAX_METRICS_EVENTS);
+    }
 
-  writeJsonAtomicSync(METRICS_HISTORY_FILE, history);
+    writeJsonAtomicSync(METRICS_HISTORY_FILE, history);
+  });
 }
 
 function emitBudgetWarnings(state) {
@@ -568,6 +752,13 @@ function hasFailureSignal(value) {
 
     for (const [rawKey, rawVal] of Object.entries(current)) {
       const key = rawKey.toLowerCase();
+
+      // Check errors/error as array BEFORE the typeof !== 'object' guard
+      // (arrays ARE objects, so Array.isArray inside the guard below is always dead)
+      if ((key === 'error' || key === 'errors') && Array.isArray(rawVal) && rawVal.length > 0) {
+        return true;
+      }
+
       if ((key === 'error' || key === 'errors' || key === 'failed' || key === 'success' || key === 'resolved') && typeof rawVal !== 'object') {
         if (key === 'success' || key === 'resolved') {
           if (rawVal === false || rawVal === 'false') return true;
@@ -575,7 +766,6 @@ function hasFailureSignal(value) {
           if (rawVal === true || rawVal === 'true') return true;
         } else if (key === 'error' || key === 'errors') {
           if (typeof rawVal === 'string' && rawVal.trim()) return true;
-          if (Array.isArray(rawVal) && rawVal.length > 0) return true;
         }
       }
 
@@ -622,6 +812,141 @@ function captureMonitoringMetrics(toolName, toolInput, toolResponse) {
   }
 }
 
+// ---- Tool Call Batching Suggestion (Item 8) ----
+// Track recent tool invocations per session. When 3+ consecutive calls are
+// of the same category, suggest batching via stderr.
+const RECENT_CALLS_FILE = join(HOME, '.opencode', 'tool-usage', 'recent-calls.json');
+const MAX_RECENT = 20;
+const BATCH_THRESHOLD = 3;
+
+function getRecentCalls(sessionId) {
+  try {
+    const data = readJsonSync(RECENT_CALLS_FILE, {});
+    const session = data[sessionId] || [];
+    return Array.isArray(session) ? session : [];
+  } catch { return []; }
+}
+
+function appendRecentCall(sessionId, toolName, toolInfo) {
+  try {
+    withFileLockSync(RECENT_CALLS_FILE, () => {
+      const data = readJsonSync(RECENT_CALLS_FILE, {});
+      if (!data[sessionId]) data[sessionId] = [];
+      data[sessionId].push({ tool: toolName, category: toolInfo.category, ts: Date.now() });
+      if (data[sessionId].length > MAX_RECENT) data[sessionId] = data[sessionId].slice(-MAX_RECENT);
+      writeJsonAtomicSync(RECENT_CALLS_FILE, data);
+    });
+  } catch (_) { /* never crash */ }
+}
+
+function suggestBatchingIfNeeded(sessionId, toolName, toolInfo) {
+  try {
+    const recent = getRecentCalls(sessionId);
+    if (recent.length < BATCH_THRESHOLD) return;
+    // Count consecutive same-category runs
+    const runs = [];
+    let currentRun = { category: recent[0].category, count: 1 };
+    for (let i = 1; i < recent.length; i++) {
+      if (recent[i].category === currentRun.category) {
+        currentRun.count++;
+      } else {
+        runs.push(currentRun);
+        currentRun = { category: recent[i].category, count: 1 };
+      }
+    }
+    runs.push(currentRun);
+    const lastRun = runs[runs.length - 1];
+    if (lastRun.count >= BATCH_THRESHOLD) {
+      const cat = lastRun.category;
+      if (cat === 'search') {
+        process.stderr.write('[hint] 3+ sequential searches — combine into one grep/glob or use codesearch for external examples\n');
+      } else if (cat === 'file') {
+        process.stderr.write('[hint] 3+ sequential file reads — use glob first to find all targets, then batch reads\n');
+      } else if (cat === 'execution') {
+        process.stderr.write('[hint] 3+ sequential bash calls — combine with && or write a compound script\n');
+      }
+    }
+  } catch (_) { /* never crash */ }
+}
+
+// ---- LSP Tool Guidance (Item 7) ----
+// Suggest LSP tools when agent uses bash/read/grep for navigation instead.
+const LSP_HINTS = [
+  { patterns: [/\bfind.*function\b/i, /\bfind.*definition\b/i, /\bnavigate.*to\b/i, /\bwhere.*is\b/i, /\blocate.*function\b/i],
+    hint: '[lsp-hint] For code navigation, use lsp_goto_definition — instant, no shell overhead' },
+  { patterns: [/\bfind.*usages\b/i, /\bfind.*references\b/i, /\bwho.*calls\b/i, /\bwhere.*used\b/i],
+    hint: '[lsp-hint] For finding usages, use lsp_find_references — covers all projects atomically' },
+  { patterns: [/\bfind.*symbol\b/i, /\blist.*functions\b/i, /\bfile.*outline\b/i],
+    hint: '[lsp-hint] For file outlines, use lsp_symbols — shows all classes/functions/variables at once' },
+  { patterns: [/\brename.*variable\b/i, /\brename.*function\b/i, /\brefactor.*name\b/i],
+    hint: '[lsp-hint] For safe renames, use lsp_prepare_rename + lsp_rename — renames across all files atomically' },
+  { patterns: [/\bfind.*type\s/i, /\bfind.*error.*pattern\b/i, /\bast.*grep\b/i],
+    hint: '[lsp-hint] For AST-aware pattern matching, use ast_grep_search — more precise than regex grep' },
+];
+
+function suggestLspIfNeeded(toolName, toolInput) {
+  try {
+    if (toolName.startsWith('lsp_') || toolName.startsWith('ast_grep_')) return;
+    const inputStr = stringifyForSnippet(toolInput).toLowerCase();
+    for (const h of LSP_HINTS) {
+      if (h.patterns.some(p => p.test(inputStr))) {
+        process.stderr.write(`${h.hint}\n`);
+        break;
+      }
+    }
+  } catch (_) { /* never crash */ }
+}
+
+// ---- Profile + Research Tool Promotion (Items 9, 10, 11) ----
+// Surface skill profile hints and promote codesearch/context7 from registry.json triggers.
+const PROFILE_HINTS = [
+  { patterns: [/\brefactor\b/i, /\bclean up\b/i, /\bimprove architecture\b/i, /\brename\b/i],
+    hint: '[profile] deep-refactoring: load skill(systematic-debugging) + skill(test-driven-development) + skill(verification)' },
+  { patterns: [/\bplan\b/i, /\bdesign\b/i, /\barchitect\b/i, /\broadmap\b/i],
+    hint: '[profile] planning-cycle: load skill(brainstorming) + skill(writing-plans) + skill(executing-plans)' },
+  { patterns: [/\bbrowser\b/i, /\bui test\b/i, /\bvisual\b/i, /\be2e\b/i],
+    hint: '[profile] browser-testing: load skill(dev-browser) + skill(playwright) + skill(verification)' },
+  { patterns: [/\bbug\b/i, /\bdiagnose\b/i, /\berror\b/i, /\bfailing\b/i, /\bcrash\b/i],
+    hint: '[profile] diagnostic-healing: load skill(systematic-debugging) + skill(code-doctor) + skill(incident-commander)' },
+  { patterns: [/\bcode review\b/i, /\bpr review\b/i, /\blgtm\b/i, /\bfeedback\b/i],
+    hint: '[profile] review-cycle: load skill(requesting-code-review) + skill(receiving-code-review)' },
+  { patterns: [/\bparallel\b/i, /\bdivide and conquer\b/i, /\bsubagent\b/i],
+    hint: '[profile] parallel-implementation: load skill(dispatching-parallel-agents) + skill(subagent-driven-development)' },
+  { patterns: [/\bresearch\b/i, /\binvestigate\b/i, /\bhow.?to\b/i, /\blibrary\b/i, /\bapi\b/i],
+    hint: '[profile] research-to-code: load skill(context7) + skill(codesearch) + skill(writing-plans)' },
+];
+
+const RESEARCH_TOOL_HINTS = [
+  { patterns: [/search.*github/i, /find.*example/i, /real.?world.*code/i, /public.*repo/i, /grep.*github/i],
+    hint: '[hint] For GitHub code search, use codesearch — live examples from 1M+ repos, better than grep' },
+  { patterns: [/library.*docs/i, /framework.*doc/i, /api.*reference/i, /correct syntax/i, /npm.*package/i, /how to use/i],
+    hint: '[hint] For library/framework docs, use context7_resolve_library_id + context7_query_docs — up-to-date instead of training data' },
+];
+
+function suggestContextTools(toolName, toolInput) {
+  try {
+    const promoted = ['codesearch', 'context7', 'context7_resolve', 'context7_query'];
+    if (promoted.some(t => toolName.includes(t))) return;
+    const inputStr = stringifyForSnippet(toolInput).toLowerCase();
+    for (const h of RESEARCH_TOOL_HINTS) {
+      if (h.patterns.some(p => p.test(inputStr))) {
+        process.stderr.write(`${h.hint}\n`);
+        break;
+      }
+    }
+    for (const p of PROFILE_HINTS) {
+      if (p.patterns.some(p2 => p2.test(inputStr))) {
+        process.stderr.write(`${p.hint}\n`);
+        break;
+      }
+    }
+    // Workflow executor trigger (item 9)
+    if (/workflow|pipeline|orchestrate|multi.?step.*plan/i.test(inputStr)) {
+      process.stderr.write('[hint] For complex workflows, consider: skill(task-orchestrator) or skill(executing-plans)\n');
+    }
+  } catch (_) { /* never crash */ }
+}
+
 // ---- Delegation Event Capture ----
 // Written to ~/.opencode/delegation-log.json for post-processing by ingest-sessions.mjs.
 // Captures task tool invocations so OrchestrationAdvisor and SkillRL can learn from
@@ -635,7 +960,9 @@ function captureDelegationEvent(sessionId, toolInput, toolResponse) {
     const loadSkills = Array.isArray(toolInput?.load_skills) ? toolInput.load_skills.filter(s => typeof s === 'string') : [];
     const background = !!toolInput?.run_in_background;
     const continuedSession = typeof toolInput?.session_id === 'string' ? toolInput.session_id : null;
-    const success = !hasFailureSignal(toolResponse);
+    // Background tasks return {task_id, status:"running"} — outcome is unknown at fire time.
+    // Use null to signal "pending outcome" so ingest-sessions skips RL until a real result arrives.
+    const success = background ? null : !hasFailureSignal(toolResponse);
     // Derive a task_type hint from description keywords for OrchestrationAdvisor routing
     const descLower = description.toLowerCase();
     let taskType = category || subagentType || 'general';
@@ -660,14 +987,337 @@ function captureDelegationEvent(sessionId, toolInput, toolResponse) {
       processed: false,
     };
 
-    const data = readJsonSync(DELEGATION_LOG_FILE, { events: [] });
-    const events = Array.isArray(data.events) ? data.events : [];
-    events.push(event);
-    if (events.length > MAX_DELEGATION_EVENTS) events.splice(0, events.length - MAX_DELEGATION_EVENTS);
-    writeJsonAtomicSync(DELEGATION_LOG_FILE, { events });
+    withFileLockSync(DELEGATION_LOG_FILE, () => {
+      const data = readJsonSync(DELEGATION_LOG_FILE, { events: [] });
+      const events = Array.isArray(data.events) ? data.events : [];
+      events.push(event);
+      if (events.length > MAX_DELEGATION_EVENTS) events.splice(0, events.length - MAX_DELEGATION_EVENTS);
+      writeJsonAtomicSync(DELEGATION_LOG_FILE, { events });
+    });
   } catch (_) {
     // Never crash the hook for delegation logging
   }
+}
+
+// ---- Skill Suggestion on Failure/Test Patterns ----
+// When error/failure signals or test keywords appear in a tool response,
+// suggest loading high-value skills proactively via stderr.
+// This fires after every tool call so the operator can observe the signal.
+
+const FAILURE_PATTERNS = [
+  /error/i, /fail/i, /exception/i, /crash/i, /bug/i,
+  /undefined is not/i, /cannot read/i, /is not a function/i,
+  /typeerror/i, /referenceerror/i, /syntaxerror/i,
+  /segfault/i, /panic/i, /wrong/i, /incorrect/i,
+  /unexpected/i, /refused/i, /denied/i, /not found/i,
+  /enoent/i, /eperm/i, /enoexec/i,
+];
+
+const TEST_PATTERNS = [
+  /\btest\b/i, /\bspec\b/i, /\btdd\b/i, /\bjest\b/i,
+  /\bvitest\b/i, /\bpytest\b/i, /\bmocha\b/i,
+  /\bfail(ed|ing)?\b/i, /assertion/i, /expect\(/i,
+  /coverage/i, /unit.?test/i, /integration.?test/i,
+];
+
+function suggestSkillOnSignal(toolName, toolInput, toolResponse) {
+  try {
+    const responseStr = stringifyForSnippet(toolResponse).toLowerCase();
+    const inputStr = stringifyForSnippet(toolInput).toLowerCase();
+    const combined = responseStr + ' ' + inputStr;
+
+    // Check for failure signals — suggest systematic-debugging
+    const hasFailure = FAILURE_PATTERNS.some(p => p.test(responseStr));
+    // Check for test-related work — suggest TDD skill
+    const hasTestSignal = TEST_PATTERNS.some(p => p.test(combined));
+
+    if (hasFailure) {
+      process.stderr.write(
+        `[skill-hint] Failure signal detected — consider: /systematic-debugging\n` +
+        `[skill-hint] Load: skill(name="systematic-debugging") or slash /systematic-debugging\n`
+      );
+    }
+
+    if (hasTestSignal && !hasFailure) {
+      process.stderr.write(
+        `[skill-hint] Test signal detected — consider: /test-driven-development\n` +
+        `[skill-hint] Load: skill(name="test-driven-development") or slash /TDD\n`
+      );
+    }
+  } catch (_) {
+    // Never crash the hook for skill hints
+  }
+}// Writes to ~/.opencode/package-execution/events.json so the dashboard's
+// T21 panel shows real data. Tracks ALL tool calls (not just delegate() calls)
+// since this hook fires on every tool invocation.
+function capturePackageExecution(sessionId, toolName, toolInput, toolResponse, durationMs) {
+  try {
+    const mapping = TOOL_TO_PACKAGE_METHOD[toolName] || null;
+    const packageName = mapping?.package || 'opencode-core';
+    const method = mapping?.method || 'direct';
+    const success = !hasFailureSignal(toolResponse);
+    const taskType = deriveTaskType(toolInput);
+
+    const event = {
+      package: packageName,
+      method,
+      success,
+      durationMs: durationMs || 0,
+      timestamp: Date.now(),
+      sessionId,
+      taskType,
+      error: success ? null : extractErrorMessage(toolResponse),
+      tool: toolName, // raw tool for diagnostics
+    };
+
+    const dir = dirname(PKG_EVENTS_FILE);
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+
+    withFileLockSync(PKG_EVENTS_FILE, () => {
+      const data = readJsonSync(PKG_EVENTS_FILE, []);
+      const events = Array.isArray(data) ? data : [];
+      events.push(event);
+      if (events.length > MAX_PKG_EVENTS) events.splice(0, events.length - MAX_PKG_EVENTS);
+      writeJsonAtomicSync(PKG_EVENTS_FILE, events);
+    });
+  } catch (_) {
+    // Never crash the hook for package tracking
+  }
+}
+
+// ---- Model Selection Tracking ----
+// Writes to sessions/~-model-selection.json so the dashboard's T20 panel
+// shows which models are being selected and why.
+function captureModelSelection(sessionId, toolName, toolInput, toolResponse) {
+  // Only track delegation tools (these carry model selection decisions)
+  if (toolName !== 'call_omo_agent' && toolName !== 'task') return;
+
+  try {
+    const category = typeof toolInput?.category === 'string' ? toolInput.category.trim() : '';
+    const subagentType = typeof toolInput?.subagent_type === 'string' ? toolInput.subagent_type.trim() : '';
+    const success = !hasFailureSignal(toolResponse);
+    const cost = findNumericMetric(toolInput, ['max_tokens', 'token_limit']) || 0;
+
+    // Derive model from the static lookup tables (oh-my-opencode.json categories/agents).
+    // The task tool input never contains a model field — the actual model is selected by
+    // oh-my-opencode based on category/subagent_type. Use our mirrored mapping instead.
+    let resolved = null;
+    if (category && CATEGORY_TO_MODEL[category]) {
+      resolved = CATEGORY_TO_MODEL[category];
+    } else if (subagentType && AGENT_TO_MODEL[subagentType]) {
+      resolved = AGENT_TO_MODEL[subagentType];
+    }
+
+    const taskType = category || subagentType || 'general';
+    const modelId = resolved?.modelId || 'unknown';
+    const provider = resolved?.provider || 'unknown';
+
+    const event = {
+      timestamp: Date.now(),
+      sessionId,
+      modelId,
+      provider,
+      taskType,
+      category: category || null,
+      agentType: subagentType || null,
+      success,
+      estimatedCost: cost,
+    };
+
+    const dir = dirname(MODEL_SELECTION_FILE);
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+
+    withFileLockSync(MODEL_SELECTION_FILE, () => {
+      const data = readJsonSync(MODEL_SELECTION_FILE, []);
+      const events = Array.isArray(data) ? data : [];
+      events.push(event);
+      if (events.length > MAX_MODEL_SELECTION_EVENTS) events.splice(0, events.length - MAX_MODEL_SELECTION_EVENTS);
+      writeJsonAtomicSync(MODEL_SELECTION_FILE, events);
+    });
+  } catch (_) {
+    // Never crash the hook for model tracking
+  }
+}
+
+// ---- Model Router Outcome Capture ----
+// Writes {modelId, success, latencyMs, timestamp, sessionId} to
+// ~/.opencode/model-router-runtime-outcomes.json for each task/call_omo_agent
+// tool call. bootstrap.js reads this file and passes it as runtimeOutcomes[]
+// to ModelRouter.loadStatsFromDisk() so Thompson Sampling has real training data.
+function captureModelOutcome(sessionId, toolName, toolInput, toolResponse, durationMs) {
+  if (toolName !== 'task' && toolName !== 'call_omo_agent') return;
+  try {
+    const category = typeof toolInput?.category === 'string' ? toolInput.category.trim() : '';
+    const subagentType = typeof toolInput?.subagent_type === 'string' ? toolInput.subagent_type.trim() : '';
+
+    let resolved = null;
+    if (category && CATEGORY_TO_MODEL[category]) {
+      resolved = CATEGORY_TO_MODEL[category];
+    } else if (subagentType && AGENT_TO_MODEL[subagentType]) {
+      resolved = AGENT_TO_MODEL[subagentType];
+    }
+
+    const modelId = resolved?.modelId || 'unknown';
+    const success = !hasFailureSignal(toolResponse);
+    const latencyMs = typeof durationMs === 'number' && durationMs > 0 ? durationMs : 0;
+
+    const outcome = {
+      modelId,
+      success,
+      latencyMs,
+      timestamp: Date.now(),
+      sessionId,
+      category: category || null,
+      agentType: subagentType || null,
+    };
+
+    const dir = dirname(MODEL_ROUTER_OUTCOMES_FILE);
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+
+    withFileLockSync(MODEL_ROUTER_OUTCOMES_FILE, () => {
+      const data = readJsonSync(MODEL_ROUTER_OUTCOMES_FILE, []);
+      const outcomes = Array.isArray(data) ? data : [];
+      outcomes.push(outcome);
+      if (outcomes.length > MAX_MODEL_ROUTER_OUTCOMES) outcomes.splice(0, outcomes.length - MAX_MODEL_ROUTER_OUTCOMES);
+      writeJsonAtomicSync(MODEL_ROUTER_OUTCOMES_FILE, outcomes);
+    });
+  } catch (_) {
+    // Never crash the hook for outcome tracking
+  }
+}
+
+// ---- Improved Budget Tracking ----
+// Budget files now store: actual_tokens (estimated), model_id, provider,
+// cumulative_cost (estimated), and percentage-based warnings (e.g. "75%")
+// instead of raw threshold values ("75").
+function updateSessionBudget(state, sessionId, toolInput, toolResponse, callTokens, callChars) {
+  // Extract model info from tool input (for delegation tools)
+  const modelId = findFirstString(toolInput, ['model', 'model_id']) || state.model_id || 'unknown';
+  const provider = findFirstString(toolInput, ['provider']) || state.provider || 'unknown';
+  const costPerToken = getModelCostPerToken(modelId);
+  const estimatedCost = (callTokens * costPerToken) + (state.cumulative_cost || 0);
+
+  state.cumulative_chars = (state.cumulative_chars || 0) + callChars;
+  state.estimated_tokens = (state.estimated_tokens || 0) + callTokens;
+  state.actual_tokens = (state.actual_tokens || 0) + callTokens; // mirrors estimated for now
+  state.model_id = modelId;
+  state.provider = provider;
+  state.cumulative_cost = estimatedCost;
+  state.last_updated = new Date().toISOString();
+
+  // Emit percentage-based warnings (e.g. "75%" not "75")
+  const percent = Math.round((state.estimated_tokens / state.model_limit) * 100);
+  const thresholds = [50, 65, 80, 95];
+  for (const threshold of thresholds) {
+    const key = String(threshold);
+    if (percent < threshold || state.warnings_emitted.includes(key)) continue;
+
+    let message = '';
+    if (threshold === 50) {
+      message = `[context] ~${percent}% budget used (~${formatTokenK(state.estimated_tokens)}/${formatTokenK(state.model_limit)} tokens)`;
+    } else if (threshold === 65) {
+      message = `[context] ~${percent}% budget used - compression recommended (run distill)`;
+    } else if (threshold === 80) {
+      message = `[context] ~${percent}% budget used - CRITICAL: compress or wrap up`;
+    } else {
+      message = `[context] ~${percent}% budget used - EMERGENCY: context nearly exhausted`;
+    }
+
+    process.stderr.write(`${message}\n`);
+    state.warnings_emitted.push(key);
+  }
+
+  return state;
+}
+
+// ---- Distill Event Capture from compress tool ----
+// The compress tool is used as a manual distill trigger — capture it here
+// so distill_events in budget files actually populate.
+function captureCompressAsDistillEvent(sessionId, toolName, toolInput, toolResponse, state) {
+  if (toolName !== 'compress') return;
+
+  try {
+    const tokensBefore = findNumericMetric(toolInput, ['tokens', 'input_tokens', 'before']);
+    const tokensAfter = findNumericMetric(toolResponse, ['tokens_after', 'after_tokens', 'tokens_after']);
+    const ratio = findNumericMetric(toolResponse, ['ratio', 'compression_ratio', 'savings_ratio']);
+    const pipeline = findFirstString(toolInput, ['pipeline']) || 'compress-manual';
+
+    let savings = null;
+    if (tokensBefore !== null && tokensAfter !== null && tokensBefore > 0) {
+      savings = Math.round(((tokensBefore - tokensAfter) / tokensBefore) * 100);
+    } else if (ratio !== null && ratio > 0 && ratio <= 1) {
+      savings = Math.round((1 - ratio) * 100);
+    }
+
+    const summary = savings !== null
+      ? `[distill] compress: ~${savings}% savings (${pipeline})`
+      : '[distill] compress triggered';
+
+    process.stderr.write(`${summary}\n`);
+
+    state.distill_events = state.distill_events || [];
+    state.distill_events.push({
+      timestamp: new Date().toISOString(),
+      tool: toolName,
+      pipeline,
+      savings_percent: savings,
+      tokens_before: tokensBefore,
+      tokens_after: tokensAfter,
+      ratio,
+    });
+
+    // Also append to metrics history
+    if (tokensBefore !== null && tokensAfter !== null) {
+      appendMetricsHistory('compression', {
+        sessionId,
+        tokensBefore: Math.round(tokensBefore),
+        tokensAfter: Math.round(tokensAfter),
+        tokensSaved: Math.max(0, Math.round(tokensBefore) - Math.round(tokensAfter)),
+        ratio: tokensBefore > 0 ? Number((tokensAfter / tokensBefore).toFixed(4)) : 1,
+        pipeline,
+        durationMs: findNumericMetric(toolResponse, ['duration_ms']) || 0,
+        timestamp: Date.now(),
+      });
+    }
+  } catch (_) {
+    // Never crash the hook
+  }
+}
+
+// ---- Helpers ----
+
+function deriveTaskType(toolInput) {
+  if (!toolInput || typeof toolInput !== 'object') return null;
+  const desc = (toolInput.description || '').toLowerCase();
+  const cat = (toolInput.category || '').toLowerCase();
+  const combined = desc + ' ' + cat;
+  if (combined.includes('debug') || combined.includes('fix')) return 'debug';
+  if (combined.includes('refactor') || combined.includes('rename')) return 'refactor';
+  if (combined.includes('feature') || combined.includes('implement')) return 'feature';
+  if (combined.includes('test') || combined.includes('spec')) return 'test';
+  if (combined.includes('git') || combined.includes('commit')) return 'git';
+  if (combined.includes('ui') || combined.includes('frontend')) return 'ui';
+  if (combined.includes('research') || combined.includes('explore')) return 'research';
+  if (combined.includes('deep')) return 'deep';
+  if (combined.includes('quick')) return 'quick';
+  return null;
+}
+
+function extractErrorMessage(response) {
+  if (!response || typeof response !== 'object') return null;
+  const queue = [response];
+  while (queue.length) {
+    const current = queue.shift();
+    if (!current || typeof current !== 'object') continue;
+    if (Array.isArray(current)) { current.forEach(item => queue.push(item)); continue; }
+    for (const [key, val] of Object.entries(current)) {
+      if ((key === 'error' || key === 'errorMessage' || key === 'message') && typeof val === 'string' && val.trim()) {
+        return val.trim().slice(0, 200);
+      }
+      if (val && typeof val === 'object') queue.push(val);
+    }
+  }
+  return null;
 }
 
 // ---- Main ----
@@ -725,31 +1375,65 @@ function main() {
   }
 
   // Read-modify-write invocations file
-  const data = readJsonSync(INVOCATIONS_FILE, { invocations: [] });
-  data.invocations.push(invocation);
+  withFileLockSync(INVOCATIONS_FILE, () => {
+    const data = readJsonSync(INVOCATIONS_FILE, { invocations: [] });
+    data.invocations.push(invocation);
 
-  // Keep last N invocations
-  if (data.invocations.length > MAX_INVOCATIONS) {
-    data.invocations = data.invocations.slice(-MAX_INVOCATIONS);
-  }
+    // Keep last N invocations
+    if (data.invocations.length > MAX_INVOCATIONS) {
+      data.invocations = data.invocations.slice(-MAX_INVOCATIONS);
+    }
 
-  writeJsonAtomicSync(INVOCATIONS_FILE, data);
+    writeJsonAtomicSync(INVOCATIONS_FILE, data);
+  });
 
-  const { state, stateFile } = loadSessionBudgetState(sessionId);
+  const { stateFile } = loadSessionBudgetState(sessionId);
   const callChars = stringifyLength(input.tool_input) + stringifyLength(input.tool_response);
   const callTokens = estimateTokens(input.tool_input, input.tool_response);
+  const durationMs = findNumericMetric(input.tool_response, ['duration_ms', 'elapsed_ms', 'execution_time']) || 0;
 
-  state.cumulative_chars += callChars;
-  state.estimated_tokens += callTokens;
-  emitBudgetWarnings(state);
-  captureDistillMetrics(toolName, input.tool_response, state);
+  withFileLockSync(stateFile, () => {
+    const { state } = loadSessionBudgetState(sessionId);
+
+    // Improved budget tracking with model/cost info and percentage warnings
+    updateSessionBudget(state, sessionId, input.tool_input, input.tool_response, callTokens, callChars);
+
+    // Capture compress tool as a distill event (was missing — distill_events was always empty)
+    captureCompressAsDistillEvent(sessionId, toolName, input.tool_input, input.tool_response, state);
+
+    state.last_updated = new Date().toISOString();
+    writeJsonAtomicSync(stateFile, state);
+  });
+
+  // Standard distill + context7 monitoring
   captureMonitoringMetrics(toolName, input.tool_input, input.tool_response);
-  state.last_updated = new Date().toISOString();
 
-  writeJsonAtomicSync(stateFile, state);
+  // Suggest skills on failure/test patterns (item 6)
+  suggestSkillOnSignal(toolName, input.tool_input, input.tool_response);
+
+  // Track for batching suggestion (item 8)
+  appendRecentCall(sessionId, toolName, toolInfo);
+  suggestBatchingIfNeeded(sessionId, toolName, toolInfo);
+
+  // LSP tool guidance (item 7)
+  suggestLspIfNeeded(toolName, input.tool_input);
+
+  // Context-aware skill/profile/codesearch suggestions (items 9, 10, 11)
+  suggestContextTools(toolName, input.tool_input);
+
+  // Capture package-level execution for ALL tool calls (T21 — was only in IntegrationLayer.delegate())
+  capturePackageExecution(sessionId, toolName, input.tool_input, input.tool_response, durationMs);
+
+  // Track model selection from delegation tool calls (T20)
+  captureModelSelection(sessionId, toolName, input.tool_input, input.tool_response);
+
+  // Record model outcome for Thompson Sampling RL training signal (Wave 1A)
+  captureModelOutcome(sessionId, toolName, input.tool_input, input.tool_response, durationMs);
 
   // Capture delegation events for OrchestrationAdvisor + SkillRL post-processing
-  if (toolName === 'task') {
+  // Note: call_omo_agent is the MCP tool name for agent spawning; task normalization
+  // is handled by resolveRuntimeToolName but the MCP name is preserved for delegation detection
+  if (toolName === 'task' || toolName === 'call_omo_agent') {
     captureDelegationEvent(sessionId, input.tool_input, input.tool_response);
   }
 

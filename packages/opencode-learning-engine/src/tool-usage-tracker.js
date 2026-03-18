@@ -58,6 +58,7 @@ const AVAILABLE_TOOLS = {
   
   // Agent tools
   task: { category: 'delegation', priority: 'critical', description: 'Spawn agent task' },
+  call_omo_agent: { category: 'delegation', priority: 'critical', description: 'Spawn named agent (MCP)' },
   background_output: { category: 'delegation', priority: 'high', description: 'Get background task output' },
   background_cancel: { category: 'delegation', priority: 'medium', description: 'Cancel background task' },
   
@@ -92,8 +93,8 @@ const AVAILABLE_TOOLS = {
   
   // Context management
   distill: { category: 'context', priority: 'medium', description: 'Distill tool outputs' },
-  distill_browse_tools: { category: 'context', priority: 'low', description: 'Browse distill pipelines' },
-  distill_run_tool: { category: 'context', priority: 'medium', description: 'Run distill pipeline' },
+  // Note: distill_browse_tools and distill_run_tool are intentionally absent so that
+  // normalizeMcpToolName falls back to the provider name 'distill' for both sub-commands.
   prune: { category: 'context', priority: 'medium', description: 'Remove tool outputs' },
   
   // Skills
@@ -326,7 +327,13 @@ function normalizeMcpToolName(toolName) {
   if (!toolName || typeof toolName !== 'string') {
     return toolName;
   }
-  
+
+  // Special case: call_omo_agent (MCP agent spawning tool)
+  // Normalize to 'call_omo_agent' so it maps to AVAILABLE_TOOLS['call_omo_agent']
+  if (toolName === 'call_omo_agent' || toolName === 'task') {
+    return toolName;
+  }
+
   // MCP prefix pattern: mcp_<provider>_ or mcp__<provider>__
   // Extract provider name from the prefix
   const mcpMatch = toolName.match(/^mcp_+(\w+?)_+(.*)$/);
