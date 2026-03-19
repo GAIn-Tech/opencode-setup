@@ -5,6 +5,7 @@
     "": {
       "name": "opencode-setup",
       "dependencies": {
+        "js-yaml": "^4.1.1",
         "sqlite-vec": "^0.1.7-alpha.2",
       },
     },
@@ -90,6 +91,10 @@
       "bin": {
         "opencode-eval": "bin/cli.js",
       },
+    },
+    "packages/opencode-event-bus": {
+      "name": "opencode-event-bus",
+      "version": "1.0.0",
     },
     "packages/opencode-fallback-doctor": {
       "name": "opencode-fallback-doctor",
@@ -982,6 +987,8 @@
     "opencode-errors": ["opencode-errors@workspace:packages/opencode-errors"],
 
     "opencode-eval-harness": ["opencode-eval-harness@workspace:packages/opencode-eval-harness"],
+
+    "opencode-event-bus": ["opencode-event-bus@workspace:packages/opencode-event-bus"],
 
     "opencode-fallback-doctor": ["opencode-fallback-doctor@workspace:packages/opencode-fallback-doctor"],
 

@@ -15,6 +15,7 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { parseFrontmatter } from './lib/yaml-frontmatter-parser.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -51,29 +52,9 @@ function extractSkillMetadata(skillDir) {
   
   const content = fs.readFileSync(skillMdPath, 'utf-8');
   
-  // Parse YAML frontmatter
-  const match = content.match(/^---\n([\s\S]*?)\n---/);
-  if (!match) return null;
-  
-  const frontmatter = match[1];
-  const metadata = {};
-  
-  // Parse simple YAML-like frontmatter
-  const nameMatch = frontmatter.match(/^name:\s*(.+)$/m);
-  const descMatch = frontmatter.match(/^description:\s*>\s*\n(.+)/m);
-  const catMatch = frontmatter.match(/^category:\s*(.+)$/m);
-  const tagsMatch = frontmatter.match(/^tags:\s*\[(.+)\]/m);
-  const depsMatch = frontmatter.match(/^dependencies:\s*\[(.*)\]/m);
-  const synergiesMatch = frontmatter.match(/^synergies:\s*\[(.*)\]/m);
-  const conflictsMatch = frontmatter.match(/^conflicts:\s*\[(.*)\]/m);
-  
-  if (nameMatch) metadata.name = nameMatch[1].trim();
-  if (descMatch) metadata.description = descMatch[1].trim();
-  if (catMatch) metadata.category = catMatch[1].trim();
-  if (tagsMatch) metadata.tags = tagsMatch[1].split(',').map(t => t.trim());
-  if (depsMatch) metadata.dependencies = depsMatch[1].trim() ? depsMatch[1].split(',').map(t => t.trim()) : [];
-  if (synergiesMatch) metadata.synergies = synergiesMatch[1].trim() ? synergiesMatch[1].split(',').map(t => t.trim()) : [];
-  if (conflictsMatch) metadata.conflicts = conflictsMatch[1].trim() ? conflictsMatch[1].split(',').map(t => t.trim()) : [];
+  // Parse YAML frontmatter using robust js-yaml parser
+  const metadata = parseFrontmatter(content) || {};
+  if (!metadata || Object.keys(metadata).length === 0) return null;
   
   // Extract triggers from "When to Use" section
   const whenToUseMatch = content.match(/## When to Use\n\nUse this skill when:\n([\s\S]*?)\n\nDo NOT use/m);

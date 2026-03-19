@@ -1,0 +1,16 @@
+{
+  "id": "yaml-frontmatter-parser-20260319",
+  "timestamp": "2026-03-19T22:30:00.000Z",
+  "summary": "Created robust YAML frontmatter parser (scripts/lib/yaml-frontmatter-parser.mjs) using js-yaml to replace fragile regex-based extraction in consolidate-skills.mjs. The new parser handles all YAML formats: quoted/unquoted strings, single-line bracket arrays, multi-line dash arrays, block scalars (> and |), YAML comments, CRLF line endings, and missing fields. Updated consolidate-skills.mjs to use parseFrontmatter() while preserving the existing triggers extraction from markdown body. Added 71 tests (19 unit + 52 integration) covering both opencode and antigravity SKILL.md formats.",
+  "affected_paths": [
+    "scripts/lib/yaml-frontmatter-parser.mjs",
+    "scripts/lib/test/yaml-frontmatter-parser.test.mjs",
+    "scripts/consolidate-skills.mjs"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

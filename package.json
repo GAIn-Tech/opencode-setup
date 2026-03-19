@@ -74,6 +74,7 @@
   },
   "homepage": "https://github.com/GAIn-Tech/opencode-setup#readme",
   "dependencies": {
+    "js-yaml": "^4.1.1",
     "sqlite-vec": "^0.1.7-alpha.2"
   }
 }
