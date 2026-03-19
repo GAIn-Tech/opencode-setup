@@ -1392,6 +1392,24 @@ class IntegrationLayer {
       compressionRecommendedSkills: runtimeContext?.compression?.recommendedSkills || []
     };
 
+    // Wire: record compression advisory when evaluateAndCompress() triggers compress/compress_urgent
+    if (compressionActive && this.pipelineMetrics && typeof this.pipelineMetrics.recordCompression === 'function') {
+      try {
+        const _budgetPct = runtimeContext?.budget?.pct || 0;
+        const _budgetStatus = (_sessionId && _model) ? this.getContextBudgetStatus(_sessionId, _model) : null;
+        const _usedTokens = _budgetStatus?.used || 0;
+        // Estimate post-compression tokens at ~50% savings (distill average)
+        const _estimatedAfter = _usedTokens > 0 ? Math.round(_usedTokens * 0.5) : 0;
+        this.pipelineMetrics.recordCompression({
+          sessionId: _sessionId || '',
+          tokensBefore: _usedTokens,
+          tokensAfter: _estimatedAfter,
+          pipeline: budgetAction === 'compress_urgent' ? 'distill-urgent' : 'distill-advisory',
+          durationMs: 0,
+        });
+      } catch (_e) { /* fail-open: metric recording must never break execution */ }
+    }
+
     let result = null;
     let executionError = null;
 
@@ -1476,6 +1494,23 @@ class IntegrationLayer {
     const _mcpToolsUsed = _getSessionMcpInvocations
       ? _getSessionMcpInvocations(taskContext.session_id || taskContext.sessionId)
       : [];
+
+    // Wire: record Context7 lookups from MCP tool invocations
+    if (this.pipelineMetrics && typeof this.pipelineMetrics.recordContext7Lookup === 'function' && _mcpToolsUsed.length > 0) {
+      try {
+        const _context7Tools = _mcpToolsUsed.filter(t =>
+          String(t).toLowerCase().includes('context7')
+        );
+        for (const _c7tool of _context7Tools) {
+          this.pipelineMetrics.recordContext7Lookup({
+            libraryName: String(_c7tool),
+            resolved: true,
+            snippetCount: 0,
+            durationMs: 0,
+          });
+        }
+      } catch (_e) { /* fail-open: metric recording must never break execution */ }
+    }
 
     // Learn from outcome if failure
     if (!result.success && this.skillRL && skills) {

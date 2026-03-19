@@ -1,7 +1,7 @@
 {
   "version": 1,
   "algorithm": "SHA-256",
-  "generated_at": "2026-03-18T21:33:22.750Z",
+  "generated_at": "2026-03-19T02:09:38.898Z",
   "files": {
     "opencode-config/antigravity.json": "02e5da152f9b3220d1ddb3abcc97e412bdde433dd8320954e6a2353565b08790",
     "opencode-config/central-config.json": "b03855e6260b7eb7222f9d99a7566598eae8c4da85d2efde6eeda6c55eae3912",
@@ -19,7 +19,7 @@
     "opencode-config/models/schema.json": "8fbafa45676b5bc3d3eb51d3c451f41afde875849592c82905f3c3cf033b7df3",
     "opencode-config/oh-my-opencode.json": "bdb5200fa0438ae35e03422b362e33947bc7df31f1e375171c7052f922465540",
     "opencode-config/opencode-clean.json": "1ae1f432b6f21511d4c0f7baafb1e7cdf33265e093e3e4ca547774d7e2e88e9d",
-    "opencode-config/opencode.json": "c7e77dd80609b466e8c5e958c5669def2fab38cc695ef6f7d90ac7197e7e4006",
+    "opencode-config/opencode.json": "ad7909c0117d0cdc722d2ab836faa69bc956d212b2997976e585d8d050947e65",
     "opencode-config/rate-limit-fallback.json": "e1906bc2b48d0273addc0cde0fb9e59b288599175616d25ec2fb75ca94b5a8c7",
     "opencode-config/skills/registry.backup.json": "6407698c01a16bff4113225374d0daecda322b318af9d09fb9b7992d2815bd74",
     "opencode-config/skills/registry.json": "427f02a8bf3058a488de7f35477bf9b30bace22d4b23acf0435e60d1fb00e40d",
