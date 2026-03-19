@@ -18,6 +18,8 @@
 
 'use strict';
 
+const { SemanticMatcher } = require('./semantic-matcher');
+
 class SkillBank {
   constructor() {
     // General Skills - Universal, cross-task applicable
@@ -30,6 +32,9 @@ class SkillBank {
     // Cache is invalidated and rebuilt on any skill update
     this._sortedGeneralCache = null;
     this._sortedTaskCache = new Map(); // by task_type
+    
+    // Semantic matching layer (additive fallback for synonym/domain signal matching)
+    this.semanticMatcher = new SemanticMatcher();
     
     // Seed with initial general skills
     this._seedGeneralSkills();
@@ -331,6 +336,12 @@ class SkillBank {
       if (keywords.some(keyword => descLower.includes(keyword))) {
         return true;
       }
+    }
+
+    // Semantic matching fallback (additive — fires ONLY when keyword matching fails)
+    // Uses synonym expansion and domain signal detection
+    if (this.semanticMatcher && this.semanticMatcher.match(skill, taskContext)) {
+      return true;
     }
 
     // No match found

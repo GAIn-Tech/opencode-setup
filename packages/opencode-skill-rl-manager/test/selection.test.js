@@ -569,3 +569,151 @@ describe('epsilon-greedy weighted injection', () => {
     }).not.toThrow();
   });
 });
+
+describe('Semantic matching in _matchesContext()', () => {
+  let skillBank;
+
+  beforeEach(() => {
+    skillBank = new SkillBank();
+  });
+
+  test('Semantic: "fix intermittent test failures" matches skill with tag "debugging" via synonym expansion', () => {
+    // Arrange: skill has tag 'debugging' but task_type is NOT debugging
+    // application_context keywords must NOT accidentally match description
+    const skill = {
+      name: 'semantic-debug-skill',
+      success_rate: 0.75,
+      usage_count: 5,
+      tags: ['debugging'],
+      application_context: 'systematic hypothesis-driven approach',
+      selectionHints: { useWhen: [], avoidWhen: [] }
+    };
+
+    const taskContext = {
+      task_type: 'implementation',
+      complexity: 'medium',
+      error_type: null,
+      description: 'fix intermittent test failures'
+    };
+
+    // Act
+    const result = skillBank._matchesContext(skill, taskContext);
+
+    // Assert: 'fix' expands to 'debugging' via synonyms.json → matches skill tag
+    expect(result).toBe(true);
+  });
+
+  test('Semantic: "deploy to kubernetes cluster" matches skill with tag "deployment" via synonym expansion', () => {
+    // Arrange: skill has tag 'deployment', task_type is NOT deployment
+    const skill = {
+      name: 'deployment-skill',
+      success_rate: 0.70,
+      usage_count: 3,
+      tags: ['deployment'],
+      application_context: 'orchestrate containerized workloads',
+      selectionHints: { useWhen: [], avoidWhen: [] }
+    };
+
+    const taskContext = {
+      task_type: 'implementation',
+      complexity: 'medium',
+      error_type: null,
+      description: 'deploy to kubernetes cluster'
+    };
+
+    // Act
+    const result = skillBank._matchesContext(skill, taskContext);
+
+    // Assert: 'deploy' and 'kubernetes' expand to 'deployment' → matches skill tag
+    expect(result).toBe(true);
+  });
+
+  test('Semantic: "write a poem about cats" does NOT match skill with tag "debugging"', () => {
+    // Arrange: no synonym or domain signal maps 'poem' or 'cats' to 'debugging'
+    const skill = {
+      name: 'debug-only-skill',
+      success_rate: 0.80,
+      usage_count: 10,
+      tags: ['debugging'],
+      application_context: 'systematic hypothesis-driven approach',
+      selectionHints: { useWhen: [], avoidWhen: [] }
+    };
+
+    const taskContext = {
+      task_type: 'creative',
+      complexity: 'low',
+      error_type: null,
+      description: 'write a poem about cats'
+    };
+
+    // Act
+    const result = skillBank._matchesContext(skill, taskContext);
+
+    // Assert: no synonyms or domain signals match → false
+    expect(result).toBe(false);
+  });
+
+  test('Regression: task_type="debugging" still matches skill with tag "debugging" (existing keyword path)', () => {
+    // Arrange: existing keyword matching should still work after semantic layer added
+    const skill = {
+      name: 'debug-tag-skill',
+      success_rate: 0.80,
+      usage_count: 10,
+      tags: ['debugging'],
+      application_context: 'systematic hypothesis-driven approach',
+      selectionHints: { useWhen: [], avoidWhen: [] }
+    };
+
+    const taskContext = {
+      task_type: 'debugging',
+      complexity: 'high',
+      error_type: null,
+      description: 'debug a complex issue'
+    };
+
+    // Act
+    const result = skillBank._matchesContext(skill, taskContext);
+
+    // Assert: task_type matches tag via existing keyword path
+    expect(result).toBe(true);
+  });
+
+  test('Performance: 100 iterations of _matchesContext() against 79 skills completes in < 1ms', () => {
+    // Arrange: Create 79 mock skills across different categories
+    const categories = ['debugging', 'testing', 'deployment', 'planning', 'review',
+      'security', 'performance', 'documentation', 'architecture', 'refactoring'];
+    const skills = [];
+    for (let i = 0; i < 79; i++) {
+      skills.push({
+        name: `perf-skill-${i}`,
+        success_rate: 0.50 + (i % 50) * 0.01,
+        usage_count: i,
+        tags: [categories[i % categories.length]],
+        application_context: `context for skill number ${i}`,
+        selectionHints: { useWhen: [], avoidWhen: [] }
+      });
+    }
+
+    const taskContext = {
+      task_type: 'implementation',
+      complexity: 'high',
+      error_type: null,
+      description: 'fix and deploy the new kubernetes service'
+    };
+
+    // Warmup: JIT compilation pass
+    for (let i = 0; i < 10; i++) {
+      skillBank._matchesContext(skills[i], taskContext);
+    }
+
+    // Act: 100 _matchesContext calls against skills from pool of 79
+    const start = performance.now();
+    for (let iter = 0; iter < 100; iter++) {
+      skillBank._matchesContext(skills[iter % 79], taskContext);
+    }
+    const elapsed = performance.now() - start;
+
+    // Assert: 100 calls with semantic matching must complete < 1ms
+    expect(elapsed).toBeLessThan(1);
+  });
+});
