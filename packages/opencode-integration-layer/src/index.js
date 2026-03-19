@@ -1414,11 +1414,20 @@ class IntegrationLayer {
 
     // [T10] Record actual token consumption — fail-open, advisory only
     const _tokensUsed = result?.tokensUsed || result?.usage?.total_tokens || result?.usage?.output_tokens || 0;
+    let _budgetResult = null;
     if (_tokensUsed > 0 && _sessionId && _model) {
       try {
-        this.recordTokenUsage(_sessionId, _model, _tokensUsed);
+        _budgetResult = this.recordTokenUsage(_sessionId, _model, _tokensUsed);
       } catch (e) {
         // Fail-open: token recording failure is non-fatal
+      }
+    }
+    // [T19] Evaluate budget alerts after token consumption — fail-open
+    if (_budgetResult && this.alertManager && typeof this.alertManager.evaluateBudget === 'function') {
+      try {
+        this.alertManager.evaluateBudget({ sessionId: _sessionId, model: _model, ..._budgetResult });
+      } catch (_e) {
+        // Fail-open: alert evaluation is advisory only
       }
     }
 
