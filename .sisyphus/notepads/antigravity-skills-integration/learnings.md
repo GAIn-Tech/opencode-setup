@@ -280,3 +280,35 @@ Implement category-weighted selection that prefers skills matching `taskContext.
 - Fixed by tracking base querySkills result and detecting injected skills (those not in base)
 - With epsilon=0.5, ~100 injections per 200 iterations provides sufficient statistical sample
 - Category weighting is additive: if no category match, falls back to full pool (no crash risk)
+
+## E2E Test Regression Fix (2026-03-19)
+
+### Problem
+Task 1 removed the `success_rate > 0.7` fallback from `_matchesContext()`, which broke the e2e test:
+- Error: "SkillRL did not augment advice"
+- Root cause: Test fixtures had no `task_type` field, so no skills matched via tag/keyword matching
+
+### Solution
+Added `task_type` field to all test fixtures in `integration-tests/skillrl-showboat-e2e.test.js`:
+1. `authTask` → `task_type: 'implementation'` (matches incremental-implementation seed skill)
+2. `docTask` → `task_type: 'review'` (matches verification-before-completion seed skill)
+3. `failedTask` → `task_type: 'implementation'`
+4. `deployTask` → `task_type: 'implementation'`
+
+### Test Results
+- **skillrl-showboat-e2e.test.js**: All 4 scenarios pass ✅
+  - Scenario 1: High-impact task generated evidence
+  - Scenario 2: Low-impact task skipped evidence
+  - Scenario 3: Failure distilled into SkillRL
+  - Scenario 4: Full workflow end-to-end
+- **selection.test.js**: 17 pass, 0 fail ✅
+
+### Critical Pattern
+After removing the `success_rate > 0.7` fallback, test fixtures MUST include `task_type` for skill matching to work. The `task_type` should match one of the seeded skill categories:
+- `debugging` → systematic-debugging
+- `testing` → test-driven-development
+- `review` → verification-before-completion
+- `planning` → brainstorming
+- `implementation` → incremental-implementation
+
+This ensures skills are selected via explicit category matching, not via the removed fallback.
