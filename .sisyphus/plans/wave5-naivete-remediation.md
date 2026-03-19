@@ -72,16 +72,16 @@ Eliminate 7 systemic design naivete categories discovered in deep codebase audit
 - `pr-generator.js` — 3 command injection vectors fixed
 
 ### Definition of Done
-- [ ] `opencode-safe-io` package exists and is importable from both CJS and ESM
-- [ ] Zero unguarded `JSON.parse(fs.readFileSync(...))` patterns remain in non-test production code (excluding intentional verification in write-json-atomic.ts)
-- [ ] Zero sync I/O calls remain in dashboard API route handlers (excluding write-json-atomic.ts verification read)
-- [ ] All setInterval calls have .unref() applied
-- [ ] All child process listeners use .once() or explicit removeListener
-- [ ] getSchedulerTelemetry exported from health-check
-- [ ] tool-usage-tracker re-exported from learning-engine/index.js
-- [ ] Zero string-interpolated execSync calls in pr-generator.js
-- [ ] All ~450+ existing tests still pass (`bun test`)
-- [ ] New regression tests added for each task
+- [x] `opencode-safe-io` package exists and is importable from both CJS and ESM
+- [x] Zero unguarded `JSON.parse(fs.readFileSync(...))` patterns remain in non-test production code (excluding intentional verification in write-json-atomic.ts)
+- [x] Zero sync I/O calls remain in dashboard API route handlers (excluding write-json-atomic.ts verification read)
+- [x] All setInterval calls have .unref() applied
+- [x] All child process listeners use .once() or explicit removeListener
+- [x] getSchedulerTelemetry exported from health-check
+- [x] tool-usage-tracker re-exported from learning-engine/index.js
+- [x] Zero string-interpolated execSync calls in pr-generator.js
+- [x] All ~450+ existing tests still pass (`bun test`)
+- [x] New regression tests added for each task
 
 ### Must Have
 - Shared safeJsonParse with labeled logging (which file failed to parse)
@@ -187,7 +187,7 @@ Parallel Speedup: ~40% faster than sequential
 
 ### Task 0: Commit Wave 4 Uncommitted Files + Baseline Verification
 
-- [ ] 0. Commit modified files from Wave 4 and verify baseline
+- [x] 0. Commit modified files from Wave 4 and verify baseline
 
   **What to do**:
   1. Run `git status` to see all modified/untracked files
@@ -222,10 +222,10 @@ Parallel Speedup: ~40% faster than sequential
   - Wave 4 commits: `e12b001`, `29224f3`, `ee87a2a`
 
   **Acceptance Criteria**:
-  - [ ] `bun test` passes (exit code 0)
-  - [ ] Test count recorded as baseline (~450+)
-  - [ ] Modified files committed or explicitly excluded with rationale
-  - [ ] `git status` shows clean working tree (or only intentionally-excluded files)
+  - [x] `bun test` passes (exit code 0)
+  - [x] Test count recorded as baseline (~450+)
+  - [x] Modified files committed or explicitly excluded with rationale
+  - [x] `git status` shows clean working tree (or only intentionally-excluded files)
 
   **Agent-Executed QA Scenarios:**
   ```
@@ -247,7 +247,7 @@ Parallel Speedup: ~40% faster than sequential
 
 ### Task 1: Create `opencode-safe-io` Shared Utility Package
 
-- [ ] 1. Create `opencode-safe-io` package with shared safe I/O utilities
+- [x] 1. Create `opencode-safe-io` package with shared safe I/O utilities
 
   **What to do**:
   1. **Create package directory**: `packages/opencode-safe-io/`
@@ -320,14 +320,14 @@ Parallel Speedup: ~40% faster than sequential
   - `packages/opencode-crash-guard/tests/safe-json.test.js` — Existing test pattern for SafeJSON (8 tests)
 
   **Acceptance Criteria**:
-  - [ ] Package exists: `ls packages/opencode-safe-io/package.json` → found
-  - [ ] CJS importable: `bun -e "const s = require('./packages/opencode-safe-io/src/index.js'); console.log(typeof s.safeJsonParse)"` → `function`
-  - [ ] ESM importable: `bun -e "import { safeJsonParse } from './packages/opencode-safe-io/src/index.mjs'; console.log(typeof safeJsonParse)"` → `function`
-  - [ ] safeJsonParse handles broken JSON: `bun -e "const {safeJsonParse} = require('./packages/opencode-safe-io/src/index.js'); console.log(safeJsonParse('{broken', 'fallback'))"` → `fallback`
-  - [ ] safeJsonRead handles missing file: `bun -e "const {safeJsonRead} = require('./packages/opencode-safe-io/src/index.js'); safeJsonRead('/nonexistent', {}).then(r => console.log(JSON.stringify(r)))"` → `{}`
-  - [ ] managedInterval returns stoppable: `bun -e "const {managedInterval} = require('./packages/opencode-safe-io/src/index.js'); const t = managedInterval(()=>{}, 1000); console.log(typeof t.stop); t.stop()"` → `function`
-  - [ ] Regression tests pass: `bun test packages/opencode-safe-io/` → all pass
-  - [ ] Full suite passes: `bun test` → ~450+ tests, 0 failures
+  - [x] Package exists: `ls packages/opencode-safe-io/package.json` → found
+  - [x] CJS importable: `bun -e "const s = require('./packages/opencode-safe-io/src/index.js'); console.log(typeof s.safeJsonParse)"` → `function`
+  - [x] ESM importable: `bun -e "import { safeJsonParse } from './packages/opencode-safe-io/src/index.mjs'; console.log(typeof safeJsonParse)"` → `function`
+  - [x] safeJsonParse handles broken JSON: `bun -e "const {safeJsonParse} = require('./packages/opencode-safe-io/src/index.js'); console.log(safeJsonParse('{broken', 'fallback'))"` → `fallback`
+  - [x] safeJsonRead handles missing file: `bun -e "const {safeJsonRead} = require('./packages/opencode-safe-io/src/index.js'); safeJsonRead('/nonexistent', {}).then(r => console.log(JSON.stringify(r)))"` → `{}`
+  - [x] managedInterval returns stoppable: `bun -e "const {managedInterval} = require('./packages/opencode-safe-io/src/index.js'); const t = managedInterval(()=>{}, 1000); console.log(typeof t.stop); t.stop()"` → `function`
+  - [x] Regression tests pass: `bun test packages/opencode-safe-io/` → all pass
+  - [x] Full suite passes: `bun test` → ~450+ tests, 0 failures
 
   **Agent-Executed QA Scenarios:**
   ```
@@ -367,7 +367,7 @@ Parallel Speedup: ~40% faster than sequential
 
 ### Task 2: Migrate JSON.parse File-I/O Calls to safeJsonParse
 
-- [ ] 2. Replace ~50 unguarded JSON.parse file-I/O calls with safeJsonParse/safeJsonRead
+- [x] 2. Replace ~50 unguarded JSON.parse file-I/O calls with safeJsonParse/safeJsonRead
 
   **What to do**:
 
@@ -446,9 +446,9 @@ Parallel Speedup: ~40% faster than sequential
   - `packages/opencode-model-router-x/src/dynamic-exploration-controller.js:264` — exploration config
 
   **Acceptance Criteria**:
-  - [ ] Zero double-danger patterns: `bun -e "const {execSync} = require('child_process'); const r = execSync('grep -r \"JSON.parse(fs.readFileSync\" packages/ --include=\"*.js\" --include=\"*.ts\" -l', {encoding:'utf8'}).trim(); const files = r.split('\\n').filter(f => !f.includes('write-json-atomic') && !f.includes('test') && !f.includes('.next') && !f.includes('node_modules')); console.log(files.length)"` → `0`
-  - [ ] opencode-safe-io imported in target files: `grep -r "require.*opencode-safe-io\\|from.*opencode-safe-io" packages/ --include="*.js" --include="*.ts" | grep -v test | grep -v node_modules | wc -l` → ≥ 10
-  - [ ] Full suite passes: `bun test` → 0 failures
+  - [x] Zero double-danger patterns: `bun -e "const {execSync} = require('child_process'); const r = execSync('grep -r \"JSON.parse(fs.readFileSync\" packages/ --include=\"*.js\" --include=\"*.ts\" -l', {encoding:'utf8'}).trim(); const files = r.split('\\n').filter(f => !f.includes('write-json-atomic') && !f.includes('test') && !f.includes('.next') && !f.includes('node_modules')); console.log(files.length)"` → `0`
+  - [x] opencode-safe-io imported in target files: `grep -r "require.*opencode-safe-io\\|from.*opencode-safe-io" packages/ --include="*.js" --include="*.ts" | grep -v test | grep -v node_modules | wc -l` → ≥ 10
+  - [x] Full suite passes: `bun test` → 0 failures
 
   **Agent-Executed QA Scenarios:**
   ```
@@ -479,7 +479,7 @@ Parallel Speedup: ~40% faster than sequential
 
 ### Task 3: Convert Dashboard Sync I/O to Async
 
-- [ ] 3. Convert 32 sync I/O calls in dashboard API routes to async
+- [x] 3. Convert 32 sync I/O calls in dashboard API routes to async
 
   **What to do**:
 
@@ -538,11 +538,11 @@ Parallel Speedup: ~40% faster than sequential
   - `packages/opencode-dashboard/src/lib/data-sources/index.ts` — 1 sync call (line 11)
 
   **Acceptance Criteria**:
-  - [ ] Zero sync I/O in API routes: `grep -rn "readFileSync\|writeFileSync\|readdirSync\|statSync\|mkdirSync\|renameSync\|unlinkSync\|existsSync" packages/opencode-dashboard/src/app/api/ --include="*.ts" --include="*.js" | grep -v "write-json-atomic.ts:13" | grep -v node_modules | wc -l` → `0`
-  - [ ] Zero sync I/O in lib: `grep -rn "readFileSync\|writeFileSync\|existsSync" packages/opencode-dashboard/src/lib/ --include="*.ts" | wc -l` → `0`
-  - [ ] event-store has write queue: `grep -c "_writePromise\|writeQueue" packages/opencode-dashboard/src/app/api/orchestration/lib/event-store.js` → ≥ 1
-  - [ ] write-json-atomic verification read preserved: `grep "JSON.parse(fs.readFileSync(tempPath" packages/opencode-dashboard/src/app/api/_lib/write-json-atomic.ts` → match found
-  - [ ] Full suite passes: `bun test` → 0 failures
+  - [x] Zero sync I/O in API routes: `grep -rn "readFileSync\|writeFileSync\|readdirSync\|statSync\|mkdirSync\|renameSync\|unlinkSync\|existsSync" packages/opencode-dashboard/src/app/api/ --include="*.ts" --include="*.js" | grep -v "write-json-atomic.ts:13" | grep -v node_modules | wc -l` → `0`
+  - [x] Zero sync I/O in lib: `grep -rn "readFileSync\|writeFileSync\|existsSync" packages/opencode-dashboard/src/lib/ --include="*.ts" | wc -l` → `0`
+  - [x] event-store has write queue: `grep -c "_writePromise\|writeQueue" packages/opencode-dashboard/src/app/api/orchestration/lib/event-store.js` → ≥ 1
+  - [x] write-json-atomic verification read preserved: `grep "JSON.parse(fs.readFileSync(tempPath" packages/opencode-dashboard/src/app/api/_lib/write-json-atomic.ts` → match found
+  - [x] Full suite passes: `bun test` → 0 failures
 
   **Agent-Executed QA Scenarios:**
   ```
@@ -572,7 +572,7 @@ Parallel Speedup: ~40% faster than sequential
 
 ### Task 4: Fix setInterval .unref() + Rate-Limit Bounded Map
 
-- [ ] 4. Add .unref() to 3 setInterval calls and bound rate-limit Map
+- [x] 4. Add .unref() to 3 setInterval calls and bound rate-limit Map
 
   **What to do**:
   1. **`memory-guard.js:214`**: Add `this.interval.unref();` after the setInterval call
@@ -609,9 +609,9 @@ Parallel Speedup: ~40% faster than sequential
   - `packages/opencode-dashboard/src/app/api/_lib/rate-limit.ts:2,22` — unbounded Map + setInterval without .unref()
 
   **Acceptance Criteria**:
-  - [ ] All setInterval have .unref(): `grep -A2 "setInterval" packages/opencode-crash-guard/src/memory-guard.js packages/opencode-crash-guard/src/crash-recovery.js packages/opencode-dashboard/src/app/api/_lib/rate-limit.ts | grep "unref" | wc -l` → `3`
-  - [ ] Rate-limit has max size: `grep -c "MAX_ENTRIES\|maxSize\|max_entries" packages/opencode-dashboard/src/app/api/_lib/rate-limit.ts` → ≥ 1
-  - [ ] Full suite passes: `bun test` → 0 failures
+  - [x] All setInterval have .unref(): `grep -A2 "setInterval" packages/opencode-crash-guard/src/memory-guard.js packages/opencode-crash-guard/src/crash-recovery.js packages/opencode-dashboard/src/app/api/_lib/rate-limit.ts | grep "unref" | wc -l` → `3`
+  - [x] Rate-limit has max size: `grep -c "MAX_ENTRIES\|maxSize\|max_entries" packages/opencode-dashboard/src/app/api/_lib/rate-limit.ts` → ≥ 1
+  - [x] Full suite passes: `bun test` → 0 failures
 
   **Commit**: YES
   - Message: `fix(lifecycle): add .unref() to 3 setInterval calls, bound rate-limit Map`
@@ -621,7 +621,7 @@ Parallel Speedup: ~40% faster than sequential
 
 ### Task 5: Fix Child Process Listener Leaks
 
-- [ ] 5. Replace .on() with .once() for child process event handlers
+- [x] 5. Replace .on() with .once() for child process event handlers
 
   **What to do**:
   1. **`spawn-guard.js`** (lines 90, 96, 101, 124): Replace `proc.stdout.on('data', ...)` → keep as `.on()` (streaming data, multiple events). Replace `proc.on('error', ...)` → `.once('error', ...)`. Replace `proc.on('close', ...)` → `.once('close', ...)`. In the `.once('close')` handler, add `proc.stdout.removeAllListeners('data'); proc.stderr.removeAllListeners('data');` to clean up data listeners.
@@ -655,9 +655,9 @@ Parallel Speedup: ~40% faster than sequential
   - `packages/opencode-model-manager/src/assessment/model-assessor.js:559,563,567,571`
 
   **Acceptance Criteria**:
-  - [ ] close/error use .once(): `grep "\.on('close'\|\.on('error'" packages/opencode-crash-guard/src/spawn-guard.js packages/opencode-crash-guard/src/process-isolation.js packages/opencode-model-manager/src/assessment/model-assessor.js | wc -l` → `0`
-  - [ ] data listeners cleaned up: `grep "removeAllListeners\|removeListener" packages/opencode-crash-guard/src/spawn-guard.js packages/opencode-crash-guard/src/process-isolation.js packages/opencode-model-manager/src/assessment/model-assessor.js | wc -l` → ≥ 3
-  - [ ] Full suite passes: `bun test` → 0 failures
+  - [x] close/error use .once(): `grep "\.on('close'\|\.on('error'" packages/opencode-crash-guard/src/spawn-guard.js packages/opencode-crash-guard/src/process-isolation.js packages/opencode-model-manager/src/assessment/model-assessor.js | wc -l` → `0`
+  - [x] data listeners cleaned up: `grep "removeAllListeners\|removeListener" packages/opencode-crash-guard/src/spawn-guard.js packages/opencode-crash-guard/src/process-isolation.js packages/opencode-model-manager/src/assessment/model-assessor.js | wc -l` → ≥ 3
+  - [x] Full suite passes: `bun test` → 0 failures
 
   **Commit**: YES
   - Message: `fix(lifecycle): replace .on() with .once() for child process close/error handlers`
@@ -667,7 +667,7 @@ Parallel Speedup: ~40% faster than sequential
 
 ### Task 6: Fix Genuinely Problematic Empty Catch Blocks
 
-- [ ] 6. Add error logging to the ~2 genuinely problematic empty catch blocks
+- [x] 6. Add error logging to the ~2 genuinely problematic empty catch blocks
 
   **What to do**:
   1. **Identify truly problematic catches** — NOT the intentional fire-and-forget patterns. Target ONLY:
@@ -696,8 +696,8 @@ Parallel Speedup: ~40% faster than sequential
   - `packages/opencode-dashboard/src/app/api/orchestration/lib/event-store.js:44,55` — Target catch blocks
 
   **Acceptance Criteria**:
-  - [ ] event-store catches log errors: `grep -c "console.warn\|console.error" packages/opencode-dashboard/src/app/api/orchestration/lib/event-store.js` → ≥ 2 (new warnings)
-  - [ ] Full suite passes: `bun test` → 0 failures
+  - [x] event-store catches log errors: `grep -c "console.warn\|console.error" packages/opencode-dashboard/src/app/api/orchestration/lib/event-store.js` → ≥ 2 (new warnings)
+  - [x] Full suite passes: `bun test` → 0 failures
 
   **Commit**: YES (groups with Task 3 if same file)
   - Message: `fix(dashboard): add error logging to event-store catch blocks`
@@ -707,7 +707,7 @@ Parallel Speedup: ~40% faster than sequential
 
 ### Task 7: Wire Orphan Modules
 
-- [ ] 7. Implement getSchedulerTelemetry + export tool-usage-tracker from learning-engine
+- [x] 7. Implement getSchedulerTelemetry + export tool-usage-tracker from learning-engine
 
   **What to do**:
   1. **`health-check/index.js`** — Implement `getSchedulerTelemetry()` function. This should return telemetry data about health check scheduling: interval counts, last check times, check durations. Check what `scripts/perf/fg08-poll-coordination.mjs` expects from it. Add to module.exports.
@@ -736,9 +736,9 @@ Parallel Speedup: ~40% faster than sequential
   - `packages/opencode-learning-engine/src/index.js:768` — Current module.exports
 
   **Acceptance Criteria**:
-  - [ ] getSchedulerTelemetry exported: `grep "getSchedulerTelemetry" packages/opencode-health-check/src/index.js | grep -c "export\|module.exports"` → ≥ 1
-  - [ ] tool-usage-tracker accessible: `bun -e "const le = require('./packages/opencode-learning-engine/src/index.js'); console.log(typeof le.toolUsageTracker?.logInvocation)"` → `function`
-  - [ ] Full suite passes: `bun test` → 0 failures
+  - [x] getSchedulerTelemetry exported: `grep "getSchedulerTelemetry" packages/opencode-health-check/src/index.js | grep -c "export\|module.exports"` → ≥ 1
+  - [x] tool-usage-tracker accessible: `bun -e "const le = require('./packages/opencode-learning-engine/src/index.js'); console.log(typeof le.toolUsageTracker?.logInvocation)"` → `function`
+  - [x] Full suite passes: `bun test` → 0 failures
 
   **Commit**: YES
   - Message: `feat(wiring): implement getSchedulerTelemetry, export tool-usage-tracker`
@@ -748,7 +748,7 @@ Parallel Speedup: ~40% faster than sequential
 
 ### Task 8: Security Hardening — Command Injection Prevention
 
-- [ ] 8. Fix 3 command injection vectors in pr-generator.js
+- [x] 8. Fix 3 command injection vectors in pr-generator.js
 
   **What to do**:
   1. **`pr-generator.js:64`** — Replace `execSync(\`git checkout -b ${branchName}\`)` with `execFileSync('git', ['checkout', '-b', branchName], { cwd: this.repoPath })`
@@ -777,9 +777,9 @@ Parallel Speedup: ~40% faster than sequential
   - `packages/opencode-model-manager/src/automation/pr-generator.js:64,132,135,146` — Target injection vectors
 
   **Acceptance Criteria**:
-  - [ ] Zero string-interpolated execSync: `grep -c "execSync.*\\\${" packages/opencode-model-manager/src/automation/pr-generator.js` → `0`
-  - [ ] Uses execFileSync: `grep -c "execFileSync" packages/opencode-model-manager/src/automation/pr-generator.js` → ≥ 3
-  - [ ] Full suite passes: `bun test` → 0 failures
+  - [x] Zero string-interpolated execSync: `grep -c "execSync.*\\\${" packages/opencode-model-manager/src/automation/pr-generator.js` → `0`
+  - [x] Uses execFileSync: `grep -c "execFileSync" packages/opencode-model-manager/src/automation/pr-generator.js` → ≥ 3
+  - [x] Full suite passes: `bun test` → 0 failures
 
   **Commit**: YES
   - Message: `security(model-manager): fix command injection in pr-generator execSync calls`
@@ -789,7 +789,7 @@ Parallel Speedup: ~40% faster than sequential
 
 ### Task 9: Environment Variable Validation
 
-- [ ] 9. Add startup validation for security-critical env vars in dashboard
+- [x] 9. Add startup validation for security-critical env vars in dashboard
 
   **What to do**:
   1. **`policy-sim/route.ts`** — Add validation for `OPENCODE_EVENT_SIGNING_KEY`: if in production mode (`NODE_ENV=production`) and signing mode requires valid signatures, warn if key is empty
@@ -816,8 +816,8 @@ Parallel Speedup: ~40% faster than sequential
   - `packages/opencode-dashboard/src/app/api/_lib/write-access.ts:115,142` — WRITE_TOKEN_ENV usage
 
   **Acceptance Criteria**:
-  - [ ] Env var validation exists: `grep -c "warn.*SIGNING_KEY\|warn.*WRITE_TOKEN\|warn.*missing\|warn.*empty" packages/opencode-dashboard/src/app/api/_lib/write-access.ts packages/opencode-dashboard/src/app/api/orchestration/policy-sim/route.ts` → ≥ 2
-  - [ ] Full suite passes: `bun test` → 0 failures
+  - [x] Env var validation exists: `grep -c "warn.*SIGNING_KEY\|warn.*WRITE_TOKEN\|warn.*missing\|warn.*empty" packages/opencode-dashboard/src/app/api/_lib/write-access.ts packages/opencode-dashboard/src/app/api/orchestration/policy-sim/route.ts` → ≥ 2
+  - [x] Full suite passes: `bun test` → 0 failures
 
   **Commit**: YES
   - Message: `security(dashboard): add env var validation for signing key and write token`
@@ -878,8 +878,8 @@ grep "getSchedulerTelemetry" packages/opencode-health-check/src/index.js | wc -l
 ```
 
 ### Final Checklist
-- [ ] All "Must Have" present (shared utility, async I/O, timer cleanup, listener cleanup, security fixes)
-- [ ] All "Must NOT Have" absent (no replacing intentional catch patterns, no converting verification reads, no touching proofcheck)
-- [ ] All existing tests pass (baseline preserved)
-- [ ] New regression tests added for each task
-- [ ] Commits follow Wave 1-4 pattern with Learning-Update trailers
+- [x] All "Must Have" present (shared utility, async I/O, timer cleanup, listener cleanup, security fixes)
+- [x] All "Must NOT Have" absent (no replacing intentional catch patterns, no converting verification reads, no touching proofcheck)
+- [x] All existing tests pass (baseline preserved)
+- [x] New regression tests added for each task
+- [x] Commits follow Wave 1-4 pattern with Learning-Update trailers

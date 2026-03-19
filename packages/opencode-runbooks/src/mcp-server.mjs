@@ -3,75 +3,43 @@
 import { createRequire } from 'node:module';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { wrapMcpHandler } from '../../opencode-mcp-utils/src/index.mjs';
 import { z } from 'zod';
 
 const require = createRequire(import.meta.url);
 const { Runbooks } = require('./index.js');
 
-function toTextPayload(payload) {
-  return {
-    content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }],
-    structuredContent: payload,
-  };
-}
-
-function toErrorPayload(message, extra = {}) {
-  return {
-    content: [{ type: 'text', text: JSON.stringify({ error: message, ...extra }, null, 2) }],
-    structuredContent: { error: message, ...extra },
-    isError: true,
-  };
-}
-
 export function createRunbooksHandlers(runbooks) {
   return {
-    async matchRunbookError({ error }) {
-      try {
-        return toTextPayload({ match: runbooks.matchError(error) });
-      } catch (err) {
-        return toErrorPayload(err instanceof Error ? err.message : String(err));
-      }
-    },
+    matchRunbookError: wrapMcpHandler(
+      ({ error }) => ({ match: runbooks.matchError(error) }),
+      { source: 'runbooks:matchRunbookError' },
+    ),
 
-    async matchAllRunbookErrors({ error, minScore }) {
-      try {
-        return toTextPayload({ matches: runbooks.matchAll(error, minScore ?? 2) });
-      } catch (err) {
-        return toErrorPayload(err instanceof Error ? err.message : String(err));
-      }
-    },
+    matchAllRunbookErrors: wrapMcpHandler(
+      ({ error, minScore }) => ({ matches: runbooks.matchAll(error, minScore ?? 2) }),
+      { source: 'runbooks:matchAllRunbookErrors' },
+    ),
 
-    async getRunbookRemedy({ errorId }) {
-      try {
-        return toTextPayload({ remedy: runbooks.getRemedy(errorId) });
-      } catch (err) {
-        return toErrorPayload(err instanceof Error ? err.message : String(err));
-      }
-    },
+    getRunbookRemedy: wrapMcpHandler(
+      ({ errorId }) => ({ remedy: runbooks.getRemedy(errorId) }),
+      { source: 'runbooks:getRunbookRemedy' },
+    ),
 
-    async diagnoseRunbookError({ error, context }) {
-      try {
-        return toTextPayload(runbooks.diagnose(error, context ?? {}));
-      } catch (err) {
-        return toErrorPayload(err instanceof Error ? err.message : String(err));
-      }
-    },
+    diagnoseRunbookError: wrapMcpHandler(
+      ({ error, context }) => runbooks.diagnose(error, context ?? {}),
+      { source: 'runbooks:diagnoseRunbookError' },
+    ),
 
-    async executeRunbookRemedy({ errorId, context }) {
-      try {
-        return toTextPayload({ result: runbooks.executeRemedy(errorId, context ?? {}) });
-      } catch (err) {
-        return toErrorPayload(err instanceof Error ? err.message : String(err));
-      }
-    },
+    executeRunbookRemedy: wrapMcpHandler(
+      ({ errorId, context }) => ({ result: runbooks.executeRemedy(errorId, context ?? {}) }),
+      { source: 'runbooks:executeRunbookRemedy' },
+    ),
 
-    async listRunbookPatterns() {
-      try {
-        return toTextPayload({ patterns: runbooks.listPatterns() });
-      } catch (err) {
-        return toErrorPayload(err instanceof Error ? err.message : String(err));
-      }
-    },
+    listRunbookPatterns: wrapMcpHandler(
+      () => ({ patterns: runbooks.listPatterns() }),
+      { source: 'runbooks:listRunbookPatterns' },
+    ),
   };
 }
 

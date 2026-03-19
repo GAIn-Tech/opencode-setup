@@ -35,8 +35,13 @@
     "packages/opencode-context-governor": {
       "name": "opencode-context-governor",
       "version": "0.1.0",
+      "bin": {
+        "opencode-context-governor-mcp": "src/mcp-server.mjs",
+        "opencode-context-governor-cli": "src/cli.mjs",
+      },
       "dependencies": {
         "@modelcontextprotocol/sdk": "^1.27.1",
+        "opencode-mcp-utils": "workspace:*",
         "zod": "^4.3.6",
       },
     },
@@ -59,6 +64,7 @@
         "zod": "^3.23.0",
       },
       "devDependencies": {
+        "@types/bun": "^1.1.4",
         "@types/node": "^20",
         "@types/react": "^18",
         "@types/react-dom": "^18",
@@ -142,14 +148,20 @@
       "name": "opencode-logger",
       "version": "1.0.0",
     },
+    "packages/opencode-mcp-utils": {
+      "name": "opencode-mcp-utils",
+      "version": "0.1.0",
+    },
     "packages/opencode-memory-graph": {
       "name": "opencode-memory-graph",
       "version": "2.1.0",
       "bin": {
         "opencode-memory-graph": "src/cli.js",
+        "opencode-memory-graph-mcp": "src/mcp-server.mjs",
       },
       "dependencies": {
         "@modelcontextprotocol/sdk": "^1.27.1",
+        "opencode-mcp-utils": "workspace:*",
         "zod": "^4.3.6",
       },
     },
@@ -195,6 +207,13 @@
         "proofcheck": "src/cli.js",
       },
     },
+    "packages/opencode-registry-bridge": {
+      "name": "opencode-registry-bridge",
+      "version": "0.1.0",
+      "dependencies": {
+        "zod": "^4.3.6",
+      },
+    },
     "packages/opencode-runbooks": {
       "name": "opencode-runbooks",
       "version": "1.0.0",
@@ -203,6 +222,7 @@
       },
       "dependencies": {
         "@modelcontextprotocol/sdk": "^1.27.1",
+        "opencode-mcp-utils": "workspace:*",
         "opencode-safe-io": "workspace:*",
         "zod": "^4.3.6",
       },
@@ -236,7 +256,7 @@
     },
     "packages/opencode-validator": {
       "name": "opencode-validator",
-      "version": "0.1.0",
+      "version": "0.2.0",
     },
   },
   "packages": {
@@ -319,6 +339,8 @@
     "@swc/helpers": ["@swc/helpers@0.5.5", "", { "dependencies": { "@swc/counter": "^0.1.3", "tslib": "^2.4.0" } }, "sha512-KGYxvIOXcceOAbEk4bi/dVLEK9z8sZ0uBB3Il5b1rhfClSpcX0yfRO0KmTkqR2cnQDymwLB+25ZyMzICg/cm/A=="],
 
     "@tybys/wasm-util": ["@tybys/wasm-util@0.10.1", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg=="],
+
+    "@types/bun": ["@types/bun@1.3.11", "", { "dependencies": { "bun-types": "1.3.11" } }, "sha512-5vPne5QvtpjGpsGYXiFyycfpDF2ECyPcTSsFBMa0fraoxiQyMJ3SmuQIGhzPg2WJuWxVBoxWJ2kClYTcw/4fAg=="],
 
     "@types/d3-color": ["@types/d3-color@3.1.3", "", {}, "sha512-iO90scth9WAbmgv7ogoq57O9YpKmFBbmoEoCHDB2xMBY0+/KVrqAaCDyCE16dUspeOvIxFFRI+0sEtqDqy2b4A=="],
 
@@ -487,6 +509,8 @@
     "browserslist": ["browserslist@4.28.1", "", { "dependencies": { "baseline-browser-mapping": "^2.9.0", "caniuse-lite": "^1.0.30001759", "electron-to-chromium": "^1.5.263", "node-releases": "^2.0.27", "update-browserslist-db": "^1.2.0" }, "bin": { "browserslist": "cli.js" } }, "sha512-ZC5Bd0LgJXgwGqUknZY/vkUQ04r8NXnJZ3yYi4vDmSiZmC/pdSN0NbNRPxZpbtO4uAfDUAFffO8IZoM3Gj8IkA=="],
 
     "buffer": ["buffer@5.7.1", "", { "dependencies": { "base64-js": "^1.3.1", "ieee754": "^1.1.13" } }, "sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ=="],
+
+    "bun-types": ["bun-types@1.3.11", "", { "dependencies": { "@types/node": "*" } }, "sha512-1KGPpoxQWl9f6wcZh57LvrPIInQMn2TQ7jsgxqpRzg+l0QPOFvJVH7HmvHo/AiPgwXy+/Thf6Ov3EdVn1vOabg=="],
 
     "busboy": ["busboy@1.6.0", "", { "dependencies": { "streamsearch": "^1.1.0" } }, "sha512-8SFQbg/0hQ9xy3UNTB0YEnsNBbWfhf7RtnzpL7TkBiTBRfrQ9Fxcnz7VJsleJpyp6rVLvXiuORqjlHi5q+PYuA=="],
 
@@ -1004,6 +1028,8 @@
 
     "opencode-logger": ["opencode-logger@workspace:packages/opencode-logger"],
 
+    "opencode-mcp-utils": ["opencode-mcp-utils@workspace:packages/opencode-mcp-utils"],
+
     "opencode-memory-graph": ["opencode-memory-graph@workspace:packages/opencode-memory-graph"],
 
     "opencode-model-benchmark": ["opencode-model-benchmark@workspace:packages/opencode-model-benchmark"],
@@ -1019,6 +1045,8 @@
     "opencode-plugin-preload-skills": ["opencode-plugin-preload-skills@workspace:packages/opencode-plugin-preload-skills"],
 
     "opencode-proofcheck": ["opencode-proofcheck@workspace:packages/opencode-proofcheck"],
+
+    "opencode-registry-bridge": ["opencode-registry-bridge@workspace:packages/opencode-registry-bridge"],
 
     "opencode-runbooks": ["opencode-runbooks@workspace:packages/opencode-runbooks"],
 

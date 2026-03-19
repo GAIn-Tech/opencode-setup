@@ -2,7 +2,7 @@ import { readdirSync, readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { NextResponse } from 'next/server';
-import { errorResponse } from '../_lib/error-response';
+import { errorResponse } from '../_lib/api-response';
 
 export const dynamic = 'force-dynamic';
 

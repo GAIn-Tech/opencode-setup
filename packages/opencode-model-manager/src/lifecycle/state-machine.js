@@ -75,6 +75,10 @@ class StateMachine {
         );
       }
 
+const timestamp = Number.isFinite(Number(transitionContext.timestamp))
+        ? Math.floor(Number(transitionContext.timestamp))
+        : Date.now();
+      
       const sideEffects = await this._runSideEffects(
         resolvedModelId,
         current.currentState,
@@ -83,9 +87,6 @@ class StateMachine {
         current.metadata
       );
       const nextMetadata = this._buildNextMetadata(current.metadata, nextState, transitionContext, sideEffects);
-      const timestamp = Number.isFinite(Number(transitionContext.timestamp))
-        ? Math.floor(Number(transitionContext.timestamp))
-        : Date.now();
 
       this._persistTransition({
         modelId: resolvedModelId,
@@ -141,22 +142,20 @@ class StateMachine {
     return row ? row.currentState : null;
   }
 
-   async getHistory(modelId, options = {}) {
-     const resolvedModelId = this._resolveModelId(modelId);
-     const { limit = 100, offset = 0 } = options;
-     
-     const stmt = this.db.prepare(`
-       SELECT id, model_id, from_state, to_state, context_json, side_effects_json, timestamp
-       FROM model_lifecycle_history
-       WHERE model_id = ?
-       ORDER BY timestamp DESC
-       LIMIT ? OFFSET ?
-     `);
-     
-     const rows = stmt.all(resolvedModelId, limit, offset);
-     
-     return rows.map((row) => {
-       return {
+async getHistory(modelId, options = {}) {
+      const resolvedModelId = this._resolveModelId(modelId);
+      const { limit = 100, offset = 0 } = options;
+      
+      const rows = this.db.all(`
+        SELECT id, model_id, from_state, to_state, context_json, side_effects_json, timestamp
+        FROM model_lifecycle_history
+        WHERE model_id = ?
+        ORDER BY id ASC
+        LIMIT ? OFFSET ?
+      `, [resolvedModelId, limit, offset]);
+      
+      return rows.map((row) => {
+        return {
          id: row.id,
          modelId: row.model_id,
          fromState: row.from_state || null,

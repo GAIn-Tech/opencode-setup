@@ -18,7 +18,8 @@
         "budget-aware-router",
         "token-reporter",
         "dispatching-parallel-agents",
-        "dcp"
+        "dcp",
+        "context-governor"
       ],
       "conflicts": [],
       "triggers": [
@@ -88,7 +89,9 @@
       "synergies": [
         "research-builder",
         "writing-plans",
-        "test-driven-development"
+        "test-driven-development",
+        "websearch",
+        "grep"
       ],
       "conflicts": [],
       "triggers": [
@@ -252,7 +255,8 @@
       "synergies": [
         "budget-aware-router",
         "distill",
-        "token-reporter"
+        "token-reporter",
+        "dcp"
       ],
       "conflicts": [],
       "triggers": [
@@ -282,7 +286,12 @@
       "dependencies": [],
       "synergies": [
         "verification-before-completion",
-        "code-doctor"
+        "code-doctor",
+        "systematic-debugging",
+        "finishing-a-development-branch",
+        "receiving-code-review",
+        "using-git-worktrees",
+        "beads"
       ],
       "conflicts": [],
       "triggers": [
@@ -314,7 +323,9 @@
       "dependencies": [],
       "synergies": [
         "dev-browser",
-        "verification-before-completion"
+        "verification-before-completion",
+        "playwright",
+        "agent-browser"
       ],
       "conflicts": [],
       "triggers": [
@@ -482,7 +493,10 @@
       "dependencies": [],
       "synergies": [
         "writing-plans",
-        "executing-plans"
+        "executing-plans",
+        "codebase-auditor",
+        "research-builder",
+        "brainstorming"
       ],
       "conflicts": [],
       "triggers": [
@@ -538,7 +552,11 @@
       ],
       "source": "custom",
       "dependencies": [],
-      "synergies": [],
+      "synergies": [
+        "distill",
+        "context-governor",
+        "budget-aware-router"
+      ],
       "conflicts": [],
       "triggers": [
         "report tokens",
@@ -572,7 +590,8 @@
       "dependencies": [],
       "synergies": [
         "requesting-code-review",
-        "receiving-code-review"
+        "receiving-code-review",
+        "beads"
       ],
       "conflicts": [],
       "triggers": [
@@ -604,7 +623,9 @@
       "synergies": [
         "test-driven-development",
         "git-master",
-        "verification-before-completion"
+        "verification-before-completion",
+        "codebase-auditor",
+        "systematic-debugging"
       ],
       "conflicts": [],
       "triggers": [
@@ -652,7 +673,12 @@
         "executing-plans",
         "verification-before-completion",
         "innovation-migration-planner",
-        "context7"
+        "context7",
+        "supermemory",
+        "sequentialthinking",
+        "websearch",
+        "grep",
+        "codebase-auditor"
       ],
       "conflicts": [],
       "triggers": [
@@ -695,7 +721,10 @@
       "synergies": [
         "test-driven-development",
         "code-doctor",
-        "git-master"
+        "git-master",
+        "sequentialthinking",
+        "incident-commander",
+        "skill-orchestrator-runtime"
       ],
       "conflicts": [],
       "triggers": [
@@ -740,7 +769,14 @@
       "dependencies": [],
       "synergies": [
         "systematic-debugging",
-        "verification-before-completion"
+        "verification-before-completion",
+        "context7",
+        "dev-browser",
+        "code-doctor",
+        "evaluation-harness-builder",
+        "incident-commander",
+        "skill-orchestrator-runtime",
+        "writing-skills"
       ],
       "conflicts": [],
       "triggers": [
@@ -783,7 +819,9 @@
       "dependencies": [],
       "synergies": [
         "writing-plans",
-        "innovation-migration-planner"
+        "innovation-migration-planner",
+        "skill-orchestrator-runtime",
+        "task-orchestrator"
       ],
       "conflicts": [],
       "triggers": [
@@ -823,7 +861,16 @@
       "dependencies": [],
       "synergies": [
         "brainstorming",
-        "executing-plans"
+        "executing-plans",
+        "context7",
+        "supermemory",
+        "sequentialthinking",
+        "websearch",
+        "grep",
+        "innovation-migration-planner",
+        "subagent-driven-development",
+        "task-orchestrator",
+        "beads"
       ],
       "conflicts": [],
       "triggers": [
@@ -879,7 +926,13 @@
       ],
       "synergies": [
         "subagent-driven-development",
-        "verification-before-completion"
+        "verification-before-completion",
+        "innovation-migration-planner",
+        "research-builder",
+        "writing-plans",
+        "dispatching-parallel-agents",
+        "task-orchestrator",
+        "using-git-worktrees"
       ],
       "conflicts": [],
       "triggers": [
@@ -918,7 +971,18 @@
       "dependencies": [],
       "synergies": [
         "test-driven-development",
-        "git-master"
+        "git-master",
+        "supermemory",
+        "frontend-ui-ux",
+        "playwright",
+        "code-doctor",
+        "research-builder",
+        "executing-plans",
+        "evaluation-harness-builder",
+        "finishing-a-development-branch",
+        "receiving-code-review",
+        "requesting-code-review",
+        "writing-skills"
       ],
       "conflicts": [],
       "triggers": [
@@ -968,7 +1032,8 @@
         "skill-orchestrator-runtime",
         "context-governor",
         "distill",
-        "token-reporter"
+        "token-reporter",
+        "dcp"
       ],
       "conflicts": [],
       "triggers": [
@@ -1001,7 +1066,8 @@
       "synergies": [
         "subagent-driven-development",
         "executing-plans",
-        "task-orchestrator"
+        "task-orchestrator",
+        "distill"
       ],
       "conflicts": [],
       "triggers": [
@@ -1036,7 +1102,8 @@
       "synergies": [
         "test-driven-development",
         "verification-before-completion",
-        "receiving-code-review"
+        "receiving-code-review",
+        "codebase-auditor"
       ],
       "conflicts": [],
       "triggers": [
@@ -1068,7 +1135,8 @@
       "synergies": [
         "verification-before-completion",
         "git-master",
-        "requesting-code-review"
+        "requesting-code-review",
+        "using-git-worktrees"
       ],
       "conflicts": [],
       "triggers": [
@@ -1102,7 +1170,8 @@
       "synergies": [
         "systematic-debugging",
         "test-driven-development",
-        "receiving-code-review"
+        "receiving-code-review",
+        "skill-orchestrator-runtime"
       ],
       "conflicts": [],
       "triggers": [
@@ -1134,7 +1203,10 @@
       "synergies": [
         "requesting-code-review",
         "verification-before-completion",
-        "git-master"
+        "git-master",
+        "github-triage",
+        "evaluation-harness-builder",
+        "incident-commander"
       ],
       "conflicts": [],
       "triggers": [
@@ -1165,7 +1237,9 @@
       "synergies": [
         "receiving-code-review",
         "verification-before-completion",
-        "subagent-driven-development"
+        "subagent-driven-development",
+        "github-triage",
+        "finishing-a-development-branch"
       ],
       "conflicts": [],
       "triggers": [
@@ -1198,7 +1272,9 @@
         "systematic-debugging",
         "test-driven-development",
         "brainstorming",
-        "incident-commander"
+        "incident-commander",
+        "budget-aware-router",
+        "using-superpowers"
       ],
       "conflicts": [],
       "triggers": [
@@ -1231,7 +1307,8 @@
       "synergies": [
         "executing-plans",
         "requesting-code-review",
-        "writing-plans"
+        "writing-plans",
+        "dispatching-parallel-agents"
       ],
       "conflicts": [],
       "triggers": [
@@ -1264,7 +1341,8 @@
         "brainstorming",
         "writing-plans",
         "executing-plans",
-        "dispatching-parallel-agents"
+        "dispatching-parallel-agents",
+        "using-superpowers"
       ],
       "conflicts": [],
       "triggers": [
@@ -1444,15 +1522,15 @@
         "codebase-auditor"
       ],
       "conflicts": [],
-            "triggers": [
-          "architecture design",
-          "architectural decision",
-          "system architecture",
-          "design architecture",
-          "use architecture-design",
-          "architectural patterns",
-          "architecture skill"
-        ],
+      "triggers": [
+        "architecture design",
+        "architectural decision",
+        "system architecture",
+        "design architecture",
+        "use architecture-design",
+        "architectural patterns",
+        "architecture skill"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -1791,15 +1869,15 @@
         "systematic-debugging"
       ],
       "conflicts": [],
-            "triggers": [
-          "penetration test",
-          "pentest",
-          "ethical hacking",
-          "security audit",
-          "vulnerability assessment",
-          "pentest plan",
-          "red team"
-        ],
+      "triggers": [
+        "penetration test",
+        "pentest",
+        "ethical hacking",
+        "security audit",
+        "vulnerability assessment",
+        "pentest plan",
+        "red team"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -1836,15 +1914,15 @@
         "systematic-debugging"
       ],
       "conflicts": [],
-            "triggers": [
-          "vulnerability scan",
-          "scan for vulnerabilities",
-          "owasp",
-          "cve",
-          "security scan",
-          "vulnerability assessment",
-          "exploit"
-        ],
+      "triggers": [
+        "vulnerability scan",
+        "scan for vulnerabilities",
+        "owasp",
+        "cve",
+        "security scan",
+        "vulnerability assessment",
+        "exploit"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -1973,17 +2051,17 @@
         "systematic-debugging"
       ],
       "conflicts": [],
-            "triggers": [
-          "api security",
-          "secure api",
-          "authentication",
-          "oauth",
-          "jwt",
-          "rate limiting",
-          "api auth",
-          "cors",
-          "api authorization"
-        ],
+      "triggers": [
+        "api security",
+        "secure api",
+        "authentication",
+        "oauth",
+        "jwt",
+        "rate limiting",
+        "api auth",
+        "cors",
+        "api authorization"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -2164,18 +2242,18 @@
         "dispatching-parallel-agents"
       ],
       "conflicts": [],
-            "triggers": [
-          "aws",
-          "amazon web services",
-          "ec2",
-          "lambda",
-          "s3",
-          "cloudformation",
-          "serverless",
-          "dynamodb",
-          "aws infrastructure",
-          "cloud deployment"
-        ],
+      "triggers": [
+        "aws",
+        "amazon web services",
+        "ec2",
+        "lambda",
+        "s3",
+        "cloudformation",
+        "serverless",
+        "dynamodb",
+        "aws infrastructure",
+        "cloud deployment"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -2307,16 +2385,16 @@
         "sequentialthinking"
       ],
       "conflicts": [],
-            "triggers": [
-          "rag",
-          "retrieval augmented",
-          "vector search",
-          "embedding",
-          "rag implementation",
-          "rag pipeline",
-          "chunking",
-          "vector database"
-        ],
+      "triggers": [
+        "rag",
+        "retrieval augmented",
+        "vector search",
+        "embedding",
+        "rag implementation",
+        "rag pipeline",
+        "chunking",
+        "vector database"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -2353,16 +2431,16 @@
         "sequentialthinking"
       ],
       "conflicts": [],
-            "triggers": [
-          "llm ops",
-          "llm operations",
-          "model deployment",
-          "prompt engineering",
-          "fine tuning",
-          "llm monitoring",
-          "model serving",
-          "inference"
-        ],
+      "triggers": [
+        "llm ops",
+        "llm operations",
+        "model deployment",
+        "prompt engineering",
+        "fine tuning",
+        "llm monitoring",
+        "model serving",
+        "inference"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -2582,16 +2660,16 @@
         "test-driven-development"
       ],
       "conflicts": [],
-            "triggers": [
-          "react pattern",
-          "react patterns",
-          "react hooks",
-          "useeffect",
-          "usestate",
-          "component pattern",
-          "react architecture",
-          "react skill"
-        ],
+      "triggers": [
+        "react pattern",
+        "react patterns",
+        "react hooks",
+        "useeffect",
+        "usestate",
+        "component pattern",
+        "react architecture",
+        "react skill"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -2629,15 +2707,15 @@
         "test-driven-development"
       ],
       "conflicts": [],
-            "triggers": [
-          "angular",
-          "angular development",
-          "angular skill",
-          "angular signal",
-          "standalone component",
-          "ngmodule",
-          "rxjs angular"
-        ],
+      "triggers": [
+        "angular",
+        "angular development",
+        "angular skill",
+        "angular signal",
+        "standalone component",
+        "ngmodule",
+        "rxjs angular"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -2771,15 +2849,15 @@
         "test-driven-development"
       ],
       "conflicts": [],
-            "triggers": [
-          "responsive design",
-          "mobile design",
-          "breakpoint",
-          "media query",
-          "responsive layout",
-          "mobile first",
-          "responsive skill"
-        ],
+      "triggers": [
+        "responsive design",
+        "mobile design",
+        "breakpoint",
+        "media query",
+        "responsive layout",
+        "mobile first",
+        "responsive skill"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -3122,15 +3200,15 @@
         "systematic-debugging"
       ],
       "conflicts": [],
-            "triggers": [
-          "postgresql",
-          "postgres optimize",
-          "query tuning",
-          "index optimization",
-          "pg tuning",
-          "postgres performance",
-          "sql optimization"
-        ],
+      "triggers": [
+        "postgresql",
+        "postgres optimize",
+        "query tuning",
+        "index optimization",
+        "pg tuning",
+        "postgres performance",
+        "sql optimization"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -3168,15 +3246,15 @@
         "systematic-debugging"
       ],
       "conflicts": [],
-            "triggers": [
-          "database design",
-          "schema design",
-          "db design",
-          "table design",
-          "normalization",
-          "database schema",
-          "relational design"
-        ],
+      "triggers": [
+        "database design",
+        "schema design",
+        "db design",
+        "table design",
+        "normalization",
+        "database schema",
+        "relational design"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -3212,15 +3290,15 @@
         "research-builder"
       ],
       "conflicts": [],
-            "triggers": [
-          "pricing",
-          "monetization",
-          "subscription",
-          "pricing model",
-          "pricing strategy",
-          "saas pricing",
-          "value based pricing"
-        ],
+      "triggers": [
+        "pricing",
+        "monetization",
+        "subscription",
+        "pricing model",
+        "pricing strategy",
+        "saas pricing",
+        "value based pricing"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -3256,16 +3334,16 @@
         "research-builder"
       ],
       "conflicts": [],
-            "triggers": [
-          "gtm",
-          "go to market",
-          "launch strategy",
-          "product launch",
-          "go-to-market",
-          "gtm plan",
-          "market launch",
-          "release strategy"
-        ],
+      "triggers": [
+        "gtm",
+        "go to market",
+        "launch strategy",
+        "product launch",
+        "go-to-market",
+        "gtm plan",
+        "market launch",
+        "release strategy"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -3343,17 +3421,17 @@
         "research-builder"
       ],
       "conflicts": [],
-            "triggers": [
-          "product management",
-          "roadmap",
-          "sprint",
-          "user story",
-          "backlog",
-          "product strategy",
-          "epic",
-          "scrum",
-          "agile planning"
-        ],
+      "triggers": [
+        "product management",
+        "roadmap",
+        "sprint",
+        "user story",
+        "backlog",
+        "product strategy",
+        "epic",
+        "scrum",
+        "agile planning"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -3439,15 +3517,15 @@
         "evaluation-harness-builder"
       ],
       "conflicts": [],
-            "triggers": [
-          "e2e test",
-          "end to end test",
-          "playwright test",
-          "browser test",
-          "ui test",
-          "e2e testing",
-          "visual regression"
-        ],
+      "triggers": [
+        "e2e test",
+        "end to end test",
+        "playwright test",
+        "browser test",
+        "ui test",
+        "e2e testing",
+        "visual regression"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -3484,16 +3562,16 @@
         "evaluation-harness-builder"
       ],
       "conflicts": [],
-            "triggers": [
-          "a11y",
-          "accessibility",
-          "wcag",
-          "screen reader",
-          "keyboard nav",
-          "aria",
-          "accessibility audit",
-          "wcag compliance"
-        ],
+      "triggers": [
+        "a11y",
+        "accessibility",
+        "wcag",
+        "screen reader",
+        "keyboard nav",
+        "aria",
+        "accessibility audit",
+        "wcag compliance"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -3529,15 +3607,15 @@
         "evaluation-harness-builder"
       ],
       "conflicts": [],
-            "triggers": [
-          "performance test",
-          "profiling",
-          "benchmark",
-          "speed",
-          "performance profiling",
-          "memory leak",
-          "cpu profiling"
-        ],
+      "triggers": [
+        "performance test",
+        "profiling",
+        "benchmark",
+        "speed",
+        "performance profiling",
+        "memory leak",
+        "cpu profiling"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -3571,17 +3649,17 @@
         "requesting-code-review"
       ],
       "conflicts": [],
-            "triggers": [
-          "linting",
-          "code quality",
-          "style guide",
-          "eslint",
-          "prettier",
-          "linter",
-          "lint rules",
-          "code standards",
-          "static analysis"
-        ],
+      "triggers": [
+        "linting",
+        "code quality",
+        "style guide",
+        "eslint",
+        "prettier",
+        "linter",
+        "lint rules",
+        "code standards",
+        "static analysis"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -3664,15 +3742,15 @@
         "codebase-auditor"
       ],
       "conflicts": [],
-            "triggers": [
-          "system design",
-          "scalable architecture",
-          "distributed system",
-          "microservices",
-          "load balancing",
-          "caching strategy",
-          "system architecture"
-        ],
+      "triggers": [
+        "system design",
+        "scalable architecture",
+        "distributed system",
+        "microservices",
+        "load balancing",
+        "caching strategy",
+        "system architecture"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -3759,16 +3837,16 @@
         "evaluation-harness-builder"
       ],
       "conflicts": [],
-            "triggers": [
-          "load test",
-          "stress test",
-          "k6",
-          "jmeter",
-          "scalability",
-          "load testing",
-          "performance load",
-          "concurrent users"
-        ],
+      "triggers": [
+        "load test",
+        "stress test",
+        "k6",
+        "jmeter",
+        "scalability",
+        "load testing",
+        "performance load",
+        "concurrent users"
+      ],
       "recommended_agents": [
         "build"
       ],
@@ -4378,7 +4456,9 @@
       ],
       "source": "builtin",
       "dependencies": [],
-      "synergies": [],
+      "synergies": [
+        "learning-engine"
+      ],
       "conflicts": [],
       "triggers": [
         "use tool usage tracker",

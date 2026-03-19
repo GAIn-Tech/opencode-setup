@@ -1,0 +1,25 @@
+{
+  "name": "opencode-mcp-utils",
+  "version": "0.1.0",
+  "description": "Shared MCP handler wrappers and payload helpers for OpenCode MCP servers",
+  "type": "module",
+  "main": "src/index.mjs",
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "files": [
+    "src/",
+    "README.md"
+  ],
+  "scripts": {
+    "test:smoke": "node -e \"import('opencode-mcp-utils').then((m)=>{ if(typeof m.wrapMcpHandler!=='function') throw new Error('missing wrapMcpHandler'); console.log('mcp-utils smoke ok'); })\""
+  },
+  "keywords": [
+    "opencode",
+    "mcp",
+    "error-handling",
+    "tooling"
+  ],
+  "author": "OpenCode",
+  "license": "MIT"
+}

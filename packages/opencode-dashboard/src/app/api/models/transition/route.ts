@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import * as path from 'path';
 import * as os from 'os';
 import { getWriteActor, requireWriteAccess } from '../../_lib/write-access';
-import { errorResponse } from '../../_lib/error-response';
+import { errorResponse } from '../../_lib/api-response';
 import { appendWriteAuditEntry } from '../../_lib/write-audit';
 import { rateLimited, badRequest, internalError } from '../../_lib/api-response';
 

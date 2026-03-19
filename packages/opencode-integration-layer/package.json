@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "exports": {
     ".": "./src/index.js",
-    "./bootstrap": "./src/bootstrap.js"
+    "./bootstrap": "./src/bootstrap.js",
+    "./resolve-optional-module": "./src/lib/resolve-optional-module.js"
   },
   "scripts": {
     "test": "node tests/integration.test.js",

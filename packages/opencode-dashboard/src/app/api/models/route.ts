@@ -6,10 +6,10 @@ import { getWriteActor, requireWriteAccess } from '../_lib/write-access';
 import { writeJsonAtomic } from '../_lib/write-json-atomic';
 import { appendWriteAuditEntry } from '../_lib/write-audit';
 import { rateLimited, badRequest, internalError, successResponse } from '../_lib/api-response';
-import { errorResponse } from '../_lib/error-response';
+import { errorResponse } from '../_lib/api-response';
 
 // Extract real model usage from message files
-function getRealModelUsage(): Record<string, any> | null {
+function getRealModelUsage(): Record<string, { selections: number; successes: number; failures: number; totalLatency: number }> | null {
   const homeDir = os.homedir();
   const messagesDir = path.join(homeDir, '.opencode', 'messages');
   

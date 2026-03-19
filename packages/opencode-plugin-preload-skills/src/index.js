@@ -124,6 +124,20 @@ class PreloadSkillsPlugin extends EventEmitter {
     const tier1Tools = tier1Flat.slice(0, this.config.maxTier1Tools);
     this.stats.tier1Loads += tier1Tools.length;
 
+    // Inject meta-KB context for Tier 1 skill prompt enrichment (~200 token cap)
+    let metaContextBlock = '';
+    if (this.config.metaKBIndex) {
+      try {
+        metaContextBlock = generateMetaContext(this.config.metaKBIndex, {
+          ...context,
+          task_type: context.taskType || this._inferTaskType(prompt),
+          files: context.files || [],
+        });
+      } catch (err) {
+        this._log('warn', `Meta-context generation failed: ${err.message}`);
+      }
+    }
+
     // 4. Apply SkillRL boost if available
     let rlBoost = [];
     if (this.config.rlEnabled && this.skillRL) {
@@ -154,20 +168,6 @@ class PreloadSkillsPlugin extends EventEmitter {
     // 6. Get Tier 2 manifest (brief descriptions for system prompt)
     const tier2Available = this.tierResolver.getTier2Brief();
 
-    // Generate meta-KB context for skill prompts (max 200 tokens / ~800 chars)
-    let metaContextBlock = '';
-    if (this.config.metaKBIndex) {
-      try {
-        metaContextBlock = generateMetaContext(this.config.metaKBIndex, {
-          ...context,
-          task_type: context.taskType || this._inferTaskType(prompt),
-          files: context.files || [],
-        });
-      } catch (err) {
-        this._log('warn', `Meta-context generation failed: ${err.message}`);
-      }
-    }
-
     const result = {
       tools: allTools,
       tier2Available,
@@ -179,6 +179,7 @@ class PreloadSkillsPlugin extends EventEmitter {
         totalCount: allTools.length,
         matchedCategories: tier1Matches.categories || [],
         estimatedTokens: this._estimateTokens(allTools),
+        meta_context: metaContextBlock || '',
         hasMetaContext: metaContextBlock.length > 0,
       },
     };

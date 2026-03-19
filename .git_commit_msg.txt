@@ -11,3 +11,6 @@ feat(skills): skill utilization audit - full gap closure + lazy workflow playboo
 - Remove 3 redundant tier_1 categories (debugging, testing, sequential_reasoning)
 - Wire RL promotion state persistence (scripts/preload-state-persist.mjs)
 - Add skill exercise playbook: 7 prompts for real work + comprehensive skill coverage
+
+Learning-Update: opencode-config/learning-updates/2026-03-19-skill-utilization-audit.json
+Risk-Level: low

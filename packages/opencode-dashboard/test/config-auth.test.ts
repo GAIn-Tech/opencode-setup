@@ -13,7 +13,7 @@ describe('redactSecrets', () => {
       token: 'tok-secret',
       password: 'hunter2',
     };
-    const result = redactSecrets(config);
+const result = redactSecrets(config) as Record<string, string>;
     expect(result.name).toBe('test');
     expect(result.apiKey).toBe('[REDACTED]');
     expect(result.token).toBe('[REDACTED]');
@@ -31,11 +31,11 @@ describe('redactSecrets', () => {
         },
       },
     };
-    const result = redactSecrets(config);
-    expect(result.provider.name).toBe('openai');
-    expect(result.provider.apiKey).toBe('[REDACTED]');
-    expect(result.provider.settings.authToken).toBe('[REDACTED]');
-    expect(result.provider.settings.model).toBe('gpt-4');
+const result = redactSecrets(config) as Record<string, any>;
+    expect((result.provider as Record<string, any>).name).toBe('openai');
+    expect((result.provider as Record<string, any>).apiKey).toBe('[REDACTED]');
+    expect((result.provider as Record<string, any>).settings.authToken).toBe('[REDACTED]');
+    expect((result.provider as Record<string, any>).settings.model).toBe('gpt-4');
   });
 
   test('redacts case-insensitively', () => {
@@ -44,7 +44,7 @@ describe('redactSecrets', () => {
       MySecret: 'should-redact',
       Authorization: 'Bearer xyz',
     };
-    const result = redactSecrets(config);
+const result = redactSecrets(config) as Record<string, string>;
     expect(result.APIKEY).toBe('[REDACTED]');
     expect(result.MySecret).toBe('[REDACTED]');
     expect(result.Authorization).toBe('[REDACTED]');

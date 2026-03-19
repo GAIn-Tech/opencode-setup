@@ -41,7 +41,7 @@ describe('GET /api/budget', () => {
 
   it('returns aggregated session budget summaries', async () => {
     const route = await import('../src/app/api/budget/route');
-    const response = await route.GET(new Request('http://localhost:3000/api/budget'));
+    const response = await route.GET();
     const data = await response.json();
 
     expect(Array.isArray(data)).toBe(true);

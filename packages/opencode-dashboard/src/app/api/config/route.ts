@@ -7,7 +7,7 @@ import { writeJsonAtomic } from '../_lib/write-json-atomic';
 import { appendWriteAuditEntry } from '../_lib/write-audit';
 import { rateLimited, badRequest, internalError, validationError } from '../_lib/api-response';
 import { redactSecrets } from '../_lib/redact';
-import { errorResponse } from '../_lib/error-response';
+import { errorResponse } from '../_lib/api-response';
 
 export const dynamic = 'force-dynamic';
 

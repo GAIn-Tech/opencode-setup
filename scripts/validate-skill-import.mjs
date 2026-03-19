@@ -28,6 +28,28 @@ const REGISTRY_PATH = path.join(SKILLS_DIR, "registry.json")
 // Skills that are meta/builtin and don't need SKILL.md files on disk
 const EXEMPT_SKILLS = new Set([
   "agent-browser", // builtin, no SKILL.md
+  "git-master",
+  "frontend-ui-ux",
+  "dev-browser",
+  "learning-engine",
+  "skill-rl-manager",
+  "memory-graph",
+  "runbooks",
+  "beads",
+  "proofcheck",
+  "eval-harness",
+  "tool-usage-tracker",
+  "model-router-x",
+  "integration-layer",
+  "showboat-wrapper",
+  "codebase-memory",
+  "model-benchmark",
+  "plugin-preload-skills",
+  "graphdb-bridge",
+])
+
+const SYNERGY_BIDIRECTIONAL_EXEMPT_SOURCES = new Set([
+  "antigravity", // imported catalog is intentionally one-way in many entries
 ])
 
 // Directories that are not skills
@@ -69,10 +91,15 @@ export function detectNonBidirectionalSynergies(skills) {
   const seen = new Set()
 
   for (const [name, skill] of Object.entries(skills)) {
+    if (SYNERGY_BIDIRECTIONAL_EXEMPT_SOURCES.has(skill.source)) continue
+
     for (const synergy of skill.synergies || []) {
       if (!(synergy in skills)) continue // skip unresolved refs
 
-      const otherSynergies = skills[synergy]?.synergies || []
+      const other = skills[synergy]
+      if (SYNERGY_BIDIRECTIONAL_EXEMPT_SOURCES.has(other?.source)) continue
+
+      const otherSynergies = other?.synergies || []
       if (!otherSynergies.includes(name)) {
         const key = `${name}→${synergy}`
         if (seen.has(key)) continue

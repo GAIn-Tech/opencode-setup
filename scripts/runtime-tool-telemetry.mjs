@@ -38,6 +38,15 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, renameSync, unlinkSync } from 'fs';
 import { join, dirname } from 'path';
 import { homedir } from 'os';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+let toolUsageTracker = null;
+try {
+  toolUsageTracker = require('../packages/opencode-learning-engine/src/tool-usage-tracker.js');
+} catch {
+  toolUsageTracker = null;
+}
 
 // ---- Configuration ----
 const HOME = process.env.USERPROFILE || process.env.HOME || homedir();
@@ -1320,9 +1329,51 @@ function extractErrorMessage(response) {
   return null;
 }
 
+function deriveInvocationOutcome(toolResponse) {
+  const defaultOutcome = {
+    success: Boolean(1),
+    errorClass: undefined,
+    errorCode: undefined,
+  };
+  if (!toolResponse || typeof toolResponse !== 'object') {
+    return defaultOutcome;
+  }
+
+  const explicitFailure = (
+    toolResponse.success === false ||
+    toolResponse.ok === false ||
+    toolResponse.isError === true ||
+    toolResponse.error === true ||
+    toolResponse.status === 'error'
+  );
+
+  const nestedError = extractErrorMessage(toolResponse);
+  if (!explicitFailure && !nestedError) {
+    return defaultOutcome;
+  }
+
+  return {
+    success: false,
+    errorClass: (
+      toolResponse.errorClass ||
+      toolResponse.error_class ||
+      toolResponse.name ||
+      (typeof toolResponse.error === 'object' && toolResponse.error?.name) ||
+      'ToolError'
+    ),
+    errorCode: (
+      toolResponse.errorCode ||
+      toolResponse.error_code ||
+      toolResponse.code ||
+      (typeof toolResponse.error === 'object' && toolResponse.error?.code) ||
+      undefined
+    ),
+  };
+}
+
 // ---- Main ----
 
-function main() {
+async function main() {
   const raw = readStdin();
   if (!raw.trim()) {
     process.exit(0);
@@ -1349,6 +1400,8 @@ function main() {
   // Reverse-map PascalCase → snake_case
   const toolName = resolveRuntimeToolName(pascalToolName, input.tool_input);
   const toolInfo = AVAILABLE_TOOLS[toolName] || { category: 'unknown', priority: 'unknown' };
+  const invocationOutcome = deriveInvocationOutcome(input.tool_response);
+  const inferredTaskType = deriveTaskType(input.tool_input) || 'general';
 
   // Build invocation record (same shape as logInvocation in tool-usage-tracker.js)
   const invocation = {
@@ -1360,10 +1413,12 @@ function main() {
     // oh-my-opencode PostToolUse hook in local/oh-my-opencode (gitignored npm package).
     // This is a known telemetry depth limitation. See audit gap #26.
     params: input.tool_input || {},
-    success: true,  // If the hook fires, the tool succeeded
+    success: invocationOutcome.success,
+    errorClass: invocationOutcome.errorClass,
+    errorCode: invocationOutcome.errorCode,
     context: {
       session: sessionId,
-      task: null,
+      task: inferredTaskType,
       messageCount: 0,
       source: 'runtime-hook',
     },
@@ -1394,6 +1449,26 @@ function main() {
   const callChars = stringifyLength(input.tool_input) + stringifyLength(input.tool_response);
   const callTokens = estimateTokens(input.tool_input, input.tool_response);
   const durationMs = findNumericMetric(input.tool_response, ['duration_ms', 'elapsed_ms', 'execution_time']) || 0;
+
+  // T13: route through tool-usage-tracker under-use detection when available.
+  // Fail-open: if tracker is unavailable or throws, keep telemetry write-only path.
+  if (toolUsageTracker && typeof toolUsageTracker.detectUnderUse === 'function') {
+    try {
+      const taskCount = Array.isArray(input.tool_input?.tasks)
+        ? input.tool_input.tasks.length
+        : (typeof input.tool_input?.taskCount === 'number' ? input.tool_input.taskCount : 1);
+      const detectContext = {
+        session: sessionId,
+        task: inferredTaskType,
+        taskType: inferredTaskType,
+        taskCount,
+        tokenCount: callTokens,
+      };
+      await toolUsageTracker.detectUnderUse(detectContext);
+    } catch {
+      // fail-open: telemetry enrichment must never block runtime hook
+    }
+  }
 
   withFileLockSync(stateFile, () => {
     const { state } = loadSessionBudgetState(sessionId);
@@ -1444,4 +1519,4 @@ function main() {
   process.exit(0);
 }
 
-main();
+main().catch(() => process.exit(0));

@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
+    "opencode-mcp-utils": "workspace:*",
     "zod": "^4.3.6"
   },
   "files": [

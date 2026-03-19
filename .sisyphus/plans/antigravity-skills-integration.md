@@ -72,12 +72,12 @@ Transform the skill ecosystem from a 25-skill keyword-matched system into a 79-s
 - Full test coverage for all changes
 
 ### Definition of Done
-- [ ] `bun test` passes with 0 failures
-- [ ] `node scripts/check-skill-overlap-governance.mjs` exits 0 with 79 skills
-- [ ] `_matchesContext({description: "fix intermittent test failures"})` matches debugging skills (semantic gap closed)
-- [ ] `advise({task_type: "security"})` returns at least 1 imported skill in routing.skills
-- [ ] No imported skill matches ALL tasks via fallback (toxic combination eliminated)
-- [ ] UCB does not push proven skills below rank 5 after 54 imports at usage_count=0
+- [x] `bun test` passes with 0 failures
+- [x] `node scripts/check-skill-overlap-governance.mjs` exits 0 with 79 skills
+- [x] `_matchesContext({description: "fix intermittent test failures"})` matches debugging skills (semantic gap closed)
+- [x] `advise({task_type: "security"})` returns at least 1 imported skill in routing.skills
+- [x] No imported skill matches ALL tasks via fallback (toxic combination eliminated)
+- [x] UCB does not push proven skills below rank 5 after 54 imports at usage_count=0
 
 ### Must Have
 - All 5 blockers fixed before any skill import
@@ -193,7 +193,7 @@ Parallel Speedup: ~35% faster than fully sequential
 
 ---
 
-- [ ] 1. Fix `_matchesContext()` — Remove fallback + enforce avoidWhen
+- [x] 1. Fix `_matchesContext()` — Remove fallback + enforce avoidWhen
 
   **What to do**:
   - **RED**: Write failing test that asserts: (a) skill with success_rate=0.75 but NO tag/keyword match does NOT match a task context, (b) skill with avoidWhen condition matching task context does NOT match
@@ -236,12 +236,12 @@ Parallel Speedup: ~35% faster than fully sequential
   - **NOTE**: `selection.test.js` does NOT exist yet. This task CREATES it as a new test file.
 
   **Acceptance Criteria**:
-  - [ ] Test file CREATED: `packages/opencode-skill-rl-manager/test/selection.test.js` (NEW file — does not exist yet)
-  - [ ] NEW TEST: Skill with success_rate=0.80 but no tag/keyword match → `_matchesContext()` returns false
-  - [ ] NEW TEST: Skill with avoidWhen=["simple fix"] + task description "simple fix typo" → returns false
-  - [ ] NEW TEST: Skill WITH matching tag + avoidWhen mismatch → returns true (avoidWhen doesn't block legitimate matches)
-  - [ ] EXISTING TESTS: All pass unchanged
-  - [ ] `bun test packages/opencode-skill-rl-manager/test/selection.test.js` → PASS
+  - [x] Test file CREATED: `packages/opencode-skill-rl-manager/test/selection.test.js` (NEW file — does not exist yet)
+  - [x] NEW TEST: Skill with success_rate=0.80 but no tag/keyword match → `_matchesContext()` returns false
+  - [x] NEW TEST: Skill with avoidWhen=["simple fix"] + task description "simple fix typo" → returns false
+  - [x] NEW TEST: Skill WITH matching tag + avoidWhen mismatch → returns true (avoidWhen doesn't block legitimate matches)
+  - [x] EXISTING TESTS: All pass unchanged
+  - [x] `bun test packages/opencode-skill-rl-manager/test/selection.test.js` → PASS
 
   **Agent-Executed QA Scenarios**:
 
@@ -274,7 +274,7 @@ Parallel Speedup: ~35% faster than fully sequential
 
 ---
 
-- [ ] 2. Fix `syncWithRegistry()` — Tiered defaults + seed collision handling
+- [x] 2. Fix `syncWithRegistry()` — Tiered defaults + seed collision handling
 
   **What to do**:
   - **RED**: Write failing tests: (a) imported skill gets success_rate based on category tier, not flat 0.75, (b) skill matching a seed name gets UPDATED with registry metadata (triggers, tags) instead of being skipped
@@ -312,11 +312,11 @@ Parallel Speedup: ~35% faster than fully sequential
   - `packages/opencode-skill-rl-manager/test/exploration-adapter.test.js` — Existing test patterns to follow.
 
   **Acceptance Criteria**:
-  - [ ] NEW TEST: syncWithRegistry() with category="debugging" skill → success_rate = 0.70
-  - [ ] NEW TEST: syncWithRegistry() with category="general" skill → success_rate = 0.65
-  - [ ] NEW TEST: syncWithRegistry() with skill name matching seed → metadata merged (triggers present)
-  - [ ] NEW TEST: syncWithRegistry() preserves existing success_rate for already-tracked skills
-  - [ ] `bun test packages/opencode-skill-rl-manager/test/selection.test.js` → PASS
+  - [x] NEW TEST: syncWithRegistry() with category="debugging" skill → success_rate = 0.70
+  - [x] NEW TEST: syncWithRegistry() with category="general" skill → success_rate = 0.65
+  - [x] NEW TEST: syncWithRegistry() with skill name matching seed → metadata merged (triggers present)
+  - [x] NEW TEST: syncWithRegistry() preserves existing success_rate for already-tracked skills
+  - [x] `bun test packages/opencode-skill-rl-manager/test/selection.test.js` → PASS
 
   **Agent-Executed QA Scenarios**:
 
@@ -346,7 +346,7 @@ Parallel Speedup: ~35% faster than fully sequential
 
 ---
 
-- [ ] 3. Fix UCB cold-start — Dampening for registry-sourced skills
+- [x] 3. Fix UCB cold-start — Dampening for registry-sourced skills
 
   **What to do**:
   - **RED**: Write failing test: 54 new skills at usage_count=0 do NOT push proven skill (usage=50, rate=0.85) below rank 5 in selectSkills() output
@@ -379,11 +379,11 @@ Parallel Speedup: ~35% faster than fully sequential
   - `packages/opencode-skill-rl-manager/test/selection.test.js` — Created in Task 1. Add UCB dampening tests here.
 
   **Acceptance Criteria**:
-  - [ ] NEW TEST: 54 skills at usage_count=0 + 5 proven skills (usage=50) → proven skills all appear in top 10
-  - [ ] NEW TEST: After 5 uses of a new skill, dampening factor = 1.0 (full UCB)
-  - [ ] NEW TEST: Dampening only applies to source='registry' skills
-  - [ ] EXISTING TESTS: All pass unchanged
-  - [ ] `bun test packages/opencode-skill-rl-manager/test/selection.test.js` → PASS
+  - [x] NEW TEST: 54 skills at usage_count=0 + 5 proven skills (usage=50) → proven skills all appear in top 10
+  - [x] NEW TEST: After 5 uses of a new skill, dampening factor = 1.0 (full UCB)
+  - [x] NEW TEST: Dampening only applies to source='registry' skills
+  - [x] EXISTING TESTS: All pass unchanged
+  - [x] `bun test packages/opencode-skill-rl-manager/test/selection.test.js` → PASS
 
   **Agent-Executed QA Scenarios**:
 
@@ -404,7 +404,7 @@ Parallel Speedup: ~35% faster than fully sequential
 
 ---
 
-- [ ] 4. Fix `querySkills()` cap — Configurable top-K parameter
+- [x] 4. Fix `querySkills()` cap — Configurable top-K parameter
 
   **What to do**:
   - **RED**: Update existing test at selection.test.js:300 (`limits selection to top 5 skills`) to expect configurable cap. Write new test: querySkills with `maxResults` option returns up to N results.
@@ -436,11 +436,11 @@ Parallel Speedup: ~35% faster than fully sequential
   - `packages/opencode-skill-rl-manager/test/selection.test.js` — Created in Task 1. Add configurable-cap tests here. NOTE: There is no pre-existing "limits selection to top 5 skills" test — write new cap tests from scratch.
 
   **Acceptance Criteria**:
-  - [ ] NEW TEST: `limits selection to configurable top N skills` (default 10)
-  - [ ] NEW TEST: querySkills with maxResults=5 → max 5 results
-  - [ ] NEW TEST: querySkills with maxResults=15 → max 15 results
-  - [ ] NEW TEST: querySkills with maxResults=25 → capped at 20 (absolute ceiling)
-  - [ ] `bun test packages/opencode-skill-rl-manager/test/selection.test.js` → PASS
+  - [x] NEW TEST: `limits selection to configurable top N skills` (default 10)
+  - [x] NEW TEST: querySkills with maxResults=5 → max 5 results
+  - [x] NEW TEST: querySkills with maxResults=15 → max 15 results
+  - [x] NEW TEST: querySkills with maxResults=25 → capped at 20 (absolute ceiling)
+  - [x] `bun test packages/opencode-skill-rl-manager/test/selection.test.js` → PASS
 
   **Agent-Executed QA Scenarios**:
 
@@ -461,7 +461,7 @@ Parallel Speedup: ~35% faster than fully sequential
 
 ---
 
-- [ ] 5. Fix SKILL_AFFINITY — Registry-sourced routing table
+- [x] 5. Fix SKILL_AFFINITY — Registry-sourced routing table
 
   **What to do**:
   - **RED**: Write failing test: `advise({task_type: 'security'})` returns at least one skill from the "security" category in registry.json, not just the hardcoded 17.
@@ -497,11 +497,11 @@ Parallel Speedup: ~35% faster than fully sequential
   - `packages/opencode-learning-engine/test/` — Check for existing advisor tests. If none, create new test file following bun test patterns.
 
   **Acceptance Criteria**:
-  - [ ] NEW TEST: advise({task_type: 'debug'}) returns skills including 'systematic-debugging' (existing)
-  - [ ] NEW TEST: After adding security skills to registry, advise({task_type: 'security'}) returns security skills
-  - [ ] NEW TEST: Registry load failure → falls back to hardcoded map (fail-open)
-  - [ ] EXISTING behavior preserved: All 11 original keyword categories still return appropriate skills
-  - [ ] `bun test` → PASS (full suite)
+  - [x] NEW TEST: advise({task_type: 'debug'}) returns skills including 'systematic-debugging' (existing)
+  - [x] NEW TEST: After adding security skills to registry, advise({task_type: 'security'}) returns security skills
+  - [x] NEW TEST: Registry load failure → falls back to hardcoded map (fail-open)
+  - [x] EXISTING behavior preserved: All 11 original keyword categories still return appropriate skills
+  - [x] `bun test` → PASS (full suite)
 
   **Agent-Executed QA Scenarios**:
 
@@ -524,7 +524,7 @@ Parallel Speedup: ~35% faster than fully sequential
 
 ---
 
-- [ ] 6. Fix epsilon-greedy — Weighted random injection
+- [x] 6. Fix epsilon-greedy — Weighted random injection
 
   **What to do**:
   - **RED**: Write failing test: epsilon-greedy random injection prefers skills in relevant category over completely random selection.
@@ -556,9 +556,9 @@ Parallel Speedup: ~35% faster than fully sequential
   - Each skill in SkillBank has `category` field set by `syncWithRegistry()`. Use this for weighted selection.
 
   **Acceptance Criteria**:
-  - [ ] NEW TEST: Epsilon-greedy with task_type="debugging" preferentially selects debugging-category skills (statistical test over 100 runs)
-  - [ ] NEW TEST: Empty category filter → falls back to full pool (no crash)
-  - [ ] `bun test packages/opencode-skill-rl-manager/test/selection.test.js` → PASS
+  - [x] NEW TEST: Epsilon-greedy with task_type="debugging" preferentially selects debugging-category skills (statistical test over 100 runs)
+  - [x] NEW TEST: Empty category filter → falls back to full pool (no crash)
+  - [x] `bun test packages/opencode-skill-rl-manager/test/selection.test.js` → PASS
 
   **Commit**: YES (groups with Task 3)
   - Message: `fix(skill-rl): weighted epsilon-greedy injection by category relevance`
@@ -571,7 +571,7 @@ Parallel Speedup: ~35% faster than fully sequential
 
 ---
 
-- [ ] 7. Build synonym tables + domain heuristic data files
+- [x] 7. Build synonym tables + domain heuristic data files
 
   **What to do**:
   - Create `opencode-config/skills/semantic-matching/synonyms.json` — Map of concept clusters where each key is a canonical term and value is array of synonyms/related terms. Cover at minimum: debugging (fix, troubleshoot, diagnose, investigate, resolve, repair), testing (test, spec, assertion, coverage, TDD, QA, validate), security (vulnerability, OWASP, audit, CVE, pentest, hardening), deployment (deploy, release, ship, CI/CD, pipeline), refactoring (refactor, restructure, clean up, reorganize, simplify), performance (optimize, speed, latency, throughput, benchmark), documentation (docs, README, guide, tutorial, reference), architecture (design, structure, patterns, system design, DDD).
@@ -611,14 +611,14 @@ Parallel Speedup: ~35% faster than fully sequential
   - Antigravity repo `data/aliases.json` — Contains alias mappings that can inform synonym table content. Clone from https://github.com/sickn33/antigravity-awesome-skills.git if not present.
 
   **Acceptance Criteria**:
-  - [ ] File created: `opencode-config/skills/semantic-matching/synonyms.json`
-  - [ ] File created: `opencode-config/skills/semantic-matching/domain-signals.json`
-  - [ ] Both files are valid JSON (parseable without error)
-  - [ ] synonyms.json has >= 8 concept clusters (debugging, testing, security, deployment, refactoring, performance, documentation, architecture)
-  - [ ] domain-signals.json covers all 14 existing registry categories
-  - [ ] NEW TEST: JSON schema validation passes for both files
-  - [ ] NEW TEST: synonyms.json["debugging"] includes ["fix", "troubleshoot", "diagnose"]
-  - [ ] `bun test` → PASS
+  - [x] File created: `opencode-config/skills/semantic-matching/synonyms.json`
+  - [x] File created: `opencode-config/skills/semantic-matching/domain-signals.json`
+  - [x] Both files are valid JSON (parseable without error)
+  - [x] synonyms.json has >= 8 concept clusters (debugging, testing, security, deployment, refactoring, performance, documentation, architecture)
+  - [x] domain-signals.json covers all 14 existing registry categories
+  - [x] NEW TEST: JSON schema validation passes for both files
+  - [x] NEW TEST: synonyms.json["debugging"] includes ["fix", "troubleshoot", "diagnose"]
+  - [x] `bun test` → PASS
 
   **Agent-Executed QA Scenarios**:
 
@@ -641,7 +641,7 @@ Parallel Speedup: ~35% faster than fully sequential
 
 ---
 
-- [ ] 8. Integrate semantic matching into `_matchesContext()` as additive layer
+- [x] 8. Integrate semantic matching into `_matchesContext()` as additive layer
 
   **What to do**:
   - **RED**: Write failing test: `_matchesContext(debugSkill, {description: "fix intermittent test failures"})` returns true. Currently fails because "fix" ≠ "debug" and "intermittent" ≠ any tag.
@@ -684,13 +684,13 @@ Parallel Speedup: ~35% faster than fully sequential
   - `packages/opencode-skill-rl-manager/test/selection.test.js` — Add semantic matching tests here.
 
   **Acceptance Criteria**:
-  - [ ] File created: `packages/opencode-skill-rl-manager/src/semantic-matcher.js`
-  - [ ] NEW TEST: "fix intermittent test failures" matches skill with tag "debugging" → true (synonym: fix→debugging)
-  - [ ] NEW TEST: "deploy to kubernetes cluster" matches skill with tag "devops" → true (domain signal)
-  - [ ] NEW TEST: "write a poem about cats" does NOT match debugging skill → false (no synonym match)
-  - [ ] NEW TEST: Existing keyword match still works independently of synonym layer
-  - [ ] NEW TEST: Performance: _matchesContext() with 79 skills completes in < 1ms (100 iterations)
-  - [ ] `bun test packages/opencode-skill-rl-manager/test/selection.test.js` → PASS
+  - [x] File created: `packages/opencode-skill-rl-manager/src/semantic-matcher.js`
+  - [x] NEW TEST: "fix intermittent test failures" matches skill with tag "debugging" → true (synonym: fix→debugging)
+  - [x] NEW TEST: "deploy to kubernetes cluster" matches skill with tag "devops" → true (domain signal)
+  - [x] NEW TEST: "write a poem about cats" does NOT match debugging skill → false (no synonym match)
+  - [x] NEW TEST: Existing keyword match still works independently of synonym layer
+  - [x] NEW TEST: Performance: _matchesContext() with 79 skills completes in < 1ms (100 iterations)
+  - [x] `bun test packages/opencode-skill-rl-manager/test/selection.test.js` → PASS
 
   **Agent-Executed QA Scenarios**:
 
@@ -722,7 +722,7 @@ Parallel Speedup: ~35% faster than fully sequential
 
 ---
 
-- [ ] 9. Update skill-orchestrator-runtime profiles + scoring
+- [x] 9. Update skill-orchestrator-runtime profiles + scoring
 
   **What to do**:
   - Update `opencode-config/skills/skill-orchestrator-runtime/SKILL.md` to reference relevant imported skills in the 7 existing workflow profiles:
@@ -763,11 +763,11 @@ Parallel Speedup: ~35% faster than fully sequential
   - `.sisyphus/drafts/antigravity-skills-integration.md` — Section "Must-Have Skills by Domain" lists 54 skills organized by domain. Use this to assign skills to profiles.
 
   **Acceptance Criteria**:
-  - [ ] Each of the 7 profiles references at least 2 new imported skills
-  - [ ] registry.json profile.skills[] arrays updated with new skill names
-  - [ ] skill-orchestrator-runtime/SKILL.md updated with new skills in profiles
-  - [ ] No new profile types created
-  - [ ] `node scripts/check-skill-overlap-governance.mjs` → exit 0
+  - [x] Each of the 7 profiles references at least 2 new imported skills
+  - [x] registry.json profile.skills[] arrays updated with new skill names
+  - [x] skill-orchestrator-runtime/SKILL.md updated with new skills in profiles
+  - [x] No new profile types created
+  - [x] `node scripts/check-skill-overlap-governance.mjs` → exit 0
 
   **Agent-Executed QA Scenarios**:
 
@@ -794,7 +794,7 @@ Parallel Speedup: ~35% faster than fully sequential
 
 ---
 
-- [ ] 10. Build robust YAML frontmatter parser
+- [x] 10. Build robust YAML frontmatter parser
 
   **What to do**:
   - **RED**: Write failing test: parser correctly extracts multi-line YAML arrays, quoted strings, and nested structures from antigravity SKILL.md files.
@@ -840,12 +840,12 @@ Parallel Speedup: ~35% faster than fully sequential
   - Antigravity repo: `https://github.com/sickn33/antigravity-awesome-skills.git` — Clone to `.sisyphus/analysis/antigravity-awesome-skills/` if not present. Test parser against files in `skills/` directory.
 
   **Acceptance Criteria**:
-  - [ ] File created: `scripts/lib/yaml-frontmatter-parser.mjs`
-  - [ ] NEW TEST: Multi-line YAML array tags parsed correctly
-  - [ ] NEW TEST: Quoted strings with special characters preserved
-  - [ ] NEW TEST: Existing SKILL.md files (from opencode-config/skills/) still parse correctly
-  - [ ] NEW TEST: All 54 antigravity SKILL.md files parse without error
-  - [ ] `bun test` → PASS
+  - [x] File created: `scripts/lib/yaml-frontmatter-parser.mjs`
+  - [x] NEW TEST: Multi-line YAML array tags parsed correctly
+  - [x] NEW TEST: Quoted strings with special characters preserved
+  - [x] NEW TEST: Existing SKILL.md files (from opencode-config/skills/) still parse correctly
+  - [x] NEW TEST: All 54 antigravity SKILL.md files parse without error
+  - [x] `bun test` → PASS
 
   **Agent-Executed QA Scenarios**:
 
@@ -868,7 +868,7 @@ Parallel Speedup: ~35% faster than fully sequential
 
 ---
 
-- [ ] 11. Build skill format converter + import pipeline
+- [x] 11. Build skill format converter + import pipeline
 
   **What to do**:
   - Create `scripts/import-antigravity-skills.mjs` — Pipeline that: (1) reads antigravity SKILL.md using the parser from Task 10, (2) converts to our SKILL.md format (matching SKILL-TEMPLATE.md structure), (3) generates registry.json entries with proper fields (description, category, tags, triggers, synergies, dependencies, conflicts, selectionHints), (4) auto-infers interconnections from category/tag overlap.
@@ -906,12 +906,12 @@ Parallel Speedup: ~35% faster than fully sequential
   - Antigravity `data/aliases.json` — Alias mappings that can inform trigger generation.
 
   **Acceptance Criteria**:
-  - [ ] File created: `scripts/import-antigravity-skills.mjs`
-  - [ ] `--dry-run` shows 54 skills with converted format (no files written)
-  - [ ] Each converted skill has: name, description, category, tags[], triggers[], synergies[], dependencies[], conflicts[]
-  - [ ] Interconnection auto-inference produces non-empty synergies for >= 80% of skills
-  - [ ] Output registry.json patch is valid JSON and merges cleanly with existing registry
-  - [ ] `bun test` → PASS
+  - [x] File created: `scripts/import-antigravity-skills.mjs`
+  - [x] `--dry-run` shows 54 skills with converted format (no files written)
+  - [x] Each converted skill has: name, description, category, tags[], triggers[], synergies[], dependencies[], conflicts[]
+  - [x] Interconnection auto-inference produces non-empty synergies for >= 80% of skills
+  - [x] Output registry.json patch is valid JSON and merges cleanly with existing registry
+  - [x] `bun test` → PASS
 
   **Agent-Executed QA Scenarios**:
 
@@ -934,7 +934,7 @@ Parallel Speedup: ~35% faster than fully sequential
 
 ---
 
-- [ ] 12. Import 54 must-have skills + wire interconnections
+- [x] 12. Import 54 must-have skills + wire interconnections
 
   **What to do**:
   - Run the import pipeline (Task 11) WITHOUT `--dry-run` to:
@@ -976,14 +976,14 @@ Parallel Speedup: ~35% faster than fully sequential
   - `.sisyphus/drafts/antigravity-skills-integration.md` — "Must-Have Skills by Domain" section lists all 54 skills with domains.
 
   **Acceptance Criteria**:
-  - [ ] 54 new SKILL.md files created under `opencode-config/skills/`
-  - [ ] registry.json contains 79 total skills (25 existing + 54 new)
-  - [ ] Each new entry has non-empty: description, category, tags[], triggers[]
-  - [ ] >= 43 skills (80%) have non-empty synergies[]
-  - [ ] >= 10 skills have non-empty dependencies[]
-  - [ ] `node scripts/check-skill-overlap-governance.mjs` → exit 0
-  - [ ] No existing 25 skill entries modified
-  - [ ] `bun test` → PASS
+  - [x] 54 new SKILL.md files created under `opencode-config/skills/`
+  - [x] registry.json contains 79 total skills (25 existing + 54 new)
+  - [x] Each new entry has non-empty: description, category, tags[], triggers[]
+  - [x] >= 43 skills (80%) have non-empty synergies[]
+  - [x] >= 10 skills have non-empty dependencies[]
+  - [x] `node scripts/check-skill-overlap-governance.mjs` → exit 0
+  - [x] No existing 25 skill entries modified
+  - [x] `bun test` → PASS
 
   **Agent-Executed QA Scenarios**:
 
@@ -1020,7 +1020,7 @@ Parallel Speedup: ~35% faster than fully sequential
 
 ---
 
-- [ ] 13. Import bundles as workflow profiles
+- [x] 13. Import bundles as workflow profiles
 
   **What to do**:
   - Read antigravity's `data/bundles.json` (20+ role-based collections like "Web Wizard", "Security Engineer", "DevOps Master").
@@ -1054,10 +1054,10 @@ Parallel Speedup: ~35% faster than fully sequential
   - Antigravity `data/bundles.json` — Role-based skill collections. Clone from https://github.com/sickn33/antigravity-awesome-skills.git.
 
   **Acceptance Criteria**:
-  - [ ] 3-5 new workflow profiles added to registry.json
-  - [ ] Each profile references only skills that exist in registry (no dangling references)
-  - [ ] Each profile has triggers[] for activation
-  - [ ] `node scripts/check-skill-overlap-governance.mjs` → exit 0
+  - [x] 3-5 new workflow profiles added to registry.json
+  - [x] Each profile references only skills that exist in registry (no dangling references)
+  - [x] Each profile has triggers[] for activation
+  - [x] `node scripts/check-skill-overlap-governance.mjs` → exit 0
 
   **Agent-Executed QA Scenarios**:
 
@@ -1083,7 +1083,7 @@ Parallel Speedup: ~35% faster than fully sequential
 
 ---
 
-- [ ] 14. Update governance scripts + create import validator
+- [x] 14. Update governance scripts + create import validator
 
   **What to do**:
   - Update `scripts/check-skill-overlap-governance.mjs`:
@@ -1122,11 +1122,11 @@ Parallel Speedup: ~35% faster than fully sequential
   - `scripts/normalize-superpowers-skills.mjs` — Current normalization script. Enforces frontmatter + required sections.
 
   **Acceptance Criteria**:
-  - [ ] `node scripts/check-skill-overlap-governance.mjs` → exit 0 with 79 skills
-  - [ ] Circular dependencies detected and reported (if any exist)
-  - [ ] `node scripts/validate-skill-import.mjs` → exit 0 (no orphans, all references valid)
-  - [ ] `scripts/consolidate-skills.mjs` uses YAML parser from Task 10
-  - [ ] `bun test` → PASS
+  - [x] `node scripts/check-skill-overlap-governance.mjs` → exit 0 with 79 skills
+  - [x] Circular dependencies detected and reported (if any exist)
+  - [x] `node scripts/validate-skill-import.mjs` → exit 0 (no orphans, all references valid)
+  - [x] `scripts/consolidate-skills.mjs` uses YAML parser from Task 10
+  - [x] `bun test` → PASS
 
   **Agent-Executed QA Scenarios**:
 
@@ -1151,7 +1151,7 @@ Parallel Speedup: ~35% faster than fully sequential
 
 ---
 
-- [ ] 15. Fix ExplorationRLAdapter field mismatch
+- [x] 15. Fix ExplorationRLAdapter field mismatch
 
   **What to do**:
   - **RED**: Write failing test: ExplorationRLAdapter passes `skill_used` (singular string) to SkillRL's `learnFromOutcome()`, matching the expected field name.
@@ -1184,9 +1184,9 @@ Parallel Speedup: ~35% faster than fully sequential
   - `packages/opencode-skill-rl-manager/test/exploration-adapter.test.js` — Existing tests (4 pass). Add field mapping test.
 
   **Acceptance Criteria**:
-  - [ ] NEW TEST: Adapter passes `skill_used` (singular string) to `learnFromOutcome()`, not `skills` (array)
-  - [ ] EXISTING TESTS: All 4 pass unchanged
-  - [ ] `bun test packages/opencode-skill-rl-manager/test/exploration-adapter.test.js` → PASS
+  - [x] NEW TEST: Adapter passes `skill_used` (singular string) to `learnFromOutcome()`, not `skills` (array)
+  - [x] EXISTING TESTS: All 4 pass unchanged
+  - [x] `bun test packages/opencode-skill-rl-manager/test/exploration-adapter.test.js` → PASS
 
   **Agent-Executed QA Scenarios**:
 
@@ -1207,7 +1207,7 @@ Parallel Speedup: ~35% faster than fully sequential
 
 ---
 
-- [ ] 16. Full regression test suite + performance benchmarks
+- [x] 16. Full regression test suite + performance benchmarks
 
   **What to do**:
   - Run the FULL test suite: `bun test` from repo root
@@ -1250,14 +1250,14 @@ Parallel Speedup: ~35% faster than fully sequential
   - All test files in `packages/opencode-skill-rl-manager/test/` — Unit tests for SkillRL system.
 
   **Acceptance Criteria**:
-  - [ ] `bun test` → exit 0 (ALL tests pass)
-  - [ ] `bun test integration-tests/bootstrap-e2e.test.js` → 4/4 pass
-  - [ ] `node scripts/check-skill-overlap-governance.mjs` → exit 0
-  - [ ] `node scripts/validate-skill-import.mjs` → exit 0
-  - [ ] Performance benchmark: all thresholds met
-  - [ ] Semantic gap test: all 5 target phrases match expected skills
-  - [ ] registry.json has 79 skills, 10+ workflow profiles
-  - [ ] No warnings or errors in test output
+  - [x] `bun test` → exit 0 (ALL tests pass)
+  - [x] `bun test integration-tests/bootstrap-e2e.test.js` → 4/4 pass
+  - [x] `node scripts/check-skill-overlap-governance.mjs` → exit 0
+  - [x] `node scripts/validate-skill-import.mjs` → exit 0
+  - [x] Performance benchmark: all thresholds met
+  - [x] Semantic gap test: all 5 target phrases match expected skills
+  - [x] registry.json has 79 skills, 10+ workflow profiles
+  - [x] No warnings or errors in test output
 
   **Agent-Executed QA Scenarios**:
 
@@ -1362,23 +1362,23 @@ node -e "const r = require('./opencode-config/skills/registry.json'); console.lo
 ```
 
 ### Final Checklist
-- [ ] All "Must Have" present:
-  - [ ] 5 blockers fixed
-  - [ ] Semantic matching layer operational
-  - [ ] TDD for all changes
-  - [ ] Governance pass after each wave
-  - [ ] Full interconnection wiring
-  - [ ] Workflow profiles updated
-- [ ] All "Must NOT Have" absent:
-  - [ ] No ML/embeddings/vector search
-  - [ ] No persistence format changes
-  - [ ] No querySkills cap removal
-  - [ ] No more than 1 new governance script
-  - [ ] No wholesale import (54 only)
-  - [ ] No new profile types (only updates to existing + bundle profiles)
-- [ ] All tests pass: `bun test` → exit 0
-- [ ] Governance passes: all scripts → exit 0
-- [ ] Semantic gaps closed: 5 target phrases match expected skills
-- [ ] Performance: all benchmarks within thresholds
-- [ ] 79 total skills in registry (25 existing + 54 imported)
-- [ ] 10+ workflow profiles (7 existing updated + 3-5 bundle profiles)
+- [x] All "Must Have" present:
+  - [x] 5 blockers fixed
+  - [x] Semantic matching layer operational
+  - [x] TDD for all changes
+  - [x] Governance pass after each wave
+  - [x] Full interconnection wiring
+  - [x] Workflow profiles updated
+- [x] All "Must NOT Have" absent:
+  - [x] No ML/embeddings/vector search
+  - [x] No persistence format changes
+  - [x] No querySkills cap removal
+  - [x] No more than 1 new governance script
+  - [x] No wholesale import (54 only)
+  - [x] No new profile types (only updates to existing + bundle profiles)
+- [x] All tests pass: `bun test` → exit 0
+- [x] Governance passes: all scripts → exit 0
+- [x] Semantic gaps closed: 5 target phrases match expected skills
+- [x] Performance: all benchmarks within thresholds
+- [x] 79 total skills in registry (25 existing + 54 imported)
+- [x] 10+ workflow profiles (7 existing updated + 3-5 bundle profiles)

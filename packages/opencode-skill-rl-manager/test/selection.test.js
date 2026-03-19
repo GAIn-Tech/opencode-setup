@@ -189,6 +189,25 @@ describe('SkillBank.querySkills() cap', () => {
     // Assert: maxResults=25 but absolute ceiling is 20, so should return at most 20 skills
     expect(results.length).toBeLessThanOrEqual(20);
   });
+
+  test('querySkills falls back to top general skills when no context matches', () => {
+    const originalMatcher = skillBank._matchesContext;
+    skillBank._matchesContext = () => false;
+
+    const taskContext = {
+      task_type: 'nonexistent-task-type',
+      complexity: 'nonexistent-complexity',
+      error_type: 'nonexistent-error',
+      description: 'no known keywords or tags should match this context',
+    };
+
+    const results = skillBank.querySkills(taskContext, { maxResults: 3 });
+
+    expect(results.length).toBe(3);
+    expect(results.every((skill) => skill.source === 'general')).toBe(true);
+
+    skillBank._matchesContext = originalMatcher;
+  });
 });
 
 describe('syncWithRegistry()', () => {

@@ -21,37 +21,43 @@ class AgentSandbox {
     const normalizedRole = String(agentRole || '').toLowerCase();
     const normalizedTool = String(toolName || '');
 
-    if (!normalizedRole || !normalizedTool) {
-      const reason = 'Invalid role or tool name';
+    try {
+      if (!normalizedRole || !normalizedTool) {
+        const reason = 'Invalid role or tool name';
+        this._logDenied(normalizedRole, normalizedTool, reason, agentId);
+        return { allowed: false, reason };
+      }
+
+      const manifest = this.manifests.get(normalizedRole);
+
+      if (!manifest) {
+        return this._safeCheckRbac(normalizedRole, normalizedTool, agentId, true);
+      }
+
+      if (this._matchesManifest(manifest, normalizedTool)) {
+        return {
+          allowed: true,
+          reason: `Allowed by capability manifest for role ${normalizedRole}`
+        };
+      }
+
+      const rbacResult = this._safeCheckRbac(normalizedRole, normalizedTool, agentId, false);
+      if (!rbacResult.allowed && rbacResult.reason.startsWith('RBAC failure during capability check')) {
+        return rbacResult;
+      }
+
+      let reason = `Capability denied for role ${normalizedRole} on tool ${normalizedTool}`;
+      if (rbacResult.allowed) {
+        reason += ' (blocked by sandbox manifest)';
+      }
+
+      this._logDenied(normalizedRole, normalizedTool, reason, agentId);
+      return { allowed: false, reason };
+    } catch (error) {
+      const reason = this._buildErrorReason('Error while checking capability', error);
       this._logDenied(normalizedRole, normalizedTool, reason, agentId);
       return { allowed: false, reason };
     }
-
-    const manifest = this.manifests.get(normalizedRole);
-
-    if (!manifest) {
-      const rbacResult = this.rbac.checkPermission(normalizedRole, normalizedTool);
-      if (!rbacResult.allowed) {
-        this._logDenied(normalizedRole, normalizedTool, rbacResult.reason, agentId);
-      }
-      return rbacResult;
-    }
-
-    if (this._matchesManifest(manifest, normalizedTool)) {
-      return {
-        allowed: true,
-        reason: `Allowed by capability manifest for role ${normalizedRole}`
-      };
-    }
-
-    const rbacResult = this.rbac.checkPermission(normalizedRole, normalizedTool);
-    let reason = `Capability denied for role ${normalizedRole} on tool ${normalizedTool}`;
-    if (rbacResult.allowed) {
-      reason += ' (blocked by sandbox manifest)';
-    }
-
-    this._logDenied(normalizedRole, normalizedTool, reason, agentId);
-    return { allowed: false, reason };
   }
 
   getDeniedLog() {
@@ -69,34 +75,83 @@ class AgentSandbox {
   }
 
   _registerManifests(manifests) {
-    for (const [role, capabilities] of Object.entries(manifests)) {
-      this.manifests.set(role.toLowerCase(), [...capabilities]);
+    const source = (manifests && typeof manifests === 'object') ? manifests : {};
+
+    for (const [role, capabilities] of Object.entries(source)) {
+      const normalizedRole = String(role || '').toLowerCase();
+
+      try {
+        if (!Array.isArray(capabilities)) {
+          throw new TypeError('Invalid manifest capabilities: expected array');
+        }
+
+        this.manifests.set(normalizedRole, [...capabilities]);
+      } catch (error) {
+        const reason = this._buildErrorReason(
+          'Invalid manifest capabilities during registration',
+          error
+        );
+        this._logDenied(normalizedRole, '[manifest-registration]', reason, null);
+      }
     }
   }
 
   _matchesManifest(manifest, toolName) {
-    const normalizedTool = toolName.toLowerCase();
+    const normalizedTool = String(toolName || '').toLowerCase();
 
-    for (const pattern of manifest) {
-      const normalizedPattern = pattern.toLowerCase();
-
-      if (normalizedPattern === '*') {
-        return true;
+    try {
+      if (!Array.isArray(manifest)) {
+        throw new TypeError('Invalid manifest type: expected array');
       }
 
-      if (!normalizedPattern.includes('*')) {
-        if (normalizedPattern === normalizedTool) {
-          return true;
+      for (const pattern of manifest) {
+        try {
+          const normalizedPattern = String(pattern || '').toLowerCase();
+
+          if (!normalizedPattern) {
+            continue;
+          }
+
+          if (normalizedPattern === '*') {
+            return true;
+          }
+
+          if (!normalizedPattern.includes('*')) {
+            if (normalizedPattern === normalizedTool) {
+              return true;
+            }
+            continue;
+          }
+
+          if (this._matchesGlob(normalizedPattern, normalizedTool)) {
+            return true;
+          }
+        } catch (error) {
+          const reason = this._buildErrorReason('Manifest pattern evaluation failed', error);
+          this._logDenied('[manifest]', normalizedTool, reason, null);
         }
-        continue;
       }
 
-      if (this._matchesGlob(normalizedPattern, normalizedTool)) {
-        return true;
-      }
+      return false;
+    } catch (error) {
+      const reason = this._buildErrorReason('Manifest evaluation failed', error);
+      this._logDenied('[manifest]', normalizedTool, reason, null);
+      return false;
     }
+  }
 
-    return false;
+  _safeCheckRbac(agentRole, toolName, agentId, logDenied = true) {
+    try {
+      const rbacResult = this.rbac.checkPermission(agentRole, toolName);
+      if (!rbacResult.allowed && logDenied) {
+        this._logDenied(agentRole, toolName, rbacResult.reason, agentId);
+      }
+      return rbacResult;
+    } catch (error) {
+      const reason = this._buildErrorReason('RBAC failure during capability check', error);
+      this._logDenied(agentRole, toolName, reason, agentId);
+      return { allowed: false, reason };
+    }
   }
 
   _matchesGlob(pattern, value) {
@@ -113,6 +168,13 @@ class AgentSandbox {
       toolName,
       reason
     });
+  }
+
+  _buildErrorReason(prefix, error) {
+    if (error && error.message) {
+      return `${prefix}: ${error.message}`;
+    }
+    return `${prefix}: Unknown error`;
   }
 }
 

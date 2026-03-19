@@ -369,11 +369,11 @@ export async function GET(request: Request): Promise<Response> {
 - Do NOT skip tests for security fixes
 
 **Acceptance Criteria per Task:**
-- [ ] Implementation matches spec
-- [ ] Tests added/regression tests pass
-- [ ] `bun test` full suite passes
-- [ ] Commit with Learning-Update trailer
-- [ ] LSP diagnostics clean
+- [x] Implementation matches spec
+- [x] Tests added/regression tests pass
+- [x] `bun test` full suite passes
+- [x] Commit with Learning-Update trailer
+- [x] LSP diagnostics clean
 
 ---
 

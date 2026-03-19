@@ -234,9 +234,20 @@ class SkillBank {
     }
 
     // Step 3: Rank by success_rate and return top effectiveMax
-    return results
+    const ranked = results
       .sort((a, b) => b.success_rate - a.success_rate)
       .slice(0, effectiveMax);
+
+    // Fail-open fallback: if strict context matching yields no candidates,
+    // return top general skills instead of empty selection.
+    if (ranked.length === 0) {
+      return Array.from(this.generalSkills.values())
+        .sort((a, b) => (b.success_rate || 0) - (a.success_rate || 0))
+        .slice(0, effectiveMax)
+        .map(s => ({ ...s, source: 'general' }));
+    }
+
+    return ranked;
   }
 
   /**

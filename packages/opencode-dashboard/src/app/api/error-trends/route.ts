@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { errorResponse } from '../_lib/error-response';
+import { errorResponse } from '../_lib/api-response';
 import { getMetricsCollector } from '../../../lib/metrics-singleton';
 
 export const dynamic = 'force-dynamic';

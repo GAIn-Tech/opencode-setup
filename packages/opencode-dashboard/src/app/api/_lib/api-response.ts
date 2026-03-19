@@ -46,6 +46,19 @@ export function createErrorResponse(
   return NextResponse.json(response, { status });
 }
 
+/**
+ * Backward-compatible alias used by older routes.
+ * Prefer createErrorResponse(...) for new code.
+ */
+export function errorResponse(
+  message: string,
+  status: number = 500,
+  details?: unknown,
+  code?: ErrorCode,
+): NextResponse<ApiErrorResponse> {
+  return createErrorResponse(message, status, { code, details });
+}
+
 export function badRequest(message: string, details?: unknown): NextResponse<ApiErrorResponse> {
   return createErrorResponse(message, 400, { code: 'BAD_REQUEST', details });
 }

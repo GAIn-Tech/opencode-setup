@@ -2,121 +2,106 @@
 
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
-const { generateMetaContext, MAX_META_CONTEXT_CHARS, MAX_ENTRIES } = require('../src/meta-context-injector');
+const { generateMetaContext, MAX_META_CONTEXT_CHARS } = require('../src/meta-context-injector');
 
 describe('generateMetaContext', () => {
-  it('returns empty string when metaKBIndex is null', () => {
-    const result = generateMetaContext(null, { taskType: 'debug' });
+  it('returns empty string when no index is provided', () => {
+    const result = generateMetaContext(null, {
+      files: ['packages/opencode-plugin-preload-skills/src/index.js'],
+    });
     assert.equal(result, '');
   });
 
-  it('returns empty string when taskContext is null', () => {
-    const result = generateMetaContext({ anti_patterns: [] }, null);
-    assert.equal(result, '');
-  });
-
-  it('returns empty string when no entries match', () => {
+  it('returns formatted block when by_affected_path matches and ranks top 3 by recency/risk', () => {
     const index = {
-      anti_patterns: [{ pattern: 'deployment_failure', severity: 'high', description: 'deploy broke' }],
-      by_affected_path: {},
-      conventions: [],
-    };
-    const result = generateMetaContext(index, { taskType: 'feature', files: [] });
-    assert.equal(result, '');
-  });
-
-  it('returns formatted markdown block when anti-patterns match task type', () => {
-    const index = {
-      anti_patterns: [
-        { pattern: 'shotgun_debug', severity: 'high', description: 'Random edits without understanding root cause' },
-      ],
-      by_affected_path: {},
-      conventions: [],
-    };
-    const result = generateMetaContext(index, { taskType: 'debug', files: [] });
-
-    assert.ok(result.startsWith('<!-- META-KB CONTEXT -->'), 'should start with opening comment');
-    assert.ok(result.endsWith('<!-- /META-KB CONTEXT -->'), 'should end with closing comment');
-    assert.ok(result.includes('shotgun_debug'), 'should include the anti-pattern name');
-    assert.ok(result.includes('HIGH'), 'should include severity');
-  });
-
-  it('returns formatted block when path matches', () => {
-    const index = {
-      anti_patterns: [],
       by_affected_path: {
-        'packages/opencode-dashboard': [
+        'packages/opencode-plugin-preload-skills/src': [
           {
-            id: 'wave8-dashboard-fix',
-            summary: 'Fixed dashboard build errors',
+            id: 'recent-low',
+            summary: 'Recent low risk item',
             risk_level: 'low',
-            timestamp: new Date().toISOString(),
+            timestamp: '2026-03-20T10:00:00.000Z',
+          },
+          {
+            id: 'older-high',
+            summary: 'Older high risk item',
+            risk_level: 'high',
+            timestamp: '2026-03-10T10:00:00.000Z',
+          },
+          {
+            id: 'recent-high',
+            summary: 'Recent high risk item',
+            risk_level: 'high',
+            timestamp: '2026-03-20T11:00:00.000Z',
+          },
+          {
+            id: 'older-low',
+            summary: 'Older low risk item',
+            risk_level: 'low',
+            timestamp: '2026-03-09T10:00:00.000Z',
           },
         ],
       },
-      conventions: [],
     };
     const result = generateMetaContext(index, {
-      taskType: 'feature',
-      files: ['packages/opencode-dashboard/src/app/page.tsx'],
+      files: ['packages/opencode-plugin-preload-skills/src/index.js'],
     });
 
-    assert.ok(result.includes('Fixed dashboard build errors'), 'should include the path-matched entry');
-  });
+    assert.ok(result.startsWith('<!-- META-KB CONTEXT -->\n'));
+    assert.ok(result.includes('recent-high'));
+    assert.ok(result.includes('older-high'));
+    assert.ok(result.includes('recent-low'));
+    assert.equal(result.includes('older-low'), false, 'only top 3 entries should be included');
 
-  it('includes conventions when files match', () => {
-    const index = {
-      anti_patterns: [],
-      by_affected_path: {},
-      conventions: [
-        { convention: 'Bun-First: use bunfig.toml', description: 'NOT npm/yarn compatible', file: 'AGENTS.md' },
-      ],
-    };
-    const result = generateMetaContext(index, {
-      taskType: 'feature',
-      files: ['packages/opencode-learning-engine/src/index.js'],
-    });
-
-    assert.ok(result.includes('Bun-First'), 'should include convention from root AGENTS.md');
+    const idxRecentHigh = result.indexOf('recent-high');
+    const idxOlderHigh = result.indexOf('older-high');
+    const idxRecentLow = result.indexOf('recent-low');
+    assert.ok(idxRecentHigh < idxOlderHigh, 'high + recent should rank first');
+    assert.ok(idxOlderHigh < idxRecentLow, 'high risk should outrank low risk');
   });
 
   it('respects maxChars cap', () => {
     const index = {
-      anti_patterns: [
-        { pattern: 'debug_issue_1', severity: 'high', description: 'A'.repeat(500) },
-        { pattern: 'debug_issue_2', severity: 'medium', description: 'B'.repeat(500) },
-        { pattern: 'debug_issue_3', severity: 'low', description: 'C'.repeat(500) },
-      ],
-      by_affected_path: {},
-      conventions: [],
+      by_affected_path: {
+        'packages/opencode-plugin-preload-skills': [
+          {
+            id: 'very-long-entry',
+            summary: 'X'.repeat(2000),
+            risk_level: 'high',
+            timestamp: '2026-03-20T10:00:00.000Z',
+          },
+        ],
+      },
     };
-    const result = generateMetaContext(index, { taskType: 'debug', files: [] }, 200);
+    const result = generateMetaContext(index, {
+      files: ['packages/opencode-plugin-preload-skills/src/index.js'],
+    }, 160);
 
-    assert.ok(result.length <= 200, `should be under 200 chars, got ${result.length}`);
-    assert.ok(result.endsWith('<!-- /META-KB CONTEXT -->'), 'should end with closing comment even when truncated');
+    assert.ok(result.length <= 160, `should be under 160 chars, got ${result.length}`);
   });
 
-  it('limits to MAX_ENTRIES entries', () => {
-    const antiPatterns = [];
-    for (let i = 0; i < 10; i++) {
-      antiPatterns.push({
-        pattern: `debug_pattern_${i}`,
-        severity: 'medium',
-        description: `Issue number ${i}`,
-      });
-    }
+  it('returns empty string when there are no path matches', () => {
     const index = {
-      anti_patterns: antiPatterns,
-      by_affected_path: {},
-      conventions: [],
+      anti_patterns: [
+        { pattern: 'shotgun_debug', severity: 'high', description: 'Should not be used by injector' },
+      ],
+      by_affected_path: {
+        scripts: [
+          {
+            id: 'scripts-only',
+            summary: 'Only scripts path',
+            risk_level: 'low',
+            timestamp: '2026-03-20T10:00:00.000Z',
+          },
+        ],
+      },
     };
-    const result = generateMetaContext(index, { taskType: 'debug', files: [] });
+    const result = generateMetaContext(index, {
+      files: ['packages/opencode-plugin-preload-skills/src/index.js'],
+      taskType: 'debug',
+    });
 
-    // Count the number of entry lines (lines starting with ⚠ or ℹ or 📏)
-    const entryLines = result.split('\n').filter(line =>
-      line.startsWith('⚠') || line.startsWith('ℹ') || line.startsWith('📏')
-    );
-    assert.ok(entryLines.length <= MAX_ENTRIES, `should have at most ${MAX_ENTRIES} entries, got ${entryLines.length}`);
+    assert.equal(result, '');
   });
 
   it('defaults MAX_META_CONTEXT_CHARS to 800', () => {

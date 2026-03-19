@@ -12,13 +12,13 @@ The oh-my-opencode plugin manages 8+ agents externally. This creates an auditabi
 
 ### Enabled Agents (from oh-my-opencode.json)
 1. **atlas** - Orchestration and planning agent
-   - Model: anthropic/claude-sonnet-4-5
+   - Model: anthropic/claude-sonnet-4-6
    
 2. **hephaestus** - Builder and implementation agent
    - Model: openai/gpt-5.3-codex (medium variant)
    
 3. **librarian** - Research and documentation agent
-   - Model: anthropic/claude-sonnet-4-5
+   - Model: anthropic/claude-sonnet-4-6
    
 4. **metis** - Strategic and architectural agent
    - Model: anthropic/claude-opus-4-6 (max variant)

@@ -15,6 +15,7 @@ import { SafeJSON } from './safe-json.js';
 import { MemoryGuard } from './memory-guard.js';
 import { CrashRecovery } from './crash-recovery.js';
 import { ProcessIsolation } from './process-isolation.js';
+import EnhancedSandbox from './enhanced-sandbox.js';
 import { SubsystemGuard } from './subsystem-guard.js';
 import { commandExists, safeSpawn, whichMany, getSystemInfo } from './spawn-guard.js';
 
@@ -172,6 +173,7 @@ export { SafeJSON } from './safe-json.js';
 export { MemoryGuard } from './memory-guard.js';
 export { CrashRecovery } from './crash-recovery.js';
 export { ProcessIsolation } from './process-isolation.js';
+export { default as EnhancedSandbox } from './enhanced-sandbox.js';
 export { SubsystemGuard } from './subsystem-guard.js';
 export { commandExists, safeSpawn, whichMany, getSystemInfo } from './spawn-guard.js';
 

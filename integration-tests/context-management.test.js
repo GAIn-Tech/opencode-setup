@@ -12,6 +12,9 @@
 
 import { describe, expect, test, beforeEach } from 'bun:test';
 import { unlinkSync } from 'node:fs';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import os from 'node:os';
 
 /** Remove SQLite DB and event-history JSON files to prevent cross-test pollution. */
 function cleanupDbFiles(dbPath) {
@@ -114,16 +117,16 @@ describe('ContextBridge evaluateAndCompress', () => {
     expect(signal.reason).toContain('proactive compression');
   });
 
-  test('returns "compress_urgent" when budget is at 85%', () => {
+  test('returns "block" when budget is at 85%', () => {
     const mockGovernor = {
       getRemainingBudget: () => ({ pct: 0.85, remaining: 27_000, used: 153_000, max: 180_000 }),
     };
     const bridge = new ContextBridge({ governor: mockGovernor });
     const signal = bridge.evaluateAndCompress('ses_urgent', 'test-model');
 
-    expect(signal.action).toBe('compress_urgent');
+    expect(signal.action).toBe('block');
     expect(signal.pct).toBe(0.85);
-    expect(signal.reason).toContain('CRITICAL');
+    expect(signal.reason).toContain('BLOCKED');
   });
 
   test('returns "none" when governor is unavailable (fail-open)', () => {
@@ -141,14 +144,17 @@ describe('ContextBridge evaluateAndCompress', () => {
 
 describe('PipelineMetricsCollector compression tracking (T16)', () => {
   let collector;
-  const DB_PATH = '/tmp/test-metrics-t20.db';
+  let DB_PATH;
 
   beforeEach(() => {
+    DB_PATH = `/tmp/test-metrics-t20-${Date.now()}-${Math.random().toString(36).substring(2)}.db`;
+    console.log(`[DEBUG] beforeEach running for DB_PATH: ${DB_PATH}`);
     cleanupDbFiles(DB_PATH);
     collector = new PipelineMetricsCollector({
       autoCleanup: false,
       dbPath: DB_PATH,
     });
+    console.log(`[DEBUG] New collector created, compressionEvents length: ${collector._compressionEvents?.length || 0}`);
   });
 
   test('recordCompression stores events and getCompressionStats aggregates', () => {
@@ -183,9 +189,10 @@ describe('PipelineMetricsCollector compression tracking (T16)', () => {
 
 describe('PipelineMetricsCollector Context7 tracking (T17)', () => {
   let collector;
-  const DB_PATH = '/tmp/test-metrics-t20-c7.db';
+  let DB_PATH;
 
   beforeEach(() => {
+    DB_PATH = `/tmp/test-metrics-t20-c7-${Date.now()}-${Math.random().toString(36).substring(2)}.db`;
     cleanupDbFiles(DB_PATH);
     collector = new PipelineMetricsCollector({
       autoCleanup: false,
@@ -292,7 +299,7 @@ describe('PipelineMetricsCollector cleanup includes new event types', () => {
       autoCleanup: false,
       retentionMs: 5_000,
       nowFn: () => now,
-      dbPath: '/tmp/test-metrics-t20-cleanup.db',
+      dbPath: `/tmp/test-metrics-t20-cleanup-${Date.now()}-${Math.random().toString(36).substring(2)}.db`,
     });
 
     // Record events at t=1_000_000
@@ -311,13 +318,51 @@ describe('PipelineMetricsCollector cleanup includes new event types', () => {
   });
 });
 
+describe('PipelineMetricsCollector history log rotation', () => {
+  test('rotates oversized history file during cleanup and keeps archive', async () => {
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'metrics-rotation-'));
+    const dbPath = path.join(tmpDir, 'metrics.db');
+    const historyPath = `${dbPath}.events.json`;
+    cleanupDbFiles(dbPath);
+
+    await fs.writeFile(historyPath, `${'z'.repeat(700)}\n`, 'utf8');
+
+    const collector = new PipelineMetricsCollector({
+      autoCleanup: false,
+      dbPath,
+      historyFilePath: historyPath,
+      historyLogRotation: {
+        maxBytes: 512,
+        intervalMs: 0,
+        maxArchivedFiles: 3,
+      },
+    });
+
+    collector.cleanup();
+    await collector._flushHistoryMaintenanceForTest();
+
+    const files = await fs.readdir(tmpDir);
+    const rotated = files.filter((name) => name.startsWith('metrics.db.events.json.') && !name.endsWith('.json'));
+    expect(rotated.length).toBeGreaterThan(0);
+
+    const current = await fs.readFile(historyPath, 'utf8');
+    expect(current.length).toBeGreaterThan(0);
+
+    const archive = await fs.readFile(path.join(tmpDir, rotated[0]), 'utf8');
+    expect(archive.length).toBeGreaterThan(650);
+
+    collector.close();
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Reset includes new event arrays
 // ---------------------------------------------------------------------------
 
 describe('PipelineMetricsCollector reset clears compression and context7', () => {
   test('reset clears all event arrays including new ones', () => {
-    const resetDbPath = '/tmp/test-metrics-t20-reset.db';
+    const resetDbPath = `/tmp/test-metrics-t20-reset-${Date.now()}-${Math.random().toString(36).substring(2)}.db`;
     cleanupDbFiles(resetDbPath);
     const collector = new PipelineMetricsCollector({
       autoCleanup: false,

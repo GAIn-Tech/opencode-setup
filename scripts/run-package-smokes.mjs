@@ -9,6 +9,28 @@ const root = resolveRoot();
 const outputJson = process.argv.includes('--json');
 const dryRun = process.argv.includes('--dry-run');
 
+// Cache Bun.which() results to avoid repeated PATH lookups
+const commandExistsCache = new Map();
+
+function commandExists(command) {
+  if (!command || typeof command !== 'string') {
+    return false;
+  }
+  // Check cache first
+  if (commandExistsCache.has(command)) {
+    return commandExistsCache.get(command);
+  }
+  // Perform lookup and cache result
+  try {
+    const exists = !!Bun.which(command);
+    commandExistsCache.set(command, exists);
+    return exists;
+  } catch {
+    commandExistsCache.set(command, false);
+    return false;
+  }
+}
+
 function readJson(filePath) {
   return JSON.parse(readFileSync(filePath, 'utf8'));
 }
@@ -37,6 +59,16 @@ function runSmoke(pkg) {
       ok: true,
       dryRun: true,
       command: pkg.smokeCommand,
+    };
+  }
+
+  if (!commandExists('bun')) {
+    return {
+      name: pkg.name,
+      ok: false,
+      exitCode: 1,
+      stdout: '',
+      stderr: 'Command not found: bun',
     };
   }
 

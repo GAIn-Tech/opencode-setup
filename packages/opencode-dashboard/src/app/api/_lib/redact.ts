@@ -4,11 +4,11 @@ const SENSITIVE_KEYS = ['apikey', 'token', 'secret', 'password', 'authorization'
  * Deep-clone an object and replace values of keys matching sensitive patterns with '[REDACTED]'.
  * Non-object values pass through unchanged.
  */
-export function redactSecrets(obj: unknown): unknown {
+export function redactSecrets<T>(obj: T): T {
   if (typeof obj !== 'object' || obj === null) return obj;
 
   if (Array.isArray(obj)) {
-    return obj.map((item) => redactSecrets(item));
+    return obj.map((item) => redactSecrets(item)) as T;
   }
 
   const redacted: Record<string, unknown> = {};
@@ -25,5 +25,5 @@ export function redactSecrets(obj: unknown): unknown {
     }
   }
 
-  return redacted;
+  return redacted as T;
 }

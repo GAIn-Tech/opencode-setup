@@ -3,7 +3,7 @@ import { AuditLogger } from 'opencode-model-manager/lifecycle';
 import * as path from 'path';
 import * as os from 'os';
 import { requireReadAccess, getWriteActor } from '../../_lib/write-access';
-import { errorResponse } from '../../_lib/error-response';
+import { errorResponse } from '../../_lib/api-response';
 import { forbidden, badRequest, internalError, rateLimited } from '../../_lib/api-response';
 
 export const dynamic = 'force-dynamic';

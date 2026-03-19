@@ -238,7 +238,9 @@ function bootstrap(options = {}) {
       const preload = new PreloadSkillsPlugin({
         skillRL: config.skillRLManager || null,
       });
-      preload.init();
+      Promise.resolve(preload.init()).catch(() => {
+        // Fail-open: preload init rejection must not break bootstrap
+      });
       config.preloadSkills = preload;
       bootstrapStatus.packages['preload-skills'] = true;
     } catch { bootstrapStatus.packages['preload-skills'] = false; }

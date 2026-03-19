@@ -161,7 +161,17 @@ function cmdAudit(compound, registry) {
           issues.push(`skills/${entry.name}/ has SKILL.md but NOT in registry`);
         }
       }
-    } catch (_) {}
+  } catch (error) {
+    if (error && typeof error === 'object') {
+      const code = error.code;
+      if (code === 'ENOENT' || code === 'EACCES' || code === 'EPERM') {
+        return;
+      }
+    }
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.warn(`Warning: Unexpected error scanning '${dir}': ${errorMsg}`);
+    warn(`Failed to scan directory '${dir}': ${errorMsg}`);
+  }
   };
   scanDir(SKILLS_DIR);
 
@@ -179,7 +189,8 @@ function cmdAudit(compound, registry) {
 
 function cmdEnable(compound, registry, name, dryRun) {
   if (!isInRegistry(registry, name)) {
-    errExit(`'${name}' is not in registry.json. Run 'add' first.`);
+    console.error(`Error: '${name}' is not in registry.json. Run 'add' first.`);
+    process.exit(1);
   }
   if (isEnabled(compound, name)) {
     log(`'${name}' is already enabled.`);
@@ -203,7 +214,10 @@ function cmdDisable(compound, name, dryRun) {
 }
 
 function cmdAdd(compound, registry, name, flags, dryRun) {
-  if (!name) errExit('Usage: skills-manage.mjs add <name> [--category <cat>] [--description "..."] [--source builtin|custom]');
+  if (!name) {
+    console.error('Usage: skills-manage.mjs add <name> [--category <cat>] [--description "..."] [--source builtin|custom]');
+    process.exit(1);
+  }
 
   const category = flags.category || 'unspecified';
   const description = flags.description || `${name} skill`;
@@ -416,9 +430,27 @@ function main() {
     case 'list':    cmdList(compound, registry, flags); break;
     case 'audit':   cmdAudit(compound, registry); break;
     case 'add':     cmdAdd(compound, registry, name, flags, dryRun); break;
-    case 'remove':  if (!name) errExit('Usage: skills-manage.mjs remove <name>'); cmdRemove(compound, registry, name, dryRun); break;
-    case 'enable':  if (!name) errExit('Usage: skills-manage.mjs enable <name>'); cmdEnable(compound, registry, name, dryRun); break;
-    case 'disable': if (!name) errExit('Usage: skills-manage.mjs disable <name>'); cmdDisable(compound, name, dryRun); break;
+case 'remove':
+  if (!name) {
+    console.error('Usage: skills-manage.mjs remove <name>');
+    process.exit(1);
+  }
+  cmdRemove(compound, registry, name, dryRun);
+  break;
+case 'enable':
+  if (!name) {
+    console.error('Usage: skills-manage.mjs enable <name>');
+    process.exit(1);
+  }
+  cmdEnable(compound, registry, name, dryRun);
+  break;
+case 'disable':
+  if (!name) {
+    console.error('Usage: skills-manage.mjs disable <name>');
+    process.exit(1);
+  }
+  cmdDisable(compound, name, dryRun);
+  break;
     case 'sync':    cmdSync(compound, registry, dryRun); break;
     default:
       process.stderr.write("Unknown command: '" + command + "'. Run without arguments for help.\n");

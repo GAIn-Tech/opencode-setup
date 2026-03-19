@@ -9,11 +9,12 @@ describe('PipelineMetricsCollector', () => {
   let collector;
   let now;
 
-  beforeEach(() => {
+beforeEach(() => {
     now = 1000000;
     collector = new PipelineMetricsCollector({
       autoCleanup: false,
-      nowFn: () => now
+      nowFn: () => now,
+      enableDb: false
     });
   });
 
@@ -27,20 +28,20 @@ describe('PipelineMetricsCollector', () => {
   // ─── Construction ──────────────────────────────────────────
 
   describe('constructor', () => {
-    test('initializes with default retention (24h)', () => {
-      const c = new PipelineMetricsCollector({ autoCleanup: false });
+test('initializes with default retention (24h)', () => {
+      const c = new PipelineMetricsCollector({ autoCleanup: false, enableDb: false });
       expect(c.retentionMs).toBe(24 * 60 * 60 * 1000);
       c.close();
     });
 
     test('accepts custom retention', () => {
-      const c = new PipelineMetricsCollector({ retentionMs: 60000, autoCleanup: false });
+      const c = new PipelineMetricsCollector({ retentionMs: 60000, autoCleanup: false, enableDb: false });
       expect(c.retentionMs).toBe(60000);
       c.close();
     });
 
     test('accepts custom nowFn', () => {
-      const c = new PipelineMetricsCollector({ nowFn: () => 42, autoCleanup: false });
+      const c = new PipelineMetricsCollector({ nowFn: () => 42, autoCleanup: false, enableDb: false });
       expect(c.nowFn()).toBe(42);
       c.close();
     });
@@ -429,6 +430,196 @@ describe('PipelineMetricsCollector', () => {
     });
   });
 
+  describe('orchestration policy telemetry', () => {
+    test('records normalized decision event with stable shape', () => {
+      const event = collector.recordPolicyDecision({
+        contractVersion: '1.0',
+        failOpen: true,
+        inputs: {
+          runtimeContext: {
+            parallel: {
+              forceSerial: false,
+              disabled: false,
+              requestedFanout: 4,
+              requestedConcurrency: 3,
+            }
+          },
+          budgetSignals: {
+            contextPressure: 0.72,
+            costPressure: 0.35,
+          },
+          taskClassification: {
+            category: 'deep',
+            complexity: 'high',
+          },
+        },
+        outputs: {
+          parallel: {
+            maxFanout: 3,
+            maxConcurrency: 2,
+          },
+          routing: {
+            weightHints: {
+              quality: 0.51,
+              cost: 0.33,
+              latency: 0.16,
+            },
+            fallback: {
+              allowFailOpen: true,
+              reason: 'policy-applied',
+              metadata: {
+                combinedBudgetBand: 'high',
+                precedenceRule: 'budget.adaptiveScale',
+              },
+            },
+          },
+        },
+        explain: {
+          budget: {
+            score: 0.61,
+            band: 'high',
+            contextPressure: 0.72,
+            costPressure: 0.35,
+            weights: {
+              context: 0.7,
+              cost: 0.3,
+            },
+            components: {
+              context: 0.504,
+              cost: 0.105,
+            },
+          },
+          precedence: {
+            appliedRule: 'budget.adaptiveScale',
+          },
+        },
+      }, {
+        sessionId: 'ses_policy',
+        taskId: 'task_policy',
+        taskType: 'deep',
+      });
+
+      expect(event.eventType).toBe('orchestration_policy_decision');
+      expect(event.schemaVersion).toBe('1.0');
+      expect(event.decisionVersion).toBe('1.0');
+      expect(event.sessionId).toBe('ses_policy');
+      expect(event.taskId).toBe('task_policy');
+      expect(event.taskType).toBe('deep');
+      expect(event.inputs.taskClassification).toEqual({ category: 'deep', complexity: 'high' });
+      expect(event.score).toEqual({
+        combinedBudgetScore: 0.61,
+        band: 'high',
+        contextPressure: 0.72,
+        costPressure: 0.35,
+        weights: {
+          context: 0.7,
+          cost: 0.3,
+        },
+        components: {
+          context: 0.504,
+          cost: 0.105,
+        },
+      });
+      expect(event.outputs.parallel).toEqual({ maxFanout: 3, maxConcurrency: 2 });
+      expect(event.outputs.fallbackReason).toBe('policy-applied');
+      expect(event.outputs.precedenceRule).toBe('budget.adaptiveScale');
+      expect(event.outputs.failOpen).toBe(true);
+    });
+
+    test('supports sampled low-overhead telemetry path', () => {
+      const neverSample = new PipelineMetricsCollector({
+        autoCleanup: false,
+        nowFn: () => now,
+        randomFn: () => 0.99,
+      });
+
+      const skipped = neverSample.recordPolicyDecision({
+        explain: { budget: { score: 0.1, components: {} } },
+        outputs: { routing: { fallback: { reason: 'policy-applied' } }, parallel: {} },
+      }, {
+        sampleRate: 0.2,
+      });
+
+      expect(skipped).toBeNull();
+      expect(neverSample.getPolicyDecisionStats().totalEvents).toBe(0);
+
+      neverSample.close();
+    });
+  });
+
+  describe('parallel and package utilization telemetry', () => {
+    test('records and summarizes parallel control utilization', () => {
+      collector.recordParallelControls({
+        sessionId: 'ses_parallel',
+        taskId: 'task_parallel',
+        taskType: 'deep',
+        category: 'deep',
+        budgetBand: 'high',
+        fallbackReason: 'policy-applied',
+        requestedFanout: 6,
+        requestedConcurrency: 4,
+        appliedFanout: 3,
+        appliedConcurrency: 2,
+      });
+
+      const stats = collector.getParallelControlStats();
+      expect(stats.totalEvents).toBe(1);
+      expect(stats.avgFanoutReduction).toBe(3);
+      expect(stats.avgConcurrencyReduction).toBe(2);
+      expect(stats.byBudgetBand.high).toBe(1);
+      expect(stats.byTaskType.deep).toBe(1);
+      expect(stats.fallbackReasons['policy-applied']).toBe(1);
+    });
+
+    test('records and summarizes package execution utilization', () => {
+      collector.recordPackageExecution({
+        package: 'preloadSkills',
+        method: 'selectTools',
+        success: true,
+        durationMs: 12,
+        taskType: 'deep',
+      });
+      collector.recordPackageExecution({
+        package: 'preloadSkills',
+        method: 'selectTools',
+        success: false,
+        durationMs: 8,
+        taskType: 'deep',
+        error: 'timeout',
+      });
+
+      const stats = collector.getPackageExecutionStats();
+      expect(stats.totalEvents).toBe(2);
+      expect(stats.successRate).toBe(0.5);
+      expect(stats.avgDurationMs).toBe(10);
+      expect(stats.byPackage.preloadSkills.total).toBe(2);
+      expect(stats.byPackage.preloadSkills.failures).toBe(1);
+      expect(stats.byMethod['preloadSkills.selectTools']).toBe(2);
+    });
+
+    test('snapshot includes new utilization sections', () => {
+      collector.recordParallelControls({
+        taskType: 'deep',
+        requestedFanout: 4,
+        requestedConcurrency: 2,
+        appliedFanout: 3,
+        appliedConcurrency: 2,
+      });
+      collector.recordPackageExecution({
+        package: 'modelRouter',
+        method: 'route',
+        success: true,
+        durationMs: 5,
+      });
+
+      const snapshot = collector.getSnapshot();
+      expect(snapshot.parallelControls).toBeDefined();
+      expect(snapshot.parallelControls.totalEvents).toBe(1);
+      expect(snapshot.packageExecution).toBeDefined();
+      expect(snapshot.packageExecution.totalEvents).toBe(1);
+    });
+  });
+
   // ─── Cleanup & Reset ─────────────────────────────────────
 
   describe('cleanup', () => {
@@ -445,7 +636,7 @@ describe('PipelineMetricsCollector', () => {
       const snapshot = collector.getSnapshot();
       expect(snapshot.discovery.openai.total).toBe(0);
       expect(snapshot.cache.l1.total).toBe(0);
-      expect(Object.keys(snapshot.transitions)).toHaveLength(0);
+      expect(Object.keys(snapshot.transitions.counts)).toHaveLength(0);
       expect(snapshot.prCreation.total).toBe(0);
     });
   });

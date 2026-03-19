@@ -63,12 +63,12 @@ Eliminate all silent failures, connect all disconnected data pipelines, and wire
 - Deprecation docs for 5 orphaned packages + compound-engineering/info.md dead reference
 
 ### Definition of Done
-- [ ] `bun test` passes with all 253 tests (0 regressions) after EVERY individual fix
-- [ ] `getLearningAdvice` no longer throws in route() — verified by calling route() directly
-- [ ] Memory graph accepts entries — verified by sending a test entry and confirming storage
-- [ ] Token usage is non-zero after a delegate() call
-- [ ] Alert listeners fire on evaluateBudget() — verified by triggering a budget threshold
-- [ ] runtime-tool-telemetry captures `success: false` on tool error — verified via test invocation
+- [x] `bun test` passes with all 253 tests (0 regressions) after EVERY individual fix
+- [x] `getLearningAdvice` no longer throws in route() — verified by calling route() directly
+- [x] Memory graph accepts entries — verified by sending a test entry and confirming storage
+- [x] Token usage is non-zero after a delegate() call
+- [x] Alert listeners fire on evaluateBudget() — verified by triggering a budget threshold
+- [x] runtime-tool-telemetry captures `success: false` on tool error — verified via test invocation
 
 ### Must Have
 - Fail-open semantics preserved on ALL fixes (every try/catch that returns null/default stays that way)
@@ -196,7 +196,7 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
 
 ## TODOs
 
-- [ ] 0. Establish Baseline + Git Tag
+- [x] 0. Establish Baseline + Git Tag
 
   **What to do**:
   - Run `bun test` and confirm all 253 tests pass (0 failures)
@@ -222,16 +222,16 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-model-router-x/src/index.js:698` — getLearningAdvice call site
 
   **Acceptance Criteria**:
-  - [ ] `bun test` output shows "253 tests passed" (or higher), 0 failures
-  - [ ] `git tag pre-wiring-fix` succeeds and appears in `git tag --list`
-  - [ ] Pre-fix baseline file saved: `.sisyphus/evidence/orchestration-fixes/pre-fix-model-selection.txt`
-  - [ ] Evidence: `.sisyphus/evidence/orchestration-fixes/task-0-baseline.txt` (bun test output)
+  - [x] `bun test` output shows "253 tests passed" (or higher), 0 failures
+  - [x] `git tag pre-wiring-fix` succeeds and appears in `git tag --list`
+  - [x] Pre-fix baseline file saved: `.sisyphus/evidence/orchestration-fixes/pre-fix-model-selection.txt`
+  - [x] Evidence: `.sisyphus/evidence/orchestration-fixes/task-0-baseline.txt` (bun test output)
 
   **Commit**: NO (no code changes)
 
 ---
 
-- [ ] 1. CircuitBreaker tryLoad in bootstrap.js
+- [x] 1. CircuitBreaker tryLoad in bootstrap.js
 
   **What to do**:
   - In `packages/opencode-integration-layer/src/bootstrap.js`, add a `tryLoad()` call for `opencode-circuit-breaker` (or the correct package name) alongside the other package loads
@@ -258,16 +258,16 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-model-router-x/src/index.js:379` — constructor fallback (DO NOT TOUCH)
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] `node -e "const {getBootstrapStatus} = require('./packages/opencode-integration-layer/src/bootstrap.js'); const s = getBootstrapStatus(); console.log(JSON.stringify(s.packages?.circuitBreaker));"` — shows loaded status (true or false, not undefined)
-  - [ ] Evidence: `.sisyphus/evidence/orchestration-fixes/task-1-circuit-breaker.txt`
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] `node -e "const {getBootstrapStatus} = require('./packages/opencode-integration-layer/src/bootstrap.js'); const s = getBootstrapStatus(); console.log(JSON.stringify(s.packages?.circuitBreaker));"` — shows loaded status (true or false, not undefined)
+  - [x] Evidence: `.sisyphus/evidence/orchestration-fixes/task-1-circuit-breaker.txt`
 
   **Commit**: YES (with Task 2, 3)
   - Message: `fix(bootstrap): tryLoad CircuitBreaker and store proofcheck in IntegrationLayer config`
 
 ---
 
-- [ ] 2. crashGuard wired in IntegrationLayer constructor
+- [x] 2. crashGuard wired in IntegrationLayer constructor
 
   **What to do**:
   - In `packages/opencode-integration-layer/src/index.js`, find the constructor where config is received
@@ -292,15 +292,15 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-integration-layer/src/bootstrap.js` — how crashGuard is initialized
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] `node -e "const IL = require('./packages/opencode-integration-layer/src/index.js'); const il = new IL({crashGuard: {commandExists: ()=>true}}); console.log('crashGuard set:', !!il.crashGuard);"` → outputs `crashGuard set: true`
-  - [ ] `node -e "const IL = require('./packages/opencode-integration-layer/src/index.js'); const il = new IL({}); const r = il.commandExists('bun'); console.log('commandExists with null guard:', r);"` → does not throw
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] `node -e "const IL = require('./packages/opencode-integration-layer/src/index.js'); const il = new IL({crashGuard: {commandExists: ()=>true}}); console.log('crashGuard set:', !!il.crashGuard);"` → outputs `crashGuard set: true`
+  - [x] `node -e "const IL = require('./packages/opencode-integration-layer/src/index.js'); const il = new IL({}); const r = il.commandExists('bun'); console.log('commandExists with null guard:', r);"` → does not throw
 
   **Commit**: YES (grouped with Task 1, 3)
 
 ---
 
-- [ ] 3. proofcheck stored in IntegrationLayer config
+- [x] 3. proofcheck stored in IntegrationLayer config
 
   **What to do**:
   - In `packages/opencode-integration-layer/src/index.js` constructor, add `this.proofcheck = config.proofcheck || null;`
@@ -322,14 +322,14 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-integration-layer/src/index.js` — constructor
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] Constructor stores `this.proofcheck` — verified by `grep "this.proofcheck" packages/opencode-integration-layer/src/index.js`
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] Constructor stores `this.proofcheck` — verified by `grep "this.proofcheck" packages/opencode-integration-layer/src/index.js`
 
   **Commit**: YES (grouped with Task 1, 2)
 
 ---
 
-- [ ] 4. ExplorationRLAdapter method alignment
+- [x] 4. ExplorationRLAdapter method alignment
 
   **What to do**:
   - In `packages/opencode-exploration-rl/src/exploration-adapter.js` (or wherever ExplorationRLAdapter is defined):
@@ -356,16 +356,16 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-skill-rl/src/index.js` — SkillRLManager.learnFromOutcome() signature
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] `grep -r "recordOutcome" packages/` returns 0 results (or only comments)
-  - [ ] ExplorationRLAdapter can be instantiated without throwing: `node -e "const {ExplorationRLAdapter} = require('./packages/opencode-exploration-rl/src/exploration-adapter.js'); console.log('adapter imported OK');"`
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] `grep -r "recordOutcome" packages/` returns 0 results (or only comments)
+  - [x] ExplorationRLAdapter can be instantiated without throwing: `node -e "const {ExplorationRLAdapter} = require('./packages/opencode-exploration-rl/src/exploration-adapter.js'); console.log('adapter imported OK');"`
 
   **Commit**: YES
   - Message: `fix(exploration-rl): align ExplorationRLAdapter to use learnFromOutcome instead of recordOutcome`
 
 ---
 
-- [ ] 5. Memory graph schema normalization
+- [x] 5. Memory graph schema normalization
 
   **What to do**:
   - In `packages/opencode-memory-graph/src/graph-builder.js` around lines 149-150:
@@ -391,16 +391,16 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-integration-layer/src/index.js` — recordSessionError() call site
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] Graph accepts entries sent in old format: `node -e "const {buildGraph} = require('./packages/opencode-memory-graph/src/graph-builder.js'); const r = buildGraph([{sessionId:'test-session',message:'Test error',name:'TypeError',stack:'stack'}]); if(r.meta.total_entries < 1) { console.error('FAIL: entry dropped'); process.exit(1); } console.log('PASS: entry stored, total_entries:', r.meta.total_entries);"`
-  - [ ] Evidence: `.sisyphus/evidence/orchestration-fixes/task-5-memory-graph.txt`
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] Graph accepts entries sent in old format: `node -e "const {buildGraph} = require('./packages/opencode-memory-graph/src/graph-builder.js'); const r = buildGraph([{sessionId:'test-session',message:'Test error',name:'TypeError',stack:'stack'}]); if(r.meta.total_entries < 1) { console.error('FAIL: entry dropped'); process.exit(1); } console.log('PASS: entry stored, total_entries:', r.meta.total_entries);"`
+  - [x] Evidence: `.sisyphus/evidence/orchestration-fixes/task-5-memory-graph.txt`
 
   **Commit**: YES
   - Message: `fix(memory-graph): normalize schema field names to prevent silent entry drops`
 
 ---
 
-- [ ] 6. bootstrap.js added to package.json exports map
+- [x] 6. bootstrap.js added to package.json exports map
 
   **What to do**:
   - In `packages/opencode-integration-layer/package.json`, find the `"exports"` field
@@ -424,16 +424,16 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-integration-layer/src/bootstrap.js` — file to export
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] `node -e "const b = require('opencode-integration-layer/bootstrap'); console.log('bootstrap importable:', typeof b.bootstrap);"` — succeeds (assuming package is linked)
-  - [ ] `grep '"./bootstrap"' packages/opencode-integration-layer/package.json` returns a result
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] `node -e "const b = require('opencode-integration-layer/bootstrap'); console.log('bootstrap importable:', typeof b.bootstrap);"` — succeeds (assuming package is linked)
+  - [x] `grep '"./bootstrap"' packages/opencode-integration-layer/package.json` returns a result
 
   **Commit**: YES
   - Message: `fix(integration-layer): add bootstrap.js to package.json exports map`
 
 ---
 
-- [ ] 7. context-governor/memory-graph/backup-manager visible to bootstrapStatus
+- [x] 7. context-governor/memory-graph/backup-manager visible to bootstrapStatus
 
   **What to do**:
   - In `packages/opencode-integration-layer/src/bootstrap.js`, find the `getBootstrapStatus()` function
@@ -460,15 +460,15 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-backup-manager/` — package to check
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] `node -e "const {getBootstrapStatus} = require('./packages/opencode-integration-layer/src/bootstrap.js'); const s = getBootstrapStatus(); console.log('contextGovernor:', s.contextGovernor?.loaded, 'memoryGraph:', s.memoryGraph?.loaded, 'backupManager:', s.backupManager?.loaded);"` — all three fields present (true or false, not undefined)
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] `node -e "const {getBootstrapStatus} = require('./packages/opencode-integration-layer/src/bootstrap.js'); const s = getBootstrapStatus(); console.log('contextGovernor:', s.contextGovernor?.loaded, 'memoryGraph:', s.memoryGraph?.loaded, 'backupManager:', s.backupManager?.loaded);"` — all three fields present (true or false, not undefined)
 
   **Commit**: YES (with Task 6)
   - Message: `fix(bootstrap): expose context-governor, memory-graph, backup-manager in bootstrapStatus`
 
 ---
 
-- [ ] 8. getLearningAdvice added to ModelRouter ⚠️ BEHAVIOR CHANGE
+- [x] 8. getLearningAdvice added to ModelRouter ⚠️ BEHAVIOR CHANGE
 
   **What to do**:
   - In `packages/opencode-model-router-x/src/index.js`:
@@ -499,17 +499,17 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-model-router-x/src/index.js:696-705` — try/catch that currently swallows the TypeError
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] `node -e "const {ModelRouter} = require('./packages/opencode-model-router-x/src/index.js'); const r = new ModelRouter({}); const res = r.route({taskType:'debug',sessionId:'test'}); console.log('PASS route succeeded:', res.modelId); if(!res.modelId) process.exit(1);"` — succeeds without TypeError
-  - [ ] Behavioral comparison: save output of route() before and after to `.sisyphus/evidence/orchestration-fixes/task-8-model-selection-comparison.txt`
-  - [ ] Evidence: `.sisyphus/evidence/orchestration-fixes/task-8-get-learning-advice.txt`
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] `node -e "const {ModelRouter} = require('./packages/opencode-model-router-x/src/index.js'); const r = new ModelRouter({}); const res = r.route({taskType:'debug',sessionId:'test'}); console.log('PASS route succeeded:', res.modelId); if(!res.modelId) process.exit(1);"` — succeeds without TypeError
+  - [x] Behavioral comparison: save output of route() before and after to `.sisyphus/evidence/orchestration-fixes/task-8-model-selection-comparison.txt`
+  - [x] Evidence: `.sisyphus/evidence/orchestration-fixes/task-8-get-learning-advice.txt`
 
   **Commit**: YES (with Tasks 9, 10, 11)
   - Message: `fix(model-router): add getLearningAdvice to ModelRouter and wire learnFromOutcome call path`
 
 ---
 
-- [ ] 9. LearningEngine.learnFromOutcome call path from integration-layer
+- [x] 9. LearningEngine.learnFromOutcome call path from integration-layer
 
   **What to do**:
   - In `packages/opencode-integration-layer/src/index.js`, find `executeTaskWithEvidence()` (the post-execution path)
@@ -533,14 +533,14 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-learning-engine/src/index.js:735` — learnFromOutcome signature
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] `grep "learnFromOutcome" packages/opencode-integration-layer/src/index.js` returns at least 1 result (not just a comment)
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] `grep "learnFromOutcome" packages/opencode-integration-layer/src/index.js` returns at least 1 result (not just a comment)
 
   **Commit**: YES (grouped with Tasks 8, 10, 11)
 
 ---
 
-- [ ] 10. recordTokenUsage called in executeTaskWithEvidence ⚠️ BEHAVIOR CHANGE
+- [x] 10. recordTokenUsage called in executeTaskWithEvidence ⚠️ BEHAVIOR CHANGE
 
   **What to do**:
   - In `packages/opencode-integration-layer/src/index.js`, in `executeTaskWithEvidence()`:
@@ -567,15 +567,15 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-integration-layer/src/index.js` — executeTaskWithEvidence return shape (find where tokensUsed comes from)
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] After a mock delegate call: `node -e "/* instantiate IL, call delegate, check that recordTokenUsage was called with non-zero value */"` (adapter test)
-  - [ ] Token budget is non-zero after delegation: verify via context-governor status if available
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] After a mock delegate call: `node -e "/* instantiate IL, call delegate, check that recordTokenUsage was called with non-zero value */"` (adapter test)
+  - [x] Token budget is non-zero after delegation: verify via context-governor status if available
 
   **Commit**: YES (grouped with Tasks 8, 9, 11)
 
 ---
 
-- [ ] 11. checkContextBudget called in production routing
+- [x] 11. checkContextBudget called in production routing
 
   **What to do**:
   - In `packages/opencode-integration-layer/src/index.js`, in the delegation flow (before or after executeTaskWithEvidence):
@@ -600,15 +600,15 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-integration-layer/src/index.js` — delegation flow
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] `grep "checkContextBudget" packages/opencode-integration-layer/src/index.js` returns a non-test callsite
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] `grep "checkContextBudget" packages/opencode-integration-layer/src/index.js` returns a non-test callsite
 
   **Commit**: YES (grouped with Tasks 8, 9, 10)
   - Message: `fix(integration-layer): wire budget tracking — recordTokenUsage and checkContextBudget in hot path`
 
 ---
 
-- [ ] 12. runtime-tool-telemetry success flag fix
+- [x] 12. runtime-tool-telemetry success flag fix
 
   **What to do**:
   - In `scripts/runtime-tool-telemetry.mjs`, find line ~1360 where `success: true` is hardcoded
@@ -632,16 +632,16 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - PostToolUse hook payload shape — check opencode documentation or hook registration code for result field names
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] `grep "success: true" scripts/runtime-tool-telemetry.mjs` returns 0 results (or only in comments)
-  - [ ] Simulate a tool failure and confirm `success: false` with errorClass populated in invocations.json
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] `grep "success: true" scripts/runtime-tool-telemetry.mjs` returns 0 results (or only in comments)
+  - [x] Simulate a tool failure and confirm `success: false` with errorClass populated in invocations.json
 
   **Commit**: YES (with Task 13)
   - Message: `fix(telemetry): derive success flag from actual tool result; populate errorClass/errorCode on failure`
 
 ---
 
-- [ ] 13. runtime-tool-telemetry pipeline bypass fix
+- [x] 13. runtime-tool-telemetry pipeline bypass fix
 
   **What to do**:
   - In `scripts/runtime-tool-telemetry.mjs`, currently invocation data is written directly to invocations.json
@@ -667,14 +667,14 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-learning-engine/src/tool-usage-tracker.js:416` — appropriateness scoring
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] After recording tool invocations, `detectUnderUse()` is called at least once in the telemetry flow (verified by log or code inspection)
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] After recording tool invocations, `detectUnderUse()` is called at least once in the telemetry flow (verified by log or code inspection)
 
   **Commit**: YES (grouped with Task 12)
 
 ---
 
-- [ ] 14. AlertManager event bus — wire .on() listeners in bootstrap/IntegrationLayer
+- [x] 14. AlertManager event bus — wire .on() listeners in bootstrap/IntegrationLayer
 
   **What to do**:
   - In `packages/opencode-model-manager/src/monitoring/alert-manager.js`, it emits `alert:fired` (line ~333) and `alert:resolved` (line ~181) with ZERO listeners
@@ -702,16 +702,16 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - Existing logger in bootstrap/IntegrationLayer — use for routing alert output
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] `grep "\.on.*alert:" packages/opencode-integration-layer/src/bootstrap.js` or index.js returns at least 2 results
-  - [ ] Trigger a test alert: `node -e "const AM = require('./packages/opencode-model-manager/src/monitoring/alert-manager.js'); /* trigger evaluateBudget at 90% */"` — listener output appears in console
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] `grep "\.on.*alert:" packages/opencode-integration-layer/src/bootstrap.js` or index.js returns at least 2 results
+  - [x] Trigger a test alert: `node -e "const AM = require('./packages/opencode-model-manager/src/monitoring/alert-manager.js'); /* trigger evaluateBudget at 90% */"` — listener output appears in console
 
   **Commit**: YES
   - Message: `fix(alerts): wire AlertManager event listeners in bootstrap for alert:fired and alert:resolved`
 
 ---
 
-- [ ] 15. LearningEngine event hooks — wire non-test consumers
+- [x] 15. LearningEngine event hooks — wire non-test consumers
 
   **What to do**:
   - LearningEngine emits: `outcomeRecorded` (index.js:749), `onFailureDistill` (index.js:751), `patternStored` (index.js:775) — currently no non-test consumers
@@ -737,15 +737,15 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-integration-layer/src/index.js` — where to add .on() listeners
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] `grep "\.on.*outcomeRecorded\|\.on.*onFailureDistill\|\.on.*patternStored" packages/opencode-integration-layer/src/index.js` returns 3 results
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] `grep "\.on.*outcomeRecorded\|\.on.*onFailureDistill\|\.on.*patternStored" packages/opencode-integration-layer/src/index.js` returns 3 results
 
   **Commit**: YES (with Task 14)
   - Message: `fix(learning-engine): wire non-test consumers for outcomeRecorded, onFailureDistill, patternStored events`
 
 ---
 
-- [ ] 16. Dashboard memory-graph route delegates to package API
+- [x] 16. Dashboard memory-graph route delegates to package API
 
   **What to do**:
   - In the Dashboard route file at `packages/opencode-dashboard/src/app/` (find the memory-graph route, line ~167):
@@ -771,16 +771,16 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-memory-graph/src/index.js` — package API surface
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] `bun run build` (dashboard) — succeeds, 0 errors
-  - [ ] Dashboard memory-graph API endpoint returns same shape as before — verify with curl or Playwright
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] `bun run build` (dashboard) — succeeds, 0 errors
+  - [x] Dashboard memory-graph API endpoint returns same shape as before — verify with curl or Playwright
 
   **Commit**: YES
   - Message: `fix(dashboard): memory-graph route delegates to opencode-memory-graph package API`
 
 ---
 
-- [ ] 17. Dashboard metric routes use shared MetricsCollector
+- [x] 17. Dashboard metric routes use shared MetricsCollector
 
   **What to do**:
   - Dashboard has compression, context7, and error-trend routes that each instantiate their own `MetricsCollector` singleton — disconnected from the live runtime producer
@@ -808,16 +808,16 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - Dashboard route files for compression/context7/error-trend — find them via `grep -r "new MetricsCollector" packages/opencode-dashboard/`
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] `bun run build` — dashboard builds successfully
-  - [ ] `grep -r "new MetricsCollector" packages/opencode-dashboard/src/app/` returns 0 results (or only the shared singleton)
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] `bun run build` — dashboard builds successfully
+  - [x] `grep -r "new MetricsCollector" packages/opencode-dashboard/src/app/` returns 0 results (or only the shared singleton)
 
   **Commit**: YES (with Task 16)
   - Message: `fix(dashboard): use shared MetricsCollector singleton across all metric routes`
 
 ---
 
-- [ ] 18. PipelineMetricsCollector auto-feed from runtime events
+- [x] 18. PipelineMetricsCollector auto-feed from runtime events
 
   **What to do**:
   - `PipelineMetricsCollector` (in opencode-model-manager monitoring) has `recordDiscovery`, `recordCacheAccess`, `recordTransition` — currently fed mostly by manual dashboard POST
@@ -843,15 +843,15 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-integration-layer/src/index.js` — skill selection and execution flow points
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] After a delegate call: PipelineMetricsCollector has at least 1 recordDiscovery entry — verify via metrics API or direct inspection
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] After a delegate call: PipelineMetricsCollector has at least 1 recordDiscovery entry — verify via metrics API or direct inspection
 
   **Commit**: YES (grouped with Tasks 14-17)
   - Message: `fix(metrics): auto-feed PipelineMetricsCollector from runtime skill selection and execution events`
 
 ---
 
-- [ ] 19. AlertManager.evaluateBudget() wired after consumeTokens
+- [x] 19. AlertManager.evaluateBudget() wired after consumeTokens
 
   **What to do**:
   - `AlertManager.evaluateBudget()` has no production callsites (comment at alert-manager.js:82 says it should be called after consumeTokens)
@@ -875,15 +875,15 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-integration-layer/src/index.js:804` — recordTokenUsage method
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] `grep "evaluateBudget" packages/opencode-integration-layer/src/index.js` returns a production callsite
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] `grep "evaluateBudget" packages/opencode-integration-layer/src/index.js` returns a production callsite
 
   **Commit**: YES (with Task 20)
   - Message: `fix(budget): wire evaluateBudget after consumeTokens and budgetEnforcer behind feature flag`
 
 ---
 
-- [ ] 20. WorkflowExecutor budgetEnforcer wired (behind feature flag)
+- [x] 20. WorkflowExecutor budgetEnforcer wired (behind feature flag)
 
   **What to do**:
   - In `packages/opencode-integration-layer/src/bootstrap.js`, `WorkflowExecutor` receives `budgetEnforcer: null`
@@ -909,15 +909,15 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-workflow-executor/` — WorkflowExecutor and budgetEnforcer parameter
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] `OPENCODE_BUDGET_ENFORCEMENT=true node -e "/* test budget enforcement path */"` — enforcer is used
-  - [ ] `node -e "/* default boot */"` — budgetEnforcer still null (feature flag off)
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] `OPENCODE_BUDGET_ENFORCEMENT=true node -e "/* test budget enforcement path */"` — enforcer is used
+  - [x] `node -e "/* default boot */"` — budgetEnforcer still null (feature flag off)
 
   **Commit**: YES (grouped with Task 19)
 
 ---
 
-- [ ] 21. Skill-failure detection added to FallbackDoctor
+- [x] 21. Skill-failure detection added to FallbackDoctor
 
   **What to do**:
   - `packages/opencode-fallback-doctor/src/index.js` currently only validates chains, not individual skill failures
@@ -944,15 +944,15 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-integration-layer/src/index.js` — execution flow post-result
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] `FallbackDoctor.detectSkillFailures([{skillId:'test', error: new Error('fail')}])` returns `[{skillId:'test', reason: '...'}]`
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] `FallbackDoctor.detectSkillFailures([{skillId:'test', error: new Error('fail')}])` returns `[{skillId:'test', reason: '...'}]`
 
   **Commit**: YES
   - Message: `feat(fallback-doctor): add detectSkillFailures method and wire into execution flow`
 
 ---
 
-- [ ] 22. Consecutive-failure handler for skills (3-strike threshold)
+- [x] 22. Consecutive-failure handler for skills (3-strike threshold)
 
   **What to do**:
   - Currently: skill demotion only triggers at >=10 failures in 100 (evolution-engine.js:413)
@@ -978,15 +978,15 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-learning-engine/src/evolution-engine.js:413` — DO NOT CHANGE this threshold
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] 3 consecutive failure calls to learnFromOutcome for same skill → warning is logged
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] 3 consecutive failure calls to learnFromOutcome for same skill → warning is logged
 
   **Commit**: YES
   - Message: `feat(skill-rl): add 3-consecutive-failure warning and temporary weight reduction`
 
 ---
 
-- [ ] 23. taskType vs task_type field-name consistency
+- [x] 23. taskType vs task_type field-name consistency
 
   **What to do**:
   - Use `ast_grep_search` to find all callsites of `SkillRLManager.selectSkills()` and `learnFromOutcome()`
@@ -1011,15 +1011,15 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - Use `ast_grep_search pattern="selectSkills($$$)" lang="javascript"` to find all callsites
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] `grep -r "task_type" packages/ --include="*.js" --include="*.mjs"` returns 0 results (or only in comments/data files)
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] `grep -r "task_type" packages/ --include="*.js" --include="*.mjs"` returns 0 results (or only in comments/data files)
 
   **Commit**: YES
   - Message: `fix(skill-rl): normalize taskType field name consistency across all selectSkills callers`
 
 ---
 
-- [ ] 24. SkillRL influence shape fix in ModelRouter
+- [x] 24. SkillRL influence shape fix in ModelRouter
 
   **What to do**:
   - In `packages/opencode-model-router-x/src/index.js`, where SkillRL influence is applied:
@@ -1044,15 +1044,15 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-model-router-x/src/index.js` — where SkillRL influence is applied (search for `successRate` or `recommendedModels`)
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] `grep "successRate\|recommendedModels" packages/opencode-model-router-x/src/index.js` returns 0 results (or only as fallback defaults)
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] `grep "successRate\|recommendedModels" packages/opencode-model-router-x/src/index.js` returns 0 results (or only as fallback defaults)
 
   **Commit**: YES
   - Message: `fix(model-router): align SkillRL influence field names with SkillBank actual shape`
 
 ---
 
-- [ ] 25. Dashboard tool-usage breadth denominator fix
+- [x] 25. Dashboard tool-usage breadth denominator fix
 
   **What to do**:
   - In `packages/opencode-dashboard/src/app/` (tool-usage route.ts at line ~97), breadth is calculated with hardcoded denominator `60`
@@ -1075,16 +1075,16 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-learning-engine/src/tool-usage-tracker.js` — AVAILABLE_TOOLS catalog location
 
   **Acceptance Criteria**:
-  - [ ] `bun run build` — dashboard builds successfully
-  - [ ] `grep "60" packages/opencode-dashboard/src/app/` for the denominator line returns 0 results (or shows dynamic value)
-  - [ ] Dashboard tool-usage breadth endpoint returns value based on ~70 denominator
+  - [x] `bun run build` — dashboard builds successfully
+  - [x] `grep "60" packages/opencode-dashboard/src/app/` for the denominator line returns 0 results (or shows dynamic value)
+  - [x] Dashboard tool-usage breadth endpoint returns value based on ~70 denominator
 
   **Commit**: YES
   - Message: `fix(dashboard): use dynamic AVAILABLE_TOOLS count for breadth denominator instead of hardcoded 60`
 
 ---
 
-- [ ] 26. PostToolUse hook params capture depth improvement
+- [x] 26. PostToolUse hook params capture depth improvement
 
   **What to do**:
   - Currently PostToolUse hook captures `params: {}` (shallow/empty)
@@ -1109,16 +1109,16 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `local/oh-my-opencode/` — external hook provider (read-only reference)
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] EITHER: `params` field in invocations.json is populated with actual tool parameters
-  - [ ] OR: `.sisyphus/docs/telemetry-params-fix.md` created documenting the required oh-my-opencode change with exact diff to make
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] EITHER: `params` field in invocations.json is populated with actual tool parameters
+  - [x] OR: `.sisyphus/docs/telemetry-params-fix.md` created documenting the required oh-my-opencode change with exact diff to make
 
   **Commit**: YES
   - Message: `fix(telemetry): improve PostToolUse params capture depth or document required oh-my-opencode change`
 
 ---
 
-- [ ] 27. 4 unconfigured plugins added to opencode.json
+- [x] 27. 4 unconfigured plugins added to opencode.json
 
   **What to do**:
   - In `opencode.json` (root), find the plugins/mcpServers configuration section
@@ -1145,16 +1145,16 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `plugins/rate-limit-fallback/`, `plugins/notifier/`, `plugins/envsitter-guard/`, `plugins/safety-net/` — plugin directories
 
   **Acceptance Criteria**:
-  - [ ] `bun test` — 253+ tests pass, 0 failures
-  - [ ] All 4 plugins appear in `opencode.json` plugins section
-  - [ ] `jq '.plugins | keys' opencode.json` (or equivalent) shows all 4 new plugin entries
+  - [x] `bun test` — 253+ tests pass, 0 failures
+  - [x] All 4 plugins appear in `opencode.json` plugins section
+  - [x] `jq '.plugins | keys' opencode.json` (or equivalent) shows all 4 new plugin entries
 
   **Commit**: YES
   - Message: `fix(config): add 4 unconfigured plugins to opencode.json`
 
 ---
 
-- [ ] 28. opencode-supermemory + opencode-beads plugin metadata stubs
+- [x] 28. opencode-supermemory + opencode-beads plugin metadata stubs
 
   **What to do**:
   - `opencode-supermemory` and `opencode-beads` are referenced in config but have no local plugin metadata
@@ -1175,15 +1175,15 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `opencode.json` — how supermemory and beads are configured
 
   **Acceptance Criteria**:
-  - [ ] `plugins/opencode-supermemory/info.md` exists and describes the plugin
-  - [ ] `plugins/opencode-beads/info.md` exists and describes the plugin
+  - [x] `plugins/opencode-supermemory/info.md` exists and describes the plugin
+  - [x] `plugins/opencode-beads/info.md` exists and describes the plugin
 
   **Commit**: YES (with Tasks 27-30)
   - Message: `docs(plugins): add metadata stubs for unconfigured and undocumented plugins`
 
 ---
 
-- [ ] 29. compound-engineering/info.md dead reference documented
+- [x] 29. compound-engineering/info.md dead reference documented
 
   **What to do**:
   - `plugins/compound-engineering/info.md` is referenced as a config file but is not an installable package spec
@@ -1201,14 +1201,14 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `plugins/compound-engineering/info.md` — file to annotate
 
   **Acceptance Criteria**:
-  - [ ] `plugins/compound-engineering/info.md` contains a STATUS comment explaining it's a dead reference
-  - [ ] OR the file is moved/renamed with a forwarding note
+  - [x] `plugins/compound-engineering/info.md` contains a STATUS comment explaining it's a dead reference
+  - [x] OR the file is moved/renamed with a forwarding note
 
   **Commit**: YES (grouped with Tasks 27-30)
 
 ---
 
-- [ ] 30. 5 orphaned packages — deprecation notices
+- [x] 30. 5 orphaned packages — deprecation notices
 
   **What to do**:
   - Add a deprecation notice to the README.md of each orphaned package:
@@ -1241,8 +1241,8 @@ Critical Path: Task 0 → Wave 1 (sequential) → Wave 2 (sequential) → Wave 3
   - `packages/opencode-model-benchmark/`, `packages/opencode-safe-io/`, `packages/opencode-codebase-memory/`, `packages/opencode-graphdb-bridge/`, `packages/opencode-eval-harness/` — target packages
 
   **Acceptance Criteria**:
-  - [ ] All 5 packages have README.md with deprecation notice
-  - [ ] No code deleted — `git diff --stat` shows only README.md additions
+  - [x] All 5 packages have README.md with deprecation notice
+  - [x] No code deleted — `git diff --stat` shows only README.md additions
 
   **Commit**: YES (grouped with Tasks 27-29)
   - Message: `docs(packages): add deprecation notices to 5 orphaned packages with zero runtime callers`
@@ -1317,9 +1317,9 @@ grep "\.on.*alert:" packages/opencode-integration-layer/src/bootstrap.js package
 ```
 
 ### Final Checklist
-- [ ] All Must Have conditions met (bun test green, baseline established, git tagged)
-- [ ] All Must NOT Have guardrails respected (no fail-closed, no signature changes)
-- [ ] All 30 gaps addressed (3 deferred documented in Deferred Items section)
-- [ ] All 5 waves committed with appropriate commit messages
-- [ ] Evidence files in `.sisyphus/evidence/orchestration-fixes/` for critical fixes
-- [ ] Deferred items documented with future PR names
+- [x] All Must Have conditions met (bun test green, baseline established, git tagged)
+- [x] All Must NOT Have guardrails respected (no fail-closed, no signature changes)
+- [x] All 30 gaps addressed (3 deferred documented in Deferred Items section)
+- [x] All 5 waves committed with appropriate commit messages
+- [x] Evidence files in `.sisyphus/evidence/orchestration-fixes/` for critical fixes
+- [x] Deferred items documented with future PR names

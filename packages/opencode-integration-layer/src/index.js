@@ -85,6 +85,19 @@ try {
 // Context bridge for governor → distill advisory signals
 const { ContextBridge } = require('./context-bridge');
 
+let resolveOrchestrationPolicy = null;
+try {
+  ({ resolveOrchestrationPolicy } = require('./orchestration-policy'));
+} catch {
+  resolveOrchestrationPolicy = null;
+}
+
+const DEFAULT_ORCHESTRATION_POLICY_ROLLOUT_CATEGORIES = Object.freeze([
+  'deep',
+  'ultrabrain',
+  'unspecified-high',
+]);
+
 // T21: Package-level execution instrumentation
 // Tracks which packages are invoked, call frequency, success/failure, and latency.
 // Persists to ~/.opencode/package-execution/events.json for dashboard backfill.
@@ -298,6 +311,14 @@ class IntegrationLayer {
         error: success ? null : String(details.error || 'unknown'),
       };
       _appendPkgEvent(event);
+
+      if (this.pipelineMetrics && typeof this.pipelineMetrics.recordPackageExecution === 'function') {
+        try {
+          this.pipelineMetrics.recordPackageExecution(event);
+        } catch (_metricsErr) {
+          // fail-open: metrics emission must not alter runtime behavior
+        }
+      }
     } catch {
       // Non-fatal: instrumentation must never break normal operations
     }
@@ -355,13 +376,12 @@ class IntegrationLayer {
         ...errorData,
         timestamp: new Date().toISOString(),
       };
-      const normalizedEntry = {
+      const graphEntry = {
+        ...entry,
         session_id: entry.sessionId || entry.session_id || sessionId,
         error_type: entry.name || entry.error_type || entry.errorType || 'UnknownError',
-        message: entry.message || '',
-        timestamp: entry.timestamp || new Date().toISOString(),
       };
-      const result = await this.memoryGraph.buildGraph([normalizedEntry]);
+      const result = await this.memoryGraph.buildGraph([graphEntry]);
       this.recordPackageExecution('memoryGraph', 'buildGraph', true, Date.now() - t0, { sessionId });
       return result;
     } catch (err) {
@@ -652,16 +672,16 @@ class IntegrationLayer {
    */
   commandExists(command) {
     if (!this.crashGuard) {
-      return true;
+      return false;
     }
     if (typeof this.crashGuard.commandExists !== 'function') {
-      return true;
+      return false;
     }
     try {
       return this.crashGuard.commandExists(command);
     } catch (err) {
       this.logger.warn('crash-guard commandExists failed', { command, error: err.message });
-      return true;
+      return false;
     }
   }
 
@@ -945,10 +965,16 @@ class IntegrationLayer {
       recommendedSkills.push('dcp', 'distill', 'context-governor');
     }
 
+    const selectionMetaContext = typeof selection?.meta_context === 'string'
+      ? selection.meta_context
+      : '';
+
     return {
       selection,
       budget,
       toolNames: [...toolNames],
+      meta_context: selectionMetaContext,
+      has_meta_context: selectionMetaContext.trim().length > 0,
       compression: {
         active: budget.action === 'compress' || budget.action === 'compress_urgent',
         recommendedTools,
@@ -1135,6 +1161,212 @@ class IntegrationLayer {
     }
 
     return normalized;
+  }
+
+  _isOrchestrationPolicyEnabled(taskContext = {}, runtimeContext = {}) {
+    const taskPolicy = taskContext.orchestrationPolicy;
+    const runtimePolicy = runtimeContext.orchestrationPolicy;
+
+    if (taskPolicy && typeof taskPolicy === 'object' && taskPolicy.enabled === false) {
+      return false;
+    }
+    if (runtimePolicy && typeof runtimePolicy === 'object' && runtimePolicy.enabled === false) {
+      return false;
+    }
+    if (taskContext.disableOrchestrationPolicy === true || runtimeContext.disableOrchestrationPolicy === true) {
+      return false;
+    }
+
+    if (!this._isOrchestrationPolicyCategoryEnabled(taskContext, runtimeContext)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  _normalizeRolloutEnabledCategories(categories) {
+    if (!Array.isArray(categories)) {
+      return null;
+    }
+
+    const normalized = categories
+      .map((value) => String(value || '').trim().toLowerCase())
+      .filter(Boolean);
+
+    return new Set(normalized);
+  }
+
+  _resolveOrchestrationPolicyRollout(taskContext = {}, runtimeContext = {}) {
+    const taskPolicy = taskContext.orchestrationPolicy;
+    const runtimePolicy = runtimeContext.orchestrationPolicy;
+
+    const candidates = [
+      runtimePolicy?.rollout,
+      taskPolicy?.rollout,
+      runtimeContext?.orchestrationPolicyRollout,
+      taskContext?.orchestrationPolicyRollout,
+    ];
+
+    for (const candidate of candidates) {
+      if (!candidate || typeof candidate !== 'object') {
+        continue;
+      }
+
+      const categories = this._normalizeRolloutEnabledCategories(candidate.enabledCategories);
+      if (categories) {
+        return categories;
+      }
+    }
+
+    return new Set(DEFAULT_ORCHESTRATION_POLICY_ROLLOUT_CATEGORIES);
+  }
+
+  _isOrchestrationPolicyCategoryEnabled(taskContext = {}, runtimeContext = {}) {
+    const categoryRaw = taskContext.category || taskContext.task_type || taskContext.taskType || taskContext.task || 'default';
+    const category = String(categoryRaw).trim().toLowerCase();
+    if (!category) {
+      return false;
+    }
+
+    const enabledCategories = this._resolveOrchestrationPolicyRollout(taskContext, runtimeContext);
+    return enabledCategories.has(category);
+  }
+
+  _buildFailOpenPolicyDecision(reason, metadata = {}) {
+    return {
+      contractVersion: '1.0',
+      failOpen: true,
+      inputs: {
+        runtimeContext: {},
+        budgetSignals: {},
+        taskClassification: {},
+      },
+      outputs: {
+        parallel: {
+          maxFanout: 1,
+          maxConcurrency: 1,
+        },
+        routing: {
+          weightHints: {
+            quality: 0.5,
+            cost: 0.3,
+            latency: 0.2,
+          },
+          fallback: {
+            allowFailOpen: true,
+            reason,
+            metadata: {
+              combinedBudgetBand: 'healthy',
+              precedenceRule: 'policy.failOpenFallback',
+              ...metadata,
+            },
+          },
+        },
+      },
+      explain: {
+        budget: {
+          score: 0,
+          band: 'healthy',
+          contextPressure: 0,
+          costPressure: 0,
+          weights: { context: 0.7, cost: 0.3 },
+          components: { context: 0, cost: 0 },
+        },
+        baseCaps: {
+          category: 'default',
+          complexity: 'moderate',
+          fanout: 1,
+          concurrency: 1,
+        },
+        precedence: {
+          orderedRules: ['policy.failOpenFallback'],
+          appliedRule: 'policy.failOpenFallback',
+        },
+      },
+    };
+  }
+
+  _resolveOrchestrationPolicyDecision(taskContext = {}, runtimeContext = {}) {
+    if (!this._isOrchestrationPolicyEnabled(taskContext, runtimeContext)) {
+      return null;
+    }
+
+    if (typeof resolveOrchestrationPolicy !== 'function') {
+      return this._buildFailOpenPolicyDecision('policy-module-unavailable');
+    }
+
+    const quotaSignal = taskContext.quota_signal || taskContext.quotaSignal || {};
+    const runtimeBudget = runtimeContext.budget && typeof runtimeContext.budget === 'object'
+      ? runtimeContext.budget
+      : {};
+    const budgetSignals = {};
+    const contextPressure = runtimeBudget.contextPressure ?? runtimeBudget.context_pressure ?? runtimeBudget.pct ?? quotaSignal.percent_used;
+    const costPressure = runtimeBudget.costPressure ?? runtimeBudget.cost_pressure ?? quotaSignal.percent_used;
+
+    if (Number.isFinite(Number(contextPressure))) {
+      budgetSignals.contextPressure = Number(contextPressure);
+    }
+    if (Number.isFinite(Number(costPressure))) {
+      budgetSignals.costPressure = Number(costPressure);
+    }
+
+    const taskClassification = {
+      category: taskContext.category || taskContext.task_type || taskContext.taskType || taskContext.task || 'default',
+      taskType: taskContext.task_type || taskContext.taskType || taskContext.task || 'general',
+      complexity: taskContext.complexity || 'moderate',
+    };
+
+    const runtimePolicyContext = {
+      parallel: {
+        ...(runtimeContext.parallel && typeof runtimeContext.parallel === 'object' ? runtimeContext.parallel : {}),
+        ...(taskContext.parallel && typeof taskContext.parallel === 'object' ? taskContext.parallel : {}),
+      },
+    };
+
+    try {
+      return resolveOrchestrationPolicy({
+        runtimeContext: runtimePolicyContext,
+        budgetSignals,
+        taskClassification,
+      });
+    } catch (error) {
+      return this._buildFailOpenPolicyDecision('policy-evaluation-failed', {
+        error: error?.message || String(error),
+      });
+    }
+  }
+
+  _buildDownstreamMetaContext(runtimeContext, advice) {
+    const preloadBlock = typeof runtimeContext?.meta_context === 'string'
+      ? runtimeContext.meta_context
+      : '';
+    const normalizedPreload = preloadBlock.trim();
+    const adviceMeta = advice && typeof advice.meta_context === 'object' && advice.meta_context !== null
+      ? advice.meta_context
+      : null;
+
+    const hasPreload = normalizedPreload.length > 0;
+    const hasAdvice = Boolean(adviceMeta);
+
+    let source = 'none';
+    if (hasPreload && hasAdvice) {
+      source = 'merged';
+    } else if (hasPreload) {
+      source = 'preload-skills';
+    } else if (hasAdvice) {
+      source = 'advisor';
+    }
+
+    return {
+      source,
+      block: preloadBlock,
+      structured: adviceMeta || {
+        warnings: [],
+        suggestions: [],
+        conventions: [],
+      },
+      has_context: hasPreload || hasAdvice,
+    };
   }
 
   /**
@@ -1335,8 +1567,66 @@ class IntegrationLayer {
 
     // Compute runtime context so DCP/budget/tool recommendations participate in live flows
     const runtimeContext = this.resolveRuntimeContext(taskContext);
+    const isOrchestrationPolicyEnabled = this._isOrchestrationPolicyEnabled(taskContext, runtimeContext);
+    let computedPolicyDecision = isOrchestrationPolicyEnabled
+      ? (runtimeContext?.policyDecision || runtimeContext?.orchestrationPolicyDecision || taskContext?.policyDecision || null)
+      : null;
+    if (isOrchestrationPolicyEnabled && !computedPolicyDecision) {
+      try {
+        computedPolicyDecision = this._resolveOrchestrationPolicyDecision(taskContext, runtimeContext);
+      } catch (error) {
+        computedPolicyDecision = this._buildFailOpenPolicyDecision('policy-evaluation-failed', {
+          error: error?.message || String(error),
+        });
+      }
+    }
+    if (computedPolicyDecision) {
+      runtimeContext.policyDecision = computedPolicyDecision;
+      runtimeContext.orchestrationPolicyDecision = computedPolicyDecision;
+      taskContext.policyDecision = computedPolicyDecision;
+    }
     taskContext.runtime_context = runtimeContext;
     taskContext.runtimeContext = runtimeContext;
+    taskContext.meta_context = runtimeContext?.meta_context || '';
+
+    // Telemetry seam: emit normalized orchestration policy decisions when present.
+    // Fail-open by design: telemetry emission must never alter task behavior.
+    const policyDecision = runtimeContext?.policyDecision || runtimeContext?.orchestrationPolicyDecision || taskContext?.policyDecision || null;
+    if (policyDecision && this.pipelineMetrics && typeof this.pipelineMetrics.recordPolicyDecision === 'function') {
+      try {
+        this.pipelineMetrics.recordPolicyDecision(policyDecision, {
+          sessionId: taskContext.session_id || taskContext.sessionId || this.currentSessionId || '',
+          taskId: taskContext.task_id || taskContext.taskId || '',
+          taskType: taskContext.task_type || taskContext.taskType || taskContext.task || 'unknown',
+          sampleRate: runtimeContext?.telemetry?.policyDecisionSampleRate ?? taskContext?.policyTelemetrySampleRate,
+        });
+      } catch (_e) {
+        // fail-open: telemetry must never break execution
+      }
+    }
+
+    if (policyDecision && this.pipelineMetrics && typeof this.pipelineMetrics.recordParallelControls === 'function') {
+      try {
+        const requestedParallel = policyDecision?.inputs?.runtimeContext?.parallel || runtimeContext?.parallel || {};
+        const appliedParallel = policyDecision?.outputs?.parallel || {};
+        this.pipelineMetrics.recordParallelControls({
+          sessionId: taskContext.session_id || taskContext.sessionId || this.currentSessionId || '',
+          taskId: taskContext.task_id || taskContext.taskId || '',
+          taskType: taskContext.task_type || taskContext.taskType || taskContext.task || 'unknown',
+          category: policyDecision?.inputs?.taskClassification?.category || taskContext.category || 'default',
+          budgetBand: policyDecision?.explain?.budget?.band || 'healthy',
+          fallbackReason: policyDecision?.outputs?.routing?.fallback?.reason || 'policy-applied',
+          requestedFanout: requestedParallel.requestedFanout ?? requestedParallel.fanout,
+          requestedConcurrency: requestedParallel.requestedConcurrency ?? requestedParallel.concurrency,
+          appliedFanout: appliedParallel.maxFanout,
+          appliedConcurrency: appliedParallel.maxConcurrency,
+          source: 'integration-layer',
+          failOpen: policyDecision?.failOpen === true,
+        });
+      } catch (_e) {
+        // fail-open: telemetry must never break execution
+      }
+    }
 
     // [T11] Check context budget before execution — fail-open, never blocks
     const _sessionId = taskContext.session_id || taskContext.sessionId;
@@ -1360,8 +1650,30 @@ class IntegrationLayer {
 
     // Get SkillRL recommendations
     let skills = null;
+    let metaKBAdj = null;
     if (this.skillRL) {
       skills = this.skillRL.selectSkills(taskContext);
+
+      // Meta-KB signal injection into SkillRL promotion/demotion scoring
+      if (this.metaKBIndex && Array.isArray(skills) && skills.length > 0) {
+        try {
+          const rescored = this._applyMetaKBSkillPromotionScores(taskContext, skills, this.metaKBIndex);
+          skills = rescored.skills;
+          metaKBAdj = rescored.adjustments;
+
+          if (metaKBAdj && metaKBAdj.net_adjustment < -0.3) {
+            this.logger.warn('Meta-KB anti-pattern risk detected for selected skills', {
+              net_adjustment: metaKBAdj.net_adjustment,
+              anti_pattern_penalty: metaKBAdj.anti_pattern_penalty,
+              affected_skills: metaKBAdj.affected_skills,
+            });
+          }
+        } catch (_e) {
+          // Fail-open: meta-KB adjustment must never block execution
+          this.logger.warn('Meta-KB skill adjustment failed (fail-open)', { error: _e?.message });
+        }
+      }
+
       this.logger.info('SkillRL selected skills', {
         skills: skills.map((s) => s.name),
         task: taskContext.task || 'unknown'
@@ -1376,24 +1688,6 @@ class IntegrationLayer {
             timestamp: Date.now(),
           });
         } catch (_e) { /* fail-open */ }
-      }
-    }
-
-    // Meta-KB skill adjustments: apply anti-pattern penalties and positive evidence
-    let metaKBAdj = null;
-    if (this.metaKBIndex && skills) {
-      try {
-        metaKBAdj = this._computeMetaKBSkillAdjustments(taskContext, skills, this.metaKBIndex);
-        if (metaKBAdj && metaKBAdj.net_adjustment < -0.3) {
-          this.logger.warn('Meta-KB anti-pattern risk detected for selected skills', {
-            net_adjustment: metaKBAdj.net_adjustment,
-            anti_pattern_penalty: metaKBAdj.anti_pattern_penalty,
-            affected_skills: metaKBAdj.affected_skills,
-          });
-        }
-      } catch (_e) {
-        // Fail-open: meta-KB adjustment must never block execution
-        this.logger.warn('Meta-KB skill adjustment failed (fail-open)', { error: _e?.message });
       }
     }
 
@@ -1417,7 +1711,16 @@ class IntegrationLayer {
     }
 
     // Execute the task with adaptive options
-    const advice = this.advisor ? this.advisor.advise(advisorContext) : null;
+    let advice = null;
+    if (this.advisor) {
+      try {
+        advice = await Promise.resolve(this.advisor.advise(advisorContext));
+      } catch (_advisorErr) {
+        this.logger.warn('Advisor.advise() failed (fail-open)', { error: _advisorErr?.message });
+      }
+    }
+    const downstreamMetaContext = this._buildDownstreamMetaContext(runtimeContext, advice);
+    taskContext.meta_context = downstreamMetaContext;
     const budgetAction = runtimeContext?.budget?.action || 'none';
     const compressionActive = runtimeContext?.compression?.active === true;
     const adaptiveOptions = {
@@ -1430,6 +1733,7 @@ class IntegrationLayer {
       compressionRecommendedTools: runtimeContext?.compression?.recommendedTools || [],
       compressionRecommendedSkills: runtimeContext?.compression?.recommendedSkills || [],
       metaKBSkillAdjustments: metaKBAdj,
+      metaContext: downstreamMetaContext,
     };
 
     // Wire: record compression advisory when evaluateAndCompress() triggers compress/compress_urgent
@@ -1462,6 +1766,9 @@ class IntegrationLayer {
           complexity: taskContext.complexity || 'moderate',
           task: taskContext.task,
         };
+        if (policyDecision) {
+          routeCtx.policyDecision = policyDecision;
+        }
         const routeResult = this.modelRouter.route(routeCtx);
         if (routeResult && routeResult.modelId) {
           const originalModel = _model;
@@ -1544,7 +1851,7 @@ class IntegrationLayer {
     const isHighRisk = advice?.risk_score > 60;
     
     let isSkillUncertain = false;
-    if (this.skillRL && skills) {
+    if (this.skillRL && this.skillRL.skillBank && skills) {
       isSkillUncertain = skills.some(s => {
         const perf = this.skillRL.skillBank.getSkillPerformance(s.name, taskContext.task);
         return perf?.is_uncertain;
@@ -1676,9 +1983,9 @@ class IntegrationLayer {
     // Async, non-blocking, fail-open — must never delay task completion
     if (this.explorationAdapter) {
       const _taskCategory = taskContext.task_type || taskContext.task || 'unknown';
-      Promise.resolve().then(() => {
-        this.explorationAdapter.updateFromExploration(_taskCategory);
-      }).catch(() => { /* fail-open: exploration feedback is advisory only */ });
+      Promise.resolve()
+        .then(() => this.explorationAdapter.updateFromExploration(_taskCategory))
+        .catch(() => { /* fail-open: exploration feedback is advisory only */ });
     }
 
     // [T22] Track consecutive failures per skill for early warning
@@ -1817,6 +2124,133 @@ class IntegrationLayer {
       positive_evidence: positiveEvidence,
       affected_skills: affectedSkills,
       net_adjustment: positiveEvidence - antiPatternPenalty,
+    };
+  }
+
+  _applyMetaKBSkillPromotionScores(taskContext, skills, metaKBIndex) {
+    const perSkillSignals = [];
+    const rescored = skills.map((skill) => {
+      const signal = this._computeMetaKBSignalForSkill(taskContext, skill, metaKBIndex);
+      perSkillSignals.push(signal);
+
+      const promotionScore = this._computeSkillPromotionScore(skill);
+      const adjustedPromotionScore = promotionScore + signal.positiveBonus - signal.antiPatternPenalty;
+
+      return {
+        ...skill,
+        promotion_score: promotionScore,
+        adjusted_promotion_score: adjustedPromotionScore,
+        meta_kb_signal: {
+          anti_pattern_penalty: signal.antiPatternPenalty,
+          positive_pattern_bonus: signal.positiveBonus,
+          anti_pattern_hits: signal.antiPatternHits,
+          positive_pattern_hits: signal.positivePatternHits,
+        },
+      };
+    }).sort((a, b) => (b.adjusted_promotion_score || 0) - (a.adjusted_promotion_score || 0));
+
+    const antiPatternPenalty = perSkillSignals.reduce((sum, signal) => sum + signal.antiPatternPenalty, 0);
+    const positiveEvidence = perSkillSignals.reduce((sum, signal) => sum + signal.positiveBonus, 0);
+    const affectedSkills = perSkillSignals
+      .filter((signal) => signal.antiPatternHits > 0)
+      .map((signal) => ({
+        skill: signal.skillName,
+        type: 'anti_pattern',
+        severity: signal.maxSeverity,
+      }));
+
+    return {
+      skills: rescored,
+      adjustments: {
+        anti_pattern_penalty: antiPatternPenalty,
+        positive_evidence: positiveEvidence,
+        affected_skills: affectedSkills,
+        net_adjustment: positiveEvidence - antiPatternPenalty,
+      },
+    };
+  }
+
+  _computeSkillPromotionScore(skill) {
+    const relevanceScore = Number(skill?.relevance_score);
+    const successRate = Number(skill?.success_rate);
+    const existingPromotion = Number(skill?.promotion_score);
+    const usageCount = Number(skill?.usage_count) || 0;
+
+    const base = Number.isFinite(existingPromotion)
+      ? existingPromotion
+      : (Number.isFinite(relevanceScore)
+        ? relevanceScore
+        : (Number.isFinite(successRate) ? successRate : 0.5));
+
+    const usageBoost = Math.min(usageCount / 100, 0.3);
+    return base + usageBoost;
+  }
+
+  _computeMetaKBSignalForSkill(taskContext, skill, metaKBIndex) {
+    const skillName = String(skill?.name || '').toLowerCase();
+    const tokens = skillName.split(/[-_\s]+/).filter(Boolean);
+    const skillTerms = new Set([skillName, ...tokens]);
+    const files = Array.isArray(taskContext?.files) ? taskContext.files : [];
+
+    let antiPatternPenalty = 0;
+    let positiveBonus = 0;
+    let antiPatternHits = 0;
+    let positivePatternHits = 0;
+    let maxSeverity = 'low';
+
+    const severityPenalty = {
+      critical: 0.6,
+      high: 0.4,
+      medium: 0.25,
+      low: 0.1,
+    };
+    const severityRank = { low: 1, medium: 2, high: 3, critical: 4 };
+
+    if (Array.isArray(metaKBIndex?.anti_patterns)) {
+      for (const antiPattern of metaKBIndex.anti_patterns) {
+        const text = `${antiPattern?.pattern || ''} ${antiPattern?.description || ''}`.toLowerCase();
+        const matched = [...skillTerms].some((term) => term && text.includes(term));
+        if (!matched) {
+          continue;
+        }
+
+        antiPatternHits += 1;
+        const severity = String(antiPattern?.severity || 'low').toLowerCase();
+        antiPatternPenalty += severityPenalty[severity] || severityPenalty.low;
+        if ((severityRank[severity] || 1) > (severityRank[maxSeverity] || 1)) {
+          maxSeverity = severity;
+        }
+      }
+    }
+
+    const byPath = metaKBIndex?.by_affected_path;
+    if (byPath && typeof byPath === 'object') {
+      for (const filePath of files) {
+        const normalized = String(filePath || '').replace(/\\/g, '/');
+        for (const [pathKey, entries] of Object.entries(byPath)) {
+          const normalizedKey = String(pathKey || '').replace(/\\/g, '/');
+          if (!normalized.startsWith(normalizedKey) && !normalized.includes(normalizedKey)) {
+            continue;
+          }
+
+          const entryList = Array.isArray(entries) ? entries : [];
+          for (const entry of entryList) {
+            const entryText = `${entry?.summary || ''} ${entry?.description || ''}`.toLowerCase();
+            const skillMatched = [...skillTerms].some((term) => term && entryText.includes(term));
+            positivePatternHits += 1;
+            positiveBonus += skillMatched ? 0.2 : 0.05;
+          }
+        }
+      }
+    }
+
+    return {
+      skillName,
+      antiPatternPenalty,
+      positiveBonus,
+      antiPatternHits,
+      positivePatternHits,
+      maxSeverity,
     };
   }
 

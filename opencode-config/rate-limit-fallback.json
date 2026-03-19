@@ -70,50 +70,6 @@
     {
       "providerID": "google",
       "modelID": "gemini-2.5-flash"
-    },
-    {
-      "providerID": "nvidia",
-      "modelID": "moonshotai/kimi-k2.5"
-    },
-    {
-      "providerID": "nvidia",
-      "modelID": "z-ai/glm-5"
-    },
-    {
-      "providerID": "nvidia",
-      "modelID": "z-ai/glm4.7"
-    },
-    {
-      "providerID": "zen",
-      "modelID": "zen/minimax-m2.5"
-    },
-    {
-      "providerID": "nvidia",
-      "modelID": "deepseek-ai/deepseek-v3.2"
-    },
-    {
-      "providerID": "zen",
-      "modelID": "zen/glm5"
-    },
-    {
-      "providerID": "zen",
-      "modelID": "zen/glm-5"
-    },
-    {
-      "providerID": "zen",
-      "modelID": "zen/kimi-k2.5-pro"
-    },
-    {
-      "providerID": "zen",
-      "modelID": "zen/kimi-k2.5"
-    },
-    {
-      "providerID": "zen",
-      "modelID": "zen/glm-4.7"
-    },
-    {
-      "providerID": "zen",
-      "modelID": "zen/minimax-m2.5-lightning"
     }
   ],
   "retryPolicy": {
