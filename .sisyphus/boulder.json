@@ -1,20 +1,19 @@
 {
-  "active_plan": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\orchestration-fixes.md",
-  "plan_name": "orchestration-fixes",
-  "started_at": "2026-03-18T22:50:54.106Z",
-  "session_ids": ["ses_305d58079ffeH35t7ZQhCQbZUy"],
+  "active_plan": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\antigravity-skills-integration.md",
+  "plan_name": "antigravity-skills-integration",
+  "started_at": "2026-03-19T06:41:23.882Z",
+  "session_ids": ["ses_2fb898550ffem54Iip42CUE2hZ"],
   "progress": {
-    "total_tasks": 30,
+    "total_tasks": 16,
     "completed": 0,
-    "current_task": "Task 0 — Baseline + Git Tag"
+    "current_task": "Wave 1a — Tasks 1, 2, 4, 5 (parallel)"
   },
   "waves": {
-    "0": {"status": "in_progress", "tasks": [0]},
-    "1": {"status": "pending", "tasks": [1,2,3,4,5,6,7]},
-    "2": {"status": "pending", "tasks": [8,9,10,11]},
-    "3": {"status": "pending", "tasks": [12,13,14,15,16,17,18]},
-    "4": {"status": "pending", "tasks": [19,20,21,22,23,24,25,26]},
-    "5": {"status": "pending", "tasks": [27,28,29,30]}
+    "1a": {"status": "in_progress", "tasks": [1, 2, 4, 5]},
+    "1b": {"status": "pending", "tasks": [3, 6]},
+    "2":  {"status": "pending", "tasks": [7, 8, 9]},
+    "3":  {"status": "pending", "tasks": [10, 11, 12, 13]},
+    "4":  {"status": "pending", "tasks": [14, 15, 16]}
   },
   "commits": [],
   "risk_points_reduced": 0,

@@ -1,7 +1,7 @@
 {
   "$schema": "./registry.schema.json",
   "version": "1.0.0",
-  "lastUpdated": "2026-03-19T08:38:54.337Z",
+  "lastUpdated": "2026-03-19T08:44:20.407Z",
   "skills": {
     "distill": {
       "description": "AST-aware context compression via distill MCP. Use when context is ≥65% full or before long subagent tasks to reclaim 50-70% token budget.",
@@ -3808,6 +3808,96 @@
         "research and build",
         "investigate then implement",
         "deep dive"
+      ]
+    },
+    "security-hardening": {
+      "description": "Security audit, vulnerability assessment, and threat modeling workflow",
+      "skills": [
+        "security-auditing",
+        "vulnerability-scanning",
+        "threat-modeling",
+        "pentesting",
+        "secure-coding",
+        "api-security"
+      ],
+      "triggers": [
+        "security audit",
+        "vulnerability scan",
+        "threat model",
+        "penetration test",
+        "secure code review"
+      ]
+    },
+    "devops-infrastructure": {
+      "description": "Infrastructure as code, containerization, and deployment automation",
+      "skills": [
+        "docker-containerization",
+        "kubernetes-orchestration",
+        "terraform-iac",
+        "ci-cd-automation",
+        "github-actions",
+        "monitoring-observability"
+      ],
+      "triggers": [
+        "deploy infrastructure",
+        "containerize app",
+        "kubernetes setup",
+        "CI/CD pipeline",
+        "infrastructure automation"
+      ]
+    },
+    "frontend-development": {
+      "description": "Frontend development with testing and accessibility",
+      "skills": [
+        "react-patterns",
+        "responsive-design",
+        "tailwind-css",
+        "accessibility-testing",
+        "e2e-testing",
+        "screen-reader-testing"
+      ],
+      "triggers": [
+        "build UI",
+        "frontend development",
+        "responsive design",
+        "accessibility compliance",
+        "UI testing"
+      ]
+    },
+    "backend-architecture": {
+      "description": "Backend system design, database architecture, and API development",
+      "skills": [
+        "system-design",
+        "database-design",
+        "microservices-patterns",
+        "api-design-principles",
+        "event-sourcing",
+        "database-migration"
+      ],
+      "triggers": [
+        "design backend",
+        "database architecture",
+        "API design",
+        "microservices",
+        "system architecture"
+      ]
+    },
+    "ml-ops-pipeline": {
+      "description": "Machine learning operations, data pipelines, and vector database integration",
+      "skills": [
+        "ml-engineering",
+        "data-pipelines",
+        "vector-databases",
+        "rag-implementation",
+        "prompt-engineering",
+        "llm-ops"
+      ],
+      "triggers": [
+        "ML pipeline",
+        "data engineering",
+        "RAG implementation",
+        "vector database",
+        "LLM operations"
       ]
     }
   },
