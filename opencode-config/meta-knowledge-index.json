@@ -1,12 +1,345 @@
 {
-  "generated_at": "2026-03-17T18:13:48.434Z",
+  "generated_at": "2026-03-18T16:43:26.740Z",
   "schema_version": 1,
-  "total_records": 352,
+  "total_records": 355,
   "source_files": {
-    "learning_updates": 352,
-    "agents_md": 7
+    "learning_updates": 355,
+    "agents_md": 14
   },
   "by_category": {
+    "learning": [
+      {
+        "id": "fix-learning-gate-duplicate-20260318",
+        "summary": "Fix: Remove duplicate triggerMetaKBSynthesis function in learning-gate.mjs",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/learning-gate.mjs"
+        ],
+        "timestamp": "2026-03-18T16:40:00Z"
+      },
+      {
+        "id": "learning-gate-hash-refresh-ordering-20260312",
+        "summary": "Refresh governance hashes after post-validation meta-KB synthesis so verify-hashes sees the current tracked baseline and the warning-free path stays stable.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/learning-gate.mjs",
+          "scripts/tests/learning-gate-hash-refresh.test.js",
+          "opencode-config/learning-updates/learning-gate-hash-refresh-ordering-20260312.json"
+        ],
+        "timestamp": "2026-03-12T22:45:00Z"
+      },
+      {
+        "id": "governance-hash-baseline-sync-20260312",
+        "summary": "Refresh the governed hash baseline so the stored hash for opencode-config/meta-knowledge-index.json matches the current tracked file content and removes the persistent verify-hashes warning.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/.governance-hashes.json",
+          "opencode-config/learning-updates/governance-hash-baseline-sync-20260312.json"
+        ],
+        "timestamp": "2026-03-12T22:37:30Z"
+      },
+      {
+        "id": "pre-commit-restaging-fix-20260312",
+        "summary": "Re-stage meta knowledge index and governance hashes in the pre-commit hook after learning-gate mutates them, preventing dirty working trees after governed commits.",
+        "risk_level": "low",
+        "affected_paths": [
+          ".githooks/pre-commit",
+          "scripts/tests/pre-commit-learning-gate.test.js"
+        ],
+        "timestamp": "2026-03-12T15:20:00Z"
+      },
+      {
+        "id": "meta-kb-synthesis-stability-20260312",
+        "summary": "Prevent synthesize-meta-kb from rewriting meta-knowledge-index.json when only generated_at would change, preserving a clean working tree after governance hooks.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/synthesize-meta-kb.mjs",
+          "scripts/tests/synthesize-meta-kb.test.js"
+        ],
+        "timestamp": "2026-03-12T15:05:00Z"
+      },
+      {
+        "id": "bootstrap-runtime-entry-point-20260311",
+        "summary": "Add bootstrap-runtime.mjs ESM entry point that wraps CJS bootstrap module for runtime package wiring.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/bootstrap-runtime.mjs",
+          "scripts/tests/bootstrap-runtime.test.mjs",
+          "opencode-config/.governance-hashes.json",
+          "opencode-config/meta-knowledge-index.json"
+        ],
+        "timestamp": "2026-03-12T01:15:00Z"
+      },
+      {
+        "id": "governance-hash-refresh-model-sync-pruning-20260311",
+        "summary": "Refresh governance hashes and meta-knowledge-index after model-sync package pruning.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/.governance-hashes.json",
+          "opencode-config/meta-knowledge-index.json"
+        ],
+        "timestamp": "2026-03-11T23:35:00Z"
+      },
+      {
+        "id": "package-wiring-extraction-model-sync-20260311",
+        "summary": "Extract wiring patterns from opencode-model-sync (health-check registration, learning-engine connection, scheduled task patterns) into test-utils reference documentation, then prune stub package.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-sync/README.md",
+          "packages/opencode-model-sync/package.json",
+          "packages/opencode-model-sync/src/index.js",
+          "packages/opencode-model-sync/test/smoke.test.js",
+          "packages/opencode-test-utils/reference/wiring-patterns.js"
+        ],
+        "timestamp": "2026-03-11T23:30:00Z"
+      },
+      {
+        "id": "meta-knowledge-index-sync-20260311",
+        "summary": "Refresh governance hashes after automatic meta-knowledge index updates from learning gate hooks.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/.governance-hashes.json",
+          "opencode-config/meta-knowledge-index.json"
+        ],
+        "timestamp": "2026-03-11T23:20:00Z"
+      },
+      {
+        "id": "protocol-compliance-pass-20260311",
+        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "package.json",
+          "scripts/protocol-compliance-pass.mjs",
+          "scripts/runtime-tool-surface-proof.mjs",
+          "scripts/tests/protocol-compliance-pass.test.js",
+          "scripts/tests/runtime-tool-surface-proof.test.js",
+          "scripts/verify-portability.mjs",
+          "opencode-config/.governance-hashes.json",
+          "opencode-config/meta-knowledge-index.json"
+        ],
+        "timestamp": "2026-03-11T21:20:00Z"
+      },
+      {
+        "id": "governance-hash-refresh-20260309",
+        "summary": "Refresh governance hashes and meta-knowledge index after file-bridge commits. Auto-generated files only, no code changes.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/.governance-hashes.json",
+          "opencode-config/meta-knowledge-index.json"
+        ],
+        "timestamp": "2026-03-09T12:10:00Z"
+      },
+      {
+        "id": "mcp-file-bridge-tests-20260309",
+        "summary": "Add 12 tests for file-based fallback in getSessionMcpInvocations(). Covers readInvocationsFromFile contract, MCP category filtering (memory/docs/web/context), deduplication, session ID isolation, multi-category sessions, and edge cases (null session, non-MCP tools, session_list/read/search tools).",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-learning-engine/test/tool-usage-file-bridge.test.js"
+        ],
+        "timestamp": "2026-03-09T12:05:00Z"
+      },
+      {
+        "id": "mcp-file-bridge-fallback-20260309",
+        "summary": "Add file-based fallback to getSessionMcpInvocations() so runtime PostToolUse hook data (written to invocations.json out-of-process) is merged with in-memory _testLog entries. Adds readInvocationsFromFile() and entry-level category fallback for runtime hook entries not in AVAILABLE_TOOLS catalog.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-learning-engine/src/tool-usage-tracker.js"
+        ],
+        "timestamp": "2026-03-09T12:00:00Z"
+      },
+      {
+        "id": "meta-kb-rehash-20260309",
+        "summary": "Regenerate governance hashes after learning-gate auto-refreshed meta-knowledge-index.json during the AGENTS.md drift fix commit. No content changes — hash chain integrity maintenance only.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/meta-knowledge-index.json",
+          "opencode-config/.governance-hashes.json"
+        ],
+        "timestamp": "2026-03-09T00:01:00Z"
+      },
+      {
+        "id": "wave11-t6-advice-cache-20260308",
+        "summary": "Add Map-based advice cache to LearningEngine.advise() with 5-min TTL, session-signal bypass, and invalidation on learnFromOutcome",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-learning-engine/src/index.js"
+        ],
+        "timestamp": "2026-03-08T23:40:00Z"
+      },
+      {
+        "id": "wave10-phase1-tests-20260308",
+        "summary": "Wave 10 Phase 1 test coverage expansion: opencode-validator (65 tests), opencode-memory-bus SQLite/FTS5 spike (12 tests), opencode-learning-engine advise() edge cases (10 tests)",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-validator/test/validator.test.js",
+          "packages/opencode-memory-bus/test/spike.test.js",
+          "packages/opencode-learning-engine/test/advise-edge-cases.test.js"
+        ],
+        "timestamp": "2026-03-08T19:20:00Z"
+      },
+      {
+        "id": "wave8-core-decay-tests-20260308",
+        "summary": "Add 18-test regression suite for core decay rules in opencode-learning-engine: covers getAdaptiveWeight, markAsCore, and updateCoreLearning behaviour including the invariant that core-persistence learnings never decay below weight 1.0.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-learning-engine/test/core-decay.test.js"
+        ],
+        "timestamp": "2026-03-08T00:10:00Z"
+      },
+      {
+        "id": "wave8-setup-fixes-20260307",
+        "summary": "Setup script improvements: auto-load .env, set SHELL, fix PowerShell policy, non-strict verify; Bun version bump 1.3.9->1.3.10; remove dead import",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/setup-resilient.mjs",
+          "scripts/verify-setup.mjs",
+          "scripts/preflight-versions.mjs",
+          "scripts/fix-bun-path.ps1",
+          ".bun-version",
+          "package.json",
+          ".env.example",
+          "Dockerfile",
+          ".github/workflows/model-catalog-sync.yml",
+          "packages/opencode-learning-engine/src/tool-usage-tracker.js"
+        ],
+        "timestamp": "2026-03-07T23:45:00Z"
+      },
+      {
+        "id": "governance-hash-refresh-20260227",
+        "summary": "Refreshed governance hash baseline after approved setup portability and script changes to keep learning-gate drift detection aligned with current governed config state.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/.governance-hashes.json"
+        ],
+        "timestamp": "2026-02-27T22:40:00Z"
+      },
+      {
+        "id": "tool-usage-tracker-race-fix-20260225",
+        "summary": "Fix read-modify-write race in logInvocation and updateMetrics. Previously, concurrent callers read stale JSON snapshot outside the _writePromise queue, mutated in memory, then only serialized the write — last writer wins, earlier entries lost. Now the entire read-mutate-write transaction runs inside the _writePromise chain. Atomic write (tmp+rename with EPERM fallback) inlined to avoid double-queuing.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-learning-engine/src/tool-usage-tracker.js",
+          "packages/opencode-learning-engine/test/tool-usage-race.test.js",
+          "packages/opencode-learning-engine/test/tool-usage-tracker.test.js",
+          "packages/opencode-learning-engine/test/_tool-usage-env.js"
+        ],
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "meta-awareness-test-harness-20260224",
+        "summary": "Add dedicated unit coverage for meta-awareness rules/stability/rollups/tracker and wire unit tests into the learning-engine test script.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-learning-engine/package.json",
+          "packages/opencode-learning-engine/test/meta-awareness.test.js"
+        ],
+        "timestamp": "2026-02-24T22:35:00Z"
+      },
+      {
+        "id": "learning-engine-pattern-extractor-debug-logging-20260224",
+        "summary": "Added DEBUG-guarded logging to empty catch blocks in PatternExtractor to surface parse errors",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-learning-engine/src/pattern-extractor.js"
+        ],
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "learning-engine-rollup-debounce-20260224",
+        "summary": "Added in-memory cache and debounced disk writes to MetaAwarenessTracker rollups",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-learning-engine/src/meta-awareness-tracker.js",
+          "packages/opencode-learning-engine/test/meta-awareness.test.js"
+        ],
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "tool-usage-tracker-async-conversion-20260224",
+        "summary": "Full async conversion of tool-usage-tracker.js hot-path functions. Added writeJsonAsync with atomic tmp+rename and serialized write queue (_writePromise chain). Added initAsync with _initPromise singleton. All 7 hot-path functions converted to async. trackEvent calls now fire-and-forget with .catch(). Sync helpers renamed to *Sync with @deprecated.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-learning-engine/src/tool-usage-tracker.js",
+          "packages/opencode-learning-engine/test/tool-usage-tracker.test.js"
+        ],
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "symbiotic-removal-and-config-hardening-20260222",
+        "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
+        "risk_level": "low",
+        "affected_paths": [
+          "COMPLETE-INVENTORY.md",
+          "QUICK-REFERENCE.md",
+          "STATUS.md",
+          "export-checklist.md",
+          "opencode-config/config.yaml",
+          "opencode-config/learning-updates/symbiotic-removal-and-config-hardening-20260222.json",
+          "opencode-config/oh-my-opencode.json",
+          "package.json",
+          "packages/opencode-learning-engine/src/tool-usage-tracker.js",
+          "plugins/security-plugin/info.md",
+          "scripts/env-contract-check.mjs",
+          "scripts/preflight-versions.mjs",
+          "scripts/validate-config-coherence.mjs",
+          "scripts/verify-setup.mjs"
+        ],
+        "timestamp": "2026-02-22T16:45:00Z"
+      },
+      {
+        "id": "meta-awareness-and-setup-fix-20260218",
+        "summary": "Add meta-awareness system and fix setup.sh skill transfer",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-learning-engine/src/meta-awareness.js",
+          "packages/opencode-learning-engine/src/meta-instruction-parser.js",
+          "setup.sh"
+        ],
+        "timestamp": "2026-02-18T21:00:00.000Z"
+      },
+      {
+        "id": "meta-integration-fix-20260218",
+        "summary": "Integrate MetaAwareness and MetaInstructionParser into OrchestrationAdvisor - they existed but were never imported or used",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-learning-engine/src/orchestration-advisor.js",
+          "packages/opencode-learning-engine/src/index.js"
+        ],
+        "timestamp": "2026-02-18T21:00:00Z"
+      },
+      {
+        "id": "learning-2026-02-11-governance-bootstrap",
+        "summary": "Bootstrap governance controls for learning updates and deployment-state tracking.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/learning-gate.mjs",
+          "scripts/commit-governance.mjs",
+          "scripts/pr-governance.mjs",
+          "scripts/deployment-state.mjs",
+          "scripts/install-git-hooks.sh",
+          ".githooks/commit-msg",
+          ".githooks/pre-push",
+          "opencode-config/learning-update-policy.json",
+          "opencode-config/deployment-state.json",
+          "package.json",
+          "setup.sh",
+          "verify-setup.sh",
+          ".github/workflows/governance-gate.yml"
+        ],
+        "timestamp": "2026-02-11T13:45:00-05:00"
+      }
+    ],
+    "feature": [
+      {
+        "id": "wave9-model-router-meta-kb-integration-20260317",
+        "summary": "Integrate Meta-KB into ModelRouter selection pipeline. Added meta-KB advice query after Skill-RL but before scoring. Transforms anti-pattern advice into model penalties (high=-0.3, medium=-0.15, low=-0.05).",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-router-x/src/index.js"
+        ],
+        "timestamp": "2026-03-17T20:20:00Z"
+      }
+    ],
     "dashboard": [
       {
         "id": "check-command-existence-before-spawn-2026-03-17",
@@ -1474,6 +1807,39 @@
         "timestamp": "2026-03-08T00:00:00Z"
       }
     ],
+    "integration": [
+      {
+        "id": "wave9-phase3-writeback-20260317",
+        "summary": "Add post-commit synthesis trigger to learning-gate.mjs. After validation passes, automatically re-runs synthesize-meta-kb.mjs to keep the index fresh. Guards against circular amplification by skipping synthesis if source is meta-kb-auto.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/learning-gate.mjs",
+          "package.json"
+        ],
+        "timestamp": "2026-03-17T00:00:00Z"
+      },
+      {
+        "id": "codebase-memory-learning-pipeline-wiring-2026-03-16",
+        "summary": "Wired opencode-codebase-memory into learning pipeline and system health monitoring. (1) ingest-sessions.mjs: added enrichErrorContext call after processDelegationLog to enrich anti-pattern descriptions with symbol context from indexed repos. (2) system-health.mjs: added auditCodebaseMemory() function that loads CodebaseMemory, lists indexed repos, opens GraphStore for each repo to get node/edge stats, returns DORMANT if no repos indexed, HEALTHY if nodes>0, UNKNOWN if package unavailable (expected in Node.js context). Wired into main audit loop as 9th subsystem. (3) package.json: added 'codebase:analyze' script to run opencode-codebase CLI. All changes wrapped in try/catch for graceful degradation.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/ingest-sessions.mjs",
+          "scripts/system-health.mjs",
+          "package.json"
+        ],
+        "timestamp": "2026-03-16T20:52:00Z"
+      },
+      {
+        "id": "wave9-meta-kb-wiring-20260308",
+        "summary": "Wire MetaKBReader into LearningEngine.advise() method. Advice output now includes meta_context field with warnings, suggestions, and conventions from the meta-knowledge index. Fail-open: returns empty arrays if index unavailable. Adds meta_context_stale flag when index > 24h old. 6 integration tests.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "packages/opencode-learning-engine/src/index.js",
+          "packages/opencode-learning-engine/test/meta-kb-integration.test.js"
+        ],
+        "timestamp": "2026-03-08T00:00:00Z"
+      }
+    ],
     "configuration": [
       {
         "id": "skill-registry-13-missing-skills-2026-03-16",
@@ -2255,29 +2621,6 @@
           "package.json"
         ],
         "timestamp": "2026-02-15T23:45:00Z"
-      }
-    ],
-    "integration": [
-      {
-        "id": "codebase-memory-learning-pipeline-wiring-2026-03-16",
-        "summary": "Wired opencode-codebase-memory into learning pipeline and system health monitoring. (1) ingest-sessions.mjs: added enrichErrorContext call after processDelegationLog to enrich anti-pattern descriptions with symbol context from indexed repos. (2) system-health.mjs: added auditCodebaseMemory() function that loads CodebaseMemory, lists indexed repos, opens GraphStore for each repo to get node/edge stats, returns DORMANT if no repos indexed, HEALTHY if nodes>0, UNKNOWN if package unavailable (expected in Node.js context). Wired into main audit loop as 9th subsystem. (3) package.json: added 'codebase:analyze' script to run opencode-codebase CLI. All changes wrapped in try/catch for graceful degradation.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/ingest-sessions.mjs",
-          "scripts/system-health.mjs",
-          "package.json"
-        ],
-        "timestamp": "2026-03-16T20:52:00Z"
-      },
-      {
-        "id": "wave9-meta-kb-wiring-20260308",
-        "summary": "Wire MetaKBReader into LearningEngine.advise() method. Advice output now includes meta_context field with warnings, suggestions, and conventions from the meta-knowledge index. Fail-open: returns empty arrays if index unavailable. Adds meta_context_stale flag when index > 24h old. 6 integration tests.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-learning-engine/src/index.js",
-          "packages/opencode-learning-engine/test/meta-kb-integration.test.js"
-        ],
-        "timestamp": "2026-03-08T00:00:00Z"
       }
     ],
     "performance": [
@@ -3247,319 +3590,6 @@
         "timestamp": "2026-02-27T00:01:00Z"
       }
     ],
-    "learning": [
-      {
-        "id": "learning-gate-hash-refresh-ordering-20260312",
-        "summary": "Refresh governance hashes after post-validation meta-KB synthesis so verify-hashes sees the current tracked baseline and the warning-free path stays stable.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/learning-gate.mjs",
-          "scripts/tests/learning-gate-hash-refresh.test.js",
-          "opencode-config/learning-updates/learning-gate-hash-refresh-ordering-20260312.json"
-        ],
-        "timestamp": "2026-03-12T22:45:00Z"
-      },
-      {
-        "id": "governance-hash-baseline-sync-20260312",
-        "summary": "Refresh the governed hash baseline so the stored hash for opencode-config/meta-knowledge-index.json matches the current tracked file content and removes the persistent verify-hashes warning.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/.governance-hashes.json",
-          "opencode-config/learning-updates/governance-hash-baseline-sync-20260312.json"
-        ],
-        "timestamp": "2026-03-12T22:37:30Z"
-      },
-      {
-        "id": "pre-commit-restaging-fix-20260312",
-        "summary": "Re-stage meta knowledge index and governance hashes in the pre-commit hook after learning-gate mutates them, preventing dirty working trees after governed commits.",
-        "risk_level": "low",
-        "affected_paths": [
-          ".githooks/pre-commit",
-          "scripts/tests/pre-commit-learning-gate.test.js"
-        ],
-        "timestamp": "2026-03-12T15:20:00Z"
-      },
-      {
-        "id": "meta-kb-synthesis-stability-20260312",
-        "summary": "Prevent synthesize-meta-kb from rewriting meta-knowledge-index.json when only generated_at would change, preserving a clean working tree after governance hooks.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/synthesize-meta-kb.mjs",
-          "scripts/tests/synthesize-meta-kb.test.js"
-        ],
-        "timestamp": "2026-03-12T15:05:00Z"
-      },
-      {
-        "id": "bootstrap-runtime-entry-point-20260311",
-        "summary": "Add bootstrap-runtime.mjs ESM entry point that wraps CJS bootstrap module for runtime package wiring.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/bootstrap-runtime.mjs",
-          "scripts/tests/bootstrap-runtime.test.mjs",
-          "opencode-config/.governance-hashes.json",
-          "opencode-config/meta-knowledge-index.json"
-        ],
-        "timestamp": "2026-03-12T01:15:00Z"
-      },
-      {
-        "id": "governance-hash-refresh-model-sync-pruning-20260311",
-        "summary": "Refresh governance hashes and meta-knowledge-index after model-sync package pruning.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/.governance-hashes.json",
-          "opencode-config/meta-knowledge-index.json"
-        ],
-        "timestamp": "2026-03-11T23:35:00Z"
-      },
-      {
-        "id": "package-wiring-extraction-model-sync-20260311",
-        "summary": "Extract wiring patterns from opencode-model-sync (health-check registration, learning-engine connection, scheduled task patterns) into test-utils reference documentation, then prune stub package.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-model-sync/README.md",
-          "packages/opencode-model-sync/package.json",
-          "packages/opencode-model-sync/src/index.js",
-          "packages/opencode-model-sync/test/smoke.test.js",
-          "packages/opencode-test-utils/reference/wiring-patterns.js"
-        ],
-        "timestamp": "2026-03-11T23:30:00Z"
-      },
-      {
-        "id": "meta-knowledge-index-sync-20260311",
-        "summary": "Refresh governance hashes after automatic meta-knowledge index updates from learning gate hooks.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/.governance-hashes.json",
-          "opencode-config/meta-knowledge-index.json"
-        ],
-        "timestamp": "2026-03-11T23:20:00Z"
-      },
-      {
-        "id": "protocol-compliance-pass-20260311",
-        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "package.json",
-          "scripts/protocol-compliance-pass.mjs",
-          "scripts/runtime-tool-surface-proof.mjs",
-          "scripts/tests/protocol-compliance-pass.test.js",
-          "scripts/tests/runtime-tool-surface-proof.test.js",
-          "scripts/verify-portability.mjs",
-          "opencode-config/.governance-hashes.json",
-          "opencode-config/meta-knowledge-index.json"
-        ],
-        "timestamp": "2026-03-11T21:20:00Z"
-      },
-      {
-        "id": "governance-hash-refresh-20260309",
-        "summary": "Refresh governance hashes and meta-knowledge index after file-bridge commits. Auto-generated files only, no code changes.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/.governance-hashes.json",
-          "opencode-config/meta-knowledge-index.json"
-        ],
-        "timestamp": "2026-03-09T12:10:00Z"
-      },
-      {
-        "id": "mcp-file-bridge-tests-20260309",
-        "summary": "Add 12 tests for file-based fallback in getSessionMcpInvocations(). Covers readInvocationsFromFile contract, MCP category filtering (memory/docs/web/context), deduplication, session ID isolation, multi-category sessions, and edge cases (null session, non-MCP tools, session_list/read/search tools).",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-learning-engine/test/tool-usage-file-bridge.test.js"
-        ],
-        "timestamp": "2026-03-09T12:05:00Z"
-      },
-      {
-        "id": "mcp-file-bridge-fallback-20260309",
-        "summary": "Add file-based fallback to getSessionMcpInvocations() so runtime PostToolUse hook data (written to invocations.json out-of-process) is merged with in-memory _testLog entries. Adds readInvocationsFromFile() and entry-level category fallback for runtime hook entries not in AVAILABLE_TOOLS catalog.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-learning-engine/src/tool-usage-tracker.js"
-        ],
-        "timestamp": "2026-03-09T12:00:00Z"
-      },
-      {
-        "id": "meta-kb-rehash-20260309",
-        "summary": "Regenerate governance hashes after learning-gate auto-refreshed meta-knowledge-index.json during the AGENTS.md drift fix commit. No content changes — hash chain integrity maintenance only.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/meta-knowledge-index.json",
-          "opencode-config/.governance-hashes.json"
-        ],
-        "timestamp": "2026-03-09T00:01:00Z"
-      },
-      {
-        "id": "wave11-t6-advice-cache-20260308",
-        "summary": "Add Map-based advice cache to LearningEngine.advise() with 5-min TTL, session-signal bypass, and invalidation on learnFromOutcome",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-learning-engine/src/index.js"
-        ],
-        "timestamp": "2026-03-08T23:40:00Z"
-      },
-      {
-        "id": "wave10-phase1-tests-20260308",
-        "summary": "Wave 10 Phase 1 test coverage expansion: opencode-validator (65 tests), opencode-memory-bus SQLite/FTS5 spike (12 tests), opencode-learning-engine advise() edge cases (10 tests)",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-validator/test/validator.test.js",
-          "packages/opencode-memory-bus/test/spike.test.js",
-          "packages/opencode-learning-engine/test/advise-edge-cases.test.js"
-        ],
-        "timestamp": "2026-03-08T19:20:00Z"
-      },
-      {
-        "id": "wave8-core-decay-tests-20260308",
-        "summary": "Add 18-test regression suite for core decay rules in opencode-learning-engine: covers getAdaptiveWeight, markAsCore, and updateCoreLearning behaviour including the invariant that core-persistence learnings never decay below weight 1.0.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-learning-engine/test/core-decay.test.js"
-        ],
-        "timestamp": "2026-03-08T00:10:00Z"
-      },
-      {
-        "id": "wave8-setup-fixes-20260307",
-        "summary": "Setup script improvements: auto-load .env, set SHELL, fix PowerShell policy, non-strict verify; Bun version bump 1.3.9->1.3.10; remove dead import",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/setup-resilient.mjs",
-          "scripts/verify-setup.mjs",
-          "scripts/preflight-versions.mjs",
-          "scripts/fix-bun-path.ps1",
-          ".bun-version",
-          "package.json",
-          ".env.example",
-          "Dockerfile",
-          ".github/workflows/model-catalog-sync.yml",
-          "packages/opencode-learning-engine/src/tool-usage-tracker.js"
-        ],
-        "timestamp": "2026-03-07T23:45:00Z"
-      },
-      {
-        "id": "governance-hash-refresh-20260227",
-        "summary": "Refreshed governance hash baseline after approved setup portability and script changes to keep learning-gate drift detection aligned with current governed config state.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/.governance-hashes.json"
-        ],
-        "timestamp": "2026-02-27T22:40:00Z"
-      },
-      {
-        "id": "tool-usage-tracker-race-fix-20260225",
-        "summary": "Fix read-modify-write race in logInvocation and updateMetrics. Previously, concurrent callers read stale JSON snapshot outside the _writePromise queue, mutated in memory, then only serialized the write — last writer wins, earlier entries lost. Now the entire read-mutate-write transaction runs inside the _writePromise chain. Atomic write (tmp+rename with EPERM fallback) inlined to avoid double-queuing.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-learning-engine/src/tool-usage-tracker.js",
-          "packages/opencode-learning-engine/test/tool-usage-race.test.js",
-          "packages/opencode-learning-engine/test/tool-usage-tracker.test.js",
-          "packages/opencode-learning-engine/test/_tool-usage-env.js"
-        ],
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "meta-awareness-test-harness-20260224",
-        "summary": "Add dedicated unit coverage for meta-awareness rules/stability/rollups/tracker and wire unit tests into the learning-engine test script.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-learning-engine/package.json",
-          "packages/opencode-learning-engine/test/meta-awareness.test.js"
-        ],
-        "timestamp": "2026-02-24T22:35:00Z"
-      },
-      {
-        "id": "learning-engine-pattern-extractor-debug-logging-20260224",
-        "summary": "Added DEBUG-guarded logging to empty catch blocks in PatternExtractor to surface parse errors",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-learning-engine/src/pattern-extractor.js"
-        ],
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "learning-engine-rollup-debounce-20260224",
-        "summary": "Added in-memory cache and debounced disk writes to MetaAwarenessTracker rollups",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-learning-engine/src/meta-awareness-tracker.js",
-          "packages/opencode-learning-engine/test/meta-awareness.test.js"
-        ],
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "tool-usage-tracker-async-conversion-20260224",
-        "summary": "Full async conversion of tool-usage-tracker.js hot-path functions. Added writeJsonAsync with atomic tmp+rename and serialized write queue (_writePromise chain). Added initAsync with _initPromise singleton. All 7 hot-path functions converted to async. trackEvent calls now fire-and-forget with .catch(). Sync helpers renamed to *Sync with @deprecated.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-learning-engine/src/tool-usage-tracker.js",
-          "packages/opencode-learning-engine/test/tool-usage-tracker.test.js"
-        ],
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "symbiotic-removal-and-config-hardening-20260222",
-        "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
-        "risk_level": "low",
-        "affected_paths": [
-          "COMPLETE-INVENTORY.md",
-          "QUICK-REFERENCE.md",
-          "STATUS.md",
-          "export-checklist.md",
-          "opencode-config/config.yaml",
-          "opencode-config/learning-updates/symbiotic-removal-and-config-hardening-20260222.json",
-          "opencode-config/oh-my-opencode.json",
-          "package.json",
-          "packages/opencode-learning-engine/src/tool-usage-tracker.js",
-          "plugins/security-plugin/info.md",
-          "scripts/env-contract-check.mjs",
-          "scripts/preflight-versions.mjs",
-          "scripts/validate-config-coherence.mjs",
-          "scripts/verify-setup.mjs"
-        ],
-        "timestamp": "2026-02-22T16:45:00Z"
-      },
-      {
-        "id": "meta-awareness-and-setup-fix-20260218",
-        "summary": "Add meta-awareness system and fix setup.sh skill transfer",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-learning-engine/src/meta-awareness.js",
-          "packages/opencode-learning-engine/src/meta-instruction-parser.js",
-          "setup.sh"
-        ],
-        "timestamp": "2026-02-18T21:00:00.000Z"
-      },
-      {
-        "id": "meta-integration-fix-20260218",
-        "summary": "Integrate MetaAwareness and MetaInstructionParser into OrchestrationAdvisor - they existed but were never imported or used",
-        "risk_level": "medium",
-        "affected_paths": [
-          "packages/opencode-learning-engine/src/orchestration-advisor.js",
-          "packages/opencode-learning-engine/src/index.js"
-        ],
-        "timestamp": "2026-02-18T21:00:00Z"
-      },
-      {
-        "id": "learning-2026-02-11-governance-bootstrap",
-        "summary": "Bootstrap governance controls for learning updates and deployment-state tracking.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/learning-gate.mjs",
-          "scripts/commit-governance.mjs",
-          "scripts/pr-governance.mjs",
-          "scripts/deployment-state.mjs",
-          "scripts/install-git-hooks.sh",
-          ".githooks/commit-msg",
-          ".githooks/pre-push",
-          "opencode-config/learning-update-policy.json",
-          "opencode-config/deployment-state.json",
-          "package.json",
-          "setup.sh",
-          "verify-setup.sh",
-          ".github/workflows/governance-gate.yml"
-        ],
-        "timestamp": "2026-02-11T13:45:00-05:00"
-      }
-    ],
     "security": [
       {
         "id": "model-router-logging-cleanup-20260312",
@@ -4257,6 +4287,24 @@
   "by_risk_level": {
     "low": [
       {
+        "id": "fix-learning-gate-duplicate-20260318",
+        "summary": "Fix: Remove duplicate triggerMetaKBSynthesis function in learning-gate.mjs",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/learning-gate.mjs"
+        ],
+        "timestamp": "2026-03-18T16:40:00Z"
+      },
+      {
+        "id": "wave9-model-router-meta-kb-integration-20260317",
+        "summary": "Integrate Meta-KB into ModelRouter selection pipeline. Added meta-KB advice query after Skill-RL but before scoring. Transforms anti-pattern advice into model penalties (high=-0.3, medium=-0.15, low=-0.05).",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-model-router-x/src/index.js"
+        ],
+        "timestamp": "2026-03-17T20:20:00Z"
+      },
+      {
         "id": "check-command-existence-before-spawn-2026-03-17",
         "summary": "Updated 8 files to check command existence before spawn to prevent Bun v1.3.x ENOENT segfault, added 'which' dependency to 2 packages",
         "risk_level": "low",
@@ -4317,6 +4365,16 @@
         "risk_level": "low",
         "affected_paths": [
           "packages/opencode-learning-engine/src/index.js"
+        ],
+        "timestamp": "2026-03-17T00:00:00Z"
+      },
+      {
+        "id": "wave9-phase3-writeback-20260317",
+        "summary": "Add post-commit synthesis trigger to learning-gate.mjs. After validation passes, automatically re-runs synthesize-meta-kb.mjs to keep the index fresh. Guards against circular amplification by skipping synthesis if source is meta-kb-auto.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/learning-gate.mjs",
+          "package.json"
         ],
         "timestamp": "2026-03-17T00:00:00Z"
       },
@@ -8418,6 +8476,310 @@
     "high": []
   },
   "by_affected_path": {
+    "scripts/learning-gate.mjs": [
+      {
+        "id": "fix-learning-gate-duplicate-20260318",
+        "summary": "Fix: Remove duplicate triggerMetaKBSynthesis function in learning-gate.mjs",
+        "risk_level": "low",
+        "timestamp": "2026-03-18T16:40:00Z"
+      },
+      {
+        "id": "wave9-phase3-writeback-20260317",
+        "summary": "Add post-commit synthesis trigger to learning-gate.mjs. After validation passes, automatically re-runs synthesize-meta-kb.mjs to keep the index fresh. Guards against circular amplification by skipping synthesis if source is meta-kb-auto.",
+        "risk_level": "low",
+        "timestamp": "2026-03-17T00:00:00Z"
+      },
+      {
+        "id": "fix-post-reset-test-failures-20260314",
+        "summary": "Fix 3 test failures after hard-reset to force-pushed remote: learning-gate.mjs import.meta.main Node compat re-applied; rate-limit.test.js updated to use .allowed since rateLimit() now returns RateLimitResult object; model-comprehension-memory.js changed throw to warn+fail-open so better-sqlite3 DLOPEN on Bun degrades gracefully.",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T03:00:00Z"
+      },
+      {
+        "id": "learning-gate-hash-refresh-ordering-20260312",
+        "summary": "Refresh governance hashes after post-validation meta-KB synthesis so verify-hashes sees the current tracked baseline and the warning-free path stays stable.",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T22:45:00Z"
+      },
+      {
+        "id": "wave9-post-commit-synthesis-20260308",
+        "summary": "Add post-commit meta-KB synthesis hook to learning-gate.mjs — after governed commits pass validation, automatically re-runs synthesize-meta-kb.mjs to keep the index fresh",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "portability-integrity-pass-20260215",
+        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T12:30:00Z"
+      },
+      {
+        "id": "learning-2026-02-11-governance-bootstrap",
+        "summary": "Bootstrap governance controls for learning updates and deployment-state tracking.",
+        "risk_level": "low",
+        "timestamp": "2026-02-11T13:45:00-05:00"
+      }
+    ],
+    "packages/opencode-model-router-x": [
+      {
+        "id": "wave9-model-router-meta-kb-integration-20260317",
+        "summary": "Integrate Meta-KB into ModelRouter selection pipeline. Added meta-KB advice query after Skill-RL but before scoring. Transforms anti-pattern advice into model penalties (high=-0.3, medium=-0.15, low=-0.05).",
+        "risk_level": "low",
+        "timestamp": "2026-03-17T20:20:00Z"
+      },
+      {
+        "id": "model-timeout-fix-2026-03-17",
+        "summary": "Lowered budget-aware penalty threshold to 70% and added pre-selection health verification to prevent model unavailability tool timeouts",
+        "risk_level": "low",
+        "timestamp": "2026-03-17T01:53:00Z"
+      },
+      {
+        "id": "model-comprehension-memory-failopen-2026-03-16",
+        "summary": "Make better-sqlite3 dependency fail-open in ModelComprehensionMemory — prevents uncaught require errors from crashing bootstrap and integration tests when native dependency is unavailable",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T21:00:00Z"
+      },
+      {
+        "id": "fix-post-reset-test-failures-20260314",
+        "summary": "Fix 3 test failures after hard-reset to force-pushed remote: learning-gate.mjs import.meta.main Node compat re-applied; rate-limit.test.js updated to use .allowed since rateLimit() now returns RateLimitResult object; model-comprehension-memory.js changed throw to warn+fail-open so better-sqlite3 DLOPEN on Bun degrades gracefully.",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T03:00:00Z"
+      },
+      {
+        "id": "model-router-logging-cleanup-20260312",
+        "summary": "Normalize model-router helper logging to prefer injected logger paths and verify the helper behavior with constructor-injection tests.",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T15:45:00Z"
+      },
+      {
+        "id": "model-router-constructor-injection-20260312",
+        "summary": "Refactor model-router-x to prefer injected logger, validator, error taxonomy, health-check, meta-awareness tracker, circuit-breaker class, and integration-layer class while fixing health-check subsystem registration shape.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-12T03:36:00.000Z"
+      },
+      {
+        "id": "circuit-breaker-dep-fix-20260311",
+        "summary": "Re-add circuit-breaker workspace dep to model-router-x that was incorrectly removed as phantom. The @jackoatmon/ scoped and ../../ relative path import patterns were missed by audit grep.",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T01:20:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "package-wiring-cleanup-20260311",
+        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T20:20:00Z"
+      },
+      {
+        "id": "wave11-t5t7-router-perf-20260308",
+        "summary": "Add O(1) model ID resolution cache and skill-RL memoization to ModelRouter for hot-path performance optimization",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:35:00Z"
+      },
+      {
+        "id": "wave11-t12-t13-perf-eviction-20260308",
+        "summary": "T12: Replace O(n log n) push+sort with O(log n) binary insertion in ModelPerformanceTracker latency history. T13: Add TTL-based eviction (1-hour) to IntegrationLayer taskContextMap and wire Governor cleanupStaleSessions on hourly unref'd interval.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:10:00Z"
+      },
+      {
+        "id": "wave11-t21-phase1-optimization-tests",
+        "summary": "T21: Added 31 isolation-pattern tests (73 assertions) for Phase 1 optimizations — model ID resolution cache (T5, 6 tests), skill-RL memoization (T7, 4 tests), budget-aware scoring penalty (T4, 10 tests), advice cache (T6, 11 tests). Discovered JS falsy-zero quirk: costPenalties[trivial]=0 with || operator applies default 0.05 penalty.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:10:00Z"
+      },
+      {
+        "id": "wave10-capability-routing-tracing",
+        "summary": "Add MODEL_CAPABILITIES registry and filterByCapabilities() pre-filter to tier-router for capability-based model selection (vision, tools, reasoning, large_context). Add AgentTracer class to opencode-logger for high-level execution tracing (task dispatch, model selection, skill loading) with Langfuse and structured log output.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-08T22:51:00Z"
+      },
+      {
+        "id": "wave10-t17-benchmark-cost-tests",
+        "summary": "Add 17 tests for benchmark bonus (T12) and cost-efficiency scoring (T13) in isolation pattern. Tests cover: bonus range, unknown models, cap enforcement, monotonicity, provider coverage, cost ordering, and integration bounds.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:25:00Z"
+      },
+      {
+        "id": "wave11-t19-startup-instrumentation",
+        "summary": "Add performance.now() startup time instrumentation to IntegrationLayer, ModelRouter, and LearningEngine constructors. Logs [Startup] ComponentName: Xms on initialization.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:25:00Z"
+      },
+      {
+        "id": "wave10-t12-t13-benchmark-cost-scoring",
+        "summary": "Add benchmark bonus scoring (T12) and cost-efficiency factor (T13) to ModelRouter._scoreModel(). BENCHMARK_SCORES registry with HumanEval/MBPP pass@1 for 16 models. _applyBenchmarkBonus() gives 0-0.15 supplementary bonus. _applyCostEfficiency() uses TokenCostCalculator pricing for 0-0.05 cost bonus. Neither changes existing scoring weights.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-08T19:20:00Z"
+      },
+      {
+        "id": "audit-namespace-fallback-20260308",
+        "summary": "Add relative-path fallback requires for all 11 @jackoatmon/ references in model-router-x — prevents MODULE_NOT_FOUND when running outside Bun workspace linking",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "namespace-drift-part2-20260308",
+        "summary": "Fix namespace drift in 5 remaining package.json name fields and repair 2 broken cross-package dependency references. Packages fixed: integration-layer, model-router-x, plugin-lifecycle, proofcheck, shared-orchestration. Cross-deps fixed: model-router-x deps on context-governor and fallback-doctor; integration-layer peerDeps on skill-rl-manager, learning-engine, shared-orchestration.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave9-model-router-meta-kb-20260308",
+        "summary": "Extend model-router _applyLearningPenalties to incorporate meta-KB signals — warnings reduce score (capped 0.25), positive evidence provides bonus (capped 0.1)",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "quota-signal-lock-20260307",
+        "summary": "Serialize quota-header and failure signal updates through a shared rotator mutex to prevent race-driven 429 propagation drift, and record the completion in config precedence docs.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-07T02:52:00Z"
+      },
+      {
+        "id": "external-call-timeouts-20260225",
+        "summary": "Add explicit timeouts to 7 external call sites that could hang indefinitely",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T17:00:00Z"
+      },
+      {
+        "id": "workspace-deps-standardization-20260225",
+        "summary": "Standardized all internal workspace dependencies to use workspace:* spec instead of file: references. Updated opencode-integration-layer peerDependencies and restored opencode-model-router-x dependencies with proper workspace resolution.",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:30:00Z"
+      },
+      {
+        "id": "unused-deps-removal-20260225",
+        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T16:00:00.000Z"
+      },
+      {
+        "id": "dead-code-cleanup-unused-vars-20260225",
+        "summary": "Remove 6 unused variable declarations across 5 packages",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T15:40:00Z"
+      },
+      {
+        "id": "json-parse-migration-20260225",
+        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-25T12:00:00Z"
+      },
+      {
+        "id": "model-router-x-discovery-cache-perf-20260225",
+        "summary": "Optimize model-discovery.js: bounded cache with TTL, parallel provider fetching, early exit on invalid JSON",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T03:15:00.000Z"
+      },
+      {
+        "id": "unused-exports-removal-20260225",
+        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
+        "risk_level": "low",
+        "timestamp": "2026-02-25T00:00:00Z"
+      },
+      {
+        "id": "zen-model-restoration-and-dashboard-loader-fix-20260224",
+        "summary": "Restore Zen GLM-5/Kimi K2.5 aliases across config catalogs and fix dashboard API module resolution to remove build warnings.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-24T22:50:00Z"
+      },
+      {
+        "id": "orchestration-intelligence-foundation-20260224",
+        "summary": "Add orchestration intelligence foundation with meta-awareness telemetry, scoring, stability guardrails, dashboard APIs/UI, and central-config controls.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-24T22:10:00Z"
+      },
+      {
+        "id": "model-discovery-all-providers-fail-20260224",
+        "summary": "Detect and surface when all providers fail in ModelDiscovery.pollOnce() instead of silently returning stale cache",
+        "risk_level": "low",
+        "timestamp": "2026-02-24T00:00:00Z"
+      },
+      {
+        "id": "resilient-routing-components-20260223",
+        "summary": "Add resilient subagent routing components and antigravity model mappings with dedicated tests and design plan coverage.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-23T23:24:00Z"
+      },
+      {
+        "id": "audit-hardening-20260223",
+        "summary": "Comprehensive audit hardening: timeouts, path resolver, strict schema/env checks, goraphdb retries, health check classification",
+        "risk_level": "medium",
+        "timestamp": "2026-02-23T17:38:39Z"
+      },
+      {
+        "id": "model-routing-and-environment-hardening-2-22-2026",
+        "summary": "Further harden model routing and environment configuration with post-mid-2025 policy alignment, resiliency improvements, and Symbiotic reference cleanup.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T17:30:00Z"
+      },
+      {
+        "id": "frontier-control-plane-foundation-20260222",
+        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T03:55:00Z"
+      },
+      {
+        "id": "round1-3-integrations-complete-20260217",
+        "summary": "All 30 integration items completed across 3 rounds - fully interconnected packages",
+        "risk_level": "low",
+        "timestamp": "2026-02-17T00:00:00Z"
+      },
+      {
+        "id": "gemini-model-correction-20260215",
+        "summary": "Corrected Gemini model names from non-existent gemini-2.5-* to official gemini-2.0-* across entire codebase",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:27:00-05:00"
+      },
+      {
+        "id": "model-validation-script-20260215",
+        "summary": "Created validate-models.mjs script for automated model catalog validation",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T19:48:00-05:00"
+      },
+      {
+        "id": "rotator-sync-contract-fix-20260216",
+        "summary": "Fixed key rotator/model router contract mismatch by restoring synchronous key selection",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T00:40:00Z"
+      },
+      {
+        "id": "config-precedence-and-quota-lock-20260215",
+        "summary": "Documented 4-tier config precedence, added quota signal lock, fixed llama-3.1-405b",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T19:28:00-05:00"
+      },
+      {
+        "id": "provider-config-and-cerebras-tpm-20260215",
+        "summary": "Expanded provider config coverage and hardened Cerebras TPM handling",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T22:20:00Z"
+      },
+      {
+        "id": "fallback-layer-strategy-complete-20260215",
+        "summary": "Completed fallback-layer-strategy.js MODEL_CATALOG with all providers and models",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T22:00:00Z"
+      },
+      {
+        "id": "model-validation-critical-fixes-20260215",
+        "summary": "Fixed critical model issues, provider key rotation race conditions, and added model catalog validation groundwork.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-15T22:00:00Z"
+      },
+      {
+        "id": "fallback-matrix-rebuild-20260215",
+        "summary": "Rebuilt complete fallback matrix with 6-layer coverage for all 10 intents",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T20:45:00Z"
+      }
+    ],
     "packages/opencode-dashboard-launcher": [
       {
         "id": "check-command-existence-before-spawn-2026-03-17",
@@ -8698,260 +9060,6 @@
         "summary": "Implement Wave 4 assessment infrastructure for automated model management: model assessor with real benchmark execution (HumanEval, MBPP, latency) and metrics collector for 4-pillar metrics (accuracy, latency, cost, robustness) with SQLite persistence and z-score normalization.",
         "risk_level": "low",
         "timestamp": "2026-02-24T00:00:00Z"
-      }
-    ],
-    "packages/opencode-model-router-x": [
-      {
-        "id": "model-timeout-fix-2026-03-17",
-        "summary": "Lowered budget-aware penalty threshold to 70% and added pre-selection health verification to prevent model unavailability tool timeouts",
-        "risk_level": "low",
-        "timestamp": "2026-03-17T01:53:00Z"
-      },
-      {
-        "id": "model-comprehension-memory-failopen-2026-03-16",
-        "summary": "Make better-sqlite3 dependency fail-open in ModelComprehensionMemory — prevents uncaught require errors from crashing bootstrap and integration tests when native dependency is unavailable",
-        "risk_level": "low",
-        "timestamp": "2026-03-16T21:00:00Z"
-      },
-      {
-        "id": "fix-post-reset-test-failures-20260314",
-        "summary": "Fix 3 test failures after hard-reset to force-pushed remote: learning-gate.mjs import.meta.main Node compat re-applied; rate-limit.test.js updated to use .allowed since rateLimit() now returns RateLimitResult object; model-comprehension-memory.js changed throw to warn+fail-open so better-sqlite3 DLOPEN on Bun degrades gracefully.",
-        "risk_level": "low",
-        "timestamp": "2026-03-14T03:00:00Z"
-      },
-      {
-        "id": "model-router-logging-cleanup-20260312",
-        "summary": "Normalize model-router helper logging to prefer injected logger paths and verify the helper behavior with constructor-injection tests.",
-        "risk_level": "low",
-        "timestamp": "2026-03-12T15:45:00Z"
-      },
-      {
-        "id": "model-router-constructor-injection-20260312",
-        "summary": "Refactor model-router-x to prefer injected logger, validator, error taxonomy, health-check, meta-awareness tracker, circuit-breaker class, and integration-layer class while fixing health-check subsystem registration shape.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-12T03:36:00.000Z"
-      },
-      {
-        "id": "circuit-breaker-dep-fix-20260311",
-        "summary": "Re-add circuit-breaker workspace dep to model-router-x that was incorrectly removed as phantom. The @jackoatmon/ scoped and ../../ relative path import patterns were missed by audit grep.",
-        "risk_level": "low",
-        "timestamp": "2026-03-12T01:20:00Z"
-      },
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "package-wiring-cleanup-20260311",
-        "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T20:20:00Z"
-      },
-      {
-        "id": "wave11-t5t7-router-perf-20260308",
-        "summary": "Add O(1) model ID resolution cache and skill-RL memoization to ModelRouter for hot-path performance optimization",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:35:00Z"
-      },
-      {
-        "id": "wave11-t12-t13-perf-eviction-20260308",
-        "summary": "T12: Replace O(n log n) push+sort with O(log n) binary insertion in ModelPerformanceTracker latency history. T13: Add TTL-based eviction (1-hour) to IntegrationLayer taskContextMap and wire Governor cleanupStaleSessions on hourly unref'd interval.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:10:00Z"
-      },
-      {
-        "id": "wave11-t21-phase1-optimization-tests",
-        "summary": "T21: Added 31 isolation-pattern tests (73 assertions) for Phase 1 optimizations — model ID resolution cache (T5, 6 tests), skill-RL memoization (T7, 4 tests), budget-aware scoring penalty (T4, 10 tests), advice cache (T6, 11 tests). Discovered JS falsy-zero quirk: costPenalties[trivial]=0 with || operator applies default 0.05 penalty.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:10:00Z"
-      },
-      {
-        "id": "wave10-capability-routing-tracing",
-        "summary": "Add MODEL_CAPABILITIES registry and filterByCapabilities() pre-filter to tier-router for capability-based model selection (vision, tools, reasoning, large_context). Add AgentTracer class to opencode-logger for high-level execution tracing (task dispatch, model selection, skill loading) with Langfuse and structured log output.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-08T22:51:00Z"
-      },
-      {
-        "id": "wave10-t17-benchmark-cost-tests",
-        "summary": "Add 17 tests for benchmark bonus (T12) and cost-efficiency scoring (T13) in isolation pattern. Tests cover: bonus range, unknown models, cap enforcement, monotonicity, provider coverage, cost ordering, and integration bounds.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:25:00Z"
-      },
-      {
-        "id": "wave11-t19-startup-instrumentation",
-        "summary": "Add performance.now() startup time instrumentation to IntegrationLayer, ModelRouter, and LearningEngine constructors. Logs [Startup] ComponentName: Xms on initialization.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:25:00Z"
-      },
-      {
-        "id": "wave10-t12-t13-benchmark-cost-scoring",
-        "summary": "Add benchmark bonus scoring (T12) and cost-efficiency factor (T13) to ModelRouter._scoreModel(). BENCHMARK_SCORES registry with HumanEval/MBPP pass@1 for 16 models. _applyBenchmarkBonus() gives 0-0.15 supplementary bonus. _applyCostEfficiency() uses TokenCostCalculator pricing for 0-0.05 cost bonus. Neither changes existing scoring weights.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-08T19:20:00Z"
-      },
-      {
-        "id": "audit-namespace-fallback-20260308",
-        "summary": "Add relative-path fallback requires for all 11 @jackoatmon/ references in model-router-x — prevents MODULE_NOT_FOUND when running outside Bun workspace linking",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "namespace-drift-part2-20260308",
-        "summary": "Fix namespace drift in 5 remaining package.json name fields and repair 2 broken cross-package dependency references. Packages fixed: integration-layer, model-router-x, plugin-lifecycle, proofcheck, shared-orchestration. Cross-deps fixed: model-router-x deps on context-governor and fallback-doctor; integration-layer peerDeps on skill-rl-manager, learning-engine, shared-orchestration.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave9-model-router-meta-kb-20260308",
-        "summary": "Extend model-router _applyLearningPenalties to incorporate meta-KB signals — warnings reduce score (capped 0.25), positive evidence provides bonus (capped 0.1)",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "quota-signal-lock-20260307",
-        "summary": "Serialize quota-header and failure signal updates through a shared rotator mutex to prevent race-driven 429 propagation drift, and record the completion in config precedence docs.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-07T02:52:00Z"
-      },
-      {
-        "id": "external-call-timeouts-20260225",
-        "summary": "Add explicit timeouts to 7 external call sites that could hang indefinitely",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T17:00:00Z"
-      },
-      {
-        "id": "workspace-deps-standardization-20260225",
-        "summary": "Standardized all internal workspace dependencies to use workspace:* spec instead of file: references. Updated opencode-integration-layer peerDependencies and restored opencode-model-router-x dependencies with proper workspace resolution.",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:30:00Z"
-      },
-      {
-        "id": "unused-deps-removal-20260225",
-        "summary": "Removed unused dependencies from 10 packages to reduce bundle size and maintenance burden",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T16:00:00.000Z"
-      },
-      {
-        "id": "dead-code-cleanup-unused-vars-20260225",
-        "summary": "Remove 6 unused variable declarations across 5 packages",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T15:40:00Z"
-      },
-      {
-        "id": "json-parse-migration-20260225",
-        "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-25T12:00:00Z"
-      },
-      {
-        "id": "model-router-x-discovery-cache-perf-20260225",
-        "summary": "Optimize model-discovery.js: bounded cache with TTL, parallel provider fetching, early exit on invalid JSON",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T03:15:00.000Z"
-      },
-      {
-        "id": "unused-exports-removal-20260225",
-        "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
-        "risk_level": "low",
-        "timestamp": "2026-02-25T00:00:00Z"
-      },
-      {
-        "id": "zen-model-restoration-and-dashboard-loader-fix-20260224",
-        "summary": "Restore Zen GLM-5/Kimi K2.5 aliases across config catalogs and fix dashboard API module resolution to remove build warnings.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-24T22:50:00Z"
-      },
-      {
-        "id": "orchestration-intelligence-foundation-20260224",
-        "summary": "Add orchestration intelligence foundation with meta-awareness telemetry, scoring, stability guardrails, dashboard APIs/UI, and central-config controls.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-24T22:10:00Z"
-      },
-      {
-        "id": "model-discovery-all-providers-fail-20260224",
-        "summary": "Detect and surface when all providers fail in ModelDiscovery.pollOnce() instead of silently returning stale cache",
-        "risk_level": "low",
-        "timestamp": "2026-02-24T00:00:00Z"
-      },
-      {
-        "id": "resilient-routing-components-20260223",
-        "summary": "Add resilient subagent routing components and antigravity model mappings with dedicated tests and design plan coverage.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-23T23:24:00Z"
-      },
-      {
-        "id": "audit-hardening-20260223",
-        "summary": "Comprehensive audit hardening: timeouts, path resolver, strict schema/env checks, goraphdb retries, health check classification",
-        "risk_level": "medium",
-        "timestamp": "2026-02-23T17:38:39Z"
-      },
-      {
-        "id": "model-routing-and-environment-hardening-2-22-2026",
-        "summary": "Further harden model routing and environment configuration with post-mid-2025 policy alignment, resiliency improvements, and Symbiotic reference cleanup.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T17:30:00Z"
-      },
-      {
-        "id": "frontier-control-plane-foundation-20260222",
-        "summary": "Add frontier control-plane foundation artifacts across dashboard routes, model evaluation tooling, policy/ops scripts, and new skill definitions to support next-stage orchestration and quality gates.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T03:55:00Z"
-      },
-      {
-        "id": "round1-3-integrations-complete-20260217",
-        "summary": "All 30 integration items completed across 3 rounds - fully interconnected packages",
-        "risk_level": "low",
-        "timestamp": "2026-02-17T00:00:00Z"
-      },
-      {
-        "id": "gemini-model-correction-20260215",
-        "summary": "Corrected Gemini model names from non-existent gemini-2.5-* to official gemini-2.0-* across entire codebase",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:27:00-05:00"
-      },
-      {
-        "id": "model-validation-script-20260215",
-        "summary": "Created validate-models.mjs script for automated model catalog validation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T19:48:00-05:00"
-      },
-      {
-        "id": "rotator-sync-contract-fix-20260216",
-        "summary": "Fixed key rotator/model router contract mismatch by restoring synchronous key selection",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T00:40:00Z"
-      },
-      {
-        "id": "config-precedence-and-quota-lock-20260215",
-        "summary": "Documented 4-tier config precedence, added quota signal lock, fixed llama-3.1-405b",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T19:28:00-05:00"
-      },
-      {
-        "id": "provider-config-and-cerebras-tpm-20260215",
-        "summary": "Expanded provider config coverage and hardened Cerebras TPM handling",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T22:20:00Z"
-      },
-      {
-        "id": "fallback-layer-strategy-complete-20260215",
-        "summary": "Completed fallback-layer-strategy.js MODEL_CATALOG with all providers and models",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T22:00:00Z"
-      },
-      {
-        "id": "model-validation-critical-fixes-20260215",
-        "summary": "Fixed critical model issues, provider key rotation race conditions, and added model catalog validation groundwork.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-15T22:00:00Z"
-      },
-      {
-        "id": "fallback-matrix-rebuild-20260215",
-        "summary": "Rebuilt complete fallback matrix with 6-layer coverage for all 10 intents",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T20:45:00Z"
       }
     ],
     "packages/opencode-dashboard": [
@@ -9522,6 +9630,170 @@
         "timestamp": "2026-02-15T12:30:00Z"
       }
     ],
+    "package.json": [
+      {
+        "id": "wave9-phase3-writeback-20260317",
+        "summary": "Add post-commit synthesis trigger to learning-gate.mjs. After validation passes, automatically re-runs synthesize-meta-kb.mjs to keep the index fresh. Guards against circular amplification by skipping synthesis if source is meta-kb-auto.",
+        "risk_level": "low",
+        "timestamp": "2026-03-17T00:00:00Z"
+      },
+      {
+        "id": "codebase-memory-learning-pipeline-wiring-2026-03-16",
+        "summary": "Wired opencode-codebase-memory into learning pipeline and system health monitoring. (1) ingest-sessions.mjs: added enrichErrorContext call after processDelegationLog to enrich anti-pattern descriptions with symbol context from indexed repos. (2) system-health.mjs: added auditCodebaseMemory() function that loads CodebaseMemory, lists indexed repos, opens GraphStore for each repo to get node/edge stats, returns DORMANT if no repos indexed, HEALTHY if nodes>0, UNKNOWN if package unavailable (expected in Node.js context). Wired into main audit loop as 9th subsystem. (3) package.json: added 'codebase:analyze' script to run opencode-codebase CLI. All changes wrapped in try/catch for graceful degradation.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T20:52:00Z"
+      },
+      {
+        "id": "system-health-codebase-memory-2026-03-16",
+        "summary": "Fixed system-health.mjs to spawn bun subprocess for codebase-memory check (avoids bun:sqlite incompatibility with Node.js). Updated telemetry cap threshold from 1000 to 5000. Fixed package.json codebase:analyze script to use bun instead of node. System health now 100% (18/18).",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T18:58:00.000Z"
+      },
+      {
+        "id": "central-config-dashboard-api-rollback-2026-03-16",
+        "summary": "Central config tasks 4-8: add ?view=raw to dashboard config API, expand migration script to read opencode.json and config.yaml, add rollback(targetVersion) and validateIntegrity(configPath) to central-config-state.js, update docs/central-config.md with raw endpoint and rollback sections.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T18:00:00Z"
+      },
+      {
+        "id": "warning-budget-v2-enforcement-2026-03-16",
+        "summary": "Rewrote warning budget baseline and CI enforcement. Baseline now uses object-keyed categories with max/description (was array-based). Script supports --capture (write baseline from test output) and --check (default, compare against baseline). Hardcoded 5 category regex patterns. Added warning:check and warning:capture scripts to package.json. Updated governance:check to use bun run warning:check.",
+        "risk_level": "low",
+        "timestamp": "2026-03-16T00:00:00.000Z"
+      },
+      {
+        "id": "warning-budget-governance-2026-03-14",
+        "summary": "Created warning budget baseline and CI enforcement system. warning-baseline.json defines 5 intentional warning categories with regex patterns and maxCount thresholds. ci-warning-budget.mjs runs bun test, matches warnings against baseline, detects unknowns, supports --json and --update-baseline. Added to governance:check in package.json.",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "runtime-workflow-scenarios-20260312",
+        "summary": "Add a live runtime workflow scenario suite that exercises healthy and compressed execution paths, standalone touchpoints, and workflow persistence through the real runtime, and include it in the protocol compliance pass.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-12T16:45:00Z"
+      },
+      {
+        "id": "runtime-workflow-compliance-20260312",
+        "summary": "Add a runtime workflow compliance harness that exercises executeTaskWithEvidence end-to-end and validates DCP/context-budget/distill recommendations propagate into real execution.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-12T15:58:30Z"
+      },
+      {
+        "id": "protocol-compliance-pass-20260311",
+        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T21:20:00Z"
+      },
+      {
+        "id": "mcp-exercise-harness-20260310",
+        "summary": "Add an MCP exercise harness and top-level command that safely records smoke verification for local live MCPs without polluting real runtime usage telemetry.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T13:35:00-04:00"
+      },
+      {
+        "id": "workspace-package-smoke-runner-20260310",
+        "summary": "Add a workspace package smoke runner and top-level packages:smoke command so package entrypoint exercise becomes as discoverable as mcp:smoke.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:56:00-04:00"
+      },
+      {
+        "id": "mcp-smoke-harness-20260310",
+        "summary": "Add an MCP smoke harness and top-level package command so recent exercise coverage for live MCPs can be measured directly from telemetry after restarts.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-10T12:30:00-04:00"
+      },
+      {
+        "id": "mcp-report-command-entrypoint-20260310",
+        "summary": "Expose the generated MCP lifecycle report through a top-level `bun run mcp:report` command and document that entrypoint in setup instructions.",
+        "risk_level": "low",
+        "timestamp": "2026-03-10T01:47:00-04:00"
+      },
+      {
+        "id": "skills-manage-cli-20260308",
+        "summary": "Add skills-manage.mjs CLI for atomic skill management: list, add, enable, disable, audit, sync commands. Sync package.json with 7 new skills:* script entries.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave9-phase1-validation-20260308",
+        "summary": "Add meta-KB npm scripts (meta-kb:synthesize, meta-kb:drift, meta-kb:check) to root package.json. Phase 1 validated: synthesis produces 165 records, drift detects 7 issues, advise() includes meta_context with warnings/suggestions/conventions. All tests pass.",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T00:00:00Z"
+      },
+      {
+        "id": "wave8-setup-fixes-20260307",
+        "summary": "Setup script improvements: auto-load .env, set SHELL, fix PowerShell policy, non-strict verify; Bun version bump 1.3.9->1.3.10; remove dead import",
+        "risk_level": "low",
+        "timestamp": "2026-03-07T23:45:00Z"
+      },
+      {
+        "id": "strict-portability-setup-20260227",
+        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T22:30:00Z"
+      },
+      {
+        "id": "symbiotic-removal-and-config-hardening-20260222",
+        "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T16:45:00Z"
+      },
+      {
+        "id": "bun-1-3-9-upgrade-alignment-20260222",
+        "summary": "Upgrade repository Bun policy from 1.2.23 to 1.3.9 to align with post-Feb-2026 shell GC/use-after-free fix timeline and keep setup/verify/docs consistent.",
+        "risk_level": "low",
+        "timestamp": "2026-02-22T05:35:00Z"
+      },
+      {
+        "id": "bun-q-recovery-stabilization-20260221",
+        "summary": "Stabilize q recovery by pinning Bun 1.2.23, locking q entrypoint to Node, and skipping crash-prone cross-platform compile step by default.",
+        "risk_level": "medium",
+        "timestamp": "2026-02-21T15:05:00-05:00"
+      },
+      {
+        "id": "integration-automation-20260218",
+        "summary": "Add automated integration verification system for packages, skills, plugins, and MCPs",
+        "risk_level": "medium",
+        "timestamp": "2026-02-18T23:00:00.000Z"
+      },
+      {
+        "id": "living-docs-governance-system-20260218",
+        "summary": "Add living-docs governance system with drift gate enforcement",
+        "risk_level": "medium",
+        "timestamp": "2026-02-18T18:00:00.000Z"
+      },
+      {
+        "id": "dashboard-autostart-wrapper-and-windows-launch-fix-20260216",
+        "summary": "Fixed dashboard launcher reliability on Windows and added opencode wrapper for guaranteed dashboard startup",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T02:40:00Z"
+      },
+      {
+        "id": "p2-hardening-policies-fallback-sse-20260216",
+        "summary": "Completed P2 hardening for policies validation, fallback reason typing, and SSE client cleanup",
+        "risk_level": "low",
+        "timestamp": "2026-02-16T02:05:00Z"
+      },
+      {
+        "id": "skillrl-stabilization-and-api-regression-20260215",
+        "summary": "Stabilized SkillRL persistence and added API regression coverage for /api/rl and /api/skills",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T23:45:00Z"
+      },
+      {
+        "id": "weekly-model-sync-and-health-verification-20260215",
+        "summary": "Added weekly model sync automation and model catalog verification in health endpoint",
+        "risk_level": "low",
+        "timestamp": "2026-02-15T22:45:00Z"
+      },
+      {
+        "id": "learning-2026-02-11-governance-bootstrap",
+        "summary": "Bootstrap governance controls for learning updates and deployment-state tracking.",
+        "risk_level": "low",
+        "timestamp": "2026-02-11T13:45:00-05:00"
+      }
+    ],
     "opencode-config/skills": [
       {
         "id": "skill-registry-13-missing-skills-2026-03-16",
@@ -9750,164 +10022,6 @@
         "summary": "Fixed system-health.mjs to spawn bun subprocess for codebase-memory check (avoids bun:sqlite incompatibility with Node.js). Updated telemetry cap threshold from 1000 to 5000. Fixed package.json codebase:analyze script to use bun instead of node. System health now 100% (18/18).",
         "risk_level": "low",
         "timestamp": "2026-03-16T18:58:00.000Z"
-      }
-    ],
-    "package.json": [
-      {
-        "id": "codebase-memory-learning-pipeline-wiring-2026-03-16",
-        "summary": "Wired opencode-codebase-memory into learning pipeline and system health monitoring. (1) ingest-sessions.mjs: added enrichErrorContext call after processDelegationLog to enrich anti-pattern descriptions with symbol context from indexed repos. (2) system-health.mjs: added auditCodebaseMemory() function that loads CodebaseMemory, lists indexed repos, opens GraphStore for each repo to get node/edge stats, returns DORMANT if no repos indexed, HEALTHY if nodes>0, UNKNOWN if package unavailable (expected in Node.js context). Wired into main audit loop as 9th subsystem. (3) package.json: added 'codebase:analyze' script to run opencode-codebase CLI. All changes wrapped in try/catch for graceful degradation.",
-        "risk_level": "low",
-        "timestamp": "2026-03-16T20:52:00Z"
-      },
-      {
-        "id": "system-health-codebase-memory-2026-03-16",
-        "summary": "Fixed system-health.mjs to spawn bun subprocess for codebase-memory check (avoids bun:sqlite incompatibility with Node.js). Updated telemetry cap threshold from 1000 to 5000. Fixed package.json codebase:analyze script to use bun instead of node. System health now 100% (18/18).",
-        "risk_level": "low",
-        "timestamp": "2026-03-16T18:58:00.000Z"
-      },
-      {
-        "id": "central-config-dashboard-api-rollback-2026-03-16",
-        "summary": "Central config tasks 4-8: add ?view=raw to dashboard config API, expand migration script to read opencode.json and config.yaml, add rollback(targetVersion) and validateIntegrity(configPath) to central-config-state.js, update docs/central-config.md with raw endpoint and rollback sections.",
-        "risk_level": "low",
-        "timestamp": "2026-03-16T18:00:00Z"
-      },
-      {
-        "id": "warning-budget-v2-enforcement-2026-03-16",
-        "summary": "Rewrote warning budget baseline and CI enforcement. Baseline now uses object-keyed categories with max/description (was array-based). Script supports --capture (write baseline from test output) and --check (default, compare against baseline). Hardcoded 5 category regex patterns. Added warning:check and warning:capture scripts to package.json. Updated governance:check to use bun run warning:check.",
-        "risk_level": "low",
-        "timestamp": "2026-03-16T00:00:00.000Z"
-      },
-      {
-        "id": "warning-budget-governance-2026-03-14",
-        "summary": "Created warning budget baseline and CI enforcement system. warning-baseline.json defines 5 intentional warning categories with regex patterns and maxCount thresholds. ci-warning-budget.mjs runs bun test, matches warnings against baseline, detects unknowns, supports --json and --update-baseline. Added to governance:check in package.json.",
-        "risk_level": "low",
-        "timestamp": "2026-03-14T00:00:00.000Z"
-      },
-      {
-        "id": "runtime-workflow-scenarios-20260312",
-        "summary": "Add a live runtime workflow scenario suite that exercises healthy and compressed execution paths, standalone touchpoints, and workflow persistence through the real runtime, and include it in the protocol compliance pass.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-12T16:45:00Z"
-      },
-      {
-        "id": "runtime-workflow-compliance-20260312",
-        "summary": "Add a runtime workflow compliance harness that exercises executeTaskWithEvidence end-to-end and validates DCP/context-budget/distill recommendations propagate into real execution.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-12T15:58:30Z"
-      },
-      {
-        "id": "protocol-compliance-pass-20260311",
-        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T21:20:00Z"
-      },
-      {
-        "id": "mcp-exercise-harness-20260310",
-        "summary": "Add an MCP exercise harness and top-level command that safely records smoke verification for local live MCPs without polluting real runtime usage telemetry.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T13:35:00-04:00"
-      },
-      {
-        "id": "workspace-package-smoke-runner-20260310",
-        "summary": "Add a workspace package smoke runner and top-level packages:smoke command so package entrypoint exercise becomes as discoverable as mcp:smoke.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:56:00-04:00"
-      },
-      {
-        "id": "mcp-smoke-harness-20260310",
-        "summary": "Add an MCP smoke harness and top-level package command so recent exercise coverage for live MCPs can be measured directly from telemetry after restarts.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-10T12:30:00-04:00"
-      },
-      {
-        "id": "mcp-report-command-entrypoint-20260310",
-        "summary": "Expose the generated MCP lifecycle report through a top-level `bun run mcp:report` command and document that entrypoint in setup instructions.",
-        "risk_level": "low",
-        "timestamp": "2026-03-10T01:47:00-04:00"
-      },
-      {
-        "id": "skills-manage-cli-20260308",
-        "summary": "Add skills-manage.mjs CLI for atomic skill management: list, add, enable, disable, audit, sync commands. Sync package.json with 7 new skills:* script entries.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave9-phase1-validation-20260308",
-        "summary": "Add meta-KB npm scripts (meta-kb:synthesize, meta-kb:drift, meta-kb:check) to root package.json. Phase 1 validated: synthesis produces 165 records, drift detects 7 issues, advise() includes meta_context with warnings/suggestions/conventions. All tests pass.",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "wave8-setup-fixes-20260307",
-        "summary": "Setup script improvements: auto-load .env, set SHELL, fix PowerShell policy, non-strict verify; Bun version bump 1.3.9->1.3.10; remove dead import",
-        "risk_level": "low",
-        "timestamp": "2026-03-07T23:45:00Z"
-      },
-      {
-        "id": "strict-portability-setup-20260227",
-        "summary": "Introduced strict setup resiliency workflow that enforces portability invariants for config sync, skills/agents mirroring, enabled MCP command availability, plugin declaration parity, and env-placeholder coverage.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T22:30:00Z"
-      },
-      {
-        "id": "symbiotic-removal-and-config-hardening-20260222",
-        "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T16:45:00Z"
-      },
-      {
-        "id": "bun-1-3-9-upgrade-alignment-20260222",
-        "summary": "Upgrade repository Bun policy from 1.2.23 to 1.3.9 to align with post-Feb-2026 shell GC/use-after-free fix timeline and keep setup/verify/docs consistent.",
-        "risk_level": "low",
-        "timestamp": "2026-02-22T05:35:00Z"
-      },
-      {
-        "id": "bun-q-recovery-stabilization-20260221",
-        "summary": "Stabilize q recovery by pinning Bun 1.2.23, locking q entrypoint to Node, and skipping crash-prone cross-platform compile step by default.",
-        "risk_level": "medium",
-        "timestamp": "2026-02-21T15:05:00-05:00"
-      },
-      {
-        "id": "integration-automation-20260218",
-        "summary": "Add automated integration verification system for packages, skills, plugins, and MCPs",
-        "risk_level": "medium",
-        "timestamp": "2026-02-18T23:00:00.000Z"
-      },
-      {
-        "id": "living-docs-governance-system-20260218",
-        "summary": "Add living-docs governance system with drift gate enforcement",
-        "risk_level": "medium",
-        "timestamp": "2026-02-18T18:00:00.000Z"
-      },
-      {
-        "id": "dashboard-autostart-wrapper-and-windows-launch-fix-20260216",
-        "summary": "Fixed dashboard launcher reliability on Windows and added opencode wrapper for guaranteed dashboard startup",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T02:40:00Z"
-      },
-      {
-        "id": "p2-hardening-policies-fallback-sse-20260216",
-        "summary": "Completed P2 hardening for policies validation, fallback reason typing, and SSE client cleanup",
-        "risk_level": "low",
-        "timestamp": "2026-02-16T02:05:00Z"
-      },
-      {
-        "id": "skillrl-stabilization-and-api-regression-20260215",
-        "summary": "Stabilized SkillRL persistence and added API regression coverage for /api/rl and /api/skills",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T23:45:00Z"
-      },
-      {
-        "id": "weekly-model-sync-and-health-verification-20260215",
-        "summary": "Added weekly model sync automation and model catalog verification in health endpoint",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T22:45:00Z"
-      },
-      {
-        "id": "learning-2026-02-11-governance-bootstrap",
-        "summary": "Bootstrap governance controls for learning updates and deployment-state tracking.",
-        "risk_level": "low",
-        "timestamp": "2026-02-11T13:45:00-05:00"
       }
     ],
     "packages/opencode-config-loader": [
@@ -10788,38 +10902,6 @@
         "summary": "Fix test isolation in context-management.test.js: clean up SQLite DB files between test runs, clear persistence in reset(), fix avgCompressionRatio empty defaults from 1 to 0",
         "risk_level": "low",
         "timestamp": "2026-03-14T08:00:00.000Z"
-      }
-    ],
-    "scripts/learning-gate.mjs": [
-      {
-        "id": "fix-post-reset-test-failures-20260314",
-        "summary": "Fix 3 test failures after hard-reset to force-pushed remote: learning-gate.mjs import.meta.main Node compat re-applied; rate-limit.test.js updated to use .allowed since rateLimit() now returns RateLimitResult object; model-comprehension-memory.js changed throw to warn+fail-open so better-sqlite3 DLOPEN on Bun degrades gracefully.",
-        "risk_level": "low",
-        "timestamp": "2026-03-14T03:00:00Z"
-      },
-      {
-        "id": "learning-gate-hash-refresh-ordering-20260312",
-        "summary": "Refresh governance hashes after post-validation meta-KB synthesis so verify-hashes sees the current tracked baseline and the warning-free path stays stable.",
-        "risk_level": "low",
-        "timestamp": "2026-03-12T22:45:00Z"
-      },
-      {
-        "id": "wave9-post-commit-synthesis-20260308",
-        "summary": "Add post-commit meta-KB synthesis hook to learning-gate.mjs — after governed commits pass validation, automatically re-runs synthesize-meta-kb.mjs to keep the index fresh",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T00:00:00Z"
-      },
-      {
-        "id": "portability-integrity-pass-20260215",
-        "summary": "Final portability/integrity pass: cross-platform setup scripts, config hardening, dashboard API safety, integration layer robustness, learning engine improvements, memory graph enrichment, RL manager evolution, health monitoring, state management, and documentation",
-        "risk_level": "low",
-        "timestamp": "2026-02-15T12:30:00Z"
-      },
-      {
-        "id": "learning-2026-02-11-governance-bootstrap",
-        "summary": "Bootstrap governance controls for learning updates and deployment-state tracking.",
-        "risk_level": "low",
-        "timestamp": "2026-02-11T13:45:00-05:00"
       }
     ],
     "integration-tests/rate-limit.test.js": [
@@ -14610,6 +14692,83 @@
   "anti_patterns": [
     {
       "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "pattern": "Bun v1.3.x ENOENT Segfault",
+      "severity": "critical",
+      "description": "spawn operations crash on ENOENT. ALWAYS check command existence first (see packages/opencode-crash-guard/src/spawn-guard.js)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "pattern": "Core Learning Decay",
+      "severity": "critical",
+      "description": "If learning.persistence === 'core', weight is ALWAYS 1.0 (never decays). See packages/opencode-learning-engine/src/index.js:134"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "pattern": "Atomic Write Verification",
+      "severity": "critical",
+      "description": "ALWAYS verify file integrity after atomic writes (corruption detection)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "pattern": "Shotgun Debugging",
+      "severity": "high",
+      "description": "ALWAYS use systematic-debugging skill. Read errors fully before editing. Triggered when attempt_number >= 3 on same file (packages/opencode-learning-engine/src/orchestration-advisor.js:441)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "pattern": "ON CONFLICT DO NOTHING",
+      "severity": "medium",
+      "description": "Intentional for idempotent logging (packages/opencode-model-manager/src/lifecycle/audit-logger.js:295). Do NOT change to UPDATE."
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "pattern": "Context Budget",
+      "severity": "warning",
+      "description": "80% = CRITICAL, 75% = WARNING (packages/opencode-context-governor/src/index.js:86,90)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "pattern": "Crash Frequency",
+      "severity": "warning",
+      "description": ">N crashes/hour triggers WARNING (packages/opencode-crash-guard/src/crash-recovery.js:153)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-model-manager/AGENTS.md",
+      "pattern": "ON CONFLICT DO NOTHING",
+      "severity": "medium",
+      "description": "Intentional for idempotent logging (src/lifecycle/audit-logger.js:295). Do NOT change to UPDATE."
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-model-manager/AGENTS.md",
+      "pattern": "Hash Chain Integrity",
+      "severity": "medium",
+      "description": "NEVER modify previousHash in audit log (tamper detection)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-model-manager/AGENTS.md",
+      "pattern": "State Transitions",
+      "severity": "medium",
+      "description": "NEVER skip states (guarded transitions enforced)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-sisyphus-state/AGENTS.md",
+      "pattern": "Test DB Cleanup",
+      "severity": "medium",
+      "description": "Test databases not cleaned up after test runs (244 files accumulated)"
+    },
+    {
+      "source": "agents.md",
       "file": "AGENTS.md",
       "pattern": "Bun v1.3.x ENOENT Segfault",
       "severity": "critical",
@@ -14687,6 +14846,366 @@
     }
   ],
   "conventions": [
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "convention": "Bun-First",
+      "description": "bunfig.toml, .bun-version (1.3.10), NOT npm/yarn compatible"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "convention": "Dual Plugins",
+      "description": "plugins/ (external) + packages/ (internal workspace packages)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "convention": "Config Fragmentation",
+      "description": "6+ config files (opencode.json 116KB, central-config.json, oh-my-opencode.json, compound-engineering.json, config.yaml, .opencode.config.json)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "convention": "SQLite in Packages",
+      "description": "packages/opencode-model-manager/audit.db (database files in source tree)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "convention": "No Build Step",
+      "description": "Source files consumed directly (except opencode-dashboard/.next/)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "convention": "Mixed Modules",
+      "description": "ESM (type: \"module\") and CJS (type: \"commonjs\") inconsistently"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "convention": "Flat Namespace",
+      "description": "opencode-* prefix, NOT @org/ scoped packages"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "convention": "Scripts as Infrastructure",
+      "description": "46 .mjs files are core infrastructure, not utilities"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "convention": "Documentation Versioned",
+      "description": "20+ markdown files at root (STATUS.md, COMPLETE-INVENTORY.md, MODEL_AUDIT_REPORT.md)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "convention": "Wave-Based Development",
+      "description": "Features organized by \"Wave\" (Wave 8.1, 8.2, etc.)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "convention": "Governance-Heavy CI",
+      "description": "44 validation/governance scripts (learning-gate.mjs, deployment-state.mjs, health-check.mjs)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "convention": "Immutable Audit Logs",
+      "description": "Hash chain integrity (packages/opencode-model-manager/src/lifecycle/audit-logger.js)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "convention": "Risk-Based Auto-Approval",
+      "description": "Model approval thresholds (0-50 auto, 50-80 manual, >80 block)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "convention": "Rollback System",
+      "description": "Timestamp/hash-based recovery (scripts/model-rollback.mjs)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "convention": "Monitoring Metrics",
+      "description": "Discovery success rate, cache hit/miss L1/L2, state transitions, PR creation rate"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/opencode-config/AGENTS.md",
+      "convention": "Config Fragmentation",
+      "description": "6+ config files with different purposes"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/opencode-config/AGENTS.md",
+      "convention": "Large Main Config",
+      "description": "opencode.json is 116KB (comprehensive)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/opencode-config/AGENTS.md",
+      "convention": "Schema Validation",
+      "description": "central-config.json has schema enforcement"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/opencode-config/AGENTS.md",
+      "convention": "Skill Hierarchy",
+      "description": "skills/superpowers/* for advanced patterns"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/opencode-config/AGENTS.md",
+      "convention": "Learning Governance",
+      "description": "learning-updates/ tracks all governed changes"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/opencode-config/AGENTS.md",
+      "convention": "Multi-File Config",
+      "description": "opencode.json (main), central-config.json (schema), oh-my-opencode.json (overrides), compound-engineering.json (skills/commands)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/opencode-config/AGENTS.md",
+      "convention": "12 Skill Dirs",
+      "description": "11 standalone + superpowers/ (14 sub-skills) on disk"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/opencode-config/AGENTS.md",
+      "convention": "0 Agents on disk",
+      "description": "Agent definitions managed by oh-my-opencode plugin (8 agents)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/opencode-config/AGENTS.md",
+      "convention": "Learning Updates",
+      "description": "Governed file changes tracked in learning-updates/"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-dashboard/AGENTS.md",
+      "convention": "Next.js App Router",
+      "description": "Uses layout.tsx, page.tsx, route.ts conventions"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-dashboard/AGENTS.md",
+      "convention": "No \"main\" field",
+      "description": "Next.js app, not a library"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-dashboard/AGENTS.md",
+      "convention": "Build Output",
+      "description": ".next/ directory (only package with build step)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-dashboard/AGENTS.md",
+      "convention": "API Routes",
+      "description": "40+ routes under src/app/api/"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-dashboard/AGENTS.md",
+      "convention": "Prometheus Format",
+      "description": "Monitoring metrics exposed in both JSON and Prometheus format"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-dashboard/AGENTS.md",
+      "convention": "Lifecycle Components",
+      "description": "LifecycleBadge, StateTransitionModal, AuditLogViewer for model management UI"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-dashboard/AGENTS.md",
+      "convention": "Dual Format APIs",
+      "description": "JSON + Prometheus metrics"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-dashboard/AGENTS.md",
+      "convention": "In-Memory Monitoring",
+      "description": "Metrics stored in-memory (not SQLite) for low overhead"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-integration-layer/AGENTS.md",
+      "convention": "Test-Heavy",
+      "description": "138 test files / 140 total = 99% test coverage"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-integration-layer/AGENTS.md",
+      "convention": "Low Code Ratio",
+      "description": "5 code files / 140 total = 4%"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-integration-layer/AGENTS.md",
+      "convention": "Standard Entry Point",
+      "description": "src/index.js"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-integration-layer/AGENTS.md",
+      "convention": "Comprehensive Testing",
+      "description": "138 test files for 5 source files (27:1 ratio)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-model-manager/AGENTS.md",
+      "convention": "No package.json",
+      "description": "Internal library, not published package"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-model-manager/AGENTS.md",
+      "convention": "SQLite in Package Root",
+      "description": "audit.db, audit.db-shm, audit.db-wal (non-standard location)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-model-manager/AGENTS.md",
+      "convention": "Immutable Audit Logs",
+      "description": "Hash chain integrity, append-only"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-model-manager/AGENTS.md",
+      "convention": "5-State Lifecycle",
+      "description": "detected→assessed→approved→selectable→default (no skipping)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-model-manager/AGENTS.md",
+      "convention": "Risk-Based Approval",
+      "description": "0-50 auto, 50-80 manual, >80 block"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-model-manager/AGENTS.md",
+      "convention": "Two-Tier Caching",
+      "description": "L1 (5min in-memory), L2 (1hr SQLite)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-model-manager/AGENTS.md",
+      "convention": "Parallel Discovery",
+      "description": "All providers queried concurrently (<10s total)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-model-manager/AGENTS.md",
+      "convention": "Snapshot Diffing",
+      "description": "100% accuracy change detection"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-model-manager/AGENTS.md",
+      "convention": "Tamper-Evident Logging",
+      "description": "Genesis hash '0', chain verification"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-model-manager/AGENTS.md",
+      "convention": "Auto-Approval Metadata",
+      "description": "Risk factors stored in audit log"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-model-manager/AGENTS.md",
+      "convention": "Monitoring Metrics",
+      "description": "Discovery success rate, cache hit/miss, state transitions, PR creation rate"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-model-manager/AGENTS.md",
+      "convention": "Rollback Support",
+      "description": "Timestamp/hash-based recovery (see scripts/model-rollback.mjs)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-sisyphus-state/AGENTS.md",
+      "convention": "Test DB Artifacts",
+      "description": "244 test-*.db files in package root (cleanup needed)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-sisyphus-state/AGENTS.md",
+      "convention": "Unique DB Naming",
+      "description": "`${TEST_DB_BASE}-${Date.now()}-${Math.random()}.db` per test"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-sisyphus-state/AGENTS.md",
+      "convention": "Low Code Ratio",
+      "description": "13 code files / 347 total = 4% (mostly test artifacts)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-sisyphus-state/AGENTS.md",
+      "convention": "Timestamped Test DBs",
+      "description": "Each test creates unique database with timestamp + random suffix"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/scripts/AGENTS.md",
+      "convention": "ESM Scripts",
+      "description": "All .mjs files (ES modules)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/scripts/AGENTS.md",
+      "convention": "Scripts as Infrastructure",
+      "description": "Not utilities — core to project operation"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/scripts/AGENTS.md",
+      "convention": "Governance-Heavy",
+      "description": "32 scripts for validation/governance (unusual for typical projects)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/scripts/AGENTS.md",
+      "convention": "Complex Logic",
+      "description": "health-check.mjs (11KB), model-rollback.mjs (26KB)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/scripts/AGENTS.md",
+      "convention": "Rollback System",
+      "description": "Timestamp/hash-based recovery with backup-before-restore pattern"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/scripts/AGENTS.md",
+      "convention": "Governance Gates",
+      "description": "Learning-gate.mjs, deployment-state.mjs run before deployment"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/scripts/AGENTS.md",
+      "convention": "12-Check Validation",
+      "description": "validate-models.mjs runs 12 checks with 5-min timeout"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/scripts/AGENTS.md",
+      "convention": "Weekly CI Sync",
+      "description": "weekly-model-sync.mjs runs in GitHub Actions"
+    },
     {
       "source": "agents.md",
       "file": "AGENTS.md",
@@ -15049,6 +15568,174 @@
     }
   ],
   "commands": [
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "command": "bun test",
+      "purpose": "Run all tests (253 tests, 1,676 assertions, Bun test framework)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "command": "bun run build",
+      "purpose": "Build dashboard (Next.js only package with build step)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "command": "bun run setup",
+      "purpose": "6-step setup (install, config, validation, health, learning, state)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "command": "bun run governance:check",
+      "purpose": "Run governance gates (learning-gate.mjs, deployment-state.mjs)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "command": "bun run models:sync",
+      "purpose": "Weekly model catalog synchronization"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "command": "bun run state:deploy",
+      "purpose": "Deployment state management"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "command": "scripts/model-rollback.mjs",
+      "purpose": "Rollback model catalog (--to-last-good, --to-timestamp, --dry-run)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "command": "scripts/validate-models.mjs",
+      "purpose": "Validate model catalog (12 checks, 5-min timeout)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/AGENTS.md",
+      "command": "scripts/health-check.mjs",
+      "purpose": "Comprehensive system health check (11KB script)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/opencode-config/AGENTS.md",
+      "command": "bun run governance:check",
+      "purpose": "Validate config coherence and learning updates"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/opencode-config/AGENTS.md",
+      "command": "scripts/validate-config-coherence.mjs",
+      "purpose": "Check config file consistency"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/opencode-config/AGENTS.md",
+      "command": "scripts/consolidate-skills.mjs",
+      "purpose": "Consolidate skill definitions"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-dashboard/AGENTS.md",
+      "command": "bun run build",
+      "purpose": "Build Next.js dashboard (.next/ output)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-dashboard/AGENTS.md",
+      "command": "bun run dev",
+      "purpose": "Start development server"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-dashboard/AGENTS.md",
+      "command": "bun test packages/opencode-dashboard/tests/",
+      "purpose": "Run dashboard tests"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-integration-layer/AGENTS.md",
+      "command": "bun test packages/opencode-integration-layer/tests/",
+      "purpose": "Run integration tests (138 files)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-model-manager/AGENTS.md",
+      "command": "bun test packages/opencode-model-manager/test/",
+      "purpose": "Run all model manager tests (320 tests)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-model-manager/AGENTS.md",
+      "command": "scripts/validate-models.mjs",
+      "purpose": "Validate model catalog (12 checks, 5-min timeout)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-model-manager/AGENTS.md",
+      "command": "scripts/model-rollback.mjs --to-last-good",
+      "purpose": "Rollback to last good catalog state"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-model-manager/AGENTS.md",
+      "command": "scripts/weekly-model-sync.mjs",
+      "purpose": "Weekly model discovery (CI workflow)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-sisyphus-state/AGENTS.md",
+      "command": "bun test packages/opencode-sisyphus-state/tests/",
+      "purpose": "Run state machine tests"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/packages/opencode-sisyphus-state/AGENTS.md",
+      "command": "find . -name 'test-*.db*' -delete",
+      "purpose": "Clean up test database artifacts"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/scripts/AGENTS.md",
+      "command": "bun run governance:check",
+      "purpose": "Run governance gates (learning-gate + deployment-state)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/scripts/AGENTS.md",
+      "command": "scripts/health-check.mjs",
+      "purpose": "Comprehensive system health check"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/scripts/AGENTS.md",
+      "command": "scripts/model-rollback.mjs --to-last-good",
+      "purpose": "Rollback model catalog to last good state"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/scripts/AGENTS.md",
+      "command": "scripts/validate-models.mjs",
+      "purpose": "Validate model catalog (12 checks)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/scripts/AGENTS.md",
+      "command": "scripts/weekly-model-sync.mjs",
+      "purpose": "Weekly model discovery (CI)"
+    },
+    {
+      "source": "agents.md",
+      "file": ".claude/worktrees/keen-haibt/scripts/AGENTS.md",
+      "command": "bun run setup",
+      "purpose": "Run setup.sh (6-step setup)"
+    },
     {
       "source": "agents.md",
       "file": "AGENTS.md",

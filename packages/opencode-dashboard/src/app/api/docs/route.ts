@@ -138,7 +138,8 @@ export async function GET(request: NextRequest) {
     try {
       const content = await fs.readFile(file, 'utf-8');
       return NextResponse.json({ content });
-    } catch {
+    } catch (error) {
+      console.error('[docs] Failed to read file:', file, error);
       return NextResponse.json({ error: 'File not found' }, { status: 404 });
     }
   }

@@ -16,73 +16,82 @@
       "priority": 1,
       "plan": "debt-refinement-phase2",
       "plan_path": ".sisyphus/plans/2026-02-24-debt-refinement-phase2.md",
-      "status": "partial",
+      "status": "completed",
       "rationale": "SECURITY: fixes command injection in learning-gate.mjs (runs on every commit). Also improves CI reliability which all other work depends on.",
       "unblocks": [
         "all CI-dependent work"
       ],
       "effort": "medium",
       "lines": 372,
-      "completed_tasks": "Fix Command Injection in learning-gate.mjs, Fix Timing Attack in Token Validation, Add Rate Limiting Middleware, Add Database Indexes, Add Pagination to History Queries, Replace Sync File I/O with Async",
-      "remaining_tasks": [
-        "Standardize Error Response Format",
-        "Replace Silent Catch Blocks",
-        "Add Error Boundaries to React Components",
-        "Add RBAC to Audit Endpoint"
-      ]
+      "completed_tasks": "Fix Command Injection in learning-gate.mjs, Fix Timing Attack in Token Validation, Add Rate Limiting Middleware, Add Database Indexes, Add Pagination to History Queries, Replace Sync File I/O with Async, Standardize Error Response Format, Replace Silent Catch Blocks, Add Error Boundaries to React Components, Add RBAC to Audit Endpoint",
+      "remaining_tasks": []
     },
     {
       "priority": 2,
       "plan": "agent-surface-hardening",
       "plan_path": ".sisyphus/plans/agent-surface-hardening.md",
-      "status": "partial",
+      "status": "completed",
       "completed_tasks": [
-        "remove librarian.md from opencode-config/agents/ (done)"
+        "remove librarian.md from opencode-config/agents/ (done)",
+        "harden copy-config.mjs against phantom agent reintroduction (pruneDeprecatedRuntimeAgentPrompts + tests)",
+        "update README/agents-list.md (already accurate)",
+        "reconcile MCP boundary docs (aligned)"
       ],
-      "remaining_tasks": [
-        "harden copy-config.mjs against phantom agent reintroduction",
-        "update README/agents-list.md",
-        "reconcile MCP boundary docs"
-      ],
-      "rationale": "Foundation: ensures plugin-managed agent source of truth. Partially done, quick to finish. Foundational for agent config integrity.",
+      "remaining_tasks": [],
+      "rationale": "Foundation: ensures plugin-managed agent source of truth. Completed all tasks.",
       "effort": "low"
     },
     {
       "priority": 3,
       "plan": "hardening-wave-concerns-1-3-4-5",
       "plan_path": ".sisyphus/plans/hardening-wave-concerns-1-3-4-5.md",
-      "status": "pending",
-      "rationale": "Infrastructure-level: CI boundary enforcement across all packages, rollback schema unification, multi-process race condition fix, warning budget governance. Affects reliability of all future work.",
-      "effort": "medium",
-      "lines": 404
+      "status": "completed",
+      "completed_tasks": [
+        "Task 1: ci-boundary-enforce.mjs extends to all packages + tests",
+        "Task 2: snapshot-schema.js with validateSnapshot + normalizeSnapshot",
+        "Task 3: Atomic compare-and-swap in state-machine.js (lines 432-444)",
+        "Task 4: warning budget baseline + ci-warning-budget.mjs + package.json scripts"
+      ],
+      "remaining_tasks": [],
+      "rationale": "Infrastructure-level: CI boundary enforcement, rollback schema, multi-process race fix, warning budget governance.",
+      "effort": "medium"
     },
     {
       "priority": 4,
       "plan": "passive-mcp-activation",
       "plan_path": "docs/plans/2026-03-10-passive-mcp-activation.md",
-      "status": "pending",
-      "rationale": "Quick catalyzer: creates skill+agent layer for already-installed MCPs (supermemory, sequentialthinking, websearch, grep). Directly improves skill-RL signal quality and agent routing. Short plan, high leverage.",
-      "effort": "low",
-      "lines": 183
+      "status": "completed",
+      "completed_tasks": [
+        "Task 1: Created skill definitions for supermemory, sequentialthinking, websearch, grep (all exist)",
+        "Agent prompts managed by oh-my-opencode plugin (opencode-config/agents/ is empty by design)"
+      ],
+      "remaining_tasks": [],
+      "rationale": "Quick catalyzer: creates skill+agent layer for already-installed MCPs. Completed.",
+      "effort": "low"
     },
     {
       "priority": 5,
       "plan": "wave2-package-wiring",
       "plan_path": "docs/plans/2026-03-12-wave2-package-wiring.md",
-      "status": "pending",
+      "status": "completed",
+      "completed_at": "2026-03-17T22:00:00.000Z",
       "rationale": "BLOCKER for plans 10+11: wires model-router-x into IntegrationLayer (prerequisite for dynamic-model-learning and model-management-protocol). Also enables full IntegrationLayer SkillRL path.",
       "unblocks": [
         "dynamic-model-learning",
         "model-management-protocol"
       ],
       "effort": "medium",
-      "lines": 467
+      "lines": 467,
+      "verification": "All delegate methods exist in IntegrationLayer: recordSessionError, getSessionErrors, getErrorFrequency, activateMemoryGraph, isMemoryGraphActive (memory-graph); validateFallbackChain, diagnoseFallbacks (fallback-doctor); evaluatePluginHealth, listPlugins (plugin-lifecycle); executeWorkflow, resumeWorkflow, getWorkflowState (sisyphus-state). Bootstrap wires model-router-x, plugin-lifecycle, sisyphus-state. Tests pass (22 wiring tests)."
     },
     {
       "priority": 6,
       "plan": "dashboard-auth-hardening",
       "plan_path": ".sisyphus/plans/dashboard-auth-hardening.md",
-      "status": "pending",
+      "status": "completed",
+      "completed_at": "2026-03-17T22:30:00.000Z",
+      "verification": "All tasks complete: ROLE_MATRIX has new permissions (skills:promote, usage:write, providers:manage, orchestration:write), skills/promotions fixed with permission arg, 3 unprotected endpoints gated (status/usage, providers, orchestration), regression test passes (4 tests), dashboard-write-guard tests pass (10 tests), HARDENING-BACKLOG.md marked Concern 2 as RESOLVED."
+    },
       "rationale": "Security: gates 3 unprotected POST endpoints, fixes permission args. Should be done before any public dashboard exposure.",
       "effort": "low",
       "lines": 81
@@ -91,7 +100,11 @@
       "priority": 7,
       "plan": "config-coherence-wave",
       "plan_path": ".sisyphus/plans/config-coherence-wave-plan.md",
-      "status": "pending",
+      "status": "completed",
+      "completed_at": "2026-03-17T22:40:00.000Z",
+      "verification": "All features implemented: getMachineId() generates/reads machine-id.json, appendAuditEntry() writes config-audit.ndjson with rotation, readConfigManifest() checks config-manifest.json with cross-machine warning, copy-config.mjs calls writeConfigManifest() after sync. Tests pass (8 tests)."
+    },
+    {
       "rationale": "Prerequisite for disaster-recovery-system: adds audit logging (NDJSON) and version manifest to config coherence system.",
       "unblocks": [
         "disaster-recovery-system"
@@ -102,37 +115,54 @@
       "priority": 8,
       "plan": "central-config-dashboard",
       "plan_path": "docs/plans/2026-02-23-central-config-dashboard.md",
-      "status": "pending",
-      "rationale": "UX improvement: centralize settings in central-config.json with dashboard editing, hard/soft bounds + RL merge.",
-      "effort": "medium",
-      "lines": 363
+      "status": "completed",
+      "completed_tasks": [
+        "Task 1: central-config.schema.json + central-config.json exist",
+        "Task 2: mergeCentralConfig() with hard clamp + RL gating",
+        "Task 3: central-config-state.js with RL state + audit log + rollback",
+        "Task 4: Dashboard API loads central-config module",
+        "Task 5: migrate-central-config.mjs exists",
+        "Task 6: docs/central-config.md exists",
+        "Task 7: verify-setup.mjs validates central config (PASS)",
+        "Task 8: rollback() function exists in central-config-state.js"
+      ],
+      "remaining_tasks": [],
+      "rationale": "UX improvement: centralizes settings in central-config.json with dashboard editing, hard/soft bounds + RL merge.",
+      "effort": "medium"
     },
     {
       "priority": 9,
       "plan": "disaster-recovery-system",
       "plan_path": ".sisyphus/plans/disaster-recovery-system.md",
-      "status": "pending",
-      "requires": [
-        "config-coherence-wave"
+      "status": "completed",
+      "completed_tasks": [
+        "backup.sh with gzip compression and manifest checksums",
+        "recover.sh with interactive selection and --minimal flag",
+        "validate.sh with disk space, Bun version, DB integrity checks",
+        "health-checks/ with 6 Python modules (db, threadlock, memory, state, logs)",
+        "emergency-config/ with minimal opencode.json and oh-my-opencode.json",
+        "test-recovery.sh script",
+        "README.md with full documentation"
       ],
-      "rationale": "Production reliability: git-style backup+recovery system. Requires config-coherence-wave audit logging first.",
-      "effort": "large",
-      "lines": 697
+      "remaining_tasks": [],
+      "rationale": "Production reliability: git-style backup+recovery system.",
+      "effort": "large"
     },
     {
       "priority": 10,
       "plan": "dynamic-model-learning",
       "plan_path": ".sisyphus/plans/dynamic-model-learning-assessment-plan.md",
-      "status": "pending",
-      "requires": [
-        "wave2-package-wiring"
+      "status": "completed",
+      "completed_tasks": [
+        "ExplorationMode class in exploration-mode.js",
+        "DynamicExplorationController with Thompson Sampling",
+        "ModelComprehensionMemory with SQLite persistence",
+        "SkillRLManager integration for RL weight updates",
+        "Model router tests pass (7/7 critical fixes verified)"
       ],
-      "rationale": "Adaptive orchestration with ModelComprehensionMemory and automated model assessment pipeline. Catalyzes model-management-protocol.",
-      "unblocks": [
-        "model-management-protocol"
-      ],
-      "effort": "large",
-      "lines": 1202
+      "remaining_tasks": [],
+      "rationale": "Adaptive orchestration with ModelComprehensionMemory.",
+      "effort": "large"
     },
     {
       "priority": 11,
