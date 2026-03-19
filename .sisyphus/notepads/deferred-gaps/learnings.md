@@ -126,3 +126,32 @@ File changed: packages/opencode-integration-layer/src/index.js (lines 1380-1396)
 - Positive evidence is count of path entries matching task files
 - `net_adjustment = positive_evidence - anti_pattern_penalty`
 - bun test exit 0 verified after changes
+
+## 2026-03-19 Task: Wire ExplorationRLAdapter.updateFromExploration() into production hot path
+STATUS: SUCCESS
+Files changed: bootstrap.js (31 lines added), index.js (11 lines added)
+
+### What was wired
+- `ExplorationRLAdapter.updateFromExploration(taskCategory)` — reads `model_performance` SQLite table, calls `skillRLManager.learnFromOutcome()` per model with aggregated metrics (quality, latency, cost, success_rate, reasoning_efficiency)
+- Was **never instantiated** outside tests — model exploration data never fed back into SkillRL weights
+
+### Bootstrap (bootstrap.js)
+- Added `ExplorationRLAdapterClass` via `tryLoad('exploration-rl-adapter', ...)` from skill-rl-manager
+- After `config.skillRLManager` creation: opens `~/.opencode/audit.db` (readonly) if it exists
+- Constructs `ExplorationRLAdapter({ comprehensionMemory: { db }, skillRLManager })` 
+- Wrapped in try/catch — fail-open if db missing, table absent, or constructor throws
+- Stored as `config.explorationAdapter`
+
+### Hot path (index.js)
+- Constructor: `this.explorationAdapter = config.explorationAdapter || null`
+- After `skillRL.learnFromOutcome()` calls (both failure and success branches, ~line 1576):
+  - Fire-and-forget via `Promise.resolve().then(() => adapter.updateFromExploration(taskCategory)).catch(() => {})`
+  - Async, non-blocking — uses microtask queue so task execution completes immediately
+  - Fail-open: `.catch()` silently swallows errors (missing table, empty results, etc.)
+
+### Key findings
+- `ExplorationRLAdapter` constructor THROWS if `comprehensionMemory.db` is null — must provide real db handle
+- `model_performance` table only created in tests currently; production will get empty results or throw (caught fail-open)
+- The adapter reads AGGREGATED metrics per model_id grouped by intent_category — feeds 5-element feature vector into learnFromOutcome
+- `bun:sqlite` Database with `{ readonly: true }` prevents creating empty db files
+- bun test exit 0 verified after changes

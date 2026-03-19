@@ -201,6 +201,7 @@ class IntegrationLayer {
     this.healthd = config.healthd || null;
     this.pipelineMetrics = config.pipelineMetrics || null;
     this.alertManager = config.alertManager || null;
+    this.explorationAdapter = config.explorationAdapter || null;
     // P1 FIX: Use Map keyed by task_id instead of global mutable state
     this.taskContextMap = new Map();
     this.currentSessionId = config.currentSessionId || config.sessionId || null;
@@ -1571,6 +1572,16 @@ class IntegrationLayer {
         },
         quota_signal: this._extractQuotaSignal(taskContext, result)
       });
+    }
+
+    // Fire-and-forget: feed model exploration data back into SkillRL weights
+    // Reads model_performance SQLite table → calls skillRL.learnFromOutcome() per model
+    // Async, non-blocking, fail-open — must never delay task completion
+    if (this.explorationAdapter) {
+      const _taskCategory = taskContext.task_type || taskContext.task || 'unknown';
+      Promise.resolve().then(() => {
+        this.explorationAdapter.updateFromExploration(_taskCategory);
+      }).catch(() => { /* fail-open: exploration feedback is advisory only */ });
     }
 
     // [T22] Track consecutive failures per skill for early warning

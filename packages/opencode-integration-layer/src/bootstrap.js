@@ -7,6 +7,7 @@ const { IntegrationLayer } = require('./index.js');
 // --- Fail-open package imports ---
 let initCrashGuard = null;
 let SkillRLManager = null;
+let ExplorationRLAdapterClass = null;
 let ShowboatWrapper = null;
 let Runbooks = null;
 let CircuitBreaker = null;
@@ -50,6 +51,9 @@ initCrashGuard = tryLoad('crash-guard', () =>
 );
 SkillRLManager = tryLoad('skill-rl-manager', () =>
   require('../../opencode-skill-rl-manager/src/index.js').SkillRLManager
+);
+ExplorationRLAdapterClass = tryLoad('exploration-rl-adapter', () =>
+  require('../../opencode-skill-rl-manager/src/index.js').ExplorationRLAdapter
 );
 ShowboatWrapper = tryLoad('showboat-wrapper', () =>
   require('../../opencode-showboat-wrapper/src/index.js').ShowboatWrapper
@@ -165,6 +169,33 @@ function bootstrap(options = {}) {
       config.skillRLManager = new SkillRLManager(options.skillRL);
       bootstrapStatus.packages['skill-rl-manager'] = true;
     } catch { bootstrapStatus.packages['skill-rl-manager'] = false; }
+  }
+
+  // Wire ExplorationRLAdapter: reads model_performance SQLite table → SkillRL weights
+  // Requires: skillRLManager + a SQLite db at ~/.opencode/audit.db (or OPENCODE_AUDIT_DB_PATH)
+  // Fail-open: if db missing, table absent, or constructor throws → adapter stays null
+  if (ExplorationRLAdapterClass && config.skillRLManager) {
+    try {
+      const _auditDbPath = path.join(os.homedir(), '.opencode', 'audit.db');
+      const fs = require('fs');
+      if (fs.existsSync(_auditDbPath)) {
+        let _Database;
+        try { _Database = require('bun:sqlite').Database; } catch {
+          try { _Database = require('better-sqlite3'); } catch { _Database = null; }
+        }
+        if (_Database) {
+          const _db = new _Database(_auditDbPath, { readonly: true });
+          config.explorationAdapter = new ExplorationRLAdapterClass({
+            comprehensionMemory: { db: _db },
+            skillRLManager: config.skillRLManager,
+          });
+          bootstrapStatus.packages['exploration-rl-adapter'] = true;
+        }
+      }
+    } catch {
+      // Fail-open: exploration adapter is optional — missing db/table is non-fatal
+      bootstrapStatus.packages['exploration-rl-adapter'] = false;
+    }
   }
 
   if (ShowboatWrapper) {
