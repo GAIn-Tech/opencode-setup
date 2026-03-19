@@ -227,8 +227,10 @@ function bootstrap(options = {}) {
       const dbPath = options.workflowDbPath || null;
       config.workflowStore = new WorkflowStore(dbPath);
       if (WorkflowExecutor) {
+        const _budgetEnforcementEnabled = process.env.OPENCODE_BUDGET_ENFORCEMENT === 'true';
         config.workflowExecutor = new WorkflowExecutor(config.workflowStore, {}, {
-          budgetEnforcer: null,
+          // budgetEnforcer is opt-in — set OPENCODE_BUDGET_ENFORCEMENT=true to enable
+          budgetEnforcer: _budgetEnforcementEnabled && config.contextGovernor ? config.contextGovernor : null,
         });
       }
       bootstrapStatus.packages['sisyphus-state'] = true;
