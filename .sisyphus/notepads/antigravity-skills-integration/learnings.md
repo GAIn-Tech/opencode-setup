@@ -572,3 +572,45 @@ This ensures skills are selected via explicit category matching, not via the rem
 - **validate-skill-import.mjs**: exit 0 (0 orphan files, 0 orphan entries, 252 synergy warnings, 0 dependency cycles)
 - **normalize-superpowers-skills.mjs**: exit 0 (88 SKILL.md files validated, 14 superpowers updated)
 - **Full test suite**: `bun test` → exit 0
+
+---
+
+## Task 16: Performance Benchmarks + Full Regression Verification (2026-03-19)
+
+### Changes Made
+1. **Created `packages/opencode-skill-rl-manager/test/performance.test.js`** — 9 tests (CommonJS require)
+   - 4 performance benchmarks at 92-skill scale:
+     - `_matchesContext()`: 100 iterations × 92 skills, each full pass < 1ms average
+     - `querySkills()`: 100 iterations, each < 5ms average
+     - `selectSkills()`: 100 iterations, each < 10ms average
+     - `syncWithRegistry()`: 10 iterations (heavier op), each < 100ms average
+   - 5 semantic matching gap verification tests:
+     - "fix intermittent test failures" → matches debugging via synonym expansion ('fix' → 'debugging')
+     - "deploy application to kubernetes cluster" → matches devops via app_context keyword ('kubernetes')
+     - "optimize database query performance" → matches database via domain signal ('optimize' → 'optimization' tag)
+     - "write unit tests for authentication module" → matches testing via app_context keyword ('tests')
+     - "refactor legacy codebase to clean architecture" → matches architecture via app_context keyword ('legacy')
+
+### Test Results
+- **performance.test.js**: 9 pass, 0 fail, 15 expect() calls
+- **Full test suite**: `bun test` → exit 0 (all pass, no regressions)
+- **Governance**:
+  - `check-skill-overlap-governance.mjs`: PASS (2 clusters, 5 clustered, 92 total, 1 transitive warning)
+  - `validate-skill-import.mjs`: PASS (92 skills, 88 SKILL.md, 252 synergy warnings, 0 cycles)
+  - `normalize-superpowers-skills.mjs --check`: PASS (88 skills valid)
+
+### Key Insights
+- Semantic matching gap tests verify three distinct match paths work together:
+  1. Synonym expansion: word → canonical concept → matches skill tag
+  2. Domain signal detection: word → domain category → matches skill tag
+  3. Application_context keyword matching: skill trigger words found in task description
+- postgresql-optimization has empty triggers (`triggers: []`) but matches via domain signal path — 'optimize' → 'optimization' domain → 'optimization' tag
+- clean-architecture has rich triggers that include 'legacy' keyword, matching via app_context path
+- Performance benchmarks use real registry (92 skills), JIT warmup passes, and `performance.now()` timing
+- All timing thresholds met comfortably on first run — no flakiness concerns
+
+### Final Integration Summary (Task 16 of 16)
+- **Registry**: 92 skills (38 existing + 54 imported), 12 profiles (7 existing + 5 new)
+- **Test files added across tasks**: selection.test.js, synonym-tables.test.js, exploration-adapter.test.js, governance-enhancements.test.js, import-pipeline.test.mjs, performance.test.js
+- **Governance scripts**: 3 scripts, all pass, 0 errors
+- **All 16 tasks committed with Learning-Update + Risk-Level trailers**
