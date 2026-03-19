@@ -1,7 +1,7 @@
 {
   "version": 1,
   "algorithm": "SHA-256",
-  "generated_at": "2026-03-19T02:09:38.898Z",
+  "generated_at": "2026-03-19T07:40:57.124Z",
   "files": {
     "opencode-config/antigravity.json": "02e5da152f9b3220d1ddb3abcc97e412bdde433dd8320954e6a2353565b08790",
     "opencode-config/central-config.json": "b03855e6260b7eb7222f9d99a7566598eae8c4da85d2efde6eeda6c55eae3912",
@@ -24,6 +24,8 @@
     "opencode-config/skills/registry.backup.json": "6407698c01a16bff4113225374d0daecda322b318af9d09fb9b7992d2815bd74",
     "opencode-config/skills/registry.json": "427f02a8bf3058a488de7f35477bf9b30bace22d4b23acf0435e60d1fb00e40d",
     "opencode-config/skills/registry.schema.json": "263d04723f114846e24ce45a082e7499084cc2b4137f5ae942d7c5ab39c1d3b2",
+    "opencode-config/skills/semantic-matching/domain-signals.json": "12fd2a2fa7c0a75a1dbb796e5986251d0b2c3c43a00a62603710237ae5d79e40",
+    "opencode-config/skills/semantic-matching/synonyms.json": "792513ffa54828559c522f51d76c67845c25462901e199e48f0f3c40aa99199a",
     "opencode-config/supermemory.json": "755ba5b8ac2925b8fb4c62c53d5f4e48de5ce8664c39965125403845bb75b44f",
     "opencode-config/supermemory/codebase-pattern-analysis.json": "78ed263b510080d39cdeea60a010d63aee76f0ecf854f128f9f0868bbc10841c",
     "opencode-config/tool-tiers.json": "80ff07cae0efb2ee0949663cb9d887e163ad450c7a640081df3b0da2247b8257",
