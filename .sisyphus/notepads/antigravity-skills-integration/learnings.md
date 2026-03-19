@@ -312,3 +312,61 @@ After removing the `success_rate > 0.7` fallback, test fixtures MUST include `ta
 - `implementation` → incremental-implementation
 
 This ensures skills are selected via explicit category matching, not via the removed fallback.
+
+## [2026-03-19] Task 7: Synonym tables + domain heuristics
+
+### Changes Made
+- Created `opencode-config/skills/semantic-matching/synonyms.json` (14 clusters: debugging, testing, security, deployment, refactoring, performance, documentation, architecture, planning, review, research, git, monitoring, api)
+- Created `opencode-config/skills/semantic-matching/domain-signals.json` (14 categories: planning, implementation, debugging, testing, review, git, browser, research, analysis, memory, reasoning, meta, observability, optimization)
+- Created `opencode-config/skills/semantic-matching/README.md` (format documentation)
+- Test file: `packages/opencode-skill-rl-manager/test/synonym-tables.test.js` (5 tests, 280 assertions)
+- Aliases.json at `.sisyphus/analysis/antigravity-awesome-skills/data/aliases.json` informed content (alias patterns for debugging, code-refactoring, error-diagnostics, etc.)
+
+### Test Results
+- **synonym-tables.test.js**: 5 pass, 0 fail, 280 expect() calls
+- **skill-rl-manager full suite**: 38 pass, 0 fail (no regressions)
+
+### Key Decisions
+- synonyms.json has 14 clusters (exceeds minimum 8), covering all major development concepts
+- domain-signals.json maps exactly to the 14 registry categories, each with ≥5 signal words
+- Signal words derived from registry skill triggers/tags + common terminology
+- Path from test file: `../../../opencode-config/...` (3 levels up from packages/opencode-skill-rl-manager/test/)
+- TDD cycle: RED (5 failing tests) → GREEN (create files) → verified PASS
+
+## [2026-03-19] Task 8: Semantic matching integration into _matchesContext()
+
+### Changes Made
+1. **Created `packages/opencode-skill-rl-manager/src/semantic-matcher.js`** — SemanticMatcher class
+   - Loads synonyms.json and domain-signals.json synchronously via `fs.readFileSync`
+   - Builds reverse lookup maps: word → Set of canonical concepts/domains
+   - `match(skill, taskContext)` method: extracts description words, expands via synonyms, checks domain signals
+   - Fail-open: if file load fails, `enabled=false` → always returns false (no throw)
+
+2. **Modified `packages/opencode-skill-rl-manager/src/skill-bank.js`**
+   - Added `require('./semantic-matcher')` at top
+   - SkillBank constructor creates `this.semanticMatcher = new SemanticMatcher()`
+   - `_matchesContext()` calls `this.semanticMatcher.match(skill, taskContext)` as FINAL fallback
+   - Fires ONLY when all keyword matching paths return false (additive, not replacement)
+
+3. **Appended 5 test cases to `selection.test.js`** (total: 22 tests)
+   - Test 1: Synonym expansion — 'fix' → debugging cluster → matches tag 'debugging'
+   - Test 2: Synonym expansion — 'deploy'/'kubernetes' → deployment cluster → matches tag 'deployment'
+   - Test 3: No match — 'write a poem about cats' has no synonym/signal for 'debugging'
+   - Test 4: Regression — existing task_type='debugging' keyword path still works
+   - Test 5: Performance — 100 _matchesContext calls complete in < 1ms
+
+### Key Decisions
+- synonyms.json actual format is flat `{"debugging": ["fix", ...]}`, NOT nested `{canonical, synonyms}` from plan spec
+- domain-signals.json format is flat `{"debugging": ["error", ...]}` — same structure
+- Path resolution: `path.resolve(__dirname, '..', '..', '..', 'opencode-config', 'skills', 'semantic-matching', ...)`
+- Performance test: 100 total _matchesContext calls (not 100 × 79), with JIT warmup pass
+- application_context keywords in test skills chosen to NOT accidentally match descriptions (prevents false positives via existing keyword path)
+
+### Test Results
+- **selection.test.js**: 22 pass, 0 fail (17 existing + 5 new)
+- **Full test suite**: All pass (exit code 0), no regressions
+
+### Architecture
+- SemanticMatcher is a pure synchronous class — no Promises, no async, no external deps
+- Reverse maps built once at construction, O(1) lookup per word at match time
+- Two-layer matching: (1) synonym expansion against skill.tags + application_context, (2) domain signal detection against skill.tags
