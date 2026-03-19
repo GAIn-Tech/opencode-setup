@@ -285,6 +285,29 @@ function bootstrap(options = {}) {
     } catch { bootstrapStatus.packages['alert-manager'] = false; }
   }
 
+  // Gap #21: Subscribe to central event bus for cross-package event observability
+  const eventBus = (() => { try { return require('opencode-event-bus'); } catch { return null; } })();
+  if (eventBus) {
+    try {
+      eventBus.on('alert:fired', (alert) => {
+        try { bootstrapLogger.info('[EventBus] alert:fired', { type: alert?.type, id: alert?.id, severity: alert?.severity }); } catch {}
+      });
+      eventBus.on('alert:resolved', (ev) => {
+        try { bootstrapLogger.info('[EventBus] alert:resolved', { type: ev?.type, alertId: ev?.alertId }); } catch {}
+      });
+      eventBus.on('learning:outcomeRecorded', (data) => {
+        try { bootstrapLogger.info('[EventBus] learning:outcomeRecorded', { adviceId: data?.advice_id }); } catch {}
+      });
+      eventBus.on('learning:onFailureDistill', (data) => {
+        try { bootstrapLogger.warn('[EventBus] learning:onFailureDistill', { adviceId: data?.advice_id }); } catch {}
+      });
+      eventBus.on('learning:patternStored', (data) => {
+        try { bootstrapLogger.info('[EventBus] learning:patternStored', { type: data?.type }); } catch {}
+      });
+      bootstrapStatus.packages['event-bus'] = true;
+    } catch { bootstrapStatus.packages['event-bus'] = false; }
+  }
+
   // T18: Instantiate PipelineMetricsCollector for runtime event feeding
   if (PipelineMetricsCollectorClass) {
     try {

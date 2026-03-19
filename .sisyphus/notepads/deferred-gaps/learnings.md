@@ -53,3 +53,21 @@ New package: packages/opencode-tool-usage-tracker/
 Shim at: packages/opencode-learning-engine/src/tool-usage-tracker.js
 Tests pass: yes
 Notes: Used injectable MetaAwarenessTracker pattern (no-op default + configure()). Shim is 5 lines, wires real MetaAwarenessTracker on require. All 4 test files that import ../src/tool-usage-tracker (tracker, race, file-bridge, session-mcp) work via the shim. New package has 10 smoke tests covering logInvocation, detectUnderUse, getUsageReport, normalizeMcpToolName, getSessionMcpInvocations, configure, and export completeness.
+
+## 2026-03-18 Task: gap-22-skill-exploration-policy
+STATUS: SUCCESS
+Mode: epsilon-greedy + UCB added to selectSkills()
+Env vars: OPENCODE_EXPLORATION_MODE, OPENCODE_EPSILON
+Tests: exploration-policy.test.js (12 tests, 65 expect() calls)
+Notes: UCB tests need controlled skill banks (clear generalSkills + add specific skills) because registry sync populates many skills that interfere with assertions. Pre-existing test failures in exploration-adapter.test.js (4) and selection.test.js (1) unrelated to this change. Commit 321bcfa.
+
+## 2026-03-18 Task: gap-21-central-event-bus
+STATUS: SUCCESS
+Package: packages/opencode-event-bus/
+Singleton: yes
+Bus events: alert:fired, alert:resolved, learning:outcomeRecorded, learning:onFailureDistill, learning:patternStored
+AlertManager wired: direct (lazy require with try/catch in alert-manager.js)
+LearningEngine wired: direct (lazy require with try/catch in _emitHook, prefixes events with `learning:`)
+IntegrationLayer: bootstrap.js subscribes to all 5 bus events for logging
+Tests: 14 tests, 27 assertions
+Notes: opencode-model-manager DOES have a package.json (contrary to AGENTS.md claim). Used lazy require pattern for fail-open behavior. Pre-existing failures in state-machine.test.ts (4, SQLite), meta-kb-routing (1), tool-usage-*.test.js (7, ENOENT tmp dirs) — none related to event bus changes.

@@ -20,6 +20,15 @@ const { MetaAwarenessTracker } = require('./meta-awareness-tracker');
 const { MetaKBReader } = require('./meta-kb-reader');
 const EventEmitter = require('events');
 
+// Lazy require of central event bus — fail-open so LearningEngine works without it
+let _eventBus = null;
+function _getEventBus() {
+  if (_eventBus === null) {
+    try { _eventBus = require('opencode-event-bus'); } catch { _eventBus = undefined; }
+  }
+  return _eventBus || null;
+}
+
 class LearningEngine extends EventEmitter {
   /**
    * @param {Object} [options]
@@ -339,11 +348,15 @@ class LearningEngine extends EventEmitter {
 
   /**
    * Emit EventEmitter event and registered hook callbacks.
+   * Also forwards to central event bus with 'learning:' prefix (fail-open).
    * @param {string} hookName
    * @param {unknown} payload
    */
   _emitHook(hookName, payload) {
     this.emit(hookName, payload);
+
+    // Forward to central event bus (fail-open)
+    try { _getEventBus()?.emit(`learning:${hookName}`, payload); } catch { /* fail-open */ }
 
     if (!this.hooks[hookName]) return;
 
