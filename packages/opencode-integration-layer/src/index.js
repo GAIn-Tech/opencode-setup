@@ -1377,6 +1377,24 @@ class IntegrationLayer {
       }
     }
 
+    // Meta-KB skill adjustments: apply anti-pattern penalties and positive evidence
+    let metaKBAdj = null;
+    if (this.metaKBIndex && skills) {
+      try {
+        metaKBAdj = this._computeMetaKBSkillAdjustments(taskContext, skills, this.metaKBIndex);
+        if (metaKBAdj && metaKBAdj.net_adjustment < -0.3) {
+          this.logger.warn('Meta-KB anti-pattern risk detected for selected skills', {
+            net_adjustment: metaKBAdj.net_adjustment,
+            anti_pattern_penalty: metaKBAdj.anti_pattern_penalty,
+            affected_skills: metaKBAdj.affected_skills,
+          });
+        }
+      } catch (_e) {
+        // Fail-open: meta-KB adjustment must never block execution
+        this.logger.warn('Meta-KB skill adjustment failed (fail-open)', { error: _e?.message });
+      }
+    }
+
     // Execute the task with adaptive options
     const advice = this.advisor ? this.advisor.advise(advisorContext) : null;
     const budgetAction = runtimeContext?.budget?.action || 'none';
@@ -1389,7 +1407,8 @@ class IntegrationLayer {
       compressionActive,
       recommendedTools: runtimeContext?.toolNames || [],
       compressionRecommendedTools: runtimeContext?.compression?.recommendedTools || [],
-      compressionRecommendedSkills: runtimeContext?.compression?.recommendedSkills || []
+      compressionRecommendedSkills: runtimeContext?.compression?.recommendedSkills || [],
+      metaKBSkillAdjustments: metaKBAdj,
     };
 
     // Wire: record compression advisory when evaluateAndCompress() triggers compress/compress_urgent

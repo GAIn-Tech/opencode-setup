@@ -61,7 +61,7 @@ describe('ExplorationRLAdapter', () => {
     comprehensionMemory = { db };
     outcomes = [];
     skillRLManager = {
-      recordOutcome(payload) {
+      learnFromOutcome(payload) {
         outcomes.push(payload);
       },
     };
