@@ -177,7 +177,7 @@ describe('T7: Skill-RL Memoization', () => {
     let callCount = 0;
     const mockSelectSkills = ({ taskType }) => {
       callCount++;
-      return [{ skill: 'debugging', recommendedModels: ['anthropic/claude-opus-4-6'], successRate: 0.85 }];
+      return [{ skill: 'debugging', success_rate: 0.85 }];
     };
 
     const { getSkillRecommendations } = createSkillRLMemoizer(mockSelectSkills);
@@ -196,7 +196,7 @@ describe('T7: Skill-RL Memoization', () => {
     let callCount = 0;
     const mockSelectSkills = ({ taskType }) => {
       callCount++;
-      return [{ skill: taskType, successRate: 0.9 }];
+      return [{ skill: taskType, success_rate: 0.9 }];
     };
 
     const { getSkillRecommendations, _state } = createSkillRLMemoizer(mockSelectSkills);

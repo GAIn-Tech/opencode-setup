@@ -676,15 +676,10 @@ class ModelRouter {
           }
           this._skillRLMemo.set(taskType, { value: recommended, ts: now });
         }
-        if (recommended?.length > 0) {
-          recommended.forEach(skill => {
-            if (skill.recommendedModels) {
-              skill.recommendedModels.forEach(modelId => {
-                skillBoost[modelId] = (skillBoost[modelId] || 0) + skill.successRate;
-              });
-            }
-          });
-        }
+        // T24: SkillBank.selectSkills does not expose recommendedModels on skill objects.
+        // When skill-to-model mapping is added, populate skillBoost here
+        // using skill.success_rate (snake_case, matching SkillBank output shape).
+        // Dead recommendedModels/successRate(camelCase) code removed.
       } catch (e) {
         // Silently skip skill RL if unavailable
       }
