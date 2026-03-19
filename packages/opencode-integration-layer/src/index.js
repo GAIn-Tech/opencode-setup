@@ -1323,7 +1323,10 @@ class IntegrationLayer {
   async executeTaskWithEvidence(taskContext, executeTaskFn) {
     // Enrich context with system signals
     taskContext = this.enrichTaskContext(taskContext || {});
-    const advisorContext = this.normalizeTaskContext(taskContext);
+    // T23: Normalize taskContext itself so both taskType and task_type are present
+    // for all downstream consumers (SkillRL, learnFromFailure, learnFromOutcome, etc.)
+    taskContext = this.normalizeTaskContext(taskContext);
+    const advisorContext = taskContext;
 
     // Compute runtime context so DCP/budget/tool recommendations participate in live flows
     const runtimeContext = this.resolveRuntimeContext(taskContext);
