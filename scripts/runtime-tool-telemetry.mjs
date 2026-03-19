@@ -1356,6 +1356,9 @@ function main() {
     tool: toolName,
     category: toolInfo.category,
     priority: toolInfo.priority,
+    // NOTE: params captured as {} (shallow) — full params require updating the
+    // oh-my-opencode PostToolUse hook in local/oh-my-opencode (gitignored npm package).
+    // This is a known telemetry depth limitation. See audit gap #26.
     params: input.tool_input || {},
     success: true,  // If the hook fires, the tool succeeded
     context: {
