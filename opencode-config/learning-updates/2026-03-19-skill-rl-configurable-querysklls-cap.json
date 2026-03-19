@@ -1,0 +1,37 @@
+{
+  "id": "skill-rl-configurable-queryskills-cap-2026-03-19",
+  "timestamp": "2026-03-19T07:15:00.000Z",
+  "summary": "Fix querySkills() blocker #2: replace hardcoded .slice(0,3) and .slice(0,5) caps with configurable DEFAULT_MAX_RESULTS=10 and ABSOLUTE_MAX_RESULTS=20. Enables more diverse skill recommendations while preventing context window explosion.",
+  "affected_paths": [
+    "packages/opencode-skill-rl-manager/src/skill-bank.js",
+    "packages/opencode-skill-rl-manager/test/selection.test.js",
+    ".sisyphus/notepads/antigravity-skills-integration/learnings.md"
+  ],
+  "changes": {
+    "removed": [
+      "Hardcoded .slice(0, 3) at line 197 (general skills cap)",
+      "Hardcoded .slice(0, 3) at line 206 (task-specific skills cap)",
+      "Hardcoded .slice(0, 5) at line 214 (overall cap)"
+    ],
+    "added": [
+      "Static constants: DEFAULT_MAX_RESULTS=10, SOURCE_RATIO=0.6, ABSOLUTE_MAX_RESULTS=20 at lines 185-187",
+      "Optional second parameter to querySkills(): { maxResults = DEFAULT_MAX_RESULTS } = {} at line 198",
+      "Proportional per-source capping: Math.ceil(effectiveMax * SOURCE_RATIO) at lines 206, 212, 221",
+      "Absolute ceiling enforcement: Math.min(maxResults, ABSOLUTE_MAX_RESULTS) at line 203",
+      "4 new test cases in selection.test.js covering default cap, custom limits, and absolute ceiling"
+    ],
+    "modified": [
+      "querySkills() signature now accepts optional options parameter",
+      "Per-source cap calculation uses proportional formula instead of hardcoded 3",
+      "Final slice uses effectiveMax instead of hardcoded 5"
+    ]
+  },
+  "validation": {
+    "tests": "pass",
+    "build": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "TDD cycle: RED (tests written first) → GREEN (implementation) → REFACTOR (extracted constants). All 4 new tests pass. Backward compatible: existing caller at index.js:237 uses default maxResults=10 (up from hardcoded 5). No regressions in skill-rl-manager test suite."
+}

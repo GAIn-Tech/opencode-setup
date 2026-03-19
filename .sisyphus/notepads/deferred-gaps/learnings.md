@@ -258,3 +258,22 @@ File changed: packages/opencode-dashboard/src/app/api/meta-kb/route.ts
 - **No external deps**: module-level variables, no Redis/Memcached
 - **DriftInfo union type**: `{ total_drift, total_ok, files_checked, lastChecked }` | `{ driftStatus: 'pending', lastChecked: null }`
 - bun run build exit 0, bun test exit 0 verified
+
+## 2026-03-19 Task: Add unified CI workflow for governance automation
+STATUS: SUCCESS
+File created: .github/workflows/ci.yml
+
+### What was created
+- Unified GitHub Actions workflow triggered on ALL pushes to main/master and ALL PRs to main/master (no path filtering)
+- 5 jobs: test, governance, health, validate-models, dashboard-build
+- Jobs 2-5 depend on job 1 (test must pass first)
+- Each job: 10-min timeout, ubuntu-latest, Bun 1.3.10
+
+### Key findings
+- 4 existing workflows already existed: opencode-ci.yml (per-package matrix + validate), governance-gate.yml (learning-gate + deploy-state), deployment.yml (dev/staging/prod pipeline), model-catalog-sync.yml (weekly cron)
+- Existing workflows use **path filtering** — only trigger when packages/scripts/config change. This means non-code pushes (docs, config, new workflows) bypass all governance
+- The new ci.yml has NO path filtering — every push/PR to main/master runs the full gate
+- `governance:check` script chains 4 commands: learning-gate.mjs --staged, deployment-state.mjs check-flow, integrity-guard.mjs, ci-warning-budget.mjs --check. The `--staged` flag in CI may pass vacuously (no staged files); the governance-gate.yml workflow uses `--base` flag instead for proper CI diff comparison
+- Dashboard build requires `working-directory: packages/opencode-dashboard` since `bun run build` invokes `next build` which expects to be in the Next.js project root
+- Node.js 20 is needed alongside Bun for governance/health/validate-models jobs because scripts use `node scripts/*.mjs` (not `bun`)
+- bun test exit 0 verified after changes

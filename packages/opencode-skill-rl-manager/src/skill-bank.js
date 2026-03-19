@@ -74,7 +74,8 @@ class SkillBank {
         success_rate: 0.85,
         usage_count: 0,
         last_updated: Date.now(),
-        tags: ['debugging', 'verification', 'systematic']
+        tags: ['debugging', 'verification', 'systematic'],
+        source: 'seed'
       },
       {
         name: 'test-driven-development',
@@ -83,7 +84,8 @@ class SkillBank {
         success_rate: 0.90,
         usage_count: 0,
         last_updated: Date.now(),
-        tags: ['testing', 'tdd', 'verification']
+        tags: ['testing', 'tdd', 'verification'],
+        source: 'seed'
       },
       {
         name: 'verification-before-completion',
@@ -92,7 +94,8 @@ class SkillBank {
         success_rate: 0.95,
         usage_count: 0,
         last_updated: Date.now(),
-        tags: ['verification', 'quality', 'gate']
+        tags: ['verification', 'quality', 'gate'],
+        source: 'seed'
       },
       {
         name: 'brainstorming',
@@ -101,7 +104,8 @@ class SkillBank {
         success_rate: 0.80,
         usage_count: 0,
         last_updated: Date.now(),
-        tags: ['planning', 'design', 'exploration']
+        tags: ['planning', 'design', 'exploration'],
+        source: 'seed'
       },
       {
         name: 'incremental-implementation',
@@ -110,7 +114,8 @@ class SkillBank {
         success_rate: 0.88,
         usage_count: 0,
         last_updated: Date.now(),
-        tags: ['planning', 'decomposition', 'incremental']
+        tags: ['planning', 'decomposition', 'incremental'],
+        source: 'seed'
       }
     ];
 
@@ -180,21 +185,36 @@ class SkillBank {
   }
 
   /**
+   * Configuration constants for querySkills() cap behavior
+   */
+  static DEFAULT_MAX_RESULTS = 10;
+  static SOURCE_RATIO = 0.6;
+  static ABSOLUTE_MAX_RESULTS = 20;
+
+  /**
    * Query relevant skills for a task context
    * Returns hierarchical selection: General skills first, then task-specific
    * 
    * @param {Object} taskContext - Task context from OrchestrationAdvisor
+   * @param {Object} options - Configuration options
+   * @param {number} options.maxResults - Maximum number of results to return (default: 10, max: 20)
    * @returns {Array} Ranked list of relevant skills
    */
-  querySkills(taskContext) {
+  querySkills(taskContext, { maxResults = SkillBank.DEFAULT_MAX_RESULTS } = {}) {
     const { task_type, complexity, error_type, description } = taskContext;
     const results = [];
+
+    // Apply absolute ceiling to maxResults
+    const effectiveMax = Math.min(maxResults, SkillBank.ABSOLUTE_MAX_RESULTS);
+    
+    // Calculate per-source cap based on SOURCE_RATIO
+    const perSourceCap = Math.ceil(effectiveMax * SkillBank.SOURCE_RATIO);
 
     // Step 1: Always include high-success general skills
     const generalCandidates = Array.from(this.generalSkills.values())
       .filter(skill => this._matchesContext(skill, taskContext))
       .sort((a, b) => b.success_rate - a.success_rate)
-      .slice(0, 3); // Top 3 general skills
+      .slice(0, perSourceCap); // Top N general skills (proportional to maxResults)
 
     results.push(...generalCandidates.map(s => ({ ...s, source: 'general' })));
 
@@ -203,15 +223,15 @@ class SkillBank {
       const taskSkills = Array.from(this.taskSpecificSkills.get(task_type).values())
         .filter(skill => this._matchesContext(skill, taskContext))
         .sort((a, b) => b.success_rate - a.success_rate)
-        .slice(0, 3); // Top 3 task-specific skills
+        .slice(0, perSourceCap); // Top N task-specific skills (proportional to maxResults)
 
       results.push(...taskSkills.map(s => ({ ...s, source: 'task-specific' })));
     }
 
-    // Step 3: Rank by success_rate and return top 5
+    // Step 3: Rank by success_rate and return top effectiveMax
     return results
       .sort((a, b) => b.success_rate - a.success_rate)
-      .slice(0, 5);
+      .slice(0, effectiveMax);
   }
 
   /**
@@ -238,6 +258,41 @@ class SkillBank {
   }
 
   /**
+   * Check if skill should be avoided for this task context
+   * @private
+   */
+  _isAvoidContext(skill, taskContext) {
+    const { task_type, error_type, description } = taskContext;
+    
+    if (!skill.selectionHints?.avoidWhen || skill.selectionHints.avoidWhen.length === 0) {
+      return false;
+    }
+
+    const avoidTerms = skill.selectionHints.avoidWhen;
+    
+    // Check if any avoidWhen term matches task_type
+    if (task_type && avoidTerms.some(term => task_type.toLowerCase().includes(term.toLowerCase()))) {
+      return true;
+    }
+
+    // Check if any avoidWhen term matches error_type
+    if (error_type && typeof error_type === 'string' && avoidTerms.some(term => 
+      error_type.toLowerCase().includes(term.toLowerCase())
+    )) {
+      return true;
+    }
+
+    // Check if any avoidWhen term matches description
+    if (description && avoidTerms.some(term => 
+      description.toLowerCase().includes(term.toLowerCase())
+    )) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
    * Check if skill matches task context
    * Uses tags and application_context for fuzzy matching
    */
@@ -247,6 +302,11 @@ class SkillBank {
     // Always match if no specific context
     if (!task_type && !complexity && !error_type && !description) {
       return true;
+    }
+
+    // Check avoidWhen BEFORE tag/keyword matching
+    if (this._isAvoidContext(skill, taskContext)) {
+      return false;
     }
 
     // Match by tags
@@ -273,8 +333,8 @@ class SkillBank {
       }
     }
 
-    // Default: include if success_rate is high (>0.7)
-    return skill.success_rate > 0.7;
+    // No match found
+    return false;
   }
 
   /**

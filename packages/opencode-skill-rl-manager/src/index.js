@@ -315,8 +315,82 @@ class SkillRLManager {
   }
 
   /**
+   * Get default success_rate based on skill category (tiered defaults)
+   * @param {object} registryEntry - Registry entry with category field
+   * @returns {number} success_rate between 0 and 1
+   */
+  _getDefaultSuccessRate(registryEntry) {
+    const category = registryEntry.category || 'general';
+    
+    // Tier 1: debugging/testing/review → 0.70
+    if (['debugging', 'testing', 'review'].includes(category)) {
+      return 0.70;
+    }
+    
+    // Tier 2: general/meta/planning/reasoning/memory/observability → 0.65
+    if (['general', 'meta', 'planning', 'reasoning', 'memory', 'observability'].includes(category)) {
+      return 0.65;
+    }
+    
+    // Tier 3: everything else (niche/experimental) → 0.50
+    return 0.50;
+  }
+
+  /**
+   * Merge registry metadata into existing skill entry (for seed collisions)
+   * Preserves existing success_rate and usage_count, adds new triggers/tags
+   * @param {object} existing - Existing skill entry
+   * @param {object} registryEntry - Registry entry to merge
+   */
+  _mergeRegistryMetadata(existing, registryEntry) {
+    // Build merged object explicitly field-by-field to avoid any property descriptor issues
+    // Preserve the existing entry completely, only adding new metadata from registry
+    const merged = {
+      // Core fields from existing (seed) - NEVER overwrite these
+      name: existing.name,
+      principle: existing.principle || registryEntry.description || '',
+      success_rate: existing.success_rate, // CRITICAL: preserve seed's success_rate
+      usage_count: existing.usage_count, // CRITICAL: preserve seed's usage_count
+      last_updated: existing.last_updated,
+      source: existing.source,
+      tags: [],
+      application_context: ''
+    };
+    
+    // Merge triggers into application_context (avoid duplicates)
+    const existingContexts = new Set(
+      (existing.application_context || '')
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s)
+    );
+    
+    const newTriggers = registryEntry.triggers || [];
+    newTriggers.forEach(trigger => {
+      existingContexts.add(trigger);
+    });
+    
+    merged.application_context = Array.from(existingContexts).join(', ');
+    
+    // Merge tags (avoid duplicates)
+    const existingTags = new Set(existing.tags || []);
+    const newTags = registryEntry.tags || [];
+    newTags.forEach(tag => {
+      existingTags.add(tag);
+    });
+    
+    merged.tags = Array.from(existingTags);
+    
+    // Add any additional fields from existing that we might have missed
+    if (existing.category) merged.category = existing.category;
+    
+    return merged;
+  }
+
+  /**
    * Additively seed skill bank from registry.json.
    * Preserves existing usage_count and success_rate. Adds missing skills only.
+   * For seed collisions, merges registry metadata into existing entry.
    * @param {string} registryPath - Absolute path to registry.json
    */
   syncWithRegistry(registryPath) {
@@ -333,14 +407,24 @@ class SkillRLManager {
       // Normalize: strip any path prefix (superpowers/, etc.), use base name only
       const baseName = skillName.includes('/') ? skillName.split('/').pop() : skillName;
 
-      // Additive only: preserve existing entry if present
-      if (this.skillBank.generalSkills.has(baseName)) continue;
+      // Check if skill already exists
+      const existing = this.skillBank.generalSkills.get(baseName);
+      if (existing) {
+        // Merge registry metadata into existing entry (seed collision case)
+        const merged = this._mergeRegistryMetadata(existing, meta);
+        this.skillBank.generalSkills.set(baseName, merged);
+        mutated = true;
+        continue;
+      }
+
+      // New skill: use tiered default success_rate
+      const defaultSuccessRate = this._getDefaultSuccessRate(meta);
 
       this.skillBank.generalSkills.set(baseName, {
         name: baseName,
         principle: meta.description || '',
         application_context: (meta.triggers || []).join(', '),
-        success_rate: 0.75,
+        success_rate: defaultSuccessRate,
         usage_count: 0,
         last_updated: Date.now(),
         tags: meta.tags || [],

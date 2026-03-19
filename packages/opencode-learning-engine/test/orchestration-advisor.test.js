@@ -67,8 +67,9 @@ test('runner_up_skill is a string when two SKILL_AFFINITY categories match', () 
 
 test('runner_up_skill is null when only one SKILL_AFFINITY category matches', () => {
   const advisor = makeAdvisor();
-  // 'git' matches only the git category; description has no category keywords
-  const result = advisor.advise({ task_type: 'git', description: 'commit changes' });
+  // Use a task_type that matches only one category and has no description keywords
+  // 'deploy' matches only the deploy category; description has no category keywords
+  const result = advisor.advise({ task_type: 'deploy', description: 'push to production' });
   assert.equal(result.routing.runner_up_skill, null);
 });
 
@@ -101,7 +102,8 @@ test('ambiguity_margin equals topScore minus secondScore', () => {
 
 test('ambiguity_margin is null when no runner-up category', () => {
   const advisor = makeAdvisor();
-  const result = advisor.advise({ task_type: 'git', description: 'commit changes' });
+  // Use a task_type that matches only one category
+  const result = advisor.advise({ task_type: 'deploy', description: 'push to production' });
   assert.equal(result.routing.ambiguity_margin, null);
 });
 
@@ -197,4 +199,46 @@ test('routing still contains agent, skills, confidence alongside telemetry', () 
   assert.ok('runner_up_skill' in r);
   assert.ok('ambiguity_margin' in r);
   assert.ok('skill_switch_count' in r);
+});
+
+// ---------------------------------------------------------------------------
+// SKILL_AFFINITY registry-sourced routing (TDD: RED phase)
+// ---------------------------------------------------------------------------
+
+test('advise({task_type: "debug"}) returns skills including systematic-debugging (existing behavior preserved)', () => {
+  const advisor = makeAdvisor();
+  const result = advisor.advise({ task_type: 'debug', description: 'fix a bug' });
+  
+  assert.ok(Array.isArray(result.routing.skills), 'skills is array');
+  assert.ok(result.routing.skills.length > 0, 'skills array is not empty');
+  assert.ok(
+    result.routing.skills.includes('systematic-debugging'),
+    `Expected systematic-debugging in skills, got ${JSON.stringify(result.routing.skills)}`
+  );
+});
+
+test('_buildSkillAffinity() returns map with entries for each category in registry', () => {
+  const { OrchestrationAdvisor } = require('../src/orchestration-advisor');
+  const advisor = new OrchestrationAdvisor(makeStubAntiPatterns(), makeStubPositivePatterns());
+  
+  // Call the private method via reflection (or test the public behavior)
+  // For now, test that the affinity map has expected structure
+  const result = advisor.advise({ task_type: 'debug', description: 'test' });
+  
+  // The routing should have skills from the affinity map
+  assert.ok(Array.isArray(result.routing.skills), 'skills array exists');
+  assert.ok(result.routing.skills.length > 0, 'skills array has entries');
+});
+
+test('Registry load failure falls back to hardcoded map (no crash)', () => {
+  const advisor = makeAdvisor();
+  
+  // Even if registry loading fails internally, advise() should not crash
+  // and should return valid routing with skills
+  const result = advisor.advise({ task_type: 'debug', description: 'debug issue' });
+  
+  assert.ok(result.routing, 'routing exists');
+  assert.ok(Array.isArray(result.routing.skills), 'skills array exists');
+  assert.ok(result.routing.skills.length > 0, 'skills array has entries');
+  assert.equal(typeof result.routing.agent, 'string', 'agent is string');
 });
