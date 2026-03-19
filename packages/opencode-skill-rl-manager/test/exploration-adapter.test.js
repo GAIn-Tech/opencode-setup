@@ -102,4 +102,23 @@ describe('ExplorationRLAdapter', () => {
   test('getBestModelRecommendation returns null when no task data exists', () => {
     expect(adapter.getBestModelRecommendation('nonexistent-task')).toBeNull();
   });
+
+  test('updateFromExploration passes skill_used as string (not skills array) to learnFromOutcome', () => {
+    adapter.updateFromExploration('debug');
+
+    expect(outcomes).toHaveLength(2);
+    
+    // Verify first outcome has skill_used (string), not skills (array)
+    const firstOutcome = outcomes[0];
+    expect(firstOutcome.skill_used).toBeDefined();
+    expect(typeof firstOutcome.skill_used).toBe('string');
+    expect(firstOutcome.skill_used).toMatch(/^model:/);
+    expect(firstOutcome.skills).toBeUndefined();
+
+    // Verify second outcome also has correct field
+    const secondOutcome = outcomes[1];
+    expect(secondOutcome.skill_used).toBeDefined();
+    expect(typeof secondOutcome.skill_used).toBe('string');
+    expect(secondOutcome.skills).toBeUndefined();
+  });
 });

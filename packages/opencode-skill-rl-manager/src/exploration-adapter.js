@@ -66,7 +66,7 @@ class ExplorationRLAdapter {
       ];
 
       this.skillRLManager.learnFromOutcome({
-        skills: [`model:${row.model_id}`],
+        skill_used: `model:${row.model_id}`,
         success: featureVector[3] >= 0.5,
         tokens_used: Number(row.total_samples || 0),
         context: {
