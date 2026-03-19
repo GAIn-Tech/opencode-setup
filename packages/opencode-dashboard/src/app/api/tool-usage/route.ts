@@ -6,6 +6,13 @@ import { errorResponse } from '../_lib/error-response';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Total available tools in the system catalog.
+ * Sourced from AVAILABLE_TOOLS in opencode-learning-engine/src/tool-usage-tracker.js (59 entries).
+ * T25: Replaced hardcoded 60 with this constant. Update when tools are added/removed.
+ */
+const TOOL_CATALOG_COUNT = 59;
+
 interface ToolInvocation {
   timestamp: string;
   tool: string;
@@ -94,7 +101,7 @@ export async function GET(request: Request) {
 
     const successRate = total > 0 ? successCount / total : 0;
     const uniqueTools = Object.keys(toolCounts).length;
-    const breadth = 60; // known available tool count
+    const breadth = TOOL_CATALOG_COUNT;
     const breadthScore = Math.round((uniqueTools / breadth) * 100);
 
     return NextResponse.json({
