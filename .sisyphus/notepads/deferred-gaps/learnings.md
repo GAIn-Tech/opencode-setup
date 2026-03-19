@@ -155,3 +155,35 @@ Files changed: bootstrap.js (31 lines added), index.js (11 lines added)
 - The adapter reads AGGREGATED metrics per model_id grouped by intent_category — feeds 5-element feature vector into learnFromOutcome
 - `bun:sqlite` Database with `{ readonly: true }` prevents creating empty db files
 - bun test exit 0 verified after changes
+
+## 2026-03-19 Task: Wire ModelRouter.route() into hot path for budget-aware routing
+STATUS: SUCCESS
+File changed: packages/opencode-integration-layer/src/index.js
+
+### What was wired
+- `modelRouter.route(routeCtx)` — was NEVER called in executeTaskWithEvidence(). Model was statically pre-selected via `taskContext.model`, bypassing T4 budget penalty scoring entirely.
+- `route()` defined at model-router-x/src/index.js:602 — calls `_scoreModel()` which calls `_applyBudgetPenalty()` (lines 1292-1349)
+- Budget penalty thresholds: 70-80% → -0.05, 80-95% → -0.10, 95%+ → -0.15 (scaled by model cost)
+
+### Insertion point
+- After compression metrics recording (~line 1431) and before `try { result = await executeTaskFn(...)` (~line 1472)
+- Guarded by `this.modelRouter && typeof this.modelRouter.route === 'function'`
+- Wrapped in try/catch — fail-open, logs warning on failure
+
+### Route context constructed from
+- `sessionId` from `_sessionId` (extracted at line 1341)
+- `modelId` from `_model` (extracted at line 1342)
+- `taskType` from `taskContext.task_type || taskContext.taskType || taskContext.task`
+- `complexity` from `taskContext.complexity`
+
+### How the result is used
+- If `routeResult.modelId !== originalModel`, updates `taskContext.model` and `taskContext.modelId` with the recommended model
+- Logs a warning on override (for observability) with original/routed model, score, and reason
+- Logs info when model is confirmed (no override needed)
+- If route() throws, catches and continues with original model
+
+### Key findings
+- `route()` returns `{ model, keyId, modelId, score, reason, rotator, key }`
+- `selectModel()` at line 1728 is an alias for `route()` (backward compatibility)
+- `modelRouter.recordResult()` was already called post-execution (line 1448) — so modelRouter was available but only used for outcome recording, not routing
+- bun test exit 0 verified after changes

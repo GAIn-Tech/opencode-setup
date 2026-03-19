@@ -1430,6 +1430,44 @@ class IntegrationLayer {
       } catch (_e) { /* fail-open: metric recording must never break execution */ }
     }
 
+    // T4: Budget-aware model routing — call modelRouter.route() before execution
+    // so _applyBudgetPenalty() scores actually influence model selection at runtime.
+    // Fail-open: if route() throws or modelRouter is unavailable, continue with original model.
+    if (this.modelRouter && typeof this.modelRouter.route === 'function') {
+      try {
+        const routeCtx = {
+          sessionId: _sessionId,
+          modelId: _model,
+          taskType: taskContext.task_type || taskContext.taskType || taskContext.task || 'general',
+          complexity: taskContext.complexity || 'moderate',
+          task: taskContext.task,
+        };
+        const routeResult = this.modelRouter.route(routeCtx);
+        if (routeResult && routeResult.modelId) {
+          const originalModel = _model;
+          if (routeResult.modelId !== originalModel) {
+            taskContext.model = routeResult.modelId;
+            taskContext.modelId = routeResult.modelId;
+            this.logger.warn('ModelRouter budget-aware routing overrode model', {
+              original: originalModel,
+              routed: routeResult.modelId,
+              score: routeResult.score,
+              reason: routeResult.reason,
+            });
+          } else {
+            this.logger.info('ModelRouter confirmed current model', {
+              model: routeResult.modelId,
+              score: routeResult.score,
+              reason: routeResult.reason,
+            });
+          }
+        }
+      } catch (_routeErr) {
+        // Fail-open: routing failure must never block task execution
+        this.logger.warn('ModelRouter.route() failed (fail-open)', { error: _routeErr?.message });
+      }
+    }
+
     let result = null;
     let executionError = null;
 
