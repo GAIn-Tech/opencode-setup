@@ -9,7 +9,11 @@
     "opencode-plugin-preload-skills@1.8.0",
     "opencode-plugin-langfuse@0.1.8",
     "opencode-pty@0.2.1",
-    "opencode-beads@0.6.0"
+    "opencode-beads@0.6.0",
+    "opencode-rate-limit-fallback@latest",
+    "opencode-notifier@latest",
+    "opencode-envsitter-guard@latest",
+    "opencode-safety-net@latest"
   ],
   "provider": {
     "google": {
@@ -173,7 +177,7 @@
             }
           },
           "priority": "secondary"
-},
+        },
         "gemini-2.5-flash": {
           "name": "Gemini 2.5 Flash",
           "limit": {
@@ -582,7 +586,7 @@
         }
       }
     },
-"groq": {
+    "groq": {
       "npm": "@ai-sdk/openai-compatible",
       "options": {
         "baseURL": "https://api.groq.com/openai/v1",
@@ -764,32 +768,52 @@
     },
     "distill": {
       "type": "local",
-      "command": ["node", "scripts/run-distill-mcp.mjs", "serve", "--lazy"],
+      "command": [
+        "node",
+        "scripts/run-distill-mcp.mjs",
+        "serve",
+        "--lazy"
+      ],
       "enabled": true
     },
     "opencode-dashboard-launcher": {
       "type": "local",
-      "command": ["node", "packages/opencode-dashboard-launcher/src/index.js"],
+      "command": [
+        "node",
+        "packages/opencode-dashboard-launcher/src/index.js"
+      ],
       "enabled": false
     },
     "opencode-memory-graph": {
       "type": "local",
-      "command": ["node", "packages/opencode-memory-graph/src/mcp-server.mjs"],
+      "command": [
+        "node",
+        "packages/opencode-memory-graph/src/mcp-server.mjs"
+      ],
       "enabled": true
     },
     "opencode-model-router-x": {
       "type": "local",
-      "command": ["node", "packages/opencode-model-router-x/src/index.js"],
+      "command": [
+        "node",
+        "packages/opencode-model-router-x/src/index.js"
+      ],
       "enabled": false
     },
     "opencode-context-governor": {
       "type": "local",
-      "command": ["node", "packages/opencode-context-governor/src/mcp-server.mjs"],
+      "command": [
+        "node",
+        "packages/opencode-context-governor/src/mcp-server.mjs"
+      ],
       "enabled": true
     },
     "opencode-runbooks": {
       "type": "local",
-      "command": ["node", "packages/opencode-runbooks/src/mcp-server.mjs"],
+      "command": [
+        "node",
+        "packages/opencode-runbooks/src/mcp-server.mjs"
+      ],
       "enabled": true
     }
   },
