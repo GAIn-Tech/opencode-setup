@@ -165,5 +165,118 @@
 - Proportional capping logic clear and maintainable
 - Follows existing code patterns (Bun test framework, skill-bank.js style)
 
-### Next Steps
-- Task 4: Wire synergy/dependency/conflict fields into runtime
+## Task 5: UCB Cold-Start Dampening for Registry Skills — COMPLETED (2026-03-19)
+
+### Problem
+With 54 new registry-imported skills at `usage_count=0` and default `success_rate=0.70`:
+- UCB score = 0.70 + sqrt(2 * ln(101) / 1) = 0.70 + 3.04 = **3.74** (dominates)
+- Proven skill (usage=50, rate=0.85): UCB = 0.85 + sqrt(2 * ln(101) / 51) = 0.85 + 0.43 = **1.28** (suppressed)
+- New skills dominate selection for hundreds of rounds without dampening
+
+### Solution
+Apply cold-start dampening to exploration bonus for registry-sourced skills:
+- `dampening_factor = min(1.0, usage_count / 5)` when `source='registry'`
+- At usage_count=0: dampening=0, UCB = success_rate only (no exploration bonus)
+- At usage_count=5+: dampening=1.0, full UCB applies (exploration bonus restored)
+- Non-registry skills (source='seed', 'manual'): unaffected (dampening=1.0 always)
+
+### Changes Made
+1. **Added `_getUCBDampeningFactor(skill)` method** (lines 256-261)
+   - Returns 1.0 for non-registry skills (no dampening)
+   - Returns `min(1.0, usage_count / 5)` for registry skills (cold-start dampening)
+   - At usage_count=0: returns 0
+   - At usage_count=5+: returns 1.0
+
+2. **Updated `_applyUCB()` method** (lines 263-283)
+   - Calls `_getUCBDampeningFactor()` for each skill
+   - Applies dampening to exploration bonus: `ucbScore = success_rate + sqrt(...) * dampening`
+   - Preserves UCB formula for non-registry skills (dampening=1.0)
+   - Updated JSDoc to document dampening behavior
+
+3. **Created 3 test cases** in `selection.test.js` (appended to existing tests)
+   - Test 1: With 54 registry skills at usage_count=0, proven skill (usage=50, rate=0.85) appears in top results
+   - Test 2: Dampening factor = 0 when usage_count=0 (source=registry)
+   - Test 3: Dampening factor = 1.0 when usage_count >= 5 (full UCB applies)
+
+### Test Results
+- **selection.test.js UCB dampening tests**: 3 pass, 0 fail
+- **selection.test.js total**: 15 pass (12 existing + 3 new), 1 pre-existing failure (epsilon-greedy, unrelated)
+- **skill-rl-manager full suite**: 32 pass, 1 fail (pre-existing epsilon-greedy failure)
+- **Full test suite**: Pre-existing E2E failures (unrelated to this task)
+
+### Behavior Changes
+- **Before**: New registry skills with usage_count=0 dominate selection via UCB exploration bonus
+- **After**: New registry skills start with dampened exploration bonus, gradually restore as usage increases
+- **Impact**: Proven skills remain competitive during cold-start phase, new skills get fair chance after 5 uses
+- **Backward compatible**: Non-registry skills unaffected, existing UCB behavior preserved for source='seed'
+
+### Code Quality
+- TDD cycle: RED (tests written first) → GREEN (implementation) → REFACTOR (extracted _getUCBDampeningFactor)
+- No external dependencies added
+- Follows existing code patterns (Bun test framework, skill-rl-manager style)
+- Private method naming convention (_getUCBDampeningFactor) consistent with codebase
+- Math verified: dampening_factor = min(1.0, usage_count / 5) correctly implements cold-start penalty
+
+## Task 6: Epsilon-Greedy Weighted Injection by Category — COMPLETED (2026-03-19)
+
+### Problem
+With 79 total skills and uniform random selection during epsilon-greedy exploration:
+- Probability of selecting a relevant skill = 1/79 = **1.3%** (extremely low)
+- With category filtering (e.g., 8 debugging skills), probability = 8/8 = **100%** (if category matches)
+- Current implementation: `candidates[Math.floor(Math.random() * candidates.length)]` ignores task context
+
+### Solution
+Implement category-weighted selection that prefers skills matching `taskContext.task_type`:
+- If `taskContext.task_type` matches a skill's `category`, prefer those skills
+- Fall back to full candidate pool if no category match (preserves exploration)
+- Maintains randomness (not deterministic)
+
+### Changes Made
+1. **Added `_weightedRandomSkill(skills, taskContext)` method** (lines 289-305)
+   - Filters skills by `category === taskContext.task_type` if task_type is present
+   - Returns random skill from category-filtered pool if matches found
+   - Falls back to full pool if no category match (empty filter)
+   - Preserves randomness: `Math.floor(Math.random() * pool.length)`
+
+2. **Updated `_applyEpsilonGreedy()` signature** (line 315)
+   - Added `taskContext` parameter (was previously only `skills`)
+   - Updated JSDoc to document category-weighted behavior
+   - Calls `_weightedRandomSkill(candidates, taskContext)` instead of uniform random
+
+3. **Updated `selectSkills()` call site** (line 243)
+   - Passes `taskContext` to `_applyEpsilonGreedy(skills, taskContext)`
+   - taskContext already available in selectSkills() scope
+
+4. **Created 2 test cases** in `selection.test.js` (appended to existing tests)
+   - Test 1: With task_type="debugging", epsilon-greedy preferentially selects debugging-category skills
+     - Runs 200 iterations to collect ~100 injections (epsilon=0.5)
+     - Tracks injected skills (those not in base querySkills result)
+     - Asserts >= 50% of injected skills are from debugging category
+   - Test 2: Empty category filter falls back to full pool without error
+     - task_type="nonexistent-category" has no matching skills
+     - Verifies no crash and returns valid skill array
+
+### Test Results
+- **selection.test.js epsilon-greedy tests**: 2 pass, 0 fail
+- **selection.test.js total**: 17 pass (15 existing + 2 new), 0 fail
+- **skill-rl-manager full suite**: All tests pass (no regressions)
+- **Full test suite**: Pre-existing E2E failures (unrelated to this task)
+
+### Behavior Changes
+- **Before**: Uniform random selection from all candidates (1/79 = 1.3% chance of relevance)
+- **After**: Category-weighted selection preferring task_type match (up to 100% for matching category)
+- **Impact**: Dramatically improves exploration efficiency while preserving randomness
+- **Backward compatible**: Non-matching categories fall back to full pool (no breaking change)
+
+### Code Quality
+- TDD cycle: RED (tests written first) → GREEN (implementation) → REFACTOR (extracted _weightedRandomSkill)
+- No external dependencies added
+- Follows existing code patterns (Bun test framework, skill-rl-manager style)
+- Private method naming convention (_weightedRandomSkill) consistent with codebase
+- Test uses statistical approach (200 iterations) to verify probabilistic behavior
+
+### Key Insights
+- Test 1 initially failed because it was checking all selected skills, not just injected ones
+- Fixed by tracking base querySkills result and detecting injected skills (those not in base)
+- With epsilon=0.5, ~100 injections per 200 iterations provides sufficient statistical sample
+- Category weighting is additive: if no category match, falls back to full pool (no crash risk)

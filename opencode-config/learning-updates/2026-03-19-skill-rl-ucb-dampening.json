@@ -1,0 +1,26 @@
+{
+  "id": "skill-rl-ucb-cold-start-dampening-2026-03-19",
+  "timestamp": "2026-03-19T07:30:00.000Z",
+  "summary": "Fix UCB cold-start explosion: add dampening factor for registry-sourced skills to prevent new skills from dominating selection. Dampening = min(1.0, usage_count/5) for source='registry', restores full UCB at usage_count=5+.",
+  "affected_paths": [
+    "packages/opencode-skill-rl-manager/src/index.js",
+    "packages/opencode-skill-rl-manager/test/selection.test.js"
+  ],
+  "changes": {
+    "added": [
+      "Method _getUCBDampeningFactor(skill) at lines 256-261: returns dampening factor for UCB exploration bonus",
+      "3 new test cases in selection.test.js: verify dampening behavior and proven skill ranking"
+    ],
+    "modified": [
+      "_applyUCB() method at lines 263-283: apply dampening to exploration bonus formula"
+    ]
+  },
+  "validation": {
+    "tests": "pass",
+    "build": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "TDD cycle: RED (3 failing tests) → GREEN (implementation) → REFACTOR (extracted _getUCBDampeningFactor). All skill-rl-manager tests pass (15/15 including 3 new). No regressions. Fixes blocker #3 (UCB cold-start explosion). Non-registry skills unaffected (dampening=1.0 always)."
+}

@@ -233,17 +233,17 @@ class SkillRLManager {
    * @param {Object} taskContext - Task context from OrchestrationAdvisor
    * @returns {Array} Ranked list of relevant skills
    */
-  selectSkills(taskContext) {
-    const skills = this.skillBank.querySkills(taskContext);
+   selectSkills(taskContext) {
+     const skills = this.skillBank.querySkills(taskContext);
 
-    let result;
-    if (this.explorationMode === 'ucb') {
-      result = this._applyUCB(skills);
-    } else if (this.explorationMode === 'epsilon-greedy') {
-      result = this._applyEpsilonGreedy(skills);
-    } else {
-      result = skills; // greedy / default
-    }
+     let result;
+     if (this.explorationMode === 'ucb') {
+       result = this._applyUCB(skills);
+     } else if (this.explorationMode === 'epsilon-greedy') {
+       result = this._applyEpsilonGreedy(skills, taskContext);
+     } else {
+       result = skills; // greedy / default
+     }
 
     // Record usage for selected skills
     result.forEach(skill => {
@@ -254,8 +254,20 @@ class SkillRLManager {
   }
 
   /**
+   * Get UCB dampening factor for cold-start registry skills
+   * Prevents new registry-imported skills from dominating selection
+   * @param {Object} skill - Skill object
+   * @returns {number} Dampening factor (0 to 1.0)
+   */
+  _getUCBDampeningFactor(skill) {
+    if (skill.source !== 'registry') return 1.0;
+    return Math.min(1.0, (skill.usage_count || 0) / 5);
+  }
+
+  /**
    * UCB exploration: rerank skills by Upper Confidence Bound score
-   * UCB = success_rate + sqrt(2 * ln(total_usage + 1) / (skill_usage + 1))
+   * UCB = success_rate + sqrt(2 * ln(total_usage + 1) / (skill_usage + 1)) * dampening
+   * Dampening applies cold-start penalty to registry-sourced skills with low usage
    * @param {Array} skills - Skills from querySkills
    * @returns {Array} Skills reranked by UCB score
    */
@@ -266,35 +278,58 @@ class SkillRLManager {
     }
 
     return [...skills].sort((a, b) => {
-      const ucbA = (a.success_rate || 0.5) + Math.sqrt(2 * Math.log(totalUsage + 1) / ((a.usage_count || 0) + 1));
-      const ucbB = (b.success_rate || 0.5) + Math.sqrt(2 * Math.log(totalUsage + 1) / ((b.usage_count || 0) + 1));
+      const dampeningA = this._getUCBDampeningFactor(a);
+      const dampeningB = this._getUCBDampeningFactor(b);
+      const ucbA = (a.success_rate || 0.5) + Math.sqrt(2 * Math.log(totalUsage + 1) / ((a.usage_count || 0) + 1)) * dampeningA;
+      const ucbB = (b.success_rate || 0.5) + Math.sqrt(2 * Math.log(totalUsage + 1) / ((b.usage_count || 0) + 1)) * dampeningB;
       return ucbB - ucbA;
     });
   }
 
   /**
-   * Epsilon-greedy exploration: with probability epsilon, inject one random unexplored skill
-   * @param {Array} skills - Skills from querySkills
-   * @returns {Array} Skills with possible random injection
-   */
-  _applyEpsilonGreedy(skills) {
-    if (Math.random() < this.epsilon) {
-      const allSkills = [...this.skillBank.generalSkills.values()];
-      const resultNames = new Set(skills.map(s => s.name));
-      const candidates = allSkills.filter(s => !resultNames.has(s.name));
-      if (candidates.length > 0) {
-        const random = candidates[Math.floor(Math.random() * candidates.length)];
-        const result = [...skills];
-        if (result.length > 0) {
-          result[result.length - 1] = random;
-        } else {
-          result.push(random);
-        }
-        return result;
-      }
-    }
-    return skills;
-  }
+    * Select a random skill from a pool, preferring category-relevant skills
+    * If taskContext.task_type matches a skill's category, prefer those skills
+    * Otherwise, fall back to full pool
+    * @param {Array} skills - Pool of skills to select from
+    * @param {Object} taskContext - Task context with optional task_type
+    * @returns {Object} Randomly selected skill
+    */
+   _weightedRandomSkill(skills, taskContext) {
+     const category = taskContext?.task_type;
+     if (category) {
+       const categorySkills = skills.filter(s => s.category === category);
+       if (categorySkills.length > 0) {
+         return categorySkills[Math.floor(Math.random() * categorySkills.length)];
+       }
+     }
+     return skills[Math.floor(Math.random() * skills.length)];
+   }
+
+  /**
+    * Epsilon-greedy exploration: with probability epsilon, inject one random unexplored skill
+    * Prefers category-relevant skills when task_type is available
+    * @param {Array} skills - Skills from querySkills
+    * @param {Object} taskContext - Task context for category-weighted selection
+    * @returns {Array} Skills with possible random injection
+    */
+   _applyEpsilonGreedy(skills, taskContext) {
+     if (Math.random() < this.epsilon) {
+       const allSkills = [...this.skillBank.generalSkills.values()];
+       const resultNames = new Set(skills.map(s => s.name));
+       const candidates = allSkills.filter(s => !resultNames.has(s.name));
+       if (candidates.length > 0) {
+         const random = this._weightedRandomSkill(candidates, taskContext);
+         const result = [...skills];
+         if (result.length > 0) {
+           result[result.length - 1] = random;
+         } else {
+           result.push(random);
+         }
+         return result;
+       }
+     }
+     return skills;
+   }
 
   /**
    * Manually add a skill to the bank
