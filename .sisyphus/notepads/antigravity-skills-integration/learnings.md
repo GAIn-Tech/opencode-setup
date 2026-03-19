@@ -455,3 +455,39 @@ This ensures skills are selected via explicit category matching, not via the rem
 - **Dry-run**: 54/54 skills converted, 0 errors, 100% synergy coverage, valid JSON
 - **Unit tests**: 28 pass, 0 fail, 438 assertions
 - **Full suite**: `bun test` → all pass, exit 0
+
+---
+
+## Task 12: Import 54 Antigravity Skills + Wire Interconnections (2026-03-19)
+
+### What Was Done
+1. **Ran import pipeline** (`scripts/import-antigravity-skills.mjs`) WITHOUT `--dry-run`
+   - Created 54 new `opencode-config/skills/<target_name>/SKILL.md` files
+   - Generated `registry-patch.json` with 54 registry entries
+
+2. **Merged registry patch into `registry.json`**
+   - Added 54 new skills (0 conflicts with existing 38)
+   - Total: **92 skills** in registry
+   - Preserved all existing sections: `$schema`, `version`, `profiles` (7), `categories` (14)
+   - Updated `lastUpdated` timestamp
+   - Deleted temporary `registry-patch.json`
+
+3. **Verified interconnections** across categories
+   - Security: 6 skills (security-auditing, pentesting, vulnerability-scanning, threat-modeling, api-security, secure-coding) all cross-reference each other + code-doctor, codebase-auditor
+   - Architecture: 9 skills all reference related patterns + writing-plans, brainstorming, codebase-auditor
+   - DevOps: 7 skills cross-reference infrastructure tools + github-actions, verification-before-completion
+   - AI/ML: 6 skills reference each other + research-builder, context7
+   - Testing: 5 skills reference each other + TDD, evaluation-harness-builder
+   - **Fixed**: Removed false positive `react-patterns` synergy from `microservices-patterns` (keyword match on "patterns" was incorrect)
+   - **Validated**: 0 broken synergy references (all point to existing registry skills)
+
+4. **Governance validation**: `check-skill-overlap-governance.mjs` → PASS (2 clusters: browser, debugging)
+
+5. **Tests**: `bun test` → all pass, exit 0
+
+### Key Insights
+- The 54 new skills don't create any new overlap clusters (all have `canonicalEntrypoint: true`)
+- Auto-inferred synergies are high quality — only 1 false positive found (react-patterns in microservices-patterns)
+- Registry grew from 38 to 92 skills without breaking any existing behavior
+- No conflicts between existing and new skills (0 key collisions)
+- The merge pattern (read both JSONs, iterate patch, skip existing keys) is clean and safe
