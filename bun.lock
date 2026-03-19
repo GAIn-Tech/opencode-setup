@@ -130,6 +130,7 @@
       "version": "1.0.0",
       "dependencies": {
         "opencode-safe-io": "workspace:*",
+        "opencode-tool-usage-tracker": "workspace:*",
       },
     },
     "packages/opencode-logger": {
@@ -222,6 +223,10 @@
     },
     "packages/opencode-test-utils": {
       "name": "opencode-test-utils",
+      "version": "1.0.0",
+    },
+    "packages/opencode-tool-usage-tracker": {
+      "name": "opencode-tool-usage-tracker",
       "version": "1.0.0",
     },
     "packages/opencode-validator": {
@@ -1019,6 +1024,8 @@
     "opencode-skill-rl-manager": ["opencode-skill-rl-manager@workspace:packages/opencode-skill-rl-manager"],
 
     "opencode-test-utils": ["opencode-test-utils@workspace:packages/opencode-test-utils"],
+
+    "opencode-tool-usage-tracker": ["opencode-tool-usage-tracker@workspace:packages/opencode-tool-usage-tracker"],
 
     "opencode-validator": ["opencode-validator@workspace:packages/opencode-validator"],
 
