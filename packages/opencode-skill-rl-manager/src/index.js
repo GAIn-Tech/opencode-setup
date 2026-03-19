@@ -159,6 +159,10 @@ class SkillRLManager {
     // Sync with skill registry on startup — additive, never overwrites existing data
     const _registryPath = path.resolve(__dirname, '../../../opencode-config/skills/registry.json');
     this.syncWithRegistry(_registryPath);
+
+    // Exploration policy (env-driven, NOT persisted)
+    this.explorationMode = process.env.OPENCODE_EXPLORATION_MODE || 'greedy';
+    this.epsilon = Math.min(1, Math.max(0, parseFloat(process.env.OPENCODE_EPSILON || '0.1')));
   }
 
   /**
@@ -231,12 +235,64 @@ class SkillRLManager {
    */
   selectSkills(taskContext) {
     const skills = this.skillBank.querySkills(taskContext);
-    
+
+    let result;
+    if (this.explorationMode === 'ucb') {
+      result = this._applyUCB(skills);
+    } else if (this.explorationMode === 'epsilon-greedy') {
+      result = this._applyEpsilonGreedy(skills);
+    } else {
+      result = skills; // greedy / default
+    }
+
     // Record usage for selected skills
-    skills.forEach(skill => {
+    result.forEach(skill => {
       this.skillBank.recordUsage(skill.name, taskContext.task_type);
     });
-    
+
+    return result;
+  }
+
+  /**
+   * UCB exploration: rerank skills by Upper Confidence Bound score
+   * UCB = success_rate + sqrt(2 * ln(total_usage + 1) / (skill_usage + 1))
+   * @param {Array} skills - Skills from querySkills
+   * @returns {Array} Skills reranked by UCB score
+   */
+  _applyUCB(skills) {
+    let totalUsage = 0;
+    for (const skill of this.skillBank.generalSkills.values()) {
+      totalUsage += (skill.usage_count || 0);
+    }
+
+    return [...skills].sort((a, b) => {
+      const ucbA = (a.success_rate || 0.5) + Math.sqrt(2 * Math.log(totalUsage + 1) / ((a.usage_count || 0) + 1));
+      const ucbB = (b.success_rate || 0.5) + Math.sqrt(2 * Math.log(totalUsage + 1) / ((b.usage_count || 0) + 1));
+      return ucbB - ucbA;
+    });
+  }
+
+  /**
+   * Epsilon-greedy exploration: with probability epsilon, inject one random unexplored skill
+   * @param {Array} skills - Skills from querySkills
+   * @returns {Array} Skills with possible random injection
+   */
+  _applyEpsilonGreedy(skills) {
+    if (Math.random() < this.epsilon) {
+      const allSkills = [...this.skillBank.generalSkills.values()];
+      const resultNames = new Set(skills.map(s => s.name));
+      const candidates = allSkills.filter(s => !resultNames.has(s.name));
+      if (candidates.length > 0) {
+        const random = candidates[Math.floor(Math.random() * candidates.length)];
+        const result = [...skills];
+        if (result.length > 0) {
+          result[result.length - 1] = random;
+        } else {
+          result.push(random);
+        }
+        return result;
+      }
+    }
     return skills;
   }
 
