@@ -123,13 +123,13 @@ The registry defines **profiles** — curated skill subsets for common task patt
 
 | Profile | Trigger phrases | Skills |
 |---------|----------------|--------|
-| `deep-refactoring` | "refactor", "clean up code", "improve architecture" | test-driven-development, systematic-debugging, git-master, verification-before-completion |
-| `planning-cycle` | "plan feature", "design system", "architect" | brainstorming, writing-plans, executing-plans |
-| `review-cycle` | "code review", "PR review", "review cycle" | requesting-code-review, receiving-code-review, verification-before-completion |
-| `parallel-implementation` | "parallel work", "divide and conquer", "complex implementation" | dispatching-parallel-agents, subagent-driven-development, executing-plans |
-| `browser-testing` | "test UI", "browser test", "visual verification" | playwright, frontend-ui-ux, verification-before-completion |
-| `diagnostic-healing` | "diagnose", "fix bug", "heal code", "auto-fix", "incident" | code-doctor, systematic-debugging, incident-commander, git-master |
-| `research-to-code` | "research and build", "investigate then implement", "deep dive" | research-builder, context7, writing-plans, executing-plans |
+| `deep-refactoring` | "refactor", "clean up code", "improve architecture" | test-driven-development, systematic-debugging, git-master, verification-before-completion, c4-architecture, ddd-strategic-design, tech-debt-assessment |
+| `planning-cycle` | "plan feature", "design system", "architect" | brainstorming, writing-plans, executing-plans, competitive-analysis, gtm-strategy |
+| `review-cycle` | "code review", "PR review", "review cycle" | requesting-code-review, receiving-code-review, verification-before-completion, linting-standards, tech-debt-assessment |
+| `parallel-implementation` | "parallel work", "divide and conquer", "complex implementation" | dispatching-parallel-agents, subagent-driven-development, executing-plans, docker-containerization, terraform-iac |
+| `browser-testing` | "test UI", "browser test", "visual verification" | dev-browser, frontend-ui-ux, verification-before-completion, accessibility-testing, e2e-testing |
+| `diagnostic-healing` | "diagnose", "fix bug", "heal code", "auto-fix", "incident" | code-doctor, systematic-debugging, incident-commander, git-master, security-auditing, vulnerability-scanning |
+| `research-to-code` | "research and build", "investigate then implement", "deep dive" | research-builder, context7, grep, writing-plans, executing-plans, rag-implementation, prompt-engineering |
 
 ### Profile Resolution Algorithm
 
@@ -296,6 +296,69 @@ IF task contains codebase_audit_keywords:
   1. Recommend codebase-auditor as PRIMARY skill (score: 0.92)
   2. If innovation-migration-planner is also relevant, chain: codebase-auditor → innovation-migration-planner
   3. Log: "Codebase audit task detected - codebase-auditor recommended"
+```
+
+## Security Audit Detection (Security Auditing Auto-Recommendation)
+
+When the task involves security review, vulnerability assessment, or penetration testing,
+the orchestrator MUST recommend **security-auditing** or **vulnerability-scanning**.
+
+### Detection Keywords
+
+If the user request contains any of these patterns, recommend security skills:
+- "security audit", "vulnerability scan", "pentest", "OWASP"
+- "CVE check", "security review", "threat model"
+- "dependency audit", "supply chain security", "SAST", "DAST"
+
+### Recommendation Rule
+
+```
+IF task contains security_audit_keywords:
+  1. Recommend security-auditing as PRIMARY skill (score: 0.91)
+  2. If vulnerability-scanning is also relevant, chain: security-auditing → vulnerability-scanning
+  3. Log: "Security audit task detected - security-auditing recommended"
+```
+
+## Infrastructure/DevOps Detection (Containerization & IaC Auto-Recommendation)
+
+When the task involves deployment, containerization, or infrastructure provisioning,
+the orchestrator MUST recommend **docker-containerization** or **terraform-iac**.
+
+### Detection Keywords
+
+If the user request contains any of these patterns, recommend infrastructure skills:
+- "deploy to kubernetes", "docker", "terraform", "infrastructure as code"
+- "containerize", "Dockerfile", "docker-compose", "k8s"
+- "provision infrastructure", "cloud deploy", "IaC", "helm chart"
+
+### Recommendation Rule
+
+```
+IF task contains infrastructure_keywords:
+  1. Recommend docker-containerization or terraform-iac as PRIMARY skill (score: 0.88)
+  2. If both are relevant, chain: docker-containerization → terraform-iac
+  3. Log: "Infrastructure/DevOps task detected - containerization/IaC recommended"
+```
+
+## Architecture Design Detection (C4 & DDD Auto-Recommendation)
+
+When the task involves system design, architecture modeling, or domain-driven design,
+the orchestrator MUST recommend **c4-architecture** or **ddd-strategic-design**.
+
+### Detection Keywords
+
+If the user request contains any of these patterns, recommend architecture skills:
+- "design architecture", "C4 model", "domain driven design", "event sourcing"
+- "bounded context", "aggregate root", "system context diagram"
+- "architecture decision record", "ADR", "component diagram", "strategic design"
+
+### Recommendation Rule
+
+```
+IF task contains architecture_design_keywords:
+  1. Recommend c4-architecture or ddd-strategic-design as PRIMARY skill (score: 0.90)
+  2. If both are relevant, chain: c4-architecture → ddd-strategic-design
+  3. Log: "Architecture design task detected - c4-architecture/ddd recommended"
 ```
 
 ## Quick Start

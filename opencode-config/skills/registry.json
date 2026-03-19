@@ -405,7 +405,7 @@
         "test page"
       ],
       "overlapCluster": "browser",
-      "canonicalEntrypoint": true,
+      "canonicalEntrypoint": false,
       "selectionHints": {
         "useWhen": [
           "want direct MCP browser path",
@@ -1382,7 +1382,10 @@
         "test-driven-development",
         "systematic-debugging",
         "git-master",
-        "verification-before-completion"
+        "verification-before-completion",
+        "c4-architecture",
+        "ddd-strategic-design",
+        "tech-debt-assessment"
       ],
       "triggers": [
         "refactor",
@@ -1395,7 +1398,9 @@
       "skills": [
         "brainstorming",
         "writing-plans",
-        "executing-plans"
+        "executing-plans",
+        "competitive-analysis",
+        "gtm-strategy"
       ],
       "triggers": [
         "plan feature",
@@ -1408,7 +1413,9 @@
       "skills": [
         "requesting-code-review",
         "receiving-code-review",
-        "verification-before-completion"
+        "verification-before-completion",
+        "linting-standards",
+        "tech-debt-assessment"
       ],
       "triggers": [
         "code review",
@@ -1421,7 +1428,9 @@
       "skills": [
         "dispatching-parallel-agents",
         "subagent-driven-development",
-        "executing-plans"
+        "executing-plans",
+        "docker-containerization",
+        "terraform-iac"
       ],
       "triggers": [
         "parallel work",
@@ -1434,7 +1443,9 @@
       "skills": [
         "dev-browser",
         "frontend-ui-ux",
-        "verification-before-completion"
+        "verification-before-completion",
+        "accessibility-testing",
+        "e2e-testing"
       ],
       "triggers": [
         "test UI",
@@ -1448,7 +1459,9 @@
         "code-doctor",
         "systematic-debugging",
         "incident-commander",
-        "git-master"
+        "git-master",
+        "security-auditing",
+        "vulnerability-scanning"
       ],
       "triggers": [
         "diagnose",
@@ -1465,7 +1478,9 @@
         "context7",
         "grep",
         "writing-plans",
-        "executing-plans"
+        "executing-plans",
+        "rag-implementation",
+        "prompt-engineering"
       ],
       "triggers": [
         "research and build",
