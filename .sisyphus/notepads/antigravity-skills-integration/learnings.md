@@ -370,3 +370,88 @@ This ensures skills are selected via explicit category matching, not via the rem
 - SemanticMatcher is a pure synchronous class — no Promises, no async, no external deps
 - Reverse maps built once at construction, O(1) lookup per word at match time
 - Two-layer matching: (1) synonym expansion against skill.tags + application_context, (2) domain signal detection against skill.tags
+
+## [2026-03-19] Task 9: Update workflow profiles + orchestrator skill references
+
+### Changes Made
+1. **Updated 7 profiles in `opencode-config/skills/registry.json`** (profiles section ~line 1378)
+   - `deep-refactoring`: +c4-architecture, ddd-strategic-design, tech-debt-assessment
+   - `planning-cycle`: +competitive-analysis, gtm-strategy
+   - `review-cycle`: +linting-standards, tech-debt-assessment
+   - `parallel-implementation`: +docker-containerization, terraform-iac
+   - `browser-testing`: +accessibility-testing, e2e-testing
+   - `diagnostic-healing`: +security-auditing, vulnerability-scanning
+   - `research-to-code`: +rag-implementation, prompt-engineering
+
+2. **Updated SKILL.md profile table** (`opencode-config/skills/skill-orchestrator-runtime/SKILL.md` lines 124-132)
+   - Synced table with registry.json (also fixed browser-testing to use dev-browser instead of playwright, and research-to-code to include grep)
+   - All 7 profiles now show the full updated skill lists
+
+3. **Added 3 auto-recommendation detection rules** to SKILL.md (before Quick Start section)
+   - **Security Audit Detection**: keywords "security audit", "vulnerability scan", "pentest", "OWASP" → recommends security-auditing (score 0.91)
+   - **Infrastructure/DevOps Detection**: keywords "deploy to kubernetes", "docker", "terraform" → recommends docker-containerization/terraform-iac (score 0.88)
+   - **Architecture Design Detection**: keywords "design architecture", "C4 model", "domain driven design" → recommends c4-architecture/ddd-strategic-design (score 0.90)
+
+4. **Fixed pre-existing governance violation**: `playwright` skill had `canonicalEntrypoint: true` conflicting with `dev-browser` in the browser overlap cluster. Set playwright to `canonicalEntrypoint: false`.
+
+### Key Learnings
+- New skill names are forward references — they don't exist in registry.skills{} yet (imported in Task 12). Profiles can reference them now without validation failure because the governance script only checks overlapCluster and conflicts, not profile skill references.
+- Learning update JSON requires `validation` with keys: tests, lint, typecheck — each must be "pass", "fail", or "not-run" (not free text).
+- Governance hashes must be regenerated after modifying governed config files: `node scripts/learning-gate.mjs --generate-hashes`
+- SKILL.md profile table had stale data (playwright instead of dev-browser, missing grep from research-to-code) — synced with registry.json as source of truth.
+
+### Test Results
+- **Governance check**: `node scripts/check-skill-overlap-governance.mjs` → PASS (2 clusters, 5 clustered skills)
+- **Full test suite**: `bun test` → all pass, exit 0
+- **Commit**: d1ca238 with Learning-Update + Risk-Level trailers
+
+---
+
+## Task 11: Skill Format Converter + Import Pipeline (2026-03-19)
+
+### Architecture Decisions
+1. **Manifest-driven pipeline**: Created `.sisyphus/skill-manifest.json` with exactly 54 skills across 10 domains (Architecture, Security, DevOps, Data & AI, Frontend, Backend, Database, Business, Testing, Code Quality). The pipeline reads from this manifest rather than scanning all 1,272 skills — enforces curated selection and makes the import reproducible.
+
+2. **Reused `parseFrontmatter()` from `scripts/lib/yaml-frontmatter-parser.mjs`**: Instead of adding a new YAML dependency, the pipeline imports the existing parser. This keeps the dependency graph minimal and ensures consistent frontmatter handling across the codebase.
+
+3. **Synergy inference algorithm**: Auto-infers `interconnections` (synergies/complements) using three strategies:
+   - **Same-category synergies**: Skills in the same domain get mutual synergy links
+   - **Shared-tag synergies**: Skills sharing 2+ tags get complement links
+   - **Existing registry mapping**: `EXISTING_SKILL_SYNERGY_MAP` maps our 10 categories to relevant existing skills (e.g., Architecture → sequentialthinking, writing-plans)
+   - Capped at 15 interconnections per skill to prevent noise
+
+4. **Registry patch output**: Generates `registry-patch.json` (NOT modifying existing `registry.json`) with all required fields: `selectionHints`, `overlapCluster`, `canonicalEntrypoint`, `profiles`, tags, triggers, and interconnections.
+
+### Skill Selection Process
+- Scanned `.sisyphus/analysis/antigravity-awesome-skills/skills_index.json` (1,272 total skills)
+- Most skills categorized as "uncategorized" in the index — manual domain assignment was needed
+- Selected 54 skills with verified SKILL.md files at their expected paths
+- Domain distribution: Architecture(9), Security(6), DevOps(7), Data & AI(6), Frontend(5), Backend(5), Database(4), Business(5), Testing(5), Code Quality(2)
+
+### Dry-Run Validation Pattern
+- `--dry-run` flag prevents any file writes (no SKILL.md output, no registry-patch.json on disk)
+- Instead returns structured result: `{ converted: [...], errors: [...], registryPatch: {...} }`
+- Validates 100% synergy coverage (every skill has ≥1 interconnection)
+- Validates JSON schema of registry patch entries
+- Used in tests to verify pipeline correctness without filesystem side effects
+
+### Test Patterns (28 tests, 438 assertions)
+- **Test file**: `scripts/lib/test/import-pipeline.test.mjs` using ESM imports (`import { describe, test, expect } from 'bun:test'`)
+- **Named exports**: All pipeline functions exported individually (`loadManifest`, `convertSkill`, `extractBody`, `extractTriggers`, `inferInterconnections`, `runPipeline`)
+- **Test categories**: loadManifest (6), convertSkill (6), extractTriggers (4), extractBody (2), inferInterconnections (4), runPipeline dry-run (3), full integration (3)
+- **Error path coverage**: missing files, bad JSON, empty arrays, missing required fields
+- **Integration test**: Runs full pipeline in dry-run against real 54-skill manifest, verifies all fields present and schema valid
+
+### Key Learnings
+- Antigravity SKILL.md frontmatter uses: name, description, category, risk, source, date_added
+- Antigravity body sections vary: "When invoked", "Use this skill when", "Do not use this skill when", "Instructions", "Purpose", "Capabilities" — extractors must handle all variants
+- Our registry.json has 38 existing skills (not 25 as the spec estimated)
+- Tags are auto-generated from: category name, skill name words (split on hyphens), risk level prefix
+- Triggers are extracted from "When to Use" / "Use this skill when" sections, capped at 8 per skill
+- Windows environment: `grep`/`tail` not available — use `node -e` for text processing in CI
+- `bun test` exit code 0 = all pass; ANSI codes can bury the summary line
+
+### Test Results
+- **Dry-run**: 54/54 skills converted, 0 errors, 100% synergy coverage, valid JSON
+- **Unit tests**: 28 pass, 0 fail, 438 assertions
+- **Full suite**: `bun test` → all pass, exit 0
