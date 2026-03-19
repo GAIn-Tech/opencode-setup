@@ -287,6 +287,13 @@ function bootstrap(options = {}) {
     bootstrapStatus.packages['orchestration-advisor'] = true;
   }
 
+  // Wire LearningEngine itself into IntegrationLayer for SkillRL↔LearningEngine
+  // cross-feedback.  IntegrationLayer feeds skill performance data (success_rate,
+  // usage_count) to LearningEngine after each SkillRL learnFromOutcome() call.
+  if (learningEngine) {
+    config.learningEngine = learningEngine;
+  }
+
   // T15: Wire LearningEngine event consumers (fail-open, advisory logging)
   if (learningEngine && typeof learningEngine.on === 'function') {
     try {

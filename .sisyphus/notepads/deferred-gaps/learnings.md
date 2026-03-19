@@ -187,3 +187,49 @@ File changed: packages/opencode-integration-layer/src/index.js
 - `selectModel()` at line 1728 is an alias for `route()` (backward compatibility)
 - `modelRouter.recordResult()` was already called post-execution (line 1448) — so modelRouter was available but only used for outcome recording, not routing
 - bun test exit 0 verified after changes
+
+## 2026-03-19 Task: Wire SkillRL↔LearningEngine cross-feedback
+STATUS: SUCCESS
+Files changed: bootstrap.js (6 lines), index.js (~55 lines)
+
+### Root cause
+- `SkillRLManager.learnFromOutcome()` updates skill weights (success_rate, usage_count, tool_affinities) independently
+- `LearningEngine.learnFromOutcome()` updates pattern catalogs (anti-patterns, positive patterns) independently
+- Neither system fed the other — confirmed by audit
+- `LearningEngine.advise()` never consulted SkillRL's success_rate, usage_count, or tool_affinities
+
+### What was wired
+
+#### 1. Bootstrap wiring (bootstrap.js)
+- Added `config.learningEngine = learningEngine` after OrchestrationAdvisor wiring (line ~293)
+- Previously only `learningEngine.advisor` was passed to IntegrationLayer — LearningEngine itself was inaccessible
+
+#### 2. IntegrationLayer constructor (index.js)
+- Added `this.learningEngine = config.learningEngine || null` alongside existing `this.advisor`
+
+#### 3. Cross-feedback: SkillRL performance → advise() context (index.js, before advise() call)
+- Before `this.advisor.advise(advisorContext)`, enriches `advisorContext.skillRLPerformance` with:
+  - `top_performers`: top 5 skills by success_rate (name, success_rate, usage_count)
+  - `bottom_performers`: bottom 3 skills by success_rate
+  - `total_skills`: total count
+  - `active_skills`: skills with usage_count > 0
+- Guarded by `this.skillRL && this.skillRL.skillBank`
+- Wrapped in try/catch (fail-open)
+
+#### 4. Cross-feedback: SkillRL → LearningEngine patterns (index.js, after skillRL.learnFromOutcome())
+- After BOTH success and failure `skillRL.learnFromOutcome()` calls fire:
+  - Reads primary skill data from `skillRL.skillBank.generalSkills.get(skillName)`
+  - Builds performance summary: { skill_name, success_rate, usage_count, tool_affinities }
+  - On success: calls `learningEngine.addPositivePattern({ type: 'skill_success', ... })`
+  - On failure: calls `learningEngine.addAntiPattern({ type: 'skill_failure', severity: high|medium, ... })`
+  - Severity is 'high' if success_rate < 0.3, else 'medium'
+  - Source tagged as 'skillrl-cross-feedback' for traceability
+- Guarded by `this.learningEngine && this.skillRL && skills`
+- Wrapped in try/catch (fail-open)
+
+### Key design decisions
+- Used `addPositivePattern()` and `addAntiPattern()` directly (not `ingestEvent()`) to avoid strict type validation — SkillRL-sourced patterns use custom types ('skill_success', 'skill_failure')
+- No circular dependency: LearningEngine is injected into IntegrationLayer, not into SkillRLManager
+- No SkillRLManager or LearningEngine internal modifications — all changes in integration-layer
+- Fail-open everywhere — cross-feedback must never break task execution
+- bun test exit 0 verified after changes

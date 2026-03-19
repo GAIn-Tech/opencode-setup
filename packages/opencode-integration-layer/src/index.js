@@ -188,6 +188,7 @@ class IntegrationLayer {
     this.showboat = config.showboat || config.showboatWrapper || null;
     this.quotaManager = config.quotaManager || null;
     this.advisor = config.advisor || config.orchestrationAdvisor || null;
+    this.learningEngine = config.learningEngine || null;
     this.modelRouter = config.modelRouter || config.ModelRouter || null;
     this.preloadSkills = config.preloadSkills || null;
     this.runbooks = config.runbooks || null;
@@ -1396,6 +1397,25 @@ class IntegrationLayer {
       }
     }
 
+    // Cross-feedback: SkillRL performance → advise() context
+    // Enrich advisorContext with top/bottom skill performers so LearningEngine's
+    // OrchestrationAdvisor can factor SkillRL data into routing decisions.
+    if (this.skillRL && this.skillRL.skillBank) {
+      try {
+        const _allSkills = [...this.skillRL.skillBank.generalSkills.values()];
+        const _usedSkills = _allSkills.filter(s => (s.usage_count || 0) > 0);
+        if (_usedSkills.length > 0) {
+          const _sorted = _usedSkills.sort((a, b) => (b.success_rate || 0) - (a.success_rate || 0));
+          advisorContext.skillRLPerformance = {
+            top_performers: _sorted.slice(0, 5).map(s => ({ name: s.name, success_rate: s.success_rate, usage_count: s.usage_count })),
+            bottom_performers: _sorted.slice(-3).map(s => ({ name: s.name, success_rate: s.success_rate, usage_count: s.usage_count })),
+            total_skills: _allSkills.length,
+            active_skills: _usedSkills.length,
+          };
+        }
+      } catch (_e) { /* fail-open: enrichment must never block advise() */ }
+    }
+
     // Execute the task with adaptive options
     const advice = this.advisor ? this.advisor.advise(advisorContext) : null;
     const budgetAction = runtimeContext?.budget?.action || 'none';
@@ -1610,6 +1630,45 @@ class IntegrationLayer {
         },
         quota_signal: this._extractQuotaSignal(taskContext, result)
       });
+    }
+
+    // Cross-feedback: SkillRL → LearningEngine
+    // After SkillRL updates skill weights, forward skill performance data to
+    // LearningEngine as pattern evidence so both learning systems reinforce each other.
+    // Fail-open: cross-feedback must never break task execution.
+    if (this.learningEngine && this.skillRL && skills) {
+      try {
+        const _taskType = taskContext.task_type || taskContext.task || 'unknown';
+        const _primarySkill = skills[0]?.name;
+        const _skillData = _primarySkill ? this.skillRL.skillBank.generalSkills.get(_primarySkill) : null;
+        if (_skillData) {
+          const _perfSummary = {
+            skill_name: _skillData.name,
+            success_rate: _skillData.success_rate,
+            usage_count: _skillData.usage_count,
+            tool_affinities: _skillData.tool_affinities || {},
+          };
+          if (result.success) {
+            this.learningEngine.addPositivePattern({
+              type: 'skill_success',
+              description: `Skill "${_primarySkill}" succeeded (rate: ${(_skillData.success_rate ?? 0).toFixed(2)}, uses: ${_skillData.usage_count || 0})`,
+              success_rate: _skillData.success_rate || 0.5,
+              context: { task_type: _taskType, skill_performance: _perfSummary },
+              discovered_at: new Date().toISOString(),
+              source: 'skillrl-cross-feedback',
+            });
+          } else {
+            this.learningEngine.addAntiPattern({
+              type: 'skill_failure',
+              description: `Skill "${_primarySkill}" failed (rate: ${(_skillData.success_rate ?? 0).toFixed(2)}, uses: ${_skillData.usage_count || 0})`,
+              severity: (_skillData.success_rate != null && _skillData.success_rate < 0.3) ? 'high' : 'medium',
+              context: { task_type: _taskType, skill_performance: _perfSummary },
+              discovered_at: new Date().toISOString(),
+              source: 'skillrl-cross-feedback',
+            });
+          }
+        }
+      } catch (_e) { /* fail-open: cross-feedback must never break execution */ }
     }
 
     // Fire-and-forget: feed model exploration data back into SkillRL weights
