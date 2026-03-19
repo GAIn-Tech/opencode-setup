@@ -208,6 +208,9 @@ class IntegrationLayer {
     // T21: Package execution tracking
     this._pkgTrackingEnabled = true;
 
+    // [T22] Track consecutive failures per skill for early warning
+    this._skillConsecutiveFailures = new Map(); // skillName → { count: number, lastTask: string }
+
     // Meta-KB index: fail-open loading for SkillRL integration
     this.metaKBIndex = null;
     if (config.metaKBIndexPath) {
@@ -1514,6 +1517,46 @@ class IntegrationLayer {
         },
         quota_signal: this._extractQuotaSignal(taskContext, result)
       });
+    }
+
+    // [T22] Track consecutive failures per skill for early warning
+    if (!result.success && skills) {
+      for (const skill of skills) {
+        const key = skill.name;
+        const entry = this._skillConsecutiveFailures.get(key) || { count: 0, lastTask: '' };
+        entry.count += 1;
+        entry.lastTask = taskContext.task || 'unknown';
+        this._skillConsecutiveFailures.set(key, entry);
+        if (entry.count >= 3) {
+          this.logger.warn('Skill consecutive failure threshold reached', {
+            skill: key,
+            consecutiveFailures: entry.count,
+            lastTask: entry.lastTask
+          });
+          // Soft weight reduction: flag in SkillRL for next selection
+          if (this.skillRL && typeof this.skillRL.skillBank?.markSkillCaution === 'function') {
+            try { this.skillRL.skillBank.markSkillCaution(key, entry.count); } catch {}
+          }
+        }
+      }
+    } else if (result.success && skills) {
+      // Reset consecutive failure counter on success
+      for (const skill of skills) {
+        this._skillConsecutiveFailures.delete(skill.name);
+      }
+    }
+
+    // [T21] FallbackDoctor skill failure detection — advisory only
+    if (this.fallbackDoctor && skills && typeof this.fallbackDoctor.detectSkillFailures === 'function') {
+      try {
+        const sfResult = this.fallbackDoctor.detectSkillFailures(skills, taskContext);
+        if (sfResult.problematicSkills.length > 0) {
+          this.logger.warn('FallbackDoctor: problematic skills detected', {
+            skills: sfResult.problematicSkills,
+            warnings: sfResult.warnings
+          });
+        }
+      } catch { /* fail-open */ }
     }
 
     if (executionError) {
