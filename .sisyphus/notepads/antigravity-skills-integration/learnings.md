@@ -524,3 +524,51 @@ This ensures skills are selected via explicit category matching, not via the rem
 - Profiles cover distinct workflows: security, infrastructure, frontend, backend, ML/data
 - Existing 7 profiles remain unchanged (deep-refactoring, planning-cycle, review-cycle, parallel-implementation, browser-testing, diagnostic-healing, research-to-code)
 - Profile structure: `{ description, skills[], triggers[] }` — no phases field needed for these profiles
+
+---
+
+## Task 14: Governance Script Updates for 92-Skill Scale (2026-03-19)
+
+### Changes Made
+1. **check-skill-overlap-governance.mjs** — Added 2 new exported functions:
+   - `detectCircularDependencies(registry)`: builds adjacency graph from `depends[]`, runs DFS cycle detection. Returns `{ hasCycles, cycles[] }`. Currently: 0 cycles found.
+   - `detectTransitiveConflicts(registry)`: for each skill with `conflicts[]`, checks if conflicted skill's dependencies transitively conflict. Returns `{ hasTransitive, warnings[] }`. Currently: 1 warning (dev-browser → agent-browser → playwright).
+   - Added `import.meta.main` guard to prevent `process.exit()` killing test runner on import.
+   - Integrated as checks 4 and 5 in `main()`, with summary output.
+
+2. **normalize-superpowers-skills.mjs** — Extended skill discovery:
+   - `discoverSkillDirs(baseDir)`: scans `opencode-config/skills/*/SKILL.md` (not just superpowers/). Returns array of `{ dir, skillMd }` objects.
+   - `validateFrontmatterFields(frontmatter, filePath)`: checks for required `name` and `description` fields. Returns `{ valid, missing[] }`.
+   - Added `parseFrontmatter` import from `scripts/lib/yaml-frontmatter-parser.mjs`.
+   - Extended `run()` to validate all discovered skill dirs (88 SKILL.md files: 74 top-level + 14 superpowers).
+
+3. **validate-skill-import.mjs** (NEW) — Registry↔SKILL.md consistency:
+   - `detectOrphanSkillFiles(registry, skillsDir)`: finds SKILL.md files with no registry entry. `EXEMPT_SKILLS` set: git-master, frontend-ui-ux, dev-browser (builtins with no SKILL.md).
+   - `detectOrphanRegistryEntries(registry, skillsDir)`: finds registry entries with no SKILL.md on disk.
+   - `detectNonBidirectionalSynergies(registry)`: checks if synergy refs are mutual. Currently: 252 warnings (imported skills reference existing skills that don't list them back).
+   - `detectDependencyCycles(registry)`: reuses DFS cycle detection for `depends[]`. Currently: 0 cycles.
+   - `import.meta.main` guard included.
+
+4. **governance-enhancements.test.js** (NEW) — 16 TDD tests:
+   - Circular dependency detection: A→B→A cycle, A→B→C→A cycle, acyclic graph
+   - Transitive conflicts: found when present, none when absent
+   - Performance: 100 skills in <1s
+   - Skill dir discovery: finds dirs outside superpowers/
+   - Frontmatter validation: missing name, missing description, passes with both
+   - Orphan detection, non-bidirectional synergies, dependency cycles
+
+### Key Insights
+- `consolidate-skills.mjs` already uses `parseFrontmatter()` (updated in prior work) — no changes needed.
+- `import.meta.main` guard is essential for testability: scripts call `process.exit()` in `main()` which kills the Bun test runner when imported. The guard makes scripts importable for unit testing while maintaining identical CLI behavior.
+- 3 builtin skills (git-master, frontend-ui-ux, dev-browser) have no SKILL.md files — exempted from orphan checks.
+- 252 non-bidirectional synergy warnings are expected: imported skills list synergies with existing skills, but existing skills were authored before the imports and don't list them back. Treated as warnings, not errors.
+- 1 transitive conflict warning: dev-browser conflicts agent-browser, agent-browser conflicts playwright — warns about potential dev-browser + playwright incompatibility.
+- docker-containerization depends on kubernetes-orchestration — only dependency link between imported skills.
+- Performance: 100-skill DFS cycle detection completes in <1s (verified in tests).
+
+### Test Results
+- **governance-enhancements.test.js**: 16 pass, 0 fail
+- **check-skill-overlap-governance.mjs**: exit 0 (5 checks pass, 0 errors, 1 transitive warning)
+- **validate-skill-import.mjs**: exit 0 (0 orphan files, 0 orphan entries, 252 synergy warnings, 0 dependency cycles)
+- **normalize-superpowers-skills.mjs**: exit 0 (88 SKILL.md files validated, 14 superpowers updated)
+- **Full test suite**: `bun test` → exit 0

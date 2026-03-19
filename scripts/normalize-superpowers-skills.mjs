@@ -3,11 +3,13 @@
 import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
+import { parseFrontmatter } from "./lib/yaml-frontmatter-parser.mjs"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const ROOT = path.resolve(__dirname, "..")
-const SUPERPOWERS_DIR = path.join(ROOT, "opencode-config", "skills", "superpowers")
+const SKILLS_DIR = path.join(ROOT, "opencode-config", "skills")
+const SUPERPOWERS_DIR = path.join(SKILLS_DIR, "superpowers")
 
 const REQUIRED_FRONTMATTER_LINES = [
   'version: "1.0.0"',
@@ -59,6 +61,67 @@ const REQUIRED_SECTIONS = [
   },
 ]
 
+/**
+ * Discover all skill directories (superpowers + top-level imported skills).
+ * @param {string} baseDir - The skills directory root
+ * @returns {{name: string, dir: string, isSuperpowers: boolean}[]}
+ */
+export function discoverSkillDirs(baseDir) {
+  const results = []
+
+  const entries = fs.readdirSync(baseDir, { withFileTypes: true })
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue
+    if (entry.name.startsWith(".")) continue
+    if (entry.name === "semantic-matching") continue // data dir, not a skill
+
+    if (entry.name === "superpowers") {
+      // Recurse into superpowers
+      const spDir = path.join(baseDir, "superpowers")
+      if (fs.existsSync(spDir)) {
+        const spEntries = fs.readdirSync(spDir, { withFileTypes: true })
+        for (const sp of spEntries) {
+          if (!sp.isDirectory()) continue
+          const skillMd = path.join(spDir, sp.name, "SKILL.md")
+          if (fs.existsSync(skillMd)) {
+            results.push({ name: sp.name, dir: path.join(spDir, sp.name), isSuperpowers: true })
+          }
+        }
+      }
+      continue
+    }
+
+    // Top-level skill directory (imported skills)
+    const skillMd = path.join(baseDir, entry.name, "SKILL.md")
+    if (fs.existsSync(skillMd)) {
+      results.push({ name: entry.name, dir: path.join(baseDir, entry.name), isSuperpowers: false })
+    }
+  }
+
+  return results
+}
+
+/**
+ * Validate that a skill's frontmatter has required fields: name, description.
+ * @param {string} skillName - Name of the skill
+ * @param {object} frontmatter - Parsed frontmatter object
+ * @returns {string[]} Array of error messages (empty = valid)
+ */
+export function validateFrontmatterFields(skillName, frontmatter) {
+  const errors = []
+  if (!frontmatter) {
+    errors.push(`Skill '${skillName}': no frontmatter found`)
+    return errors
+  }
+  if (!frontmatter.name) {
+    errors.push(`Skill '${skillName}': missing required frontmatter field 'name'`)
+  }
+  if (!frontmatter.description) {
+    errors.push(`Skill '${skillName}': missing required frontmatter field 'description'`)
+  }
+  return errors
+}
+
 function normalizeFrontmatter(text) {
   if (!text.startsWith("---\n")) {
     return text
@@ -95,25 +158,50 @@ function ensureSections(text) {
 }
 
 function run() {
-  const dirs = fs.readdirSync(SUPERPOWERS_DIR, { withFileTypes: true }).filter((d) => d.isDirectory())
+  // Normalize superpowers skills (existing behavior)
   let updated = 0
+  if (fs.existsSync(SUPERPOWERS_DIR)) {
+    const dirs = fs.readdirSync(SUPERPOWERS_DIR, { withFileTypes: true }).filter((d) => d.isDirectory())
 
-  for (const dir of dirs) {
-    const filePath = path.join(SUPERPOWERS_DIR, dir.name, "SKILL.md")
-    if (!fs.existsSync(filePath)) continue
+    for (const dir of dirs) {
+      const filePath = path.join(SUPERPOWERS_DIR, dir.name, "SKILL.md")
+      if (!fs.existsSync(filePath)) continue
 
-    const original = fs.readFileSync(filePath, "utf8")
-    const withFrontmatter = normalizeFrontmatter(original)
-    const normalized = ensureSections(withFrontmatter)
+      const original = fs.readFileSync(filePath, "utf8")
+      const withFrontmatter = normalizeFrontmatter(original)
+      const normalized = ensureSections(withFrontmatter)
 
-    if (normalized !== original) {
-      fs.writeFileSync(filePath, normalized, "utf8")
-      updated += 1
-      console.log(`updated: ${path.relative(ROOT, filePath)}`)
+      if (normalized !== original) {
+        fs.writeFileSync(filePath, normalized, "utf8")
+        updated += 1
+        console.log(`updated: ${path.relative(ROOT, filePath)}`)
+      }
     }
   }
 
   console.log(`\nNormalized ${updated} superpowers skills.`)
+
+  // Validate all skills (superpowers + imported) have required frontmatter
+  const allSkills = discoverSkillDirs(SKILLS_DIR)
+  const validationErrors = []
+
+  for (const skill of allSkills) {
+    const content = fs.readFileSync(path.join(skill.dir, "SKILL.md"), "utf8")
+    const fm = parseFrontmatter(content)
+    const errors = validateFrontmatterFields(skill.name, fm)
+    validationErrors.push(...errors)
+  }
+
+  if (validationErrors.length > 0) {
+    console.log(`\nFrontmatter validation warnings: ${validationErrors.length}`)
+    for (const err of validationErrors) {
+      console.log(`  ⚠ ${err}`)
+    }
+  } else {
+    console.log(`Frontmatter validation: ${allSkills.length} skills checked, all valid`)
+  }
 }
 
-run()
+if (import.meta.main) {
+  run()
+}
