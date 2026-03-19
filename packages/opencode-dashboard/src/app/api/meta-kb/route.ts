@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs';
+import { exec } from 'child_process';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +17,70 @@ interface MetaKBSummary {
   anti_pattern_count: number;
   convention_count: number;
   command_count: number;
-  drift: { total_drift: number; total_ok: number; files_checked: number } | null;
+  drift: DriftInfo | null;
+}
+
+type DriftInfo =
+  | { total_drift: number; total_ok: number; files_checked: number; lastChecked: string }
+  | { driftStatus: 'pending'; lastChecked: null };
+
+// --- In-memory drift cache (5-min TTL, stale-while-revalidate) ---
+interface DriftCacheEntry {
+  result: { total_drift: number; total_ok: number; files_checked: number };
+  cachedAt: number;
+}
+
+let driftCache: DriftCacheEntry | null = null;
+let driftCheckInFlight = false;
+const DRIFT_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+function triggerBackgroundDriftCheck(projectRoot: string): void {
+  if (driftCheckInFlight) return;
+
+  const driftScript = path.join(projectRoot, 'scripts', 'check-agents-drift.mjs');
+  if (!fs.existsSync(driftScript)) return;
+
+  driftCheckInFlight = true;
+  exec(`node "${driftScript}" --json`, { cwd: projectRoot, timeout: 10_000 }, (error, stdout) => {
+    driftCheckInFlight = false;
+    if (error) {
+      console.error('[meta-kb] Background drift check failed:', error);
+      return;
+    }
+    try {
+      const driftReport = JSON.parse(stdout);
+      driftCache = {
+        result: {
+          total_drift: driftReport.total_drift ?? 0,
+          total_ok: driftReport.total_ok ?? 0,
+          files_checked: driftReport.files?.length ?? 0,
+        },
+        cachedAt: Date.now(),
+      };
+    } catch (parseErr) {
+      console.error('[meta-kb] Failed to parse drift output:', parseErr);
+    }
+  });
+}
+
+function getCachedDrift(projectRoot: string): DriftInfo {
+  const now = Date.now();
+
+  if (driftCache && (now - driftCache.cachedAt) < DRIFT_CACHE_TTL_MS) {
+    // Cache fresh — return it
+    return { ...driftCache.result, lastChecked: new Date(driftCache.cachedAt).toISOString() };
+  }
+
+  // Cache stale or missing — trigger background revalidation
+  triggerBackgroundDriftCheck(projectRoot);
+
+  if (driftCache) {
+    // Serve stale while revalidating
+    return { ...driftCache.result, lastChecked: new Date(driftCache.cachedAt).toISOString() };
+  }
+
+  // No data yet
+  return { driftStatus: 'pending', lastChecked: null };
 }
 
 function computeAgeHours(generatedAt: string): number {
@@ -64,29 +128,8 @@ export async function GET() {
       riskCounts[level] = Array.isArray(entries) ? entries.length : 0;
     }
 
-    // Run drift check inline (lightweight — reads AGENTS.md files only)
-    let drift: MetaKBSummary['drift'] = null;
-    try {
-      const driftScript = path.join(projectRoot, 'scripts', 'check-agents-drift.mjs');
-      if (fs.existsSync(driftScript)) {
-        const { execSync } = await import('child_process');
-        const driftOutput = execSync(`node "${driftScript}" --json`, {
-          cwd: projectRoot,
-          encoding: 'utf-8',
-          timeout: 10_000,
-          stdio: ['pipe', 'pipe', 'pipe'],
-        });
-        const driftReport = JSON.parse(driftOutput);
-        drift = {
-          total_drift: driftReport.total_drift ?? 0,
-          total_ok: driftReport.total_ok ?? 0,
-          files_checked: driftReport.files?.length ?? 0,
-        };
-      }
-    } catch (error) {
-      // Drift check is best-effort — don't fail the endpoint
-      console.error('[meta-kb] Drift check failed:', error);
-    }
+    // Drift check: serve from cache, revalidate in background (5-min TTL)
+    const drift: MetaKBSummary['drift'] = getCachedDrift(projectRoot);
 
     const summary: MetaKBSummary = {
       status: isStale ? 'stale' : 'healthy',

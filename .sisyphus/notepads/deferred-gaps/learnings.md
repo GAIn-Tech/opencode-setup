@@ -233,3 +233,28 @@ Files changed: bootstrap.js (6 lines), index.js (~55 lines)
 - No SkillRLManager or LearningEngine internal modifications — all changes in integration-layer
 - Fail-open everywhere — cross-feedback must never break task execution
 - bun test exit 0 verified after changes
+
+## 2026-03-19 Task: Make /api/meta-kb drift check async with caching
+STATUS: SUCCESS
+File changed: packages/opencode-dashboard/src/app/api/meta-kb/route.ts
+
+### Root cause
+- `GET /api/meta-kb` ran `check-agents-drift.mjs` via `execSync` with 10s timeout on every request
+- This blocked the API response for up to 10 seconds — unacceptable for a dashboard endpoint
+
+### Fix: stale-while-revalidate cache pattern
+- Added module-level in-memory cache (`driftCache`) with 5-minute TTL
+- Replaced synchronous `execSync` with async `exec` callback (fire-and-forget)
+- `getCachedDrift()` returns immediately:
+  1. Fresh cache (< 5 min old) → return cached result with `lastChecked` timestamp
+  2. Stale cache (> 5 min) → trigger background revalidation, serve stale data
+  3. No cache yet → trigger background check, return `{ driftStatus: 'pending', lastChecked: null }`
+- `triggerBackgroundDriftCheck()` is de-duped: `driftCheckInFlight` flag prevents multiple concurrent spawns
+- Added `DriftInfo` discriminated union type for type-safe drift responses
+
+### Key design decisions
+- **Stale-while-revalidate** over TTL-expire-and-block: first request after expiry still gets instant response
+- **Static `exec` import** instead of dynamic `await import('child_process')`: safe in API routes (server-only)
+- **No external deps**: module-level variables, no Redis/Memcached
+- **DriftInfo union type**: `{ total_drift, total_ok, files_checked, lastChecked }` | `{ driftStatus: 'pending', lastChecked: null }`
+- bun run build exit 0, bun test exit 0 verified
