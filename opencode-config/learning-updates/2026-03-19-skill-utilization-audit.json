@@ -1,0 +1,25 @@
+{
+  "id": "2026-03-19-skill-utilization-audit",
+  "timestamp": "2026-03-19T22:00:00Z",
+  "summary": "Full skill utilization audit: (1) Fixed 8 broken tier_1 wirings by removing phantom skill refs. (2) Added triggers to 21 zero-trigger skills in registry.json. (3) Wired opencode-beads@0.6.0: registry entry, compound-engineering enabled+category, tool-tiers tier_1. (4) Built packages/opencode-registry-bridge/: generate-entries.mjs + merge-to-registry.mjs to auto-bridge packages/ packages to registry.json. Registry: 92->107 skills. (5) Removed 16 phantom tier_2 hints and 4 empty tier_1 categories. (6) Added 39 tier_2 skill_hints for skills missing tier_1+tier_2 coverage. (7) Fixed tier_1>tier_2 overlap: removed 20 tier_1 skills from tier_2 (tier_2: 87->62). (8) Removed 3 redundant tier_1 categories (debugging, testing, sequential_reasoning). (9) Wired RL promotion state persistence via scripts/preload-state-persist.mjs. (10) Created skill exercise playbook: 7 prompts for comprehensive skill coverage + real work.",
+  "affected_paths": [
+    "opencode-config/skills/registry.json",
+    "opencode-config/tool-tiers.json",
+    "opencode-config/compound-engineering.json",
+    "opencode-config/skills/generated/generated-skills.json",
+    "packages/opencode-registry-bridge/src/generate-entries.mjs",
+    "packages/opencode-registry-bridge/src/merge-to-registry.mjs",
+    "packages/opencode-registry-bridge/README.md",
+    "packages/opencode-registry-bridge/package.json",
+    "scripts/preload-state-persist.mjs",
+    "scripts/remove-tier1-from-tier2.mjs",
+    ".sisyphus/notepads/skill-playbook-2026-03-19.md"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "governance": "pass"
+  },
+  "risk_level": "low"
+}

@@ -1,0 +1,13 @@
+feat(skills): skill utilization audit - full gap closure + lazy workflow playbook
+
+- Fix 8 broken tier_1 wirings (remove phantoms: frontend-design, dhh-rails-style,
+  andrew-kane-gem-writer, skill-creator, create-agent-skills, dspy-ruby, agent-native-architecture)
+- Add triggers to 21 zero-trigger skills (Severity B)
+- Wire opencode-beads@0.6.0: registry entry, compound-engineering, tool-tiers
+- Bridge 14 invisible packages to registry (packages/opencode-registry-bridge/)
+- Remove 16 phantom tier_2 hints, 4 empty tier_1 categories
+- Add 39 tier_2 hints for skills missing tier_1+tier_2 coverage
+- Fix tier_1>tier_2 overlap (20 duplicates removed, tier_2: 87->62)
+- Remove 3 redundant tier_1 categories (debugging, testing, sequential_reasoning)
+- Wire RL promotion state persistence (scripts/preload-state-persist.mjs)
+- Add skill exercise playbook: 7 prompts for real work + comprehensive skill coverage
