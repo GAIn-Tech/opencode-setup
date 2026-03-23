@@ -21,8 +21,21 @@ function commandExists(command) {
     return commandExistsCache.get(command);
   }
   // Perform lookup and cache result
+  let exists = false;
   try {
-    const exists = !!Bun.which(command);
+    // Bun.which for Bun runtime, fallback to PATH lookups for Node.js
+    if (typeof Bun !== 'undefined') {
+      exists = !!Bun.which(command);
+    } else {
+      // Node.js fallback: check if command exists in PATH
+      const { execSync } = require('child_process');
+      try {
+        execSync(`${command} --version`, { stdio: 'ignore', timeout: 5000 });
+        exists = true;
+      } catch {
+        exists = false;
+      }
+    }
     commandExistsCache.set(command, exists);
     return exists;
   } catch {
