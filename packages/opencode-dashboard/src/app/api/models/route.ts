@@ -53,14 +53,16 @@ function getRealModelUsage(): Record<string, { selections: number; successes: nu
           if (content.time?.latency_ms) {
             modelStats[modelId].totalLatency += content.time.latency_ms;
           }
-        } catch {
+        } catch (error) {
+          console.warn('[models] Failed to parse message file:', error);
           continue;
         }
       }
     }
     
     return Object.entries(modelStats).length > 0 ? modelStats : null;
-  } catch {
+  } catch (error) {
+    console.error('[models] Failed to get model usage:', error);
     return null;
   }
 }
