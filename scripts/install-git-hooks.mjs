@@ -72,12 +72,12 @@ while IFS= read -r rel_file; do
   esac
 done <<< "$changed_files"
 
-if [ ${#learning_update_files[@]} -eq 0 ]; then
+if [ \${#learning_update_files[@]} -eq 0 ]; then
   exit 0
 fi
 
-for rel_file in "${learning_update_files[@]}"; do
-  source_value="$({ git show "HEAD:$rel_file" 2>/dev/null || true; } | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{const v=JSON.parse(d)?.source;process.stdout.write(typeof v==='string'?v:'');}catch{process.stdout.write('');}});")"
+for rel_file in "\${learning_update_files[@]}"; do
+  source_value="\$({ git show "HEAD:\$rel_file" 2>/dev/null || true; } | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{const v=JSON.parse(d)?.source;process.stdout.write(typeof v==='string'?v:'');}catch{process.stdout.write('');}});")"
   if [ "$source_value" = "meta-kb-auto" ]; then
     echo "post-commit: skipping meta-KB synthesis (source: meta-kb-auto)"
     exit 0
