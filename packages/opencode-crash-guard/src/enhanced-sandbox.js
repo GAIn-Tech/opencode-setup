@@ -232,7 +232,7 @@ class EnhancedSandbox {
     }
     
     // Setup sandbox environment
-    const env = this.createSandboxEnvironment(options);
+    const env = this.createSandboxEnvironment({ ...options, sandboxId });
     const execPath = this.resolveAndValidateExecPath(options.execPath || process.execPath);
     
     // Spawn sandbox process
@@ -728,6 +728,50 @@ try {
     Object.keys(flags).forEach((key) => flags[key] === undefined && delete flags[key]);
     
     return flags;
+  }
+
+  /**
+   * Create sanitized sandbox environment - prevents env injection
+   * @param {Object} options Sandbox options
+   * @returns {Object} Sanitized environment
+   */
+  createSandboxEnvironment(options = {}) {
+    // Start with a clean environment
+    const sanitizedEnv = {
+      PATH: process.env.PATH || process.env.Path || '',
+      HOME: process.env.HOME || process.env.USERPROFILE || '',
+      TEMP: process.env.TEMP || process.env.TMP || '',
+      TMPDIR: process.env.TMPDIR || '',
+    };
+
+    // Block sensitive environment variables
+    const blockedVars = [
+      'OPENCODE_API_KEY', 'OPENCODE_TOKEN', 'OPENCODE_SECRET',
+      'GITHUB_TOKEN', 'GIT_TOKEN', 'AWS_ACCESS_KEY_ID',
+      'AWS_SECRET_ACCESS_KEY', 'DATABASE_URL', 'DB_PASSWORD',
+      'NODE_OPTIONS', 'ELECTRON_RUN_AS_NODE', 'NODE_PATH'
+    ];
+
+    // If options specify additional env vars to pass, whitelist them
+    if (options.allowedEnvVars && Array.isArray(options.allowedEnvVars)) {
+      for (const varName of options.allowedEnvVars) {
+        if (!blockedVars.includes(varName.toUpperCase())) {
+          const value = process.env[varName];
+          if (value !== undefined) {
+            sanitizedEnv[varName] = value;
+          }
+        }
+      }
+    }
+
+    // Always clear NODE_OPTIONS to prevent process injection
+    delete sanitizedEnv.NODE_OPTIONS;
+
+    // Add sandbox identifier
+    sanitizedEnv.SANDBOX_ACTIVE = '1';
+    sanitizedEnv.SANDBOX_ID = options.sandboxId || '';
+
+    return sanitizedEnv;
   }
 
   finalizeSandbox(sandboxId) {
