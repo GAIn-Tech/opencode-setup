@@ -64,8 +64,12 @@ class PreloadSkillsPlugin extends EventEmitter {
     try {
       this.tierResolver = new TierResolver({ tiersPath: this.config.tiersConfigPath });
       this._initialized = true;
-      this.emit('initialized', { tiers: this.tierResolver.getSummary() });
-      this._log('info', `Initialized with ${this.tierResolver.getSummary().totalSkills} skills across 3 tiers`);
+      const summary = this.tierResolver.getSummary();
+      const totalSkills = typeof summary.totalSkills === 'number'
+        ? summary.totalSkills
+        : this.tierResolver.getTier2Brief().length;
+      this.emit('initialized', { tiers: summary });
+      this._log('info', `Initialized with ${totalSkills} skills across 3 tiers`);
     } catch (err) {
       this._log('warn', `Failed to initialize tier resolver: ${err.message}. Falling back to load-all mode.`);
       this._initialized = false;
@@ -173,7 +177,7 @@ class PreloadSkillsPlugin extends EventEmitter {
       tier2Available,
       meta_context: metaContextBlock || '',
       metadata: {
-        tier0Count: tier0.length,
+        tier0Count: tier0Flat.length,
         tier1Count: tier1Tools.length,
         rlBoostCount: rlBoost.length,
         totalCount: allTools.length,

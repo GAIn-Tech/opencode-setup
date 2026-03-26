@@ -10,7 +10,8 @@
  *   1. skill-profile-loader.mjs validate   (registry integrity)
  *   2. check-skill-consistency.mjs          (registry ↔ compound-engineering parity)
  *   3. check-skill-overlap-governance.mjs   (overlap cluster policy)
- *   4. skill-routing-evaluator.mjs          (routing quality vs thresholds)
+ *   4. skill-routing-evaluator.mjs          (routing quality + default-core leakage checks)
+ *   5. check-skill-coverage.mjs             (default-tier implied coverage + tiering integrity)
  *
  * Exit 0 = all gates pass
  * Exit 1 = at least one gate failed or threshold breached
@@ -47,6 +48,10 @@ for (let i = 0; i < args.length; i++) {
 
 // --- Gate definitions ---
 const NODE = process.execPath // Use same Node/Bun that invoked us
+const tierEvidencePath = path.resolve(
+  __dirname,
+  "../.sisyphus/evidence/skill-classification-recommendations.json"
+)
 
 const evaluatorFixtureArgs = fixturePath
   ? ` --fixture ${fixturePath}`
@@ -76,7 +81,12 @@ const GATES = [
   {
     name: "routing-evaluator",
     label: "Routing Quality Evaluation",
-    command: `"${NODE}" "${path.resolve(__dirname, "skill-routing-evaluator.mjs")}"${evaluatorFixtureArgs}`,
+    command: `"${NODE}" "${path.resolve(__dirname, "skill-routing-evaluator.mjs")}" --tier-evidence "${tierEvidencePath}"${evaluatorFixtureArgs}`,
+  },
+  {
+    name: "skill-implied-coverage",
+    label: "Default-Tier Implied Coverage",
+    command: `"${NODE}" "${path.resolve(__dirname, "check-skill-coverage.mjs")}" --tier-evidence "${tierEvidencePath}"`,
   },
 ]
 

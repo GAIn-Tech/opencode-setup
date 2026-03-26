@@ -30,6 +30,18 @@ const DEFAULT_HISTORY_ROTATION_INTERVAL_MS = 24 * 60 * 60 * 1000; // Daily
 const DEFAULT_HISTORY_ROTATION_MAX_ARCHIVED_FILES = 7;
 const DEFAULT_HISTORY_ROTATION_MAX_ARCHIVE_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const DEFAULT_HISTORY_ROTATION_CHECK_INTERVAL_MS = 60 * 1000; // 1 minute
+const SQL_ENABLE_WAL_MODE = 'PRAGMA journal_mode=WAL';
+const SQL_SET_SYNC_NORMAL = 'PRAGMA synchronous=NORMAL';
+const SQL_INSERT_COMPRESSION_EVENT =
+  'INSERT INTO compression_events (session_id, compression_type, input_tokens, output_tokens, ratio, strategy, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)';
+const SQL_SELECT_COMPRESSION_STATS =
+  'SELECT compression_type, input_tokens, output_tokens, ratio, strategy FROM compression_events WHERE timestamp >= ?';
+const SQL_INSERT_CONTEXT7_EVENT =
+  'INSERT INTO context7_events (session_id, library_id, resolved, duration_ms, source, timestamp) VALUES (?, ?, ?, ?, ?, ?)';
+const SQL_SELECT_CONTEXT7_STATS =
+  'SELECT library_id, resolved, source FROM context7_events WHERE timestamp >= ?';
+const SQL_DELETE_COMPRESSION_EVENTS = 'DELETE FROM compression_events';
+const SQL_DELETE_CONTEXT7_EVENTS = 'DELETE FROM context7_events';
 
 /**
  * PipelineMetricsCollector tracks operational health of the model management pipeline.
@@ -144,6 +156,7 @@ _createSqliteClient(dbPath) {
         console.log(`[DEBUG] _createSqliteClient: Using bun:sqlite with path ${dbPath}`);
         const database = new bunSqlite.Database(dbPath, { create: true });
         return {
+          prepare: (sql) => database.query(sql),
           exec: (sql) => database.exec(sql),
           run: (sql, params) => database.query(sql).run(...(params || [])),
           get: (sql, params) => database.query(sql).get(...(params || [])),
@@ -161,6 +174,7 @@ _createSqliteClient(dbPath) {
       const BetterSqliteDatabase = require('better-sqlite3');
       const database = new BetterSqliteDatabase(dbPath);
       return {
+        prepare: (sql) => database.prepare(sql),
         exec: (sql) => database.exec(sql),
         run: (sql, params) => database.prepare(sql).run(...(params || [])),
         get: (sql, params) => database.prepare(sql).get(...(params || [])) || null,
@@ -332,6 +346,14 @@ recordDiscovery(provider, success, details = {}) {
       // Use same SQLite client pattern as state-machine.js
       const sqliteClient = this._createSqliteClient(this._dbPath);
       this._db = sqliteClient;
+
+      // Task 11: Enable WAL mode for SQLite performance and concurrency.
+      try {
+        this._db.exec(SQL_ENABLE_WAL_MODE);
+        this._db.exec(SQL_SET_SYNC_NORMAL);
+      } catch (pragmaError) {
+        console.warn(`[PipelineMetricsCollector] Failed to apply SQLite pragmas: ${pragmaError.message}`);
+      }
       
       // Create tables if they don't exist
       this._db.exec(`
@@ -400,6 +422,51 @@ recordDiscovery(provider, success, details = {}) {
     // Clear maps
     this._detectedTimestamps.clear();
     this._stmtCache.clear();
+  }
+
+  _prepareStatement(sql) {
+    if (!this._db || typeof this._db.prepare !== 'function') {
+      return null;
+    }
+
+    if (this._stmtCache.has(sql)) {
+      return this._stmtCache.get(sql);
+    }
+
+    try {
+      const statement = this._db.prepare(sql);
+      if (!statement) {
+        return null;
+      }
+
+      if (this._stmtCache.size >= this._maxStmtCacheSize) {
+        const oldestKey = this._stmtCache.keys().next().value;
+        if (oldestKey !== undefined) {
+          this._stmtCache.delete(oldestKey);
+        }
+      }
+
+      this._stmtCache.set(sql, statement);
+      return statement;
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  _runWithPreparedStatement(sql, params = []) {
+    const statement = this._prepareStatement(sql);
+    if (statement && typeof statement.run === 'function') {
+      return statement.run(...params);
+    }
+    return this._db.run(sql, params);
+  }
+
+  _allWithPreparedStatement(sql, params = []) {
+    const statement = this._prepareStatement(sql);
+    if (statement && typeof statement.all === 'function') {
+      return statement.all(...params);
+    }
+    return this._db.all(sql, params);
   }
 
   /**
@@ -602,22 +669,19 @@ recordDiscovery(provider, success, details = {}) {
     
     this._compressionEvents.push(event);
     
-// Persist to database if available
+    // Persist to database if available
       if (this._db) {
         try {
           console.log(`[DEBUG] recordCompression calling _db.run(), _db exists: ${!!this._db}`);
-          this._db.run(
-            'INSERT INTO compression_events (session_id, compression_type, input_tokens, output_tokens, ratio, strategy, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [
-              actualDetails.sessionId || null,
-              actualCompressionType,
-              actualDetails.inputTokens || 0,
-              actualDetails.outputTokens || 0,
-              actualDetails.ratio || 0,
-              actualDetails.strategy || '',
-              event.timestamp
-            ]
-          );
+          this._runWithPreparedStatement(SQL_INSERT_COMPRESSION_EVENT, [
+            actualDetails.sessionId || null,
+            actualCompressionType,
+            actualDetails.inputTokens || 0,
+            actualDetails.outputTokens || 0,
+            actualDetails.ratio || 0,
+            actualDetails.strategy || '',
+            event.timestamp
+          ]);
           console.log(`[DEBUG] recordCompression insert completed`);
         } catch (error) {
           console.error(`[PipelineMetricsCollector] Failed to persist compression event: ${error.message}`);
@@ -638,10 +702,7 @@ recordDiscovery(provider, success, details = {}) {
     if (this._db) {
       try {
         console.log(`[DEBUG] getCompressionStats querying DB with cutoff: ${cutoff}`);
-        const rows = this._db.all(
-          'SELECT compression_type, input_tokens, output_tokens, ratio, strategy FROM compression_events WHERE timestamp >= ?',
-          [cutoff]
-        );
+        const rows = this._allWithPreparedStatement(SQL_SELECT_COMPRESSION_STATS, [cutoff]);
         console.log(`[DEBUG] getCompressionStats got ${rows.length} rows from DB`);
         
         const totalTokensSaved = rows.reduce((total, row) => {
@@ -721,20 +782,17 @@ recordDiscovery(provider, success, details = {}) {
     
     this._context7Events.push(event);
     
-// Persist to database if available
+    // Persist to database if available
       if (this._db) {
         try {
-          this._db.run(
-            'INSERT INTO context7_events (session_id, library_id, resolved, duration_ms, source, timestamp) VALUES (?, ?, ?, ?, ?, ?)',
-            [
-              actualDetails.sessionId || null,
-              actualDetails.libraryId || null,
-              actualDetails.resolved ? 1 : 0,
-              actualDetails.durationMs || 0,
-              actualDetails.source || null,
-              event.timestamp
-            ]
-          );
+          this._runWithPreparedStatement(SQL_INSERT_CONTEXT7_EVENT, [
+            actualDetails.sessionId || null,
+            actualDetails.libraryId || null,
+            actualDetails.resolved ? 1 : 0,
+            actualDetails.durationMs || 0,
+            actualDetails.source || null,
+            event.timestamp
+          ]);
         } catch (error) {
           console.error(`[PipelineMetricsCollector] Failed to persist context7 event: ${error.message}`);
         }
@@ -753,10 +811,7 @@ recordDiscovery(provider, success, details = {}) {
     // Use database if available, otherwise use in-memory events
     if (this._db) {
       try {
-        const rows = this._db.all(
-          'SELECT library_id, resolved, source FROM context7_events WHERE timestamp >= ?',
-          [cutoff]
-        );
+        const rows = this._allWithPreparedStatement(SQL_SELECT_CONTEXT7_STATS, [cutoff]);
         
         const resolved = rows.filter(row => row.resolved === 1).length;
         const failed = rows.length - resolved;
@@ -1628,8 +1683,8 @@ recordDiscovery(provider, success, details = {}) {
     // Clear database tables if they exist
     if (this._db) {
       try {
-        this._db.run('DELETE FROM compression_events');
-        this._db.run('DELETE FROM context7_events');
+        this._runWithPreparedStatement(SQL_DELETE_COMPRESSION_EVENTS);
+        this._runWithPreparedStatement(SQL_DELETE_CONTEXT7_EVENTS);
       } catch (error) {
         console.error(`[PipelineMetricsCollector] Failed to clear database tables on reset: ${error.message}`);
       }

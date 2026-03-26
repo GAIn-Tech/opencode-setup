@@ -1,137 +1,75 @@
-# OpenCode Custom Plugins
+# OpenCode Workspace Packages
 
-This directory contains custom OpenCode plugins developed for extended functionality.
+Canonical inventory for the `packages/` workspace in this monorepo.
 
-## Available Plugins
+- **Total workspace packages:** 36
+- **Source of truth for package surface posture:**
+  - `.sisyphus/evidence/package-surface-classification.json`
+  - `docs/architecture/cli-mcp-surface-policy.md`
 
-### 1. `@jackoatmon/opencode-model-router-x`
-Policy-based model router with live outcome tuning for OpenCode.
+## Surface Role Summary
 
-**Features:**
-- Dynamic model selection based on task complexity
-- Live outcome tracking and optimization
-- Policy-based routing rules
+The current package surface distribution (Wave 2 Task 4) is:
 
-### 2. `@jackoatmon/opencode-plugin-healthd`
-Health monitoring daemon for OpenCode.
+- **CLI-first:** 7
+- **MCP-first:** 2
+- **Hybrid:** 1
+- **Library-only:** 26
 
-**Features:**
-- System health checks
-- Performance monitoring
-- Automated diagnostics
+This distribution is intentional. Library-only packages are not missing wrappers by default; many are internal orchestration or shared library cores where public CLI/MCP contracts are either unnecessary or intentionally deferred.
 
-### 3. `@jackoatmon/opencode-eval-harness`
-Evaluation and testing harness for OpenCode.
+## Package Inventory (36)
 
-**Features:**
-- Automated testing framework
-- Performance benchmarking
-- Test suite execution
+### CLI-first (7)
 
-### 4. `@jackoatmon/opencode-context-governor`
-Context window management and optimization.
+- `opencode-codebase-memory`
+- `opencode-dashboard-launcher`
+- `opencode-eval-harness`
+- `opencode-fallback-doctor`
+- `opencode-graphdb-bridge`
+- `opencode-plugin-healthd`
+- `opencode-proofcheck`
 
-**Features:**
-- Context budget management
-- Session tracking
-- Memory optimization
+### MCP-first (2)
 
-### 5. `@jackoatmon/opencode-runbooks`
-Automated runbooks for common OpenCode tasks.
+- `opencode-context-governor`
+- `opencode-runbooks`
 
-**Features:**
-- Pre-defined workflows
-- Automated remediation
-- Best practices documentation
+### Hybrid (1)
 
-### 6. `@jackoatmon/opencode-proofcheck`
-Code verification and validation.
+- `opencode-memory-graph`
 
-**Features:**
-- Code quality checks
-- Verification protocols
-- Validation rules
+### Library-only (26)
 
-### 7. `@jackoatmon/opencode-memory-graph`
-Memory graph visualization and management.
+- `opencode-backup-manager`
+- `opencode-circuit-breaker`
+- `opencode-config-loader`
+- `opencode-crash-guard`
+- `opencode-dashboard`
+- `opencode-errors`
+- `opencode-event-bus`
+- `opencode-feature-flags`
+- `opencode-health-check`
+- `opencode-integration-layer`
+- `opencode-learning-engine`
+- `opencode-logger`
+- `opencode-mcp-utils`
+- `opencode-model-benchmark`
+- `opencode-model-manager`
+- `opencode-model-router-x`
+- `opencode-plugin-lifecycle`
+- `opencode-plugin-preload-skills`
+- `opencode-registry-bridge`
+- `opencode-safe-io`
+- `opencode-showboat-wrapper`
+- `opencode-sisyphus-state`
+- `opencode-skill-rl-manager`
+- `opencode-test-utils`
+- `opencode-tool-usage-tracker`
+- `opencode-validator`
 
-**Features:**
-- Graph building
-- Memory export
-- Visualization tools
+## Notes on Discoverability and Policy
 
-### 8. `@jackoatmon/opencode-fallback-doctor`
-Fallback model management.
-
-**Features:**
-- Fallback validation
-- Model switching
-- Error recovery
-
-## Development
-
-### Adding a New Plugin
-
-1. Create plugin directory:
-   ```bash
-   mkdir @jackoatmon/opencode-my-plugin
-   cd @jackoatmon/opencode-my-plugin
-   ```
-
-2. Create `package.json`:
-   ```json
-   {
-     "name": "@jackoatmon/opencode-my-plugin",
-     "version": "0.1.0",
-     "main": "src/index.js"
-   }
-   ```
-
-3. Create plugin code in `src/index.js`
-
-4. Link globally:
-   ```bash
-   bun link
-   ```
-
-5. Add to OpenCode config:
-   ```json
-   {
-     "plugin": [
-       "@jackoatmon/opencode-my-plugin@0.1.0"
-     ]
-   }
-   ```
-
-### Testing Changes
-
-Changes to plugin code are immediately available due to symlink setup. No rebuild or republish needed.
-
-```bash
-cd opencode-model-router-x
-# Edit src/index.js
-# Test immediately:
-opencode
-```
-
-## Package Structure
-
-Each plugin should have:
-
-```
-opencode-my-plugin/
-├── package.json       # Package metadata
-├── README.md          # Plugin documentation
-└── src/
-    └── index.js       # Main entry point
-```
-
-## Versioning
-
-All plugins use semantic versioning:
-- **0.1.0** - Initial development
-- **1.0.0** - Stable release
-- **1.1.0** - Minor features added
-- **2.0.0** - Breaking changes
-
-Update `package.json` version when making significant changes.
+- Some exposed package surfaces are intentionally package-only (no skill namespace), and some skills are intentionally not default-tier. This is governance posture, not a missing integration bug.
+- Dormant MCP wrappers are governed by `opencode-config/mcp-dormant-policy.json` and should not be treated as active public surfaces unless explicitly reactivated.
+- For capability tier semantics (default/manual/dormant/candidate-prune), use `docs/architecture/ecosystem-tier-model.md` as the canonical documentation.

@@ -1,0 +1,27 @@
+{
+  "id": "2026-03-26-wave11-runtime-and-gates-closure",
+  "timestamp": "2026-03-26T00:55:00-04:00",
+  "summary": "Close remaining Wave11 runtime gaps and finalize skill-routing governance gate execution by adding librarian prompt guidance, hardening SQLite monitoring paths, normalizing tracker metrics shape, and landing implied coverage validation scripts/tests.",
+  "affected_paths": [
+    "opencode-config/agents/librarian.md",
+    "packages/README.md",
+    "packages/opencode-model-manager/src/monitoring/metrics-collector.js",
+    "packages/opencode-plugin-preload-skills/src/index.js",
+    "packages/opencode-plugin-preload-skills/test/metadata-counts.test.js",
+    "packages/opencode-tool-usage-tracker/src/index.js",
+    "scripts/check-skill-consistency.mjs",
+    "scripts/check-skill-coverage.mjs",
+    "scripts/run-skill-routing-gates.mjs",
+    "scripts/skill-routing-evaluator.mjs",
+    "scripts/tests/check-skill-coverage.test.mjs",
+    "scripts/tests/protocol-compliance-pass.test.js",
+    "scripts/tests/skill-hierarchical-routing.test.js",
+    "scripts/tests/skill-implied-full-coverage.test.mjs"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

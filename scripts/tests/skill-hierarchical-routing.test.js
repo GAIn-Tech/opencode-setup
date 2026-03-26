@@ -719,30 +719,24 @@ describe("validateFixture", () => {
 describe("DEFAULT_TASKS coverage", () => {
   const taskIds = DEFAULT_TASKS.map((t) => t.id)
 
-  test("has all original task IDs", () => {
-    for (const id of ["debug-1", "debug-2", "plan-1", "plan-2", "impl-1", "verify-1", "orchestrate-1", "incident-1"]) {
+  test("has expected default-core task IDs", () => {
+    for (const id of [
+      "core-debug-1",
+      "core-plan-1",
+      "core-audit-1",
+      "core-verify-1",
+      "core-tdd-1",
+      "core-orchestrate-1",
+      "core-git-1",
+      "core-context-1",
+      "core-skill-discovery-1",
+    ]) {
       expect(taskIds).toContain(id)
     }
   })
 
-  test("has new browser coverage", () => {
-    expect(taskIds).toContain("browser-1")
-  })
-
-  test("has new git coverage", () => {
-    expect(taskIds).toContain("git-1")
-  })
-
-  test("has new code-review request coverage", () => {
-    expect(taskIds).toContain("review-request-1")
-  })
-
-  test("has new code-review receive coverage", () => {
-    expect(taskIds).toContain("review-receive-1")
-  })
-
-  test("has new meta/skill-creation coverage", () => {
-    expect(taskIds).toContain("meta-skill-1")
+  test("keeps default-core fixture compact", () => {
+    expect(taskIds.length).toBe(9)
   })
 
   test("all tasks have required fields", () => {
@@ -780,6 +774,7 @@ describe("governance gates array", () => {
     expect(names).toContain("skill-consistency")
     expect(names).toContain("overlap-governance")
     expect(names).toContain("routing-evaluator")
+    expect(names).toContain("skill-implied-coverage")
   })
 
   test("each gate has name, label, and command", () => {
