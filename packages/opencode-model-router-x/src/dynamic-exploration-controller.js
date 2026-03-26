@@ -17,13 +17,65 @@ class DynamicExplorationController {
     this.explorationBudget = 0; // % of queries to explore vs exploit
     this.explorationMode = 'balanced';
     this.tokenBudgetRatio = Number(options.tokenBudgetRatio) || 0.1;
+    this.configLoader = options.configLoader || null;
     this.tracker = null;
     this.sampler = null;
     this.memory = null;
     this.tokenBudgetManager = options.tokenBudgetManager || null;
+    this.explorationFloor = this._resolveNumberOption(options.explorationFloor, 'meta_awareness.exploration_floor', 0.1, 0, 1);
+    this.budgetAwareExploration = this._resolveBooleanOption(options.budgetAwareExploration, 'exploration.budget_aware_enabled', true);
+    this.capExploreAbovePct = this._resolveNumberOption(options.capExploreAbovePct, 'exploration.cap_explore_above_pct', 0.8, 0, 1);
+    this.capExploreTo = this._resolveNumberOption(options.capExploreTo, 'exploration.cap_explore_to', 0.05, 0, 1);
+    this.disableExploreAbovePct = this._resolveNumberOption(options.disableExploreAbovePct, 'exploration.disable_explore_above_pct', 0.95, 0, 1);
     this._initialized = false;
     const { createRandomSource } = require('./deterministic-rng');
     this._randomSource = createRandomSource('dynamic-exploration-controller');
+  }
+
+  _resolveNumberOption(explicitValue, configPath, fallback, min = null, max = null) {
+    let value = explicitValue;
+    if (value === undefined && this.configLoader?.get && typeof configPath === 'string') {
+      value = this.configLoader.get(configPath, undefined);
+    }
+
+    let numeric = Number(value);
+    if (!Number.isFinite(numeric)) {
+      numeric = Number(fallback);
+    }
+    if (!Number.isFinite(numeric)) {
+      return fallback;
+    }
+    if (Number.isFinite(min)) {
+      numeric = Math.max(min, numeric);
+    }
+    if (Number.isFinite(max)) {
+      numeric = Math.min(max, numeric);
+    }
+    return numeric;
+  }
+
+  _resolveBooleanOption(explicitValue, configPath, fallback) {
+    let value = explicitValue;
+    if (value === undefined && this.configLoader?.get && typeof configPath === 'string') {
+      value = this.configLoader.get(configPath, undefined);
+    }
+
+    if (typeof value === 'boolean') {
+      return value;
+    }
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (['true', '1', 'yes', 'on'].includes(normalized)) {
+        return true;
+      }
+      if (['false', '0', 'no', 'off'].includes(normalized)) {
+        return false;
+      }
+    }
+    if (typeof value === 'number') {
+      return value !== 0;
+    }
+    return Boolean(fallback);
   }
 
   /**
@@ -108,7 +160,29 @@ class DynamicExplorationController {
   }
 
   _shouldExplore(task = {}) {
-    const randomPick = this._randomSource.next() * 100 < this.explorationBudget;
+    const baseProbability = Math.max(0, Math.min(1, Number(this.explorationBudget) / 100));
+    let explorationProbability = Math.max(baseProbability, this.explorationFloor);
+
+    if (
+      this.budgetAwareExploration
+      && this.tokenBudgetManager?.governor
+      && task.sessionId
+      && task.modelId
+      && typeof this.tokenBudgetManager.governor.getRemainingBudget === 'function'
+    ) {
+      const budgetStatus = this.tokenBudgetManager.governor.getRemainingBudget(task.sessionId, task.modelId);
+      const pct = Number(budgetStatus?.pct);
+      if (Number.isFinite(pct)) {
+        if (pct >= this.disableExploreAbovePct) {
+          return false;
+        }
+        if (pct >= this.capExploreAbovePct) {
+          explorationProbability = Math.min(explorationProbability, this.capExploreTo);
+        }
+      }
+    }
+
+    const randomPick = this._randomSource.next() < explorationProbability;
     if (!randomPick) return false;
 
     if (!this.tokenBudgetManager) return true;

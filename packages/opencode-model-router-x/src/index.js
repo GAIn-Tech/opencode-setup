@@ -14,6 +14,7 @@ try { ({ CircuitBreaker } = require('@jackoatmon/opencode-circuit-breaker')); } 
 const DynamicExplorationController = require('./dynamic-exploration-controller');
 const TokenBudgetManager = require('./token-budget-manager');
 const TokenCostCalculator = require('./strategies/token-cost-calculator');
+const { createRandomSource } = require('./deterministic-rng');
 
 // Resilient subagent routing components
 const { resolveModelAlias, hasAlias, getAliasesFor, MODEL_ALIASES } = require('./model-alias-resolver');
@@ -479,10 +480,21 @@ class ModelRouter {
     this.explorationController = options.explorationController || new DynamicExplorationController({
       tokenBudgetRatio: explorationTokenRatio,
       tokenBudgetManager: this.tokenBudgetManager,
+      configLoader: options.configLoader || null,
+      explorationFloor: options.exploration?.explorationFloor ?? options.explorationFloor,
+      budgetAwareExploration: options.exploration?.budgetAwareExploration ?? options.exploration?.budgetAwareEnabled ?? options.budgetAwareExploration,
+      capExploreAbovePct: options.exploration?.capExploreAbovePct,
+      capExploreTo: options.exploration?.capExploreTo,
+      disableExploreAbovePct: options.exploration?.disableExploreAbovePct,
     });
 
     if (explorationActive) {
       void this.explorationController.activate(explorationMode, explorationBudget);
+    }
+
+    // Default context-governor fallback from token budget manager when available.
+    if (!this.contextGovernor && this.tokenBudgetManager?.governor) {
+      this.contextGovernor = this.tokenBudgetManager.governor;
     }
     
     // P1: ConfigLoader Integration - use centralized configuration
@@ -1594,6 +1606,78 @@ class ModelRouter {
     return metrics;
   }
 
+  _getPathValue(source, path) {
+    if (!_isPlainObject(source) || typeof path !== 'string' || path.length === 0) {
+      return undefined;
+    }
+    const segments = path.split('.').filter(Boolean);
+    let cursor = source;
+    for (const segment of segments) {
+      if (!_isPlainObject(cursor) || !(segment in cursor)) {
+        return undefined;
+      }
+      cursor = cursor[segment];
+    }
+    return cursor;
+  }
+
+  _getConfigValueAny(paths = [], defaultValue) {
+    for (const path of _asArray(paths)) {
+      if (typeof path !== 'string' || path.length === 0) {
+        continue;
+      }
+      if (this.configLoader?.get) {
+        const value = this.configLoader.get(path, undefined);
+        if (value !== undefined) {
+          return value;
+        }
+      }
+      const valueFromConfig = this._getPathValue(this.config, path);
+      if (valueFromConfig !== undefined) {
+        return valueFromConfig;
+      }
+    }
+    return defaultValue;
+  }
+
+  _getConfigBooleanAny(paths = [], defaultValue = false) {
+    const value = this._getConfigValueAny(paths, defaultValue);
+    if (typeof value === 'boolean') {
+      return value;
+    }
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (['true', '1', 'yes', 'on'].includes(normalized)) {
+        return true;
+      }
+      if (['false', '0', 'no', 'off'].includes(normalized)) {
+        return false;
+      }
+    }
+    if (typeof value === 'number') {
+      return value !== 0;
+    }
+    return Boolean(defaultValue);
+  }
+
+  _getConfigNumberAny(paths = [], defaultValue, min = null, max = null) {
+    const raw = this._getConfigValueAny(paths, defaultValue);
+    let numeric = Number(raw);
+    if (!Number.isFinite(numeric)) {
+      numeric = Number(defaultValue);
+    }
+    if (!Number.isFinite(numeric)) {
+      return defaultValue;
+    }
+    if (Number.isFinite(min)) {
+      numeric = Math.max(min, numeric);
+    }
+    if (Number.isFinite(max)) {
+      numeric = Math.min(max, numeric);
+    }
+    return numeric;
+  }
+
   /**
    * T12: Known benchmark pass@1 scores for common models.
    * Used by _applyBenchmarkBonus() as a supplementary routing signal.
@@ -1671,6 +1755,14 @@ class ModelRouter {
    * @returns {{ bonus: number, reason: string|null }}
    */
   _applyCostEfficiency(modelId) {
+    const costEfficiencyEnabled = this._getConfigBooleanAny([
+      'routing.cost_efficiency_enabled',
+      'routing.costEfficiencyEnabled',
+    ], true);
+    if (!costEfficiencyEnabled) {
+      return { bonus: 0, reason: null };
+    }
+
     const model = this.models[modelId];
     if (!model || !model.provider) {
       return { bonus: 0, reason: null };
@@ -1684,18 +1776,30 @@ class ModelRouter {
     // Extract model name without provider prefix for pricing lookup
     const modelName = modelId.includes('/') ? modelId.split('/').pop() : modelId;
     const pricing = this._tokenCostCalc.getPricing(model.provider, modelName);
+    const fallbackCost = Number(model.cost_per_1k_tokens);
+    let avgCostPer1K = null;
 
-    if (!pricing) {
+    if (pricing && Number.isFinite(pricing.input) && Number.isFinite(pricing.output)) {
+      // Use average of input + output cost per 1K tokens as the cost signal
+      avgCostPer1K = (pricing.input + pricing.output) / 2;
+    } else if (Number.isFinite(fallbackCost) && fallbackCost >= 0) {
+      avgCostPer1K = fallbackCost;
+    }
+
+    if (!Number.isFinite(avgCostPer1K)) {
       return { bonus: 0, reason: null };
     }
 
-    // Use average of input + output cost per 1K tokens as the cost signal
-    const avgCostPer1K = (pricing.input + pricing.output) / 2;
-
     // Normalize: lower cost = higher bonus
     // Scale: $0/1K → 0.05 bonus, $15/1K+ → 0 bonus (linear)
-    const maxCostThreshold = 15.0; // $/1K tokens - at or above this, no cost bonus
-    const maxBonus = 0.05;
+    const maxCostThreshold = this._getConfigNumberAny([
+      'routing.cost_efficiency_max_cost_per_1k',
+      'routing.costEfficiencyMaxCostPer1k',
+    ], 15.0, 0.1, 1000);
+    const maxBonus = this._getConfigNumberAny([
+      'routing.cost_efficiency_max_bonus',
+      'routing.costEfficiencyMaxBonus',
+    ], 0.05, 0, 0.2);
     const bonus = avgCostPer1K < maxCostThreshold
       ? maxBonus * (1 - avgCostPer1K / maxCostThreshold)
       : 0;
@@ -1730,6 +1834,14 @@ class ModelRouter {
    * @returns {{ penalty: number, reason: string|null }}
    */
   _applyBudgetPenalty(modelId, ctx) {
+    const budgetPenaltyEnabled = this._getConfigBooleanAny([
+      'routing.budget_penalty_enabled',
+      'routing.budgetPenaltyEnabled',
+    ], true);
+    if (!budgetPenaltyEnabled) {
+      return { penalty: 0, reason: null };
+    }
+
     // Need session context to check budget
     const sessionId = ctx?.sessionId;
     if (!sessionId || !this.contextGovernor) {
@@ -1785,6 +1897,53 @@ class ModelRouter {
     return {
       penalty: Math.round(penalty * 1000) / 1000,
       reason: `budget(${Math.round(pct * 100)}%,$${avgCostPer1K.toFixed(2)}/1K,${penalty.toFixed(3)})`
+    };
+  }
+
+  _applyScoreJitter(modelId, ctx = {}) {
+    const jitterEnabled = this._getConfigBooleanAny([
+      'routing.jitter_enabled',
+      'routing.jitterEnabled',
+    ], false);
+    if (!jitterEnabled) {
+      return { delta: 0, reason: null };
+    }
+
+    const jitterFactor = this._getConfigNumberAny([
+      'routing.jitter_factor',
+      'routing.jitterFactor',
+    ], 0.1, 0, 1);
+    const maxDeltaConfig = this._getConfigNumberAny([
+      'routing.score_jitter_max_delta',
+      'routing.scoreJitterMaxDelta',
+    ], 0.02, 0, 0.1);
+    const maxDelta = jitterFactor * maxDeltaConfig;
+    if (maxDelta <= 0) {
+      return { delta: 0, reason: null };
+    }
+
+    const seed = process.env.OPENCODE_REPLAY_SEED
+      || ctx?.sessionId
+      || ctx?.taskId
+      || ctx?.requestId
+      || null;
+
+    if (!seed) {
+      return { delta: 0, reason: null };
+    }
+
+    const randomSource = createRandomSource(`model-router-jitter:${modelId}`, String(seed));
+    const random = randomSource.next();
+    const delta = (random * 2 - 1) * maxDelta;
+    if (!Number.isFinite(delta) || delta === 0) {
+      return { delta: 0, reason: null };
+    }
+
+    const roundedDelta = Math.round(delta * 10000) / 10000;
+    const signed = roundedDelta >= 0 ? `+${roundedDelta.toFixed(4)}` : roundedDelta.toFixed(4);
+    return {
+      delta: roundedDelta,
+      reason: `jitter(${signed})`,
     };
   }
 
@@ -2012,6 +2171,12 @@ class ModelRouter {
       if (learningReasons.length > 0) {
         reasons.push(...learningReasons);
       }
+    }
+
+    const jitter = this._applyScoreJitter(modelId, ctx || {});
+    if (jitter.reason) {
+      score += jitter.delta;
+      reasons.push(jitter.reason);
     }
 
     return {
