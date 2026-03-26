@@ -16,7 +16,7 @@ src/
 ├── monitoring/        # Metrics collector + alert manager
 ├── events/            # Change event system
 ├── validation/        # Catalog validator (12 checks)
-└── pr/                # PR generator for catalog updates
+└── automation/        # PR generator + operational automation for catalog updates
 
 test/                  # 320 tests, 1,845 assertions, 0 failures
 audit.db               # Tamper-evident audit log (hash chain)
@@ -32,7 +32,7 @@ audit.db               # Tamper-evident audit log (hash chain)
 | Auto-approval rules | src/lifecycle/auto-approval-rules.js |
 | Metrics collection | src/metrics/ + src/monitoring/ |
 | Catalog validation | src/validation/ |
-| PR automation | src/pr/ |
+| PR automation | src/automation/ |
 
 ## CONVENTIONS
 - **No package.json**: Internal library, not published package

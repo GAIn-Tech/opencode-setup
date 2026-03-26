@@ -51,7 +51,6 @@ export const DEPRECATED_REPO_AGENT_FILES = [
   'playwright-browser.md',
   'researcher.md',
   'thinker.md',
-  'librarian.md',
 ];
 
 function readDormantMcpNames(configDir = SOURCE_CONFIG_DIR) {
