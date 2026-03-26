@@ -15,6 +15,16 @@ interface ProviderHealth {
   lastChecked: string;
 }
 
+interface ProviderEndpointConfig {
+  url: string;
+  auth: string;
+  authPrefix: string;
+  model: string;
+  body?: object;
+  headers?: Record<string, string>;
+  apiKeyInQuery?: boolean;
+}
+
 interface RateLimitEntry {
   provider: string;
   model?: string;
@@ -42,6 +52,38 @@ interface HealthCacheStats {
 const HEALTH_CACHE = new Map<string, CachedHealth>();
 const HEALTH_CACHE_TTL_MS = 30_000;
 const HEALTH_CACHE_STATS: HealthCacheStats = { hits: 0, misses: 0, expired: 0 };
+const DOTENV_CACHE = new Map<string, string>();
+
+function loadDotEnvCache(): void {
+  if (DOTENV_CACHE.size > 0) return;
+
+  const candidates = [
+    path.resolve(process.cwd(), '.env'),
+    path.resolve(process.cwd(), '..', '.env'),
+    path.resolve(process.cwd(), '..', '..', '.env'),
+  ];
+
+  for (const envPath of candidates) {
+    if (!fs.existsSync(envPath)) continue;
+    const content = fs.readFileSync(envPath, 'utf-8');
+    for (const rawLine of content.split(/\r?\n/)) {
+      const line = rawLine.trim();
+      if (!line || line.startsWith('#')) continue;
+      const eq = line.indexOf('=');
+      if (eq <= 0) continue;
+      const key = line.slice(0, eq).trim();
+      const value = line.slice(eq + 1).trim().replace(/^['\"]|['\"]$/g, '');
+      if (!DOTENV_CACHE.has(key) && value) DOTENV_CACHE.set(key, value);
+    }
+  }
+}
+
+function readEnvValue(key: string): string | null {
+  const direct = process.env[key];
+  if (direct) return direct;
+  loadDotEnvCache();
+  return DOTENV_CACHE.get(key) ?? null;
+}
 
 function cacheTtlForStatus(status: ProviderHealth['status']): number {
   switch (status) {
@@ -114,14 +156,7 @@ function saveRateLimits(state: RateLimitsState): void {
 }
 
 // Provider API endpoints for health checking
-const PROVIDER_ENDPOINTS: Record<string, { 
-  url: string; 
-  auth: string; 
-  authPrefix: string;
-  model: string;
-  body?: object;
-  headers?: Record<string, string>;
-}> = {
+const PROVIDER_ENDPOINTS: Record<string, ProviderEndpointConfig> = {
   anthropic: {
     url: 'https://api.anthropic.com/v1/messages',
     auth: 'x-api-key',
@@ -138,11 +173,12 @@ const PROVIDER_ENDPOINTS: Record<string, {
     body: { model: 'gpt-5.2', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] }
   },
   google: {
-    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:generateContent',
+    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
     auth: 'authorization',
     authPrefix: 'Bearer ',
-    model: "gemini-3-flash",
-    body: { contents: [{ parts: [{ text: 'hi' }] }] }
+    model: 'gemini-2.5-flash',
+    body: { contents: [{ parts: [{ text: 'hi' }] }] },
+    apiKeyInQuery: true
   },
   groq: {
     url: 'https://api.groq.com/openai/v1/chat/completions',
@@ -177,8 +213,17 @@ const PROVIDER_ENDPOINTS: Record<string, {
 
 // Get API key from environment
 function getApiKey(provider: string): string | null {
-  const envKey = `${provider.toUpperCase()}_API_KEY`;
-  return process.env[envKey] || null;
+  const candidates: Record<string, string[]> = {
+    google: ['GOOGLE_API_KEY', 'GEMINI_API_KEY', 'GOOGLE_API_KEY_BACKUP', 'GOOGLE_API_KEY_BACKUP2'],
+    antigravity: ['ANTIGRAVITY_API_KEY', 'ANTIGRAVITY_AUTH_TOKEN'],
+  };
+
+  const keys = candidates[provider] ?? [`${provider.toUpperCase()}_API_KEY`];
+  for (const key of keys) {
+    const value = readEnvValue(key);
+    if (value) return value;
+  }
+  return null;
 }
 
 // Test provider health by making a minimal API call
@@ -238,9 +283,15 @@ async function testProviderHealth(provider: string, options: { force?: boolean }
       ? AbortSignal.timeout(5000)
       : undefined;
 
-    const response = await fetch(config.url, {
+    const requestUrl = config.apiKeyInQuery
+      ? `${config.url}${config.url.includes('?') ? '&' : '?'}key=${encodeURIComponent(apiKey)}`
+      : config.url;
+
+    const response = await fetch(requestUrl, {
       method: 'POST',
-      headers,
+      headers: config.apiKeyInQuery
+        ? Object.fromEntries(Object.entries(headers).filter(([key]) => key.toLowerCase() !== 'authorization'))
+        : headers,
       body: JSON.stringify(config.body),
       signal
     });

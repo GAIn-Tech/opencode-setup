@@ -28,7 +28,8 @@
     "README.md"
   ],
   "dependencies": {
-    "opencode-safe-io": "workspace:*"
+    "opencode-safe-io": "workspace:*",
+    "opencode-tool-usage-tracker": "workspace:*"
   },
   "engines": {
     "node": ">=16.0.0"

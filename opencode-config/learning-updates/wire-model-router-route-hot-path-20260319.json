@@ -1,0 +1,14 @@
+{
+  "id": "wire-model-router-route-hot-path-20260319",
+  "timestamp": "2026-03-19T02:30:00.000Z",
+  "summary": "Wire ModelRouter.route() into executeTaskWithEvidence() hot path so T4 budget-aware penalty (_applyBudgetPenalty) actually influences model selection at runtime. Previously route() was never called — model was statically pre-selected via taskContext.model.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/index.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

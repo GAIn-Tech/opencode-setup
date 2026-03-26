@@ -7,6 +7,8 @@
  * Feeds into oh-my-opencode agent selection.
  */
 
+const fs = require('fs');
+const path = require('path');
 const { AntiPatternCatalog } = require('./anti-patterns');
 const { PositivePatternTracker } = require('./positive-patterns');
 
@@ -67,8 +69,8 @@ const AGENT_CAPABILITIES = {
   },
 };
 
-// Skill affinity map
-const SKILL_AFFINITY = {
+// Fallback skill affinity map (used if registry load fails)
+const SKILL_AFFINITY_FALLBACK = {
   debug: ['systematic-debugging', 'test-driven-development'],
   refactor: ['using-git-worktrees', 'verification-before-completion'],
   feature: ['brainstorming', 'writing-plans', 'executing-plans'],
@@ -82,12 +84,71 @@ const SKILL_AFFINITY = {
   complex: ['dispatching-parallel-agents', 'subagent-driven-development'],
 };
 
+// Skill affinity map — built from registry at construction time
+let SKILL_AFFINITY = SKILL_AFFINITY_FALLBACK;
+
+/**
+ * Build skill affinity map from registry.json
+ * Maps keywords (category + triggers) to skill names
+ * Merges registry-based affinities with fallback hardcoded map
+ * @param {string} registryPath - Path to registry.json
+ * @returns {Object} {[keyword]: [skillName, ...]}
+ */
+function _buildSkillAffinity(registryPath) {
+  try {
+    const registryContent = fs.readFileSync(registryPath, 'utf8');
+    const registry = JSON.parse(registryContent);
+    
+    // Start with fallback to preserve hardcoded categories
+    const affinityMap = { ...SKILL_AFFINITY_FALLBACK };
+    
+    // Iterate over each skill in the registry
+    if (registry.skills && typeof registry.skills === 'object') {
+      for (const [skillName, skillData] of Object.entries(registry.skills)) {
+        // Add skill under its category
+        if (skillData.category) {
+          const category = skillData.category.toLowerCase();
+          if (!affinityMap[category]) {
+            affinityMap[category] = [];
+          }
+          if (!affinityMap[category].includes(skillName)) {
+            affinityMap[category].push(skillName);
+          }
+        }
+        
+        // Add skill under each of its triggers
+        if (Array.isArray(skillData.triggers)) {
+          for (const trigger of skillData.triggers) {
+            const triggerKey = trigger.toLowerCase();
+            if (!affinityMap[triggerKey]) {
+              affinityMap[triggerKey] = [];
+            }
+            if (!affinityMap[triggerKey].includes(skillName)) {
+              affinityMap[triggerKey].push(skillName);
+            }
+          }
+        }
+      }
+    }
+    
+    return affinityMap;
+  } catch (error) {
+    // Fail-open: return fallback on any error (file not found, parse error, etc.)
+    return SKILL_AFFINITY_FALLBACK;
+  }
+}
+
 class OrchestrationAdvisor {
   constructor(antiPatternCatalog, positivePatternTracker, hooks = {}) {
     this.antiPatterns = antiPatternCatalog || new AntiPatternCatalog();
     this.positivePatterns = positivePatternTracker || new PositivePatternTracker();
     this.hooks = hooks;
     this.outcomeLog = []; // Track advice → outcome for learning
+    
+    // Load skill affinity from registry at construction time
+    // Resolve registry path: from src/ → packages/opencode-learning-engine/ → packages/ → root
+    const registryPath = path.resolve(__dirname, '../../../opencode-config/skills/registry.json');
+    this.skillAffinity = _buildSkillAffinity(registryPath);
   }
 
   /**
@@ -346,10 +407,10 @@ class OrchestrationAdvisor {
         : 'hephaestus';
     }
 
-    // Find relevant skills — scored per SKILL_AFFINITY category for telemetry
+    // Find relevant skills — scored per skill affinity category for telemetry
     const affinityScores = {};
     const skills = [];
-    for (const [type, skillList] of Object.entries(SKILL_AFFINITY)) {
+    for (const [type, skillList] of Object.entries(this.skillAffinity)) {
       const normalizedType = this._normalizeTextValue(type);
       let score = 0;
       if (taskType.includes(normalizedType)) score += 2;
@@ -513,4 +574,4 @@ class OrchestrationAdvisor {
   }
 }
 
-module.exports = { OrchestrationAdvisor, AGENT_CAPABILITIES, SKILL_AFFINITY };
+module.exports = { OrchestrationAdvisor, AGENT_CAPABILITIES, SKILL_AFFINITY: SKILL_AFFINITY_FALLBACK };

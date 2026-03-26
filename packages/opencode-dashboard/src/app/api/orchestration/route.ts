@@ -4,9 +4,9 @@ import path from 'path';
 import { pathToFileURL } from 'url';
 import { NextResponse } from 'next/server';
 import { requireWriteAccess } from '../_lib/write-access';
-import { collectCorrelationData } from './lib/correlation.js';
+import { collectCorrelationData, type CorrelationData } from './lib/correlation.js';
 import { normalizeEvents, persistEvents, summarizeEventProvenance } from './lib/event-store.js';
-import { evaluatePolicyEngine } from './lib/policy-engine.js';
+import { evaluatePolicyEngine, type PolicyEngineResult } from './lib/policy-engine.js';
 import { loadMetaAwarenessTracker, readMetaAwarenessRollups } from '../../../lib/meta-awareness';
 
 export const dynamic = 'force-dynamic';
@@ -54,42 +54,6 @@ type EventRecord = {
     received_at?: string;
     signer?: string;
   };
-};
-
-type CorrelationData = {
-  sessions: Set<string>;
-  model: Map<string, number>;
-  skill: Map<string, number>;
-  tool: Map<string, number>;
-  agent: Map<string, number>;
-  termination: Map<string, number>;
-  modelTokens: Map<string, number>;
-  skillTokens: Map<string, number>;
-  toolTokens: Map<string, number>;
-  loopsBySession: Map<string, number>;
-  perMessageTokens: number[];
-  totalMessages: number;
-  delegatedMessages: number;
-  traces: Set<string>;
-  parentSpans: Set<string>;
-  errorMentions: number;
-  signedCustomEvents: number;
-  validSignedCustomEvents: number;
-  withTokens: number;
-  inTok: number;
-  outTok: number;
-  totalTok: number;
-  customEvents: EventRecord[];
-};
-
-type PolicyEngineResult = {
-  integrationGaps: IntegrationGap[];
-  governanceScore: number;
-  pluginScore: number;
-  observabilityScore: number;
-  adaptationScore: number;
-  closedLoopScore: number;
-  frontierScore: number;
 };
 
 type SigningMode = 'off' | 'allow-unsigned' | 'require-signed' | 'require-valid-signature';
@@ -406,11 +370,11 @@ export async function GET(request: Request) {
     const fallbackConfigProject = path.join(repoRoot, 'opencode-config', 'rate-limit-fallback.json');
     const fallbackConfigRoot = path.join(repoRoot, 'rate-limit-fallback.json');
 
-    const correlationData = (await collectCorrelationData({
+    const correlationData: CorrelationData = await collectCorrelationData({
       messagesPath,
       customEventsPath,
       cutoffMs,
-    })) as unknown as CorrelationData;
+    });
 
     const {
       sessions,
@@ -475,14 +439,14 @@ export async function GET(request: Request) {
     const coverage = universe > 0 ? (skill.size / universe) * 100 : 0;
     const loopStability = sessions.size > 0 ? Math.max(0, 100 - (totalLoops / sessions.size) * (100 / loopWarningThreshold)) : 100;
     const observedRecords = totalMessages + customEvents.length;
-    const telemetry = observedRecords > 0 ? ((withTokens + traces.size) / (2 * observedRecords)) * 100 : 0;
+    const telemetry = observedRecords > 0 ? ((withTokens + traces) / (2 * observedRecords)) * 100 : 0;
 
     const signals: Signal[] = [
       { key: 'success_rate', label: 'Success Rate', value: Number(successRate.toFixed(2)), target: successTarget, level: scoreLevel(successRate, successTarget), detail: `${Math.max(totalMessages - errorMentions, 0)} / ${totalMessages} records clean` },
       { key: 'skill_coverage', label: 'Skill Coverage', value: Number(coverage.toFixed(2)), target: coverageTarget, level: scoreLevel(coverage, coverageTarget), detail: `${skill.size} skills observed of ${universe}` },
       { key: 'loop_stability', label: 'Loop Stability', value: Number(loopStability.toFixed(2)), target: 80, level: scoreLevel(loopStability, 80), detail: `${totalLoops} loop signals across ${sessionsWithLoops} sessions` },
       { key: 'provider_health', label: 'Provider Health', value: Number(providerHealthy.toFixed(2)), target: providerHealthTarget, level: scoreLevel(providerHealthy, providerHealthTarget), detail: `${n(summary.healthy_count)} healthy providers of ${providerTotal}` },
-      { key: 'telemetry_completeness', label: 'Telemetry Completeness', value: Number(telemetry.toFixed(2)), target: 70, level: scoreLevel(telemetry, 70), detail: `${withTokens} records with tokens, ${traces.size} with trace IDs` },
+      { key: 'telemetry_completeness', label: 'Telemetry Completeness', value: Number(telemetry.toFixed(2)), target: 70, level: scoreLevel(telemetry, 70), detail: `${withTokens} records with tokens, ${traces} with trace IDs` },
     ];
 
     const score = Math.round(
@@ -514,7 +478,6 @@ export async function GET(request: Request) {
     const strategyBypassActive = strategyEntries.filter((entry: unknown) => Number((entry as Record<string, unknown>)?.bypass_until || 0) > Date.now()).length;
     const strategyUnhealthy = strategyEntries.filter((entry: unknown) => Number((entry as Record<string, unknown>)?.consecutive_failures || 0) > 0).length;
     const retrievalQuality = readJson<Record<string, unknown> | null>(retrievalQualityPath, null);
-    const retrievalQualityScore = Number(retrievalQuality?.retrieval_quality || retrievalQuality?.score || 0);
     const retrievalMapAtK = Number(retrievalQuality?.map_at_k || 0);
     const retrievalGroundedRecall = Number(retrievalQuality?.grounded_recall || 0);
     const retrievalSampleSize = Number(retrievalQuality?.sample_size || 0);
@@ -522,7 +485,7 @@ export async function GET(request: Request) {
     const firstProviderRoot = parseFallbackFirstProvider(fallbackConfigRoot);
     const fallbackOrderAligned = !firstProviderProject || !firstProviderRoot || firstProviderProject === firstProviderRoot;
 
-    const policyEngine = evaluatePolicyEngine({
+    const policyResult: PolicyEngineResult = evaluatePolicyEngine({
       hasConfigValidationTodo,
       hasPluginLifecycle,
       hasPluginDependencyGraph,
@@ -537,7 +500,7 @@ export async function GET(request: Request) {
       pluginCrashLike,
       strategyBypassActive,
       strategyUnhealthy,
-      retrievalQuality: retrievalQualityScore,
+      retrievalQuality,
       retrievalMapAtK,
       retrievalGroundedRecall,
       retrievalSampleSize,
@@ -548,7 +511,7 @@ export async function GET(request: Request) {
       rlSuccessAvg,
       antiTotal,
       posTotal,
-    }) as unknown as PolicyEngineResult;
+    });
 
     const {
       integrationGaps,
@@ -558,7 +521,7 @@ export async function GET(request: Request) {
       adaptationScore,
       closedLoopScore,
       frontierScore,
-    } = policyEngine;
+    } = policyResult;
 
     const hasMessages = fs.existsSync(messagesPath);
     const hasSkillRl = fs.existsSync(skillRlPath);
@@ -646,8 +609,8 @@ export async function GET(request: Request) {
         workflow_runs: runStats,
       },
       traceability: {
-        traces_with_ids_ratio: pct(traces.size, Math.max(observedRecords, 1)),
-        spans_with_parent_ratio: pct(parentSpans.size, Math.max(observedRecords, 1)),
+        traces_with_ids_ratio: pct(traces, Math.max(observedRecords, 1)),
+        spans_with_parent_ratio: pct(parentSpans, Math.max(observedRecords, 1)),
         custom_events: customEvents.length,
         signed_events_ratio: pct(signedCustomEvents, Math.max(customEvents.length, 1)),
         valid_signed_events_ratio: pct(validSignedCustomEvents, Math.max(signedCustomEvents, 1)),
@@ -786,7 +749,7 @@ export async function POST(request: Request) {
       );
     }
 
-    await persistEvents({
+    const events = await persistEvents({
       filePath,
       version: existing.version,
       existingEvents: arr<EventRecord>(existing.events),
@@ -794,15 +757,11 @@ export async function POST(request: Request) {
       normalized,
     });
 
-    const totalEvents = Boolean(body?.replace)
-      ? normalized.length
-      : arr<EventRecord>(existing.events).length + normalized.length;
-
     return NextResponse.json({
       message: body?.replace ? 'Events replaced' : 'Events ingested',
       accepted: normalized.length,
       rejected: incoming.length - normalized.length,
-      total_events: totalEvents,
+      total_events: events.length,
       signing_mode: signingMode,
       provenance: summarizeEventProvenance({ normalized, signingKey, diagnostics: normalizationDiagnostics }),
     });

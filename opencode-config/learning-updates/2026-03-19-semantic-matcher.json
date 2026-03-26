@@ -1,0 +1,16 @@
+{
+  "id": "2026-03-19-semantic-matcher",
+  "timestamp": "2026-03-19T07:55:00.000Z",
+  "summary": "Added SemanticMatcher class as additive fallback layer in SkillBank._matchesContext(). Provides synonym expansion (14 clusters from synonyms.json) and domain signal detection (14 categories from domain-signals.json). Fires ONLY when keyword matching fails. Synchronous, fail-open design — disables itself if data files are unavailable.",
+  "affected_paths": [
+    "packages/opencode-skill-rl-manager/src/semantic-matcher.js",
+    "packages/opencode-skill-rl-manager/src/skill-bank.js",
+    "packages/opencode-skill-rl-manager/test/selection.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

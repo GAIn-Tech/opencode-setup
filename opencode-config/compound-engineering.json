@@ -45,7 +45,8 @@
        "verification-before-completion",
        "websearch",
        "writing-plans",
-       "writing-skills"
+       "writing-skills",
+       "beads"
       ],
       "categories": {
        "core-workflow": [
@@ -106,14 +107,18 @@
         "reasoning": [
           "sequentialthinking"
         ],
-        "meta": [
-          "task-orchestrator",
-          "skill-orchestrator-runtime",
-          "using-superpowers",
-         "writing-skills"
-       ]
-     }
-  },
+         "meta": [
+           "task-orchestrator",
+           "skill-orchestrator-runtime",
+           "using-superpowers",
+          "writing-skills",
+          "beads"
+        ],
+        "task-management": [
+          "beads"
+        ]
+      }
+   },
   "commands": {
     "count": 22,
     "categories": {

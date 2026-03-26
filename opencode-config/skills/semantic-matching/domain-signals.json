@@ -1,0 +1,72 @@
+{
+  "planning": [
+    "plan", "spec", "requirements", "scope", "estimate", "roadmap",
+    "milestone", "epic", "user story", "acceptance criteria", "RFC",
+    "proposal", "design doc", "breakdown", "prioritize"
+  ],
+  "implementation": [
+    "implement", "build", "create", "add feature", "scaffold",
+    "wire up", "integrate", "code", "develop", "construct",
+    "component", "module", "function", "class", "handler"
+  ],
+  "debugging": [
+    "error", "bug", "crash", "exception", "trace", "breakpoint",
+    "stack trace", "fix", "repro", "root cause", "regression",
+    "segfault", "undefined", "null reference", "hang"
+  ],
+  "testing": [
+    "test", "spec", "assertion", "coverage", "TDD", "mock",
+    "fixture", "e2e", "integration test", "snapshot", "flaky",
+    "red-green", "regression test", "smoke test", "QA"
+  ],
+  "review": [
+    "review", "PR", "pull request", "feedback", "approve",
+    "nit", "blocker", "LGTM", "diff", "changeset",
+    "code quality", "suggestion", "comment", "request changes"
+  ],
+  "git": [
+    "commit", "branch", "merge", "rebase", "squash",
+    "cherry-pick", "stash", "bisect", "blame", "tag",
+    "worktree", "conflict", "remote", "push", "pull"
+  ],
+  "browser": [
+    "browser", "playwright", "click", "navigate", "screenshot",
+    "DOM", "selector", "form", "page", "URL",
+    "automation", "scrape", "headless", "viewport", "tab"
+  ],
+  "research": [
+    "research", "investigate", "explore", "prototype", "spike",
+    "proof of concept", "experiment", "benchmark", "compare",
+    "evaluate", "survey", "documentation", "library", "API reference"
+  ],
+  "analysis": [
+    "audit", "analyze", "inventory", "architecture review", "drift",
+    "health check", "coherence", "dependency", "coupling",
+    "complexity", "hotspot", "technical debt", "metric", "assessment"
+  ],
+  "memory": [
+    "remember", "recall", "persist", "save", "store",
+    "retrieve", "cross-session", "knowledge", "preference",
+    "context", "history", "previous decision", "project knowledge"
+  ],
+  "reasoning": [
+    "think", "reason", "decompose", "step by step", "hypothesis",
+    "analyze", "branch", "revise", "evaluate", "conclude",
+    "logic", "inference", "deduction", "tradeoff", "decision tree"
+  ],
+  "meta": [
+    "skill", "orchestrate", "chain", "select", "recommend",
+    "compose", "pipeline", "workflow", "routing", "dispatch",
+    "delegate", "coordinate", "multi-agent", "skill discovery"
+  ],
+  "observability": [
+    "monitor", "metric", "token", "usage", "dashboard",
+    "trace", "log", "alert", "SLO", "telemetry",
+    "cost", "reporting", "tracking", "instrumentation"
+  ],
+  "optimization": [
+    "optimize", "compress", "prune", "budget", "token",
+    "cost", "performance", "cache", "reduce", "efficient",
+    "minimize", "latency", "throughput", "batch", "throttle"
+  ]
+}

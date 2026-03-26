@@ -1,0 +1,14 @@
+{
+  "id": "wave1-bootstrap-wiring-20260318",
+  "timestamp": "2026-03-18T23:20:00.000Z",
+  "summary": "Wire bootstrap circuit-breaker/advisor/runtime outcomes and expose bootstrap status/delegate entrypoint.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/bootstrap.js"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

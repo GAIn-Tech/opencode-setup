@@ -5,8 +5,8 @@ class ExplorationRLAdapter {
     if (!comprehensionMemory || !comprehensionMemory.db) {
       throw new Error('ExplorationRLAdapter requires comprehensionMemory with db');
     }
-    if (!skillRLManager || typeof skillRLManager.recordOutcome !== 'function') {
-      throw new Error('ExplorationRLAdapter requires skillRLManager.recordOutcome');
+    if (!skillRLManager || typeof skillRLManager.learnFromOutcome !== 'function') {
+      throw new Error('ExplorationRLAdapter requires skillRLManager.learnFromOutcome');
     }
 
     this.comprehensionMemory = comprehensionMemory;
@@ -65,8 +65,8 @@ class ExplorationRLAdapter {
         Number(row.avg_reasoning_efficiency || 0),
       ];
 
-      this.skillRLManager.recordOutcome({
-        skills: [`model:${row.model_id}`],
+      this.skillRLManager.learnFromOutcome({
+        skill_used: `model:${row.model_id}`,
         success: featureVector[3] >= 0.5,
         tokens_used: Number(row.total_samples || 0),
         context: {

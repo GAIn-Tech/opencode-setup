@@ -2,6 +2,15 @@
 
 const { EventEmitter } = require('events');
 
+// Lazy require of central event bus — fail-open so AlertManager works without it
+let _eventBus = null;
+function _getEventBus() {
+  if (_eventBus === null) {
+    try { _eventBus = require('opencode-event-bus'); } catch { _eventBus = undefined; }
+  }
+  return _eventBus || null;
+}
+
 const DEFAULT_THRESHOLDS = Object.freeze({
   providerConsecutiveFailures: 3,
   staleCatalogMs: 24 * 60 * 60 * 1000, // 24 hours
@@ -179,6 +188,7 @@ class AlertManager extends EventEmitter {
     this._activeAlerts.delete(alertId);
     const resolvedEvent = { alertId, type: alert.type, resolvedAt: this.nowFn() };
     this.emit('alert:resolved', resolvedEvent);
+    try { _getEventBus()?.emit('alert:resolved', resolvedEvent); } catch { /* fail-open */ }
     return true;
   }
 
@@ -331,6 +341,7 @@ class AlertManager extends EventEmitter {
       this._alertHistory.shift();
     }
     this.emit('alert:fired', alert);
+    try { _getEventBus()?.emit('alert:fired', alert); } catch { /* fail-open */ }
 
     return alert;
   }

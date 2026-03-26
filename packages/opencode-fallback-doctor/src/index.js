@@ -290,6 +290,30 @@ class FallbackDoctor {
     lines.push('');
     return lines.join('\n');
   }
+
+  /**
+   * Detect skills with high failure rates that may need rotation or fallback.
+   * Advisory only — never blocks execution.
+   * @param {Array} skills - Array of skill objects with .name property
+   * @param {object} taskContext - Current task context
+   * @returns {{ problematicSkills: string[], warnings: string[] }}
+   */
+  detectSkillFailures(skills, taskContext) {
+    const result = { problematicSkills: [], warnings: [] };
+    if (!skills || !skills.length) return result;
+    for (const skill of skills) {
+      try {
+        // Check failure rate from skill's performance data if available
+        const perf = skill.performance || skill.stats || null;
+        const failureRate = perf?.failure_rate ?? perf?.failureRate ?? null;
+        if (failureRate !== null && failureRate > 0.5) {
+          result.problematicSkills.push(skill.name);
+          result.warnings.push(`Skill '${skill.name}' has high failure rate: ${(failureRate * 100).toFixed(0)}%`);
+        }
+      } catch { /* fail-open */ }
+    }
+    return result;
+  }
 }
 
 module.exports = { FallbackDoctor };

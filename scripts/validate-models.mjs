@@ -2,10 +2,13 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { resolveRoot } from './resolve-root.mjs';
 
 const root = resolveRoot();
 const CUTOFF_DATE = '2025-06-01';
+const require = createRequire(import.meta.url);
+const { validateOpencodeConfigFile } = require(path.join(root, 'opencode-config', 'validate-schema.js'));
 
 const SCAN_FILES = [
   'opencode-config/opencode.json',
@@ -213,6 +216,20 @@ function main() {
   console.log('='.repeat(64));
   console.log('MODEL VALIDATION (POST-MID-2025 POLICY)');
   console.log('='.repeat(64));
+  console.log('');
+
+  const schemaResult = validateOpencodeConfigFile(path.join(root, 'opencode-config', 'opencode.json'));
+  if (!schemaResult.ok) {
+    print('FAIL', 'opencode-config/opencode.json schema', `${schemaResult.errors.length} schema issue(s)`);
+    for (const issue of schemaResult.errors) {
+      console.log(`  - ${issue}`);
+    }
+    process.exit(1);
+  }
+  print('PASS', 'opencode-config/opencode.json schema', 'Schema validation passed');
+  for (const warning of schemaResult.warnings) {
+    console.log(`  WARN: ${warning}`);
+  }
   console.log('');
 
   const { plainIds, qualifiedIds } = collectValidModels();

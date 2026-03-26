@@ -16,7 +16,7 @@
     "hooks:install": "node scripts/install-git-hooks.mjs",
     "generate": "node scripts/generate-mcp-config.mjs",
     "verify": "node scripts/verify-setup.mjs",
-    "verify:strict": "node scripts/copy-config.mjs && node scripts/generate-mcp-config.mjs && node scripts/verify-setup.mjs && node scripts/validate-plugin-compatibility.mjs && node scripts/verify-portability.mjs --strict",
+    "verify:strict": "node scripts/copy-config.mjs && node scripts/generate-mcp-config.mjs && node scripts/validate-config.mjs && node scripts/verify-setup.mjs && node scripts/validate-plugin-compatibility.mjs && node scripts/verify-portability.mjs --strict",
     "protocol:compliance": "node scripts/protocol-compliance-pass.mjs",
     "runtime:compliance": "node scripts/runtime-context-compliance.mjs",
     "runtime:workflow-scenarios": "node scripts/runtime-workflow-scenarios.mjs",
@@ -26,6 +26,7 @@
     "health:system:verbose": "node scripts/system-health.mjs --verbose",
     "integrity:check": "node scripts/integrity-guard.mjs",
     "config:migrate": "node scripts/migrate-central-config.mjs",
+    "config:validate": "node scripts/validate-config.mjs",
     "config:coherence": "node scripts/validate-config-coherence.mjs",
     "models:validate": "node scripts/validate-models.mjs",
     "ci:boundary": "node scripts/ci-boundary-enforce.mjs",
@@ -42,7 +43,7 @@
     "state:deploy": "node scripts/deployment-state.mjs",
     "warning:check": "bun scripts/ci-warning-budget.mjs --check",
     "warning:capture": "bun scripts/ci-warning-budget.mjs --capture",
-    "governance:check": "bun run scripts/learning-gate.mjs --staged && node scripts/deployment-state.mjs check-flow && node scripts/integrity-guard.mjs && bun run warning:check",
+    "governance:check": "node scripts/validate-config.mjs && bun run scripts/learning-gate.mjs --staged && node scripts/deployment-state.mjs check-flow && node scripts/integrity-guard.mjs && bun run warning:check",
     "mcp:report": "node scripts/report-mcp-lifecycle.mjs",
     "q": "node scripts/rebuild-q-runtime.mjs",
     "q:recover": "node scripts/rebuild-q-runtime.mjs",
@@ -56,7 +57,8 @@
     "meta-kb:synthesize": "node scripts/synthesize-meta-kb.mjs",
     "meta-kb:drift": "node scripts/check-agents-drift.mjs",
     "meta-kb:check": "node scripts/synthesize-meta-kb.mjs && node scripts/check-agents-drift.mjs",
-    "codebase:analyze": "bun packages/opencode-codebase-memory/src/cli.mjs analyze . --name opencode-setup"
+    "codebase:analyze": "bun packages/opencode-codebase-memory/src/cli.mjs analyze . --name opencode-setup",
+    "ingest": "node scripts/ingest-sessions.mjs"
   },
   "main": "index.js",
   "devDependencies": {},
@@ -73,6 +75,7 @@
   },
   "homepage": "https://github.com/GAIn-Tech/opencode-setup#readme",
   "dependencies": {
+    "js-yaml": "^4.1.1",
     "sqlite-vec": "^0.1.7-alpha.2"
   }
 }

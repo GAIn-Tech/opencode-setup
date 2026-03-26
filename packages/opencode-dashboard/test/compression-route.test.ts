@@ -11,7 +11,7 @@ describe('compression and Context7 routes', () => {
   describe('GET /api/compression', () => {
     it('returns compression stats payload', async () => {
       const request = createMockNextRequest('http://localhost:3000/api/compression');
-      const response = await getCompression(request as any);
+      const response = await getCompression(request);
 
       expect(response).toBeInstanceOf(NextResponse);
       const data = await response.json();
@@ -25,7 +25,7 @@ describe('compression and Context7 routes', () => {
   describe('GET /api/context7-stats', () => {
     it('returns Context7 stats payload', async () => {
       const request = createMockNextRequest('http://localhost:3000/api/context7-stats');
-      const response = await getContext7Stats(request as any);
+      const response = await getContext7Stats(request);
 
       expect(response).toBeInstanceOf(NextResponse);
       const data = await response.json();

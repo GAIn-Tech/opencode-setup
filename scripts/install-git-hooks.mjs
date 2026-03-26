@@ -52,6 +52,45 @@ while read -r local_ref local_sha remote_ref remote_sha; do
 done
 `;
 
+const postCommitHookContent = `#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+changed_files="$(git diff-tree --root --no-commit-id --name-only -r HEAD)"
+if [ -z "$changed_files" ]; then
+  exit 0
+fi
+
+learning_update_files=()
+while IFS= read -r rel_file; do
+  case "$rel_file" in
+    opencode-config/learning-updates/*.json)
+      learning_update_files+=("$rel_file")
+      ;;
+  esac
+done <<< "$changed_files"
+
+if [ \${#learning_update_files[@]} -eq 0 ]; then
+  exit 0
+fi
+
+for rel_file in "\${learning_update_files[@]}"; do
+  source_value="\$({ git show "HEAD:\$rel_file" 2>/dev/null || true; } | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{const v=JSON.parse(d)?.source;process.stdout.write(typeof v==='string'?v:'');}catch{process.stdout.write('');}});")"
+  if [ "$source_value" = "meta-kb-auto" ]; then
+    echo "post-commit: skipping meta-KB synthesis (source: meta-kb-auto)"
+    exit 0
+  fi
+done
+
+if [ -f "scripts/synthesize-meta-kb.mjs" ]; then
+  if ! node scripts/synthesize-meta-kb.mjs; then
+    echo "post-commit: meta-KB synthesis failed (non-blocking)" >&2
+  fi
+fi
+`;
+
 function main() {
   const gitDir = path.join(root, '.git');
   if (!existsSync(gitDir)) {
@@ -72,17 +111,20 @@ function main() {
   const preCommitPath = path.join(hooksDir, 'pre-commit');
   const commitMsgPath = path.join(hooksDir, 'commit-msg');
   const prePushPath = path.join(hooksDir, 'pre-push');
+  const postCommitPath = path.join(hooksDir, 'post-commit');
 
   writeFileSync(preCommitPath, preCommitHookContent, 'utf8');
   writeFileSync(commitMsgPath, commitMsgHookContent, 'utf8');
   writeFileSync(prePushPath, prePushHookContent, 'utf8');
+  writeFileSync(postCommitPath, postCommitHookContent, 'utf8');
 
   if (!isWindows) {
     chmodSync(preCommitPath, 0o755);
     chmodSync(commitMsgPath, 0o755);
     chmodSync(prePushPath, 0o755);
+    chmodSync(postCommitPath, 0o755);
 
-    for (const hookPath of [preCommitPath, commitMsgPath, prePushPath]) {
+    for (const hookPath of [preCommitPath, commitMsgPath, prePushPath, postCommitPath]) {
       const mode = statSync(hookPath).mode;
       if ((mode & 0o111) === 0) {
         throw new Error(`Hook is not executable after install: ${hookPath}`);
@@ -92,7 +134,7 @@ function main() {
 
   console.log(`Installed hooks in ${hooksDir}`);
   console.log('Configured core.hooksPath=.githooks');
-  console.log('Generated: pre-commit, commit-msg, pre-push');
+  console.log('Generated: pre-commit, commit-msg, pre-push, post-commit');
 }
 
 main();

@@ -1,0 +1,62 @@
+[32m[2026-03-18T22:55:53.442Z] INFO[0m: [Startup] ModelRouter { startupMs: 12.7 }
+pre-fix route result: {
+  "model": {
+    "id": "anthropic/claude-opus-4-6",
+    "provider": "anthropic",
+    "tier": "flagship",
+    "base_weight": 0.6,
+    "cost_per_1k_tokens": 0.075,
+    "max_context": 200000,
+    "strengths": [
+      "deep-reasoning",
+      "complex-code",
+      "architecture",
+      "debugging"
+    ],
+    "default_success_rate": 0.92
+  },
+  "modelId": "anthropic/claude-opus-4-6",
+  "score": 1,
+  "reason": "success_rate(0.92); latency(1000ms,-0.000); benchmark(avg=0.91,+0.116); cost($15.00/1K,+0.000)",
+  "rotator": {
+    "providerId": "anthropic",
+    "keys": [
+      {
+        "id": "key-anthropic-0-i83u8ze",
+        "value": "sk-ant-xxx-account-1",
+        "status": "healthy",
+        "remainingRequests": null,
+        "remainingTokens": null,
+        "resetAt": 0,
+        "lastUsed": 1773874553444,
+        "failureCount": 0
+      },
+      {
+        "id": "key-anthropic-1-lse06tk",
+        "value": "sk-ant-xxx-account-2",
+        "status": "healthy",
+        "remainingRequests": null,
+        "remainingTokens": null,
+        "resetAt": 0,
+        "lastUsed": 0,
+        "failureCount": 0
+      }
+    ],
+    "options": {
+      "strategy": "round-robin",
+      "cooldownMs": 60000,
+      "maxFailures": 3
+    },
+    "currentIndex": 1,
+    "_lock": true,
+    "_lockQueue": [
+      {},
+      {},
+      {}
+    ],
+    "_inFlightKeys": {},
+    "_governor": null,
+    "_sessionId": "default"
+  },
+  "key": {}
+}

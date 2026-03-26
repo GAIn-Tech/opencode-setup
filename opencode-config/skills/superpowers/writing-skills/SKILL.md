@@ -653,3 +653,42 @@ Same cycle: RED (baseline) → GREEN (write skill) → REFACTOR (close loopholes
 Same benefits: Better quality, fewer surprises, bulletproof results.
 
 If you follow TDD for code, follow it for skills. It's the same discipline applied to documentation.
+
+## Inputs Required
+
+- Task objective
+- Relevant files or modules
+- Constraints and success criteria
+
+## Workflow
+
+Follow the workflow described in this skill's existing process/phases. Keep steps explicit and verification-first.
+
+## Must Do
+
+- Follow the skill workflow in order
+- Validate outputs before handoff
+- Surface assumptions and risks
+
+## Must Not Do
+
+- Skip verification gates
+- Make destructive changes without explicit requirements
+- Hide uncertainty
+
+## Handoff Protocol
+
+**Receives From**: Orchestrator or upstream skill
+
+**Hands Off To**: Downstream execution/review skill with evidence and open risks
+
+## Output Contract
+
+Return concise, structured output with: decisions made, evidence used, unresolved risks, and next step.
+
+## Quick Start
+
+1. Confirm this skill is the right match
+2. Gather required inputs
+3. Execute workflow
+4. Verify and hand off

@@ -1,7 +1,7 @@
 {
   "$schema": "./registry.schema.json",
   "version": "1.0.0",
-  "lastUpdated": "2026-02-26T12:00:00Z",
+  "lastUpdated": "2026-03-19T15:45:15.391Z",
   "skills": {
     "distill": {
       "description": "AST-aware context compression via distill MCP. Use when context is ≥65% full or before long subagent tasks to reclaim 50-70% token budget.",
@@ -18,7 +18,8 @@
         "budget-aware-router",
         "token-reporter",
         "dispatching-parallel-agents",
-        "dcp"
+        "dcp",
+        "context-governor"
       ],
       "conflicts": [],
       "triggers": [
@@ -88,7 +89,9 @@
       "synergies": [
         "research-builder",
         "writing-plans",
-        "test-driven-development"
+        "test-driven-development",
+        "websearch",
+        "grep"
       ],
       "conflicts": [],
       "triggers": [
@@ -252,7 +255,8 @@
       "synergies": [
         "budget-aware-router",
         "distill",
-        "token-reporter"
+        "token-reporter",
+        "dcp"
       ],
       "conflicts": [],
       "triggers": [
@@ -282,7 +286,12 @@
       "dependencies": [],
       "synergies": [
         "verification-before-completion",
-        "code-doctor"
+        "code-doctor",
+        "systematic-debugging",
+        "finishing-a-development-branch",
+        "receiving-code-review",
+        "using-git-worktrees",
+        "beads"
       ],
       "conflicts": [],
       "triggers": [
@@ -314,7 +323,9 @@
       "dependencies": [],
       "synergies": [
         "dev-browser",
-        "verification-before-completion"
+        "verification-before-completion",
+        "playwright",
+        "agent-browser"
       ],
       "conflicts": [],
       "triggers": [
@@ -405,7 +416,7 @@
         "test page"
       ],
       "overlapCluster": "browser",
-      "canonicalEntrypoint": true,
+      "canonicalEntrypoint": false,
       "selectionHints": {
         "useWhen": [
           "want direct MCP browser path",
@@ -482,7 +493,10 @@
       "dependencies": [],
       "synergies": [
         "writing-plans",
-        "executing-plans"
+        "executing-plans",
+        "codebase-auditor",
+        "research-builder",
+        "brainstorming"
       ],
       "conflicts": [],
       "triggers": [
@@ -538,7 +552,11 @@
       ],
       "source": "custom",
       "dependencies": [],
-      "synergies": [],
+      "synergies": [
+        "distill",
+        "context-governor",
+        "budget-aware-router"
+      ],
       "conflicts": [],
       "triggers": [
         "report tokens",
@@ -572,7 +590,8 @@
       "dependencies": [],
       "synergies": [
         "requesting-code-review",
-        "receiving-code-review"
+        "receiving-code-review",
+        "beads"
       ],
       "conflicts": [],
       "triggers": [
@@ -604,7 +623,9 @@
       "synergies": [
         "test-driven-development",
         "git-master",
-        "verification-before-completion"
+        "verification-before-completion",
+        "codebase-auditor",
+        "systematic-debugging"
       ],
       "conflicts": [],
       "triggers": [
@@ -652,7 +673,12 @@
         "executing-plans",
         "verification-before-completion",
         "innovation-migration-planner",
-        "context7"
+        "context7",
+        "supermemory",
+        "sequentialthinking",
+        "websearch",
+        "grep",
+        "codebase-auditor"
       ],
       "conflicts": [],
       "triggers": [
@@ -695,7 +721,10 @@
       "synergies": [
         "test-driven-development",
         "code-doctor",
-        "git-master"
+        "git-master",
+        "sequentialthinking",
+        "incident-commander",
+        "skill-orchestrator-runtime"
       ],
       "conflicts": [],
       "triggers": [
@@ -740,7 +769,14 @@
       "dependencies": [],
       "synergies": [
         "systematic-debugging",
-        "verification-before-completion"
+        "verification-before-completion",
+        "context7",
+        "dev-browser",
+        "code-doctor",
+        "evaluation-harness-builder",
+        "incident-commander",
+        "skill-orchestrator-runtime",
+        "writing-skills"
       ],
       "conflicts": [],
       "triggers": [
@@ -783,7 +819,9 @@
       "dependencies": [],
       "synergies": [
         "writing-plans",
-        "innovation-migration-planner"
+        "innovation-migration-planner",
+        "skill-orchestrator-runtime",
+        "task-orchestrator"
       ],
       "conflicts": [],
       "triggers": [
@@ -823,7 +861,16 @@
       "dependencies": [],
       "synergies": [
         "brainstorming",
-        "executing-plans"
+        "executing-plans",
+        "context7",
+        "supermemory",
+        "sequentialthinking",
+        "websearch",
+        "grep",
+        "innovation-migration-planner",
+        "subagent-driven-development",
+        "task-orchestrator",
+        "beads"
       ],
       "conflicts": [],
       "triggers": [
@@ -879,7 +926,13 @@
       ],
       "synergies": [
         "subagent-driven-development",
-        "verification-before-completion"
+        "verification-before-completion",
+        "innovation-migration-planner",
+        "research-builder",
+        "writing-plans",
+        "dispatching-parallel-agents",
+        "task-orchestrator",
+        "using-git-worktrees"
       ],
       "conflicts": [],
       "triggers": [
@@ -918,7 +971,18 @@
       "dependencies": [],
       "synergies": [
         "test-driven-development",
-        "git-master"
+        "git-master",
+        "supermemory",
+        "frontend-ui-ux",
+        "playwright",
+        "code-doctor",
+        "research-builder",
+        "executing-plans",
+        "evaluation-harness-builder",
+        "finishing-a-development-branch",
+        "receiving-code-review",
+        "requesting-code-review",
+        "writing-skills"
       ],
       "conflicts": [],
       "triggers": [
@@ -946,40 +1010,9 @@
           "brainstorming or planning"
         ]
       },
-"recommended_agents": [
+      "recommended_agents": [
         "sisyphus",
         "momus"
-      ],
-      "compatible_agents": []
-    },
-    "tavily": {
-      "description": "Web search and research automation via Tavily API CLI wrapper for information discovery and content extraction.",
-      "category": "research",
-      "tags": [
-        "websearch",
-        "research",
-        "api",
-        "content",
-        "crawling"
-      ],
-      "source": "custom",
-      "dependencies": [],
-      "synergies": [
-        "research-builder",
-        "context7",
-        "websearch"
-      ],
-      "conflicts": [],
-      "triggers": [
-        "tavily search",
-        "web research",
-        "find information",
-        "search API",
-        "crawl web"
-      ],
-      "recommended_agents": [
-        "oracle",
-        "librarian"
       ],
       "compatible_agents": []
     },
@@ -999,7 +1032,8 @@
         "skill-orchestrator-runtime",
         "context-governor",
         "distill",
-        "token-reporter"
+        "token-reporter",
+        "dcp"
       ],
       "conflicts": [],
       "triggers": [
@@ -1032,7 +1066,8 @@
       "synergies": [
         "subagent-driven-development",
         "executing-plans",
-        "task-orchestrator"
+        "task-orchestrator",
+        "distill"
       ],
       "conflicts": [],
       "triggers": [
@@ -1067,7 +1102,8 @@
       "synergies": [
         "test-driven-development",
         "verification-before-completion",
-        "receiving-code-review"
+        "receiving-code-review",
+        "codebase-auditor"
       ],
       "conflicts": [],
       "triggers": [
@@ -1099,7 +1135,8 @@
       "synergies": [
         "verification-before-completion",
         "git-master",
-        "requesting-code-review"
+        "requesting-code-review",
+        "using-git-worktrees"
       ],
       "conflicts": [],
       "triggers": [
@@ -1133,7 +1170,8 @@
       "synergies": [
         "systematic-debugging",
         "test-driven-development",
-        "receiving-code-review"
+        "receiving-code-review",
+        "skill-orchestrator-runtime"
       ],
       "conflicts": [],
       "triggers": [
@@ -1165,7 +1203,10 @@
       "synergies": [
         "requesting-code-review",
         "verification-before-completion",
-        "git-master"
+        "git-master",
+        "github-triage",
+        "evaluation-harness-builder",
+        "incident-commander"
       ],
       "conflicts": [],
       "triggers": [
@@ -1196,7 +1237,9 @@
       "synergies": [
         "receiving-code-review",
         "verification-before-completion",
-        "subagent-driven-development"
+        "subagent-driven-development",
+        "github-triage",
+        "finishing-a-development-branch"
       ],
       "conflicts": [],
       "triggers": [
@@ -1229,7 +1272,9 @@
         "systematic-debugging",
         "test-driven-development",
         "brainstorming",
-        "incident-commander"
+        "incident-commander",
+        "budget-aware-router",
+        "using-superpowers"
       ],
       "conflicts": [],
       "triggers": [
@@ -1262,7 +1307,8 @@
       "synergies": [
         "executing-plans",
         "requesting-code-review",
-        "writing-plans"
+        "writing-plans",
+        "dispatching-parallel-agents"
       ],
       "conflicts": [],
       "triggers": [
@@ -1295,7 +1341,8 @@
         "brainstorming",
         "writing-plans",
         "executing-plans",
-        "dispatching-parallel-agents"
+        "dispatching-parallel-agents",
+        "using-superpowers"
       ],
       "conflicts": [],
       "triggers": [
@@ -1404,6 +1451,3569 @@
       "compatible_agents": [
         "oracle"
       ]
+    },
+    "c4-architecture": {
+      "description": "Generate comprehensive C4 architecture documentation for an existing repository/codebase using a bottom-up analysis approach.",
+      "category": "architecture",
+      "tags": [
+        "architecture",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "architecture-design",
+        "ddd-strategic-design",
+        "event-sourcing",
+        "microservices-patterns",
+        "api-design-principles",
+        "clean-architecture",
+        "system-design",
+        "ddd-context-mapping",
+        "writing-plans",
+        "brainstorming",
+        "codebase-auditor"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "working on c4 architecture documentation workflow tasks or workflows",
+        "needing guidance"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "working on c4 architecture documentation workflow tasks or workflows",
+          "needing guidance"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "architecture-design": {
+      "description": "Architectural decision-making framework. Requirements analysis, trade-off evaluation, ADR documentation. Use when making architecture decisions or analyzing system design.",
+      "category": "architecture",
+      "tags": [
+        "architecture",
+        "design",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "c4-architecture",
+        "ddd-strategic-design",
+        "event-sourcing",
+        "microservices-patterns",
+        "api-design-principles",
+        "clean-architecture",
+        "system-design",
+        "ddd-context-mapping",
+        "responsive-design",
+        "database-design",
+        "writing-plans",
+        "brainstorming",
+        "codebase-auditor"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "architecture design",
+        "architectural decision",
+        "system architecture",
+        "design architecture",
+        "use architecture-design",
+        "architectural patterns",
+        "architecture skill"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "ddd-strategic-design": {
+      "description": "Design DDD strategic artifacts including subdomains, bounded contexts, and ubiquitous language for complex business domains.",
+      "category": "architecture",
+      "tags": [
+        "architecture",
+        "ddd",
+        "strategic",
+        "design",
+        "risk:safe"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "c4-architecture",
+        "architecture-design",
+        "event-sourcing",
+        "microservices-patterns",
+        "api-design-principles",
+        "clean-architecture",
+        "system-design",
+        "ddd-context-mapping",
+        "ddd-database-patterns",
+        "writing-plans",
+        "brainstorming",
+        "codebase-auditor"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "defining core",
+        "splitting a monolith or service landscape by domain boundaries",
+        "aligning teams and ownership with bounded contexts",
+        "building a shared ubiquitous language with domain experts"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "defining core",
+          "splitting a monolith or service landscape by domain boundaries",
+          "aligning teams and ownership with bounded contexts"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "event-sourcing": {
+      "description": "Expert in event sourcing, CQRS, and event-driven architecture patterns. Masters event store design, projection building, saga orchestration, and eventual consistency patterns. Use PROACTIVELY for e...",
+      "category": "architecture",
+      "tags": [
+        "architecture",
+        "event",
+        "sourcing",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "c4-architecture",
+        "architecture-design",
+        "ddd-strategic-design",
+        "microservices-patterns",
+        "api-design-principles",
+        "clean-architecture",
+        "system-design",
+        "ddd-context-mapping",
+        "writing-plans",
+        "brainstorming",
+        "codebase-auditor"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "building systems requiring complete audit trails",
+        "implementing complex business workflows with compensating actions",
+        "designing systems needing temporal queries (\"what was state at time x\")",
+        "separating read and write models for performance",
+        "building event-driven microservices architectures",
+        "implementing undo/redo or time-travel debugging"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "building systems requiring complete audit trails",
+          "implementing complex business workflows with compensating actions",
+          "designing systems needing temporal queries (\"what was state at time x\")"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "microservices-patterns": {
+      "description": "Design microservices architectures with service boundaries, event-driven communication, and resilience patterns. Use when building distributed systems, decomposing monoliths, or implementing micros...",
+      "category": "architecture",
+      "tags": [
+        "architecture",
+        "microservices",
+        "patterns",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "c4-architecture",
+        "architecture-design",
+        "ddd-strategic-design",
+        "event-sourcing",
+        "api-design-principles",
+        "clean-architecture",
+        "system-design",
+        "ddd-context-mapping",
+        "writing-plans",
+        "brainstorming",
+        "codebase-auditor"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "decomposing monoliths into microservices",
+        "designing service boundaries and contracts",
+        "implementing inter-service communication",
+        "managing distributed data and transactions",
+        "building resilient distributed systems",
+        "implementing service discovery and load balancing",
+        "designing event-driven architectures"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "decomposing monoliths into microservices",
+          "designing service boundaries and contracts",
+          "implementing inter-service communication"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "api-design-principles": {
+      "description": "Master REST and GraphQL API design principles to build intuitive, scalable, and maintainable APIs that delight developers. Use when designing new APIs, reviewing API specifications, or establishing...",
+      "category": "architecture",
+      "tags": [
+        "architecture",
+        "api",
+        "design",
+        "principles",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "c4-architecture",
+        "architecture-design",
+        "ddd-strategic-design",
+        "event-sourcing",
+        "microservices-patterns",
+        "clean-architecture",
+        "system-design",
+        "ddd-context-mapping",
+        "api-security",
+        "responsive-design",
+        "database-design",
+        "writing-plans",
+        "brainstorming",
+        "codebase-auditor"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "designing new rest or graphql apis",
+        "refactoring existing apis for better usability",
+        "establishing api design standards for your team",
+        "reviewing api specifications before implementation",
+        "migrating between api paradigms (rest to graphql",
+        "creating developer-friendly api documentation",
+        "optimi"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "designing new rest or graphql apis",
+          "refactoring existing apis for better usability",
+          "establishing api design standards for your team"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "clean-architecture": {
+      "description": "Applies principles from Robert C. Martin's 'Clean Code'. Use this skill when writing, reviewing, or refactoring code to ensure high quality, readability, and maintainability. Covers naming, functio...",
+      "category": "architecture",
+      "tags": [
+        "architecture",
+        "clean",
+        "risk:safe"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "c4-architecture",
+        "architecture-design",
+        "ddd-strategic-design",
+        "event-sourcing",
+        "microservices-patterns",
+        "api-design-principles",
+        "system-design",
+        "ddd-context-mapping",
+        "writing-plans",
+        "brainstorming",
+        "codebase-auditor"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "writing new code: to ensure high quality from the start",
+        "reviewing pull requests: to provide constructive",
+        "refactoring legacy code: to identify and remove code smells",
+        "improving team standards: to align on industry-standard best practices"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "writing new code: to ensure high quality from the start",
+          "reviewing pull requests: to provide constructive",
+          "refactoring legacy code: to identify and remove code smells"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "security-auditing": {
+      "description": "Expert security auditor specializing in DevSecOps, comprehensive cybersecurity, and compliance frameworks.",
+      "category": "security",
+      "tags": [
+        "security",
+        "auditing",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "pentesting",
+        "vulnerability-scanning",
+        "threat-modeling",
+        "secure-coding",
+        "api-security",
+        "code-doctor",
+        "codebase-auditor",
+        "systematic-debugging"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "running security audits or risk assessments",
+        "reviewing sdlc security controls",
+        "investigating vulnerabilities or designing mitigation plans",
+        "validating authentication"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "running security audits or risk assessments",
+          "reviewing sdlc security controls",
+          "investigating vulnerabilities or designing mitigation plans"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "pentesting": {
+      "description": "This skill should be used when the user asks to \"plan a penetration test\", \"create a security assessment checklist\", \"prepare for penetration testing\", \"define pentest scope\", \"foll...",
+      "category": "security",
+      "tags": [
+        "security",
+        "pentesting",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "security-auditing",
+        "vulnerability-scanning",
+        "threat-modeling",
+        "secure-coding",
+        "api-security",
+        "code-doctor",
+        "codebase-auditor",
+        "systematic-debugging"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "penetration test",
+        "pentest",
+        "ethical hacking",
+        "security audit",
+        "vulnerability assessment",
+        "pentest plan",
+        "red team"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "vulnerability-scanning": {
+      "description": "Advanced vulnerability analysis principles. OWASP 2025, Supply Chain Security, attack surface mapping, risk prioritization.",
+      "category": "security",
+      "tags": [
+        "security",
+        "vulnerability",
+        "scanning",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "security-auditing",
+        "pentesting",
+        "threat-modeling",
+        "secure-coding",
+        "api-security",
+        "code-doctor",
+        "codebase-auditor",
+        "systematic-debugging"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "vulnerability scan",
+        "scan for vulnerabilities",
+        "owasp",
+        "cve",
+        "security scan",
+        "vulnerability assessment",
+        "exploit"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "threat-modeling": {
+      "description": "Expert in threat modeling methodologies, security architecture review, and risk assessment. Masters STRIDE, PASTA, attack trees, and security requirement extraction. Use for security architecture r...",
+      "category": "security",
+      "tags": [
+        "security",
+        "threat",
+        "modeling",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "security-auditing",
+        "pentesting",
+        "vulnerability-scanning",
+        "secure-coding",
+        "api-security",
+        "code-doctor",
+        "codebase-auditor",
+        "systematic-debugging"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "designing new systems or features",
+        "reviewing architecture for security gaps",
+        "preparing for security audits",
+        "identifying attack vectors",
+        "prioriti"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "designing new systems or features",
+          "reviewing architecture for security gaps",
+          "preparing for security audits"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "secure-coding": {
+      "description": "Coordinate multi-layer security scanning and hardening across application, infrastructure, and compliance controls.",
+      "category": "security",
+      "tags": [
+        "security",
+        "secure",
+        "coding",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "security-auditing",
+        "pentesting",
+        "vulnerability-scanning",
+        "threat-modeling",
+        "api-security",
+        "code-doctor",
+        "codebase-auditor",
+        "systematic-debugging"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "running a coordinated security hardening program",
+        "establishing defense-in-depth controls across app",
+        "prioriti"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "running a coordinated security hardening program",
+          "establishing defense-in-depth controls across app",
+          "prioriti"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "api-security": {
+      "description": "Implement secure API design patterns including authentication, authorization, input validation, rate limiting, and protection against common API vulnerabilities",
+      "category": "security",
+      "tags": [
+        "security",
+        "api",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "security-auditing",
+        "pentesting",
+        "vulnerability-scanning",
+        "threat-modeling",
+        "secure-coding",
+        "api-design-principles",
+        "code-doctor",
+        "codebase-auditor",
+        "systematic-debugging"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "api security",
+        "secure api",
+        "authentication",
+        "oauth",
+        "jwt",
+        "rate limiting",
+        "api auth",
+        "cors",
+        "api authorization"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "docker-containerization": {
+      "description": "Docker containerization expert with deep knowledge of multi-stage builds, image optimization, container security, Docker Compose orchestration, and production deployment patterns. Use PROACTIVELY f...",
+      "category": "devops",
+      "tags": [
+        "devops",
+        "docker",
+        "containerization",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [
+        "kubernetes-orchestration"
+      ],
+      "synergies": [
+        "kubernetes-orchestration",
+        "terraform-iac",
+        "aws-cloud",
+        "ci-cd-automation",
+        "monitoring-observability",
+        "github-actions",
+        "verification-before-completion",
+        "executing-plans",
+        "dispatching-parallel-agents"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "kubernetes orchestration",
+        "github actions ci/cd with containers → github-actions-expert",
+        "aws ecs/fargate or cloud-specific container services → devops-expert",
+        "database containeri"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "kubernetes orchestration",
+          "github actions ci/cd with containers → github-actions-expert",
+          "aws ecs/fargate or cloud-specific container services → devops-expert"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "kubernetes-orchestration": {
+      "description": "Expert Kubernetes architect specializing in cloud-native infrastructure, advanced GitOps workflows (ArgoCD/Flux), and enterprise container orchestration.",
+      "category": "devops",
+      "tags": [
+        "devops",
+        "kubernetes",
+        "orchestration",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "docker-containerization",
+        "terraform-iac",
+        "aws-cloud",
+        "ci-cd-automation",
+        "monitoring-observability",
+        "github-actions",
+        "verification-before-completion",
+        "executing-plans",
+        "dispatching-parallel-agents"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "designing kubernetes platform architecture or multi-cluster strategy",
+        "implementing gitops workflows and progressive delivery",
+        "planning service mesh",
+        "improving reliability"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "designing kubernetes platform architecture or multi-cluster strategy",
+          "implementing gitops workflows and progressive delivery",
+          "planning service mesh"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "terraform-iac": {
+      "description": "Terraform module creation for AWS — reusable modules, state management, and HCL best practices. Use when building or reviewing Terraform AWS infrastructure.",
+      "category": "devops",
+      "tags": [
+        "devops",
+        "terraform",
+        "iac",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "docker-containerization",
+        "kubernetes-orchestration",
+        "aws-cloud",
+        "ci-cd-automation",
+        "monitoring-observability",
+        "github-actions",
+        "verification-before-completion",
+        "executing-plans",
+        "dispatching-parallel-agents"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "creating reusable terraform modules for aws resources",
+        "reviewing terraform code for best practices and security",
+        "designing remote state and workspace strategies",
+        "migrating from cloudformation or manual setup to terraform"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "creating reusable terraform modules for aws resources",
+          "reviewing terraform code for best practices and security",
+          "designing remote state and workspace strategies"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "aws-cloud": {
+      "description": "Specialized skill for building production-ready serverless applications on AWS. Covers Lambda functions, API Gateway, DynamoDB, SQS/SNS event-driven patterns, SAM/CDK deployment, and cold start opt...",
+      "category": "devops",
+      "tags": [
+        "devops",
+        "aws",
+        "cloud",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "docker-containerization",
+        "kubernetes-orchestration",
+        "terraform-iac",
+        "ci-cd-automation",
+        "monitoring-observability",
+        "github-actions",
+        "verification-before-completion",
+        "executing-plans",
+        "dispatching-parallel-agents"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "aws",
+        "amazon web services",
+        "ec2",
+        "lambda",
+        "s3",
+        "cloudformation",
+        "serverless",
+        "dynamodb",
+        "aws infrastructure",
+        "cloud deployment"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "ci-cd-automation": {
+      "description": "You are a workflow automation expert specializing in creating efficient CI/CD pipelines, GitHub Actions workflows, and automated development processes. Design automation that reduces manual work, i...",
+      "category": "devops",
+      "tags": [
+        "devops",
+        "automation",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "docker-containerization",
+        "kubernetes-orchestration",
+        "terraform-iac",
+        "aws-cloud",
+        "monitoring-observability",
+        "github-actions",
+        "verification-before-completion",
+        "executing-plans",
+        "dispatching-parallel-agents"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "automating ci/cd workflows or release pipelines",
+        "designing github actions or multi-stage build/test/deploy flows",
+        "replacing manual build",
+        "improving pipeline reliability"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "automating ci/cd workflows or release pipelines",
+          "designing github actions or multi-stage build/test/deploy flows",
+          "replacing manual build"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "monitoring-observability": {
+      "description": "Build production-ready monitoring, logging, and tracing systems. Implements comprehensive observability strategies, SLI/SLO management, and incident response workflows.",
+      "category": "devops",
+      "tags": [
+        "devops",
+        "monitoring",
+        "observability",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "docker-containerization",
+        "kubernetes-orchestration",
+        "terraform-iac",
+        "aws-cloud",
+        "ci-cd-automation",
+        "github-actions",
+        "verification-before-completion",
+        "executing-plans",
+        "dispatching-parallel-agents"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "designing monitoring",
+        "defining slis/slos and alerting strategies",
+        "investigating production reliability or performance regressions"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "designing monitoring",
+          "defining slis/slos and alerting strategies",
+          "investigating production reliability or performance regressions"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "rag-implementation": {
+      "description": "RAG (Retrieval-Augmented Generation) implementation workflow covering embedding selection, vector database setup, chunking strategies, and retrieval optimization.",
+      "category": "data-ai",
+      "tags": [
+        "data-ai",
+        "rag",
+        "implementation",
+        "risk:safe",
+        "granular-workflow-bundle"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "llm-ops",
+        "ml-engineering",
+        "prompt-engineering",
+        "data-pipelines",
+        "vector-databases",
+        "postgresql-optimization",
+        "e2e-testing",
+        "research-builder",
+        "context7",
+        "sequentialthinking"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "rag",
+        "retrieval augmented",
+        "vector search",
+        "embedding",
+        "rag implementation",
+        "rag pipeline",
+        "chunking",
+        "vector database"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "llm-ops": {
+      "description": "LLM Operations -- RAG, embeddings, vector databases, fine-tuning, prompt engineering avancado, custos de LLM, evals de qualidade e arquiteturas de IA para producao. Ativar para: implementar RAG,...",
+      "category": "data-ai",
+      "tags": [
+        "data-ai",
+        "llm",
+        "ops",
+        "risk:safe"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "rag-implementation",
+        "ml-engineering",
+        "prompt-engineering",
+        "data-pipelines",
+        "vector-databases",
+        "research-builder",
+        "context7",
+        "sequentialthinking"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "llm ops",
+        "llm operations",
+        "model deployment",
+        "prompt engineering",
+        "fine tuning",
+        "llm monitoring",
+        "model serving",
+        "inference"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "ml-engineering": {
+      "description": "Build production ML systems with PyTorch 2.x, TensorFlow, and modern ML frameworks. Implements model serving, feature engineering, A/B testing, and monitoring.",
+      "category": "data-ai",
+      "tags": [
+        "data-ai",
+        "engineering",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "rag-implementation",
+        "llm-ops",
+        "prompt-engineering",
+        "data-pipelines",
+        "vector-databases",
+        "research-builder",
+        "context7",
+        "sequentialthinking"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "working on ml engineer tasks or workflows",
+        "needing guidance"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "working on ml engineer tasks or workflows",
+          "needing guidance"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "prompt-engineering": {
+      "description": "Transforms user prompts into optimized prompts using frameworks (RTF, RISEN, Chain of Thought, RODES, Chain of Density, RACE, RISE, STAR, SOAP, CLEAR, GROW)",
+      "category": "data-ai",
+      "tags": [
+        "data-ai",
+        "prompt",
+        "engineering",
+        "risk:safe",
+        "automation"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "rag-implementation",
+        "llm-ops",
+        "ml-engineering",
+        "data-pipelines",
+        "vector-databases",
+        "research-builder",
+        "context7",
+        "sequentialthinking"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "user provides a vague or generic prompt (e",
+        "user has a complex idea but struggles to articulate it clearly",
+        "user's prompt lacks structure",
+        "task requires step-by-step reasoning (debugging",
+        "user needs a prompt for a specific ai task but doesn't know prompting frameworks",
+        "user wants to improve an existing prompt's effectiveness",
+        "user asks variations of \"how do i ask ai to"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "user provides a vague or generic prompt (e",
+          "user has a complex idea but struggles to articulate it clearly",
+          "user's prompt lacks structure"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "data-pipelines": {
+      "description": "You are a data pipeline architecture expert specializing in scalable, reliable, and cost-effective data pipelines for batch and streaming data processing.",
+      "category": "data-ai",
+      "tags": [
+        "data-ai",
+        "data",
+        "pipelines",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "rag-implementation",
+        "llm-ops",
+        "ml-engineering",
+        "prompt-engineering",
+        "vector-databases",
+        "research-builder",
+        "context7",
+        "sequentialthinking"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "working on data pipeline architecture tasks or workflows",
+        "needing guidance"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "working on data pipeline architecture tasks or workflows",
+          "needing guidance"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "vector-databases": {
+      "description": "Expert in vector databases, embedding strategies, and semantic search implementation. Masters Pinecone, Weaviate, Qdrant, Milvus, and pgvector for RAG applications, recommendation systems, and similar",
+      "category": "data-ai",
+      "tags": [
+        "data-ai",
+        "vector",
+        "databases",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "rag-implementation",
+        "llm-ops",
+        "ml-engineering",
+        "prompt-engineering",
+        "data-pipelines",
+        "research-builder",
+        "context7",
+        "sequentialthinking"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "building rag (retrieval augmented generation) systems",
+        "implementing semantic search over documents",
+        "creating recommendation engines",
+        "building image/audio similarity search",
+        "optimi"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "building rag (retrieval augmented generation) systems",
+          "implementing semantic search over documents",
+          "creating recommendation engines"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "react-patterns": {
+      "description": "Modern React patterns and principles. Hooks, composition, performance, TypeScript best practices.",
+      "category": "frontend",
+      "tags": [
+        "frontend",
+        "react",
+        "patterns",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "angular-development",
+        "accessibility-audit",
+        "tailwind-css",
+        "responsive-design",
+        "microservices-patterns",
+        "frontend-ui-ux",
+        "dev-browser",
+        "playwright",
+        "test-driven-development"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "react pattern",
+        "react patterns",
+        "react hooks",
+        "useeffect",
+        "usestate",
+        "component pattern",
+        "react architecture",
+        "react skill"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "angular-development": {
+      "description": "Modern Angular (v20+) expert with deep knowledge of Signals, Standalone Components, Zoneless applications, SSR/Hydration, and reactive patterns.",
+      "category": "frontend",
+      "tags": [
+        "frontend",
+        "angular",
+        "development",
+        "risk:safe"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "react-patterns",
+        "accessibility-audit",
+        "tailwind-css",
+        "responsive-design",
+        "laravel-development",
+        "frontend-ui-ux",
+        "dev-browser",
+        "playwright",
+        "test-driven-development"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "angular",
+        "angular development",
+        "angular skill",
+        "angular signal",
+        "standalone component",
+        "ngmodule",
+        "rxjs angular"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "accessibility-audit": {
+      "description": "You are an accessibility expert specializing in WCAG compliance, inclusive design, and assistive technology compatibility. Conduct audits, identify barriers, and provide remediation guidance.",
+      "category": "frontend",
+      "tags": [
+        "frontend",
+        "accessibility",
+        "audit",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "react-patterns",
+        "angular-development",
+        "tailwind-css",
+        "responsive-design",
+        "accessibility-testing",
+        "frontend-ui-ux",
+        "dev-browser",
+        "playwright",
+        "test-driven-development"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "auditing web or mobile experiences for wcag compliance",
+        "identifying accessibility barriers and remediation priorities",
+        "establishing ongoing accessibility testing practices",
+        "preparing compliance evidence for stakeholders"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "auditing web or mobile experiences for wcag compliance",
+          "identifying accessibility barriers and remediation priorities",
+          "establishing ongoing accessibility testing practices"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "tailwind-css": {
+      "description": "Build scalable design systems with Tailwind CSS, design tokens, component libraries, and responsive patterns. Use when creating component libraries, implementing design systems, or standardizing UI...",
+      "category": "frontend",
+      "tags": [
+        "frontend",
+        "tailwind",
+        "css",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "react-patterns",
+        "angular-development",
+        "accessibility-audit",
+        "responsive-design",
+        "frontend-ui-ux",
+        "dev-browser",
+        "playwright",
+        "test-driven-development"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "creating a component library with tailwind",
+        "implementing design tokens and theming",
+        "building responsive and accessible components",
+        "standardi"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "creating a component library with tailwind",
+          "implementing design tokens and theming",
+          "building responsive and accessible components"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "responsive-design": {
+      "description": "Create distinctive, production-grade frontend interfaces with intentional aesthetics, high craft, and non-generic visual identity. Use when building or styling web UIs, components, pages, dashboard...",
+      "category": "frontend",
+      "tags": [
+        "frontend",
+        "responsive",
+        "design",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "react-patterns",
+        "angular-development",
+        "accessibility-audit",
+        "tailwind-css",
+        "architecture-design",
+        "api-design-principles",
+        "database-design",
+        "system-design",
+        "frontend-ui-ux",
+        "dev-browser",
+        "playwright",
+        "test-driven-development"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "responsive design",
+        "mobile design",
+        "breakpoint",
+        "media query",
+        "responsive layout",
+        "mobile first",
+        "responsive skill"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "fastapi-development": {
+      "description": "Build high-performance async APIs with FastAPI, SQLAlchemy 2.0, and Pydantic V2. Master microservices, WebSockets, and modern Python async patterns.",
+      "category": "backend",
+      "tags": [
+        "backend",
+        "fastapi",
+        "development",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "django-development",
+        "laravel-development",
+        "go-development",
+        "rust-development",
+        "test-driven-development",
+        "systematic-debugging",
+        "code-doctor"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "working on fastapi pro tasks or workflows",
+        "needing guidance"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "working on fastapi pro tasks or workflows",
+          "needing guidance"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "django-development": {
+      "description": "Master Django 5.x with async views, DRF, Celery, and Django Channels. Build scalable web applications with proper architecture, testing, and deployment.",
+      "category": "backend",
+      "tags": [
+        "backend",
+        "django",
+        "development",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "fastapi-development",
+        "laravel-development",
+        "go-development",
+        "rust-development",
+        "test-driven-development",
+        "systematic-debugging",
+        "code-doctor"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "working on django pro tasks or workflows",
+        "needing guidance"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "working on django pro tasks or workflows",
+          "needing guidance"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "laravel-development": {
+      "description": "Senior Laravel Engineer role for production-grade, maintainable, and idiomatic Laravel solutions. Focuses on clean architecture, security, performance, and modern standards (Laravel 10/11+).",
+      "category": "backend",
+      "tags": [
+        "backend",
+        "laravel",
+        "development",
+        "risk:safe"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "fastapi-development",
+        "django-development",
+        "go-development",
+        "rust-development",
+        "angular-development",
+        "test-driven-development",
+        "systematic-debugging",
+        "code-doctor"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "building new laravel features",
+        "refactoring legacy laravel code",
+        "designing apis",
+        "creating validation logic",
+        "implementing authentication/authori"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "building new laravel features",
+          "refactoring legacy laravel code",
+          "designing apis"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "go-development": {
+      "description": "Master Go 1.21+ with modern patterns, advanced concurrency, performance optimization, and production-ready microservices.",
+      "category": "backend",
+      "tags": [
+        "backend",
+        "development",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "fastapi-development",
+        "django-development",
+        "laravel-development",
+        "rust-development",
+        "test-driven-development",
+        "systematic-debugging",
+        "code-doctor"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "building go services",
+        "designing concurrency patterns and performance optimi"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "building go services",
+          "designing concurrency patterns and performance optimi"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "rust-development": {
+      "description": "Master Rust 1.75+ with modern async patterns, advanced type system features, and production-ready systems programming.",
+      "category": "backend",
+      "tags": [
+        "backend",
+        "rust",
+        "development",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "fastapi-development",
+        "django-development",
+        "laravel-development",
+        "go-development",
+        "test-driven-development",
+        "systematic-debugging",
+        "code-doctor"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "building rust services",
+        "solving ownership",
+        "optimi"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "building rust services",
+          "solving ownership",
+          "optimi"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "database-migration": {
+      "description": "Execute database migrations across ORMs and platforms with zero-downtime strategies, data transformation, and rollback procedures. Use when migrating databases, changing schemas, performing data tr...",
+      "category": "database",
+      "tags": [
+        "database",
+        "migration",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "ddd-database-patterns",
+        "postgresql-optimization",
+        "database-design",
+        "codebase-auditor",
+        "writing-plans",
+        "systematic-debugging"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "migrating between different orms",
+        "performing schema transformations",
+        "moving data between databases",
+        "implementing rollback procedures"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "migrating between different orms",
+          "performing schema transformations",
+          "moving data between databases"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "ddd-database-patterns": {
+      "description": "Apply DDD tactical patterns in code using entities, value objects, aggregates, repositories, and domain events with explicit invariants.",
+      "category": "database",
+      "tags": [
+        "database",
+        "ddd",
+        "patterns",
+        "risk:safe"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "database-migration",
+        "postgresql-optimization",
+        "database-design",
+        "ddd-strategic-design",
+        "ddd-context-mapping",
+        "codebase-auditor",
+        "writing-plans",
+        "systematic-debugging"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "translating domain rules into code structures",
+        "designing aggregate boundaries and invariants",
+        "refactoring an anemic model into behavior-rich domain objects",
+        "defining repository contracts and domain event boundaries"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "translating domain rules into code structures",
+          "designing aggregate boundaries and invariants",
+          "refactoring an anemic model into behavior-rich domain objects"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "postgresql-optimization": {
+      "description": "PostgreSQL database optimization workflow for query tuning, indexing strategies, performance analysis, and production database management.",
+      "category": "database",
+      "tags": [
+        "database",
+        "postgresql",
+        "optimization",
+        "risk:safe",
+        "granular-workflow-bundle"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "database-migration",
+        "ddd-database-patterns",
+        "database-design",
+        "rag-implementation",
+        "e2e-testing",
+        "codebase-auditor",
+        "writing-plans",
+        "systematic-debugging"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "postgresql",
+        "postgres optimize",
+        "query tuning",
+        "index optimization",
+        "pg tuning",
+        "postgres performance",
+        "sql optimization"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "database-design": {
+      "description": "Database design principles and decision-making. Schema design, indexing strategy, ORM selection, serverless databases.",
+      "category": "database",
+      "tags": [
+        "database",
+        "design",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "database-migration",
+        "ddd-database-patterns",
+        "postgresql-optimization",
+        "architecture-design",
+        "api-design-principles",
+        "responsive-design",
+        "system-design",
+        "codebase-auditor",
+        "writing-plans",
+        "systematic-debugging"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "database design",
+        "schema design",
+        "db design",
+        "table design",
+        "normalization",
+        "database schema",
+        "relational design"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "pricing-strategy": {
+      "description": "Design pricing, packaging, and monetization strategies based on value, customer willingness to pay, and growth objectives.",
+      "category": "business",
+      "tags": [
+        "business",
+        "pricing",
+        "strategy",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "gtm-strategy",
+        "competitive-analysis",
+        "product-management",
+        "stakeholder-communication",
+        "brainstorming",
+        "writing-plans",
+        "research-builder"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "pricing",
+        "monetization",
+        "subscription",
+        "pricing model",
+        "pricing strategy",
+        "saas pricing",
+        "value based pricing"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "gtm-strategy": {
+      "description": "When the user wants to plan a product launch, feature announcement, or release strategy. Also use when the user mentions 'launch,' 'Product Hunt,' 'feature release,' 'announcement,' 'go-to-market,'...",
+      "category": "business",
+      "tags": [
+        "business",
+        "gtm",
+        "strategy",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "pricing-strategy",
+        "competitive-analysis",
+        "product-management",
+        "stakeholder-communication",
+        "brainstorming",
+        "writing-plans",
+        "research-builder"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "gtm",
+        "go to market",
+        "launch strategy",
+        "product launch",
+        "go-to-market",
+        "gtm plan",
+        "market launch",
+        "release strategy"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "competitive-analysis": {
+      "description": "This skill should be used when the user asks to \\\\\\\"analyze competitors\", \"assess competitive landscape\", \"identify differentiation\", \"evaluate market positioning\", \"apply Porter's Five Forces\",...",
+      "category": "business",
+      "tags": [
+        "business",
+        "competitive",
+        "analysis",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "pricing-strategy",
+        "gtm-strategy",
+        "product-management",
+        "stakeholder-communication",
+        "brainstorming",
+        "writing-plans",
+        "research-builder"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "working on competitive landscape analysis tasks or workflows",
+        "needing guidance"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "working on competitive landscape analysis tasks or workflows",
+          "needing guidance"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "product-management": {
+      "description": "Senior PM agent with 6 knowledge domains, 30+ frameworks, 12 templates, and 32 SaaS metrics with formulas. Pure Markdown, zero scripts.",
+      "category": "business",
+      "tags": [
+        "business",
+        "product",
+        "management",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "pricing-strategy",
+        "gtm-strategy",
+        "competitive-analysis",
+        "stakeholder-communication",
+        "brainstorming",
+        "writing-plans",
+        "research-builder"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "product management",
+        "roadmap",
+        "sprint",
+        "user story",
+        "backlog",
+        "product strategy",
+        "epic",
+        "scrum",
+        "agile planning"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "stakeholder-communication": {
+      "description": "Transform data into compelling narratives using visualization, context, and persuasive structure. Use when presenting analytics to stakeholders, creating data reports, or building executive present...",
+      "category": "business",
+      "tags": [
+        "business",
+        "stakeholder",
+        "communication",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "pricing-strategy",
+        "gtm-strategy",
+        "competitive-analysis",
+        "product-management",
+        "brainstorming",
+        "writing-plans",
+        "research-builder"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "presenting analytics to executives",
+        "creating quarterly business reviews",
+        "building investor presentations",
+        "writing data-driven reports",
+        "communicating insights to non-technical audiences",
+        "making recommendations based on data"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "presenting analytics to executives",
+          "creating quarterly business reviews",
+          "building investor presentations"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "e2e-testing": {
+      "description": "End-to-end testing workflow with Playwright for browser automation, visual regression, cross-browser testing, and CI/CD integration.",
+      "category": "testing",
+      "tags": [
+        "testing",
+        "e2e",
+        "risk:safe",
+        "granular-workflow-bundle"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "accessibility-testing",
+        "performance-testing",
+        "load-testing",
+        "screen-reader-testing",
+        "rag-implementation",
+        "postgresql-optimization",
+        "test-driven-development",
+        "verification-before-completion",
+        "systematic-debugging",
+        "evaluation-harness-builder"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "e2e test",
+        "end to end test",
+        "playwright test",
+        "browser test",
+        "ui test",
+        "e2e testing",
+        "visual regression"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "accessibility-testing": {
+      "description": "Audit and fix HTML accessibility issues including ARIA labels, keyboard navigation, focus management, color contrast, and form errors. Use when adding interactive controls, forms, dialogs, or reviewin",
+      "category": "testing",
+      "tags": [
+        "testing",
+        "accessibility",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "e2e-testing",
+        "performance-testing",
+        "load-testing",
+        "screen-reader-testing",
+        "accessibility-audit",
+        "test-driven-development",
+        "verification-before-completion",
+        "systematic-debugging",
+        "evaluation-harness-builder"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "a11y",
+        "accessibility",
+        "wcag",
+        "screen reader",
+        "keyboard nav",
+        "aria",
+        "accessibility audit",
+        "wcag compliance"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "performance-testing": {
+      "description": "Performance profiling principles. Measurement, analysis, and optimization techniques.",
+      "category": "testing",
+      "tags": [
+        "testing",
+        "performance",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "e2e-testing",
+        "accessibility-testing",
+        "load-testing",
+        "screen-reader-testing",
+        "test-driven-development",
+        "verification-before-completion",
+        "systematic-debugging",
+        "evaluation-harness-builder"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "performance test",
+        "profiling",
+        "benchmark",
+        "speed",
+        "performance profiling",
+        "memory leak",
+        "cpu profiling"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "linting-standards": {
+      "description": "Automatic quality control, linting, and static analysis procedures. Use after every code modification to ensure syntax correctness and project standards. Triggers onKeywords: lint, format, check, v...",
+      "category": "code-quality",
+      "tags": [
+        "code-quality",
+        "linting",
+        "standards",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "tech-debt-assessment",
+        "codebase-auditor",
+        "code-doctor",
+        "test-driven-development",
+        "requesting-code-review"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "linting",
+        "code quality",
+        "style guide",
+        "eslint",
+        "prettier",
+        "linter",
+        "lint rules",
+        "code standards",
+        "static analysis"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "tech-debt-assessment": {
+      "description": "You are a technical debt expert specializing in identifying, quantifying, and prioritizing technical debt in software projects. Analyze the codebase to uncover debt, assess its impact, and create acti",
+      "category": "code-quality",
+      "tags": [
+        "code-quality",
+        "tech",
+        "debt",
+        "assessment",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "linting-standards",
+        "codebase-auditor",
+        "code-doctor",
+        "test-driven-development",
+        "requesting-code-review"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "working on technical debt analysis and remediation tasks or workflows",
+        "needing guidance"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "working on technical debt analysis and remediation tasks or workflows",
+          "needing guidance"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "system-design": {
+      "description": "Comprehensive software architecture skill for designing scalable, maintainable systems using ReactJS, NextJS, NodeJS, Express, React Native, Swift, Kotlin, Flutter, Postgres, GraphQL, Go, Python. I...",
+      "category": "architecture",
+      "tags": [
+        "architecture",
+        "system",
+        "design",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "c4-architecture",
+        "architecture-design",
+        "ddd-strategic-design",
+        "event-sourcing",
+        "microservices-patterns",
+        "api-design-principles",
+        "clean-architecture",
+        "ddd-context-mapping",
+        "responsive-design",
+        "database-design",
+        "writing-plans",
+        "brainstorming",
+        "codebase-auditor"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "system design",
+        "scalable architecture",
+        "distributed system",
+        "microservices",
+        "load balancing",
+        "caching strategy",
+        "system architecture"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "ddd-context-mapping": {
+      "description": "Map relationships between bounded contexts and define integration contracts using DDD context mapping patterns.",
+      "category": "architecture",
+      "tags": [
+        "architecture",
+        "ddd",
+        "context",
+        "mapping",
+        "risk:safe"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "c4-architecture",
+        "architecture-design",
+        "ddd-strategic-design",
+        "event-sourcing",
+        "microservices-patterns",
+        "api-design-principles",
+        "clean-architecture",
+        "system-design",
+        "ddd-database-patterns",
+        "writing-plans",
+        "brainstorming",
+        "codebase-auditor"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "defining integration patterns between bounded contexts",
+        "preventing domain leakage across service boundaries",
+        "planning anti-corruption layers during migration",
+        "clarifying upstream and downstream ownership for contracts"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "defining integration patterns between bounded contexts",
+          "preventing domain leakage across service boundaries",
+          "planning anti-corruption layers during migration"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "load-testing": {
+      "description": "Comprehensive k6 load testing skill for API, browser, and scalability testing. Write realistic load scenarios, analyze results, and integrate with CI/CD.",
+      "category": "testing",
+      "tags": [
+        "testing",
+        "load",
+        "risk:safe"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "e2e-testing",
+        "accessibility-testing",
+        "performance-testing",
+        "screen-reader-testing",
+        "test-driven-development",
+        "verification-before-completion",
+        "systematic-debugging",
+        "evaluation-harness-builder"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "load test",
+        "stress test",
+        "k6",
+        "jmeter",
+        "scalability",
+        "load testing",
+        "performance load",
+        "concurrent users"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      }
+    },
+    "github-actions": {
+      "description": "Create production-ready GitHub Actions workflows for automated testing, building, and deploying applications. Use when setting up CI/CD with GitHub Actions, automating development workflows, or cre...",
+      "category": "devops",
+      "tags": [
+        "devops",
+        "github",
+        "actions",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "docker-containerization",
+        "kubernetes-orchestration",
+        "terraform-iac",
+        "aws-cloud",
+        "ci-cd-automation",
+        "monitoring-observability",
+        "verification-before-completion",
+        "executing-plans",
+        "dispatching-parallel-agents"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "automate testing and deployment",
+        "build docker images and push to registries",
+        "deploy to kubernetes clusters",
+        "run security scans",
+        "implement matrix builds for multiple environments"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "automate testing and deployment",
+          "build docker images and push to registries",
+          "deploy to kubernetes clusters"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "screen-reader-testing": {
+      "description": "Test web applications with screen readers including VoiceOver, NVDA, and JAWS. Use when validating screen reader compatibility, debugging accessibility issues, or ensuring assistive technology supp...",
+      "category": "testing",
+      "tags": [
+        "testing",
+        "screen",
+        "reader",
+        "risk:unknown"
+      ],
+      "source": "antigravity",
+      "dependencies": [],
+      "synergies": [
+        "e2e-testing",
+        "accessibility-testing",
+        "performance-testing",
+        "load-testing",
+        "test-driven-development",
+        "verification-before-completion",
+        "systematic-debugging",
+        "evaluation-harness-builder"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "validating screen reader compatibility",
+        "testing aria implementations",
+        "debugging assistive technology issues",
+        "verifying form accessibility",
+        "testing dynamic content announcements",
+        "ensuring navigation accessibility"
+      ],
+      "recommended_agents": [
+        "build"
+      ],
+      "compatible_agents": [
+        "build",
+        "oracle"
+      ],
+      "overlapCluster": null,
+      "canonicalEntrypoint": true,
+      "selectionHints": {
+        "useWhen": [
+          "validating screen reader compatibility",
+          "testing aria implementations",
+          "debugging assistive technology issues"
+        ],
+        "avoidWhen": []
+      }
+    },
+    "learning-engine": {
+      "description": "Learns from opencode sessions to improve orchestration — heavily weighted toward anti-pattern detection and avoidance",
+      "category": "orchestration",
+      "tags": [
+        "opencode",
+        "learning",
+        "anti-patterns",
+        "orchestration",
+        "session-analysis",
+        "pattern-detection",
+        "agent-routing"
+      ],
+      "source": "builtin",
+      "dependencies": [
+        "opencode-tool-usage-tracker"
+      ],
+      "synergies": [
+        "tool-usage-tracker"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "use learning engine",
+        "learning engine skill",
+        "learning engine tool",
+        "invoke learning engine",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "use learning",
+        "learning task",
+        "with learning",
+        "use anti patterns",
+        "anti patterns task",
+        "with anti patterns",
+        "use orchestration",
+        "orchestration task",
+        "with orchestration",
+        "use session analysis",
+        "session analysis task",
+        "with session analysis",
+        "use pattern detection",
+        "pattern detection task",
+        "with pattern detection",
+        "use agent routing",
+        "agent routing task",
+        "with agent routing",
+        "anti-pattern detected",
+        "task routing advice",
+        "improve skill selection"
+      ],
+      "inputs": [
+        {
+          "name": "LearningEngine",
+          "type": "class",
+          "description": "class LearningEngine",
+          "required": false
+        },
+        {
+          "name": "MetaAwarenessTracker",
+          "type": "named",
+          "description": "named MetaAwarenessTracker",
+          "required": false
+        },
+        {
+          "name": "MetaKBReader",
+          "type": "named",
+          "description": "named MetaKBReader",
+          "required": false
+        },
+        {
+          "name": "OrchestrationAdvisor",
+          "type": "named",
+          "description": "named OrchestrationAdvisor",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "1.0.0",
+      "processPhase": "pre-analysis",
+      "domain": "orchestration",
+      "selectionHints": {
+        "useWhen": [
+          "RL or learning signal available"
+        ],
+        "avoidWhen": []
+      },
+      "recommended_agents": [
+        "atlas"
+      ],
+      "compatible_agents": []
+    },
+    "skill-rl-manager": {
+      "description": "Hierarchical skill orchestration using SkillRL principles (arXiv:2602.08234)",
+      "category": "orchestration",
+      "tags": [
+        "skillrl",
+        "skill-orchestration",
+        "hierarchical-learning",
+        "reinforcement-learning",
+        "agent-skills"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use skill rl manager",
+        "skill rl manager skill",
+        "skill rl manager tool",
+        "invoke skill rl manager",
+        "use skillrl",
+        "skillrl task",
+        "with skillrl",
+        "use skill orchestration",
+        "skill orchestration task",
+        "with skill orchestration",
+        "use hierarchical learning",
+        "hierarchical learning task",
+        "with hierarchical learning",
+        "use reinforcement learning",
+        "reinforcement learning task",
+        "with reinforcement learning",
+        "use agent skills",
+        "agent skills task",
+        "with agent skills",
+        "orchestrate multiple skills",
+        "select best skill",
+        "hierarchical skill selection"
+      ],
+      "inputs": [
+        {
+          "name": "SkillRLManager",
+          "type": "class",
+          "description": "class SkillRLManager",
+          "required": false
+        },
+        {
+          "name": "EvolutionEngine",
+          "type": "named",
+          "description": "named EvolutionEngine",
+          "required": false
+        },
+        {
+          "name": "ExplorationRLAdapter",
+          "type": "named",
+          "description": "named ExplorationRLAdapter",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "1.0.0",
+      "processPhase": "pre-analysis",
+      "domain": "orchestration",
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      },
+      "recommended_agents": [],
+      "compatible_agents": []
+    },
+    "memory-graph": {
+      "description": "Session-to-error graph builder from OpenCode runtime logs with goraphdb persistence",
+      "category": "memory",
+      "tags": [
+        "opencode",
+        "memory",
+        "graph",
+        "error-tracking",
+        "session-analysis",
+        "log-parser",
+        "goraphdb",
+        "neo4j"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use memory graph",
+        "memory graph skill",
+        "memory graph tool",
+        "invoke memory graph",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "use memory",
+        "memory task",
+        "with memory",
+        "use graph",
+        "graph task",
+        "with graph",
+        "use error tracking",
+        "error tracking task",
+        "with error tracking",
+        "use session analysis",
+        "session analysis task",
+        "with session analysis",
+        "use log parser",
+        "log parser task",
+        "with log parser",
+        "use goraphdb",
+        "goraphdb task",
+        "with goraphdb",
+        "use neo4j",
+        "neo4j task",
+        "with neo4j",
+        "session error history",
+        "error frequency analysis"
+      ],
+      "inputs": [
+        {
+          "name": "MemoryGraph",
+          "type": "class",
+          "description": "class MemoryGraph",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "2.1.0",
+      "processPhase": "pre-analysis",
+      "domain": "memory",
+      "selectionHints": {
+        "useWhen": [
+          "session or codebase context"
+        ],
+        "avoidWhen": []
+      },
+      "recommended_agents": [
+        "librarian"
+      ],
+      "compatible_agents": []
+    },
+    "runbooks": {
+      "description": "Pluginized auto-remediation based on error signatures for OpenCode",
+      "category": "debugging",
+      "tags": [
+        "opencode",
+        "runbooks",
+        "auto-remediation",
+        "error-handling",
+        "mcp"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use runbooks",
+        "runbooks skill",
+        "runbooks tool",
+        "invoke runbooks",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "runbooks task",
+        "with runbooks",
+        "use auto remediation",
+        "auto remediation task",
+        "with auto remediation",
+        "use error handling",
+        "error handling task",
+        "with error handling",
+        "use mcp",
+        "mcp task",
+        "with mcp",
+        "auto-remediation",
+        "fix this error",
+        "error recovery",
+        "runbook for"
+      ],
+      "inputs": [
+        {
+          "name": "Runbooks",
+          "type": "class",
+          "description": "class Runbooks",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "1.0.0",
+      "processPhase": "implementation",
+      "domain": "debugging",
+      "selectionHints": {
+        "useWhen": [
+          "error or failure state detected"
+        ],
+        "avoidWhen": []
+      },
+      "recommended_agents": [
+        "sisyphus"
+      ],
+      "compatible_agents": []
+    },
+    "beads": {
+      "description": "Integrates the beads issue tracker (github.com/steveyegge/beads) into OpenCode sessions — auto-injects bd prime on session start and after compaction, provides /bd-* commands, and dispatches a beads-task-agent subagent for autonomous issue completion. Use for structured todo management, issue tracking, and long-running task orchestration.",
+      "category": "task-management",
+      "tags": [
+        "beads",
+        "issue-tracker",
+        "todo",
+        "task-management",
+        "task-list",
+        "plan",
+        "beads-task-agent",
+        "github-integration"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [
+        "git-master",
+        "file-todos",
+        "writing-plans",
+        "github-triage"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "bd prime",
+        "bd status",
+        "bd list",
+        "bd add",
+        "bd done",
+        "bd block",
+        "bd note",
+        "beads task",
+        "beads issue",
+        "beads tracker",
+        "todo list",
+        "issue list",
+        "track tasks",
+        "task list",
+        "/bd",
+        "beads skill",
+        "use beads",
+        "beads plugin",
+        "with beads",
+        "task tracking",
+        "issue tracking"
+      ],
+      "inputs": [],
+      "outputs": [],
+      "version": "0.6.0",
+      "processPhase": "planning",
+      "domain": "task-management",
+      "selectionHints": {
+        "useWhen": [
+          "todo list or issue tracking mentioned",
+          "bd or beads command issued",
+          "long plan with multiple tasks",
+          "task orchestration requested"
+        ],
+        "avoidWhen": [
+          "single quick fix",
+          "trivial one-liner response"
+        ]
+      },
+      "recommended_agents": [
+        "beads-task-agent"
+      ],
+      "compatible_agents": []
+    },
+    "proofcheck": {
+      "description": "Pluginized deployment gate — verify before commit/push. Checks git status, tests, lint, and security.",
+      "category": "verification",
+      "tags": [
+        "opencode",
+        "proofcheck",
+        "deployment-gate",
+        "pre-commit",
+        "pre-push",
+        "verification"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use proofcheck",
+        "proofcheck skill",
+        "proofcheck tool",
+        "invoke proofcheck",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "proofcheck task",
+        "with proofcheck",
+        "use deployment gate",
+        "deployment gate task",
+        "with deployment gate",
+        "use pre commit",
+        "pre commit task",
+        "with pre commit",
+        "use pre push",
+        "pre push task",
+        "with pre push",
+        "use verification",
+        "verification task",
+        "with verification",
+        "pre-deployment gate",
+        "verify before deploy",
+        "deployment checklist"
+      ],
+      "inputs": [
+        {
+          "name": "Proofcheck",
+          "type": "class",
+          "description": "class Proofcheck",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "0.1.0",
+      "processPhase": "verification",
+      "domain": "verification",
+      "selectionHints": {
+        "useWhen": [
+          "pre-deployment phase"
+        ],
+        "avoidWhen": []
+      },
+      "recommended_agents": [],
+      "compatible_agents": []
+    },
+    "eval-harness": {
+      "description": "Evaluation harness and benchmarker for OpenCode-compatible AI models. Measures success rate, latency, and cost across standardized test suites.",
+      "category": "evaluation",
+      "tags": [
+        "opencode",
+        "eval",
+        "benchmark",
+        "llm",
+        "harness"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use eval harness",
+        "eval harness skill",
+        "eval harness tool",
+        "invoke eval harness",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "use eval",
+        "eval task",
+        "with eval",
+        "use benchmark",
+        "benchmark task",
+        "with benchmark",
+        "use llm",
+        "llm task",
+        "with llm",
+        "use harness",
+        "harness task",
+        "with harness",
+        "benchmark model",
+        "evaluate AI quality",
+        "run test harness"
+      ],
+      "inputs": [
+        {
+          "name": "Harness",
+          "type": "class",
+          "description": "class Harness",
+          "required": false
+        },
+        {
+          "name": "validateResponse",
+          "type": "named",
+          "description": "named validateResponse",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "0.1.0",
+      "processPhase": "verification",
+      "domain": "evaluation",
+      "selectionHints": {
+        "useWhen": [
+          "model evaluation needed"
+        ],
+        "avoidWhen": []
+      },
+      "recommended_agents": [
+        "oracle"
+      ],
+      "compatible_agents": []
+    },
+    "tool-usage-tracker": {
+      "description": "Tracks tool invocations, breadth metrics, and quality scoring for opencode",
+      "category": "observability",
+      "tags": [
+        "opencode",
+        "tool-tracking",
+        "metrics"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [
+        "learning-engine"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "use tool usage tracker",
+        "tool usage tracker skill",
+        "tool usage tracker tool",
+        "invoke tool usage tracker",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "use tool tracking",
+        "tool tracking task",
+        "with tool tracking",
+        "use metrics",
+        "metrics task",
+        "with metrics",
+        "tool invocation metrics",
+        "track tool usage",
+        "tool breadth analysis"
+      ],
+      "inputs": [
+        {
+          "name": "configure",
+          "type": "named",
+          "description": "named configure",
+          "required": false
+        },
+        {
+          "name": "detectUnderUse",
+          "type": "named",
+          "description": "named detectUnderUse",
+          "required": false
+        },
+        {
+          "name": "getUsageReport",
+          "type": "named",
+          "description": "named getUsageReport",
+          "required": false
+        },
+        {
+          "name": "startSession",
+          "type": "named",
+          "description": "named startSession",
+          "required": false
+        },
+        {
+          "name": "endSession",
+          "type": "named",
+          "description": "named endSession",
+          "required": false
+        },
+        {
+          "name": "logInvocation",
+          "type": "named",
+          "description": "named logInvocation",
+          "required": false
+        },
+        {
+          "name": "AVAILABLE_TOOLS",
+          "type": "named",
+          "description": "named AVAILABLE_TOOLS",
+          "required": false
+        },
+        {
+          "name": "TOOL_APPROPRIATENESS_RULES",
+          "type": "named",
+          "description": "named TOOL_APPROPRIATENESS_RULES",
+          "required": false
+        },
+        {
+          "name": "getInvocationLog",
+          "type": "named",
+          "description": "named getInvocationLog",
+          "required": false
+        },
+        {
+          "name": "getMetrics",
+          "type": "named",
+          "description": "named getMetrics",
+          "required": false
+        }
+      ],
+      "outputs": [
+        {
+          "name": "getMetrics",
+          "type": "object",
+          "description": "Returns getMetrics data",
+          "required": false
+        }
+      ],
+      "version": "1.0.0",
+      "processPhase": "post-process",
+      "domain": "observability",
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      },
+      "recommended_agents": [],
+      "compatible_agents": []
+    },
+    "model-router-x": {
+      "description": "Policy-based model router with live outcome tuning for OpenCode",
+      "category": "routing",
+      "tags": [
+        "opencode",
+        "model-router",
+        "llm",
+        "routing",
+        "policy"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use model router x",
+        "model router x skill",
+        "model router x tool",
+        "invoke model router x",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "use model router",
+        "model router task",
+        "with model router",
+        "use llm",
+        "llm task",
+        "with llm",
+        "use routing",
+        "routing task",
+        "with routing",
+        "use policy",
+        "policy task",
+        "with policy",
+        "select optimal model",
+        "cost-aware routing",
+        "route to model"
+      ],
+      "inputs": [
+        {
+          "name": "ModelRouter",
+          "type": "class",
+          "description": "class ModelRouter",
+          "required": false
+        },
+        {
+          "name": "policies",
+          "type": "named",
+          "description": "named policies",
+          "required": false
+        },
+        {
+          "name": "validateResponse",
+          "type": "named",
+          "description": "named validateResponse",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "0.1.0",
+      "processPhase": "pre-analysis",
+      "domain": "routing",
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      },
+      "recommended_agents": [],
+      "compatible_agents": []
+    },
+    "integration-layer": {
+      "description": "Wires SkillRL, Showboat, and orchestration components into OpenCode",
+      "category": "orchestration",
+      "tags": [
+        "opencode",
+        "integration",
+        "skillrl",
+        "orchestration"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use integration layer",
+        "integration layer skill",
+        "integration layer tool",
+        "invoke integration layer",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "use integration",
+        "integration task",
+        "with integration",
+        "use skillrl",
+        "skillrl task",
+        "with skillrl",
+        "use orchestration",
+        "orchestration task",
+        "with orchestration",
+        "orchestrate plugins",
+        "plugin event bus",
+        "emit plugin event"
+      ],
+      "inputs": [
+        {
+          "name": "IntegrationLayer",
+          "type": "class",
+          "description": "class IntegrationLayer",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "0.1.0",
+      "processPhase": "pre-analysis",
+      "domain": "orchestration",
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      },
+      "recommended_agents": [],
+      "compatible_agents": []
+    },
+    "showboat-wrapper": {
+      "description": "High-impact evidence capture orchestrator using showboat CLI",
+      "category": "verification",
+      "tags": [
+        "showboat",
+        "evidence-capture",
+        "deterministic-verification",
+        "playwright",
+        "machine-handoff"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use showboat wrapper",
+        "showboat wrapper skill",
+        "showboat wrapper tool",
+        "invoke showboat wrapper",
+        "use showboat",
+        "showboat task",
+        "with showboat",
+        "use evidence capture",
+        "evidence capture task",
+        "with evidence capture",
+        "use deterministic verification",
+        "deterministic verification task",
+        "with deterministic verification",
+        "use playwright",
+        "playwright task",
+        "with playwright",
+        "use machine handoff",
+        "machine handoff task",
+        "with machine handoff",
+        "capture evidence",
+        "high-impact task",
+        "deterministic verification"
+      ],
+      "inputs": [
+        {
+          "name": "ShowboatWrapper",
+          "type": "class",
+          "description": "class ShowboatWrapper",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "1.0.0",
+      "processPhase": "verification",
+      "domain": "verification",
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      },
+      "recommended_agents": [],
+      "compatible_agents": []
+    },
+    "codebase-memory": {
+      "description": "Codebase structure memory: indexes JS/TS symbols and call graphs into SQLite for agent query",
+      "category": "utility",
+      "tags": [
+        "codebase memory"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use codebase memory",
+        "codebase memory skill",
+        "codebase memory tool",
+        "invoke codebase memory",
+        "index codebase",
+        "codebase symbols",
+        "call graph analysis",
+        "search codebase structure"
+      ],
+      "inputs": [
+        {
+          "name": "CodebaseMemory",
+          "type": "class",
+          "description": "class CodebaseMemory",
+          "required": false
+        },
+        {
+          "name": "STATE_DIR",
+          "type": "named",
+          "description": "named STATE_DIR",
+          "required": false
+        },
+        {
+          "name": "REGISTRY_PATH",
+          "type": "named",
+          "description": "named REGISTRY_PATH",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "1.0.0",
+      "processPhase": "implementation",
+      "domain": "utility",
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      },
+      "recommended_agents": [],
+      "compatible_agents": []
+    },
+    "model-benchmark": {
+      "description": "Model benchmarking pipeline for OpenCode - HumanEval, MBPP, SWE-bench",
+      "category": "evaluation",
+      "tags": [
+        "opencode",
+        "model",
+        "benchmark",
+        "evaluation"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use model benchmark",
+        "model benchmark skill",
+        "model benchmark tool",
+        "invoke model benchmark",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "use model",
+        "model task",
+        "with model",
+        "use benchmark",
+        "benchmark task",
+        "with benchmark",
+        "use evaluation",
+        "evaluation task",
+        "with evaluation",
+        "HumanEval benchmark",
+        "compare model performance",
+        "SWE-bench evaluation"
+      ],
+      "inputs": [
+        {
+          "name": "ModelBenchmarkRunner",
+          "type": "named",
+          "description": "named ModelBenchmarkRunner",
+          "required": false
+        },
+        {
+          "name": "BENCHMARKS",
+          "type": "named",
+          "description": "named BENCHMARKS",
+          "required": false
+        },
+        {
+          "name": "ModelComparator",
+          "type": "named",
+          "description": "named ModelComparator",
+          "required": false
+        },
+        {
+          "name": "HierarchyPlacer",
+          "type": "named",
+          "description": "named HierarchyPlacer",
+          "required": false
+        },
+        {
+          "name": "HIERARCHY_LEVELS",
+          "type": "named",
+          "description": "named HIERARCHY_LEVELS",
+          "required": false
+        },
+        {
+          "name": "DocumentUpdater",
+          "type": "named",
+          "description": "named DocumentUpdater",
+          "required": false
+        },
+        {
+          "name": "BenchmarkPipeline",
+          "type": "named",
+          "description": "named BenchmarkPipeline",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "0.1.0",
+      "processPhase": "verification",
+      "domain": "evaluation",
+      "selectionHints": {
+        "useWhen": [
+          "model evaluation needed"
+        ],
+        "avoidWhen": []
+      },
+      "recommended_agents": [
+        "oracle"
+      ],
+      "compatible_agents": []
+    },
+    "plugin-preload-skills": {
+      "description": "Dynamic skill/tool preloading with three-tier classification and RL-driven promotion",
+      "category": "orchestration",
+      "tags": [
+        "opencode",
+        "plugin",
+        "skills",
+        "preload",
+        "rl",
+        "orchestration"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use plugin preload skills",
+        "plugin preload skills skill",
+        "plugin preload skills tool",
+        "invoke plugin preload skills",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "use plugin",
+        "plugin task",
+        "with plugin",
+        "use skills",
+        "skills task",
+        "with skills",
+        "use preload",
+        "preload task",
+        "with preload",
+        "use rl",
+        "rl task",
+        "with rl",
+        "use orchestration",
+        "orchestration task",
+        "with orchestration"
+      ],
+      "inputs": [
+        {
+          "name": "PreloadSkillsPlugin",
+          "type": "class",
+          "description": "class PreloadSkillsPlugin",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "1.0.0",
+      "processPhase": "pre-analysis",
+      "domain": "orchestration",
+      "selectionHints": {
+        "useWhen": [
+          "RL or learning signal available"
+        ],
+        "avoidWhen": []
+      },
+      "recommended_agents": [
+        "atlas"
+      ],
+      "compatible_agents": []
+    },
+    "graphdb-bridge": {
+      "description": "Unified MCP wrapper layer over graphdb REST API for memory-graph, runbooks, and eval-harness",
+      "category": "debugging",
+      "tags": [
+        "graphdb",
+        "graph-database",
+        "mcp",
+        "opencode",
+        "cypher",
+        "memory-graph",
+        "runbooks",
+        "eval-harness"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use graphdb bridge",
+        "graphdb bridge skill",
+        "graphdb bridge tool",
+        "invoke graphdb bridge",
+        "use graphdb",
+        "graphdb task",
+        "with graphdb",
+        "use graph database",
+        "graph database task",
+        "with graph database",
+        "use mcp",
+        "mcp task",
+        "with mcp",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "use cypher",
+        "cypher task",
+        "with cypher",
+        "use memory graph",
+        "memory graph task",
+        "with memory graph",
+        "use runbooks",
+        "runbooks task",
+        "with runbooks",
+        "use eval harness",
+        "eval harness task",
+        "with eval harness",
+        "graph database query",
+        "cypher query"
+      ],
+      "inputs": [
+        {
+          "name": "GraphDBBridge",
+          "type": "class",
+          "description": "class GraphDBBridge",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "0.1.0",
+      "processPhase": "implementation",
+      "domain": "debugging",
+      "selectionHints": {
+        "useWhen": [
+          "error or failure state detected"
+        ],
+        "avoidWhen": []
+      },
+      "recommended_agents": [
+        "sisyphus"
+      ],
+      "compatible_agents": []
     }
   },
   "profiles": {
@@ -1413,7 +5023,10 @@
         "test-driven-development",
         "systematic-debugging",
         "git-master",
-        "verification-before-completion"
+        "verification-before-completion",
+        "c4-architecture",
+        "ddd-strategic-design",
+        "tech-debt-assessment"
       ],
       "triggers": [
         "refactor",
@@ -1426,7 +5039,9 @@
       "skills": [
         "brainstorming",
         "writing-plans",
-        "executing-plans"
+        "executing-plans",
+        "competitive-analysis",
+        "gtm-strategy"
       ],
       "triggers": [
         "plan feature",
@@ -1439,7 +5054,9 @@
       "skills": [
         "requesting-code-review",
         "receiving-code-review",
-        "verification-before-completion"
+        "verification-before-completion",
+        "linting-standards",
+        "tech-debt-assessment"
       ],
       "triggers": [
         "code review",
@@ -1452,7 +5069,9 @@
       "skills": [
         "dispatching-parallel-agents",
         "subagent-driven-development",
-        "executing-plans"
+        "executing-plans",
+        "docker-containerization",
+        "terraform-iac"
       ],
       "triggers": [
         "parallel work",
@@ -1465,7 +5084,9 @@
       "skills": [
         "dev-browser",
         "frontend-ui-ux",
-        "verification-before-completion"
+        "verification-before-completion",
+        "accessibility-testing",
+        "e2e-testing"
       ],
       "triggers": [
         "test UI",
@@ -1479,7 +5100,9 @@
         "code-doctor",
         "systematic-debugging",
         "incident-commander",
-        "git-master"
+        "git-master",
+        "security-auditing",
+        "vulnerability-scanning"
       ],
       "triggers": [
         "diagnose",
@@ -1494,16 +5117,106 @@
       "skills": [
         "research-builder",
         "context7",
-        "github",
-        "tavily",
         "grep",
         "writing-plans",
-        "executing-plans"
+        "executing-plans",
+        "rag-implementation",
+        "prompt-engineering"
       ],
       "triggers": [
         "research and build",
         "investigate then implement",
         "deep dive"
+      ]
+    },
+    "security-hardening": {
+      "description": "Security audit, vulnerability assessment, and threat modeling workflow",
+      "skills": [
+        "security-auditing",
+        "vulnerability-scanning",
+        "threat-modeling",
+        "pentesting",
+        "secure-coding",
+        "api-security"
+      ],
+      "triggers": [
+        "security audit",
+        "vulnerability scan",
+        "threat model",
+        "penetration test",
+        "secure code review"
+      ]
+    },
+    "devops-infrastructure": {
+      "description": "Infrastructure as code, containerization, and deployment automation",
+      "skills": [
+        "docker-containerization",
+        "kubernetes-orchestration",
+        "terraform-iac",
+        "ci-cd-automation",
+        "github-actions",
+        "monitoring-observability"
+      ],
+      "triggers": [
+        "deploy infrastructure",
+        "containerize app",
+        "kubernetes setup",
+        "CI/CD pipeline",
+        "infrastructure automation"
+      ]
+    },
+    "frontend-development": {
+      "description": "Frontend development with testing and accessibility",
+      "skills": [
+        "react-patterns",
+        "responsive-design",
+        "tailwind-css",
+        "accessibility-testing",
+        "e2e-testing",
+        "screen-reader-testing"
+      ],
+      "triggers": [
+        "build UI",
+        "frontend development",
+        "responsive design",
+        "accessibility compliance",
+        "UI testing"
+      ]
+    },
+    "backend-architecture": {
+      "description": "Backend system design, database architecture, and API development",
+      "skills": [
+        "system-design",
+        "database-design",
+        "microservices-patterns",
+        "api-design-principles",
+        "event-sourcing",
+        "database-migration"
+      ],
+      "triggers": [
+        "design backend",
+        "database architecture",
+        "API design",
+        "microservices",
+        "system architecture"
+      ]
+    },
+    "ml-ops-pipeline": {
+      "description": "Machine learning operations, data pipelines, and vector database integration",
+      "skills": [
+        "ml-engineering",
+        "data-pipelines",
+        "vector-databases",
+        "rag-implementation",
+        "prompt-engineering",
+        "llm-ops"
+      ],
+      "triggers": [
+        "ML pipeline",
+        "data engineering",
+        "RAG implementation",
+        "vector database",
+        "LLM operations"
       ]
     }
   },
@@ -1570,9 +5283,7 @@
         "research-builder",
         "context7",
         "websearch",
-        "grep",
-        "github",
-        "tavily"
+        "grep"
       ]
     },
     "analysis": {

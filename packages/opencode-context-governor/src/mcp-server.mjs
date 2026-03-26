@@ -3,79 +3,55 @@
 import { createRequire } from 'node:module';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { wrapMcpHandler } from '../../opencode-mcp-utils/src/index.mjs';
 import { z } from 'zod';
 
 const require = createRequire(import.meta.url);
 const { Governor } = require('./index.js');
 
-function toTextPayload(payload) {
-  return {
-    content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }],
-    structuredContent: payload,
-  };
-}
-
-function toErrorPayload(message, extra = {}) {
-  return {
-    content: [{ type: 'text', text: JSON.stringify({ error: message, ...extra }, null, 2) }],
-    structuredContent: { error: message, ...extra },
-    isError: true,
-  };
-}
-
 export function createContextGovernorHandlers(governor) {
   return {
-    async checkContextBudget({ sessionId, model, proposedTokens }) {
-      try {
+    checkContextBudget: wrapMcpHandler(
+      ({ sessionId, model, proposedTokens }) => {
         const result = governor.checkBudget(sessionId, model, proposedTokens);
-        return toTextPayload({ sessionId, model, proposedTokens, ...result });
-      } catch (error) {
-        return toErrorPayload(error instanceof Error ? error.message : String(error));
-      }
-    },
+        return { sessionId, model, proposedTokens, ...result };
+      },
+      { source: 'context-governor:checkContextBudget' },
+    ),
 
-    async recordTokenUsage({ sessionId, model, tokens }) {
-      try {
+    recordTokenUsage: wrapMcpHandler(
+      ({ sessionId, model, tokens }) => {
         const result = governor.consumeTokens(sessionId, model, tokens);
-        return toTextPayload({ sessionId, model, tokens, ...result });
-      } catch (error) {
-        return toErrorPayload(error instanceof Error ? error.message : String(error));
-      }
-    },
+        return { sessionId, model, tokens, ...result };
+      },
+      { source: 'context-governor:recordTokenUsage' },
+    ),
 
-    async getContextBudgetStatus({ sessionId, model }) {
-      try {
+    getContextBudgetStatus: wrapMcpHandler(
+      ({ sessionId, model }) => {
         const result = governor.getRemainingBudget(sessionId, model);
-        return toTextPayload({ sessionId, model, ...result });
-      } catch (error) {
-        return toErrorPayload(error instanceof Error ? error.message : String(error));
-      }
-    },
+        return { sessionId, model, ...result };
+      },
+      { source: 'context-governor:getContextBudgetStatus' },
+    ),
 
-    async listBudgetSessions() {
-      try {
-        return toTextPayload({ sessions: governor.getAllSessions() });
-      } catch (error) {
-        return toErrorPayload(error instanceof Error ? error.message : String(error));
-      }
-    },
+    listBudgetSessions: wrapMcpHandler(
+      () => ({ sessions: governor.getAllSessions() }),
+      { source: 'context-governor:listBudgetSessions' },
+    ),
 
-    async resetBudgetSession({ sessionId, model }) {
-      try {
+    resetBudgetSession: wrapMcpHandler(
+      ({ sessionId, model }) => {
         governor.resetSession(sessionId, model);
-        return toTextPayload({ ok: true, sessionId, model: model || null });
-      } catch (error) {
-        return toErrorPayload(error instanceof Error ? error.message : String(error));
-      }
-    },
+        return { ok: true, sessionId, model: model || null };
+      },
+      { source: 'context-governor:resetBudgetSession' },
+    ),
 
-    async getModelBudgets() {
-      try {
-        return toTextPayload({ budgets: Governor.getModelBudgets() });
-      } catch (error) {
-        return toErrorPayload(error instanceof Error ? error.message : String(error));
-      }
-    },
+    getModelBudgets: wrapMcpHandler(
+      () => ({ budgets: Governor.getModelBudgets() }),
+      { source: 'context-governor:getModelBudgets' },
+    ),
   };
 }
 

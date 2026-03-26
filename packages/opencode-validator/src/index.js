@@ -146,4 +146,8 @@ module.exports = {
   validate,
   isObject,
   isArray,
+  // Security Veto exports
+  SecurityVeto: require('./security-veto.js').SecurityVeto,
+  createSecurityVeto: require('./security-veto.js').createSecurityVeto,
+  integrateWithSpawnGuard: require('./security-veto.js').integrateWithSpawnGuard
 };

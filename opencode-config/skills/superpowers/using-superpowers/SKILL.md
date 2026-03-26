@@ -102,3 +102,50 @@ The skill itself tells you which.
 ## User Instructions
 
 Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+## Overview
+
+Summarize what this skill does, when it is useful, and what outcome it should produce.
+
+## When to Use
+
+Use this skill when its description matches the task domain and it provides a safer or more structured workflow than ad-hoc execution.
+
+## Inputs Required
+
+- Task objective
+- Relevant files or modules
+- Constraints and success criteria
+
+## Workflow
+
+Follow the workflow described in this skill's existing process/phases. Keep steps explicit and verification-first.
+
+## Must Do
+
+- Follow the skill workflow in order
+- Validate outputs before handoff
+- Surface assumptions and risks
+
+## Must Not Do
+
+- Skip verification gates
+- Make destructive changes without explicit requirements
+- Hide uncertainty
+
+## Handoff Protocol
+
+**Receives From**: Orchestrator or upstream skill
+
+**Hands Off To**: Downstream execution/review skill with evidence and open risks
+
+## Output Contract
+
+Return concise, structured output with: decisions made, evidence used, unresolved risks, and next step.
+
+## Quick Start
+
+1. Confirm this skill is the right match
+2. Gather required inputs
+3. Execute workflow
+4. Verify and hand off

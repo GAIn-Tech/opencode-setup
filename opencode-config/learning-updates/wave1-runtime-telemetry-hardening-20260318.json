@@ -1,0 +1,17 @@
+{
+  "id": "wave1-runtime-telemetry-hardening-20260318",
+  "timestamp": "2026-03-18T23:35:00.000Z",
+  "summary": "Harden runtime telemetry and ingestion pipelines with safer outcome handling and atomic persistence paths.",
+  "affected_paths": [
+    "scripts/runtime-tool-telemetry.mjs",
+    "scripts/ingest-sessions.mjs",
+    "scripts/learning-gate.mjs",
+    "packages/opencode-learning-engine/src/tool-usage-tracker.js"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

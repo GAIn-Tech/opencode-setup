@@ -528,7 +528,8 @@ function createSqliteClient(dbPath) {
     return new BunSqliteClient(new bunDatabase(dbPath, { create: true }));
   }
 
-  const BetterSqliteDatabase = require('better-sqlite3');
+  // eslint-disable-next-line camelcase
+  const BetterSqliteDatabase = __non_webpack_require__('better-sqlite3');
   return new BetterSqliteClient(new BetterSqliteDatabase(dbPath));
 }
 

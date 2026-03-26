@@ -10,7 +10,7 @@ if ! git -C "$ROOT_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 fi
 
 mkdir -p "$HOOKS_DIR"
-chmod +x "$HOOKS_DIR/commit-msg" "$HOOKS_DIR/pre-push"
+chmod +x "$HOOKS_DIR/commit-msg" "$HOOKS_DIR/pre-push" "$HOOKS_DIR/post-commit"
 
 git -C "$ROOT_DIR" config core.hooksPath .githooks
 

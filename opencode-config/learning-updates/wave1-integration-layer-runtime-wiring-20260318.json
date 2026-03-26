@@ -1,0 +1,14 @@
+{
+  "id": "wave1-integration-layer-runtime-wiring-20260318",
+  "timestamp": "2026-03-18T23:30:00.000Z",
+  "summary": "Add integration-layer runtime instrumentation and normalized task-context wiring for orchestration flows.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/index.js"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

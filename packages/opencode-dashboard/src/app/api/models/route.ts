@@ -5,11 +5,11 @@ import * as os from 'os';
 import { getWriteActor, requireWriteAccess } from '../_lib/write-access';
 import { writeJsonAtomic } from '../_lib/write-json-atomic';
 import { appendWriteAuditEntry } from '../_lib/write-audit';
-import { rateLimited, badRequest, internalError } from '../_lib/api-response';
-import { errorResponse } from '../_lib/error-response';
+import { rateLimited, badRequest, internalError, successResponse } from '../_lib/api-response';
+import { errorResponse } from '../_lib/api-response';
 
 // Extract real model usage from message files
-function getRealModelUsage(): Record<string, any> | null {
+function getRealModelUsage(): Record<string, { selections: number; successes: number; failures: number; totalLatency: number }> | null {
   const homeDir = os.homedir();
   const messagesDir = path.join(homeDir, '.opencode', 'messages');
   
@@ -53,14 +53,16 @@ function getRealModelUsage(): Record<string, any> | null {
           if (content.time?.latency_ms) {
             modelStats[modelId].totalLatency += content.time.latency_ms;
           }
-        } catch {
+        } catch (error) {
+          console.warn('[models] Failed to parse message file:', error);
           continue;
         }
       }
     }
     
     return Object.entries(modelStats).length > 0 ? modelStats : null;
-  } catch {
+  } catch (error) {
+    console.error('[models] Failed to get model usage:', error);
     return null;
   }
 }

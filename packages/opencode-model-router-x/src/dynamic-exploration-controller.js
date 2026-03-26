@@ -163,6 +163,29 @@ class DynamicExplorationController {
     return metrics;
   }
 
+  /**
+   * Record a live runtime outcome so Thompson posteriors keep learning.
+   * @param {string} modelId
+   * @param {Object} outcome - { success, latencyMs }
+   * @param {Object} taskContext - Optional task metadata
+   * @returns {boolean}
+   */
+  recordExplorationOutcome(modelId, outcome = {}, taskContext = {}) {
+    if (!this.sampler || !modelId) {
+      return false;
+    }
+
+    const intentCategory =
+      taskContext.intentCategory ||
+      taskContext.taskType ||
+      taskContext.task_type ||
+      taskContext.task ||
+      'general';
+
+    this.sampler.update(intentCategory, modelId, Boolean(outcome.success));
+    return true;
+  }
+
   selectModelForTaskSync(task) {
     if (!this.active || !this.tracker || !this.sampler) {
       return null;

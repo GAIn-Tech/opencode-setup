@@ -14,7 +14,7 @@
 
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, renameSync, unlinkSync, existsSync } from 'fs';
 import { homedir } from 'os';
 import path from 'path';
 
@@ -23,6 +23,8 @@ const require = createRequire(import.meta.url);
 
 const HOME = process.env.USERPROFILE || process.env.HOME || homedir();
 const DELEGATION_LOG_FILE = path.join(HOME, '.opencode', 'delegation-log.json');
+const WINDOWS_RENAME_RETRIES = 3;
+const WINDOWS_RENAME_RETRY_DELAY_MS = 10;
 
 // Resolve packages from this repo root
 const enginePath = path.join(__dirname, '..', 'packages', 'opencode-learning-engine', 'src', 'index.js');
@@ -31,6 +33,54 @@ const advisorPath = path.join(__dirname, '..', 'packages', 'opencode-learning-en
 
 const { LearningEngine } = require(enginePath);
 const { SkillRLManager } = require(skillRLPath);
+
+function sleepSync(delayMs) {
+  if (!Number.isFinite(delayMs) || delayMs <= 0) return;
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, Math.floor(delayMs));
+}
+
+function renameWithWindowsRetrySync(tmpPath, filePath) {
+  for (let attempt = 0; attempt < WINDOWS_RENAME_RETRIES; attempt++) {
+    try {
+      renameSync(tmpPath, filePath);
+      return;
+    } catch (err) {
+      const isLastAttempt = attempt === WINDOWS_RENAME_RETRIES - 1;
+      if (err?.code === 'EPERM' && !isLastAttempt) {
+        sleepSync(WINDOWS_RENAME_RETRY_DELAY_MS);
+        continue;
+      }
+      throw err;
+    }
+  }
+}
+
+function writeJsonAtomicSync(filePath, data) {
+  const json = JSON.stringify(data, null, 2);
+  const tmpPath = `${filePath}.tmp`;
+  let tempWritten = false;
+
+  try {
+    writeFileSync(tmpPath, json, 'utf8');
+    tempWritten = true;
+
+    try {
+      renameWithWindowsRetrySync(tmpPath, filePath);
+    } catch (err) {
+      if (err?.code === 'EPERM') {
+        writeFileSync(filePath, json, 'utf8');
+      } else {
+        throw err;
+      }
+    }
+  } catch {
+    if (tempWritten) {
+      writeFileSync(filePath, json, 'utf8');
+    }
+  } finally {
+    try { unlinkSync(tmpPath); } catch { /* best-effort */ }
+  }
+}
 
 // Map pattern types to implied skill names for SkillRL feedback
 const PATTERN_SKILL_MAP = {
@@ -130,36 +180,15 @@ async function main() {
       } catch (_) { /* non-fatal */ }
     }
 
-    // Anti-patterns → failure signal for implied skill
-    for (const ap of session.anti_patterns || []) {
-      const skillName = PATTERN_SKILL_MAP[ap.type];
-      if (!skillName) continue;
-      try {
-        skillRL.learnFromOutcome({
-          task_type: ap.context?.task_type || ap.type,
-          skill_used: skillName,
-          success: false,
-          failure_reason: ap.type,
-        });
-        skillOutcomes++;
-      } catch (_) { /* non-fatal */ }
-    }
+    // NOTE: Anti-patterns are intentionally NOT mapped to failure signals.
+    // An anti-pattern like 'inefficient_solution' means the skill was absent from the session,
+    // not that the skill was used and failed. Penalizing a skill for patterns where it wasn't
+    // invoked produces incorrect degradation (e.g. brainstorming → 0.023 success_rate).
+    // Failure signals come only from actual delegation outcomes in processDelegationLog().
   }
 
-  // Cross-session repeated-mistake patterns
-  for (const csap of fullResult?.cross_session_anti_patterns || []) {
-    const skillName = PATTERN_SKILL_MAP[csap.type] || PATTERN_SKILL_MAP['repeated_mistake'];
-    if (!skillName) continue;
-    try {
-      skillRL.learnFromOutcome({
-        task_type: csap.type,
-        skill_used: skillName,
-        success: false,
-        failure_reason: 'repeated_mistake',
-      });
-      skillOutcomes++;
-    } catch (_) { /* non-fatal */ }
-  }
+  // NOTE: Cross-session repeated-mistake patterns are also excluded from skill penalties
+  // for the same reason: they indicate missed skill usage, not skill failure.
 
   // Persist SkillRL state
   try {
@@ -245,6 +274,10 @@ async function processDelegationLog(skillRL) {
   let skillRLOutcomes = 0;
 
   for (const event of unprocessed) {
+    // Skip RL learning for background tasks whose outcome is still unknown (success === null).
+    // These were spawned as fire-and-forget and no result was captured at hook time.
+    const outcomeKnown = event.success !== null && event.success !== undefined;
+
     // OrchestrationAdvisor: advise → learnFromOutcome
     if (advisor) {
       try {
@@ -254,8 +287,8 @@ async function processDelegationLog(skillRL) {
           description: event.description,
           skills: event.load_skills,
         });
-        if (advice?.adviceId) {
-          advisor.learnFromOutcome(advice.adviceId, {
+        if (advice?.advice_id && outcomeKnown) {
+          advisor.learnFromOutcome(advice.advice_id, {
             success: event.success !== false,
             error: event.success === false ? 'delegation_failed' : undefined,
           });
@@ -268,18 +301,20 @@ async function processDelegationLog(skillRL) {
     if (skillRL && Array.isArray(event.load_skills)) {
       for (const skill of event.load_skills) {
         try {
-          // recordUsage() increments usage_count (fixes DORMANT state)
+          // recordUsage() increments usage_count (fixes DORMANT state) — always record usage
           if (skillRL.skillBank && typeof skillRL.skillBank.recordUsage === 'function') {
             skillRL.skillBank.recordUsage(skill, event.task_type || null);
           }
-          // learnFromOutcome() updates success_rate
-          skillRL.learnFromOutcome({
-            task_type: event.task_type || 'general',
-            skill_used: skill,
-            success: event.success !== false,
-            failure_reason: event.success === false ? 'delegation_failed' : undefined,
-          });
-          skillRLOutcomes++;
+          // learnFromOutcome() updates success_rate — only when outcome is known
+          if (outcomeKnown) {
+            skillRL.learnFromOutcome({
+              task_type: event.task_type || 'general',
+              skill_used: skill,
+              success: event.success !== false,
+              failure_reason: event.success === false ? 'delegation_failed' : undefined,
+            });
+            skillRLOutcomes++;
+          }
         } catch (_) { /* non-fatal */ }
       }
     }
@@ -299,7 +334,7 @@ async function processDelegationLog(skillRL) {
 
   // Write back updated delegation log (with processed flags)
   try {
-    writeFileSync(DELEGATION_LOG_FILE, JSON.stringify({ events }, null, 2), 'utf-8');
+    writeJsonAtomicSync(DELEGATION_LOG_FILE, { events });
   } catch (err) {
     console.warn('  Failed to update delegation log:', err.message);
   }

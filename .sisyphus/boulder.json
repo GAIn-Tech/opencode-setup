@@ -1,14 +1,18 @@
 {
-  "active_plan": null,
-  "plan_name": null,
-  "started_at": null,
-  "session_ids": [],
+  "active_plan": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\orchestration-parallelization-model-routing.md",
+  "plan_name": "orchestration-parallelization-model-routing",
+  "started_at": "2026-03-20T15:44:48.465Z",
+  "session_ids": ["ses_2f424b191ffe9I0MwFtdryphBe"],
   "progress": {
-    "total_tasks": 0,
-    "completed": 0,
-    "current_task": null
+    "total_tasks": 7,
+    "completed": 7,
+    "current_task": "Completed (all plan TODOs and checklists)"
   },
-  "waves": {},
+  "waves": {
+    "1": {"status": "completed", "tasks": [1, 2]},
+    "2": {"status": "completed", "tasks": [3, 4, 5]},
+    "3": {"status": "completed", "tasks": [6, 7]}
+  },
   "commits": [],
   "risk_points_reduced": 0,
   "backlog": [
@@ -90,8 +94,7 @@
       "plan_path": ".sisyphus/plans/dashboard-auth-hardening.md",
       "status": "completed",
       "completed_at": "2026-03-17T22:30:00.000Z",
-      "verification": "All tasks complete: ROLE_MATRIX has new permissions (skills:promote, usage:write, providers:manage, orchestration:write), skills/promotions fixed with permission arg, 3 unprotected endpoints gated (status/usage, providers, orchestration), regression test passes (4 tests), dashboard-write-guard tests pass (10 tests), HARDENING-BACKLOG.md marked Concern 2 as RESOLVED."
-    },
+      "verification": "All tasks complete: ROLE_MATRIX has new permissions (skills:promote, usage:write, providers:manage, orchestration:write), skills/promotions fixed with permission arg, 3 unprotected endpoints gated (status/usage, providers, orchestration), regression test passes (4 tests), dashboard-write-guard tests pass (10 tests), HARDENING-BACKLOG.md marked Concern 2 as RESOLVED.",
       "rationale": "Security: gates 3 unprotected POST endpoints, fixes permission args. Should be done before any public dashboard exposure.",
       "effort": "low",
       "lines": 81
@@ -102,9 +105,7 @@
       "plan_path": ".sisyphus/plans/config-coherence-wave-plan.md",
       "status": "completed",
       "completed_at": "2026-03-17T22:40:00.000Z",
-      "verification": "All features implemented: getMachineId() generates/reads machine-id.json, appendAuditEntry() writes config-audit.ndjson with rotation, readConfigManifest() checks config-manifest.json with cross-machine warning, copy-config.mjs calls writeConfigManifest() after sync. Tests pass (8 tests)."
-    },
-    {
+      "verification": "All features implemented: getMachineId() generates/reads machine-id.json, appendAuditEntry() writes config-audit.ndjson with rotation, readConfigManifest() checks config-manifest.json with cross-machine warning, copy-config.mjs calls writeConfigManifest() after sync. Tests pass (8 tests).",
       "rationale": "Prerequisite for disaster-recovery-system: adds audit logging (NDJSON) and version manifest to config coherence system.",
       "unblocks": [
         "disaster-recovery-system"
@@ -421,6 +422,19 @@
       ],
       "tasks_completed": 14,
       "risk_points_reduced": 300
+    },
+    {
+      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\orchestration-parallelization-model-routing.md",
+      "plan_name": "orchestration-parallelization-model-routing",
+      "started_at": "2026-03-20T15:44:48.465Z",
+      "completed_at": "2026-03-20T17:07:24.867Z",
+      "session_ids": [
+        "ses_2f424b191ffe9I0MwFtdryphBe"
+      ],
+      "agent": "sisyphus-junior",
+      "commits": [],
+      "tasks_completed": 7,
+      "risk_points_reduced": 0
     }
   ]
 }

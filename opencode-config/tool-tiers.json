@@ -2,225 +2,527 @@
   "$schema": "tool-tiers-schema",
   "version": "1.0.0",
   "description": "Three-tier tool/skill loading manifest for dynamic context management. Tier 0 always loaded, Tier 1 loaded by task classification, Tier 2 on-demand via load_skill.",
-
   "tier_0": {
     "description": "Core tools loaded for EVERY prompt. ~7 tools, <500 tokens.",
     "tools": [
-      "read", "edit", "write", "bash", "grep", "glob",
-      "todowrite", "distill", "prune"
+      "read",
+      "edit",
+      "write",
+      "bash",
+      "grep",
+      "glob",
+      "todowrite",
+      "distill",
+      "prune"
     ],
     "skills": [],
     "mcps": [],
     "notes": "These are the minimum viable toolset. Never remove from context."
   },
-
   "tier_1": {
     "description": "Task-classified tools loaded via regex pattern matching on the user prompt. ~2-8 additional tools per match.",
     "categories": {
+      "brainstorming": {
+        "patterns": [
+          "brainstorm|design session|think through|explore options|creative|mv p|design.*decisions|evaluate.*approach|compare.*options|trade.?offs|architectural decision|adx?"
+        ],
+        "skills": [
+          "brainstorming"
+        ],
+        "mcps": [
+          "sequentialthinking"
+        ],
+        "tools": [],
+        "priority": 1,
+        "notes": "Triggered when user asks for creative exploration or multi-option analysis"
+      },
+      "systematic_debugging": {
+        "patterns": [
+          "error|fails|broken|crash|bug|fix|undefined|null.?ref|typeerror|segfault|panic|exception|stack.?trace|traceback|wrong|incorrect|unexpected|isn't working|not working|doesn't work|cannot|could not"
+        ],
+        "skills": [
+          "systematic-debugging"
+        ],
+        "mcps": [
+          "opencode-runbooks"
+        ],
+        "tools": [
+          "lsp_diagnostics",
+          "lsp_goto_definition",
+          "lsp_find_references"
+        ],
+        "priority": 1,
+        "notes": "Triggered on any error/failure signal — high-value skill to have pre-loaded"
+      },
+      "test_driven_development": {
+        "patterns": [
+          "test|spec|tdd|bdd|jest|vitest|pytest|mocha|cypress|coverage|assert|expect|mock|stub|fixture|unit.?test|integration.?test|regression.?test"
+        ],
+        "skills": [
+          "test-driven-development",
+          "evaluation-harness-builder"
+        ],
+        "mcps": [],
+        "tools": [
+          "bash",
+          "grep",
+          "lsp_goto_definition"
+        ],
+        "priority": 1,
+        "notes": "Triggered when user mentions testing — pre-load TDD skill for red-green-refactor cycle"
+      },
       "frontend": {
-        "patterns": ["frontend|css|style|component|react|next\\.?js|tailwind|ui|ux|design|layout|responsive|animation|html|page\\.tsx|modal|button|form|dialog"],
-        "skills": ["frontend-ui-ux", "frontend-design", "playwright"],
-        "mcps": ["websearch"],
-        "tools": ["lsp_diagnostics", "lsp_symbols"],
+        "patterns": [
+          "frontend|css|style|component|react|next\\.?js|tailwind|ui|ux|design|layout|responsive|animation|html|page\\.tsx|modal|button|form|dialog"
+        ],
+        "skills": [
+          "frontend-ui-ux",
+          "playwright"
+        ],
+        "mcps": [
+          "websearch"
+        ],
+        "tools": [
+          "lsp_diagnostics",
+          "lsp_symbols"
+        ],
         "priority": 1
       },
       "git_operations": {
-        "patterns": ["commit|rebase|squash|merge|branch|cherry.?pick|git\\s|blame|bisect|pr\\s|pull.?request|push|stash|diff|log\\s.*commit"],
-        "skills": ["git-master"],
+        "patterns": [
+          "commit|rebase|squash|merge|branch|cherry.?pick|git\\s|blame|bisect|pr\\s|pull.?request|push|stash|diff|log\\s.*commit"
+        ],
+        "skills": [
+          "git-master"
+        ],
         "mcps": [],
-        "tools": ["bash"],
+        "tools": [
+          "bash"
+        ],
         "priority": 1
-      },
-      "debugging": {
-        "patterns": ["debug|error|crash|fix|bug|broken|fails|exception|stack.?trace|traceback|undefined|null.?ref|type.?error|segfault|panic"],
-        "skills": ["systematic-debugging"],
-        "mcps": [],
-        "tools": ["lsp_diagnostics", "lsp_goto_definition", "lsp_find_references"],
-        "priority": 1
-      },
-      "testing": {
-        "patterns": ["test|spec|jest|vitest|pytest|mocha|coverage|assert|expect|mock|stub|fixture|tdd"],
-        "skills": ["test-driven-development", "evaluation-harness-builder"],
-        "mcps": [],
-        "tools": ["bash", "grep"],
-        "priority": 2
       },
       "memory": {
-        "patterns": ["remember|recall|save for later|persistent memory|across sessions|memory"],
-        "skills": ["supermemory"],
-        "mcps": ["supermemory"],
+        "patterns": [
+          "remember|recall|save for later|persistent memory|across sessions|memory"
+        ],
+        "skills": [
+          "supermemory"
+        ],
+        "mcps": [
+          "supermemory"
+        ],
         "tools": [],
         "priority": 1
       },
       "browser": {
-        "patterns": ["browser|screenshot|scrape|navigate|click|fill.?form|web.?page|playwright|selenium|puppeteer|e2e|end.?to.?end"],
-        "skills": ["playwright", "dev-browser"],
-        "mcps": ["playwright", "websearch"],
+        "patterns": [
+          "browser|screenshot|scrape|navigate|click|fill.?form|web.?page|playwright|selenium|puppeteer|e2e|end.?to.?end"
+        ],
+        "skills": [
+          "playwright",
+          "dev-browser"
+        ],
+        "mcps": [
+          "playwright",
+          "websearch"
+        ],
         "tools": [],
         "priority": 1
       },
       "documentation": {
-        "patterns": ["document|readme|docs|jsdoc|typedoc|changelog|api.?doc|write.?up|explain|describe|correct syntax|use the .* api|library docs|api reference"],
-        "skills": ["writing-plans"],
-        "mcps": ["context7"],
+        "patterns": [
+          "document|readme|docs|jsdoc|typedoc|changelog|api.?doc|write.?up|explain|describe|correct syntax|use the .* api|library docs|api reference"
+        ],
+        "skills": [
+          "writing-plans"
+        ],
+        "mcps": [
+          "context7"
+        ],
         "tools": [],
         "priority": 3
       },
       "architecture": {
-        "patterns": ["architect|design.?pattern|refactor|restructure|migrate|modular|decouple|abstract|interface|dependency.?inject|solid|dry"],
-        "skills": ["brainstorming", "writing-plans"],
-        "mcps": ["sequentialthinking"],
-        "tools": ["lsp_symbols", "lsp_find_references", "ast_grep_search"],
-        "priority": 2
-      },
-      "ruby_rails": {
-        "patterns": ["ruby|rails|gem|bundler|rake|rspec|erb|activerecord|migration|\\.rb$"],
-        "skills": ["dhh-rails-style", "andrew-kane-gem-writer"],
-        "mcps": ["context7"],
-        "tools": [],
-        "priority": 2
-      },
-      "ai_ml": {
-        "patterns": ["llm|prompt|token|embedding|vector|rag|fine.?tune|train|model|inference|agent|dspy|langchain|openai|anthropic|gemini"],
-        "skills": ["dspy-ruby", "agent-native-architecture"],
-        "mcps": ["context7", "sequentialthinking"],
-        "tools": [],
+        "patterns": [
+          "architect|design.?pattern|refactor|restructure|migrate|modular|decouple|abstract|interface|dependency.?inject|solid|dry"
+        ],
+        "skills": [
+          "brainstorming",
+          "writing-plans"
+        ],
+        "mcps": [
+          "sequentialthinking"
+        ],
+        "tools": [
+          "lsp_symbols",
+          "lsp_find_references",
+          "ast_grep_search"
+        ],
         "priority": 2
       },
       "context_budget": {
-        "patterns": ["context budget|token limit|context window|remaining budget|budget status|compress if|near the token limit|reclaim tokens"],
-        "skills": ["context-governor", "budget-aware-router"],
-        "mcps": ["opencode-context-governor", "distill"],
+        "patterns": [
+          "context budget|token limit|context window|remaining budget|budget status|compress if|near the token limit|reclaim tokens"
+        ],
+        "skills": [
+          "context-governor",
+          "budget-aware-router"
+        ],
+        "mcps": [
+          "opencode-context-governor",
+          "distill"
+        ],
         "tools": [],
         "priority": 1
       },
-      "devops_deploy": {
-        "patterns": ["deploy|docker|kubernetes|k8s|ci.?cd|pipeline|terraform|aws|gcp|azure|nginx|ssl|cert|domain|dns|helm|ansible"],
-        "skills": [],
-        "mcps": ["websearch"],
-        "tools": ["bash"],
-        "priority": 2
-      },
       "code_review": {
-        "patterns": ["review|feedback|pr.?comment|suggestion|approve|request.?changes|nit|lgtm"],
-        "skills": ["receiving-code-review", "requesting-code-review"],
+        "patterns": [
+          "review|feedback|pr.?comment|suggestion|approve|request.?changes|nit|lgtm"
+        ],
+        "skills": [
+          "receiving-code-review",
+          "requesting-code-review"
+        ],
         "mcps": [],
-        "tools": ["lsp_diagnostics"],
-        "priority": 2
-      },
-      "search_research": {
-        "patterns": ["search|find|look.?up|research|how.?to|best.?practice|example|pattern|library|package|npm|crate|pip|api|syntax|reference"],
-        "skills": [],
-        "mcps": ["context7", "websearch", "grep"],
-        "tools": ["grep", "glob", "ast_grep_search"],
+        "tools": [
+          "lsp_diagnostics"
+        ],
         "priority": 2
       },
       "codebase_audit": {
-        "patterns": ["audit codebase|codebase audit|architecture review|coherence pass|what is disconnected|what is incomplete|what is naive|system pass|repo health check"],
-        "skills": ["codebase-auditor"],
+        "patterns": [
+          "audit codebase|codebase audit|architecture review|coherence pass|what is disconnected|what is incomplete|what is naive|system pass|repo health check"
+        ],
+        "skills": [
+          "codebase-auditor"
+        ],
         "mcps": [],
-        "tools": ["grep", "glob", "ast_grep_search"],
+        "tools": [
+          "grep",
+          "glob",
+          "ast_grep_search"
+        ],
         "priority": 1
       },
       "incident_response": {
-        "patterns": ["incident|sev.?1|sev.?2|outage|critical failure|production issue|triage commander|incident response"],
-        "skills": ["incident-commander"],
-        "mcps": ["sequentialthinking"],
-        "tools": ["grep", "lsp_diagnostics"],
+        "patterns": [
+          "incident|sev.?1|sev.?2|outage|critical failure|production issue|triage commander|incident response"
+        ],
+        "skills": [
+          "incident-commander"
+        ],
+        "mcps": [
+          "sequentialthinking"
+        ],
+        "tools": [
+          "grep",
+          "lsp_diagnostics"
+        ],
         "priority": 1
       },
       "innovation_planning": {
-        "patterns": ["innovation|migration plan|high-upside|underexplored|rollout plan|migration ideas"],
-        "skills": ["innovation-migration-planner"],
-        "mcps": ["context7", "websearch"],
-        "tools": ["grep", "glob", "ast_grep_search"],
+        "patterns": [
+          "innovation|migration plan|high-upside|underexplored|rollout plan|migration ideas"
+        ],
+        "skills": [
+          "innovation-migration-planner"
+        ],
+        "mcps": [
+          "context7",
+          "websearch"
+        ],
+        "tools": [
+          "grep",
+          "glob",
+          "ast_grep_search"
+        ],
         "priority": 2
       },
       "skill_management": {
-        "patterns": ["skill|create.?skill|edit.?skill|skill\\.md|slash.?command|opencode.?skill"],
-        "skills": ["skill-creator", "create-agent-skills", "writing-skills"],
+        "patterns": [
+          "skill|create.?skill|edit.?skill|skill\\.md|slash.?command|opencode.?skill"
+        ],
+        "skills": [
+          "writing-skills"
+        ],
         "mcps": [],
         "tools": [],
         "priority": 3
+      },
+      "beads_issue_tracker": {
+        "patterns": [
+          "beads|bd prime|bd status|bd list|bd add|bd done|bd block|bd note|/bd|issue.?tracker|task list|track tasks|todo list|issue list"
+        ],
+        "skills": [
+          "beads"
+        ],
+        "mcps": [],
+        "tools": [
+          "bash"
+        ],
+        "priority": 2,
+        "notes": "Triggered by beads commands, issue tracker references, or todo list management requests"
       }
     }
   },
-
   "tier_2": {
     "description": "On-demand skills invocable via load_skill meta-tool. Listed in system prompt as available but not loaded until requested.",
     "skills": {
-      "rclone": {
-        "description": "Upload/sync files to cloud storage (S3, R2, GCS, Dropbox)",
-        "trigger_hint": "upload, sync, cloud storage, S3, backup"
+      "accessibility-audit": {
+        "description": "You are an accessibility expert specializing in WCAG compliance, inclusive design, and assistive technology compatibility. Conduct comprehensive audits, identify barriers, provide remediation guidance, and ensure digital products are accessible to all users.",
+        "trigger_hint": "auditing web or mobile experiences for wcag compliance, identifying accessibility barriers and remediation priorities, e..."
       },
-      "gemini-imagegen": {
-        "description": "Generate/edit images via Gemini API",
-        "trigger_hint": "generate image, edit image, logo, sticker"
-      },
-      "compound-docs": {
-        "description": "Capture solved problems as categorized docs",
-        "trigger_hint": "document solution, capture pattern, knowledge base"
-      },
-      "every-style-editor": {
-        "description": "Review/edit copy for style guide compliance",
-        "trigger_hint": "style guide, copy editing, grammar review"
-      },
-      "orchestrating-swarms": {
-        "description": "Coordinate multi-agent swarms with TeammateTool",
-        "trigger_hint": "multi-agent, swarm, parallel agents, pipeline"
-      },
-      "git-worktree": {
-        "description": "Manage git worktrees for parallel development",
-        "trigger_hint": "worktree, parallel branch, isolated development"
-      },
-      "resolve_pr_parallel": {
-        "description": "Batch-resolve PR comments in parallel",
-        "trigger_hint": "resolve PR comments, batch fix, review feedback"
-      },
-      "file-todos": {
-        "description": "File-based todo tracking in todos/ directory",
-        "trigger_hint": "file todos, track tasks, todo files"
-      },
-      "document-review": {
-        "description": "Refine brainstorm/plan documents",
-        "trigger_hint": "review document, refine plan, improve brainstorm"
+      "accessibility-testing": {
+        "description": "Audit and fix HTML accessibility with ARIA, keyboard navigation, and WCAG compliance",
+        "trigger_hint": "a11y, accessibility, wcag, screen reader, keyboard nav, aria, wcag compliance"
       },
       "agent-browser": {
         "description": "Browser automation via Vercel agent-browser CLI",
         "trigger_hint": "agent browser, vercel browser, alternative playwright"
       },
-      "finishing-a-development-branch": {
-        "description": "Guide completion of dev work (merge/PR/cleanup)",
-        "trigger_hint": "finish branch, merge options, ship code"
+      "c4-architecture": {
+        "description": "Generate comprehensive C4 architecture documentation for an existing repository/codebase using a bottom-up analysis approach.",
+        "trigger_hint": "working on c4 architecture documentation workflow tasks or workflows, needing guidance"
       },
-      "executing-plans": {
-        "description": "Execute implementation plans with review checkpoints",
-        "trigger_hint": "execute plan, follow plan, implementation steps"
+      "ci-cd-automation": {
+        "description": "You are a workflow automation expert specializing in creating efficient CI/CD pipelines, GitHub Actions workflows, and automated development processes. Design and implement automation that reduces manual work, improves consistency, and accelerates delivery while maintaining quality and security.",
+        "trigger_hint": "automating ci/cd workflows or release pipelines, designing github actions or multi-stage build/test/deploy flows, replac..."
+      },
+      "clean-architecture": {
+        "description": "This skill embodies the principles of \"Clean Code\" by Robert C. Martin (Uncle Bob). Use it to transform \"code that works\" into \"code that is clean.\"",
+        "trigger_hint": "writing new code: to ensure high quality from the start, reviewing pull requests: to provide constructive, refactoring l..."
+      },
+      "competitive-analysis": {
+        "description": "Comprehensive frameworks for analyzing competition, identifying differentiation opportunities, and developing winning market positioning strategies.",
+        "trigger_hint": "working on competitive landscape analysis tasks or workflows, needing guidance"
+      },
+      "data-pipelines": {
+        "description": "You are a data pipeline architecture expert specializing in scalable, reliable, and cost-effective data pipelines for batch and streaming data processing.",
+        "trigger_hint": "working on data pipeline architecture tasks or workflows, needing guidance"
+      },
+      "database-design": {
+        "description": "Database design with schema design, indexing strategy, and relational modeling",
+        "trigger_hint": "database design, schema design, db design, normalization, relational design"
+      },
+      "database-migration": {
+        "description": "Master database schema and data migrations across ORMs (Sequelize, TypeORM, Prisma), including rollback strategies and zero-downtime deployments.",
+        "trigger_hint": "migrating between different orms, performing schema transformations, moving data between databases, implementing rollbac..."
+      },
+      "dcp": {
+        "description": "DCP is a plugin-based context optimization skill that reduces token consumption by pruning conversation segments that are no longer relevant to the active task. Unlike distill (which compresses code via AST analysis), DCP operates on conversational context — removing stale tool outputs, completed task discussions, and resolved debugging traces.",
+        "trigger_hint": "prune context, remove irrelevant context, context too long, trim conversation"
+      },
+      "ddd-context-mapping": {
+        "description": "- Defining integration patterns between bounded contexts.",
+        "trigger_hint": "defining integration patterns between bounded contexts, preventing domain leakage across service boundaries, planning an..."
+      },
+      "ddd-database-patterns": {
+        "description": "- Translating domain rules into code structures.",
+        "trigger_hint": "translating domain rules into code structures, designing aggregate boundaries and invariants, refactoring an anemic mode..."
+      },
+      "ddd-strategic-design": {
+        "description": "- Defining core, supporting, and generic subdomains.",
+        "trigger_hint": "defining core, splitting a monolith or service landscape by domain boundaries, aligning teams and ownership with bounded..."
       },
       "dispatching-parallel-agents": {
         "description": "Dispatch 2+ independent tasks to parallel agents",
         "trigger_hint": "parallel tasks, dispatch agents, concurrent work"
       },
+      "django-development": {
+        "description": "- Working on django pro tasks or workflows",
+        "trigger_hint": "working on django pro tasks or workflows, needing guidance"
+      },
+      "docker-containerization": {
+        "description": "You are an advanced Docker containerization expert with comprehensive, practical knowledge of container optimization, security hardening, multi-stage builds, orchestration patterns, and production deployment strategies based on current industry best practices.",
+        "trigger_hint": "kubernetes orchestration, github actions ci/cd with containers → github-actions-expert, aws ecs/fargate or cloud-specifi..."
+      },
+      "e2e-testing": {
+        "description": "End-to-end testing workflow with Playwright for browser automation and visual regression",
+        "trigger_hint": "e2e test, end to end test, playwright test, browser test, ui test, visual regression"
+      },
+      "event-sourcing": {
+        "description": "Expert in event sourcing, CQRS, and event-driven architecture patterns. Masters event store design, projection building, saga orchestration, and eventual consistency patterns. Use PROACTIVELY for event-sourced systems, audit trail requirements, or complex domain modeling with temporal queries.",
+        "trigger_hint": "building systems requiring complete audit trails, implementing complex business workflows with compensating actions, des..."
+      },
+      "executing-plans": {
+        "description": "Execute implementation plans with review checkpoints",
+        "trigger_hint": "execute plan, follow plan, implementation steps"
+      },
+      "fastapi-development": {
+        "description": "- Working on fastapi pro tasks or workflows",
+        "trigger_hint": "working on fastapi pro tasks or workflows, needing guidance"
+      },
+      "finishing-a-development-branch": {
+        "description": "Guide completion of dev work (merge/PR/cleanup)",
+        "trigger_hint": "finish branch, merge options, ship code"
+      },
+      "github-actions": {
+        "description": "Production-ready GitHub Actions workflow patterns for testing, building, and deploying applications.",
+        "trigger_hint": "automate testing and deployment, build docker images and push to registries, deploy to kubernetes clusters, run security..."
+      },
+      "github-triage": {
+        "description": "Batch-triages GitHub issues and pull requests using parallel background agents —",
+        "trigger_hint": "triage issues, review PRs, github cleanup"
+      },
+      "go-development": {
+        "description": "You are a Go expert specializing in modern Go 1.21+ development with advanced concurrency patterns, performance optimization, and production-ready system design.",
+        "trigger_hint": "building go services, designing concurrency patterns and performance optimi"
+      },
+      "gtm-strategy": {
+        "description": "Plan product launches, feature announcements, and go-to-market strategies",
+        "trigger_hint": "gtm, go to market, launch strategy, product launch, go-to-market, market launch"
+      },
+      "kubernetes-orchestration": {
+        "description": "You are a Kubernetes architect specializing in cloud-native infrastructure, modern GitOps workflows, and enterprise container orchestration at scale.",
+        "trigger_hint": "designing kubernetes platform architecture or multi-cluster strategy, implementing gitops workflows and progressive deli..."
+      },
+      "laravel-development": {
+        "description": "Focus: General Laravel Development",
+        "trigger_hint": "building new laravel features, refactoring legacy laravel code, designing apis, creating validation logic"
+      },
+      "linting-standards": {
+        "description": "Automatic quality control, linting, and static analysis with ESLint and Prettier",
+        "trigger_hint": "linting, code quality, style guide, eslint, prettier, linter, lint rules"
+      },
+      "llm-ops": {
+        "description": "LLM operations including RAG, embeddings, fine-tuning, and prompt engineering",
+        "trigger_hint": "llm ops, model deployment, fine tuning, prompt engineering, inference, llm monitoring"
+      },
+      "load-testing": {
+        "description": "k6 load testing for API, browser, and scalability testing",
+        "trigger_hint": "load test, stress test, k6, scalability, concurrent users, performance load"
+      },
+      "microservices-patterns": {
+        "description": "Master microservices architecture patterns including service boundaries, inter-service communication, data management, and resilience patterns for building distributed systems.",
+        "trigger_hint": "decomposing monoliths into microservices, designing service boundaries and contracts, implementing inter-service communi..."
+      },
+      "ml-engineering": {
+        "description": "- Working on ml engineer tasks or workflows",
+        "trigger_hint": "working on ml engineer tasks or workflows, needing guidance"
+      },
+      "monitoring-observability": {
+        "description": "You are an observability engineer specializing in production-grade monitoring, logging, tracing, and reliability systems for enterprise-scale applications.",
+        "trigger_hint": "designing monitoring, defining slis/slos and alerting strategies, investigating production reliability or performance re..."
+      },
+      "pentesting": {
+        "description": "Plan and execute penetration tests and security audits",
+        "trigger_hint": "penetration test, pentest, security audit, ethical hacking, red team"
+      },
+      "performance-testing": {
+        "description": "Performance profiling with measurement, analysis, and optimization techniques",
+        "trigger_hint": "performance test, profiling, benchmark, speed, memory leak, cpu profiling"
+      },
+      "postgresql-optimization": {
+        "description": "PostgreSQL query tuning, indexing strategies, and database performance optimization",
+        "trigger_hint": "postgresql, query tuning, index optimization, pg tuning, postgres performance"
+      },
+      "pricing-strategy": {
+        "description": "Design pricing, packaging, and monetization strategies based on value and customer segments",
+        "trigger_hint": "pricing, monetization, subscription, pricing model, saas pricing, value based pricing"
+      },
+      "product-management": {
+        "description": "Senior PM agent with roadmaps, sprints, user stories, and 30+ frameworks",
+        "trigger_hint": "roadmap, sprint, user story, backlog, product strategy, epic, scrum, agile planning"
+      },
+      "prompt-engineering": {
+        "description": "This skill transforms raw, unstructured user prompts into highly optimized prompts using established prompting frameworks. It analyzes user intent, identifies task complexity, and intelligently selects the most appropriate framework(s) to maximize Claude/ChatGPT output quality.",
+        "trigger_hint": "user provides a vague or generic prompt (e, user has a complex idea but struggles to articulate it clearly, user's promp..."
+      },
+      "rag-implementation": {
+        "description": "RAG implementation workflow covering embedding, chunking, and vector database setup",
+        "trigger_hint": "rag, retrieval augmented, vector search, embedding, rag pipeline, chunking"
+      },
+      "react-patterns": {
+        "description": "Modern React patterns and principles including hooks, composition, and performance",
+        "trigger_hint": "react pattern, hooks, usestate, useeffect, react architecture, component pattern"
+      },
+      "research-builder": {
+        "description": "---",
+        "trigger_hint": "research and build, investigate before implementation, deep research, spec first"
+      },
+      "responsive-design": {
+        "description": "Production-grade frontend interfaces with intentional aesthetics and responsive layout",
+        "trigger_hint": "responsive design, mobile design, breakpoint, media query, responsive layout"
+      },
+      "rust-development": {
+        "description": "You are a Rust expert specializing in modern Rust 1.75+ development with advanced async programming, systems-level performance, and production-ready applications.",
+        "trigger_hint": "building rust services, solving ownership, optimi"
+      },
+      "screen-reader-testing": {
+        "description": "Practical guide to testing web applications with screen readers for comprehensive accessibility validation.",
+        "trigger_hint": "validating screen reader compatibility, testing aria implementations, debugging assistive technology issues, verifying f..."
+      },
+      "secure-coding": {
+        "description": "Implement comprehensive security hardening with defense-in-depth strategy through coordinated multi-agent orchestration:",
+        "trigger_hint": "running a coordinated security hardening program, establishing defense-in-depth controls across app, prioriti"
+      },
+      "security-auditing": {
+        "description": "You are a security auditor specializing in DevSecOps, application security, and comprehensive cybersecurity practices.",
+        "trigger_hint": "running security audits or risk assessments, reviewing sdlc security controls, investigating vulnerabilities or designin..."
+      },
+      "skill-orchestrator-runtime": {
+        "description": "---",
+        "trigger_hint": "which skill to use, skill recommendation, multi-skill task, orchestrate skills"
+      },
+      "stakeholder-communication": {
+        "description": "Transform raw data into compelling narratives that drive decisions and inspire action.",
+        "trigger_hint": "presenting analytics to executives, creating quarterly business reviews, building investor presentations, writing data-d..."
+      },
       "subagent-driven-development": {
         "description": "Execute plans with independent tasks via subagents",
         "trigger_hint": "subagent development, delegated implementation"
+      },
+      "system-design": {
+        "description": "Scalable, maintainable system architecture including microservices and caching",
+        "trigger_hint": "system design, scalable architecture, distributed system, microservices, load balancing"
+      },
+      "tailwind-css": {
+        "description": "Build production-ready design systems with Tailwind CSS, including design tokens, component variants, responsive patterns, and accessibility.",
+        "trigger_hint": "creating a component library with tailwind, implementing design tokens and theming, building responsive and accessible c..."
+      },
+      "task-orchestrator": {
+        "description": "Dynamic workflow selection across skills/tools/MCPs",
+        "trigger_hint": "orchestrate, workflow, multi-step, classify task"
+      },
+      "tech-debt-assessment": {
+        "description": "You are a technical debt expert specializing in identifying, quantifying, and prioritizing technical debt in software projects. Analyze the codebase to uncover debt, assess its impact, and create actionable remediation plans.",
+        "trigger_hint": "working on technical debt analysis and remediation tasks or workflows, needing guidance"
+      },
+      "terraform-iac": {
+        "description": "You are an expert in Terraform for AWS specializing in reusable module design, state management, and production-grade HCL patterns.",
+        "trigger_hint": "creating reusable terraform modules for aws resources, reviewing terraform code for best practices and security, designi..."
+      },
+      "threat-modeling": {
+        "description": "Expert in threat modeling methodologies, security architecture review, and risk assessment. Masters STRIDE, PASTA, attack trees, and security requirement extraction. Use PROACTIVELY for security architecture reviews, threat identification, or building secure-by-design systems.",
+        "trigger_hint": "designing new systems or features, reviewing architecture for security gaps, preparing for security audits, identifying ..."
+      },
+      "using-git-worktrees": {
+        "description": "---",
+        "trigger_hint": "create worktree, isolated workspace, parallel branches, feature isolation"
+      },
+      "using-superpowers": {
+        "description": "---",
+        "trigger_hint": "how to use skills, find skill, skill discovery, starting conversation"
+      },
+      "vector-databases": {
+        "description": "Expert in vector databases, embedding strategies, and semantic search implementation. Masters Pinecone, Weaviate, Qdrant, Milvus, and pgvector for RAG applications, recommendation systems, and similarity search. Use PROACTIVELY for vector search implementation, embedding optimization, or semantic re",
+        "trigger_hint": "building rag (retrieval augmented generation) systems, implementing semantic search over documents, creating recommendat..."
       },
       "verification-before-completion": {
         "description": "Verify work before claiming completion",
         "trigger_hint": "verify, check work, before commit, evidence"
       },
-      "task-orchestrator": {
-        "description": "Dynamic workflow selection across skills/tools/MCPs",
-        "trigger_hint": "orchestrate, workflow, multi-step, classify task"
+      "vulnerability-scanning": {
+        "description": "Advanced vulnerability analysis with OWASP 2025 and supply chain security",
+        "trigger_hint": "vulnerability scan, owasp, cve, security scan, exploit analysis"
       }
     }
   },
-
   "rl_overrides": {
-    "description": "Tier overrides learned from SkillRL. Managed by EvolutionEngine, not manually edited.",
+    "description": "Tier overrides learned from SkillRL. Managed by scripts/preload-state-persist.mjs — run --export on session end, --import on session start. NEVER edit manually.",
     "promotions": {},
     "demotions": {},
-    "last_updated": null,
+    "last_updated": "2026-03-19T22:00:00.000Z",
     "min_sessions_for_promotion": 5,
     "min_sessions_for_demotion": 50,
     "promotion_threshold": 5,

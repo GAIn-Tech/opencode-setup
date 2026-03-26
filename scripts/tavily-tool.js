@@ -17,23 +17,22 @@
  * Outputs: JSON search results
  */
 
-import { spawn } from 'child_process';
-import { existsSync } from 'fs';
-import { join } from 'path';
+import { fatal, installProcessErrorHandlers, printJson, toErrorMessage } from './lib/cli-runtime.mjs';
 
 // Parse command line arguments
 const args = process.argv.slice(2);
 const command = args[0];
 
 if (!command || command !== 'search') {
-  console.error('Error: Command is required (currently only "search" supported)');
-  console.error('Usage: node tavily-tool.js search <query> [options]');
-  console.error('Options:');
-  console.error('  --max-results <N>    Maximum results (default: 10)');
-  console.error('  --search-depth <basic|advanced> (default: basic)');
-  console.error('  --include-answers    Include AI-generated answers');
-  console.error('  --time-range <day|week|month|year> Time range filter');
-  process.exit(1);
+  fatal([
+    'Command is required (currently only "search" supported)',
+    'Usage: node tavily-tool.js search <query> [options]',
+    'Options:',
+    '  --max-results <N>    Maximum results (default: 10)',
+    '  --search-depth <basic|advanced> (default: basic)',
+    '  --include-answers    Include AI-generated answers',
+    '  --time-range <day|week|month|year> Time range filter',
+  ].join('\n'));
 }
 
 // Get query from arguments
@@ -58,17 +57,13 @@ for (let i = 1; i < args.length; i++) {
 }
 
 if (!query) {
-  console.error('Error: Search query is required');
-  console.error('Usage: node tavily-tool.js search <query> [options]');
-  process.exit(1);
+  fatal('Search query is required\nUsage: node tavily-tool.js search <query> [options]');
 }
 
 // Check for Tavily API key
 const apiKey = process.env.TAVILY_API_KEY;
 if (!apiKey) {
-  console.error('Error: TAVILY_API_KEY environment variable not set');
-  console.error('Get an API key from https://app.tavily.com/');
-  process.exit(1);
+  fatal('TAVILY_API_KEY environment variable not set\nGet an API key from https://app.tavily.com/');
 }
 
 // Call Tavily API
@@ -188,19 +183,14 @@ async function main() {
     }
     
     // Output JSON
-    console.log(JSON.stringify(result, null, 2));
+    printJson(result);
     
   } catch (error) {
-    console.error(`Error: ${error.message}`);
-    process.exit(1);
+    fatal(toErrorMessage(error));
   }
 }
 
-// Handle uncaught errors
-process.on('uncaughtException', (error) => {
-  console.error(`Uncaught error: ${error.message}`);
-  process.exit(1);
-});
+installProcessErrorHandlers({ prefix: '[tavily-tool]' });
 
 // Run main function
 if (import.meta.url === `file://${process.argv[1]}`) {

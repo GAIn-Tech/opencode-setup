@@ -1,0 +1,15 @@
+{
+  "id": "orchestrator-profile-updates-20260319",
+  "timestamp": "2026-03-19T08:06:00.000Z",
+  "summary": "Updated 7 workflow profiles in registry.json with forward references to skills being imported in Task 12. Added 2-3 new skill names per profile: deep-refactoring (+c4-architecture, ddd-strategic-design, tech-debt-assessment), planning-cycle (+competitive-analysis, gtm-strategy), review-cycle (+linting-standards, tech-debt-assessment), parallel-implementation (+docker-containerization, terraform-iac), browser-testing (+accessibility-testing, e2e-testing), diagnostic-healing (+security-auditing, vulnerability-scanning), research-to-code (+rag-implementation, prompt-engineering). Updated SKILL.md profile table and added 3 auto-recommendation detection rules (Security Audit, Infrastructure/DevOps, Architecture Design). Fixed pre-existing governance violation: playwright skill canonicalEntrypoint set to false (dev-browser is canonical for browser cluster).",
+  "affected_paths": [
+    "opencode-config/skills/registry.json",
+    "opencode-config/skills/skill-orchestrator-runtime/SKILL.md"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

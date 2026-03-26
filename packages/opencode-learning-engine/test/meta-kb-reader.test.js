@@ -1,11 +1,20 @@
 'use strict';
 
-const { describe, it, beforeEach } = require('node:test');
+const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { MetaKBReader, MAX_CHARS } = require('../src/meta-kb-reader');
+const {
+  MetaKBReader,
+  MAX_CHARS,
+  MAX_QUERY_FILES,
+  MAX_PATH_KEYS,
+  MAX_PATH_ENTRIES_PER_MATCH,
+  MAX_SUGGESTIONS,
+  MAX_WARNINGS,
+  MAX_CONVENTION_RESULTS,
+} = require('../src/meta-kb-reader');
 
 /**
  * Create a temporary meta-knowledge index file for testing.
@@ -211,6 +220,96 @@ describe('MetaKBReader', () => {
         assert.ok(result.conventions.length > 0, 'should have conventions');
         const bunFirst = result.conventions.find(c => c.convention === 'Bun-First');
         assert.ok(bunFirst, 'should find Bun-First convention from root AGENTS.md');
+      } finally {
+        cleanup(tmpDir);
+      }
+    });
+
+    it('applies iteration and result limits on large datasets', () => {
+      const byAffectedPath = {};
+      for (let i = 0; i < MAX_PATH_KEYS + 500; i++) {
+        const entries = [];
+        for (let j = 0; j < MAX_PATH_ENTRIES_PER_MATCH + 50; j++) {
+          entries.push({
+            id: `path-${i}-entry-${j}`,
+            summary: `s-${i}-${j}`,
+            risk_level: 'low',
+            timestamp: new Date().toISOString(),
+          });
+        }
+        byAffectedPath[`path-${i}`] = entries;
+      }
+
+      const antiPatterns = [];
+      for (let i = 0; i < MAX_WARNINGS + 500; i++) {
+        antiPatterns.push({
+          source: 'agents.md',
+          file: 'AGENTS.md',
+          pattern: `debug-pattern-${i}`,
+          severity: 'high',
+          description: `debug issue ${i}`,
+        });
+      }
+
+      const conventions = [];
+      for (let i = 0; i < MAX_CONVENTION_RESULTS + 500; i++) {
+        conventions.push({
+          source: 'agents.md',
+          file: 'AGENTS.md',
+          convention: `Convention-${i}`,
+          description: `Description ${i}`,
+        });
+      }
+
+      const files = [];
+      for (let i = 0; i < MAX_QUERY_FILES + 200; i++) {
+        files.push(`root/path-${i}/target.js`);
+      }
+
+      const { indexPath, tmpDir } = createTempIndex(makeIndex({
+        by_affected_path: byAffectedPath,
+        anti_patterns: antiPatterns,
+        conventions,
+      }));
+
+      try {
+        const reader = new MetaKBReader(indexPath);
+        reader.load();
+
+        // Bypass token truncation to validate query loop/result safety bounds directly.
+        reader._truncate = (result) => result;
+
+        const result = reader.query({
+          task_type: 'debug',
+          description: 'debug nested loop issue',
+          files,
+        });
+
+        assert.equal(result.suggestions.length, MAX_SUGGESTIONS, 'suggestions should stop at configured max');
+        assert.equal(result.warnings.length, MAX_WARNINGS, 'warnings should stop at configured max');
+        assert.equal(result.conventions.length, MAX_CONVENTION_RESULTS, 'conventions should stop at configured max');
+      } finally {
+        cleanup(tmpDir);
+      }
+    });
+
+    it('handles malformed taskContext arrays fail-open', () => {
+      const { indexPath, tmpDir } = createTempIndex(makeIndex());
+      try {
+        const reader = new MetaKBReader(indexPath);
+        reader.load();
+
+        assert.doesNotThrow(() => {
+          const result = reader.query({
+            task_type: { bad: true },
+            description: { bad: true },
+            files: [null, undefined, 42, { nope: true }, 'packages/opencode-learning-engine/src/index.js'],
+          });
+
+          assert.ok(Array.isArray(result.warnings));
+          assert.ok(Array.isArray(result.suggestions));
+          assert.ok(Array.isArray(result.conventions));
+        });
       } finally {
         cleanup(tmpDir);
       }

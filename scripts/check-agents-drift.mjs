@@ -1,412 +1,425 @@
 #!/usr/bin/env node
-/**
- * check-agents-drift.mjs — Compare AGENTS.md documented claims against
- * filesystem reality. Generates proposed diffs when drift is detected.
- *
- * Output: Drift report to stdout + .sisyphus/proposals/agents-drift-YYYY-MM-DD.md
- *
- * Usage:
- *   node scripts/check-agents-drift.mjs          # Human-readable report
- *   node scripts/check-agents-drift.mjs --json   # Machine-readable JSON
- */
 
-import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync } from 'node:fs';
-import { join, resolve, relative } from 'node:path';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveRoot } from './resolve-root.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 
 const ROOT = resolveRoot();
+const PROPOSALS_DIR = join(ROOT, '.sisyphus', 'proposals');
+const DATE_STAMP = new Date().toISOString().slice(0, 10);
+const REPORT_PATH = join(PROPOSALS_DIR, `agents-drift-report-${DATE_STAMP}.md`);
+const PROPOSAL_PATH = join(PROPOSALS_DIR, `agents-drift-${DATE_STAMP}.md`);
+
 const args = process.argv.slice(2);
-const JSON_OUTPUT = args.includes('--json');
+const DRY_RUN = args.includes('--dry-run');
 
-// --- Helpers ---
-
-/**
- * Count directories in a path (non-recursive, excludes node_modules/.files).
- */
-function countDirs(dirPath) {
-  if (!existsSync(dirPath)) return 0;
-  try {
-    return readdirSync(dirPath, { withFileTypes: true })
-      .filter(e => e.isDirectory() && !e.name.startsWith('.') && e.name !== 'node_modules')
-      .length;
-  } catch {
-    return 0;
-  }
-}
-
-/**
- * Count files matching an extension in a directory (non-recursive).
- */
-function countFilesByExt(dirPath, ext) {
-  if (!existsSync(dirPath)) return 0;
-  try {
-    return readdirSync(dirPath)
-      .filter(name => name.endsWith(ext))
-      .length;
-  } catch {
-    return 0;
-  }
-}
-
-/**
- * Count files in a directory, excluding .gitkeep (non-recursive).
- */
-function countFiles(dirPath) {
-  if (!existsSync(dirPath)) return 0;
-  try {
-    return readdirSync(dirPath, { withFileTypes: true })
-      .filter(e => e.isFile() && e.name !== '.gitkeep')
-      .length;
-  } catch {
-    return 0;
-  }
-}
-
-/**
- * Count all files recursively in a directory, excluding .gitkeep and node_modules.
- */
-function countFilesRecursive(dirPath, excludeDirs = ['node_modules', '.next', '.git']) {
-  if (!existsSync(dirPath)) return 0;
-  let count = 0;
-  try {
-    const entries = readdirSync(dirPath, { withFileTypes: true });
-    for (const entry of entries) {
-      if (excludeDirs.includes(entry.name)) continue;
-      const fullPath = join(dirPath, entry.name);
-      if (entry.isDirectory()) {
-        count += countFilesRecursive(fullPath, excludeDirs);
-      } else if (entry.name !== '.gitkeep') {
-        count++;
-      }
-    }
-  } catch { /* ignore */ }
-  return count;
-}
-
-/**
- * Count subdirectories in a path (non-recursive).
- */
-function countSubdirs(dirPath) {
-  if (!existsSync(dirPath)) return 0;
-  try {
-    return readdirSync(dirPath, { withFileTypes: true })
-      .filter(e => e.isDirectory())
-      .length;
-  } catch {
-    return 0;
-  }
-}
-
-function countNamedAgentsFromConfig() {
-  const configPath = join(ROOT, 'opencode-config', 'oh-my-opencode.json');
-  if (!existsSync(configPath)) return 0;
-  try {
-    const parsed = JSON.parse(readFileSync(configPath, 'utf8'));
-    return Array.isArray(parsed.agents?.enabled) ? parsed.agents.enabled.length : 0;
-  } catch {
-    return 0;
-  }
-}
-
-/**
- * Extract numeric claims from AGENTS.md text using known patterns.
- */
-function extractNumericClaims(content, filePath) {
-  const claims = [];
-  const relPath = relative(ROOT, filePath).replace(/\\/g, '/');
-
-  // Pattern: "N workspace packages" or "# N packages"
-  const pkgMatch = content.match(/(\d+)\s+(?:workspace\s+)?packages?\b/i);
-  if (pkgMatch) {
-    claims.push({
-      claim: 'Package count',
-      documented: parseInt(pkgMatch[1], 10),
-      countFn: () => countDirs(join(ROOT, 'packages')),
-    });
-  }
-
-  // Pattern: "N .mjs infrastructure scripts" or "N scripts"
-  const scriptMatch = content.match(/(\d+)\s+\.mjs\s+(?:infrastructure\s+)?scripts?\b/i);
-  if (scriptMatch) {
-    claims.push({
-      claim: 'Script count (.mjs)',
-      documented: parseInt(scriptMatch[1], 10),
-      countFn: () => countFilesByExt(join(ROOT, 'scripts'), '.mjs'),
-    });
-  }
-
-  // Pattern: "N external plugins"
-  const pluginMatch = content.match(/(\d+)\s+external\s+(?:OpenCode\s+)?plugins?\b/i);
-  if (pluginMatch) {
-    claims.push({
-      claim: 'Plugin count',
-      documented: parseInt(pluginMatch[1], 10),
-      countFn: () => countDirs(join(ROOT, 'plugins')),
-    });
-  }
-
-  // Pattern: "N agent definitions"
-  const agentMatch = content.match(/(\d+)\s+agent\s+definitions?\b/i);
-  if (agentMatch) {
-    claims.push({
-      claim: 'Agent definitions',
-      documented: parseInt(agentMatch[1], 10),
-      countFn: () => countFiles(join(ROOT, 'opencode-config', 'agents')),
-    });
-  }
-
-  // Pattern: "N skill definitions"
-  const skillMatch = content.match(/(\d+)\s+skill\s+definitions?\b/i);
-  if (skillMatch) {
-    claims.push({
-      claim: 'Skill definitions',
-      documented: parseInt(skillMatch[1], 10),
-      countFn: () => countDirs(join(ROOT, 'opencode-config', 'skills')),
-    });
-  }
-
-  // Pattern: "N files across N subdirectories"
-  const filesMatch = content.match(/(\d+)\s+files?\s+across\s+(\d+)\s+subdirector/i);
-  if (filesMatch) {
-    claims.push({
-      claim: 'Total files',
-      documented: parseInt(filesMatch[1], 10),
-      countFn: () => countFilesRecursive(join(ROOT, 'opencode-config')),
-    });
-    claims.push({
-      claim: 'Subdirectory count',
-      documented: parseInt(filesMatch[2], 10),
-      countFn: () => countSubdirs(join(ROOT, 'opencode-config')),
-    });
-  }
-
-  // Pattern: "N named agents"
-  const namedAgentMatch = content.match(/(\d+)\s+named\s+agents?\b/i);
-  if (namedAgentMatch) {
-    claims.push({
-      claim: 'Named agents',
-      documented: parseInt(namedAgentMatch[1], 10),
-      countFn: () => countNamedAgentsFromConfig(),
-    });
-  }
-
-  // Pattern: "N skills" (standalone, e.g. "46 skills")
-  const skillsStandalone = content.match(/(\d+)\s+skills?\b(?!\s+definitions?)/i);
-  if (skillsStandalone && !skillMatch) {
-    claims.push({
-      claim: 'Skills',
-      documented: parseInt(skillsStandalone[1], 10),
-      countFn: () => countDirs(join(ROOT, 'opencode-config', 'skills')),
-    });
-  }
-
-  // Pattern: "N tests" or "N assertions"
-  const testMatch = content.match(/(\d+)\s+tests?\b/i);
-  // We don't verify test counts — they change too often. Skip.
-
-  return claims;
-}
-
-/**
- * Recursively find AGENTS.md files, skipping excluded directories.
- */
-function findAgentsMdFiles(dir, excludeDirs = ['node_modules', '.next', '.git', '.worktrees', 'local']) {
-  const results = [];
+function walkFiles(dir, fileName, excludeDirs = ['node_modules', '.git', '.next', '.worktrees', 'local', '.sisyphus']) {
+  const found = [];
   let entries;
   try {
     entries = readdirSync(dir, { withFileTypes: true });
   } catch {
-    return results;
+    return found;
   }
+
   for (const entry of entries) {
     if (excludeDirs.includes(entry.name)) continue;
-    const fullPath = join(dir, entry.name);
+    const abs = join(dir, entry.name);
     if (entry.isDirectory()) {
-      results.push(...findAgentsMdFiles(fullPath, excludeDirs));
-    } else if (entry.name === 'AGENTS.md') {
-      results.push(fullPath);
+      found.push(...walkFiles(abs, fileName, excludeDirs));
+    } else if (entry.name === fileName) {
+      found.push(abs);
     }
   }
-  return results;
+  return found;
 }
 
-// --- Main ---
+function extractSection(content, sectionName) {
+  const headerPattern = new RegExp(`^## ${sectionName}.*$`, 'mi');
+  const headerMatch = content.match(headerPattern);
+  if (!headerMatch) return null;
+  const start = headerMatch.index + headerMatch[0].length;
+  const rest = content.slice(start);
+  const nextHeader = rest.match(/^## /m);
+  const body = nextHeader ? rest.slice(0, nextHeader.index) : rest;
+  return body.trim();
+}
 
-function checkDrift() {
-  const agentsMdFiles = findAgentsMdFiles(ROOT);
-  const report = {
-    date: new Date().toISOString().split('T')[0],
-    files: [],
-    total_drift: 0,
-    total_ok: 0,
-  };
+function countImmediateDirectories(absDir) {
+  if (!existsSync(absDir)) return 0;
+  try {
+    const entries = readdirSync(absDir, { withFileTypes: true });
+    return entries.filter((entry) => entry.isDirectory()).length;
+  } catch {
+    return 0;
+  }
+}
 
-  for (const mdPath of agentsMdFiles) {
-    const relPath = relative(ROOT, mdPath).replace(/\\/g, '/');
-    let content;
-    try {
-      content = readFileSync(mdPath, 'utf-8');
-    } catch {
+function countFilesRecursive(absDir, predicate) {
+  let count = 0;
+  let entries;
+  try {
+    entries = readdirSync(absDir, { withFileTypes: true });
+  } catch {
+    return 0;
+  }
+  for (const entry of entries) {
+    const abs = join(absDir, entry.name);
+    if (entry.isDirectory()) {
+      count += countFilesRecursive(abs, predicate);
       continue;
     }
-
-    const claims = extractNumericClaims(content, mdPath);
-    const fileReport = {
-      file: relPath,
-      checks: [],
-    };
-
-    for (const claim of claims) {
-      const actual = claim.countFn();
-      const delta = actual - claim.documented;
-      const status = delta === 0 ? 'OK' : 'DRIFT';
-      fileReport.checks.push({
-        claim: claim.claim,
-        documented: claim.documented,
-        actual,
-        delta,
-        status,
-      });
-      if (status === 'DRIFT') report.total_drift++;
-      else report.total_ok++;
-    }
-
-    if (fileReport.checks.length > 0) {
-      report.files.push(fileReport);
-    }
+    if (predicate(entry.name, abs)) count += 1;
   }
-
-  return report;
+  return count;
 }
 
-function formatReport(report) {
-  const lines = [];
-  lines.push(`AGENTS.md Drift Report — ${report.date}`);
-  lines.push('='.repeat(50));
-  lines.push('');
-
-  for (const fileReport of report.files) {
-    lines.push(fileReport.file);
-    for (const check of fileReport.checks) {
-      const deltaStr = check.delta > 0 ? `+${check.delta}` : `${check.delta}`;
-      const icon = check.status === 'OK' ? 'OK' : `DRIFT (${deltaStr})`;
-      lines.push(`  ${check.claim}: documented=${check.documented}, actual=${check.actual} — ${icon}`);
-    }
-    lines.push('');
-  }
-
-  lines.push(`Summary: ${report.total_drift} drift issues, ${report.total_ok} OK across ${report.files.length} files.`);
-  return lines.join('\n');
+function normalizeRelPath(absPath) {
+  return relative(ROOT, absPath).replace(/\\/g, '/');
 }
 
-/**
- * Find the line in AGENTS.md content that contains a specific numeric value
- * in context of a claim, and return the surrounding context for a diff.
- */
-function findClaimLine(content, documented) {
+function parseCountClaims(content) {
+  const claims = [];
   const lines = content.split('\n');
-  const docStr = String(documented);
-  for (let i = 0; i < lines.length; i++) {
-    if (lines[i].includes(docStr)) {
-      const start = Math.max(0, i - 1);
-      const end = Math.min(lines.length, i + 2);
-      return {
+  const patterns = [
+    { type: 'package_count', regex: /(\d+)\s+(?:workspace\s+)?packages?\b/i, label: 'Package count' },
+    { type: 'script_count', regex: /(\d+)\s+(?:\.mjs\s+)?(?:infrastructure\s+)?scripts?\b/i, label: 'Script count' },
+    { type: 'agent_count', regex: /(\d+)\s+agents?\b(?!\.md)/i, label: 'Agent definitions' },
+    { type: 'skill_count', regex: /(\d+)\s+skills?\b/i, label: 'Skill definitions' },
+  ];
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    for (const pattern of patterns) {
+      const match = line.match(pattern.regex);
+      if (!match) continue;
+      claims.push({
+        type: pattern.type,
+        label: pattern.label,
+        documented: Number(match[1]),
         lineNumber: i + 1,
-        original: lines.slice(start, end).join('\n'),
-        targetLine: lines[i],
-        targetIndex: i,
-      };
+        lineText: line,
+      });
     }
+  }
+  return claims;
+}
+
+function parseStructureDirectories(content, baseDir) {
+  const structure = extractSection(content, 'STRUCTURE');
+  if (!structure) return [];
+
+  const blocks = [];
+  const fenceRe = /```[\s\S]*?```/g;
+  for (const match of structure.matchAll(fenceRe)) blocks.push(match[0]);
+  if (blocks.length === 0) return [];
+
+  const dirs = [];
+  for (const block of blocks) {
+    const body = block.replace(/^```[a-z]*\s*/i, '').replace(/```$/, '');
+    const lines = body.split('\n');
+    for (const line of lines) {
+      const treeMatch = line.match(/^[\s│]*[├└]──\s+([^#\s]+\/)/);
+      if (treeMatch) {
+        dirs.push({ entry: treeMatch[1], lineText: line.trim() });
+        continue;
+      }
+
+      const standaloneMatch = line.trim().match(/^([A-Za-z0-9._-]+\/)$/);
+      if (!standaloneMatch) continue;
+
+      const entry = standaloneMatch[1];
+      const currentDirName = `${basename(baseDir)}/`;
+      if (entry === currentDirName || entry === './') continue;
+      dirs.push({ entry, lineText: line.trim() });
+    }
+  }
+
+  const deduped = [];
+  const seen = new Set();
+  for (const dir of dirs) {
+    const normalized = dir.entry.replace(/\/$/, '');
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    deduped.push({ entry: normalized, lineText: dir.lineText || `${normalized}/` });
+  }
+  return deduped;
+}
+
+function resolveStructurePath(baseDir, entry) {
+  if (entry.startsWith('./')) return join(baseDir, entry.slice(2));
+  return join(baseDir, entry);
+}
+
+function parseCommandRows(content) {
+  const section = extractSection(content, 'COMMANDS');
+  if (!section) return [];
+  const rows = [];
+  const sectionLines = section.split('\n');
+  for (let index = 0; index < sectionLines.length; index += 1) {
+    const line = sectionLines[index];
+    const trimmed = line.trim();
+    if (!trimmed.startsWith('|')) continue;
+    if (/^\|\s*-+/.test(trimmed)) continue;
+    if (/^\|\s*Command\s*\|/i.test(trimmed)) continue;
+    const cells = trimmed.split('|').map((cell) => cell.trim()).filter(Boolean);
+    if (cells.length < 2) continue;
+    rows.push({
+      command: cells[0].replace(/`/g, ''),
+      purpose: cells[1].replace(/`/g, ''),
+      lineNumber: index + 1,
+      lineText: trimmed,
+    });
+  }
+  return rows;
+}
+
+function extractFileReferences(text) {
+  const refs = [];
+  const pathRefRe = /([A-Za-z0-9._-]+\/[A-Za-z0-9._/-]*\.(?:mjs|js|cjs|sh|ts|tsx|json|ya?ml))/g;
+  const bareRefRe = /(?:^|[\s(])([A-Za-z0-9._-]+\.(?:mjs|cjs|sh|json|ya?ml))(?=[\s),]|$)/g;
+
+  for (const match of text.matchAll(pathRefRe)) refs.push(match[1]);
+  for (const match of text.matchAll(bareRefRe)) refs.push(match[1]);
+
+  return [...new Set(refs)];
+}
+
+function commandRefExists(baseDir, ref) {
+  const candidates = [];
+  if (ref.includes('/')) {
+    candidates.push(join(ROOT, ref));
+    candidates.push(join(baseDir, ref));
+  } else {
+    candidates.push(join(baseDir, ref));
+    candidates.push(join(ROOT, ref));
+    candidates.push(join(ROOT, 'scripts', ref));
+  }
+  return candidates.some((candidate) => existsSync(candidate));
+}
+
+function actualForClaimType(type) {
+  if (type === 'package_count') {
+    return countImmediateDirectories(join(ROOT, 'packages'));
+  }
+  if (type === 'script_count') {
+    return countFilesRecursive(join(ROOT, 'scripts'), (name) => name.endsWith('.mjs'));
+  }
+  if (type === 'agent_count') {
+    return countFilesRecursive(join(ROOT, 'opencode-config', 'agents'), () => true);
+  }
+  if (type === 'skill_count') {
+    return countImmediateDirectories(join(ROOT, 'opencode-config', 'skills'));
   }
   return null;
 }
 
-function generateProposal(report) {
-  const lines = [];
-  lines.push(`# AGENTS.md Drift Proposals — ${report.date}`);
-  lines.push('');
-  lines.push(`> Auto-generated by \`scripts/check-agents-drift.mjs\`.`);
-  lines.push(`> Review and apply manually. Do NOT auto-commit.`);
-  lines.push('');
+function analyzeAgentsFile(absPath) {
+  const relPath = normalizeRelPath(absPath);
+  const baseDir = dirname(absPath);
 
-  for (const fileReport of report.files) {
-    const driftChecks = fileReport.checks.filter(c => c.status === 'DRIFT');
-    if (driftChecks.length === 0) continue;
+  let content;
+  try {
+    content = readFileSync(absPath, 'utf-8');
+  } catch (error) {
+    return {
+      file: relPath,
+      countDrifts: [],
+      directoryDrifts: [],
+      commandDrifts: [{ command: '(read-failure)', reference: '-', detail: `Failed to read file: ${error.message}` }],
+    };
+  }
 
-    lines.push(`## ${fileReport.file}`);
-    lines.push('');
-    lines.push('| Claim | Documented | Actual | Delta |');
-    lines.push('|-------|-----------|--------|-------|');
-    for (const check of driftChecks) {
-      const deltaStr = check.delta > 0 ? `+${check.delta}` : `${check.delta}`;
-      lines.push(`| ${check.claim} | ${check.documented} | ${check.actual} | ${deltaStr} |`);
-    }
-    lines.push('');
+  const countDrifts = [];
+  for (const claim of parseCountClaims(content)) {
+    const actual = actualForClaimType(claim.type);
+    if (actual == null || claim.documented === actual) continue;
+    countDrifts.push({
+      claim: claim.label,
+      documented: claim.documented,
+      actual,
+      delta: actual - claim.documented,
+      lineNumber: claim.lineNumber,
+      lineText: claim.lineText,
+    });
+  }
 
-    // Generate proposed markdown diffs with surrounding context
-    lines.push('### Proposed Diffs');
-    lines.push('');
-
-    let content = null;
-    try {
-      content = readFileSync(join(ROOT, fileReport.file), 'utf-8');
-    } catch { /* file unreadable — fall back to simple format */ }
-
-    for (const check of driftChecks) {
-      lines.push(`**${check.claim}** (line context):`);
-      lines.push('');
-
-      if (content) {
-        const match = findClaimLine(content, check.documented);
-        if (match) {
-          const proposed = match.targetLine.replace(
-            String(check.documented),
-            String(check.actual)
-          );
-          lines.push('```diff');
-          lines.push(`@@ ${fileReport.file}:${match.lineNumber} @@`);
-          lines.push(`- ${match.targetLine}`);
-          lines.push(`+ ${proposed}`);
-          lines.push('```');
-        } else {
-          lines.push(`Change \`${check.documented}\` to \`${check.actual}\` (line not located)`);
-        }
-      } else {
-        lines.push(`Change \`${check.documented}\` to \`${check.actual}\``);
-      }
-      lines.push('');
+  const directoryDrifts = [];
+  for (const dirEntry of parseStructureDirectories(content, baseDir)) {
+    const expectedDir = resolveStructurePath(baseDir, dirEntry.entry);
+    if (!existsSync(expectedDir)) {
+      directoryDrifts.push({
+        entry: `${dirEntry.entry}/`,
+        expected: normalizeRelPath(expectedDir),
+        lineText: dirEntry.lineText,
+      });
     }
   }
 
-  return lines.join('\n');
+  const commandDrifts = [];
+  for (const row of parseCommandRows(content)) {
+    const refs = [
+      ...extractFileReferences(row.command),
+      ...extractFileReferences(row.purpose),
+    ];
+
+    for (const ref of refs) {
+      if (commandRefExists(baseDir, ref)) continue;
+      commandDrifts.push({
+        command: row.command,
+        reference: ref,
+        detail: `Referenced file not found: ${ref}`,
+        lineText: row.lineText,
+      });
+    }
+  }
+
+  return { file: relPath, countDrifts, directoryDrifts, commandDrifts };
 }
 
-// --- Entry point ---
+function renderCountTable(countDrifts) {
+  if (countDrifts.length === 0) return '';
+  const rows = [
+    '| Claim | Documented | Actual | Delta |',
+    '|-------|-----------|--------|-------|',
+    ...countDrifts.map((entry) => {
+      const delta = entry.delta >= 0 ? `+${entry.delta}` : `${entry.delta}`;
+      return `| ${entry.claim} | ${entry.documented} | ${entry.actual} | ${delta} |`;
+    }),
+  ];
+  return rows.join('\n');
+}
 
-if (process.argv[1] && resolve(process.argv[1]) === __filename) {
-  const report = checkDrift();
+function renderReport(results) {
+  const drifted = results.filter((item) => item.countDrifts.length > 0 || item.directoryDrifts.length > 0 || item.commandDrifts.length > 0);
+  const totalIssues = drifted.reduce(
+    (sum, item) => sum + item.countDrifts.length + item.directoryDrifts.length + item.commandDrifts.length,
+    0,
+  );
 
-  if (JSON_OUTPUT) {
-    console.log(JSON.stringify(report, null, 2));
+  const lines = [];
+  lines.push(`# AGENTS.md Drift Report — ${DATE_STAMP}`);
+  lines.push('');
+  lines.push('## Summary');
+  if (drifted.length === 0) {
+    lines.push('No drift detected across scanned AGENTS.md files.');
+  } else {
+    lines.push(`Found ${totalIssues} drift issues across ${drifted.length} AGENTS.md files.`);
+  }
+  lines.push('');
+  lines.push('## Drift Details');
+  lines.push('');
+
+  if (drifted.length === 0) {
+    lines.push('No drift details to report.');
+    lines.push('');
+  } else {
+    for (const item of drifted) {
+      lines.push(`### ${item.file}`);
+      if (item.countDrifts.length > 0) {
+        lines.push(renderCountTable(item.countDrifts));
+        lines.push('');
+      }
+      if (item.directoryDrifts.length > 0) {
+        lines.push('- Missing directories declared in STRUCTURE:');
+        for (const drift of item.directoryDrifts) {
+          lines.push(`  - ${drift.entry} -> expected at ${drift.expected}`);
+        }
+        lines.push('');
+      }
+      if (item.commandDrifts.length > 0) {
+        lines.push('- Invalid command file references:');
+        for (const drift of item.commandDrifts) {
+          lines.push(`  - \`${drift.command}\` references \`${drift.reference}\` (${drift.detail})`);
+        }
+        lines.push('');
+      }
+    }
+  }
+
+  lines.push('## Proposed Fixes');
+  lines.push('');
+
+  if (drifted.length === 0) {
+    lines.push('- No fixes needed.');
+  } else {
+    for (const item of drifted) {
+      lines.push(`### ${item.file}`);
+      if (item.countDrifts.length > 0) {
+        lines.push('```diff');
+        for (const drift of item.countDrifts) {
+          const updatedLine = drift.lineText.replace(/\d+/, String(drift.actual));
+          lines.push(`- ${drift.lineText.trim()}`);
+          lines.push(`+ ${updatedLine.trim()}`);
+        }
+        lines.push('```');
+        lines.push('');
+      }
+      if (item.directoryDrifts.length > 0) {
+        for (const drift of item.directoryDrifts) {
+          lines.push('```diff');
+          lines.push(`- ${drift.lineText || drift.entry}`);
+          lines.push(`+ (remove this STRUCTURE entry; directory missing at ${drift.expected})`);
+          lines.push('```');
+        }
+        lines.push('');
+      }
+      if (item.commandDrifts.length > 0) {
+        for (const drift of item.commandDrifts) {
+          lines.push('```diff');
+          lines.push(`- ${drift.lineText || drift.command}`);
+          lines.push(`+ (update COMMANDS row to remove or replace missing path: ${drift.reference})`);
+          lines.push('```');
+        }
+        lines.push('');
+      }
+    }
+  }
+
+  return lines.join('\n').trimEnd() + '\n';
+}
+
+function resolveUniqueOutputPath(path) {
+  if (!existsSync(path)) return path;
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const extIndex = path.lastIndexOf('.');
+  if (extIndex === -1) return `${path}-${timestamp}`;
+  return `${path.slice(0, extIndex)}-${timestamp}${path.slice(extIndex)}`;
+}
+
+function run() {
+  const agentFiles = walkFiles(ROOT, 'AGENTS.md');
+  const results = agentFiles.map(analyzeAgentsFile);
+  const report = renderReport(results);
+  const driftFound = results.some((item) => item.countDrifts.length > 0 || item.directoryDrifts.length > 0 || item.commandDrifts.length > 0);
+
+  if (!driftFound) {
+    console.error('[check-agents-drift] No drift found.');
     process.exit(0);
   }
 
-  console.log(formatReport(report));
-
-  // Write proposal file if drift found
-  if (report.total_drift > 0) {
-    const proposalsDir = join(ROOT, '.sisyphus', 'proposals');
-    if (!existsSync(proposalsDir)) mkdirSync(proposalsDir, { recursive: true });
-
-    const proposalPath = join(proposalsDir, `agents-drift-${report.date}.md`);
-    writeFileSync(proposalPath, generateProposal(report), 'utf-8');
-    console.log(`\nProposal written to: ${relative(ROOT, proposalPath)}`);
+  if (DRY_RUN) {
+    console.error(`[check-agents-drift] [dry-run] Drift found. Would write report to ${normalizeRelPath(REPORT_PATH)} and proposal to ${normalizeRelPath(PROPOSAL_PATH)}`);
+    console.log(report);
+    process.exit(0);
   }
 
+  if (!existsSync(PROPOSALS_DIR)) {
+    mkdirSync(PROPOSALS_DIR, { recursive: true });
+  }
+  const reportPath = resolveUniqueOutputPath(REPORT_PATH);
+  const proposalPath = resolveUniqueOutputPath(PROPOSAL_PATH);
+  writeFileSync(reportPath, report, 'utf-8');
+  writeFileSync(proposalPath, report, 'utf-8');
+  console.error(`[check-agents-drift] Drift found. Report written to ${normalizeRelPath(reportPath)}; proposal written to ${normalizeRelPath(proposalPath)}`);
   process.exit(0);
 }
 
-export { checkDrift };
+if (process.argv[1] && resolve(process.argv[1]) === __filename) {
+  run();
+}
+
+export { analyzeAgentsFile, extractSection, parseCountClaims, parseCommandRows, parseStructureDirectories, renderReport, run };

@@ -1,0 +1,15 @@
+{
+  "id": "meta-kb-skill-adjustments-wiring-20260319",
+  "timestamp": "2026-03-19T02:15:00.000Z",
+  "summary": "Wire _computeMetaKBSkillAdjustments() into executeTaskWithEvidence hot path so Meta-KB anti-patterns and positive evidence influence skill selection",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/index.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "build": "not-applicable",
+    "typecheck": "not-run",
+    "lint": "not-run"
+  },
+  "risk_level": "low"
+}

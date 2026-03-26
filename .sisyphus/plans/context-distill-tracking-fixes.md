@@ -84,12 +84,12 @@ Resurrect and connect the skill tracking pipeline — starting from broken infra
 10. `opencode-config/system-prompts.md` — global distill threshold rule
 
 ### Definition of Done
-- [ ] `node -e "const t = require('./packages/opencode-learning-engine/src/tool-usage-tracker.js'); console.log(typeof t.logInvocation)"` → `function`
-- [ ] `grep -rn "skill-rl-state" packages/ integration-tests/ --include="*.ts" --include="*.js" | grep -v node_modules | grep -v ".next"` → zero matches
-- [ ] `cat ~/.opencode/skill-rl.json | jq '.skillBank.general | length'` → ≥ 29
-- [ ] `bun test` → all tests pass (≥253)
-- [ ] `grep -n "resolve-library-id" opencode-config/skills/research-builder/SKILL.md` → match found
-- [ ] `grep -n "browse_tools" opencode-config/skills/budget-aware-router/SKILL.md` → match found
+- [x] `node -e "const t = require('./packages/opencode-learning-engine/src/tool-usage-tracker.js'); console.log(typeof t.logInvocation)"` → `function`
+- [x] `grep -rn "skill-rl-state" packages/ integration-tests/ --include="*.ts" --include="*.js" | grep -v node_modules | grep -v ".next"` → zero matches
+- [x] `cat ~/.opencode/skill-rl.json | jq '.skillBank.general | length'` → ≥ 29
+- [x] `bun test` → all tests pass (≥253)
+- [x] `grep -n "resolve-library-id" opencode-config/skills/research-builder/SKILL.md` → match found
+- [x] `grep -n "browse_tools" opencode-config/skills/budget-aware-router/SKILL.md` → match found
 
 ### Must Have
 - `readJsonAsync` and `initAsync` inside `tool-usage-tracker.js` verified to exist/work before any wiring
@@ -164,7 +164,7 @@ Parallel Speedup: ~30% faster than sequential
 
 ---
 
-- [ ] 1. Smoke-test and resurrect tool-usage-tracker
+- [x] 1. Smoke-test and resurrect tool-usage-tracker
 
   **What to do**:
 
@@ -298,7 +298,7 @@ Parallel Speedup: ~30% faster than sequential
 
 ---
 
-- [ ] 2. Standardize RL state path + create production SkillRLManager entry point
+- [x] 2. Standardize RL state path + create production SkillRLManager entry point
 
   **What to do**:
 
@@ -439,7 +439,7 @@ Parallel Speedup: ~30% faster than sequential
 
 ---
 
-- [ ] 3. Seed SkillRLManager with all 29 registry skills (additive merge)
+- [x] 3. Seed SkillRLManager with all 29 registry skills (additive merge)
 
   **What to do**:
 
@@ -587,7 +587,7 @@ Parallel Speedup: ~30% faster than sequential
 
 ---
 
-- [ ] 4. Wire MCP tool invocations into tool-usage-tracker (fire-and-forget)
+- [x] 4. Wire MCP tool invocations into tool-usage-tracker (fire-and-forget)
 
   **What to do**:
 
@@ -702,7 +702,7 @@ Parallel Speedup: ~30% faster than sequential
 
 ---
 
-- [ ] 5. Add explicit Context7 and Distill calling conventions to skill files
+- [x] 5. Add explicit Context7 and Distill calling conventions to skill files
 
   **What to do**:
 
@@ -812,7 +812,7 @@ Parallel Speedup: ~30% faster than sequential
 
 ---
 
-- [ ] 6. Integration tests, regression sweep, stale doc cleanup
+- [x] 6. Integration tests, regression sweep, stale doc cleanup
 
   **What to do**:
 

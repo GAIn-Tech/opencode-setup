@@ -247,6 +247,147 @@ describe('Sisyphus State Machine', () => {
     expect(maxActive).toBe(2);
   });
 
+  it('should keep healthy policy parallel caps from reducing host-derived behavior', async () => {
+    const executor = new WorkflowExecutor(store, {}, {
+      systemInfo: {
+        cpuCount: 8,
+        totalMemoryBytes: 16 * 1024 * 1024 * 1024,
+      },
+    });
+
+    const workflow = {
+      name: 'parallel-policy-healthy-test',
+      steps: [{
+        id: 'p1',
+        type: 'parallel-for',
+        foreach: '${items}',
+        substep: { id: 'worker', type: 'worker' },
+      }],
+    };
+
+    let active = 0;
+    let maxActive = 0;
+    const processed = [];
+    executor.registerHandler('worker', async (step, context) => {
+      active += 1;
+      maxActive = Math.max(maxActive, active);
+      processed.push(context.item);
+      await Bun.sleep(10);
+      active -= 1;
+      return { ok: true };
+    });
+
+    await executor.execute(workflow, {
+      items: [1, 2, 3, 4, 5, 6],
+      policyDecision: {
+        outputs: {
+          parallel: {
+            maxFanout: 9,
+            maxConcurrency: 9,
+          },
+        },
+      },
+    });
+
+    expect(executor.defaultParallelConcurrency).toBe(7);
+    expect(maxActive).toBe(6);
+    expect(processed).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+
+  it('should reduce parallel-for fanout and concurrency under pressured policy caps', async () => {
+    const executor = new WorkflowExecutor(store, {}, {
+      systemInfo: {
+        cpuCount: 16,
+        totalMemoryBytes: 64 * 1024 * 1024 * 1024,
+      },
+    });
+
+    const workflow = {
+      name: 'parallel-policy-pressured-test',
+      steps: [{
+        id: 'p1',
+        type: 'parallel-for',
+        foreach: '${items}',
+        substep: { id: 'worker', type: 'worker' },
+      }],
+    };
+
+    let active = 0;
+    let maxActive = 0;
+    const processed = [];
+    executor.registerHandler('worker', async (step, context) => {
+      active += 1;
+      maxActive = Math.max(maxActive, active);
+      processed.push(context.item);
+      await Bun.sleep(10);
+      active -= 1;
+      return { ok: true };
+    });
+
+    await executor.execute(workflow, {
+      items: [1, 2, 3, 4, 5, 6],
+      orchestrationPolicyDecision: {
+        outputs: {
+          parallel: {
+            maxFanout: 3,
+            maxConcurrency: 2,
+          },
+        },
+      },
+    });
+
+    expect(executor.defaultParallelConcurrency).toBe(15);
+    expect(maxActive).toBe(2);
+    expect(processed).toEqual([1, 2, 3]);
+  });
+
+  it('should fail open to host defaults when policy parallel caps are invalid', async () => {
+    const executor = new WorkflowExecutor(store, {}, {
+      systemInfo: {
+        cpuCount: 8,
+        totalMemoryBytes: 16 * 1024 * 1024 * 1024,
+      },
+    });
+
+    const workflow = {
+      name: 'parallel-policy-invalid-fail-open-test',
+      steps: [{
+        id: 'p1',
+        type: 'parallel-for',
+        foreach: '${items}',
+        substep: { id: 'worker', type: 'worker' },
+      }],
+    };
+
+    let active = 0;
+    let maxActive = 0;
+    const processed = [];
+    executor.registerHandler('worker', async (step, context) => {
+      active += 1;
+      maxActive = Math.max(maxActive, active);
+      processed.push(context.item);
+      await Bun.sleep(10);
+      active -= 1;
+      return { ok: true };
+    });
+
+    await executor.execute(workflow, {
+      items: [1, 2, 3, 4, 5, 6, 7, 8],
+      policyDecision: {
+        outputs: {
+          parallel: {
+            maxFanout: 'bad-value',
+            maxConcurrency: 0,
+          },
+        },
+      },
+    });
+
+    expect(executor.defaultParallelConcurrency).toBe(7);
+    expect(maxActive).toBe(7);
+    expect(processed).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+  });
+
   it('should keep low-spec systems at a safe minimum parallelism', () => {
     expect(deriveDefaultParallelConcurrency({
       cpuCount: 2,

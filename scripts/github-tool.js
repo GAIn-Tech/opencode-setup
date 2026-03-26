@@ -17,48 +17,30 @@
  * Outputs: JSON result
  */
 
-import { spawn } from 'child_process';
-import { existsSync } from 'fs';
-import { join } from 'path';
-import { whichSync } from 'which';
+import {
+  commandExists,
+  runCommand,
+  runCommandJson,
+  printJson,
+  fatal,
+  installProcessErrorHandlers,
+  toErrorMessage,
+} from './lib/cli-runtime.mjs';
 
 // Parse command line arguments
 const args = process.argv.slice(2);
 const command = args[0];
 
 if (!command) {
-  console.error('Error: Command is required');
-  console.error('Usage: node github-tool.js <command> [options]');
-  console.error('Commands:');
-  console.error('  list-issues <owner/repo> [--state <state>] [--limit <N>]');
-  console.error('  get-issue <owner/repo> <issue_number>');
-  console.error('  create-comment <owner/repo> <issue_number> <comment>');
-  console.error('  add-labels <owner/repo> <issue_number> <label1,label2,...>');
-  process.exit(1);
-}
-
-/**
- * Check if a command exists before trying to spawn it
- * Prevents Bun segfaults from ENOENT
- * @param {string} command - Command or path to check
- * @returns {boolean} True if executable exists
- */
-function commandExists(command) {
-  // Guard against undefined/null/non-string command
-  if (!command || typeof command !== "string") {
-    return false;
-  }
-  // Check if it's a path
-  if (command.includes('/') || command.includes('\\')) {
-    return false; // We don't check file paths in this script
-  }
-  
-  // Check if it's in PATH using which
-  try {
-    return !!whichSync(command);
-  } catch {
-    return false;
-  }
+  fatal([
+    'Command is required',
+    'Usage: node github-tool.js <command> [options]',
+    'Commands:',
+    '  list-issues <owner/repo> [--state <state>] [--limit <N>]',
+    '  get-issue <owner/repo> <issue_number>',
+    '  create-comment <owner/repo> <issue_number> <comment>',
+    '  add-labels <owner/repo> <issue_number> <label1,label2,...>',
+  ].join('\n'));
 }
 
 // Check if gh command is available
@@ -67,55 +49,22 @@ async function checkGhCommand() {
   if (!commandExists('gh')) {
     return false;
   }
-  
-  return new Promise((resolve) => {
-    const check = spawn('gh', ['--version'], { stdio: 'pipe', shell: true });
-    check.on('close', (code) => resolve(code === 0));
-    check.on('error', () => resolve(false));
-  });
+
+  try {
+    await runCommand('gh', ['--version'], { stdio: 'pipe', shell: true });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // Run gh command
 async function runGhCommand(cmdArgs) {
-  return new Promise((resolve, reject) => {
-    console.error(`Running: gh ${cmdArgs.join(' ')}`);
-    
-    const child = spawn('gh', cmdArgs, {
-      stdio: ['pipe', 'pipe', 'pipe'],
-      shell: true
-    });
-    
-    let stdout = '';
-    let stderr = '';
-    
-    child.stdout.on('data', (data) => {
-      stdout += data.toString();
-    });
-    
-    child.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-    
-    child.on('close', (code) => {
-      if (code !== 0) {
-        console.error(`gh exited with code ${code}: ${stderr}`);
-        reject(new Error(`gh failed: ${stderr}`));
-        return;
-      }
-      
-      try {
-        const result = JSON.parse(stdout);
-        resolve(result);
-      } catch (error) {
-        // If not JSON, return raw output
-        resolve(stdout.trim());
-      }
-    });
-    
-    child.on('error', (error) => {
-      console.error(`Failed to spawn gh: ${error.message}`);
-      reject(new Error(`gh execution failed: ${error.message}`));
-    });
+  return runCommandJson('gh', cmdArgs, {
+    stdio: 'pipe',
+    shell: true,
+    logCommand: true,
+    parseMode: 'loose',
   });
 }
 
@@ -289,19 +238,14 @@ async function main() {
     }
     
     // Output JSON
-    console.log(JSON.stringify(result, null, 2));
+    printJson(result);
     
   } catch (error) {
-    console.error(`Error: ${error.message}`);
-    process.exit(1);
+    fatal(toErrorMessage(error));
   }
 }
 
-// Handle uncaught errors
-process.on('uncaughtException', (error) => {
-  console.error(`Uncaught error: ${error.message}`);
-  process.exit(1);
-});
+installProcessErrorHandlers({ prefix: '[github-tool]' });
 
 // Run main function
 if (import.meta.url === `file://${process.argv[1]}`) {

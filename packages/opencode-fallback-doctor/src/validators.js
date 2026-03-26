@@ -8,6 +8,7 @@ const KNOWN_MODELS = new Map([
   // Anthropic Claude 4.5-4.6 (2025-2026)
   ['anthropic/claude-opus-4-6', { provider: 'anthropic', tier: 0, family: 'opus' }],
   ['anthropic/claude-opus-4-5', { provider: 'anthropic', tier: 0, family: 'opus' }],
+  ['anthropic/claude-sonnet-4-6', { provider: 'anthropic', tier: 1, family: 'sonnet' }],
   ['anthropic/claude-sonnet-4-5', { provider: 'anthropic', tier: 1, family: 'sonnet' }],
   ['anthropic/claude-haiku-4-5', { provider: 'anthropic', tier: 2, family: 'haiku' }],
   // Legacy Claude 3.5
@@ -30,6 +31,12 @@ const KNOWN_MODELS = new Map([
   ['google/gemini-3-pro', { provider: 'google', tier: 10, family: 'gemini' }],
   ['google/gemini-3-flash', { provider: 'google', tier: 11, family: 'gemini' }],
   ['google/gemini-3-flash-8b', { provider: 'google', tier: 12, family: 'gemini' }],
+  ['google/antigravity-gemini-3-pro', { provider: 'google', tier: 13, family: 'gemini' }],
+  ['google/antigravity-gemini-3-flash', { provider: 'google', tier: 13, family: 'gemini' }],
+  ['google/antigravity-gemini-3-flash-8b', { provider: 'google', tier: 14, family: 'gemini' }],
+  ['google/antigravity-claude-sonnet-4-5', { provider: 'google', tier: 14, family: 'bridge' }],
+  ['google/antigravity-claude-sonnet-4-5-thinking', { provider: 'google', tier: 14, family: 'bridge' }],
+  ['google/antigravity-claude-opus-4-6-thinking', { provider: 'google', tier: 13, family: 'bridge' }],
   // Legacy Gemini 2.0 (deprecated March 31, 2026)
   ['google/gemini-2.0-pro', { provider: 'google', tier: 15, family: 'gemini' }],
   ['google/gemini-2.0-flash', { provider: 'google', tier: 16, family: 'gemini' }],
@@ -48,14 +55,49 @@ const KNOWN_MODELS = new Map([
   // DeepSeek (2025)
   ['deepseek/deepseek-chat', { provider: 'deepseek', tier: 25, family: 'deepseek' }],
   ['deepseek/deepseek-coder', { provider: 'deepseek', tier: 25, family: 'deepseek' }],
+  ['deepseek-ai/deepseek-v3.2', { provider: 'deepseek-ai', tier: 25, family: 'deepseek' }],
 
   // Moonshot / Kimi (2025)
   ['kimi/k2.5', { provider: 'kimi', tier: 30, family: 'kimi' }],
   ['kimi/k2.5-chat', { provider: 'kimi', tier: 30, family: 'kimi' }],
+
+  // Zen and NVIDIA-hosted frontier backups
+  ['zen/glm5', { provider: 'zen', tier: 31, family: 'glm' }],
+  ['zen/glm-5', { provider: 'zen', tier: 31, family: 'glm' }],
+  ['zen/kimi-k2.5-pro', { provider: 'zen', tier: 31, family: 'kimi' }],
+  ['zen/kimi-k2.5', { provider: 'zen', tier: 31, family: 'kimi' }],
+  ['zen/glm-4.7', { provider: 'zen', tier: 32, family: 'glm' }],
+  ['zen/minimax-m2.5', { provider: 'zen', tier: 32, family: 'minimax' }],
+  ['zen/minimax-m2.5-lightning', { provider: 'zen', tier: 33, family: 'minimax' }],
+  ['nvidia/moonshotai-kimi-k2.5', { provider: 'nvidia', tier: 32, family: 'kimi' }],
+  ['nvidia/z-ai-glm-5', { provider: 'nvidia', tier: 32, family: 'glm' }],
+  ['nvidia/z-ai-glm4.7', { provider: 'nvidia', tier: 33, family: 'glm' }],
+  ['nvidia/deepseek-ai-deepseek-v3.2', { provider: 'nvidia', tier: 32, family: 'deepseek' }],
+  ['moonshotai/kimi-k2.5', { provider: 'moonshotai', tier: 31, family: 'kimi' }],
+  ['z-ai/glm-5', { provider: 'z-ai', tier: 31, family: 'glm' }],
+  ['z-ai/glm4.7', { provider: 'z-ai', tier: 32, family: 'glm' }],
 ]);
 
 // Valid providers
-const VALID_PROVIDERS = new Set(['anthropic', 'openai', 'google', 'kimi', 'groq', 'cerebras', 'sambanova', 'mistral', 'meta', 'deepseek', 'xai']);
+const VALID_PROVIDERS = new Set([
+  'anthropic',
+  'openai',
+  'google',
+  'antigravity',
+  'kimi',
+  'groq',
+  'cerebras',
+  'sambanova',
+  'mistral',
+  'meta',
+  'deepseek',
+  'deepseek-ai',
+  'xai',
+  'zen',
+  'nvidia',
+  'moonshotai',
+  'z-ai',
+]);
 
 // ─── Model Name Syntax ──────────────────────────────────────────────────────
 // Accepted formats:

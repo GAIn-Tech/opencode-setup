@@ -175,9 +175,9 @@ Parallel Speedup: ~30% faster than sequential
   - `.sisyphus/plans/tech-debt-fix.md` — Previous plan's test verification pattern
 
   **Acceptance Criteria**:
-  - [ ] `bun test` completes successfully
-  - [ ] All ~445 tests pass, 0 failures
-  - [ ] Test count recorded as baseline for post-fix comparison
+  - [x] `bun test` completes successfully
+  - [x] All ~445 tests pass, 0 failures
+  - [x] Test count recorded as baseline for post-fix comparison
 
   **Agent-Executed QA Scenarios:**
 
@@ -252,13 +252,13 @@ Parallel Speedup: ~30% faster than sequential
 
   **Acceptance Criteria**:
 
-  - [ ] Interval IDs stored: `grep -c '_intervals\|_timers\|intervalId' packages/opencode-health-check/src/index.js` → output ≥ 1
-  - [ ] `.unref()` applied: `grep -c '\.unref()' packages/opencode-health-check/src/index.js` → output ≥ 1
-  - [ ] `stopHealthChecks` exported: `grep 'stopHealthChecks' packages/opencode-health-check/src/index.js` → match found
-  - [ ] `clearInterval` used in stop: `grep 'clearInterval' packages/opencode-health-check/src/index.js` → match found
-  - [ ] Double-start guard exists: `grep '_running\|_started' packages/opencode-health-check/src/index.js` → match found
-  - [ ] Regression tests pass: `bun test packages/opencode-health-check/` → all pass
-  - [ ] Full suite passes: `bun test` → ~445+ tests, 0 failures
+  - [x] Interval IDs stored: `grep -c '_intervals\|_timers\|intervalId' packages/opencode-health-check/src/index.js` → output ≥ 1
+  - [x] `.unref()` applied: `grep -c '\.unref()' packages/opencode-health-check/src/index.js` → output ≥ 1
+  - [x] `stopHealthChecks` exported: `grep 'stopHealthChecks' packages/opencode-health-check/src/index.js` → match found
+  - [x] `clearInterval` used in stop: `grep 'clearInterval' packages/opencode-health-check/src/index.js` → match found
+  - [x] Double-start guard exists: `grep '_running\|_started' packages/opencode-health-check/src/index.js` → match found
+  - [x] Regression tests pass: `bun test packages/opencode-health-check/` → all pass
+  - [x] Full suite passes: `bun test` → ~445+ tests, 0 failures
 
   **Agent-Executed QA Scenarios:**
 
@@ -309,9 +309,9 @@ Parallel Speedup: ~30% faster than sequential
   ```
 
   **Evidence to Capture:**
-  - [ ] grep output showing timer ID storage
-  - [ ] Test results from `bun test packages/opencode-health-check/`
-  - [ ] Full suite results from `bun test`
+  - [x] grep output showing timer ID storage
+  - [x] Test results from `bun test packages/opencode-health-check/`
+  - [x] Full suite results from `bun test`
 
   **Commit**: YES
   - Message: `fix(health-check): store interval IDs, add stopHealthChecks, prevent timer leak`
@@ -384,13 +384,13 @@ Parallel Speedup: ~30% faster than sequential
 
   **Acceptance Criteria**:
 
-  - [ ] Zero sync fs calls: `grep -c 'readFileSync\|readdirSync\|statSync\|existsSync' packages/opencode-dashboard/src/app/api/orchestration/lib/correlation.js` → output is 0
-  - [ ] Function is async: `grep 'export async function collectCorrelationData' packages/opencode-dashboard/src/app/api/orchestration/lib/correlation.js` → match found
-  - [ ] Call site updated: `grep 'await collectCorrelationData\|await.*collectCorrelationData' packages/opencode-dashboard/src/app/api/orchestration/route.ts` → match found
-  - [ ] fs/promises imported: `grep "fs/promises\|fs\.promises" packages/opencode-dashboard/src/app/api/orchestration/lib/correlation.js` → match found
-  - [ ] Integration test passes: `bun test integration-tests/orchestration-lib-extraction.test.js` → pass
-  - [ ] Regression tests pass: `bun test packages/opencode-dashboard/tests/correlation-async.test.js` → pass
-  - [ ] Full suite passes: `bun test` → ~445+ tests, 0 failures
+  - [x] Zero sync fs calls: `grep -c 'readFileSync\|readdirSync\|statSync\|existsSync' packages/opencode-dashboard/src/app/api/orchestration/lib/correlation.js` → output is 0
+  - [x] Function is async: `grep 'export async function collectCorrelationData' packages/opencode-dashboard/src/app/api/orchestration/lib/correlation.js` → match found
+  - [x] Call site updated: `grep 'await collectCorrelationData\|await.*collectCorrelationData' packages/opencode-dashboard/src/app/api/orchestration/route.ts` → match found
+  - [x] fs/promises imported: `grep "fs/promises\|fs\.promises" packages/opencode-dashboard/src/app/api/orchestration/lib/correlation.js` → match found
+  - [x] Integration test passes: `bun test integration-tests/orchestration-lib-extraction.test.js` → pass
+  - [x] Regression tests pass: `bun test packages/opencode-dashboard/tests/correlation-async.test.js` → pass
+  - [x] Full suite passes: `bun test` → ~445+ tests, 0 failures
 
   **Agent-Executed QA Scenarios:**
 
@@ -434,9 +434,9 @@ Parallel Speedup: ~30% faster than sequential
   ```
 
   **Evidence to Capture:**
-  - [ ] grep output showing zero sync calls
-  - [ ] Test results from correlation-async regression tests
-  - [ ] Full suite results from `bun test`
+  - [x] grep output showing zero sync calls
+  - [x] Test results from correlation-async regression tests
+  - [x] Full suite results from `bun test`
 
   **Commit**: YES
   - Message: `perf(dashboard): convert collectCorrelationData to async I/O`
@@ -525,15 +525,15 @@ Parallel Speedup: ~30% faster than sequential
 
   **Acceptance Criteria**:
 
-  - [ ] All exported functions return Promises: `node -e "const t = require('./packages/opencode-learning-engine/src/tool-usage-tracker'); console.log(t.logInvocation('test', {}, {}) instanceof Promise)"` → `true`
-  - [ ] Zero sync fs on hot paths: `grep -n 'readFileSync\|writeFileSync\|renameSync' packages/opencode-learning-engine/src/tool-usage-tracker.js | grep -v 'readJsonSync\|writeJsonSync\|@deprecated' | wc -l` → 0 (only deprecated wrappers)
-  - [ ] readJsonAsync used: `grep -c 'readJsonAsync' packages/opencode-learning-engine/src/tool-usage-tracker.js` → ≥ 7
-  - [ ] writeJsonAsync exists: `grep -c 'writeJsonAsync' packages/opencode-learning-engine/src/tool-usage-tracker.js` → ≥ 1
-  - [ ] Write queue implemented: `grep -c '_writePromise\|_pendingWrite\|writeQueue' packages/opencode-learning-engine/src/tool-usage-tracker.js` → ≥ 1
-  - [ ] trackEvent handled: `grep -c 'trackEvent.*\.catch\|await.*trackEvent' packages/opencode-learning-engine/src/tool-usage-tracker.js` → 4
-  - [ ] initAsync idempotent: `grep -c '_initPromise\|_initialized' packages/opencode-learning-engine/src/tool-usage-tracker.js` → ≥ 1
-  - [ ] Regression tests pass: `bun test packages/opencode-learning-engine/test/tool-usage-tracker.test.js` → all pass
-  - [ ] Full suite passes: `bun test` → ~445+ tests, 0 failures
+  - [x] All exported functions return Promises: `node -e "const t = require('./packages/opencode-learning-engine/src/tool-usage-tracker'); console.log(t.logInvocation('test', {}, {}) instanceof Promise)"` → `true`
+  - [x] Zero sync fs on hot paths: `grep -n 'readFileSync\|writeFileSync\|renameSync' packages/opencode-learning-engine/src/tool-usage-tracker.js | grep -v 'readJsonSync\|writeJsonSync\|@deprecated' | wc -l` → 0 (only deprecated wrappers)
+  - [x] readJsonAsync used: `grep -c 'readJsonAsync' packages/opencode-learning-engine/src/tool-usage-tracker.js` → ≥ 7
+  - [x] writeJsonAsync exists: `grep -c 'writeJsonAsync' packages/opencode-learning-engine/src/tool-usage-tracker.js` → ≥ 1
+  - [x] Write queue implemented: `grep -c '_writePromise\|_pendingWrite\|writeQueue' packages/opencode-learning-engine/src/tool-usage-tracker.js` → ≥ 1
+  - [x] trackEvent handled: `grep -c 'trackEvent.*\.catch\|await.*trackEvent' packages/opencode-learning-engine/src/tool-usage-tracker.js` → 4
+  - [x] initAsync idempotent: `grep -c '_initPromise\|_initialized' packages/opencode-learning-engine/src/tool-usage-tracker.js` → ≥ 1
+  - [x] Regression tests pass: `bun test packages/opencode-learning-engine/test/tool-usage-tracker.test.js` → all pass
+  - [x] Full suite passes: `bun test` → ~445+ tests, 0 failures
 
   **Agent-Executed QA Scenarios:**
 
@@ -607,9 +607,9 @@ Parallel Speedup: ~30% faster than sequential
   ```
 
   **Evidence to Capture:**
-  - [ ] grep output showing zero sync calls on hot paths
-  - [ ] Test results from `bun test packages/opencode-learning-engine/test/tool-usage-tracker.test.js`
-  - [ ] Full suite results from `bun test`
+  - [x] grep output showing zero sync calls on hot paths
+  - [x] Test results from `bun test packages/opencode-learning-engine/test/tool-usage-tracker.test.js`
+  - [x] Full suite results from `bun test`
 
   **Commit**: YES
   - Message: `perf(learning-engine): convert tool-usage-tracker to async I/O with write queue`
@@ -653,9 +653,9 @@ grep -c 'stopHealthChecks\|clearInterval\|\.unref()' packages/opencode-health-ch
 ```
 
 ### Final Checklist
-- [ ] All "Must Have" present (event-loop unblocking, timer cleanup, write queue)
-- [ ] All "Must NOT Have" absent (no scope creep into route.ts, no caching in correlation, no pagination)
-- [ ] All existing tests pass (baseline preserved)
-- [ ] New regression tests added for each task
-- [ ] All QA scenarios executed with evidence captured
-- [ ] Commits follow Wave 1-3 pattern with Learning-Update trailers
+- [x] All "Must Have" present (event-loop unblocking, timer cleanup, write queue)
+- [x] All "Must NOT Have" absent (no scope creep into route.ts, no caching in correlation, no pagination)
+- [x] All existing tests pass (baseline preserved)
+- [x] New regression tests added for each task
+- [x] All QA scenarios executed with evidence captured
+- [x] Commits follow Wave 1-3 pattern with Learning-Update trailers

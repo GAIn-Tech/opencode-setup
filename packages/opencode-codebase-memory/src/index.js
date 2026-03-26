@@ -1,4 +1,11 @@
 'use strict';
+
+/**
+ * @deprecated This package is currently orphaned — it has no callers in the integration layer.
+ * Pending: either wire into integration-layer or formally deprecate and remove.
+ * See orchestration-fixes audit (March 2026), Gap #32.
+ */
+
 const fs = require('fs');
 const path = require('path');
 const os = require('os');

@@ -159,6 +159,10 @@ class SkillRLManager {
     // Sync with skill registry on startup — additive, never overwrites existing data
     const _registryPath = path.resolve(__dirname, '../../../opencode-config/skills/registry.json');
     this.syncWithRegistry(_registryPath);
+
+    // Exploration policy (env-driven, NOT persisted)
+    this.explorationMode = process.env.OPENCODE_EXPLORATION_MODE || 'greedy';
+    this.epsilon = Math.min(1, Math.max(0, parseFloat(process.env.OPENCODE_EPSILON || '0.1')));
   }
 
   /**
@@ -229,16 +233,103 @@ class SkillRLManager {
    * @param {Object} taskContext - Task context from OrchestrationAdvisor
    * @returns {Array} Ranked list of relevant skills
    */
-  selectSkills(taskContext) {
-    const skills = this.skillBank.querySkills(taskContext);
-    
+   selectSkills(taskContext) {
+     const skills = this.skillBank.querySkills(taskContext);
+
+     let result;
+     if (this.explorationMode === 'ucb') {
+       result = this._applyUCB(skills);
+     } else if (this.explorationMode === 'epsilon-greedy') {
+       result = this._applyEpsilonGreedy(skills, taskContext);
+     } else {
+       result = skills; // greedy / default
+     }
+
     // Record usage for selected skills
-    skills.forEach(skill => {
+    result.forEach(skill => {
       this.skillBank.recordUsage(skill.name, taskContext.task_type);
     });
-    
-    return skills;
+
+    return result;
   }
+
+  /**
+   * Get UCB dampening factor for cold-start registry skills
+   * Prevents new registry-imported skills from dominating selection
+   * @param {Object} skill - Skill object
+   * @returns {number} Dampening factor (0 to 1.0)
+   */
+  _getUCBDampeningFactor(skill) {
+    if (skill.source !== 'registry') return 1.0;
+    return Math.min(1.0, (skill.usage_count || 0) / 5);
+  }
+
+  /**
+   * UCB exploration: rerank skills by Upper Confidence Bound score
+   * UCB = success_rate + sqrt(2 * ln(total_usage + 1) / (skill_usage + 1)) * dampening
+   * Dampening applies cold-start penalty to registry-sourced skills with low usage
+   * @param {Array} skills - Skills from querySkills
+   * @returns {Array} Skills reranked by UCB score
+   */
+  _applyUCB(skills) {
+    let totalUsage = 0;
+    for (const skill of this.skillBank.generalSkills.values()) {
+      totalUsage += (skill.usage_count || 0);
+    }
+
+    return [...skills].sort((a, b) => {
+      const dampeningA = this._getUCBDampeningFactor(a);
+      const dampeningB = this._getUCBDampeningFactor(b);
+      const ucbA = (a.success_rate || 0.5) + Math.sqrt(2 * Math.log(totalUsage + 1) / ((a.usage_count || 0) + 1)) * dampeningA;
+      const ucbB = (b.success_rate || 0.5) + Math.sqrt(2 * Math.log(totalUsage + 1) / ((b.usage_count || 0) + 1)) * dampeningB;
+      return ucbB - ucbA;
+    });
+  }
+
+  /**
+    * Select a random skill from a pool, preferring category-relevant skills
+    * If taskContext.task_type matches a skill's category, prefer those skills
+    * Otherwise, fall back to full pool
+    * @param {Array} skills - Pool of skills to select from
+    * @param {Object} taskContext - Task context with optional task_type
+    * @returns {Object} Randomly selected skill
+    */
+   _weightedRandomSkill(skills, taskContext) {
+     const category = taskContext?.task_type;
+     if (category) {
+       const categorySkills = skills.filter(s => s.category === category);
+       if (categorySkills.length > 0) {
+         return categorySkills[Math.floor(Math.random() * categorySkills.length)];
+       }
+     }
+     return skills[Math.floor(Math.random() * skills.length)];
+   }
+
+  /**
+    * Epsilon-greedy exploration: with probability epsilon, inject one random unexplored skill
+    * Prefers category-relevant skills when task_type is available
+    * @param {Array} skills - Skills from querySkills
+    * @param {Object} taskContext - Task context for category-weighted selection
+    * @returns {Array} Skills with possible random injection
+    */
+   _applyEpsilonGreedy(skills, taskContext) {
+     if (Math.random() < this.epsilon) {
+       const allSkills = [...this.skillBank.generalSkills.values()];
+       const resultNames = new Set(skills.map(s => s.name));
+       const candidates = allSkills.filter(s => !resultNames.has(s.name));
+       if (candidates.length > 0) {
+         const random = this._weightedRandomSkill(candidates, taskContext);
+         const result = [...skills];
+         if (result.length > 0) {
+           result[result.length - 1] = random;
+         } else {
+           result.push(random);
+         }
+         return result;
+       }
+     }
+     return skills;
+   }
 
   /**
    * Manually add a skill to the bank
@@ -259,8 +350,82 @@ class SkillRLManager {
   }
 
   /**
+   * Get default success_rate based on skill category (tiered defaults)
+   * @param {object} registryEntry - Registry entry with category field
+   * @returns {number} success_rate between 0 and 1
+   */
+  _getDefaultSuccessRate(registryEntry) {
+    const category = registryEntry.category || 'general';
+    
+    // Tier 1: debugging/testing/review → 0.70
+    if (['debugging', 'testing', 'review'].includes(category)) {
+      return 0.70;
+    }
+    
+    // Tier 2: general/meta/planning/reasoning/memory/observability → 0.65
+    if (['general', 'meta', 'planning', 'reasoning', 'memory', 'observability'].includes(category)) {
+      return 0.65;
+    }
+    
+    // Tier 3: everything else (niche/experimental) → 0.50
+    return 0.50;
+  }
+
+  /**
+   * Merge registry metadata into existing skill entry (for seed collisions)
+   * Preserves existing success_rate and usage_count, adds new triggers/tags
+   * @param {object} existing - Existing skill entry
+   * @param {object} registryEntry - Registry entry to merge
+   */
+  _mergeRegistryMetadata(existing, registryEntry) {
+    // Build merged object explicitly field-by-field to avoid any property descriptor issues
+    // Preserve the existing entry completely, only adding new metadata from registry
+    const merged = {
+      // Core fields from existing (seed) - NEVER overwrite these
+      name: existing.name,
+      principle: existing.principle || registryEntry.description || '',
+      success_rate: existing.success_rate, // CRITICAL: preserve seed's success_rate
+      usage_count: existing.usage_count, // CRITICAL: preserve seed's usage_count
+      last_updated: existing.last_updated,
+      source: existing.source,
+      tags: [],
+      application_context: ''
+    };
+    
+    // Merge triggers into application_context (avoid duplicates)
+    const existingContexts = new Set(
+      (existing.application_context || '')
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s)
+    );
+    
+    const newTriggers = registryEntry.triggers || [];
+    newTriggers.forEach(trigger => {
+      existingContexts.add(trigger);
+    });
+    
+    merged.application_context = Array.from(existingContexts).join(', ');
+    
+    // Merge tags (avoid duplicates)
+    const existingTags = new Set(existing.tags || []);
+    const newTags = registryEntry.tags || [];
+    newTags.forEach(tag => {
+      existingTags.add(tag);
+    });
+    
+    merged.tags = Array.from(existingTags);
+    
+    // Add any additional fields from existing that we might have missed
+    if (existing.category) merged.category = existing.category;
+    
+    return merged;
+  }
+
+  /**
    * Additively seed skill bank from registry.json.
    * Preserves existing usage_count and success_rate. Adds missing skills only.
+   * For seed collisions, merges registry metadata into existing entry.
    * @param {string} registryPath - Absolute path to registry.json
    */
   syncWithRegistry(registryPath) {
@@ -277,14 +442,24 @@ class SkillRLManager {
       // Normalize: strip any path prefix (superpowers/, etc.), use base name only
       const baseName = skillName.includes('/') ? skillName.split('/').pop() : skillName;
 
-      // Additive only: preserve existing entry if present
-      if (this.skillBank.generalSkills.has(baseName)) continue;
+      // Check if skill already exists
+      const existing = this.skillBank.generalSkills.get(baseName);
+      if (existing) {
+        // Merge registry metadata into existing entry (seed collision case)
+        const merged = this._mergeRegistryMetadata(existing, meta);
+        this.skillBank.generalSkills.set(baseName, merged);
+        mutated = true;
+        continue;
+      }
+
+      // New skill: use tiered default success_rate
+      const defaultSuccessRate = this._getDefaultSuccessRate(meta);
 
       this.skillBank.generalSkills.set(baseName, {
         name: baseName,
         principle: meta.description || '',
         application_context: (meta.triggers || []).join(', '),
-        success_rate: 0.75,
+        success_rate: defaultSuccessRate,
         usage_count: 0,
         last_updated: Date.now(),
         tags: meta.tags || [],

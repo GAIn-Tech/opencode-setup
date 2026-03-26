@@ -177,6 +177,7 @@ const steps = [
   { label: 'hooks-install', command: 'bun', args: ['run', 'hooks:install'] },
   { label: 'copy-config', command: 'bun', args: ['run', 'copy-config'] },
   { label: 'generate-mcp-config', command: 'bun', args: ['run', 'generate'] },
+  { label: 'validate-config-schema', command: 'node', args: ['scripts/validate-config.mjs'] },
   { label: 'verify-setup', command: 'node', args: ['scripts/verify-setup.mjs'] },
   { label: 'validate-plugin-compatibility', command: 'node', args: ['scripts/validate-plugin-compatibility.mjs'] },
   { label: 'verify-portability-strict', command: 'node', args: ['scripts/verify-portability.mjs', '--strict'] },

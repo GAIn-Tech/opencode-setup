@@ -97,27 +97,27 @@ describe('T22: ContextBridge threshold logic', () => {
     const bridge = new ContextBridge({ governor: gov, logger: silentLogger() });
     const result = bridge.evaluateAndCompress('ses_1', 'model-a');
     expect(result.action).toBe('compress_urgent');
-    expect(result.reason).toContain('CRITICAL');
+    expect(result.reason).toContain('COMPRESSION MANDATORY');
     expect(result.pct).toBe(0.80);
   });
 
-  it('returns "compress_urgent" at 95%', () => {
+  it('returns "block" at 95% (above block threshold)', () => {
     const gov = mockGovernor(0.95);
     const bridge = new ContextBridge({ governor: gov, logger: silentLogger() });
     const result = bridge.evaluateAndCompress('ses_1', 'model-a');
-    expect(result.action).toBe('compress_urgent');
+    expect(result.action).toBe('block');
     expect(result.pct).toBe(0.95);
   });
 
-  it('fails open when governor throws', () => {
+  it('fails closed when governor throws (VISION fail-closed pattern)', () => {
     const gov = {
       getRemainingBudget: () => { throw new Error('DB unavailable'); },
     };
     const bridge = new ContextBridge({ governor: gov, logger: silentLogger() });
     const result = bridge.evaluateAndCompress('ses_1', 'model-a');
-    expect(result.action).toBe('none');
-    expect(result.reason).toContain('DB unavailable');
-    expect(result.pct).toBe(0);
+    expect(result.action).toBe('block'); // evaluateAndCompress still returns block from evaluateAndEnforce
+    expect(result.reason).toContain('Evaluation error: DB unavailable');
+    expect(result.veto).toBeUndefined(); // veto stripped by evaluateAndCompress
   });
 
   it('handles governor returning null budget', () => {

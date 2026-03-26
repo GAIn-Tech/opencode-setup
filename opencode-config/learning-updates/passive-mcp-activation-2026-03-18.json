@@ -1,0 +1,60 @@
+{
+  "id": "passive-mcp-activation-2026-03-18",
+  "timestamp": "2026-03-18T22:24:00Z",
+  "type": "skill-activation",
+  "date": "2026-03-18",
+  "affected_paths": [
+    "opencode-config/skills/registry.json",
+    "opencode-config/compound-engineering.json",
+    "opencode-config/skills/supermemory/SKILL.md",
+    "opencode-config/skills/sequentialthinking/SKILL.md",
+    "opencode-config/skills/websearch/SKILL.md",
+    "opencode-config/skills/grep/SKILL.md",
+    "opencode-config/skills/skill-orchestrator-runtime/SKILL.md"
+  ],
+  "summary": "Activate passive MCPs as live skills: supermemory, sequentialthinking, websearch, and grep are now registered in registry.json with triggers, synergies, and categories; enabled in compound-engineering.json; and have dedicated SKILL.md files with explicit invocation patterns. skill-orchestrator-runtime SKILL.md extended with detection rules for all four domains. Removed dead tavily skill entry and stale github/tavily references from profiles and categories.",
+  "changes": [
+    {
+      "file": "opencode-config/skills/supermemory/SKILL.md",
+      "action": "created",
+      "description": "136-line skill definition for supermemory MCP covering persistent memory recall, storage, and cross-session context"
+    },
+    {
+      "file": "opencode-config/skills/sequentialthinking/SKILL.md",
+      "action": "created",
+      "description": "94-line skill definition for sequentialthinking MCP covering structured step-by-step reasoning and hypothesis testing"
+    },
+    {
+      "file": "opencode-config/skills/websearch/SKILL.md",
+      "action": "created",
+      "description": "72-line skill definition for websearch MCP covering live web research, page extraction, and content analysis"
+    },
+    {
+      "file": "opencode-config/skills/grep/SKILL.md",
+      "action": "created",
+      "description": "82-line skill definition for grep MCP covering external code search across public repositories for real-world examples"
+    },
+    {
+      "file": "opencode-config/skills/registry.json",
+      "action": "modified",
+      "description": "Registered supermemory, sequentialthinking, websearch, grep with category/triggers/synergies. Removed dead tavily skill entry and stale github/tavily references from research-to-code profile and research category."
+    },
+    {
+      "file": "opencode-config/compound-engineering.json",
+      "action": "modified",
+      "description": "Enabled supermemory (memory), sequentialthinking (reasoning), websearch (research), grep (research) in skills.enabled and categorized."
+    },
+    {
+      "file": "opencode-config/skills/skill-orchestrator-runtime/SKILL.md",
+      "action": "modified",
+      "description": "Added detection rules for supermemory (memory recall/persistence), sequentialthinking (step-by-step reasoning), websearch (live web research), and grep (external code lookup)."
+    }
+  ],
+  "audit_result": "skills audit PASS — zero issues after tavily removal",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

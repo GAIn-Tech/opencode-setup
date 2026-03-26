@@ -1,0 +1,14 @@
+{
+  "id": "wave1-crashguard-constructor-wiring-20260318",
+  "timestamp": "2026-03-19T00:02:00.000Z",
+  "summary": "Wire crashGuard from integration-layer config and enforce fail-open commandExists with null-safe safeSpawn behavior.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/index.js"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

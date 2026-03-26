@@ -85,6 +85,79 @@ try {
 // Context bridge for governor → distill advisory signals
 const { ContextBridge } = require('./context-bridge');
 
+let resolveOrchestrationPolicy = null;
+try {
+  ({ resolveOrchestrationPolicy } = require('./orchestration-policy'));
+} catch {
+  resolveOrchestrationPolicy = null;
+}
+
+const DEFAULT_ORCHESTRATION_POLICY_ROLLOUT_CATEGORIES = Object.freeze([
+  'deep',
+  'ultrabrain',
+  'unspecified-high',
+]);
+
+// T21: Package-level execution instrumentation
+// Tracks which packages are invoked, call frequency, success/failure, and latency.
+// Persists to ~/.opencode/package-execution/events.json for dashboard backfill.
+let _pkgEvents = [];
+let _pkgEventsPath = null;
+let _pkgEventsFlushing = false;
+const MAX_PKG_EVENTS = 5000;
+
+function _getPkgEventsPath() {
+  if (_pkgEventsPath === null) {
+    try {
+      const os = require('os');
+      const path = require('path');
+      _pkgEventsPath = path.join(os.homedir(), '.opencode', 'package-execution', 'events.json');
+    } catch {
+      _pkgEventsPath = '';
+    }
+  }
+  return _pkgEventsPath;
+}
+
+function _appendPkgEvent(event) {
+  _pkgEvents.push(event);
+  while (_pkgEvents.length > MAX_PKG_EVENTS) {
+    _pkgEvents.shift();
+  }
+  // Async flush to file (non-blocking, fail-open)
+  if (!_pkgEventsFlushing) {
+    _pkgEventsFlushing = true;
+    setImmediate(() => {
+      try {
+        _pkgEventsFlushing = false;
+        const fp = _getPkgEventsPath();
+        if (!fp) return;
+        const fs = require('fs');
+        const dir = require('path').dirname(fp);
+        if (!fs.existsSync(dir)) {
+          fs.mkdirSync(dir, { recursive: true });
+        }
+        // Read existing events, append new ones, write back
+        let existing = [];
+        try {
+          if (fs.existsSync(fp)) {
+            existing = JSON.parse(fs.readFileSync(fp, 'utf8'));
+          }
+        } catch {
+          existing = [];
+        }
+        const cutoff = Date.now() - (7 * 24 * 60 * 60 * 1000); // Keep 7 days
+        const recent = existing.filter(e => e && e.timestamp && e.timestamp > cutoff);
+        const merged = [...recent, ..._pkgEvents].slice(-MAX_PKG_EVENTS);
+        fs.writeFileSync(fp, JSON.stringify(merged, null, 2), 'utf8');
+        _pkgEvents = [];
+      } catch {
+        _pkgEventsFlushing = false;
+      }
+    });
+  }
+}
+
 // Fail-open require for MCP → SkillRL affinity bridge
 let _getSessionMcpInvocations = null;
 try {
@@ -128,18 +201,30 @@ class IntegrationLayer {
     this.showboat = config.showboat || config.showboatWrapper || null;
     this.quotaManager = config.quotaManager || null;
     this.advisor = config.advisor || config.orchestrationAdvisor || null;
+    this.learningEngine = config.learningEngine || null;
     this.modelRouter = config.modelRouter || config.ModelRouter || null;
     this.preloadSkills = config.preloadSkills || null;
     this.runbooks = config.runbooks || null;
+    this.crashGuard = config.crashGuard || null;
+    this.proofcheck = config.proofcheck || null;
     this.fallbackDoctor = config.fallbackDoctor || null;
     this.pluginLifecycle = config.pluginLifecycle || null;
     this.workflowStore = config.workflowStore || null;
     this.workflowExecutor = config.workflowExecutor || null;
     this.dashboardLauncher = config.dashboardLauncher || null;
     this.healthd = config.healthd || null;
+    this.pipelineMetrics = config.pipelineMetrics || null;
+    this.alertManager = config.alertManager || null;
+    this.explorationAdapter = config.explorationAdapter || null;
     // P1 FIX: Use Map keyed by task_id instead of global mutable state
     this.taskContextMap = new Map();
     this.currentSessionId = config.currentSessionId || config.sessionId || null;
+
+    // T21: Package execution tracking
+    this._pkgTrackingEnabled = true;
+
+    // [T22] Track consecutive failures per skill for early warning
+    this._skillConsecutiveFailures = new Map(); // skillName → { count: number, lastTask: string }
 
     // Meta-KB index: fail-open loading for SkillRL integration
     this.metaKBIndex = null;
@@ -202,6 +287,44 @@ class IntegrationLayer {
   }
 
   /**
+   * T21: Record a package-level execution event for observability.
+   * Tracks package calls, success/failure, latency, and session context.
+   * Data is written to ~/.opencode/package-execution/events.json for dashboard backfill.
+   *
+   * @param {string} packageName - Name of the package invoked (e.g., 'skillRL', 'showboat', 'contextGovernor')
+   * @param {string} method - Method name called (e.g., 'selectSkills', 'captureEvidence', 'checkBudget')
+   * @param {boolean} success - Whether the call succeeded
+   * @param {number} durationMs - Call duration in milliseconds
+   * @param {object} [details={}] - Additional context { sessionId, taskType, error, ... }
+   */
+  recordPackageExecution(packageName, method, success, durationMs, details = {}) {
+    if (!this._pkgTrackingEnabled) return;
+    try {
+      const event = {
+        package: String(packageName),
+        method: String(method),
+        success: Boolean(success),
+        durationMs: Math.max(0, Number(durationMs) || 0),
+        timestamp: Date.now(),
+        sessionId: details.sessionId || this.currentSessionId || null,
+        taskType: details.taskType || details.task_type || null,
+        error: success ? null : String(details.error || 'unknown'),
+      };
+      _appendPkgEvent(event);
+
+      if (this.pipelineMetrics && typeof this.pipelineMetrics.recordPackageExecution === 'function') {
+        try {
+          this.pipelineMetrics.recordPackageExecution(event);
+        } catch (_metricsErr) {
+          // fail-open: metrics emission must not alter runtime behavior
+        }
+      }
+    } catch {
+      // Non-fatal: instrumentation must never break normal operations
+    }
+  }
+
+  /**
    * Diagnose an error using runbooks auto-diagnosis.
    * Delegates to runbooks.diagnose() if available.
    * Fail-open: returns null if runbooks unavailable or throws.
@@ -212,9 +335,20 @@ class IntegrationLayer {
    */
   diagnose(error, context = {}) {
     if (!this.runbooks) return null;
+    const t0 = Date.now();
     try {
-      return this.runbooks.diagnose(error, context);
-    } catch {
+      const result = this.runbooks.diagnose(error, context);
+      this.recordPackageExecution('runbooks', 'diagnose', true, Date.now() - t0, {
+        sessionId: context?.sessionId,
+        taskType: context?.task,
+      });
+      return result;
+    } catch (err) {
+      this.recordPackageExecution('runbooks', 'diagnose', false, Date.now() - t0, {
+        sessionId: context?.sessionId,
+        taskType: context?.task,
+        error: err.message,
+      });
       return null;
     }
   }
@@ -230,18 +364,30 @@ class IntegrationLayer {
    */
   async recordSessionError(sessionId, error) {
     if (!this.memoryGraph) return null;
+    const t0 = Date.now();
     try {
       const errorData = error instanceof Error ? {
         message: error.message,
         stack: error.stack,
         name: error.name,
       } : error;
-      return await this.memoryGraph.buildGraph([{
+      const entry = {
         sessionId,
         ...errorData,
         timestamp: new Date().toISOString(),
-      }]);
-    } catch {
+      };
+      const graphEntry = {
+        ...entry,
+        session_id: entry.sessionId || entry.session_id || sessionId,
+        error_type: entry.name || entry.error_type || entry.errorType || 'UnknownError',
+      };
+      const result = await this.memoryGraph.buildGraph([graphEntry]);
+      this.recordPackageExecution('memoryGraph', 'buildGraph', true, Date.now() - t0, { sessionId });
+      return result;
+    } catch (err) {
+      this.recordPackageExecution('memoryGraph', 'buildGraph', false, Date.now() - t0, {
+        sessionId, error: err.message,
+      });
       return null;
     }
   }
@@ -319,9 +465,13 @@ class IntegrationLayer {
    */
   validateFallbackChain(models) {
     if (!this.fallbackDoctor) return null;
+    const t0 = Date.now();
     try {
-      return this.fallbackDoctor.validateChain(models);
-    } catch {
+      const result = this.fallbackDoctor.validateChain(models);
+      this.recordPackageExecution('fallbackDoctor', 'validateChain', true, Date.now() - t0, {});
+      return result;
+    } catch (err) {
+      this.recordPackageExecution('fallbackDoctor', 'validateChain', false, Date.now() - t0, { error: err.message });
       return null;
     }
   }
@@ -333,9 +483,13 @@ class IntegrationLayer {
    */
   diagnoseFallbacks(config) {
     if (!this.fallbackDoctor) return null;
+    const t0 = Date.now();
     try {
-      return this.fallbackDoctor.diagnose(config);
-    } catch {
+      const result = this.fallbackDoctor.diagnose(config);
+      this.recordPackageExecution('fallbackDoctor', 'diagnose', true, Date.now() - t0, {});
+      return result;
+    } catch (err) {
+      this.recordPackageExecution('fallbackDoctor', 'diagnose', false, Date.now() - t0, { error: err.message });
       return null;
     }
   }
@@ -347,9 +501,13 @@ class IntegrationLayer {
    */
   async evaluatePluginHealth(inputs) {
     if (!this.pluginLifecycle) return null;
+    const t0 = Date.now();
     try {
-      return await this.pluginLifecycle.evaluateMany(inputs);
-    } catch {
+      const result = await this.pluginLifecycle.evaluateMany(inputs);
+      this.recordPackageExecution('pluginLifecycle', 'evaluateMany', true, Date.now() - t0, {});
+      return result;
+    } catch (err) {
+      this.recordPackageExecution('pluginLifecycle', 'evaluateMany', false, Date.now() - t0, { error: err.message });
       return null;
     }
   }
@@ -376,9 +534,18 @@ class IntegrationLayer {
    */
   async executeWorkflow(workflowDef, input, runId) {
     if (!this.workflowExecutor) return null;
+    const t0 = Date.now();
     try {
-      return await this.workflowExecutor.execute(workflowDef, input, runId);
+      const result = await this.workflowExecutor.execute(workflowDef, input, runId);
+      this.recordPackageExecution('workflowExecutor', 'execute', true, Date.now() - t0, {
+        taskType: workflowDef?.name,
+      });
+      return result;
     } catch (err) {
+      this.recordPackageExecution('workflowExecutor', 'execute', false, Date.now() - t0, {
+        taskType: workflowDef?.name,
+        error: err.message,
+      });
       this.logger.error('Workflow execution failed', { workflow: workflowDef?.name, error: err.message });
       return null;
     }
@@ -392,9 +559,15 @@ class IntegrationLayer {
    */
   async resumeWorkflow(runId, workflowDef) {
     if (!this.workflowExecutor) return null;
+    const t0 = Date.now();
     try {
-      return await this.workflowExecutor.resume(runId, workflowDef);
+      const result = await this.workflowExecutor.resume(runId, workflowDef);
+      this.recordPackageExecution('workflowExecutor', 'resume', true, Date.now() - t0, { runId });
+      return result;
     } catch (err) {
+      this.recordPackageExecution('workflowExecutor', 'resume', false, Date.now() - t0, {
+        runId, error: err.message,
+      });
       this.logger.error('Workflow resume failed', { runId, error: err.message });
       return null;
     }
@@ -498,7 +671,10 @@ class IntegrationLayer {
    * Check command availability via crash-guard spawn protection.
    */
   commandExists(command) {
-    if (!this.crashGuard || typeof this.crashGuard.commandExists !== 'function') {
+    if (!this.crashGuard) {
+      return false;
+    }
+    if (typeof this.crashGuard.commandExists !== 'function') {
       return false;
     }
     try {
@@ -513,7 +689,10 @@ class IntegrationLayer {
    * Safe process spawn through crash-guard ENOENT protections.
    */
   safeSpawn(command, args = [], options = {}) {
-    if (!this.crashGuard || typeof this.crashGuard.safeSpawn !== 'function') {
+    if (!this.crashGuard) {
+      return null;
+    }
+    if (typeof this.crashGuard.safeSpawn !== 'function') {
       this.logger.warn('safeSpawn requested but crash-guard not available', { command });
       return null;
     }
@@ -567,9 +746,13 @@ class IntegrationLayer {
     if (!this.healthChecker) {
       return { status: 'unknown', reason: 'health-check not available' };
     }
+    const t0 = Date.now();
     try {
-      return await this.healthChecker.getHealth();
+      const result = await this.healthChecker.getHealth();
+      this.recordPackageExecution('healthChecker', 'getHealth', true, Date.now() - t0, {});
+      return result;
     } catch (err) {
+      this.recordPackageExecution('healthChecker', 'getHealth', false, Date.now() - t0, { error: err.message });
       this.logger.error('Health check failed', { error: err.message });
       return { status: 'unhealthy', error: err.message };
     }
@@ -583,9 +766,13 @@ class IntegrationLayer {
       this.logger.warn('createBackup called but backup-manager not available');
       return null;
     }
+    const t0 = Date.now();
     try {
-      return await this.backupManager.backup(label);
+      const result = await this.backupManager.backup(label);
+      this.recordPackageExecution('backupManager', 'backup', true, Date.now() - t0, {});
+      return result;
     } catch (err) {
+      this.recordPackageExecution('backupManager', 'backup', false, Date.now() - t0, { error: err.message });
       this.logger.error('Backup failed', { error: err.message });
       return null;
     }
@@ -619,9 +806,12 @@ class IntegrationLayer {
     if (!this.contextGovernor) {
       return { allowed: true, status: 'unknown', urgency: 0, remaining: Infinity, message: 'Governor not available — budget unchecked' };
     }
+    const t0 = Date.now();
     try {
       const gov = this._getGovernorInstance();
       const result = gov.checkBudget(sessionId, model, proposedTokens);
+      const durationMs = Date.now() - t0;
+      this.recordPackageExecution('contextGovernor', 'checkBudget', true, durationMs, { sessionId, model });
       // Log budget warnings at thresholds
       if (result.status === 'error') {
         this.logger.error('Context budget CRITICAL', { sessionId, model, pct: result.message });
@@ -630,6 +820,9 @@ class IntegrationLayer {
       }
       return result;
     } catch (err) {
+      this.recordPackageExecution('contextGovernor', 'checkBudget', false, Date.now() - t0, {
+        sessionId, model, error: err.message,
+      });
       this.logger.warn('checkContextBudget failed (fail-open)', { error: err.message });
       if (OpenCodeError && ErrorCategory && ErrorCode) {
         throw new OpenCodeError(`Context budget check failed: ${err.message}`, ErrorCategory.CONFIG, ErrorCode.CONFIG_INVALID, {
@@ -652,9 +845,11 @@ class IntegrationLayer {
    */
   recordTokenUsage(sessionId, model, count) {
     if (!this.contextGovernor) return null;
+    const t0 = Date.now();
     try {
       const gov = this._getGovernorInstance();
       const result = gov.consumeTokens(sessionId, model, count);
+      this.recordPackageExecution('contextGovernor', 'consumeTokens', true, Date.now() - t0, { sessionId, model });
       if (result.status === 'error') {
         this.logger.error('Token budget CRITICAL after consumption', { sessionId, model, used: result.used, remaining: result.remaining });
       } else if (result.status === 'warn') {
@@ -662,6 +857,9 @@ class IntegrationLayer {
       }
       return result;
     } catch (err) {
+      this.recordPackageExecution('contextGovernor', 'consumeTokens', false, Date.now() - t0, {
+        sessionId, model, error: err.message,
+      });
       this.logger.warn('recordTokenUsage failed (non-fatal)', { error: err.message });
       return null;
     }
@@ -686,10 +884,16 @@ class IntegrationLayer {
    */
   getContextBudgetStatus(sessionId, model) {
     if (!this.contextGovernor) return null;
+    const t0 = Date.now();
     try {
       const gov = this._getGovernorInstance();
-      return gov.getRemainingBudget(sessionId, model);
+      const result = gov.getRemainingBudget(sessionId, model);
+      this.recordPackageExecution('contextGovernor', 'getRemainingBudget', true, Date.now() - t0, { sessionId, model });
+      return result;
     } catch (err) {
+      this.recordPackageExecution('contextGovernor', 'getRemainingBudget', false, Date.now() - t0, {
+        sessionId, model, error: err.message,
+      });
       this.logger.warn('getContextBudgetStatus failed', { error: err.message });
       return null;
     }
@@ -716,9 +920,20 @@ class IntegrationLayer {
    */
   selectToolsForTask(taskContext) {
     if (!this.preloadSkills) return null;
+    const t0 = Date.now();
     try {
-      return this.preloadSkills.selectTools(taskContext);
+      const result = this.preloadSkills.selectTools(taskContext);
+      this.recordPackageExecution('preloadSkills', 'selectTools', true, Date.now() - t0, {
+        sessionId: taskContext?.sessionId,
+        taskType: taskContext?.task,
+      });
+      return result;
     } catch (err) {
+      this.recordPackageExecution('preloadSkills', 'selectTools', false, Date.now() - t0, {
+        sessionId: taskContext?.sessionId,
+        taskType: taskContext?.task,
+        error: err.message,
+      });
       this.logger.warn('preload-skills selectTools failed', { error: err.message });
       return null;
     }
@@ -750,10 +965,16 @@ class IntegrationLayer {
       recommendedSkills.push('dcp', 'distill', 'context-governor');
     }
 
+    const selectionMetaContext = typeof selection?.meta_context === 'string'
+      ? selection.meta_context
+      : '';
+
     return {
       selection,
       budget,
       toolNames: [...toolNames],
+      meta_context: selectionMetaContext,
+      has_meta_context: selectionMetaContext.trim().length > 0,
       compression: {
         active: budget.action === 'compress' || budget.action === 'compress_urgent',
         recommendedTools,
@@ -767,9 +988,15 @@ class IntegrationLayer {
    */
   loadOnDemandSkill(skillName, taskType) {
     if (!this.preloadSkills) return null;
+    const t0 = Date.now();
     try {
-      return this.preloadSkills.loadOnDemand(skillName, taskType);
+      const result = this.preloadSkills.loadOnDemand(skillName, taskType);
+      this.recordPackageExecution('preloadSkills', 'loadOnDemand', true, Date.now() - t0, { skillName, taskType });
+      return result;
     } catch (err) {
+      this.recordPackageExecution('preloadSkills', 'loadOnDemand', false, Date.now() - t0, {
+        skillName, taskType, error: err.message,
+      });
       this.logger.warn('on-demand skill load failed', {
         skillName,
         taskType,
@@ -786,7 +1013,11 @@ class IntegrationLayer {
     if (!this.preloadSkills) return;
     try {
       this.preloadSkills.recordUsage(usedTools, taskType);
+      this.recordPackageExecution('preloadSkills', 'recordUsage', true, 0, { taskType });
     } catch (err) {
+      this.recordPackageExecution('preloadSkills', 'recordUsage', false, 0, {
+        taskType, error: err.message,
+      });
       this.logger.warn('recordToolUsage failed', {
         usedTools,
         taskType,
@@ -905,6 +1136,240 @@ class IntegrationLayer {
   }
 
   /**
+   * Normalize task context shape for advisor and downstream learners.
+   */
+  normalizeTaskContext(taskContext = {}) {
+    const normalized = { ...taskContext };
+
+    const taskType = normalized.task_type || normalized.taskType || normalized.task || null;
+    if (taskType && !normalized.task_type) {
+      normalized.task_type = taskType;
+    }
+    if (taskType && !normalized.taskType) {
+      normalized.taskType = taskType;
+    }
+    if (taskType && !normalized.task) {
+      normalized.task = taskType;
+    }
+
+    const attemptNumber = normalized.attemptNumber ?? normalized.attempt_number ?? null;
+    if (attemptNumber !== null && normalized.attemptNumber === undefined) {
+      normalized.attemptNumber = attemptNumber;
+    }
+    if (attemptNumber !== null && normalized.attempt_number === undefined) {
+      normalized.attempt_number = attemptNumber;
+    }
+
+    return normalized;
+  }
+
+  _isOrchestrationPolicyEnabled(taskContext = {}, runtimeContext = {}) {
+    const taskPolicy = taskContext.orchestrationPolicy;
+    const runtimePolicy = runtimeContext.orchestrationPolicy;
+
+    if (taskPolicy && typeof taskPolicy === 'object' && taskPolicy.enabled === false) {
+      return false;
+    }
+    if (runtimePolicy && typeof runtimePolicy === 'object' && runtimePolicy.enabled === false) {
+      return false;
+    }
+    if (taskContext.disableOrchestrationPolicy === true || runtimeContext.disableOrchestrationPolicy === true) {
+      return false;
+    }
+
+    if (!this._isOrchestrationPolicyCategoryEnabled(taskContext, runtimeContext)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  _normalizeRolloutEnabledCategories(categories) {
+    if (!Array.isArray(categories)) {
+      return null;
+    }
+
+    const normalized = categories
+      .map((value) => String(value || '').trim().toLowerCase())
+      .filter(Boolean);
+
+    return new Set(normalized);
+  }
+
+  _resolveOrchestrationPolicyRollout(taskContext = {}, runtimeContext = {}) {
+    const taskPolicy = taskContext.orchestrationPolicy;
+    const runtimePolicy = runtimeContext.orchestrationPolicy;
+
+    const candidates = [
+      runtimePolicy?.rollout,
+      taskPolicy?.rollout,
+      runtimeContext?.orchestrationPolicyRollout,
+      taskContext?.orchestrationPolicyRollout,
+    ];
+
+    for (const candidate of candidates) {
+      if (!candidate || typeof candidate !== 'object') {
+        continue;
+      }
+
+      const categories = this._normalizeRolloutEnabledCategories(candidate.enabledCategories);
+      if (categories) {
+        return categories;
+      }
+    }
+
+    return new Set(DEFAULT_ORCHESTRATION_POLICY_ROLLOUT_CATEGORIES);
+  }
+
+  _isOrchestrationPolicyCategoryEnabled(taskContext = {}, runtimeContext = {}) {
+    const categoryRaw = taskContext.category || taskContext.task_type || taskContext.taskType || taskContext.task || 'default';
+    const category = String(categoryRaw).trim().toLowerCase();
+    if (!category) {
+      return false;
+    }
+
+    const enabledCategories = this._resolveOrchestrationPolicyRollout(taskContext, runtimeContext);
+    return enabledCategories.has(category);
+  }
+
+  _buildFailOpenPolicyDecision(reason, metadata = {}) {
+    return {
+      contractVersion: '1.0',
+      failOpen: true,
+      inputs: {
+        runtimeContext: {},
+        budgetSignals: {},
+        taskClassification: {},
+      },
+      outputs: {
+        parallel: {
+          maxFanout: 1,
+          maxConcurrency: 1,
+        },
+        routing: {
+          weightHints: {
+            quality: 0.5,
+            cost: 0.3,
+            latency: 0.2,
+          },
+          fallback: {
+            allowFailOpen: true,
+            reason,
+            metadata: {
+              combinedBudgetBand: 'healthy',
+              precedenceRule: 'policy.failOpenFallback',
+              ...metadata,
+            },
+          },
+        },
+      },
+      explain: {
+        budget: {
+          score: 0,
+          band: 'healthy',
+          contextPressure: 0,
+          costPressure: 0,
+          weights: { context: 0.7, cost: 0.3 },
+          components: { context: 0, cost: 0 },
+        },
+        baseCaps: {
+          category: 'default',
+          complexity: 'moderate',
+          fanout: 1,
+          concurrency: 1,
+        },
+        precedence: {
+          orderedRules: ['policy.failOpenFallback'],
+          appliedRule: 'policy.failOpenFallback',
+        },
+      },
+    };
+  }
+
+  _resolveOrchestrationPolicyDecision(taskContext = {}, runtimeContext = {}) {
+    if (!this._isOrchestrationPolicyEnabled(taskContext, runtimeContext)) {
+      return null;
+    }
+
+    if (typeof resolveOrchestrationPolicy !== 'function') {
+      return this._buildFailOpenPolicyDecision('policy-module-unavailable');
+    }
+
+    const quotaSignal = taskContext.quota_signal || taskContext.quotaSignal || {};
+    const runtimeBudget = runtimeContext.budget && typeof runtimeContext.budget === 'object'
+      ? runtimeContext.budget
+      : {};
+    const budgetSignals = {};
+    const contextPressure = runtimeBudget.contextPressure ?? runtimeBudget.context_pressure ?? runtimeBudget.pct ?? quotaSignal.percent_used;
+    const costPressure = runtimeBudget.costPressure ?? runtimeBudget.cost_pressure ?? quotaSignal.percent_used;
+
+    if (Number.isFinite(Number(contextPressure))) {
+      budgetSignals.contextPressure = Number(contextPressure);
+    }
+    if (Number.isFinite(Number(costPressure))) {
+      budgetSignals.costPressure = Number(costPressure);
+    }
+
+    const taskClassification = {
+      category: taskContext.category || taskContext.task_type || taskContext.taskType || taskContext.task || 'default',
+      taskType: taskContext.task_type || taskContext.taskType || taskContext.task || 'general',
+      complexity: taskContext.complexity || 'moderate',
+    };
+
+    const runtimePolicyContext = {
+      parallel: {
+        ...(runtimeContext.parallel && typeof runtimeContext.parallel === 'object' ? runtimeContext.parallel : {}),
+        ...(taskContext.parallel && typeof taskContext.parallel === 'object' ? taskContext.parallel : {}),
+      },
+    };
+
+    try {
+      return resolveOrchestrationPolicy({
+        runtimeContext: runtimePolicyContext,
+        budgetSignals,
+        taskClassification,
+      });
+    } catch (error) {
+      return this._buildFailOpenPolicyDecision('policy-evaluation-failed', {
+        error: error?.message || String(error),
+      });
+    }
+  }
+
+  _buildDownstreamMetaContext(runtimeContext, advice) {
+    const preloadBlock = typeof runtimeContext?.meta_context === 'string'
+      ? runtimeContext.meta_context
+      : '';
+    const normalizedPreload = preloadBlock.trim();
+    const adviceMeta = advice && typeof advice.meta_context === 'object' && advice.meta_context !== null
+      ? advice.meta_context
+      : null;
+
+    const hasPreload = normalizedPreload.length > 0;
+    const hasAdvice = Boolean(adviceMeta);
+
+    let source = 'none';
+    if (hasPreload && hasAdvice) {
+      source = 'merged';
+    } else if (hasPreload) {
+      source = 'preload-skills';
+    } else if (hasAdvice) {
+      source = 'advisor';
+    }
+
+    return {
+      source,
+      block: preloadBlock,
+      structured: adviceMeta || {
+        warnings: [],
+        suggestions: [],
+        conventions: [],
+      },
+      has_context: hasPreload || hasAdvice,
+    };
+  }
+
+  /**
    * Create hooks for OrchestrationAdvisor
    * These hooks augment advice with SkillRL and track failures
    */
@@ -956,7 +1421,7 @@ class IntegrationLayer {
         // Record failure in SkillRL for evolution
         this.skillRL.evolutionEngine.learnFromFailure({
           task_id: taskContext.task_id || createOrchestrationId('task'),
-          task_type: taskContext.task || 'unknown',
+          task_type: taskContext.task_type || taskContext.task || 'unknown',
           skills_used: Array.isArray(outcome?.skills_used) ? outcome.skills_used : [],
           error_message: antiPattern.description,
           anti_pattern: {
@@ -969,7 +1434,7 @@ class IntegrationLayer {
 
         this.logger.info('Failure distilled into SkillRL', {
           antiPatternType: antiPattern.type,
-          task: taskContext.task || 'unknown'
+          task: taskContext.task_type || taskContext.task || 'unknown'
         });
       },
 
@@ -1076,32 +1541,186 @@ class IntegrationLayer {
   }
 
   /**
+   * Canonical delegation entrypoint.
+   */
+  async delegate(taskContext, executeTaskFn) {
+    return this.executeTaskWithEvidence(taskContext, executeTaskFn);
+  }
+
+  /**
+   * Backward-compatible alias for delegation entrypoint.
+   */
+  async executeDelegation(taskContext, executeTaskFn) {
+    return this.executeTaskWithEvidence(taskContext, executeTaskFn);
+  }
+
+  /**
    * Full workflow: task → SkillRL selection → execution → showboat evidence
    */
   async executeTaskWithEvidence(taskContext, executeTaskFn) {
     // Enrich context with system signals
     taskContext = this.enrichTaskContext(taskContext || {});
+    // T23: Normalize taskContext itself so both taskType and task_type are present
+    // for all downstream consumers (SkillRL, learnFromFailure, learnFromOutcome, etc.)
+    taskContext = this.normalizeTaskContext(taskContext);
+    const advisorContext = taskContext;
 
     // Compute runtime context so DCP/budget/tool recommendations participate in live flows
     const runtimeContext = this.resolveRuntimeContext(taskContext);
+    const isOrchestrationPolicyEnabled = this._isOrchestrationPolicyEnabled(taskContext, runtimeContext);
+    let computedPolicyDecision = isOrchestrationPolicyEnabled
+      ? (runtimeContext?.policyDecision || runtimeContext?.orchestrationPolicyDecision || taskContext?.policyDecision || null)
+      : null;
+    if (isOrchestrationPolicyEnabled && !computedPolicyDecision) {
+      try {
+        computedPolicyDecision = this._resolveOrchestrationPolicyDecision(taskContext, runtimeContext);
+      } catch (error) {
+        computedPolicyDecision = this._buildFailOpenPolicyDecision('policy-evaluation-failed', {
+          error: error?.message || String(error),
+        });
+      }
+    }
+    if (computedPolicyDecision) {
+      runtimeContext.policyDecision = computedPolicyDecision;
+      runtimeContext.orchestrationPolicyDecision = computedPolicyDecision;
+      taskContext.policyDecision = computedPolicyDecision;
+    }
     taskContext.runtime_context = runtimeContext;
     taskContext.runtimeContext = runtimeContext;
+    taskContext.meta_context = runtimeContext?.meta_context || '';
+
+    // Telemetry seam: emit normalized orchestration policy decisions when present.
+    // Fail-open by design: telemetry emission must never alter task behavior.
+    const policyDecision = runtimeContext?.policyDecision || runtimeContext?.orchestrationPolicyDecision || taskContext?.policyDecision || null;
+    if (policyDecision && this.pipelineMetrics && typeof this.pipelineMetrics.recordPolicyDecision === 'function') {
+      try {
+        this.pipelineMetrics.recordPolicyDecision(policyDecision, {
+          sessionId: taskContext.session_id || taskContext.sessionId || this.currentSessionId || '',
+          taskId: taskContext.task_id || taskContext.taskId || '',
+          taskType: taskContext.task_type || taskContext.taskType || taskContext.task || 'unknown',
+          sampleRate: runtimeContext?.telemetry?.policyDecisionSampleRate ?? taskContext?.policyTelemetrySampleRate,
+        });
+      } catch (_e) {
+        // fail-open: telemetry must never break execution
+      }
+    }
+
+    if (policyDecision && this.pipelineMetrics && typeof this.pipelineMetrics.recordParallelControls === 'function') {
+      try {
+        const requestedParallel = policyDecision?.inputs?.runtimeContext?.parallel || runtimeContext?.parallel || {};
+        const appliedParallel = policyDecision?.outputs?.parallel || {};
+        this.pipelineMetrics.recordParallelControls({
+          sessionId: taskContext.session_id || taskContext.sessionId || this.currentSessionId || '',
+          taskId: taskContext.task_id || taskContext.taskId || '',
+          taskType: taskContext.task_type || taskContext.taskType || taskContext.task || 'unknown',
+          category: policyDecision?.inputs?.taskClassification?.category || taskContext.category || 'default',
+          budgetBand: policyDecision?.explain?.budget?.band || 'healthy',
+          fallbackReason: policyDecision?.outputs?.routing?.fallback?.reason || 'policy-applied',
+          requestedFanout: requestedParallel.requestedFanout ?? requestedParallel.fanout,
+          requestedConcurrency: requestedParallel.requestedConcurrency ?? requestedParallel.concurrency,
+          appliedFanout: appliedParallel.maxFanout,
+          appliedConcurrency: appliedParallel.maxConcurrency,
+          source: 'integration-layer',
+          failOpen: policyDecision?.failOpen === true,
+        });
+      } catch (_e) {
+        // fail-open: telemetry must never break execution
+      }
+    }
+
+    // [T11] Check context budget before execution — fail-open, never blocks
+    const _sessionId = taskContext.session_id || taskContext.sessionId;
+    const _model = taskContext.model || taskContext.modelId || runtimeContext?.model;
+    if (_sessionId && _model) {
+      try {
+        const budget = this.checkContextBudget(_sessionId, _model, 1000 /* estimated */);
+        if (budget.status === 'error') {
+          this.logger.error('Context budget CRITICAL before task', { session: _sessionId, model: _model });
+        } else if (budget.status === 'warn') {
+          this.logger.warn('Context budget WARNING before task', { session: _sessionId, model: _model });
+        }
+        // Never block — budget check is advisory only
+      } catch (e) {
+        // Fail-open: budget check failure does not block execution
+      }
+    }
 
     // Set context for showboat
     this.setTaskContext(taskContext);
 
     // Get SkillRL recommendations
     let skills = null;
+    let metaKBAdj = null;
     if (this.skillRL) {
       skills = this.skillRL.selectSkills(taskContext);
+
+      // Meta-KB signal injection into SkillRL promotion/demotion scoring
+      if (this.metaKBIndex && Array.isArray(skills) && skills.length > 0) {
+        try {
+          const rescored = this._applyMetaKBSkillPromotionScores(taskContext, skills, this.metaKBIndex);
+          skills = rescored.skills;
+          metaKBAdj = rescored.adjustments;
+
+          if (metaKBAdj && metaKBAdj.net_adjustment < -0.3) {
+            this.logger.warn('Meta-KB anti-pattern risk detected for selected skills', {
+              net_adjustment: metaKBAdj.net_adjustment,
+              anti_pattern_penalty: metaKBAdj.anti_pattern_penalty,
+              affected_skills: metaKBAdj.affected_skills,
+            });
+          }
+        } catch (_e) {
+          // Fail-open: meta-KB adjustment must never block execution
+          this.logger.warn('Meta-KB skill adjustment failed (fail-open)', { error: _e?.message });
+        }
+      }
+
       this.logger.info('SkillRL selected skills', {
         skills: skills.map((s) => s.name),
         task: taskContext.task || 'unknown'
       });
+
+      // T18: Auto-feed PipelineMetricsCollector on skill selection
+      if (this.pipelineMetrics && typeof this.pipelineMetrics.recordSkillSelection === 'function' && skills.length > 0) {
+        try {
+          this.pipelineMetrics.recordSkillSelection({
+            skills: skills.map(s => s.name),
+            taskType: taskContext.task_type || taskContext.task || 'unknown',
+            timestamp: Date.now(),
+          });
+        } catch (_e) { /* fail-open */ }
+      }
+    }
+
+    // Cross-feedback: SkillRL performance → advise() context
+    // Enrich advisorContext with top/bottom skill performers so LearningEngine's
+    // OrchestrationAdvisor can factor SkillRL data into routing decisions.
+    if (this.skillRL && this.skillRL.skillBank) {
+      try {
+        const _allSkills = [...this.skillRL.skillBank.generalSkills.values()];
+        const _usedSkills = _allSkills.filter(s => (s.usage_count || 0) > 0);
+        if (_usedSkills.length > 0) {
+          const _sorted = _usedSkills.sort((a, b) => (b.success_rate || 0) - (a.success_rate || 0));
+          advisorContext.skillRLPerformance = {
+            top_performers: _sorted.slice(0, 5).map(s => ({ name: s.name, success_rate: s.success_rate, usage_count: s.usage_count })),
+            bottom_performers: _sorted.slice(-3).map(s => ({ name: s.name, success_rate: s.success_rate, usage_count: s.usage_count })),
+            total_skills: _allSkills.length,
+            active_skills: _usedSkills.length,
+          };
+        }
+      } catch (_e) { /* fail-open: enrichment must never block advise() */ }
     }
 
     // Execute the task with adaptive options
-    const advice = this.advisor ? this.advisor.advise(taskContext) : null;
+    let advice = null;
+    if (this.advisor) {
+      try {
+        advice = await Promise.resolve(this.advisor.advise(advisorContext));
+      } catch (_advisorErr) {
+        this.logger.warn('Advisor.advise() failed (fail-open)', { error: _advisorErr?.message });
+      }
+    }
+    const downstreamMetaContext = this._buildDownstreamMetaContext(runtimeContext, advice);
+    taskContext.meta_context = downstreamMetaContext;
     const budgetAction = runtimeContext?.budget?.action || 'none';
     const compressionActive = runtimeContext?.compression?.active === true;
     const adaptiveOptions = {
@@ -1112,8 +1731,69 @@ class IntegrationLayer {
       compressionActive,
       recommendedTools: runtimeContext?.toolNames || [],
       compressionRecommendedTools: runtimeContext?.compression?.recommendedTools || [],
-      compressionRecommendedSkills: runtimeContext?.compression?.recommendedSkills || []
+      compressionRecommendedSkills: runtimeContext?.compression?.recommendedSkills || [],
+      metaKBSkillAdjustments: metaKBAdj,
+      metaContext: downstreamMetaContext,
     };
+
+    // Wire: record compression advisory when evaluateAndCompress() triggers compress/compress_urgent
+    if (compressionActive && this.pipelineMetrics && typeof this.pipelineMetrics.recordCompression === 'function') {
+      try {
+        const _budgetPct = runtimeContext?.budget?.pct || 0;
+        const _budgetStatus = (_sessionId && _model) ? this.getContextBudgetStatus(_sessionId, _model) : null;
+        const _usedTokens = _budgetStatus?.used || 0;
+        // Estimate post-compression tokens at ~50% savings (distill average)
+        const _estimatedAfter = _usedTokens > 0 ? Math.round(_usedTokens * 0.5) : 0;
+        this.pipelineMetrics.recordCompression({
+          sessionId: _sessionId || '',
+          tokensBefore: _usedTokens,
+          tokensAfter: _estimatedAfter,
+          pipeline: budgetAction === 'compress_urgent' ? 'distill-urgent' : 'distill-advisory',
+          durationMs: 0,
+        });
+      } catch (_e) { /* fail-open: metric recording must never break execution */ }
+    }
+
+    // T4: Budget-aware model routing — call modelRouter.route() before execution
+    // so _applyBudgetPenalty() scores actually influence model selection at runtime.
+    // Fail-open: if route() throws or modelRouter is unavailable, continue with original model.
+    if (this.modelRouter && typeof this.modelRouter.route === 'function') {
+      try {
+        const routeCtx = {
+          sessionId: _sessionId,
+          modelId: _model,
+          taskType: taskContext.task_type || taskContext.taskType || taskContext.task || 'general',
+          complexity: taskContext.complexity || 'moderate',
+          task: taskContext.task,
+        };
+        if (policyDecision) {
+          routeCtx.policyDecision = policyDecision;
+        }
+        const routeResult = this.modelRouter.route(routeCtx);
+        if (routeResult && routeResult.modelId) {
+          const originalModel = _model;
+          if (routeResult.modelId !== originalModel) {
+            taskContext.model = routeResult.modelId;
+            taskContext.modelId = routeResult.modelId;
+            this.logger.warn('ModelRouter budget-aware routing overrode model', {
+              original: originalModel,
+              routed: routeResult.modelId,
+              score: routeResult.score,
+              reason: routeResult.reason,
+            });
+          } else {
+            this.logger.info('ModelRouter confirmed current model', {
+              model: routeResult.modelId,
+              score: routeResult.score,
+              reason: routeResult.reason,
+            });
+          }
+        }
+      } catch (_routeErr) {
+        // Fail-open: routing failure must never block task execution
+        this.logger.warn('ModelRouter.route() failed (fail-open)', { error: _routeErr?.message });
+      }
+    }
 
     let result = null;
     let executionError = null;
@@ -1138,6 +1818,25 @@ class IntegrationLayer {
       );
     }
 
+    // [T10] Record actual token consumption — fail-open, advisory only
+    const _tokensUsed = result?.tokensUsed || result?.usage?.total_tokens || result?.usage?.output_tokens || 0;
+    let _budgetResult = null;
+    if (_tokensUsed > 0 && _sessionId && _model) {
+      try {
+        _budgetResult = this.recordTokenUsage(_sessionId, _model, _tokensUsed);
+      } catch (e) {
+        // Fail-open: token recording failure is non-fatal
+      }
+    }
+    // [T19] Evaluate budget alerts after token consumption — fail-open
+    if (_budgetResult && this.alertManager && typeof this.alertManager.evaluateBudget === 'function') {
+      try {
+        this.alertManager.evaluateBudget({ sessionId: _sessionId, model: _model, ..._budgetResult });
+      } catch (_e) {
+        // Fail-open: alert evaluation is advisory only
+      }
+    }
+
     // Update quota signal with fallback info from result if present
     if (taskContext.quota_signal) {
       const fallbackApplied = result?.fallbackApplied ?? result?.fallback_applied;
@@ -1152,7 +1851,7 @@ class IntegrationLayer {
     const isHighRisk = advice?.risk_score > 60;
     
     let isSkillUncertain = false;
-    if (this.skillRL && skills) {
+    if (this.skillRL && this.skillRL.skillBank && skills) {
       isSkillUncertain = skills.some(s => {
         const perf = this.skillRL.skillBank.getSkillPerformance(s.name, taskContext.task);
         return perf?.is_uncertain;
@@ -1181,13 +1880,30 @@ class IntegrationLayer {
       ? _getSessionMcpInvocations(taskContext.session_id || taskContext.sessionId)
       : [];
 
+    // Wire: record Context7 lookups from MCP tool invocations
+    if (this.pipelineMetrics && typeof this.pipelineMetrics.recordContext7Lookup === 'function' && _mcpToolsUsed.length > 0) {
+      try {
+        const _context7Tools = _mcpToolsUsed.filter(t =>
+          String(t).toLowerCase().includes('context7')
+        );
+        for (const _c7tool of _context7Tools) {
+          this.pipelineMetrics.recordContext7Lookup({
+            libraryName: String(_c7tool),
+            resolved: true,
+            snippetCount: 0,
+            durationMs: 0,
+          });
+        }
+      } catch (_e) { /* fail-open: metric recording must never break execution */ }
+    }
+
     // Learn from outcome if failure
     if (!result.success && this.skillRL && skills) {
       this.skillRL.evolutionEngine.learnFromFailure({
         task_id: taskContext.task_id,
         run_id: taskContext.run_id,
         step_id: taskContext.step_id,
-        task_type: taskContext.task || 'unknown',
+        task_type: taskContext.task_type || taskContext.task || 'unknown',
         skills_used: skills.map(s => s.name),
         skill_used: skills[0]?.name,
         error_message: result.error || 'Unknown error',
@@ -1203,7 +1919,7 @@ class IntegrationLayer {
         success: false,
         skill_used: skills[0]?.name,
         mcpToolsUsed: _mcpToolsUsed,
-        task_type: taskContext.task || 'unknown',
+        task_type: taskContext.task_type || taskContext.task || 'unknown',
       });
     } else if (result.success && this.skillRL && skills) {
       this.skillRL.learnFromOutcome({
@@ -1211,7 +1927,7 @@ class IntegrationLayer {
         task_id: taskContext.task_id,
         run_id: taskContext.run_id,
         step_id: taskContext.step_id,
-        task_type: taskContext.task || 'unknown',
+        task_type: taskContext.task_type || taskContext.task || 'unknown',
         skills_used: skills.map((s) => s.name),
         skill_used: skills[0]?.name,
         mcpToolsUsed: _mcpToolsUsed,
@@ -1221,6 +1937,95 @@ class IntegrationLayer {
         },
         quota_signal: this._extractQuotaSignal(taskContext, result)
       });
+    }
+
+    // Cross-feedback: SkillRL → LearningEngine
+    // After SkillRL updates skill weights, forward skill performance data to
+    // LearningEngine as pattern evidence so both learning systems reinforce each other.
+    // Fail-open: cross-feedback must never break task execution.
+    if (this.learningEngine && this.skillRL && skills) {
+      try {
+        const _taskType = taskContext.task_type || taskContext.task || 'unknown';
+        const _primarySkill = skills[0]?.name;
+        const _skillData = _primarySkill ? this.skillRL.skillBank.generalSkills.get(_primarySkill) : null;
+        if (_skillData) {
+          const _perfSummary = {
+            skill_name: _skillData.name,
+            success_rate: _skillData.success_rate,
+            usage_count: _skillData.usage_count,
+            tool_affinities: _skillData.tool_affinities || {},
+          };
+          if (result.success) {
+            this.learningEngine.addPositivePattern({
+              type: 'skill_success',
+              description: `Skill "${_primarySkill}" succeeded (rate: ${(_skillData.success_rate ?? 0).toFixed(2)}, uses: ${_skillData.usage_count || 0})`,
+              success_rate: _skillData.success_rate || 0.5,
+              context: { task_type: _taskType, skill_performance: _perfSummary },
+              discovered_at: new Date().toISOString(),
+              source: 'skillrl-cross-feedback',
+            });
+          } else {
+            this.learningEngine.addAntiPattern({
+              type: 'skill_failure',
+              description: `Skill "${_primarySkill}" failed (rate: ${(_skillData.success_rate ?? 0).toFixed(2)}, uses: ${_skillData.usage_count || 0})`,
+              severity: (_skillData.success_rate != null && _skillData.success_rate < 0.3) ? 'high' : 'medium',
+              context: { task_type: _taskType, skill_performance: _perfSummary },
+              discovered_at: new Date().toISOString(),
+              source: 'skillrl-cross-feedback',
+            });
+          }
+        }
+      } catch (_e) { /* fail-open: cross-feedback must never break execution */ }
+    }
+
+    // Fire-and-forget: feed model exploration data back into SkillRL weights
+    // Reads model_performance SQLite table → calls skillRL.learnFromOutcome() per model
+    // Async, non-blocking, fail-open — must never delay task completion
+    if (this.explorationAdapter) {
+      const _taskCategory = taskContext.task_type || taskContext.task || 'unknown';
+      Promise.resolve()
+        .then(() => this.explorationAdapter.updateFromExploration(_taskCategory))
+        .catch(() => { /* fail-open: exploration feedback is advisory only */ });
+    }
+
+    // [T22] Track consecutive failures per skill for early warning
+    if (!result.success && skills) {
+      for (const skill of skills) {
+        const key = skill.name;
+        const entry = this._skillConsecutiveFailures.get(key) || { count: 0, lastTask: '' };
+        entry.count += 1;
+        entry.lastTask = taskContext.task || 'unknown';
+        this._skillConsecutiveFailures.set(key, entry);
+        if (entry.count >= 3) {
+          this.logger.warn('Skill consecutive failure threshold reached', {
+            skill: key,
+            consecutiveFailures: entry.count,
+            lastTask: entry.lastTask
+          });
+          // Soft weight reduction: flag in SkillRL for next selection
+          if (this.skillRL && typeof this.skillRL.skillBank?.markSkillCaution === 'function') {
+            try { this.skillRL.skillBank.markSkillCaution(key, entry.count); } catch {}
+          }
+        }
+      }
+    } else if (result.success && skills) {
+      // Reset consecutive failure counter on success
+      for (const skill of skills) {
+        this._skillConsecutiveFailures.delete(skill.name);
+      }
+    }
+
+    // [T21] FallbackDoctor skill failure detection — advisory only
+    if (this.fallbackDoctor && skills && typeof this.fallbackDoctor.detectSkillFailures === 'function') {
+      try {
+        const sfResult = this.fallbackDoctor.detectSkillFailures(skills, taskContext);
+        if (sfResult.problematicSkills.length > 0) {
+          this.logger.warn('FallbackDoctor: problematic skills detected', {
+            skills: sfResult.problematicSkills,
+            warnings: sfResult.warnings
+          });
+        }
+      } catch { /* fail-open */ }
     }
 
     if (executionError) {
@@ -1319,6 +2124,133 @@ class IntegrationLayer {
       positive_evidence: positiveEvidence,
       affected_skills: affectedSkills,
       net_adjustment: positiveEvidence - antiPatternPenalty,
+    };
+  }
+
+  _applyMetaKBSkillPromotionScores(taskContext, skills, metaKBIndex) {
+    const perSkillSignals = [];
+    const rescored = skills.map((skill) => {
+      const signal = this._computeMetaKBSignalForSkill(taskContext, skill, metaKBIndex);
+      perSkillSignals.push(signal);
+
+      const promotionScore = this._computeSkillPromotionScore(skill);
+      const adjustedPromotionScore = promotionScore + signal.positiveBonus - signal.antiPatternPenalty;
+
+      return {
+        ...skill,
+        promotion_score: promotionScore,
+        adjusted_promotion_score: adjustedPromotionScore,
+        meta_kb_signal: {
+          anti_pattern_penalty: signal.antiPatternPenalty,
+          positive_pattern_bonus: signal.positiveBonus,
+          anti_pattern_hits: signal.antiPatternHits,
+          positive_pattern_hits: signal.positivePatternHits,
+        },
+      };
+    }).sort((a, b) => (b.adjusted_promotion_score || 0) - (a.adjusted_promotion_score || 0));
+
+    const antiPatternPenalty = perSkillSignals.reduce((sum, signal) => sum + signal.antiPatternPenalty, 0);
+    const positiveEvidence = perSkillSignals.reduce((sum, signal) => sum + signal.positiveBonus, 0);
+    const affectedSkills = perSkillSignals
+      .filter((signal) => signal.antiPatternHits > 0)
+      .map((signal) => ({
+        skill: signal.skillName,
+        type: 'anti_pattern',
+        severity: signal.maxSeverity,
+      }));
+
+    return {
+      skills: rescored,
+      adjustments: {
+        anti_pattern_penalty: antiPatternPenalty,
+        positive_evidence: positiveEvidence,
+        affected_skills: affectedSkills,
+        net_adjustment: positiveEvidence - antiPatternPenalty,
+      },
+    };
+  }
+
+  _computeSkillPromotionScore(skill) {
+    const relevanceScore = Number(skill?.relevance_score);
+    const successRate = Number(skill?.success_rate);
+    const existingPromotion = Number(skill?.promotion_score);
+    const usageCount = Number(skill?.usage_count) || 0;
+
+    const base = Number.isFinite(existingPromotion)
+      ? existingPromotion
+      : (Number.isFinite(relevanceScore)
+        ? relevanceScore
+        : (Number.isFinite(successRate) ? successRate : 0.5));
+
+    const usageBoost = Math.min(usageCount / 100, 0.3);
+    return base + usageBoost;
+  }
+
+  _computeMetaKBSignalForSkill(taskContext, skill, metaKBIndex) {
+    const skillName = String(skill?.name || '').toLowerCase();
+    const tokens = skillName.split(/[-_\s]+/).filter(Boolean);
+    const skillTerms = new Set([skillName, ...tokens]);
+    const files = Array.isArray(taskContext?.files) ? taskContext.files : [];
+
+    let antiPatternPenalty = 0;
+    let positiveBonus = 0;
+    let antiPatternHits = 0;
+    let positivePatternHits = 0;
+    let maxSeverity = 'low';
+
+    const severityPenalty = {
+      critical: 0.6,
+      high: 0.4,
+      medium: 0.25,
+      low: 0.1,
+    };
+    const severityRank = { low: 1, medium: 2, high: 3, critical: 4 };
+
+    if (Array.isArray(metaKBIndex?.anti_patterns)) {
+      for (const antiPattern of metaKBIndex.anti_patterns) {
+        const text = `${antiPattern?.pattern || ''} ${antiPattern?.description || ''}`.toLowerCase();
+        const matched = [...skillTerms].some((term) => term && text.includes(term));
+        if (!matched) {
+          continue;
+        }
+
+        antiPatternHits += 1;
+        const severity = String(antiPattern?.severity || 'low').toLowerCase();
+        antiPatternPenalty += severityPenalty[severity] || severityPenalty.low;
+        if ((severityRank[severity] || 1) > (severityRank[maxSeverity] || 1)) {
+          maxSeverity = severity;
+        }
+      }
+    }
+
+    const byPath = metaKBIndex?.by_affected_path;
+    if (byPath && typeof byPath === 'object') {
+      for (const filePath of files) {
+        const normalized = String(filePath || '').replace(/\\/g, '/');
+        for (const [pathKey, entries] of Object.entries(byPath)) {
+          const normalizedKey = String(pathKey || '').replace(/\\/g, '/');
+          if (!normalized.startsWith(normalizedKey) && !normalized.includes(normalizedKey)) {
+            continue;
+          }
+
+          const entryList = Array.isArray(entries) ? entries : [];
+          for (const entry of entryList) {
+            const entryText = `${entry?.summary || ''} ${entry?.description || ''}`.toLowerCase();
+            const skillMatched = [...skillTerms].some((term) => term && entryText.includes(term));
+            positivePatternHits += 1;
+            positiveBonus += skillMatched ? 0.2 : 0.05;
+          }
+        }
+      }
+    }
+
+    return {
+      skillName,
+      antiPatternPenalty,
+      positiveBonus,
+      antiPatternHits,
+      positivePatternHits,
+      maxSeverity,
     };
   }
 

@@ -1,0 +1,14 @@
+{
+  "id": "fix-exploration-adapter-test-mock-20260319",
+  "timestamp": "2026-03-19T02:20:00.000Z",
+  "summary": "Fix exploration-adapter.test.js mock API mismatch: rename recordOutcome to learnFromOutcome to match ExplorationRLAdapter constructor expectations.",
+  "affected_paths": [
+    "packages/opencode-skill-rl-manager/test/exploration-adapter.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

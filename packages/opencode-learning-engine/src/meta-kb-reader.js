@@ -16,6 +16,17 @@ const MAX_META_CONTEXT_TOKENS = 200;
 const APPROX_CHARS_PER_TOKEN = 4;
 const MAX_CHARS = MAX_META_CONTEXT_TOKENS * APPROX_CHARS_PER_TOKEN;
 
+/** Query safety guards to prevent CPU explosions on large indexes. */
+const MAX_QUERY_FILES = 100;
+const MAX_PATH_KEYS = 2000;
+const MAX_PATH_ENTRIES_PER_MATCH = 100;
+const MAX_ANTI_PATTERNS = 1000;
+const MAX_CONVENTIONS = 1000;
+const MAX_SUGGESTIONS = 200;
+const MAX_WARNINGS = 100;
+const MAX_CONVENTION_RESULTS = 100;
+const MAX_QUERY_OPERATIONS = 50000;
+
 /** Risk level weights for ranking (higher = more important). */
 const RISK_WEIGHTS = { high: 3, medium: 2, low: 1 };
 
@@ -86,30 +97,90 @@ class MetaKBReader {
     const empty = { warnings: [], suggestions: [], conventions: [] };
     if (!this.index) return empty;
 
-    const files = taskContext?.files || [];
-    const taskType = taskContext?.task_type || '';
-    const description = (taskContext?.description || '').toLowerCase();
+    const rawFiles = Array.isArray(taskContext?.files) ? taskContext.files : [];
+    const files = rawFiles
+      .filter(file => typeof file === 'string' && file.length > 0)
+      .slice(0, MAX_QUERY_FILES);
+    const taskType = typeof taskContext?.task_type === 'string'
+      ? taskContext.task_type.toLowerCase()
+      : '';
+    const description = typeof taskContext?.description === 'string'
+      ? taskContext.description.toLowerCase()
+      : '';
 
     const warnings = [];
     const suggestions = [];
     const conventions = [];
+    const seenSuggestionIds = new Set();
+    const seenWarningPatterns = new Set();
+    const seenConventionNames = new Set();
+
+    let operations = 0;
+    const canContinue = () => operations < MAX_QUERY_OPERATIONS;
+    const bumpOperation = () => {
+      operations += 1;
+      return canContinue();
+    };
+
+    const addSuggestion = (entry, matchedPath) => {
+      if (!entry || typeof entry.id !== 'string' || seenSuggestionIds.has(entry.id)) return;
+      if (suggestions.length >= MAX_SUGGESTIONS) return;
+      seenSuggestionIds.add(entry.id);
+      suggestions.push({
+        type: 'path_match',
+        id: entry.id,
+        summary: entry.summary,
+        risk_level: entry.risk_level,
+        timestamp: entry.timestamp,
+        matched_path: matchedPath,
+        _score: this._score(entry),
+      });
+    };
+
+    const addWarning = (ap, pattern) => {
+      if (!pattern || seenWarningPatterns.has(pattern)) return;
+      if (warnings.length >= MAX_WARNINGS) return;
+      seenWarningPatterns.add(pattern);
+      warnings.push({
+        type: 'anti_pattern',
+        pattern: ap.pattern,
+        severity: ap.severity,
+        description: ap.description,
+        source_file: ap.file,
+        _score: (RISK_WEIGHTS[ap.severity] || 1) * 10,
+      });
+    };
+
+    const addConvention = (conv) => {
+      const key = conv?.convention;
+      if (!key || seenConventionNames.has(key)) return;
+      if (conventions.length >= MAX_CONVENTION_RESULTS) return;
+      seenConventionNames.add(key);
+      conventions.push({
+        type: 'convention',
+        convention: conv.convention,
+        description: conv.description,
+        source_file: conv.file,
+      });
+    };
 
     // 1. Match files against by_affected_path (path prefix match)
-    if (files.length > 0 && this.index.by_affected_path) {
+    if (files.length > 0 && this.index.by_affected_path && typeof this.index.by_affected_path === 'object') {
+      const pathEntries = Object.entries(this.index.by_affected_path).slice(0, MAX_PATH_KEYS);
       for (const file of files) {
+        if (!canContinue() || suggestions.length >= MAX_SUGGESTIONS) break;
         const normalized = file.replace(/\\/g, '/');
-        for (const [pathKey, entries] of Object.entries(this.index.by_affected_path)) {
+        for (const [pathKey, entries] of pathEntries) {
+          if (!canContinue() || suggestions.length >= MAX_SUGGESTIONS) break;
+          if (!bumpOperation()) break;
+          if (typeof pathKey !== 'string' || pathKey.length === 0 || !Array.isArray(entries)) continue;
           if (normalized.startsWith(pathKey) || normalized.includes(pathKey)) {
-            for (const entry of entries) {
-              suggestions.push({
-                type: 'path_match',
-                id: entry.id,
-                summary: entry.summary,
-                risk_level: entry.risk_level,
-                timestamp: entry.timestamp,
-                matched_path: pathKey,
-                _score: this._score(entry),
-              });
+            const maxEntries = Math.min(entries.length, MAX_PATH_ENTRIES_PER_MATCH);
+            for (let i = 0; i < maxEntries; i++) {
+              if (!canContinue() || suggestions.length >= MAX_SUGGESTIONS) break;
+              if (!bumpOperation()) break;
+              const entry = entries[i];
+              addSuggestion(entry, pathKey);
             }
           }
         }
@@ -117,8 +188,11 @@ class MetaKBReader {
     }
 
     // 2. Match anti-patterns by keyword overlap with task_type + description
-    if (this.index.anti_patterns) {
-      for (const ap of this.index.anti_patterns) {
+    if (Array.isArray(this.index.anti_patterns)) {
+      const antiPatterns = this.index.anti_patterns.slice(0, MAX_ANTI_PATTERNS);
+      for (const ap of antiPatterns) {
+        if (!canContinue() || warnings.length >= MAX_WARNINGS) break;
+        if (!bumpOperation()) break;
         const patternLower = (ap.pattern || '').toLowerCase();
         const descLower = (ap.description || '').toLowerCase();
         const matchesType = taskType && (patternLower.includes(taskType) || descLower.includes(taskType));
@@ -128,36 +202,33 @@ class MetaKBReader {
         );
 
         if (matchesType || matchesDesc) {
-          warnings.push({
-            type: 'anti_pattern',
-            pattern: ap.pattern,
-            severity: ap.severity,
-            description: ap.description,
-            source_file: ap.file,
-            _score: (RISK_WEIGHTS[ap.severity] || 1) * 10,
-          });
+          addWarning(ap, ap.pattern);
         }
       }
     }
 
     // 3. Match conventions relevant to affected paths
-    if (files.length > 0 && this.index.conventions) {
-      for (const conv of this.index.conventions) {
+    if (files.length > 0 && Array.isArray(this.index.conventions)) {
+      const conventionList = this.index.conventions.slice(0, MAX_CONVENTIONS);
+      for (const conv of conventionList) {
+        if (!canContinue() || conventions.length >= MAX_CONVENTION_RESULTS) break;
+        if (!bumpOperation()) break;
         const convFile = (conv.file || '').replace(/\\/g, '/');
         // Convention is relevant if any file being touched is near the convention's source file
-        const relevant = files.some(f => {
+        let relevant = false;
+        for (const f of files) {
+          if (!canContinue()) break;
+          if (!bumpOperation()) break;
           const normF = f.replace(/\\/g, '/');
           const prefix = this._pathPrefix(normF);
           const convPrefix = this._pathPrefix(convFile);
-          return prefix === convPrefix || convFile === 'AGENTS.md'; // root conventions apply everywhere
-        });
+          if (prefix === convPrefix || convFile === 'AGENTS.md') {
+            relevant = true;
+            break;
+          }
+        }
         if (relevant) {
-          conventions.push({
-            type: 'convention',
-            convention: conv.convention,
-            description: conv.description,
-            source_file: conv.file,
-          });
+          addConvention(conv);
         }
       }
     }
@@ -238,4 +309,18 @@ class MetaKBReader {
   }
 }
 
-module.exports = { MetaKBReader, MAX_META_CONTEXT_TOKENS, MAX_CHARS, DEFAULT_INDEX_PATH };
+module.exports = {
+  MetaKBReader,
+  MAX_META_CONTEXT_TOKENS,
+  MAX_CHARS,
+  DEFAULT_INDEX_PATH,
+  MAX_QUERY_FILES,
+  MAX_PATH_KEYS,
+  MAX_PATH_ENTRIES_PER_MATCH,
+  MAX_ANTI_PATTERNS,
+  MAX_CONVENTIONS,
+  MAX_SUGGESTIONS,
+  MAX_WARNINGS,
+  MAX_CONVENTION_RESULTS,
+  MAX_QUERY_OPERATIONS,
+};

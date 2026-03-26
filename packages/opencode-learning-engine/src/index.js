@@ -20,6 +20,15 @@ const { MetaAwarenessTracker } = require('./meta-awareness-tracker');
 const { MetaKBReader } = require('./meta-kb-reader');
 const EventEmitter = require('events');
 
+// Lazy require of central event bus — fail-open so LearningEngine works without it
+let _eventBus = null;
+function _getEventBus() {
+  if (_eventBus === null) {
+    try { _eventBus = require('opencode-event-bus'); } catch { _eventBus = undefined; }
+  }
+  return _eventBus || null;
+}
+
 class LearningEngine extends EventEmitter {
   /**
    * @param {Object} [options]
@@ -56,21 +65,43 @@ class LearningEngine extends EventEmitter {
     this.registerHook('adviceGenerated', ({ task_context, advice }) => {
       if (!this.metaKB.index || !advice?.routing) return;
       const metaResult = this.metaKB.query(task_context);
-      const warningCount = metaResult.warnings.length;
-      const evidenceCount = metaResult.suggestions.length;
+      const warnings = Array.isArray(metaResult?.warnings) ? metaResult.warnings : [];
+      const evidenceEntries = Array.isArray(metaResult?.suggestions) ? metaResult.suggestions : [];
+      const suggestedSkills = Array.isArray(advice.routing.skills)
+        ? advice.routing.skills
+          .filter((skill) => typeof skill === 'string' && skill.length > 0)
+          .map((skill) => skill.toLowerCase())
+        : [];
 
-      if (warningCount > 0) {
-        // Reduce confidence by 10% per warning, floor at 0.1
-        const factor = Math.pow(0.9, Math.min(warningCount, 5));
+      const relevantWarningCount = warnings.filter((warning) => {
+        if (suggestedSkills.length === 0) return false;
+        const warningText = [warning?.pattern, warning?.description, warning?.type]
+          .filter((part) => typeof part === 'string' && part.length > 0)
+          .join(' ')
+          .toLowerCase();
+        return suggestedSkills.some((skill) => warningText.includes(skill));
+      }).length;
+
+      if (relevantWarningCount > 0 && typeof advice.routing.confidence === 'number') {
         advice.routing.confidence = Math.max(
           0.1,
-          Math.round(advice.routing.confidence * factor * 100) / 100
+          Math.round(advice.routing.confidence * 0.9 * 100) / 100
         );
-        advice.routing.meta_kb_warnings = warningCount;
+        advice.routing.meta_kb_warnings = relevantWarningCount;
       }
 
-      if (evidenceCount > 0) {
-        advice.routing.meta_kb_evidence = evidenceCount;
+      if (evidenceEntries.length > 0) {
+        advice.routing.meta_kb_evidence = evidenceEntries.length;
+        if (!Array.isArray(advice.suggestions)) {
+          advice.suggestions = [];
+        }
+        advice.suggestions.push({
+          type: 'meta_kb_evidence',
+          description: `Meta-KB found ${evidenceEntries.length} relevant entries for skill routing.`,
+          evidence_count: evidenceEntries.length,
+          strength: 'SOFT',
+          action: 'CONSIDER',
+        });
       }
     });
 
@@ -339,11 +370,15 @@ class LearningEngine extends EventEmitter {
 
   /**
    * Emit EventEmitter event and registered hook callbacks.
+   * Also forwards to central event bus with 'learning:' prefix (fail-open).
    * @param {string} hookName
    * @param {unknown} payload
    */
   _emitHook(hookName, payload) {
     this.emit(hookName, payload);
+
+    // Forward to central event bus (fail-open)
+    try { _getEventBus()?.emit(`learning:${hookName}`, payload); } catch { /* fail-open */ }
 
     if (!this.hooks[hookName]) return;
 
@@ -693,6 +728,14 @@ class LearningEngine extends EventEmitter {
     // Add staleness warning if meta-KB index is outdated
     if (this.metaKB.isStale()) {
       advice.meta_context_stale = true;
+      if (!Array.isArray(advice.suggestions)) {
+        advice.suggestions = [];
+      }
+      advice.suggestions.push({
+        type: 'meta_kb_stale',
+        description: 'Meta-knowledge index is stale; recommendations may be outdated.',
+        strength: 'SOFT',
+      });
     }
 
     this.metaAwarenessTracker.trackEvent({

@@ -7,7 +7,7 @@
 const ModelSelectionStrategy = require('./model-selection-strategy');
 
 class FallbackLayerStrategy extends ModelSelectionStrategy {
-  #LAYERS = ['antigravity', 'anthropic', 'openai', 'google', 'zen', 'nvidia'];
+  #LAYERS = ['antigravity', 'anthropic', 'openai', 'google'];
 
   #MODEL_CATALOG = {
     antigravity: {
@@ -61,32 +61,6 @@ class FallbackLayerStrategy extends ModelSelectionStrategy {
       multimodal: 'gemini-3-pro',
       optimization: 'gemini-3-flash',
       orchestration: 'gemini-3-pro',
-    },
-    zen: {
-      simple_read: 'zen/glm5',
-      format_transform: 'zen/glm5',
-      documentation: 'zen/minimax-m2.5',
-      code_generation: 'zen/kimi-k2.5-pro',
-      code_transform: 'zen/kimi-k2.5-pro',
-      debugging: 'zen/kimi-k2.5-pro',
-      architecture: 'zen/minimax-m2.5',
-      large_context: 'zen/minimax-m2.5',
-      multimodal: 'zen/glm5',
-      optimization: 'zen/minimax-m2.5-lightning',
-      orchestration: 'zen/minimax-m2.5',
-    },
-    nvidia: {
-      simple_read: 'z-ai/glm4.7',
-      format_transform: 'z-ai/glm4.7',
-      documentation: 'z-ai/glm-5',
-      code_generation: 'moonshotai/kimi-k2.5',
-      code_transform: 'moonshotai/kimi-k2.5',
-      debugging: 'deepseek-ai/deepseek-v3.2',
-      architecture: 'z-ai/glm-5',
-      large_context: 'z-ai/glm-5',
-      multimodal: 'moonshotai/kimi-k2.5',
-      optimization: 'deepseek-ai/deepseek-v3.2',
-      orchestration: 'z-ai/glm-5',
     },
   };
 

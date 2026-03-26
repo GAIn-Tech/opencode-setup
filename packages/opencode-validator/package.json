@@ -1,14 +1,22 @@
 {
   "name": "opencode-validator",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./security-veto": "./src/security-veto.js"
+  },
   "scripts": {
-    "test": "node -e \"const v = require('./src/index.js'); console.log('PASS');\""
+    "test": "node -e \"const v = require('./src/index.js'); console.log('PASS');\"",
+    "test:veto": "node -e \"const { createSecurityVeto } = require('./src/security-veto.js'); const veto = createSecurityVeto(); console.log('SecurityVeto loaded successfully');\""
   },
   "keywords": [
     "opencode",
     "validator",
-    "validation"
+    "validation",
+    "security",
+    "veto",
+    "fail-closed"
   ],
   "author": "OpenCode",
   "license": "MIT",

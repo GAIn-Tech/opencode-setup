@@ -4,10 +4,13 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, readdirSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { resolveRoot, userConfigDir, userDataDir } from './resolve-root.mjs';
 
 const root = resolveRoot();
 const isWindows = process.platform === 'win32';
+const require = createRequire(import.meta.url);
+const { validateOpencodeConfigFile } = require(path.join(root, 'opencode-config', 'validate-schema.js'));
 
 function commandLocation(command) {
   const locator = isWindows ? 'where' : 'which';
@@ -638,6 +641,23 @@ function main() {
     );
   } else {
     printCheck('Environment readiness profile', true, 'Skipped (OPENCODE_VERIFY_ENV_PROFILE=none).');
+  }
+
+  for (const { filePath } of configsToValidate) {
+    if (!existsSync(filePath)) {
+      continue;
+    }
+    const schemaResult = validateOpencodeConfigFile(filePath);
+    const passed = schemaResult.ok;
+    if (!passed) {
+      failed += 1;
+    }
+    printCheck(
+      `${path.basename(filePath)} schema validation`,
+      passed,
+      passed ? filePath : schemaResult.errors.join('; '),
+      `Run: node scripts/validate-config.mjs --file "${filePath}"`
+    );
   }
 
   console.log('');

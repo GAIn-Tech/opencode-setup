@@ -20,6 +20,28 @@ const { resolveModelAlias, hasAlias, getAliasesFor, MODEL_ALIASES } = require('.
 const { validateResponse, isRetriableFailure, FAILURE_TYPES, ResponseValidationError } = require('./response-validator');
 const { SubagentRetryManager, CATEGORY_FALLBACKS, DEFAULT_FALLBACKS } = require('./subagent-retry-manager');
 
+function _isPlainObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function _asArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function _asObject(value) {
+  return _isPlainObject(value) ? value : {};
+}
+
+function _safeMathMin(values, fallback = 0) {
+  const numericValues = _asArray(values).filter((value) => Number.isFinite(value));
+  return numericValues.length > 0 ? Math.min(...numericValues) : fallback;
+}
+
+function _safeMathMax(values, fallback = 1) {
+  const numericValues = _asArray(values).filter((value) => Number.isFinite(value));
+  return numericValues.length > 0 ? Math.max(...numericValues) : fallback;
+}
+
 // P4: INTEGRATION LAYER - Use IntegrationLayer instead of individual imports (fixes option creep)
 // This single import replaces all the individual try/catch blocks below
 let IntegrationLayer;
@@ -36,7 +58,7 @@ try {
 // Fallback imports for direct access (used in constructor)
 // These are kept for backwards compatibility - the adapter is preferred
 let Logger, ValidatorLib, OpenCodeErrors, FallbackDoctor, HealthCheck;
-let MetaAwarenessTracker;
+let MetaAwarenessTracker, MetaKBReader;
 try { Logger = require('@jackoatmon/opencode-logger'); } catch (e) {
   try { Logger = require('../../opencode-logger/src/index.js'); } catch (e2) { Logger = null; }
 }
@@ -64,6 +86,15 @@ try {
     MetaAwarenessTracker = null;
   }
 }
+try {
+  ({ MetaKBReader } = require('@jackoatmon/opencode-learning-engine'));
+} catch (e) {
+  try {
+    ({ MetaKBReader } = require('../../opencode-learning-engine/src/meta-kb-reader.js'));
+  } catch (e2) {
+    MetaKBReader = null;
+  }
+}
 
 /**
  * P4: RouterIntegrationAdapter - Facade pattern to fix "option creep"
@@ -82,9 +113,95 @@ class RouterIntegrationAdapter {
     this._initialized = false;
     this.integrationLayerClass = options.integrationLayerClass || IntegrationLayer;
     this._log = options.logger || null;
-    
+    this.metaKBReaderClass = options.metaKBReaderClass || MetaKBReader;
+    this.metaKB = options.metaKB || null;
+    this.metaKBPath = options.metaKBPath;
+     
     // Lazy-initialize on first use
     this._services = {};
+
+    if (!this.metaKB && this.metaKBReaderClass) {
+      try {
+        this.metaKB = new this.metaKBReaderClass(this.metaKBPath);
+        this.metaKB.load?.();
+      } catch (_) {
+        this.metaKB = null;
+      }
+    }
+  }
+
+  _toModelArray(entry) {
+    if (!entry || typeof entry !== 'object') return [];
+    if (Array.isArray(entry.affected_models)) return entry.affected_models;
+    if (Array.isArray(entry.models)) return entry.models;
+    if (typeof entry.model === 'string') return [entry.model];
+    if (typeof entry.model_id === 'string') return [entry.model_id];
+    return [];
+  }
+
+  _buildContextText(context = {}) {
+    const parts = [
+      context.task_type,
+      context.taskType,
+      context.task,
+      context.description,
+      context.complexity,
+      ..._asArray(context.required_strengths),
+      ..._asArray(context.requiredStrengths),
+    ];
+    return parts
+      .filter((value) => typeof value === 'string' && value.trim().length > 0)
+      .join(' ')
+      .toLowerCase();
+  }
+
+  _extractMetaKBPenalties(context = {}) {
+    const penalties = {};
+    const antiPatterns = Array.isArray(this.metaKB?.index?.anti_patterns)
+      ? this.metaKB.index.anti_patterns
+      : [];
+    if (antiPatterns.length === 0) {
+      return penalties;
+    }
+
+    const contextText = this._buildContextText(context);
+    const metaWarnings = this.metaKB?.query?.(context)?.warnings || [];
+    const warningSet = new Set(
+      metaWarnings
+        .map((warning) => `${warning.pattern || ''}|${warning.description || ''}`)
+        .filter((key) => key !== '|')
+    );
+
+    for (const antiPattern of antiPatterns) {
+      const models = this._toModelArray(antiPattern);
+      if (models.length === 0) continue;
+
+      const antiPatternText = `${antiPattern.pattern || ''} ${antiPattern.description || ''}`.toLowerCase();
+      const warningKey = `${antiPattern.pattern || ''}|${antiPattern.description || ''}`;
+
+      const hasQueryHit = warningSet.has(warningKey)
+        || warningSet.has(`${antiPattern.pattern || ''}|`);
+      const contextTokens = contextText
+        .split(/[^a-z0-9-]+/)
+        .filter((token) => token.length >= 4);
+      const hasTokenOverlap = contextTokens.some((token) => antiPatternText.includes(token));
+      const isRelevant = hasQueryHit || hasTokenOverlap;
+      if (!isRelevant) continue;
+
+      const severity = antiPattern.severity === 'critical'
+        ? -0.4
+        : antiPattern.severity === 'high'
+          ? -0.3
+          : antiPattern.severity === 'medium'
+            ? -0.15
+            : -0.05;
+
+      for (const modelId of models) {
+        penalties[modelId] = (penalties[modelId] || 0) + severity;
+      }
+    }
+
+    return penalties;
   }
   
   /**
@@ -111,18 +228,23 @@ class RouterIntegrationAdapter {
    * Transforms raw advice into metaKBAdvice format for routing pipeline
    */
   getLearningAdvice(context) {
-    if (!this.layer?.advisor) {
-      this._log?.warn('[ModelRouter] Learning advisor not available');
-      return null;
-    }
     try {
-      const advice = this.layer.advisor.advise(context);
-      if (!advice) return null;
+      const safeContext = _asObject(context);
+      const normalizedContext = this.layer?.normalizeTaskContext
+        ? this.layer.normalizeTaskContext(safeContext)
+        : {
+            ...safeContext,
+            task_type: safeContext.task_type || safeContext.taskType || safeContext.task || 'general',
+            attempt_number: safeContext.attempt_number ?? safeContext.attemptNumber ?? 1,
+          };
+      const advice = this.layer?.advisor?.advise
+        ? this.layer.advisor.advise(normalizedContext)
+        : null;
       
       // Transform advice into metaKBAdvice format for routing
       // Look for anti-patterns that mention specific models to penalize
       const modelPenalties = {};
-      const antiPatterns = advice.antiPatterns || advice.patterns || [];
+      const antiPatterns = advice?.antiPatterns || advice?.patterns || [];
       
       for (const pattern of antiPatterns) {
         if (pattern.affected_models || pattern.models) {
@@ -133,9 +255,18 @@ class RouterIntegrationAdapter {
           }
         }
       }
+
+      const metaKBPenalties = this._extractMetaKBPenalties(normalizedContext);
+      for (const [modelId, penalty] of Object.entries(metaKBPenalties)) {
+        modelPenalties[modelId] = (modelPenalties[modelId] || 0) + penalty;
+      }
+
+      if (!advice && Object.keys(modelPenalties).length === 0) {
+        return null;
+      }
       
       return {
-        ...advice,
+        ..._asObject(advice),
         metaKBAdvice: {
           modelPenalties,
           source: 'meta-kb',
@@ -272,6 +403,9 @@ class ModelRouter {
       preloadSkills: options.preloadSkills,
       integrationLayerClass: options.integrationLayerClass,
       logger: options.logger || null,
+      metaKBPath: options.metaKBPath,
+      metaKBReaderClass: options.metaKBReaderClass,
+      metaKB: options.metaKB,
     });
     
     this.policies = policies;
@@ -284,6 +418,21 @@ class ModelRouter {
     this.tuning.success_rate_floor = this.tuning.success_rate_floor ?? 0.50;
     this.tuning.success_rate_ceiling = this.tuning.success_rate_ceiling ?? 0.99;
     this.tuning.min_samples_for_tuning = this.tuning.min_samples_for_tuning ?? 5;
+    const configuredPressureWindowMs = Number(
+      options.providerPressureWindowMs
+      ?? options.providerCooldownMs
+      ?? this.tuning.provider_pressure_window_ms
+      ?? this.tuning.providerPressureWindowMs
+      ?? this.tuning.provider_cooldown_ms
+      ?? this.tuning.providerCooldownMs
+      ?? 120000
+    );
+    this.providerPressureWindowMs = Number.isFinite(configuredPressureWindowMs) && configuredPressureWindowMs > 0
+      ? configuredPressureWindowMs
+      : 120000;
+    this.providerPressures = new Map();
+    // Backward compatibility for older tests/callers.
+    this.providerCooldowns = this.providerPressures;
     const MetaAwarenessTrackerClass = options.metaAwarenessTrackerClass || MetaAwarenessTracker;
     this.metaAwarenessTracker = options.metaAwarenessTracker || (MetaAwarenessTrackerClass ? new MetaAwarenessTrackerClass() : null);
 
@@ -493,91 +642,6 @@ class ModelRouter {
   }
 
   /**
-   * P1: Canonical Model ID Resolver - Fix schema mismatch between strategies and registry
-   * Strategies return IDs like 'claude-opus-4-6' but registry keys are namespaced like 'anthropic/claude-opus-4-6'
-   * Also resolves model aliases (e.g., google/gemini-3-pro → antigravity/antigravity-gemini-3-pro)
-   * @param {string} modelId - Potentially non-namespaced model ID
-   * @returns {string|null} - Canonical namespaced model ID or null if not found
-   */
-  resolveModelId(modelId) {
-    if (!modelId) return null;
-
-    // T5 (Wave 11): Cached model ID resolution — O(1) for known models
-    if (this._modelIdCache && this._modelIdCache.has(modelId)) {
-      return this._modelIdCache.get(modelId);
-    }
-    
-    // First, resolve any aliases (e.g., raw Gemini → Antigravity)
-    const aliasResolved = resolveModelAlias(modelId);
-    
-    // Already namespaced and exists in registry
-    if (this.models[aliasResolved]) {
-      if (!this._modelIdCache) this._modelIdCache = new Map();
-      this._modelIdCache.set(modelId, aliasResolved);
-      return aliasResolved;
-    }
-    if (this.models[modelId]) {
-      if (!this._modelIdCache) this._modelIdCache = new Map();
-      this._modelIdCache.set(modelId, modelId);
-      return modelId;
-    }
-    
-    // Provider prefix mapping for common model name patterns
-    const modelToProvider = {
-      'claude': 'anthropic', 'gpt-4': 'openai', 'gpt-4o': 'openai', 'gpt-4-turbo': 'openai',
-      'gpt-3.5': 'openai', 'llama': 'groq', 'mixtral': 'mistral', 'gemini': 'google',
-      'command': 'cohere', 'mistral': 'mistral', 'deepseek': 'deepseek'
-    };
-    
-    // Try to infer provider from model name prefix
-    const modelLower = modelId.toLowerCase();
-    for (const [pattern, provider] of Object.entries(modelToProvider)) {
-      if (modelLower.startsWith(pattern) || modelLower.includes(pattern)) {
-        const namespaced = `${provider}/${modelId}`;
-        if (this.models[namespaced]) {
-          if (!this._modelIdCache) this._modelIdCache = new Map();
-          this._modelIdCache.set(modelId, namespaced);
-          return namespaced;
-        }
-      }
-    }
-    
-    // Try all provider prefixes
-    const providerPrefixes = ['anthropic/', 'openai/', 'groq/', 'cerebras/', 'deepseek/', 'nvidia/', 'google/', 'mistral/', 'cohere/', 'x/', 'antigravity/'];
-    
-    for (const prefix of providerPrefixes) {
-      const namespaced = `${prefix}${modelId}`;
-      if (this.models[namespaced]) {
-        if (!this._modelIdCache) this._modelIdCache = new Map();
-        this._modelIdCache.set(modelId, namespaced);
-        return namespaced;
-      }
-    }
-    
-    // Try partial match - extract base model name (e.g., claude-opus-4-20240229 -> claude-opus)
-    for (const [key, model] of Object.entries(this.models)) {
-      const modelBaseName = model.id?.replace(/-(\d{8})$/, '').replace(/-(\d{4})$/, '');
-      if (modelBaseName && modelId.includes(modelBaseName)) {
-        if (!this._modelIdCache) this._modelIdCache = new Map();
-        this._modelIdCache.set(modelId, key);
-        return key;
-      }
-      // Also try matching the suffix without provider prefix
-      const keySuffix = key.split('/').pop();
-      if (keySuffix) {
-        const keyBase = keySuffix.replace(/-(\d{8})$/, '').replace(/-(\d{4})$/, '');
-        if (modelId.includes(keyBase)) {
-          if (!this._modelIdCache) this._modelIdCache = new Map();
-          this._modelIdCache.set(modelId, key);
-          return key;
-        }
-      }
-    }
-    
-    return null;
-  }
-
-  /**
    * T5 (Wave 11): Invalidate model ID resolution cache.
    * Call when model registry changes.
    */
@@ -728,7 +792,7 @@ class ModelRouter {
     
     // Pre-selection health verification: Filter out unavailable models before scoring
     // This prevents tool timeouts by checking circuit breaker state and key availability
-    candidates = this._filterByHealth(candidates);
+    candidates = this._filterByHealth(candidates, ctx || {});
     
     // Skill-RL Integration: Get skill-based model recommendations (T7: memoized)
     let skillBoost = {};
@@ -754,15 +818,10 @@ class ModelRouter {
           }
           this._skillRLMemo.set(taskType, { value: recommended, ts: now });
         }
-        if (recommended?.length > 0) {
-          recommended.forEach(skill => {
-            if (skill.recommendedModels) {
-              skill.recommendedModels.forEach(modelId => {
-                skillBoost[modelId] = (skillBoost[modelId] || 0) + skill.successRate;
-              });
-            }
-          });
-        }
+        // T24: SkillBank.selectSkills does not expose recommendedModels on skill objects.
+        // When skill-to-model mapping is added, populate skillBoost here
+        // using skill.success_rate (snake_case, matching SkillBank output shape).
+        // Dead recommendedModels/successRate(camelCase) code removed.
       } catch (e) {
         // Silently skip skill RL if unavailable
       }
@@ -783,14 +842,25 @@ class ModelRouter {
       }
     }
     
+    const policyAdjustments = this._computePolicyScoreAdjustments(candidates, ctx || {});
+
     const scored = candidates.map((modelId) => {
-      const baseScore = this._scoreModel(modelId, ctx);
+      const baseScoreRaw = this._scoreModel(modelId, ctx);
+      const baseScore = _asObject(baseScoreRaw);
+      const baseScoreValue = Number.isFinite(baseScore.score) ? baseScore.score : 0;
+      const baseReason = typeof baseScore.reason === 'string' ? baseScore.reason : '';
       const boost = skillBoost[modelId] || 0;
       const penalty = metaKBPenalty[modelId] || 0;
+      const policyAdjustment = policyAdjustments.adjustments[modelId] || 0;
+      const policyReason = policyAdjustments.reason
+        ? `${policyAdjustments.reason}(${policyAdjustment >= 0 ? '+' : ''}${policyAdjustment.toFixed(3)})`
+        : null;
+      const reason = [baseReason, policyReason].filter(Boolean).join('; ');
       return {
         modelId,
         ...baseScore,
-        score: baseScore.score + (boost * 0.1) + penalty, // 10% weight for skill, meta-KB penalty applied
+        score: baseScoreValue + (boost * 0.1) + penalty + policyAdjustment, // Keep existing factors; policy hints modulate final score
+        reason,
       };
     });
     scored.sort((a, b) => b.score - a.score);
@@ -914,67 +984,6 @@ class ModelRouter {
   }
 
   /**
-   * Track call outcome for adaptive scoring and key health.
-   * @param {string} modelId
-   * @param {boolean} success
-   * @param {number|object} latencyOrError - Latency in ms or error object
-   */
-  recordResult(modelId, success, latencyOrError = 0) {
-    if (!this.stats[modelId]) return;
-    
-    const latencyMs = typeof latencyOrError === 'number' ? latencyOrError : 0;
-    const error = typeof latencyOrError === 'object' ? latencyOrError : null;
-
-    this.stats[modelId].calls += 1;
-    if (success) {
-      this.stats[modelId].successes += 1;
-      if (this.metaAwarenessTracker) {
-        this.metaAwarenessTracker.trackEvent({
-          event_type: 'orchestration.failure_recovery_step',
-          task_type: 'model_execution',
-          complexity: 'moderate',
-          outcome: 'recovered',
-          metadata: {
-            model: modelId,
-            latency_ms: latencyMs,
-            recovered: true,
-          },
-        });
-      }
-    } else {
-      this.stats[modelId].failures += 1;
-      if (this.metaAwarenessTracker) {
-        this.metaAwarenessTracker.trackEvent({
-          event_type: 'orchestration.failure_recovery_step',
-          task_type: 'model_execution',
-          complexity: 'moderate',
-          outcome: 'repeated_failure',
-          metadata: {
-            model: modelId,
-            latency_ms: latencyMs,
-            repeated_failure: true,
-            error: error?.message || null,
-          },
-        });
-      }
-      
-      // Update key health if we have error details
-      const model = this.models[modelId];
-      if (model && error) {
-        const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
-        const keyId = error.keyId || null; // Some clients might provide the keyId
-        if (rotator && keyId) {
-            rotator.recordFailure(keyId, error);
-        }
-      }
-    }
-    this.stats[modelId].total_latency_ms += Number.isFinite(latencyMs) ? latencyMs : 0;
-    
-    // P1: Atomic Write for Stats - persist after each update
-    this._persistStatsAtomic();
-  }
-
-  /**
    * Atomic stats persistence - write to temp file then rename.
    * @private
    */
@@ -1084,10 +1093,16 @@ class ModelRouter {
    * @param {string[]} candidateIds - Model IDs to filter
    * @returns {string[]} - Available model IDs
    */
-  _filterByHealth(candidateIds) {
+  _filterByHealth(candidateIds, ctx = {}) {
+    this._ingestProviderPressureSignals(ctx);
+
     return candidateIds.filter((modelId) => {
       const model = this.models[modelId];
       if (!model) return false;
+
+      if (this._isProviderUnderPressure(model.provider)) {
+        return false;
+      }
       
       // Check circuit breaker state for this provider
       const cb = this.circuitBreakers[model.provider];
@@ -1125,120 +1140,260 @@ class ModelRouter {
     });
   }
 
-  /**
-   * Score model using policy + live signals.
-   * @private
-   */
-  _scoreModel(modelId, ctx = {}) {
-    const model = this.models[modelId];
-    if (!model) return { score: 0, reason: 'missing-model' };
+  _normalizePressureSeverity(input) {
+    if (typeof input === 'number' && Number.isFinite(input)) {
+      if (input >= 0.9) return 'critical';
+      if (input >= 0.75) return 'high';
+      if (input >= 0.55) return 'medium';
+      if (input >= 0.35) return 'low';
+      return null;
+    }
 
-    let score = 0.50;
-    const reasons = [];
+    if (typeof input !== 'string') return null;
+    const value = input.trim().toLowerCase();
+    if (value === 'critical' || value === 'high' || value === 'medium' || value === 'low') {
+      return value;
+    }
+    return null;
+  }
 
-    const successRate = this._getSuccessRate(modelId);
-    score += successRate * 0.30;
-    reasons.push(`success=${successRate.toFixed(2)}`);
+  _severityMultiplier(severity) {
+    if (severity === 'critical') return 2.0;
+    if (severity === 'high') return 1.5;
+    if (severity === 'medium') return 1.0;
+    if (severity === 'low') return 0.5;
+    return 0;
+  }
 
-    const avgLatency = this._getAvgLatency(modelId);
-    const baselineLatency = model.default_latency_ms || avgLatency || 1000;
-    const latencyPenalty = Math.min(0.20, Math.max(0, avgLatency - baselineLatency) / 5000);
-    score -= latencyPenalty;
-    reasons.push(`latency=${Math.round(avgLatency || baselineLatency)}ms`);
+  _setProviderPressure(provider, signal = {}, now = Date.now()) {
+    if (typeof provider !== 'string' || provider.trim().length === 0) {
+      return false;
+    }
 
-    if (ctx.taskType && Array.isArray(model.task_types)) {
-      if (model.task_types.includes(ctx.taskType)) {
-        score += 0.10;
-        reasons.push(`task=${ctx.taskType}`);
-      } else {
-        score -= 0.05;
+    const severity = this._normalizePressureSeverity(signal.severity);
+    const multiplier = this._severityMultiplier(severity);
+    if (!Number.isFinite(now) || multiplier <= 0) {
+      return false;
+    }
+
+    const pressureUntil = now + Math.round(this.providerPressureWindowMs * multiplier);
+    const current = this.providerPressures.get(provider);
+    const existingReasons = _asArray(current?.reasons).filter(
+      (reason) => typeof reason === 'string' && reason.trim().length > 0
+    );
+    const incomingReasons = _asArray(signal.reasons).filter(
+      (reason) => typeof reason === 'string' && reason.trim().length > 0
+    );
+    const classToken = typeof signal.class === 'string' && signal.class.trim().length > 0
+      ? signal.class.trim().toLowerCase()
+      : 'generic';
+
+    this.providerPressures.set(provider, {
+      until: Number.isFinite(current?.until) ? Math.max(current.until, pressureUntil) : pressureUntil,
+      severity,
+      class: classToken,
+      reasons: [...new Set([...existingReasons, ...incomingReasons, classToken])],
+      source: signal.source || 'routing-signals',
+    });
+    return true;
+  }
+
+  _isProviderUnderPressure(provider, now = Date.now()) {
+    if (typeof provider !== 'string' || provider.trim().length === 0) {
+      return false;
+    }
+
+    const pressure = this.providerPressures.get(provider);
+    const pressureUntil = pressure?.until;
+    if (!Number.isFinite(pressureUntil)) {
+      this.providerPressures.delete(provider);
+      return false;
+    }
+
+    if (!Number.isFinite(now) || now < pressureUntil) {
+      return true;
+    }
+
+    this.providerPressures.delete(provider);
+    return false;
+  }
+
+  _setProviderCooldown(provider, now = Date.now()) {
+    return this._setProviderPressure(provider, {
+      severity: 'high',
+      class: 'api',
+      reasons: ['api'],
+      source: 'legacy-cooldown-bridge',
+    }, now);
+  }
+
+  _isProviderCoolingDown(provider, now = Date.now()) {
+    return this._isProviderUnderPressure(provider, now);
+  }
+
+  _normalizeBudgetPressure(ctx = {}) {
+    try {
+      const budgetSignals = ctx?.budgetSignals || {};
+      const contextBudget = budgetSignals.contextBudget || budgetSignals.sessionBudget || null;
+      const pctRaw = Number(
+        contextBudget?.pct
+        ?? contextBudget?.usage
+        ?? budgetSignals?.pct
+        ?? budgetSignals?.usage
+      );
+      const bandRaw = contextBudget?.band
+        || budgetSignals?.band
+        || ctx?.policyDecision?.outputs?.routing?.fallback?.metadata?.combinedBudgetBand
+        || ctx?.orchestrationPolicyDecision?.outputs?.routing?.fallback?.metadata?.combinedBudgetBand
+        || null;
+
+      const band = typeof bandRaw === 'string' ? bandRaw.trim().toLowerCase() : null;
+      if (band === 'critical') return { severity: 'critical', signal: 0.95 };
+      if (band === 'high') return { severity: 'high', signal: 0.85 };
+      if (band === 'medium') return { severity: 'medium', signal: 0.65 };
+      if (band === 'low' || band === 'healthy') return { severity: null, signal: Number.isFinite(pctRaw) ? pctRaw : 0.2 };
+
+      if (Number.isFinite(pctRaw)) {
+        return {
+          severity: this._normalizePressureSeverity(pctRaw),
+          signal: pctRaw,
+        };
+      }
+    } catch (_) {
+      return null;
+    }
+    return null;
+  }
+
+  _extractProviderHealthSignals(ctx = {}) {
+    const rawSignals = ctx?.providerHealthSignals;
+    if (!rawSignals || typeof rawSignals !== 'object' || Array.isArray(rawSignals)) {
+      return [];
+    }
+
+    const normalized = [];
+    for (const [provider, payload] of Object.entries(rawSignals)) {
+      const severity = this._normalizePressureSeverity(payload?.severity ?? payload?.level ?? payload?.score);
+      if (!severity) continue;
+      normalized.push({
+        provider,
+        severity,
+        class: 'health',
+        reasons: ['health'],
+        source: 'provider-health-signals',
+      });
+    }
+    return normalized;
+  }
+
+  _selectBudgetPressureProviders() {
+    const providers = {};
+    for (const model of Object.values(this.models || {})) {
+      if (!model?.provider) continue;
+      const cost = Number(model.cost_per_1k_tokens);
+      if (!Number.isFinite(cost)) continue;
+      if (!Number.isFinite(providers[model.provider])) {
+        providers[model.provider] = cost;
+        continue;
+      }
+      providers[model.provider] = Math.max(providers[model.provider], cost);
+    }
+
+    const entries = Object.entries(providers);
+    if (entries.length <= 1) return [];
+
+    entries.sort((a, b) => b[1] - a[1]);
+    const topCount = Math.max(1, Math.floor(entries.length / 2));
+    return entries.slice(0, topCount).map(([provider]) => provider);
+  }
+
+  _normalizeProviderPressureSignals(ctx = {}) {
+    const pressureSignals = [];
+    const budgetPressure = this._normalizeBudgetPressure(ctx);
+    const healthSignals = this._extractProviderHealthSignals(ctx);
+    const healthByProvider = new Map(healthSignals.map((signal) => [signal.provider, signal]));
+
+    for (const signal of healthSignals) {
+      pressureSignals.push(signal);
+    }
+
+    if (budgetPressure?.severity) {
+      for (const provider of this._selectBudgetPressureProviders()) {
+        const existing = healthByProvider.get(provider);
+        const severity = existing
+          ? this._normalizePressureSeverity(existing.severity === 'critical' ? 'critical' : budgetPressure.severity)
+          : budgetPressure.severity;
+        pressureSignals.push({
+          provider,
+          severity,
+          class: 'budget',
+          reasons: existing ? ['budget', 'health'] : ['budget'],
+          source: 'budget-signals',
+        });
       }
     }
 
-    if (Array.isArray(ctx.requiredStrengths) && ctx.requiredStrengths.length > 0) {
-      const modelStrengths = Array.isArray(model.strengths) ? model.strengths : [];
-      const matched = ctx.requiredStrengths.filter((s) => modelStrengths.includes(s));
-      score += (matched.length / ctx.requiredStrengths.length) * 0.10;
-      if (matched.length > 0) reasons.push(`strengths=${matched.join(',')}`);
+    return pressureSignals;
+  }
+
+  _ingestProviderPressureSignals(ctx = {}) {
+    if (!ctx || typeof ctx !== 'object') {
+      return;
     }
 
-    const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
-    if (rotator && typeof rotator.getProviderStatus === 'function') {
-      const status = rotator.getProviderStatus();
-      if (status?.isExhausted) {
-        score -= 0.50;
-        reasons.push('rotator-exhausted');
-      } else if (status && Number.isFinite(status.healthyKeys) && Number.isFinite(status.totalKeys) && status.healthyKeys < status.totalKeys) {
-        score -= 0.10;
-        reasons.push(`rotator-pressure(${status.healthyKeys}/${status.totalKeys})`);
+    try {
+      const now = Date.now();
+      const pressureSignals = this._normalizeProviderPressureSignals(ctx);
+      for (const signal of pressureSignals) {
+        this._setProviderPressure(signal.provider, signal, now);
       }
+    } catch (_) {
+      // Fail-open by design.
+    }
+  }
+
+  _isRateLimitEvidence(error) {
+    if (!error || typeof error !== 'object') {
+      return false;
     }
 
-    // Check circuit breaker state - heavily penalize if open
-    const cb = this.circuitBreakers[model.provider];
-    if (cb) {
-      const state = cb.getState();
-      if (state === 'open') {
-        score -= 0.80;
-        reasons.push('circuit-open');
-      } else if (state === 'half-open') {
-        score -= 0.30;
-        reasons.push('circuit-half-open');
+    try {
+      const statusCode = Number(
+        error.status
+        ?? error.statusCode
+        ?? error.httpStatus
+        ?? error.response?.status
+        ?? error.error?.status
+      );
+      if (statusCode === 429) {
+        return true;
       }
-    }
 
-    if (ctx.maxBudget && Number.isFinite(model.cost_per_1k_tokens)) {
-      const estimatedCost = model.cost_per_1k_tokens * 2;
-      if (estimatedCost > ctx.maxBudget) {
-        score -= 0.15;
-        reasons.push(`over-budget($${estimatedCost.toFixed(3)}>$${ctx.maxBudget})`);
+      const tokens = [
+        error.code,
+        error.type,
+        error.name,
+        error.error?.code,
+        error.error?.type,
+      ]
+        .filter((value) => typeof value === 'string')
+        .map((value) => value.toLowerCase());
+
+      if (tokens.some((value) => value.includes('rate_limit') || value.includes('ratelimit') || value.includes('too_many_requests') || value.includes('throttl'))) {
+        return true;
       }
-    }
 
-    // T12: Apply benchmark bonus (supplementary signal, 0-0.15)
-    const benchmarkResult = this._applyBenchmarkBonus(modelId);
-    if (benchmarkResult.bonus > 0) {
-      score += benchmarkResult.bonus;
-      reasons.push(benchmarkResult.reason);
-    }
-
-    // T13: Apply cost-efficiency factor (supplementary signal, 0-0.05)
-    const costResult = this._applyCostEfficiency(modelId);
-    if (costResult.bonus > 0) {
-      score += costResult.bonus;
-      reasons.push(costResult.reason);
-    }
-
-    // T4 (Wave 11): Budget-aware penalty — deprioritize expensive models when budget is tight
-    // Threshold lowered from 80% to 70% to proactively prevent tool timeouts from model unavailability
-    if (this.tokenBudgetManager?.governor) {
-      try {
-        const sessionId = ctx?.sessionId || ctx?.session_id || 'default';
-        const budgetCheck = this.tokenBudgetManager.governor.getRemainingBudget(sessionId, modelId);
-        if (budgetCheck && budgetCheck.pct >= 0.70) {
-          // Budget is >=70% consumed: penalize high-cost models
-          const costTier = model.cost_tier || 'medium';
-          const costPenalties = { high: 0.15, critical: 0.15, emergency: 0.15, medium: 0.08, low: 0.03, trivial: 0, mechanical: 0 };
-          const penalty = costPenalties[costTier] || 0.05;
-          score -= penalty;
-          reasons.push(`budget-pressure(${(budgetCheck.pct * 100).toFixed(0)}%,-${penalty.toFixed(2)})`);
-        }
-      } catch (e) {
-        // Fail-open: budget check failure should not affect scoring
+      const message = typeof error.message === 'string'
+        ? error.message.toLowerCase()
+        : (typeof error.error?.message === 'string' ? error.error.message.toLowerCase() : '');
+      if (!message) {
+        return false;
       }
-    }
 
-    // P1: Apply learning-based penalties from LearningEngine
-    const learningPenalty = this._applyLearningPenalties(modelId, ctx);
-    if (learningPenalty.scorePenalty > 0) {
-      score -= learningPenalty.scorePenalty;
-      reasons.push(...learningPenalty.reasons);
+      return /rate\s*limit|too many requests|throttl|http\s*429|\b429\b/.test(message);
+    } catch (_) {
+      return false;
     }
-
-    return {
-      score: Math.max(0, Math.min(1, score)),
-      reason: reasons.join('; '),
-    };
   }
 
   /**
@@ -1247,8 +1402,10 @@ class ModelRouter {
    * @private
    */
   _getLearningAdvice(ctx = {}) {
+    const fallbackAdvice = { warnings: [], suggestions: [], shouldPause: false, riskScore: 0 };
+
     if (!this.learningEngine) {
-      return { warnings: [], suggestions: [], shouldPause: false, riskScore: 0 };
+      return fallbackAdvice;
     }
 
     // Build cache key from context
@@ -1276,6 +1433,15 @@ class ModelRouter {
 
       const advice = this.learningEngine.advise(taskContext);
 
+      if (advice && typeof advice.then === 'function') {
+        this._logWarn('[ModelRouter] Legacy learning advice path received async advise() result; using fail-open fallback');
+        return fallbackAdvice;
+      }
+
+      if (!advice || typeof advice !== 'object') {
+        return fallbackAdvice;
+      }
+
       // Cache the result - with eviction to prevent unbounded growth
       if (this._learningAdviceCache.size >= this._learningAdviceCacheMaxSize) {
         // Evict oldest 10% entries
@@ -1294,7 +1460,7 @@ class ModelRouter {
       return advice;
     } catch (error) {
       this._logWarn('[ModelRouter] LearningEngine advise failed', { error: error.message });
-      return { warnings: [], suggestions: [], shouldPause: false, riskScore: 0 };
+      return fallbackAdvice;
     }
   }
 
@@ -1540,6 +1706,20 @@ class ModelRouter {
     };
   }
 
+  getLearningAdvice(ctx = {}) {
+    try {
+      this._adapter.initialize(this);
+      const advice = this._adapter.getLearningAdvice(ctx);
+      if (advice) {
+        return advice;
+      }
+    } catch (error) {
+      this._logWarn('[ModelRouter] Adapter learning advice failed', { error: error.message });
+    }
+
+    return this._getLearningAdvice(ctx);
+  }
+
   /**
    * T4 (Wave 11): Apply budget-aware penalty to model score.
    * If session budget is >= 70% consumed, penalize high-cost models to encourage cheaper alternatives.
@@ -1608,6 +1788,125 @@ class ModelRouter {
     };
   }
 
+  _getPolicyWeightHints(ctx = {}) {
+    try {
+      const decision = ctx?.policyDecision
+        || ctx?.orchestrationPolicyDecision
+        || ctx?.runtimeContext?.policyDecision
+        || null;
+      const hints = decision?.outputs?.routing?.weightHints;
+      if (!hints || typeof hints !== 'object') {
+        return null;
+      }
+
+      const rawQuality = Number(hints.quality);
+      const rawCost = Number(hints.cost);
+      const rawLatency = Number(hints.latency);
+
+      const quality = Number.isFinite(rawQuality) && rawQuality >= 0 ? rawQuality : 0;
+      const cost = Number.isFinite(rawCost) && rawCost >= 0 ? rawCost : 0;
+      const latency = Number.isFinite(rawLatency) && rawLatency >= 0 ? rawLatency : 0;
+      const total = quality + cost + latency;
+      if (total <= 0) {
+        return null;
+      }
+
+      const budgetBand = decision?.outputs?.routing?.fallback?.metadata?.combinedBudgetBand
+        || decision?.explain?.budget?.band
+        || 'healthy';
+
+      return {
+        quality: quality / total,
+        cost: cost / total,
+        latency: latency / total,
+        budgetBand,
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  _normalizeSignal(value, min, max, preferLower = false) {
+    if (!Number.isFinite(value) || !Number.isFinite(min) || !Number.isFinite(max) || max <= min) {
+      return 0.5;
+    }
+    const normalized = (value - min) / (max - min);
+    const clamped = Math.max(0, Math.min(1, normalized));
+    return preferLower ? (1 - clamped) : clamped;
+  }
+
+  _computePolicyScoreAdjustments(candidateIds = [], ctx = {}) {
+    const hints = this._getPolicyWeightHints(ctx);
+    if (!hints || !Array.isArray(candidateIds) || candidateIds.length === 0) {
+      return { adjustments: {}, reason: null };
+    }
+
+    const qualityByModel = {};
+    const costByModel = {};
+    const latencyByModel = {};
+    const qualityValues = [];
+    const costValues = [];
+    const latencyValues = [];
+
+    for (const modelId of candidateIds) {
+      const model = this.models[modelId] || {};
+      const quality = this._getSuccessRate(modelId);
+      const cost = Number.isFinite(model.cost_per_1k_tokens) ? model.cost_per_1k_tokens : null;
+      const avgLatency = this._getAvgLatency(modelId);
+      const latency = Number.isFinite(model.default_latency_ms) && model.default_latency_ms > 0
+        ? model.default_latency_ms
+        : (avgLatency > 0 ? avgLatency : null);
+
+      qualityByModel[modelId] = quality;
+      qualityValues.push(quality);
+      if (Number.isFinite(cost)) {
+        costByModel[modelId] = cost;
+        costValues.push(cost);
+      }
+      if (Number.isFinite(latency)) {
+        latencyByModel[modelId] = latency;
+        latencyValues.push(latency);
+      }
+    }
+
+    if (qualityValues.length === 0) {
+      return { adjustments: {}, reason: null };
+    }
+
+    const qualityMin = _safeMathMin(qualityValues, 0);
+    const qualityMax = _safeMathMax(qualityValues, 1);
+    const costMin = _safeMathMin(costValues, 0);
+    const costMax = _safeMathMax(costValues, 1);
+    const latencyMin = _safeMathMin(latencyValues, 0);
+    const latencyMax = _safeMathMax(latencyValues, 1);
+
+    const strengthByBand = {
+      healthy: 0.18,
+      medium: 0.2,
+      high: 0.22,
+      critical: 0.24,
+    };
+    const adjustmentStrength = strengthByBand[hints.budgetBand] || strengthByBand.healthy;
+    const adjustments = {};
+
+    for (const modelId of candidateIds) {
+      const qualitySignal = this._normalizeSignal(qualityByModel[modelId], qualityMin, qualityMax, false);
+      const costSignal = this._normalizeSignal(costByModel[modelId], costMin, costMax, true);
+      const latencySignal = this._normalizeSignal(latencyByModel[modelId], latencyMin, latencyMax, true);
+
+      const weightedSignal = (qualitySignal * hints.quality)
+        + (costSignal * hints.cost)
+        + (latencySignal * hints.latency);
+      const centeredSignal = weightedSignal - 0.5;
+      adjustments[modelId] = Math.round((centeredSignal * adjustmentStrength) * 1000) / 1000;
+    }
+
+    return {
+      adjustments,
+      reason: `policy-hints(q=${hints.quality.toFixed(2)},c=${hints.cost.toFixed(2)},l=${hints.latency.toFixed(2)},band=${hints.budgetBand})`,
+    };
+  }
+
   /**
    * Score a single model based on multiple signals.
    * Called by selectModel() for each candidate.
@@ -1619,9 +1918,73 @@ class ModelRouter {
       return { score: -Infinity, reason: 'model-not-found' };
     }
 
-    // Base score from success rate
     const successRate = this._getSuccessRate(modelId);
     let score = successRate;
+    const reasons = [`success_rate(${successRate.toFixed(2)})`];
+
+    const avgLatency = this._getAvgLatency(modelId);
+    const baselineLatency = model.default_latency_ms || avgLatency || 1000;
+    const latencyPenalty = Math.min(0.20, Math.max(0, avgLatency - baselineLatency) / 5000);
+    score -= latencyPenalty;
+    reasons.push(`latency(${Math.round(avgLatency || baselineLatency)}ms,-${latencyPenalty.toFixed(3)})`);
+
+    if (ctx?.taskType && Array.isArray(model.task_types)) {
+      if (model.task_types.includes(ctx.taskType)) {
+        score += 0.10;
+        reasons.push(`task(${ctx.taskType},+0.10)`);
+      } else {
+        score -= 0.05;
+        reasons.push(`task(${ctx.taskType},-0.05)`);
+      }
+    }
+
+    if (Array.isArray(ctx?.requiredStrengths) && ctx.requiredStrengths.length > 0) {
+      const modelStrengths = Array.isArray(model.strengths) ? model.strengths : [];
+      const matched = ctx.requiredStrengths.filter((s) => modelStrengths.includes(s));
+      const strengthBonus = (matched.length / ctx.requiredStrengths.length) * 0.10;
+      score += strengthBonus;
+      reasons.push(`strengths(${matched.length}/${ctx.requiredStrengths.length},+${strengthBonus.toFixed(3)})`);
+      if (matched.length > 0) {
+        reasons.push(`strengths_matched(${matched.join(',')})`);
+      }
+    }
+
+    const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
+    if (rotator && typeof rotator.getProviderStatus === 'function') {
+      const status = rotator.getProviderStatus();
+      if (status?.isExhausted) {
+        score -= 0.50;
+        reasons.push('rotator-exhausted(-0.50)');
+      } else if (
+        status
+        && Number.isFinite(status.healthyKeys)
+        && Number.isFinite(status.totalKeys)
+        && status.healthyKeys < status.totalKeys
+      ) {
+        score -= 0.10;
+        reasons.push(`rotator-pressure(${status.healthyKeys}/${status.totalKeys},-0.10)`);
+      }
+    }
+
+    const cb = this.circuitBreakers[model.provider];
+    if (cb) {
+      const state = cb.getState();
+      if (state === 'open') {
+        score -= 0.80;
+        reasons.push('circuit-open(-0.80)');
+      } else if (state === 'half-open') {
+        score -= 0.30;
+        reasons.push('circuit-half-open(-0.30)');
+      }
+    }
+
+    if (ctx?.maxBudget && Number.isFinite(model.cost_per_1k_tokens)) {
+      const estimatedCost = model.cost_per_1k_tokens * 2;
+      if (estimatedCost > ctx.maxBudget) {
+        score -= 0.15;
+        reasons.push(`over-budget($${estimatedCost.toFixed(3)}>$${ctx.maxBudget},-0.15)`);
+      }
+    }
 
     // Apply benchmark bonus (T12)
     const benchBonus = this._applyBenchmarkBonus(modelId);
@@ -1635,14 +1998,25 @@ class ModelRouter {
     const budgetPenalty = this._applyBudgetPenalty(modelId, ctx);
     score += budgetPenalty.penalty;
 
-    const reasons = [];
     if (benchBonus.reason) reasons.push(benchBonus.reason);
     if (costBonus.reason) reasons.push(costBonus.reason);
     if (budgetPenalty.reason) reasons.push(budgetPenalty.reason);
 
+    const learningPenalty = this._applyLearningPenalties(modelId, ctx || {});
+    const scorePenalty = Number.isFinite(learningPenalty?.scorePenalty) ? learningPenalty.scorePenalty : 0;
+    const learningReasons = _asArray(learningPenalty?.reasons).filter(
+      (reason) => typeof reason === 'string' && reason.length > 0
+    );
+    if (scorePenalty > 0) {
+      score -= scorePenalty;
+      if (learningReasons.length > 0) {
+        reasons.push(...learningReasons);
+      }
+    }
+
     return {
-      score,
-      reason: reasons.length > 0 ? reasons.join('; ') : `success_rate(${successRate.toFixed(2)})`
+      score: Math.max(0, Math.min(1, score)),
+      reason: reasons.join('; ')
     };
   }
 
@@ -1698,6 +2072,12 @@ class ModelRouter {
       return this._modelIdCache.get(modelId);
     }
 
+    const resolvedAlias = resolveModelAlias(modelId);
+    if (this.models[resolvedAlias]) {
+      this._modelIdCache.set(modelId, resolvedAlias);
+      return resolvedAlias;
+    }
+
     // Direct key match (already namespaced)
     if (this.models[modelId]) {
       this._modelIdCache.set(modelId, modelId);
@@ -1707,9 +2087,15 @@ class ModelRouter {
     // Try provider-prefix inference
     const modelToProvider = {
       'claude': 'anthropic',
+      'gpt-4': 'openai',
+      'gpt-4o': 'openai',
+      'gpt-4-turbo': 'openai',
+      'gpt-3.5': 'openai',
       'gpt': 'openai',
       'gemini': 'google',
       'llama': 'groq',
+      'mixtral': 'mistral',
+      'command': 'cohere',
       'mistral': 'mistral',
       'deepseek': 'deepseek',
     };
@@ -1725,23 +2111,187 @@ class ModelRouter {
     }
 
     // Try all provider prefixes
-    const prefixes = ['anthropic/', 'openai/', 'groq/', 'google/', 'deepseek/', 'antigravity/'];
+    const prefixes = ['anthropic/', 'openai/', 'groq/', 'cerebras/', 'deepseek/', 'nvidia/', 'google/', 'mistral/', 'cohere/', 'x/', 'antigravity/'];
     for (const prefix of prefixes) {
       const namespaced = `${prefix}${modelId}`;
       if (this.models[namespaced]) {
         this._modelIdCache.set(modelId, namespaced);
         return namespaced;
       }
+
+      if (resolvedAlias !== modelId) {
+        const aliasedNamespaced = `${prefix}${resolvedAlias}`;
+        if (this.models[aliasedNamespaced]) {
+          this._modelIdCache.set(modelId, aliasedNamespaced);
+          return aliasedNamespaced;
+        }
+      }
     }
 
-    // Also try alias resolution
-    const aliased = resolveModelAlias(modelId);
-    if (aliased && this.models[aliased]) {
-      this._modelIdCache.set(modelId, aliased);
-      return aliased;
+    // Partial match fallback (e.g. version-suffixed IDs)
+    for (const [key, model] of Object.entries(this.models)) {
+      const modelBaseName = model.id?.replace(/-(\d{8})$/, '').replace(/-(\d{4})$/, '');
+      if (modelBaseName && (modelId.includes(modelBaseName) || resolvedAlias.includes(modelBaseName))) {
+        this._modelIdCache.set(modelId, key);
+        return key;
+      }
+
+      const keySuffix = key.split('/').pop();
+      if (keySuffix) {
+        const keyBase = keySuffix.replace(/-(\d{8})$/, '').replace(/-(\d{4})$/, '');
+        if (modelId.includes(keyBase) || resolvedAlias.includes(keyBase)) {
+          this._modelIdCache.set(modelId, key);
+          return key;
+        }
+      }
     }
 
     return null;
+  }
+
+  // ─── Model Outcome Recording ───────────────────────────────────────────────
+
+  /**
+   * Record a model outcome to update live success rates and latency tracking.
+   * Persists to statsPersistPath so outcomes survive across restarts.
+   *
+   * @param {string} modelId - Model ID (namespaced or bare)
+   * @param {boolean} success - Whether the model call succeeded
+   * @param {number} latencyMs - Latency in milliseconds (0 if unknown)
+   */
+  recordResult(modelId, success, latencyMs = 0) {
+    const resolved = this.resolveModelId(modelId) || modelId;
+    if (!this.stats[resolved]) {
+      // Initialize if model not in registry (e.g., new model)
+      this.stats[resolved] = { calls: 0, successes: 0, failures: 0, total_latency_ms: 0 };
+    }
+
+    const latencyValue = typeof latencyMs === 'number' ? latencyMs : 0;
+    const error = latencyMs && typeof latencyMs === 'object' ? latencyMs : null;
+
+    this.stats[resolved].calls++;
+    if (success) {
+      this.stats[resolved].successes++;
+      if (this.metaAwarenessTracker) {
+        this.metaAwarenessTracker.trackEvent({
+          event_type: 'orchestration.failure_recovery_step',
+          task_type: 'model_execution',
+          complexity: 'moderate',
+          outcome: 'recovered',
+          metadata: {
+            model: resolved,
+            latency_ms: latencyValue,
+            recovered: true,
+          },
+        });
+      }
+    } else {
+      this.stats[resolved].failures++;
+      if (this.metaAwarenessTracker) {
+        this.metaAwarenessTracker.trackEvent({
+          event_type: 'orchestration.failure_recovery_step',
+          task_type: 'model_execution',
+          complexity: 'moderate',
+          outcome: 'repeated_failure',
+          metadata: {
+            model: resolved,
+            latency_ms: latencyValue,
+            repeated_failure: true,
+            error: error?.message || null,
+          },
+        });
+      }
+
+      const model = this.models[resolved];
+      if (model && this._isRateLimitEvidence(error)) {
+        this._setProviderPressure(model.provider, {
+          severity: 'high',
+          class: 'api',
+          reasons: ['api'],
+          source: 'record-result',
+        });
+      }
+
+      const keyId = error?.keyId || null;
+      if (model && keyId) {
+        const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
+        if (rotator && typeof rotator.recordFailure === 'function') {
+          rotator.recordFailure(keyId, error);
+        }
+      }
+    }
+    if (latencyValue > 0) {
+      this.stats[resolved].total_latency_ms += latencyValue;
+    }
+
+    if (this.explorationController?.recordExplorationOutcome) {
+      try {
+        this.explorationController.recordExplorationOutcome(resolved, {
+          success: Boolean(success),
+          latencyMs: latencyValue,
+        });
+      } catch (_) {
+        // Exploration updates are best-effort and must never block routing.
+      }
+    }
+
+    // Async persist to disk (non-blocking)
+    this._persistStats();
+
+    return this.stats[resolved];
+  }
+
+  /**
+   * Async stats persistence to statsPersistPath.
+   * @private
+   */
+  _persistStats() {
+    if (!this.statsPersistPath) return;
+    // Defer to avoid blocking hot path
+    setImmediate(() => {
+      try {
+        const fs = require('fs');
+        const json = JSON.stringify({ stats: this.stats, savedAt: new Date().toISOString() }, null, 2);
+        const tmp = this.statsPersistPath + '.tmp';
+        fs.writeFileSync(tmp, json, 'utf8');
+        try { require('fs').renameSync(tmp, this.statsPersistPath); } catch (_) { /* best-effort */ }
+      } catch (_) { /* never crash persistence */ }
+    });
+  }
+
+  /**
+   * Load persisted stats from statsPersistPath on startup.
+   * Seeds this.stats with historical outcomes so RL has memory from previous sessions.
+   * @param {Object} runtimeOutcomes - Outcomes from runtime-tool-telemetry (via model-selection file)
+   */
+  loadStatsFromDisk(runtimeOutcomes = []) {
+    if (!this.statsPersistPath) return;
+    try {
+      const fs = require('fs');
+      if (fs.existsSync(this.statsPersistPath)) {
+        const data = JSON.parse(fs.readFileSync(this.statsPersistPath, 'utf8'));
+        if (data.stats && typeof data.stats === 'object') {
+          for (const [modelId, s] of Object.entries(data.stats)) {
+            if (!this.stats[modelId]) {
+              this.stats[modelId] = { calls: 0, successes: 0, failures: 0, total_latency_ms: 0 };
+            }
+            this.stats[modelId].calls += s.calls || 0;
+            this.stats[modelId].successes += s.successes || 0;
+            this.stats[modelId].failures += s.failures || 0;
+            this.stats[modelId].total_latency_ms += s.total_latency_ms || 0;
+          }
+        }
+      }
+    } catch (_) { /* fail-open */ }
+
+    // Also ingest runtime outcomes captured by telemetry
+    if (Array.isArray(runtimeOutcomes)) {
+      for (const e of runtimeOutcomes) {
+        if (e.modelId && typeof e.success === 'boolean') {
+          this.recordResult(e.modelId, e.success, e.latencyMs || 0);
+        }
+      }
+    }
   }
 
   // ─── Backward Compatibility Aliases ─────────────────────────────────────
@@ -1754,14 +2304,14 @@ class ModelRouter {
   }
 
   /**
-   * Alias for recordResult() - backward compatibility
+   * Alias for recordResult() - forward compatibility
    */
   recordOutcome(modelId, success, latencyOrError = 0) {
     return this.recordResult(modelId, success, latencyOrError);
   }
 
   /**
-   * Alias for recordResult() - backward compatibility (old signature)
+   * Alias for getModelStats() - backward compatibility (old signature)
    */
   getModelStats(modelId) {
     return this.stats[modelId] || { calls: 0, successes: 0, failures: 0, total_latency_ms: 0 };

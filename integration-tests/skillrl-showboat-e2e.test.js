@@ -101,6 +101,7 @@ async function runE2ETest() {
 
     const authTask = {
       task: 'Implement OAuth 2.0 authentication system',
+      task_type: 'implementation',
       complexity: 'high',
       filesModified: 12,
       files_involved: ['src/auth/', 'src/middleware/auth.js', 'src/routes/auth.js'],
@@ -165,6 +166,7 @@ async function runE2ETest() {
 
     const docTask = {
       task: 'Fix typo in README.md',
+      task_type: 'review',
       complexity: 'low',
       filesModified: 1
     };
@@ -191,6 +193,7 @@ async function runE2ETest() {
 
     const failedTask = {
       task: 'Implement WebSocket real-time sync',
+      task_type: 'implementation',
       complexity: 'high',
       filesModified: 8
     };
@@ -230,6 +233,7 @@ async function runE2ETest() {
 
     const deployTask = {
       task: 'Deploy production database migration',
+      task_type: 'implementation',
       complexity: 'high',
       filesModified: 20,
       assertions: [

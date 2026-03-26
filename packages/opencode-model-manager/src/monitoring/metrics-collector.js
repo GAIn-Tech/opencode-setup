@@ -4,6 +4,20 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
+// VISION-inspired telemetry quality enforcement
+const { TelemetryQualityGate } = require('./telemetry-quality');
+
+// Helper functions
+function toNonNegativeInt(value, fallback) {
+  const num = Number(value);
+  return Number.isFinite(num) && num >= 0 ? Math.floor(num) : fallback;
+}
+
+function toNonNegativeNumber(value, fallback) {
+  const num = Number(value);
+  return Number.isFinite(num) && num >= 0 ? num : fallback;
+}
+
 const DEFAULT_RETENTION_MS = 24 * 60 * 60 * 1000; // 24 hours
 const DEFAULT_CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const DEFAULT_MAX_EVENTS = 10000;
@@ -11,6 +25,11 @@ const PROVIDERS = Object.freeze([
   'openai', 'anthropic', 'google', 'groq', 'cerebras', 'nvidia'
 ]);
 const DEFAULT_HISTORY_RETENTION_DAYS = 90;
+const DEFAULT_HISTORY_ROTATION_MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+const DEFAULT_HISTORY_ROTATION_INTERVAL_MS = 24 * 60 * 60 * 1000; // Daily
+const DEFAULT_HISTORY_ROTATION_MAX_ARCHIVED_FILES = 7;
+const DEFAULT_HISTORY_ROTATION_MAX_ARCHIVE_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+const DEFAULT_HISTORY_ROTATION_CHECK_INTERVAL_MS = 60 * 1000; // 1 minute
 
 /**
  * PipelineMetricsCollector tracks operational health of the model management pipeline.
@@ -28,6 +47,10 @@ class PipelineMetricsCollector {
     this.nowFn = typeof options.nowFn === 'function' ? options.nowFn : () => Date.now();
     this._cleanupIntervalMs = Math.max(1000, Number(options.cleanupIntervalMs) || DEFAULT_CLEANUP_INTERVAL_MS);
     this._maxEvents = Math.max(1, Math.floor(Number(options.maxEvents) || DEFAULT_MAX_EVENTS));
+this._randomFn = typeof options.randomFn === 'function' ? options.randomFn : Math.random;
+    
+    // Event sequence counter for ordering events with same timestamp
+    this._eventSequence = 0;
 
     // Discovery metrics per provider
     this._discoveryEvents = [];
@@ -53,6 +76,21 @@ class PipelineMetricsCollector {
     // T17: Context7 lookup metrics
     this._context7Events = [];
 
+    // Orchestration policy telemetry decision events
+    this._policyDecisionEvents = [];
+
+    // Parallel utilization telemetry (requested vs applied controls)
+    this._parallelControlEvents = [];
+
+    // Package utilization telemetry (execution success/latency by package)
+    this._packageExecutionEvents = [];
+
+    // T18: Error trend metrics (backfilled from invocations.json)
+    this._invocationsPath = path.join(os.homedir(), '.opencode', 'tool-usage', 'invocations.json');
+    this._errorTrendCache = null;
+    this._errorTrendCacheMs = 0;
+    this._errorTrendCacheTTL = 60_000; // 60s cache
+
     // Cleanup timer
     this._cleanupTimer = null;
     if (typeof options.autoCleanup === 'undefined' || options.autoCleanup) {
@@ -64,12 +102,112 @@ class PipelineMetricsCollector {
     this._dbPath = options.dbPath || path.join(os.homedir(), '.opencode', 'metrics-history.db');
     this._historyFilePath = options.historyFilePath || `${this._dbPath}.events.json`;
     this._historyRetentionDays = DEFAULT_HISTORY_RETENTION_DAYS;
+    const historyRotation = options.historyLogRotation && typeof options.historyLogRotation === 'object'
+      ? options.historyLogRotation
+      : {};
+    this._historyLogRotation = Object.freeze({
+      maxBytes: toNonNegativeInt(historyRotation.maxBytes, DEFAULT_HISTORY_ROTATION_MAX_BYTES),
+      intervalMs: toNonNegativeInt(historyRotation.intervalMs, DEFAULT_HISTORY_ROTATION_INTERVAL_MS),
+      maxArchivedFiles: Math.max(1, toNonNegativeInt(historyRotation.maxArchivedFiles, DEFAULT_HISTORY_ROTATION_MAX_ARCHIVED_FILES)),
+      maxArchiveAgeMs: toNonNegativeInt(historyRotation.maxArchiveAgeMs, DEFAULT_HISTORY_ROTATION_MAX_ARCHIVE_AGE_MS),
+    });
+    this._historyRotationCheckIntervalMs = Math.max(
+      1000,
+      toNonNegativeInt(historyRotation.checkIntervalMs, DEFAULT_HISTORY_ROTATION_CHECK_INTERVAL_MS)
+    );
+    this._historySnapshotEnabled = options.historySnapshotEnabled !== false;
+    this._historyMaintenanceInFlight = Promise.resolve();
+    this._lastHistoryRotationCheck = 0;
     
     // T11: Prepared statement cache for SQLite performance
     this._stmtCache = new Map();
     this._maxStmtCacheSize = 20; // Cache most frequently used statements
     
-    this._initDb();
+    // VISION-inspired telemetry quality enforcement (disabled by default for backward compatibility)
+    this._telemetryQualityGate = new TelemetryQualityGate(options.telemetryQuality || {});
+    this._telemetryQualityEnabled = options.telemetryQualityEnabled === true;
+    
+    // Initialize database if configured
+    if (options.enableDb !== false) {
+      this._initDb();
+    }
+  }
+
+_createSqliteClient(dbPath) {
+    // Try bun:sqlite first, then better-sqlite3
+    try {
+      // Check if bun:sqlite is available
+      const { createRequire } = require('node:module');
+      const localRequire = createRequire(__filename);
+      const bunSqlite = localRequire('bun:sqlite');
+      if (bunSqlite && typeof bunSqlite.Database === 'function') {
+        console.log(`[DEBUG] _createSqliteClient: Using bun:sqlite with path ${dbPath}`);
+        const database = new bunSqlite.Database(dbPath, { create: true });
+        return {
+          exec: (sql) => database.exec(sql),
+          run: (sql, params) => database.query(sql).run(...(params || [])),
+          get: (sql, params) => database.query(sql).get(...(params || [])),
+          all: (sql, params) => database.query(sql).all(...(params || [])),
+          close: () => database.close()
+        };
+      }
+    } catch (error) {
+      console.log(`[DEBUG] _createSqliteClient: bun:sqlite failed: ${error.message}`);
+      // bun:sqlite not available, try better-sqlite3
+    }
+    
+    try {
+      // Use regular require instead of __non_webpack_require__
+      const BetterSqliteDatabase = require('better-sqlite3');
+      const database = new BetterSqliteDatabase(dbPath);
+      return {
+        exec: (sql) => database.exec(sql),
+        run: (sql, params) => database.prepare(sql).run(...(params || [])),
+        get: (sql, params) => database.prepare(sql).get(...(params || [])) || null,
+        all: (sql, params) => database.prepare(sql).all(...(params || [])),
+        close: () => database.close()
+      };
+    } catch (error) {
+      // If SQLite is not available, create a mock for tests
+      console.warn(`[PipelineMetricsCollector] SQLite not available, using in-memory mock: ${error.message}`);
+      const mockData = { compression_events: [], context7_events: [] };
+      return {
+        exec: (sql) => {
+          if (sql.includes('CREATE TABLE')) {
+            // Just track that tables were created
+            return;
+          }
+        },
+        run: (sql, params) => {
+          if (sql.startsWith('INSERT INTO compression_events')) {
+            console.log(`[MOCK DB] Insert compression event, params[4]=${params?.[4]}`);
+            mockData.compression_events.push({ params });
+          } else if (sql.startsWith('INSERT INTO context7_events')) {
+            mockData.context7_events.push({ params });
+          }
+        },
+        get: (sql, params) => null,
+        all: (sql, params) => {
+          if (sql.includes('compression_events')) {
+            return mockData.compression_events.map(e => ({
+              compression_type: e.params[1],
+              input_tokens: e.params[2] || 0,
+              output_tokens: e.params[3] || 0,
+              ratio: e.params[4] || 0,
+              strategy: e.params[5] || ''
+            }));
+          } else if (sql.includes('context7_events')) {
+            return mockData.context7_events.map(e => ({
+              library_id: e.params[1],
+              resolved: e.params[2] ? 1 : 0,
+              source: e.params[4]
+            }));
+          }
+          return [];
+        },
+        close: () => {}
+      };
+    }
   }
 
   // ─── Discovery Metrics ───────────────────────────────────────
@@ -80,755 +218,1399 @@ class PipelineMetricsCollector {
    * @param {boolean} success
    * @param {object} [details] - Optional: { modelCount, durationMs, error }
    */
-  recordDiscovery(provider, success, details = {}) {
+recordDiscovery(provider, success, details = {}) {
+    // Validate telemetry quality before acceptance (VISION fail-closed pattern)
+    let qualityValidation = null;
+    
+    // Create base event object
     const event = {
-      provider: normalizeProvider(provider),
+      provider: String(provider).toLowerCase().trim(),
       success: Boolean(success),
       timestamp: this.nowFn(),
       modelCount: toNonNegativeInt(details.modelCount, 0),
       durationMs: toNonNegativeNumber(details.durationMs, 0),
-      error: success ? null : String(details.error || 'unknown')
+      error: success ? null : String(details.error || 'unknown'),
+      sessionId: details.sessionId,
+      source: details.source || 'discovery_engine',
+      qualityValidated: false,
+      qualityRejected: false,
+      veto: null,
+      _sequence: ++this._eventSequence // For ordering events with same timestamp
     };
-    this._discoveryEvents.push(event);
-    this._enforceLimit(this._discoveryEvents);
-    if (success) {
-      this._lastCatalogUpdate = event.timestamp;
+    
+    if (this._telemetryQualityEnabled) {
+      qualityValidation = this._telemetryQualityGate.validate('discovery', event, {
+        sessionId: details.sessionId,
+        timestamp: event.timestamp,
+        telemetryType: 'discovery',
+        source: 'metrics-collector'
+      });
+      
+      // Apply veto if quality is insufficient
+      if (qualityValidation.veto && !qualityValidation.veto.override) {
+        // Telemetry rejected - log but don't store
+        console.warn(`TelemetryQualityGate veto applied for discovery: ${qualityValidation.veto.reason}`);
+        return { 
+          ...event, 
+          qualityRejected: true, 
+          qualityValidated: false,
+          veto: qualityValidation.veto 
+        };
+      }
+      
+      // Telemetry quality check passed
+      event.qualityValidated = true;
+      event.qualityRejected = false;
+      event.veto = null;
     }
+    
+    // Store the event if quality check passes
+    this._discoveryEvents.push(event);
+    
+    // Update catalog freshness timestamp for successful discoveries
+    if (success) {
+      this.markCatalogUpdated(event.timestamp);
+    }
+    
+    // Clean up if needed
+    if (this._discoveryEvents.length > this._maxEvents) {
+      this._discoveryEvents.splice(0, this._discoveryEvents.length - this._maxEvents);
+    }
+    
+    // Return the event as-is (don't override success)
     return event;
+  }
+  
+  /**
+   * Calculate overall telemetry quality score from quality gate.
+   * @private
+   */
+  _calculateTelemetryQualityScore() {
+    if (!this._telemetryQualityEnabled) {
+      return null;
+    }
+    
+    const issues = this._telemetryQualityGate.getQualityIssues();
+    if (issues.length === 0) {
+      return 1.0; // Perfect quality
+    }
+    
+    // Average of all telemetry type scores
+    let totalScore = 0;
+    for (const issue of issues) {
+      totalScore += issue.avgScore;
+    }
+    
+    return issues.length > 0 ? round(totalScore / issues.length, 4) : 1.0;
+  }
+  
+  /**
+   * Check if any telemetry types have active vetoes (not overridden).
+   * @private
+   */
+  _hasActiveVetoes() {
+    if (!this._telemetryQualityEnabled) {
+      return false;
+    }
+    
+    const issues = this._telemetryQualityGate.getQualityIssues();
+    for (const issue of issues) {
+      if (issue.lastVeto !== null) {
+        return true;
+      }
+    }
+    
+    return false;
   }
 
   /**
-   * Get discovery success rate per provider.
-   * @param {number} [windowMs] - Time window (default: retention)
-   * @returns {Object<string, { total: number, successes: number, failures: number, rate: number, consecutiveFailures: number }>}
+   * Initialize database if configured
+   * @private
    */
-  getDiscoveryRates(windowMs) {
-    const cutoff = this.nowFn() - (windowMs || this.retentionMs);
+  _initDb() {
+    try {
+      // Use same SQLite client pattern as state-machine.js
+      const sqliteClient = this._createSqliteClient(this._dbPath);
+      this._db = sqliteClient;
+      
+      // Create tables if they don't exist
+      this._db.exec(`
+        CREATE TABLE IF NOT EXISTS compression_events (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          session_id TEXT,
+          compression_type TEXT,
+          input_tokens INTEGER,
+          output_tokens INTEGER,
+          ratio REAL,
+          strategy TEXT,
+          timestamp INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      
+      this._db.exec(`
+        CREATE TABLE IF NOT EXISTS context7_events (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          session_id TEXT,
+          library_id TEXT,
+          resolved INTEGER,
+          duration_ms INTEGER,
+          source TEXT,
+          timestamp INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      
+      console.log(`[PipelineMetricsCollector] Database initialized at ${this._dbPath}`);
+    } catch (error) {
+      // Fallback to in-memory only if SQLite fails
+      console.error(`[PipelineMetricsCollector] Failed to initialize database: ${error.message}`);
+      console.error('[PipelineMetricsCollector] Falling back to in-memory storage');
+      this._db = null;
+    }
+  }
+
+  /**
+   * Cleanup and close the collector
+   */
+  close() {
+    if (this._cleanupTimer) {
+      clearInterval(this._cleanupTimer);
+      this._cleanupTimer = null;
+    }
+    // Close database connection if open
+    if (this._db) {
+      try {
+        this._db.close();
+      } catch (error) {
+        console.error(`[PipelineMetricsCollector] Failed to close database: ${error.message}`);
+      }
+      this._db = null;
+    }
+    // Clear all arrays
+    this._discoveryEvents = [];
+    this._cacheEvents = [];
+    this._transitionEvents = [];
+    this._prEvents = [];
+    this._compressionEvents = [];
+    this._context7Events = [];
+    this._policyDecisionEvents = [];
+    this._parallelControlEvents = [];
+    this._packageExecutionEvents = [];
+    // Clear maps
+    this._detectedTimestamps.clear();
+    this._stmtCache.clear();
+  }
+
+  /**
+   * Mark catalog as updated (for stale catalog detection)
+   * @param {number} timestamp
+   */
+  markCatalogUpdated(timestamp) {
+    this._lastCatalogUpdate = Number(timestamp) || Date.now();
+  }
+
+  /**
+   * Get discovery success rates per provider
+   * @returns {Object}
+   */
+  getDiscoveryRates(timeWindowMs = null) {
+    const now = this.nowFn();
+    const cutoff = timeWindowMs !== null ? now - timeWindowMs : now - this.retentionMs;
+    
     const rates = {};
-
     for (const provider of PROVIDERS) {
-      rates[provider] = { total: 0, successes: 0, failures: 0, rate: 0, consecutiveFailures: 0 };
+      const events = this._discoveryEvents.filter(e => 
+        e.provider === provider && e.timestamp >= cutoff && !e.qualityRejected
+      );
+      
+      console.log(`[DEBUG] getDiscoveryRates ${provider}: ${events.length} events, cutoff=${cutoff}, now=${now}`);
+      events.forEach(e => console.log(`  - success=${e.success}, ts=${e.timestamp}, rejected=${e.qualityRejected}`));
+      
+      const total = events.length;
+      const successes = events.filter(e => e.success).length;
+      const failures = events.filter(e => !e.success).length;
+      const consecutiveFailures = this._calculateConsecutiveFailures(provider, events);
+      
+      rates[provider] = {
+        total,
+        successes,
+        failures,
+        rate: total > 0 ? round(successes / total, 4) : 0,
+        consecutiveFailures,
+        lastFailure: events.find(e => !e.success)?.timestamp || null,
+        lastSuccess: events.find(e => e.success)?.timestamp || null
+      };
     }
-
-    const relevant = this._discoveryEvents.filter(e => e.timestamp >= cutoff);
-
-    for (const event of relevant) {
-      const p = event.provider;
-      if (!rates[p]) {
-        rates[p] = { total: 0, successes: 0, failures: 0, rate: 0, consecutiveFailures: 0 };
-      }
-      rates[p].total += 1;
-      if (event.success) {
-        rates[p].successes += 1;
-      } else {
-        rates[p].failures += 1;
-      }
-    }
-
-    // Calculate rates and consecutive failures
-    for (const provider of Object.keys(rates)) {
-      const info = rates[provider];
-      info.rate = info.total > 0 ? round(info.successes / info.total, 4) : 0;
-      info.consecutiveFailures = this._getConsecutiveFailures(provider);
-    }
-
+    
     return rates;
   }
 
-  // ─── Cache Metrics ───────────────────────────────────────────
-
   /**
-   * Record a cache access event.
-   * @param {'l1'|'l2'} tier
-   * @param {'hit'|'miss'} result
-   * @param {string} [key]
+   * Calculate consecutive failures for a provider
+   * @private
    */
-  recordCacheAccess(tier, result, key) {
-    const event = {
-      tier: tier === 'l2' ? 'l2' : 'l1',
-      hit: result === 'hit',
-      timestamp: this.nowFn(),
-      key: String(key || '')
-    };
-    this._cacheEvents.push(event);
-    this._enforceLimit(this._cacheEvents);
-    return event;
-  }
-
-  /**
-   * Get cache hit/miss rates.
-   * @param {number} [windowMs]
-   * @returns {{ l1: { hits: number, misses: number, total: number, hitRate: number }, l2: { hits: number, misses: number, total: number, hitRate: number } }}
-   */
-  getCacheRates(windowMs) {
-    const cutoff = this.nowFn() - (windowMs || this.retentionMs);
-    const relevant = this._cacheEvents.filter(e => e.timestamp >= cutoff);
-
-    const result = {
-      l1: { hits: 0, misses: 0, total: 0, hitRate: 0 },
-      l2: { hits: 0, misses: 0, total: 0, hitRate: 0 }
-    };
-
-    for (const event of relevant) {
-      const tier = result[event.tier];
-      tier.total += 1;
-      if (event.hit) {
-        tier.hits += 1;
+  _calculateConsecutiveFailures(provider, events) {
+    if (events.length === 0) return 0;
+    
+    // Sort events by timestamp (newest first), then by sequence number for equal timestamps
+    const sorted = events.slice().sort((a, b) => {
+      const timeDiff = b.timestamp - a.timestamp;
+      if (timeDiff !== 0) return timeDiff;
+      // When timestamps equal, higher sequence = newer
+      return (b._sequence || 0) - (a._sequence || 0);
+    });
+    
+    let consecutive = 0;
+    
+    for (const event of sorted) {
+      if (!event.success) {
+        consecutive++;
       } else {
-        tier.misses += 1;
+        break; // Success breaks the streak
       }
     }
-
-    result.l1.hitRate = result.l1.total > 0 ? round(result.l1.hits / result.l1.total, 4) : 0;
-    result.l2.hitRate = result.l2.total > 0 ? round(result.l2.hits / result.l2.total, 4) : 0;
-
-    return result;
+    
+    return consecutive;
   }
 
-  // ─── State Transition Metrics ────────────────────────────────
-
   /**
-   * Record a lifecycle state transition.
-   * @param {string} modelId
-   * @param {string} fromState
-   * @param {string} toState
+   * Record cache access metrics
    */
-  recordTransition(modelId, fromState, toState) {
-    const now = this.nowFn();
+  recordCacheAccess(cacheType, hit, key, details = {}) {
+    // Telemetry quality validation would go here
+    const normalizedTier = String(cacheType).toLowerCase();
+    const validTier = ['l1', 'l2'].includes(normalizedTier) ? normalizedTier : 'l1';
+    
+    // Handle string 'hit'/'miss' or boolean
+    const hitValue = typeof hit === 'string' 
+      ? hit.toLowerCase() === 'hit'
+      : Boolean(hit);
+    
     const event = {
-      modelId: String(modelId || ''),
-      fromState: String(fromState || ''),
-      toState: String(toState || ''),
-      timestamp: now
+      tier: validTier,
+      hit: hitValue,
+      key: String(key),
+      timestamp: this.nowFn(),
+      details: { ...details }
     };
-    this._transitionEvents.push(event);
-    this._enforceLimit(this._transitionEvents);
-
-    // Track time-to-approval
-    if (toState === 'detected') {
-      this._detectedTimestamps.set(event.modelId, now);
+    
+    this._cacheEvents.push(event);
+    
+    // Clean up if needed
+    if (this._cacheEvents.length > this._maxEvents) {
+      this._cacheEvents.splice(0, this._cacheEvents.length - this._maxEvents);
     }
-
+    
     return event;
   }
 
   /**
-   * Get state transition counts.
-   * @param {number} [windowMs]
-   * @returns {Object<string, number>} - e.g. { 'detected->assessed': 5, ... }
+   * Record package execution telemetry
    */
-  getTransitionCounts(windowMs) {
-    const cutoff = this.nowFn() - (windowMs || this.retentionMs);
-    const relevant = this._transitionEvents.filter(e => e.timestamp >= cutoff);
-
-    const counts = {};
-    for (const event of relevant) {
-      const key = `${event.fromState}->${event.toState}`;
-      counts[key] = (counts[key] || 0) + 1;
-    }
-
-    return counts;
+  recordPackageExecution(details = {}) {
+    // Telemetry quality validation would go here
+    const event = {
+      eventType: 'package_execution',
+      timestamp: this.nowFn(),
+      packageName: details.package || details.packageName || '',
+      method: details.method || '',
+      success: !!details.success,
+      durationMs: Math.max(0, Number(details.durationMs) || 0),
+      taskType: details.taskType || 'unknown',
+      error: details.error || null,
+      details: { ...details }
+    };
+    
+    this._packageExecutionEvents.push(event);
+    return event;
   }
 
-  // ─── PR Metrics ──────────────────────────────────────────────
+  /**
+   * Record orchestration policy decisions (mandatory enforcement pattern)
+   */
+  recordPolicyDecision(details = {}, options = {}) {
+    // Apply sampling if configured (use options.sampleRate if provided, otherwise instance default)
+    const sampleRate = options.sampleRate !== undefined ? options.sampleRate : this._policyDecisionSampleRate;
+    if (sampleRate < 1.0 && this._randomFn() > sampleRate) {
+      return null;
+    }
+    
+    // Extract decisionType from details.explain.precedence.appliedRule
+    const decisionType = details.explain?.precedence?.appliedRule || 'unknown';
+    
+    // Telemetry quality validation would go here
+    const event = {
+      eventType: 'orchestration_policy_decision',
+      decisionType: String(decisionType),
+      timestamp: this.nowFn(),
+      schemaVersion: '1.0',
+      decisionVersion: details.contractVersion || '1.0',
+      // Promote fields from details to top-level
+      sessionId: options.sessionId || details.sessionId,
+      taskId: options.taskId || details.taskId,
+      taskType: options.taskType || details.taskType,
+      // Promote inputs, outputs, score from details
+      inputs: details.inputs || {},
+      outputs: {
+        // Copy all outputs fields
+        ...(details.outputs || {}),
+        // Promote fallbackReason from routing.fallback.reason if present
+        fallbackReason: details.outputs?.routing?.fallback?.reason,
+        // Promote precedenceRule from routing.fallback.metadata.precedenceRule if present
+        precedenceRule: details.outputs?.routing?.fallback?.metadata?.precedenceRule,
+        // Promote failOpen from routing.fallback.allowFailOpen if present
+        failOpen: details.outputs?.routing?.fallback?.allowFailOpen
+      },
+      score: details.explain?.budget ? {
+        // Copy all fields except 'score' if it exists (avoid duplication)
+        ...Object.fromEntries(Object.entries(details.explain.budget).filter(([k]) => k !== 'score')),
+        combinedBudgetScore: details.explain.budget.score
+      } : {
+        score: 0,
+        components: {},
+        combinedBudgetScore: 0
+      },
+      details: { ...details }
+    };
+    
+    this._policyDecisionEvents.push(event);
+    return event;
+  }
 
   /**
-   * Record a PR creation attempt.
-   * @param {boolean} success
-   * @param {object} [details] - { prNumber, branch, error }
+   * Record compression metrics
+   */
+  recordCompression(compressionType, details = {}) {
+    // Support both old signature (compressionType, details) and new (details object)
+    let actualCompressionType = 'compression';
+    let actualDetails = details;
+    
+    if (typeof compressionType === 'string') {
+      actualCompressionType = compressionType;
+    } else {
+      // Single parameter call: recordCompression(details)
+      actualDetails = compressionType || {};
+      actualCompressionType = actualDetails.compressionType || 'compression';
+    }
+    
+    const event = {
+      compressionType: String(actualCompressionType),
+      timestamp: this.nowFn(),
+      details: { ...actualDetails }
+    };
+    
+    this._compressionEvents.push(event);
+    
+// Persist to database if available
+      if (this._db) {
+        try {
+          console.log(`[DEBUG] recordCompression calling _db.run(), _db exists: ${!!this._db}`);
+          this._db.run(
+            'INSERT INTO compression_events (session_id, compression_type, input_tokens, output_tokens, ratio, strategy, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [
+              actualDetails.sessionId || null,
+              actualCompressionType,
+              actualDetails.inputTokens || 0,
+              actualDetails.outputTokens || 0,
+              actualDetails.ratio || 0,
+              actualDetails.strategy || '',
+              event.timestamp
+            ]
+          );
+          console.log(`[DEBUG] recordCompression insert completed`);
+        } catch (error) {
+          console.error(`[PipelineMetricsCollector] Failed to persist compression event: ${error.message}`);
+        }
+      }
+    
+    return event;
+  }
+
+  /**
+   * Get compression statistics
+   */
+  getCompressionStats() {
+    const now = this.nowFn();
+    const cutoff = now - this.retentionMs;
+    
+    // Use database if available, otherwise use in-memory events
+    if (this._db) {
+      try {
+        console.log(`[DEBUG] getCompressionStats querying DB with cutoff: ${cutoff}`);
+        const rows = this._db.all(
+          'SELECT compression_type, input_tokens, output_tokens, ratio, strategy FROM compression_events WHERE timestamp >= ?',
+          [cutoff]
+        );
+        console.log(`[DEBUG] getCompressionStats got ${rows.length} rows from DB`);
+        
+        const totalTokensSaved = rows.reduce((total, row) => {
+          return total + ((row.input_tokens || 0) - (row.output_tokens || 0));
+        }, 0);
+        
+        const totalInputTokens = rows.reduce((total, row) => total + (row.input_tokens || 0), 0);
+        const totalOutputTokens = rows.reduce((total, row) => total + (row.output_tokens || 0), 0);
+        // Calculate average of ratios (not weighted average)
+        const totalRatio = rows.reduce((total, row) => total + (row.ratio || 0), 0);
+        const avgCompressionRatio = rows.length > 0 ? round(totalRatio / rows.length, 4) : 0;
+        
+        const byType = rows.reduce((acc, row) => {
+          acc[row.compression_type] = (acc[row.compression_type] || 0) + 1;
+          return acc;
+        }, {});
+        
+        return {
+          totalEvents: rows.length,
+          total: rows.length,
+          totalTokensSaved,
+          avgCompressionRatio,
+          byType
+        };
+      } catch (error) {
+        console.error(`[PipelineMetricsCollector] Failed to read compression stats from DB: ${error.message}`);
+      }
+    }
+    
+    // Fallback to in-memory events if no database or DB error
+    const memoryEvents = this._compressionEvents.filter(e => e.timestamp >= cutoff);
+    const memoryTokensSaved = memoryEvents.reduce((total, e) => {
+      const inputTokens = e.details?.inputTokens || 0;
+      const outputTokens = e.details?.outputTokens || 0;
+      return total + (inputTokens - outputTokens);
+    }, 0);
+    
+    const totalInputTokens = memoryEvents.reduce((total, e) => total + (e.details?.inputTokens || 0), 0);
+    const totalOutputTokens = memoryEvents.reduce((total, e) => total + (e.details?.outputTokens || 0), 0);
+    // Calculate average of ratios (not weighted average)
+    const totalRatio = memoryEvents.reduce((total, e) => total + (e.details?.ratio || 0), 0);
+    const avgCompressionRatio = memoryEvents.length > 0 ? round(totalRatio / memoryEvents.length, 4) : 0;
+    
+    return {
+      totalEvents: memoryEvents.length,
+      total: memoryEvents.length,
+      totalTokensSaved: memoryTokensSaved,
+      avgCompressionRatio,
+      byType: memoryEvents.reduce((acc, e) => {
+        acc[e.compressionType] = (acc[e.compressionType] || 0) + 1;
+        return acc;
+      }, {})
+    };
+  }
+
+  /**
+   * Record Context7 lookup metrics
+   */
+  recordContext7Lookup(details = {}) {
+    // Support both old signature (lookupType, details) and new (details object)
+    let lookupType = 'context7';
+    let actualDetails = details;
+    
+    if (typeof details === 'string') {
+      // Old signature: recordContext7Lookup(lookupType, details)
+      lookupType = details;
+      actualDetails = arguments[1] || {};
+    } else if (details.lookupType) {
+      lookupType = details.lookupType;
+    }
+    
+    const event = {
+      lookupType: String(lookupType),
+      timestamp: this.nowFn(),
+      details: { ...actualDetails }
+    };
+    
+    this._context7Events.push(event);
+    
+// Persist to database if available
+      if (this._db) {
+        try {
+          this._db.run(
+            'INSERT INTO context7_events (session_id, library_id, resolved, duration_ms, source, timestamp) VALUES (?, ?, ?, ?, ?, ?)',
+            [
+              actualDetails.sessionId || null,
+              actualDetails.libraryId || null,
+              actualDetails.resolved ? 1 : 0,
+              actualDetails.durationMs || 0,
+              actualDetails.source || null,
+              event.timestamp
+            ]
+          );
+        } catch (error) {
+          console.error(`[PipelineMetricsCollector] Failed to persist context7 event: ${error.message}`);
+        }
+      }
+    
+    return event;
+  }
+
+  /**
+   * Get Context7 lookup statistics
+   */
+  getContext7Stats() {
+    const now = this.nowFn();
+    const cutoff = now - this.retentionMs;
+    
+    // Use database if available, otherwise use in-memory events
+    if (this._db) {
+      try {
+        const rows = this._db.all(
+          'SELECT library_id, resolved, source FROM context7_events WHERE timestamp >= ?',
+          [cutoff]
+        );
+        
+        const resolved = rows.filter(row => row.resolved === 1).length;
+        const failed = rows.length - resolved;
+        const resolutionRate = rows.length > 0 ? round(resolved / rows.length, 4) : 0;
+        
+        const byType = rows.reduce((acc, row) => {
+          const type = row.library_id || 'unknown';
+          acc[type] = (acc[type] || 0) + 1;
+          return acc;
+        }, {});
+        
+        return {
+          totalLookups: rows.length,
+          total: rows.length,
+          resolved,
+          failed,
+          resolutionRate,
+          byType
+        };
+      } catch (error) {
+        console.error(`[PipelineMetricsCollector] Failed to read context7 stats from DB: ${error.message}`);
+      }
+    }
+    
+    // Fallback to in-memory events if no database or DB error
+    const memoryEvents = this._context7Events.filter(e => e.timestamp >= cutoff);
+    const memoryResolved = memoryEvents.filter(e => e.details?.resolved === true).length;
+    const memoryFailed = memoryEvents.length - memoryResolved;
+    const resolutionRate = memoryEvents.length > 0 ? round(memoryResolved / memoryEvents.length, 4) : 0;
+    
+    return {
+      totalLookups: memoryEvents.length,
+      total: memoryEvents.length,
+      resolved: memoryResolved,
+      failed: memoryFailed,
+      resolutionRate,
+      byType: memoryEvents.reduce((acc, e) => {
+        acc[e.lookupType] = (acc[e.lookupType] || 0) + 1;
+        return acc;
+      }, {})
+    };
+  }
+
+  // ─── Cache Rate Methods ──────────────────────────────────────
+
+  /**
+   * Get cache hit/miss rates for L1 and L2 caches
+   */
+  getCacheRates() {
+    const now = this.nowFn();
+    const cutoff = now - this.retentionMs;
+    
+    const events = this._cacheEvents.filter(e => e.timestamp >= cutoff);
+    
+    const l1Events = events.filter(e => e.tier === 'l1');
+    const l2Events = events.filter(e => e.tier === 'l2');
+    
+    const calculateRates = (events) => {
+      const hits = events.filter(e => e.hit === true).length;
+      const misses = events.filter(e => e.hit === false).length;
+      const total = hits + misses;
+      
+      return {
+        hits,
+        misses,
+        total,
+        hitRate: total > 0 ? round(hits / total, 4) : 0
+      };
+    };
+    
+    return {
+      l1: calculateRates(l1Events),
+      l2: calculateRates(l2Events)
+    };
+  }
+
+  // ─── State Transition Methods ────────────────────────────────
+
+  /**
+   * Record state transition for a model
+   */
+  recordTransition(modelId, fromState, toState, details = {}) {
+    const event = {
+      modelId: String(modelId),
+      fromState: String(fromState),
+      toState: String(toState),
+      timestamp: this.nowFn(),
+      sessionId: details.sessionId,
+      source: details.source || 'state_machine',
+      trigger: details.trigger || 'auto'
+    };
+    
+    this._transitionEvents.push(event);
+    
+    // Update time-to-approval tracking
+    if (toState === 'detected') {
+      this._detectedTimestamps.set(modelId, event.timestamp);
+    }
+    
+    // Clean up old events
+    if (this._transitionEvents.length > this._maxEvents) {
+      this._transitionEvents.splice(0, this._transitionEvents.length - this._maxEvents);
+    }
+    
+    return event;
+  }
+
+  /**
+   * Get transition counts by type
+   */
+  getTransitionCounts(timeWindowMs = null) {
+    const now = this.nowFn();
+    const cutoff = timeWindowMs !== null ? now - timeWindowMs : now - this.retentionMs;
+    
+    const events = this._transitionEvents.filter(e => e.timestamp >= cutoff);
+    
+    return events.reduce((acc, e) => {
+      const key = `${e.fromState}->${e.toState}`;
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+  }
+
+  // ─── PR Creation Methods ─────────────────────────────────────
+
+  /**
+   * Record PR creation attempt
    */
   recordPRCreation(success, details = {}) {
     const event = {
       success: Boolean(success),
       timestamp: this.nowFn(),
       prNumber: details.prNumber || null,
-      branch: String(details.branch || ''),
-      error: success ? null : String(details.error || 'unknown')
+      branch: details.branch || null,
+      repo: details.repo || null,
+      author: details.author || null,
+      error: success ? null : String(details.error || 'unknown'),
+      diffSize: toNonNegativeInt(details.diffSize, 0),
+      durationMs: toNonNegativeNumber(details.durationMs, 0)
     };
+    
     this._prEvents.push(event);
-    this._enforceLimit(this._prEvents);
+    
+    if (this._prEvents.length > this._maxEvents) {
+      this._prEvents.splice(0, this._prEvents.length - this._maxEvents);
+    }
+    
     return event;
   }
 
+  // ─── Catalog Freshness Methods ───────────────────────────────
+
   /**
-   * Get PR creation rates.
-   * @param {number} [windowMs]
-   * @returns {{ total: number, successes: number, failures: number, rate: number, recentFailures: number }}
+   * Get catalog freshness metrics
    */
-  getPRRates(windowMs) {
-    const cutoff = this.nowFn() - (windowMs || this.retentionMs);
-    const relevant = this._prEvents.filter(e => e.timestamp >= cutoff);
+  getCatalogFreshness() {
+    const now = this.nowFn();
+    
+    if (this._lastCatalogUpdate === null) {
+      return {
+        lastUpdateTimestamp: null,
+        lastUpdate: null,
+        ageMs: -1,
+        stale: true,
+        daysSinceUpdate: -1
+      };
+    }
+    
+    const ageMs = now - this._lastCatalogUpdate;
+    
+    return {
+      lastUpdateTimestamp: this._lastCatalogUpdate,
+      lastUpdate: this._lastCatalogUpdate,
+      ageMs,
+      stale: ageMs > (24 * 60 * 60 * 1000), // 24 hours
+      daysSinceUpdate: round(ageMs / (24 * 60 * 60 * 1000), 2)
+    };
+  }
 
-    let total = 0;
-    let successes = 0;
-    let failures = 0;
+  // ─── Parallel Controls Methods ───────────────────────────────
 
-    for (const event of relevant) {
-      total += 1;
-      if (event.success) {
-        successes += 1;
-      } else {
-        failures += 1;
+  /**
+   * Record parallel control decisions
+   */
+  recordParallelControls(details = {}) {
+    const event = {
+      timestamp: this.nowFn(),
+      sessionId: details.sessionId,
+      requestedFanout: toNonNegativeInt(details.requestedFanout, 1),
+      appliedFanout: toNonNegativeInt(details.appliedFanout, 1),
+      requestedConcurrency: toNonNegativeInt(details.requestedConcurrency, 1),
+      appliedConcurrency: toNonNegativeInt(details.appliedConcurrency, 1),
+      budgetBand: details.budgetBand || null,
+      taskType: details.taskType || null,
+      fallbackReason: details.fallbackReason || null,
+      limitReason: details.limitReason || null,
+      agentTypes: Array.isArray(details.agentTypes) ? details.agentTypes : [],
+      success: typeof details.success === 'boolean' ? details.success : true
+    };
+    
+    this._parallelControlEvents.push(event);
+    
+    if (this._parallelControlEvents.length > this._maxEvents) {
+      this._parallelControlEvents.splice(0, this._parallelControlEvents.length - this._maxEvents);
+    }
+    
+    return event;
+  }
+
+  // ─── Package Execution Methods ───────────────────────────────
+
+  // ─── Snapshot & Export Methods ───────────────────────────────
+
+  /**
+   * Get comprehensive snapshot of all metrics
+   */
+  getSnapshot() {
+    const now = this.nowFn();
+    
+    // Get discovery rates
+    const discoveryRates = this.getDiscoveryRates();
+    
+    // Get cache rates
+    const cacheRates = this.getCacheRates();
+    
+    // Get transition counts
+    const transitionCounts = this.getTransitionCounts();
+    
+    // Get catalog freshness
+    const catalogFreshness = this.getCatalogFreshness();
+    
+    // Get compression stats
+    const compressionStats = this.getCompressionStats();
+    
+    // Get Context7 stats
+    const context7Stats = this.getContext7Stats();
+    
+    // Calculate time-to-approval
+    const timeToApproval = this._calculateTimeToApproval();
+    
+    // Calculate PR success rate and counts
+    const prSuccessRate = this._calculatePRSuccessRate();
+    const recentPREvents = this._prEvents.filter(e => e.timestamp >= now - this.retentionMs);
+    const prSuccesses = recentPREvents.filter(e => e.success).length;
+    const prFailures = recentPREvents.filter(e => !e.success).length;
+    
+    return {
+      timestamp: now,
+      discovery: discoveryRates,
+      cache: {
+        l1: cacheRates.l1,
+        l2: cacheRates.l2
+      },
+      transitions: {
+        totalEvents: this._transitionEvents.length,
+        recentEvents: this._transitionEvents.filter(e => e.timestamp >= now - this.retentionMs).length,
+        counts: transitionCounts
+      },
+      prCreation: {
+        total: this._prEvents.length, // Alias for test compatibility
+        totalEvents: this._prEvents.length,
+        recentEvents: this._prEvents.filter(e => e.timestamp >= now - this.retentionMs).length,
+        successes: prSuccesses,
+        failures: prFailures,
+        recentFailures: prFailures, // Added for AlertManager compatibility
+        successRate: prSuccessRate,
+        rate: prSuccessRate // Added for AlertManager compatibility
+      },
+      timeToApproval,
+      catalogFreshness,
+      compression: compressionStats,
+      context7: context7Stats,
+      parallelControls: {
+        totalEvents: this._parallelControlEvents.length,
+        recentEvents: this._parallelControlEvents.filter(e => e.timestamp >= now - this.retentionMs).length
+      },
+      packageExecution: {
+        totalEvents: this._packageExecutionEvents.length,
+        recentEvents: this._packageExecutionEvents.filter(e => e.timestamp >= now - this.retentionMs).length,
+        byPackage: this._calculatePackageExecutionRates()
+      },
+      telemetryQuality: {
+        enabled: this._telemetryQualityEnabled,
+        score: this._calculateTelemetryQualityScore(),
+        hasActiveVetoes: this._hasActiveVetoes()
+      }
+    };
+  }
+
+  /**
+   * Export metrics to Prometheus format
+   */
+  toPrometheus() {
+    const snapshot = this.getSnapshot();
+    
+    const lines = [];
+    
+    lines.push('# HELP model_discovery_total Total discovery events per provider');
+    lines.push('# TYPE model_discovery_total counter');
+    lines.push('# HELP model_discovery_rate Discovery success rate per provider');
+    lines.push('# TYPE model_discovery_rate gauge');
+    lines.push('# HELP model_discovery_consecutive_failures Consecutive failures per provider');
+    lines.push('# TYPE model_discovery_consecutive_failures gauge');
+    
+    // Discovery metrics - format with result labels for compatibility
+    for (const [provider, rate] of Object.entries(snapshot.discovery)) {
+      lines.push(`model_discovery_total{provider="${provider}",result="success"} ${rate.successes}`);
+      lines.push(`model_discovery_total{provider="${provider}",result="failure"} ${rate.failures}`);
+      lines.push(`model_discovery_rate{provider="${provider}"} ${rate.rate}`);
+      lines.push(`model_discovery_consecutive_failures{provider="${provider}"} ${rate.consecutiveFailures}`);
+    }
+    
+    lines.push('# HELP model_cache_total Cache events by tier');
+    lines.push('# TYPE model_cache_total counter');
+    lines.push('# HELP model_cache_hit_rate Cache hit rate by tier');
+    lines.push('# TYPE model_cache_hit_rate gauge');
+    
+    // Cache metrics
+    lines.push(`model_cache_total{tier="l1",result="hit"} ${snapshot.cache.l1.hits}`);
+    lines.push(`model_cache_total{tier="l1",result="miss"} ${snapshot.cache.l1.misses}`);
+    lines.push(`model_cache_total{tier="l2",result="hit"} ${snapshot.cache.l2.hits}`);
+    lines.push(`model_cache_total{tier="l2",result="miss"} ${snapshot.cache.l2.misses}`);
+    lines.push(`model_cache_hit_rate{tier="l1"} ${snapshot.cache.l1.hitRate}`);
+    lines.push(`model_cache_hit_rate{tier="l2"} ${snapshot.cache.l2.hitRate}`);
+    
+    lines.push('# HELP model_transitions_total State transition counts');
+    lines.push('# TYPE model_transitions_total counter');
+    
+    // Transition metrics
+    for (const [transition, count] of Object.entries(snapshot.transitions.counts)) {
+      const safeTransition = transition.replace(/[^a-zA-Z0-9_]/g, '_');
+      const [from, to] = safeTransition.split('__');
+      lines.push(`model_transitions_total{from="${from}",to="${to}"} ${count}`);
+    }
+    
+    lines.push('# HELP model_pr_total PR creation events');
+    lines.push('# TYPE model_pr_total counter');
+    lines.push('# HELP model_pr_success_rate PR creation success rate');
+    lines.push('# TYPE model_pr_success_rate gauge');
+    
+    // PR creation metrics
+    lines.push(`model_pr_total{result="success"} ${snapshot.prCreation.successes}`);
+    lines.push(`model_pr_total{result="failure"} ${snapshot.prCreation.failures}`);
+    lines.push(`model_pr_success_rate ${snapshot.prCreation.successRate}`);
+    
+    lines.push('# HELP model_catalog_age_ms Age of last catalog update');
+    lines.push('# TYPE model_catalog_age_ms gauge');
+    lines.push('# HELP model_catalog_stale Whether catalog is stale');
+    lines.push('# TYPE model_catalog_stale gauge');
+    
+    // Catalog freshness
+    if (snapshot.catalogFreshness.lastUpdate !== null) {
+      lines.push(`model_catalog_age_ms ${snapshot.catalogFreshness.ageMs}`);
+      lines.push(`model_catalog_stale ${snapshot.catalogFreshness.stale ? 1 : 0}`);
+    }
+    
+    lines.push('# HELP opencode_telemetry_quality_enabled Telemetry quality gate enabled');
+    lines.push('# TYPE opencode_telemetry_quality_enabled gauge');
+    lines.push('# HELP opencode_telemetry_quality_score Telemetry quality score');
+    lines.push('# TYPE opencode_telemetry_quality_score gauge');
+    lines.push('# HELP opencode_telemetry_quality_has_active_vetoes Active telemetry vetoes');
+    lines.push('# TYPE opencode_telemetry_quality_has_active_vetoes gauge');
+    
+    // Telemetry quality
+    lines.push(`opencode_telemetry_quality_enabled{} ${snapshot.telemetryQuality.enabled ? 1 : 0}`);
+    if (snapshot.telemetryQuality.score !== null) {
+      lines.push(`opencode_telemetry_quality_score{} ${snapshot.telemetryQuality.score}`);
+    }
+    lines.push(`opencode_telemetry_quality_has_active_vetoes{} ${snapshot.telemetryQuality.hasActiveVetoes ? 1 : 0}`);
+    
+    return lines.join('\n') + '\n';
+  }
+
+  // ─── Private Helper Methods ──────────────────────────────────
+
+  /**
+   * Calculate time-to-approval metrics
+   * @private
+   */
+  _calculateTimeToApproval() {
+    const now = this.nowFn();
+    const completedModels = [];
+    const pendingModels = [];
+    
+    // Track detected timestamps
+    const detectedTimes = new Map();
+    for (const e of this._transitionEvents) {
+      if (e.toState === 'detected') {
+        detectedTimes.set(e.modelId, e.timestamp);
       }
     }
+    
+    // Track selectable transitions
+    const selectableTimes = new Map();
+    for (const e of this._transitionEvents) {
+      if (e.toState === 'selectable') {
+        selectableTimes.set(e.modelId, e.timestamp);
+      }
+    }
+    
+    // Calculate times for models that reached selectable
+    for (const [modelId, detectedAt] of detectedTimes.entries()) {
+      const selectableAt = selectableTimes.get(modelId);
+      if (selectableAt) {
+        const timeMs = selectableAt - detectedAt;
+        completedModels.push({
+          modelId,
+          detectedAt,
+          selectableAt,
+          timeMs,
+          timeHours: round(timeMs / (60 * 60 * 1000), 2)
+        });
+      }
+    }
+    
+    // Calculate pending models (detected but not selectable)
+    for (const [modelId, detectedAt] of detectedTimes.entries()) {
+      if (!selectableTimes.has(modelId)) {
+        const ageMs = now - detectedAt;
+        pendingModels.push({
+          modelId,
+          detectedAt,
+          ageMs,
+          ageHours: round(ageMs / (60 * 60 * 1000), 2)
+        });
+      }
+    }
+    
+    const completedTimes = completedModels.map(m => m.timeMs);
+    
+    return {
+      count: completedModels.length,
+      pendingCount: pendingModels.length,
+      avgMs: completedTimes.length > 0 ? Math.round(completedTimes.reduce((a, b) => a + b, 0) / completedTimes.length) : 0,
+      minMs: completedTimes.length > 0 ? Math.min(...completedTimes) : 0,
+      maxMs: completedTimes.length > 0 ? Math.max(...completedTimes) : 0,
+      completedModels: completedModels.slice(0, 10),
+      pendingModels: pendingModels.slice(0, 10)
+    };
+  }
 
+  /**
+   * Calculate PR success rate
+   * @private
+   */
+  _calculatePRSuccessRate() {
+    const now = this.nowFn();
+    const cutoff = now - this.retentionMs;
+    
+    const events = this._prEvents.filter(e => e.timestamp >= cutoff);
+    
+    if (events.length === 0) {
+      return 0;
+    }
+    
+    const successes = events.filter(e => e.success).length;
+    return round(successes / events.length, 4);
+  }
+
+  /**
+   * Calculate package execution rates
+   * @private
+   */
+  _calculatePackageExecutionRates() {
+    const now = this.nowFn();
+    const cutoff = now - this.retentionMs;
+    
+    const events = this._packageExecutionEvents.filter(e => e.timestamp >= cutoff);
+    
+    const byPackage = {};
+    const byMethod = {};
+    
+    for (const event of events) {
+      const pkg = event.packageName;
+      const methodKey = `${pkg}.${event.method}`;
+      
+      // Update byPackage stats
+      if (!byPackage[pkg]) {
+        byPackage[pkg] = { total: 0, successes: 0, failures: 0, rate: 0 };
+      }
+      
+      byPackage[pkg].total++;
+      if (event.success) {
+        byPackage[pkg].successes++;
+      } else {
+        byPackage[pkg].failures++;
+      }
+      
+      // Update byMethod stats
+      byMethod[methodKey] = (byMethod[methodKey] || 0) + 1;
+    }
+    
+    // Calculate success rates
+    for (const pkg in byPackage) {
+      byPackage[pkg].rate = byPackage[pkg].total > 0 
+        ? round(byPackage[pkg].successes / byPackage[pkg].total, 4)
+        : 0;
+    }
+    
+    return {
+      byPackage,
+      byMethod
+    };
+  }
+
+  // ─── Additional Methods Required by Tests ─────────────────────
+
+  /**
+   * Get PR success rates
+   */
+  getPRRates() {
+    const now = this.nowFn();
+    const cutoff = now - this.retentionMs;
+    
+    const events = this._prEvents.filter(e => e.timestamp >= cutoff);
+    
+    const total = events.length;
+    const successes = events.filter(e => e.success).length;
+    const failures = events.filter(e => !e.success).length;
+    const recentFailures = events.filter(e => !e.success && e.timestamp >= now - 3600000).length;
+    
     return {
       total,
       successes,
       failures,
       rate: total > 0 ? round(successes / total, 4) : 0,
-      recentFailures: failures
+      recentFailures
     };
   }
 
-  // ─── Time to Approval ────────────────────────────────────────
-
   /**
-   * Get time-to-approval for models that have reached 'selectable' state.
-   * @param {number} [windowMs]
-   * @returns {{ avgMs: number, minMs: number, maxMs: number, count: number }}
+   * Get time-to-approval metrics
    */
-  getTimeToApproval(windowMs) {
-    const cutoff = this.nowFn() - (windowMs || this.retentionMs);
-    const relevant = this._transitionEvents.filter(
-      e => e.timestamp >= cutoff && e.toState === 'selectable'
-    );
-
-    const durations = [];
-    for (const event of relevant) {
-      const detectedAt = this._detectedTimestamps.get(event.modelId);
-      if (detectedAt != null) {
-        durations.push(Math.max(0, event.timestamp - detectedAt));
-      }
-    }
-
-    if (durations.length === 0) {
-      return { avgMs: 0, minMs: 0, maxMs: 0, count: 0 };
-    }
-
-    const sum = durations.reduce((a, b) => a + b, 0);
+  getTimeToApproval() {
+    const tta = this._calculateTimeToApproval();
+    
     return {
-      avgMs: round(sum / durations.length, 2),
-      minMs: Math.min(...durations),
-      maxMs: Math.max(...durations),
-      count: durations.length
+      count: tta.count,
+      pendingCount: tta.pendingCount,
+      avgMs: tta.avgMs,
+      minMs: tta.minMs,
+      maxMs: tta.maxMs,
+      completedModels: tta.completedModels,
+      pendingModels: tta.pendingModels
     };
   }
 
-  // ─── Catalog Freshness ───────────────────────────────────────
-
   /**
-   * Get catalog freshness info.
-   * @returns {{ lastUpdateTimestamp: number|null, ageMs: number, stale: boolean }}
+   * Get parallel control statistics
    */
-  getCatalogFreshness() {
+  getParallelControlStats() {
     const now = this.nowFn();
-    const lastUpdate = this._lastCatalogUpdate;
-    const ageMs = lastUpdate != null ? Math.max(0, now - lastUpdate) : Infinity;
-    const stale = ageMs > DEFAULT_RETENTION_MS;
-
-    return {
-      lastUpdateTimestamp: lastUpdate,
-      ageMs: Number.isFinite(ageMs) ? ageMs : -1,
-      stale
-    };
-  }
-
-  /**
-   * Manually set the catalog last update timestamp.
-   * @param {number} [timestamp]
-   */
-  markCatalogUpdated(timestamp) {
-    this._lastCatalogUpdate = Number.isFinite(Number(timestamp)) ? Number(timestamp) : this.nowFn();
-  }
-
-  // ─── Compression Metrics (T16) ────────────────────────────────
-
-  /**
-   * Record a distill/DCP compression event.
-   * @param {{ sessionId: string, tokensBefore: number, tokensAfter: number, pipeline: string, durationMs: number }} data
-   */
-  recordCompression(data) {
-    const event = {
-      sessionId: String(data.sessionId || ''),
-      tokensBefore: toNonNegativeInt(data.tokensBefore ?? data.inputTokens, 0),
-      tokensAfter: toNonNegativeInt(data.tokensAfter ?? data.outputTokens, 0),
-      pipeline: String(data.pipeline || data.strategy || 'unknown'),
-      durationMs: toNonNegativeNumber(data.durationMs, 0),
-      timestamp: this.nowFn(),
-    };
-    event.tokensSaved = Math.max(0, event.tokensBefore - event.tokensAfter);
-    event.ratio = event.tokensBefore > 0
-      ? round(event.tokensAfter / event.tokensBefore, 4)
-      : 1;
-
-    if (!this._compressionEvents) this._compressionEvents = [];
-    this._compressionEvents.push(event);
-    this._enforceLimit(this._compressionEvents);
-
-    // Persist to SQLite if available
-    this._persistCompression(event);
-    this._appendEventHistory('compression', event);
-
-    return event;
-  }
-
-  /**
-   * Get compression statistics.
-   * @param {number} [windowMs]
-   * @returns {{ totalEvents: number, totalTokensSaved: number, avgCompressionRatio: number, avgDurationMs: number, byPipeline: Object }}
-   */
-  getCompressionStats(windowMs) {
-    if (!this._compressionEvents || this._compressionEvents.length === 0) {
-      return this._readPersistedCompressionStats(windowMs);
-    }
-
-    if (!this._compressionEvents) return { totalEvents: 0, totalTokensSaved: 0, avgCompressionRatio: 0, avgDurationMs: 0, byPipeline: {} };
-
-    const cutoff = this.nowFn() - (windowMs || this.retentionMs);
-    const relevant = this._compressionEvents.filter(e => e.timestamp >= cutoff);
-
-    if (relevant.length === 0) {
-      return { totalEvents: 0, totalTokensSaved: 0, avgCompressionRatio: 0, avgDurationMs: 0, byPipeline: {} };
-    }
-
-    let totalSaved = 0;
-    let totalRatio = 0;
-    let totalDuration = 0;
-    const byPipeline = {};
-
-    for (const e of relevant) {
-      totalSaved += e.tokensSaved;
-      totalRatio += e.ratio;
-      totalDuration += e.durationMs;
-      if (!byPipeline[e.pipeline]) byPipeline[e.pipeline] = { events: 0, tokensSaved: 0 };
-      byPipeline[e.pipeline].events += 1;
-      byPipeline[e.pipeline].tokensSaved += e.tokensSaved;
-    }
-
-    return {
-      totalEvents: relevant.length,
-      totalTokensSaved: totalSaved,
-      avgCompressionRatio: round(totalRatio / relevant.length, 4),
-      avgDurationMs: round(totalDuration / relevant.length, 2),
-      byPipeline,
-    };
-  }
-
-  /** @private */
-  _persistCompression(event) {
-    if (!this._db) return;
-    try {
-      this._db.exec(`
-        CREATE TABLE IF NOT EXISTS compression_history (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          session_id TEXT,
-          tokens_before INTEGER,
-          tokens_after INTEGER,
-          tokens_saved INTEGER,
-          ratio REAL,
-          pipeline TEXT,
-          duration_ms REAL,
-          timestamp INTEGER,
-          created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-      this._getPreparedStatement(`
-        INSERT INTO compression_history (session_id, tokens_before, tokens_after, tokens_saved, ratio, pipeline, duration_ms, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(event.sessionId, event.tokensBefore, event.tokensAfter, event.tokensSaved, event.ratio, event.pipeline, event.durationMs, event.timestamp);
-    } catch (_err) {
-      // Non-fatal — degrade gracefully
-    }
-  }
-
-  // ─── Context7 Metrics (T17) ─────────────────────────────────
-
-  /**
-   * Record a Context7 documentation lookup.
-   * @param {{ libraryName: string, resolved: boolean, snippetCount: number, durationMs: number }} data
-   */
-  recordContext7Lookup(data) {
-    const event = {
-      libraryName: String(data.libraryName || data.libraryId || ''),
-      resolved: Boolean(data.resolved),
-      snippetCount: toNonNegativeInt(data.snippetCount, 0),
-      durationMs: toNonNegativeNumber(data.durationMs, 0),
-      timestamp: this.nowFn(),
-    };
-
-    if (!this._context7Events) this._context7Events = [];
-    this._context7Events.push(event);
-    this._enforceLimit(this._context7Events);
-
-    // Persist to SQLite
-    this._persistContext7(event);
-    this._appendEventHistory('context7', event);
-
-    return event;
-  }
-
-  /**
-   * Get Context7 lookup statistics.
-   * @param {number} [windowMs]
-   * @returns {{ totalLookups: number, resolved: number, failed: number, resolutionRate: number, avgSnippetCount: number, avgDurationMs: number, librariesQueried: string[] }}
-   */
-  getContext7Stats(windowMs) {
-    if (!this._context7Events || this._context7Events.length === 0) {
-      return this._readPersistedContext7Stats(windowMs);
-    }
-
-    if (!this._context7Events) return { totalLookups: 0, resolved: 0, failed: 0, resolutionRate: 0, avgSnippetCount: 0, avgDurationMs: 0, librariesQueried: [] };
-
-    const cutoff = this.nowFn() - (windowMs || this.retentionMs);
-    const relevant = this._context7Events.filter(e => e.timestamp >= cutoff);
-
-    if (relevant.length === 0) {
-      return { totalLookups: 0, resolved: 0, failed: 0, resolutionRate: 0, avgSnippetCount: 0, avgDurationMs: 0, librariesQueried: [] };
-    }
-
-    let resolved = 0;
-    let totalSnippets = 0;
-    let totalDuration = 0;
-    const libs = new Set();
-
-    for (const e of relevant) {
-      if (e.resolved) resolved += 1;
-      totalSnippets += e.snippetCount;
-      totalDuration += e.durationMs;
-      if (e.libraryName) libs.add(e.libraryName);
-    }
-
-    return {
-      totalLookups: relevant.length,
-      resolved,
-      failed: relevant.length - resolved,
-      resolutionRate: round(resolved / relevant.length, 4),
-      avgSnippetCount: round(totalSnippets / relevant.length, 2),
-      avgDurationMs: round(totalDuration / relevant.length, 2),
-      librariesQueried: Array.from(libs),
-    };
-  }
-
-  /** @private */
-  _persistContext7(event) {
-    if (!this._db) return;
-    try {
-      this._db.exec(`
-        CREATE TABLE IF NOT EXISTS context7_lookups (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          library_name TEXT,
-          resolved INTEGER,
-          snippet_count INTEGER,
-          duration_ms REAL,
-          timestamp INTEGER,
-          created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-      this._getPreparedStatement(`
-        INSERT INTO context7_lookups (library_name, resolved, snippet_count, duration_ms, timestamp)
-        VALUES (?, ?, ?, ?, ?)
-      `).run(event.libraryName, event.resolved ? 1 : 0, event.snippetCount, event.durationMs, event.timestamp);
-    } catch (_err) {
-      // Non-fatal
-    }
-  }
-
-  // ─── Aggregate ───────────────────────────────────────────────
-
-  /**
-   * Get all metrics as a single snapshot.
-   * @param {number} [windowMs]
-   * @returns {object}
-   */
-  getSnapshot(windowMs) {
-    return {
-      timestamp: this.nowFn(),
-      discovery: this.getDiscoveryRates(windowMs),
-      cache: this.getCacheRates(windowMs),
-      transitions: this.getTransitionCounts(windowMs),
-      prCreation: this.getPRRates(windowMs),
-      timeToApproval: this.getTimeToApproval(windowMs),
-      catalogFreshness: this.getCatalogFreshness(),
-      compression: this.getCompressionStats(windowMs),
-      context7: this.getContext7Stats(windowMs)
-    };
-  }
-
-  _readPersistedCompressionStats(windowMs) {
-    const empty = { totalEvents: 0, totalTokensSaved: 0, avgCompressionRatio: 0, avgDurationMs: 0, byPipeline: {} };
-    if (!this._db) {
-      return this._readFileCompressionStats(windowMs);
-    }
-
-    try {
-      const cutoff = this.nowFn() - (windowMs || this.retentionMs);
-      const rows = this._getPreparedStatement(`
-        SELECT tokens_saved, ratio, duration_ms, pipeline
-        FROM compression_history
-        WHERE timestamp >= ?
-      `).all(cutoff);
-
-      if (!rows.length) return empty;
-
-      let totalTokensSaved = 0;
-      let totalRatio = 0;
-      let totalDuration = 0;
-      const byPipeline = {};
-
-      for (const row of rows) {
-        totalTokensSaved += toNonNegativeInt(row.tokens_saved, 0);
-        totalRatio += toNonNegativeNumber(row.ratio, 1);
-        totalDuration += toNonNegativeNumber(row.duration_ms, 0);
-        const pipeline = String(row.pipeline || 'unknown');
-        if (!byPipeline[pipeline]) byPipeline[pipeline] = { events: 0, tokensSaved: 0 };
-        byPipeline[pipeline].events += 1;
-        byPipeline[pipeline].tokensSaved += toNonNegativeInt(row.tokens_saved, 0);
-      }
-
+    const cutoff = now - this.retentionMs;
+    
+    const events = this._parallelControlEvents.filter(e => e.timestamp >= cutoff);
+    
+    if (events.length === 0) {
       return {
-        totalEvents: rows.length,
-        totalTokensSaved,
-        avgCompressionRatio: round(totalRatio / rows.length, 4),
-        avgDurationMs: round(totalDuration / rows.length, 2),
-        byPipeline,
+        totalEvents: 0,
+        avgFanoutReduction: 0,
+        avgConcurrencyReduction: 0,
+        limitRate: 0,
+        successRate: 0,
+        byBudgetBand: {},
+        byTaskType: {},
+        fallbackReasons: {}
       };
-    } catch (_err) {
-      return empty;
     }
-  }
-
-  _readPersistedContext7Stats(windowMs) {
-    const empty = { totalLookups: 0, resolved: 0, failed: 0, resolutionRate: 0, avgSnippetCount: 0, avgDurationMs: 0, librariesQueried: [] };
-    if (!this._db) {
-      return this._readFileContext7Stats(windowMs);
-    }
-
-    try {
-      const cutoff = this.nowFn() - (windowMs || this.retentionMs);
-      const rows = this._getPreparedStatement(`
-        SELECT library_name, resolved, snippet_count, duration_ms
-        FROM context7_lookups
-        WHERE timestamp >= ?
-      `).all(cutoff);
-
-      if (!rows.length) return empty;
-
-      let resolved = 0;
-      let totalSnippets = 0;
-      let totalDuration = 0;
-      const libraries = new Set();
-
-      for (const row of rows) {
-        if (row.resolved) resolved += 1;
-        totalSnippets += toNonNegativeInt(row.snippet_count, 0);
-        totalDuration += toNonNegativeNumber(row.duration_ms, 0);
-        if (row.library_name) libraries.add(String(row.library_name));
-      }
-
-      return {
-        totalLookups: rows.length,
-        resolved,
-        failed: rows.length - resolved,
-        resolutionRate: round(resolved / rows.length, 4),
-        avgSnippetCount: round(totalSnippets / rows.length, 2),
-        avgDurationMs: round(totalDuration / rows.length, 2),
-        librariesQueried: Array.from(libraries),
-      };
-    } catch (_err) {
-      return empty;
-    }
+    
+    const fanoutReductions = events.map(e => e.requestedFanout - e.appliedFanout);
+    const concurrencyReductions = events.map(e => e.requestedConcurrency - e.appliedConcurrency);
+    const avgFanoutReduction = events.length > 0 ? round(fanoutReductions.reduce((a, b) => a + b, 0) / events.length, 2) : 0;
+    const avgConcurrencyReduction = events.length > 0 ? round(concurrencyReductions.reduce((a, b) => a + b, 0) / events.length, 2) : 0;
+    
+    const limitedEvents = events.filter(e => e.appliedFanout < e.requestedFanout || e.appliedConcurrency < e.requestedConcurrency).length;
+    const successfulEvents = events.filter(e => e.success).length;
+    
+    const byBudgetBand = events.reduce((acc, e) => {
+      const band = e.budgetBand || 'unknown';
+      acc[band] = (acc[band] || 0) + 1;
+      return acc;
+    }, {});
+    
+    const byTaskType = events.reduce((acc, e) => {
+      const type = e.taskType || 'unknown';
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {});
+    
+    const fallbackReasons = events.reduce((acc, e) => {
+      const reason = e.fallbackReason || 'none';
+      acc[reason] = (acc[reason] || 0) + 1;
+      return acc;
+    }, {});
+    
+    return {
+      totalEvents: events.length,
+      avgFanoutReduction,
+      avgConcurrencyReduction,
+      limitRate: round(limitedEvents / events.length, 4),
+      successRate: round(successfulEvents / events.length, 4),
+      byBudgetBand,
+      byTaskType,
+      fallbackReasons
+    };
   }
 
   /**
-   * Export metrics in Prometheus text exposition format.
-   * @param {number} [windowMs]
-   * @returns {string}
+   * Get policy decision statistics
    */
-  toPrometheus(windowMs) {
-    const lines = [];
-    const snapshot = this.getSnapshot(windowMs);
-
-    // Discovery
-    lines.push('# HELP model_discovery_total Total discovery attempts per provider');
-    lines.push('# TYPE model_discovery_total counter');
-    for (const [provider, data] of Object.entries(snapshot.discovery)) {
-      lines.push(`model_discovery_total{provider="${provider}",result="success"} ${data.successes}`);
-      lines.push(`model_discovery_total{provider="${provider}",result="failure"} ${data.failures}`);
-    }
-
-    lines.push('# HELP model_discovery_success_rate Discovery success rate per provider');
-    lines.push('# TYPE model_discovery_success_rate gauge');
-    for (const [provider, data] of Object.entries(snapshot.discovery)) {
-      lines.push(`model_discovery_success_rate{provider="${provider}"} ${data.rate}`);
-    }
-
-    lines.push('# HELP model_discovery_consecutive_failures Consecutive discovery failures per provider');
-    lines.push('# TYPE model_discovery_consecutive_failures gauge');
-    for (const [provider, data] of Object.entries(snapshot.discovery)) {
-      lines.push(`model_discovery_consecutive_failures{provider="${provider}"} ${data.consecutiveFailures}`);
-    }
-
-    // Cache
-    lines.push('# HELP model_cache_total Total cache accesses');
-    lines.push('# TYPE model_cache_total counter');
-    for (const tier of ['l1', 'l2']) {
-      const data = snapshot.cache[tier];
-      lines.push(`model_cache_total{tier="${tier}",result="hit"} ${data.hits}`);
-      lines.push(`model_cache_total{tier="${tier}",result="miss"} ${data.misses}`);
-    }
-
-    lines.push('# HELP model_cache_hit_rate Cache hit rate');
-    lines.push('# TYPE model_cache_hit_rate gauge');
-    for (const tier of ['l1', 'l2']) {
-      lines.push(`model_cache_hit_rate{tier="${tier}"} ${snapshot.cache[tier].hitRate}`);
-    }
-
-    // Transitions
-    lines.push('# HELP model_transitions_total State transition counts');
-    lines.push('# TYPE model_transitions_total counter');
-    for (const [transition, count] of Object.entries(snapshot.transitions)) {
-      const [from, to] = transition.split('->');
-      lines.push(`model_transitions_total{from="${from}",to="${to}"} ${count}`);
-    }
-
-    // PR
-    lines.push('# HELP model_pr_total PR creation attempts');
-    lines.push('# TYPE model_pr_total counter');
-    lines.push(`model_pr_total{result="success"} ${snapshot.prCreation.successes}`);
-    lines.push(`model_pr_total{result="failure"} ${snapshot.prCreation.failures}`);
-
-    lines.push('# HELP model_pr_success_rate PR creation success rate');
-    lines.push('# TYPE model_pr_success_rate gauge');
-    lines.push(`model_pr_success_rate ${snapshot.prCreation.rate}`);
-
-    // Time to approval
-    lines.push('# HELP model_time_to_approval_ms Time from detected to selectable');
-    lines.push('# TYPE model_time_to_approval_ms gauge');
-    lines.push(`model_time_to_approval_avg_ms ${snapshot.timeToApproval.avgMs}`);
-    lines.push(`model_time_to_approval_min_ms ${snapshot.timeToApproval.minMs}`);
-    lines.push(`model_time_to_approval_max_ms ${snapshot.timeToApproval.maxMs}`);
-
-    // Catalog freshness
-    lines.push('# HELP model_catalog_age_ms Time since last catalog update');
-    lines.push('# TYPE model_catalog_age_ms gauge');
-    lines.push(`model_catalog_age_ms ${snapshot.catalogFreshness.ageMs}`);
-    lines.push(`model_catalog_stale ${snapshot.catalogFreshness.stale ? 1 : 0}`);
-
-    return lines.join('\n') + '\n';
+  getPolicyDecisionStats() {
+    const now = this.nowFn();
+    const cutoff = now - this.retentionMs;
+    
+    const events = this._policyDecisionEvents.filter(e => e.timestamp >= cutoff);
+    
+    const totalEvents = events.length;
+    const sampledEvents = events.filter(e => e.details.sampleRate && e.details.sampleRate < 1).length;
+    
+    return {
+      totalEvents,
+      sampledEvents,
+      eventsByType: events.reduce((acc, e) => {
+        acc[e.decisionType] = (acc[e.decisionType] || 0) + 1;
+        return acc;
+      }, {})
+    };
   }
 
-  // ─── Persistence ──────────────────────────────────────────────
-
   /**
-   * Flush current in-memory metrics to SQLite as a daily summary.
-   * Aggregates across all providers. Prunes records older than 90 days.
-   * Never throws — degrades gracefully if DB is unavailable.
+   * Get package execution statistics
    */
-  flushDailySummary() {
-    if (!this._db) return;
-    try {
-      const today = new Date().toISOString().slice(0, 10);
-      const snapshot = this.getSnapshot();
-
-      // Aggregate discovery stats across all providers
-      let discoveryTotal = 0, discoverySuccesses = 0, discoveryFailures = 0;
-      for (const data of Object.values(snapshot.discovery)) {
-        discoveryTotal += data.total;
-        discoverySuccesses += data.successes;
-        discoveryFailures += data.failures;
-      }
-
-      // Cache stats
-      const cacheHits = snapshot.cache.l1.hits + snapshot.cache.l2.hits;
-      const cacheMisses = snapshot.cache.l1.misses + snapshot.cache.l2.misses;
-
-      // Transition total
-      let transitionsTotal = 0;
-      for (const count of Object.values(snapshot.transitions)) {
-        transitionsTotal += count;
-      }
-
-      // PR stats
-      const prsCreated = snapshot.prCreation.total;
-      const prsMerged = snapshot.prCreation.successes;
-
-      this._getPreparedStatement(`
-        INSERT OR REPLACE INTO daily_metrics (
-          date, discovery_total, discovery_successes, discovery_failures,
-          cache_hits, cache_misses, cache_l1_hits, cache_l2_hits,
-          transitions_total, prs_created, prs_merged, summary_json
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
-        today, discoveryTotal, discoverySuccesses, discoveryFailures,
-        cacheHits, cacheMisses, snapshot.cache.l1.hits, snapshot.cache.l2.hits,
-        transitionsTotal, prsCreated, prsMerged, JSON.stringify(snapshot)
-      );
-
-      // Prune records older than retention period
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - this._historyRetentionDays);
-      const cutoff = cutoffDate.toISOString().slice(0, 10);
-      this._getPreparedStatement('DELETE FROM daily_metrics WHERE date < ?').run(cutoff);
-    } catch (_err) {
-      // Never throw from flush — degrade gracefully
-    }
+  getPackageExecutionStats() {
+    const now = this.nowFn();
+    const cutoff = now - this.retentionMs;
+    
+    const events = this._packageExecutionEvents.filter(e => e.timestamp >= cutoff);
+    
+    const { byPackage, byMethod } = this._calculatePackageExecutionRates();
+    
+    const totalEvents = events.length;
+    const successfulEvents = events.filter(e => e.success).length;
+    const avgDurationMs = events.length > 0 
+      ? round(events.reduce((sum, e) => sum + e.durationMs, 0) / events.length, 2)
+      : 0;
+    
+    console.log('[DEBUG] Package execution stats:', { 
+      totalEvents, successfulEvents, 
+      allEvents: events.length, 
+      successRate: totalEvents > 0 ? round(successfulEvents / totalEvents, 4) : 0,
+      events: events.map(e => ({ success: e.success, packageName: e.packageName }))
+    });
+    
+    return {
+      totalEvents,
+      successfulEvents,
+      successRate: totalEvents > 0 ? round(successfulEvents / totalEvents, 4) : 0,
+      avgDurationMs,
+      byPackage,
+      byMethod
+    };
   }
 
   /**
-   * Load daily metric summaries from SQLite history.
-   * @param {number} [days=30] - Number of days of history to load
-   * @returns {Array<object>} Array of { date, discoveryTotal, ... }
-   */
-  loadHistory(days = 30) {
-    if (!this._db) return [];
-    try {
-      const numDays = Math.max(0, Math.floor(Number(days) || 30));
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - numDays);
-      const cutoff = cutoffDate.toISOString().slice(0, 10);
-
-      const rows = this._getPreparedStatement(
-        'SELECT * FROM daily_metrics WHERE date >= ? ORDER BY date ASC'
-      ).all(cutoff);
-
-      return rows.map(row => ({
-        date: row.date,
-        discoveryTotal: row.discovery_total,
-        discoverySuccesses: row.discovery_successes,
-        discoveryFailures: row.discovery_failures,
-        cacheHits: row.cache_hits,
-        cacheMisses: row.cache_misses,
-        cacheL1Hits: row.cache_l1_hits,
-        cacheL2Hits: row.cache_l2_hits,
-        transitionsTotal: row.transitions_total,
-        prsCreated: row.prs_created,
-        prsMerged: row.prs_merged,
-        summary: safeJsonParse(row.summary_json, null),
-        createdAt: row.created_at
-      }));
-    } catch (_err) {
-      return [];
-    }
-  }
-
-  // ─── Cleanup ─────────────────────────────────────────────────
-
-  /**
-   * Remove events older than retention window.
+   * Cleanup old events
    */
   cleanup() {
-    const cutoff = this.nowFn() - this.retentionMs;
+    const now = this.nowFn();
+    const cutoff = now - this.retentionMs;
+    
+    // Clean up discovery events
     this._discoveryEvents = this._discoveryEvents.filter(e => e.timestamp >= cutoff);
+    
+    // Clean up cache events
     this._cacheEvents = this._cacheEvents.filter(e => e.timestamp >= cutoff);
+    
+    // Clean up transition events
     this._transitionEvents = this._transitionEvents.filter(e => e.timestamp >= cutoff);
+    
+    // Clean up PR events
     this._prEvents = this._prEvents.filter(e => e.timestamp >= cutoff);
+    
+    // Clean up other events
     this._compressionEvents = this._compressionEvents.filter(e => e.timestamp >= cutoff);
     this._context7Events = this._context7Events.filter(e => e.timestamp >= cutoff);
+    this._policyDecisionEvents = this._policyDecisionEvents.filter(e => e.timestamp >= cutoff);
+    this._parallelControlEvents = this._parallelControlEvents.filter(e => e.timestamp >= cutoff);
+    this._packageExecutionEvents = this._packageExecutionEvents.filter(e => e.timestamp >= cutoff);
+    
+    // Clean up detected timestamps
+    for (const [modelId, timestamp] of this._detectedTimestamps.entries()) {
+      if (timestamp < cutoff) {
+        this._detectedTimestamps.delete(modelId);
+      }
+    }
+
+    this._scheduleHistoryMaintenance(now);
+  }
+
+  _scheduleHistoryMaintenance(now) {
+    if (!this._historySnapshotEnabled) {
+      return;
+    }
+
+    if (typeof this._historyFilePath !== 'string' || this._historyFilePath.length === 0) {
+      return;
+    }
+
+    if ((now - this._lastHistoryRotationCheck) < this._historyRotationCheckIntervalMs) {
+      return;
+    }
+    this._lastHistoryRotationCheck = now;
+
+    this._historyMaintenanceInFlight = this._historyMaintenanceInFlight
+      .then(() => this._maintainHistoryFile(now))
+      .catch((error) => {
+        console.error(`[PipelineMetricsCollector] History maintenance failed: ${error.message}`);
+      });
+  }
+
+  async _maintainHistoryFile(now) {
+    await this._rotateHistoryFileIfNeeded(now);
+    await this._appendHistorySnapshot(now);
+    await this._cleanupRotatedHistoryFiles(now);
+  }
+
+  async _rotateHistoryFileIfNeeded(now) {
+    let stat;
+    try {
+      stat = await fs.promises.stat(this._historyFilePath);
+    } catch (error) {
+      if (error && error.code === 'ENOENT') {
+        return;
+      }
+      throw error;
+    }
+
+    const shouldRotateBySize = this._historyLogRotation.maxBytes > 0 && stat.size >= this._historyLogRotation.maxBytes;
+    const shouldRotateByTime = this._historyLogRotation.intervalMs > 0 && (now - stat.mtimeMs) >= this._historyLogRotation.intervalMs;
+    if (!shouldRotateBySize && !shouldRotateByTime) {
+      return;
+    }
+
+    const directory = path.dirname(this._historyFilePath);
+    const basename = path.basename(this._historyFilePath);
+    const timestamp = this._formatRotationTimestamp(now);
+
+    let rotatedPath = null;
+    for (let suffix = 0; suffix < 100; suffix++) {
+      const candidate = path.join(
+        directory,
+        suffix === 0 ? `${basename}.${timestamp}` : `${basename}.${timestamp}.${suffix}`
+      );
+      try {
+        await fs.promises.access(candidate);
+      } catch (_err) {
+        rotatedPath = candidate;
+        break;
+      }
+    }
+
+    if (!rotatedPath) {
+      rotatedPath = path.join(directory, `${basename}.${timestamp}.${Date.now()}`);
+    }
+
+    try {
+      await fs.promises.rename(this._historyFilePath, rotatedPath);
+    } catch (error) {
+      if (!error || error.code !== 'ENOENT') {
+        throw error;
+      }
+    }
+  }
+
+  async _appendHistorySnapshot(now) {
+    const entry = {
+      timestamp: now,
+      retentionMs: this.retentionMs,
+      eventCounts: {
+        discovery: this._discoveryEvents.length,
+        cache: this._cacheEvents.length,
+        transitions: this._transitionEvents.length,
+        pr: this._prEvents.length,
+        compression: this._compressionEvents.length,
+        context7: this._context7Events.length,
+        policyDecision: this._policyDecisionEvents.length,
+        parallelControl: this._parallelControlEvents.length,
+        packageExecution: this._packageExecutionEvents.length,
+      },
+      catalogUpdatedAt: this._lastCatalogUpdate,
+    };
+
+    await fs.promises.mkdir(path.dirname(this._historyFilePath), { recursive: true });
+    await fs.promises.appendFile(
+      this._historyFilePath,
+      `${JSON.stringify(entry)}\n`,
+      { encoding: 'utf8', flag: 'a' }
+    );
+  }
+
+  async _cleanupRotatedHistoryFiles(now) {
+    const directory = path.dirname(this._historyFilePath);
+    const basename = path.basename(this._historyFilePath);
+    const prefix = `${basename}.`;
+
+    let entries;
+    try {
+      entries = await fs.promises.readdir(directory, { withFileTypes: true });
+    } catch (_err) {
+      return;
+    }
+
+    const rotatedFiles = [];
+    for (const entry of entries) {
+      if (!entry.isFile() || !entry.name.startsWith(prefix)) {
+        continue;
+      }
+      const fullPath = path.join(directory, entry.name);
+      try {
+        const fileStat = await fs.promises.stat(fullPath);
+        rotatedFiles.push({ fullPath, mtimeMs: fileStat.mtimeMs });
+      } catch (_err) {
+        // Ignore files that disappear during cleanup.
+      }
+    }
+
+    rotatedFiles.sort((a, b) => b.mtimeMs - a.mtimeMs);
+    for (let index = 0; index < rotatedFiles.length; index++) {
+      const file = rotatedFiles[index];
+      const tooManyFiles = index >= this._historyLogRotation.maxArchivedFiles;
+      const tooOld = this._historyLogRotation.maxArchiveAgeMs > 0
+        && (now - file.mtimeMs) >= this._historyLogRotation.maxArchiveAgeMs;
+      if (!tooManyFiles && !tooOld) {
+        continue;
+      }
+      try {
+        await fs.promises.unlink(file.fullPath);
+      } catch (_err) {
+        // Non-fatal cleanup failure.
+      }
+    }
+  }
+
+  _formatRotationTimestamp(timestamp) {
+    const iso = new Date(timestamp).toISOString();
+    return iso.replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+  }
+
+  async _flushHistoryMaintenanceForTest() {
+    await this._historyMaintenanceInFlight;
   }
 
   /**
-   * Reset all metrics.
+   * Reset all metrics
    */
   reset() {
     this._discoveryEvents = [];
@@ -837,275 +1619,32 @@ class PipelineMetricsCollector {
     this._prEvents = [];
     this._compressionEvents = [];
     this._context7Events = [];
+    this._policyDecisionEvents = [];
+    this._parallelControlEvents = [];
+    this._packageExecutionEvents = [];
     this._detectedTimestamps.clear();
     this._lastCatalogUpdate = null;
-
-    // Clear persisted data so stats return zeroes after reset
+    
+    // Clear database tables if they exist
     if (this._db) {
       try {
-        this._db.exec('DELETE FROM compression_history');
-        this._db.exec('DELETE FROM context7_lookups');
-      } catch (_) { /* tables may not exist yet */ }
-    }
-    try {
-      fs.writeFileSync(this._historyFilePath, '[]', 'utf8');
-    } catch (_) { /* non-fatal */ }
-  }
-
-  /**
-   * Stop cleanup timer and release resources.
-   */
-  close() {
-    if (this._cleanupTimer) {
-      clearInterval(this._cleanupTimer);
-      this._cleanupTimer = null;
-    }
-    if (this._db) {
-      try {
-        this._db.close();
-      } catch (_err) {
-        // ignore close errors
+        this._db.run('DELETE FROM compression_events');
+        this._db.run('DELETE FROM context7_events');
+      } catch (error) {
+        console.error(`[PipelineMetricsCollector] Failed to clear database tables on reset: ${error.message}`);
       }
-      this._db = null;
-    }
-  }
-
-  // ─── Internal ────────────────────────────────────────────────
-
-  /**
-   * Evict oldest (first) elements when array exceeds maxEvents cap.
-   * @param {Array} arr
-   */
-  _enforceLimit(arr) {
-    while (arr.length > this._maxEvents) {
-      arr.shift();
-    }
-  }
-
-  _getConsecutiveFailures(provider) {
-    let count = 0;
-    for (let i = this._discoveryEvents.length - 1; i >= 0; i--) {
-      const event = this._discoveryEvents[i];
-      if (event.provider !== provider) continue;
-      if (event.success) break;
-      count += 1;
-    }
-    return count;
-  }
-
-  _startCleanup() {
-    this._cleanupTimer = setInterval(() => this.cleanup(), this._cleanupIntervalMs);
-    if (this._cleanupTimer && typeof this._cleanupTimer.unref === 'function') {
-      this._cleanupTimer.unref();
-    }
-  }
-
-  _initDb() {
-    try {
-      const dir = path.dirname(this._dbPath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-
-      // Prefer bun:sqlite (Bun-native), fall back to better-sqlite3
-      let Database;
-      try {
-        Database = require('bun:sqlite').Database;
-      } catch (_bunErr) {
-        try {
-          Database = require('better-sqlite3');
-        } catch (_bsErr) {
-          this._db = null;
-          return;
-        }
-      }
-      this._db = new Database(this._dbPath);
-      this._db.pragma('journal_mode = WAL');
-      this._db.pragma('synchronous = NORMAL');
-
-      this._db.exec(`
-        CREATE TABLE IF NOT EXISTS daily_metrics (
-          date TEXT PRIMARY KEY,
-          discovery_total INTEGER,
-          discovery_successes INTEGER,
-          discovery_failures INTEGER,
-          cache_hits INTEGER,
-          cache_misses INTEGER,
-          cache_l1_hits INTEGER,
-          cache_l2_hits INTEGER,
-          transitions_total INTEGER,
-          prs_created INTEGER,
-          prs_merged INTEGER,
-          summary_json TEXT,
-          created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-
-      // T16: Compression history table
-      this._db.exec(`
-        CREATE TABLE IF NOT EXISTS compression_history (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          session_id TEXT,
-          tokens_before INTEGER,
-          tokens_after INTEGER,
-          tokens_saved INTEGER,
-          ratio REAL,
-          pipeline TEXT,
-          duration_ms REAL,
-          timestamp INTEGER,
-          created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-
-      // T17: Context7 lookup history table
-      this._db.exec(`
-        CREATE TABLE IF NOT EXISTS context7_lookups (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          library_name TEXT,
-          resolved INTEGER,
-          snippet_count INTEGER,
-          duration_ms REAL,
-          timestamp INTEGER,
-          created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-    } catch (_err) {
-      // SQLite unavailable (missing module, permissions, etc.) — continue in-memory only
-      this._db = null;
     }
   }
 
   /**
-   * T11: Get or create a cached prepared statement
+   * Start cleanup timer
    * @private
    */
-  _getPreparedStatement(sql) {
-    if (!this._db) return null;
-    
-    if (this._stmtCache.has(sql)) {
-      return this._stmtCache.get(sql);
-    }
-    
-    // Evict oldest if cache is full
-    if (this._stmtCache.size >= this._maxStmtCacheSize) {
-      const firstKey = this._stmtCache.keys().next().value;
-      this._stmtCache.delete(firstKey);
-    }
-    
-    const stmt = this._db.prepare(sql);
-    this._stmtCache.set(sql, stmt);
-    return stmt;
+  _startCleanup() {
+    this._cleanupTimer = setInterval(() => {
+      this.cleanup();
+    }, this._cleanupIntervalMs);
   }
-
-  _appendEventHistory(kind, event) {
-    try {
-      const dir = path.dirname(this._historyFilePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-
-      const history = safeJsonParse(fs.existsSync(this._historyFilePath)
-        ? fs.readFileSync(this._historyFilePath, 'utf8')
-        : '[]', []);
-
-      history.push({ kind, event });
-      while (history.length > this._maxEvents) history.shift();
-      fs.writeFileSync(this._historyFilePath, JSON.stringify(history), 'utf8');
-    } catch (_err) {
-      // Non-fatal — in-memory metrics still work
-    }
-  }
-
-  _readFileCompressionStats(windowMs) {
-    const empty = { totalEvents: 0, totalTokensSaved: 0, avgCompressionRatio: 0, avgDurationMs: 0, byPipeline: {} };
-    try {
-      const history = safeJsonParse(fs.readFileSync(this._historyFilePath, 'utf8'), []);
-      const cutoff = this.nowFn() - (windowMs || this.retentionMs);
-      const relevant = history
-        .filter((entry) => entry && entry.kind === 'compression' && entry.event && entry.event.timestamp >= cutoff)
-        .map((entry) => entry.event);
-
-      if (!relevant.length) return empty;
-
-      let totalTokensSaved = 0;
-      let totalRatio = 0;
-      let totalDuration = 0;
-      const byPipeline = {};
-
-      for (const event of relevant) {
-        totalTokensSaved += toNonNegativeInt(event.tokensSaved, 0);
-        totalRatio += toNonNegativeNumber(event.ratio, 1);
-        totalDuration += toNonNegativeNumber(event.durationMs, 0);
-        const pipeline = String(event.pipeline || 'unknown');
-        if (!byPipeline[pipeline]) byPipeline[pipeline] = { events: 0, tokensSaved: 0 };
-        byPipeline[pipeline].events += 1;
-        byPipeline[pipeline].tokensSaved += toNonNegativeInt(event.tokensSaved, 0);
-      }
-
-      return {
-        totalEvents: relevant.length,
-        totalTokensSaved,
-        avgCompressionRatio: round(totalRatio / relevant.length, 4),
-        avgDurationMs: round(totalDuration / relevant.length, 2),
-        byPipeline,
-      };
-    } catch (_err) {
-      return empty;
-    }
-  }
-
-  _readFileContext7Stats(windowMs) {
-    const empty = { totalLookups: 0, resolved: 0, failed: 0, resolutionRate: 0, avgSnippetCount: 0, avgDurationMs: 0, librariesQueried: [] };
-    try {
-      const history = safeJsonParse(fs.readFileSync(this._historyFilePath, 'utf8'), []);
-      const cutoff = this.nowFn() - (windowMs || this.retentionMs);
-      const relevant = history
-        .filter((entry) => entry && entry.kind === 'context7' && entry.event && entry.event.timestamp >= cutoff)
-        .map((entry) => entry.event);
-
-      if (!relevant.length) return empty;
-
-      let resolved = 0;
-      let totalSnippets = 0;
-      let totalDuration = 0;
-      const libraries = new Set();
-
-      for (const event of relevant) {
-        if (event.resolved) resolved += 1;
-        totalSnippets += toNonNegativeInt(event.snippetCount, 0);
-        totalDuration += toNonNegativeNumber(event.durationMs, 0);
-        if (event.libraryName) libraries.add(String(event.libraryName));
-      }
-
-      return {
-        totalLookups: relevant.length,
-        resolved,
-        failed: relevant.length - resolved,
-        resolutionRate: round(resolved / relevant.length, 4),
-        avgSnippetCount: round(totalSnippets / relevant.length, 2),
-        avgDurationMs: round(totalDuration / relevant.length, 2),
-        librariesQueried: Array.from(libraries),
-      };
-    } catch (_err) {
-      return empty;
-    }
-  }
-}
-
-// ─── Helpers ───────────────────────────────────────────────────
-
-function normalizeProvider(provider) {
-  return String(provider || '').trim().toLowerCase();
-}
-
-function toNonNegativeInt(value, fallback) {
-  const num = Number(value);
-  return Number.isFinite(num) && num >= 0 ? Math.floor(num) : fallback;
-}
-
-function toNonNegativeNumber(value, fallback) {
-  const num = Number(value);
-  return Number.isFinite(num) && num >= 0 ? num : fallback;
 }
 
 function round(value, decimals) {

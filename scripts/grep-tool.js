@@ -11,9 +11,7 @@
  * Outputs: JSON array of search results
  */
 
-import { spawn } from 'child_process';
-import { existsSync } from 'fs';
-import { join } from 'path';
+import { fatal, installProcessErrorHandlers, printJson, toErrorMessage } from './lib/cli-runtime.mjs';
 
 // Parse command line arguments
 const args = process.argv.slice(2);
@@ -44,16 +42,17 @@ for (let i = 0; i < args.length; i++) {
 }
 
 if (!query) {
-  console.error('Error: Query is required');
-  console.error('Usage: node grep-tool.js --query <pattern> [options]');
-  console.error('Options:');
-  console.error('  --match-case          Case sensitive search');
-  console.error('  --match-whole-words   Match whole words only');
-  console.error('  --use-regexp          Use regular expressions');
-  console.error('  --repo <owner/repo>   Filter by repository');
-  console.error('  --path <path>         Filter by file path');
-  console.error('  --language <lang>     Filter by programming language');
-  process.exit(1);
+  fatal([
+    'Query is required',
+    'Usage: node grep-tool.js --query <pattern> [options]',
+    'Options:',
+    '  --match-case          Case sensitive search',
+    '  --match-whole-words   Match whole words only',
+    '  --use-regexp          Use regular expressions',
+    '  --repo <owner/repo>   Filter by repository',
+    '  --path <path>         Filter by file path',
+    '  --language <lang>     Filter by programming language',
+  ].join('\n'));
 }
 
 // Check if grep-app tool is available (could be a local script)
@@ -138,23 +137,18 @@ async function main() {
     }));
     
     // Output JSON
-    console.log(JSON.stringify({
+    printJson({
       query: result.query,
       totalCount: result.totalCount,
       results: transformed
-    }, null, 2));
+    });
     
   } catch (error) {
-    console.error(`Error: ${error.message}`);
-    process.exit(1);
+    fatal(toErrorMessage(error));
   }
 }
 
-// Handle uncaught errors
-process.on('uncaughtException', (error) => {
-  console.error(`Uncaught error: ${error.message}`);
-  process.exit(1);
-});
+installProcessErrorHandlers({ prefix: '[grep-tool]' });
 
 // Run main function
 if (import.meta.url === `file://${process.argv[1]}`) {

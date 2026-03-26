@@ -3,6 +3,7 @@
 import { createRequire } from 'node:module';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { wrapMcpHandler } from '../../opencode-mcp-utils/src/index.mjs';
 import { z } from 'zod';
 import os from 'node:os';
 import fs from 'node:fs';
@@ -14,22 +15,6 @@ const DEFAULT_MESSAGES_DIR = path.join(os.homedir(), '.opencode', 'messages');
 const require = createRequire(import.meta.url);
 const { MemoryGraph } = require('./index.js');
 
-function toTextPayload(payload) {
-  return {
-    content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }],
-    structuredContent: payload,
-  };
-}
-
-function toErrorPayload(message, extra = {}) {
-  const payload = { error: message, ...extra };
-  return {
-    content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }],
-    structuredContent: payload,
-    isError: true,
-  };
-}
-
 async function persistGraph(memoryGraph) {
   if (!memoryGraph._graph) return;
   try {
@@ -40,73 +25,63 @@ async function persistGraph(memoryGraph) {
 
 export function createMemoryGraphHandlers(memoryGraph) {
   return {
-    async buildMemoryGraph({ sourcePath }) {
-      try {
+    buildMemoryGraph: wrapMcpHandler(
+      async ({ sourcePath }) => {
         const graph = await memoryGraph.buildGraph(sourcePath);
         // Persist immediately — Windows doesn't reliably send SIGTERM on process kill
         await persistGraph(memoryGraph);
-        return toTextPayload({
+        return {
           ok: true,
           sourcePath,
           meta: graph?.meta || null,
           nodeCount: graph?.nodes?.length || 0,
           edgeCount: graph?.edges?.length || 0,
-        });
-      } catch (error) {
-        return toErrorPayload(error instanceof Error ? error.message : String(error), { sourcePath });
-      }
-    },
+        };
+      },
+      {
+        source: 'memory-graph:buildMemoryGraph',
+        errorExtras: (_error, input) => ({ sourcePath: input?.sourcePath ?? null }),
+      },
+    ),
 
-    async getMemoryGraph() {
-      try {
-        return toTextPayload({ graph: memoryGraph.getGraph() });
-      } catch (error) {
-        return toErrorPayload(error instanceof Error ? error.message : String(error));
-      }
-    },
+    getMemoryGraph: wrapMcpHandler(
+      async () => ({ graph: memoryGraph.getGraph() }),
+      { source: 'memory-graph:getMemoryGraph' },
+    ),
 
-    async getMemoryGraphErrorFrequency() {
-      try {
-        return toTextPayload({ errors: await memoryGraph.getErrorFrequency() });
-      } catch (error) {
-        return toErrorPayload(error instanceof Error ? error.message : String(error));
-      }
-    },
+    getMemoryGraphErrorFrequency: wrapMcpHandler(
+      async () => ({ errors: await memoryGraph.getErrorFrequency() }),
+      { source: 'memory-graph:getMemoryGraphErrorFrequency' },
+    ),
 
-    async getMemoryGraphSessionPath({ sessionId }) {
-      try {
-        return toTextPayload({ sessionId, path: await memoryGraph.getSessionPath(sessionId) });
-      } catch (error) {
-        return toErrorPayload(error instanceof Error ? error.message : String(error), { sessionId });
-      }
-    },
+    getMemoryGraphSessionPath: wrapMcpHandler(
+      async ({ sessionId }) => ({ sessionId, path: await memoryGraph.getSessionPath(sessionId) }),
+      {
+        source: 'memory-graph:getMemoryGraphSessionPath',
+        errorExtras: (_error, input) => ({ sessionId: input?.sessionId ?? null }),
+      },
+    ),
 
-    async getMemoryGraphSessions() {
-      try {
-        return toTextPayload({ sessions: await memoryGraph.getSessions() });
-      } catch (error) {
-        return toErrorPayload(error instanceof Error ? error.message : String(error));
-      }
-    },
+    getMemoryGraphSessions: wrapMcpHandler(
+      async () => ({ sessions: await memoryGraph.getSessions() }),
+      { source: 'memory-graph:getMemoryGraphSessions' },
+    ),
 
-    async getMemoryGraphSessionErrors({ sessionId }) {
-      try {
-        return toTextPayload({ sessionId, errors: await memoryGraph.getSessionErrors(sessionId) });
-      } catch (error) {
-        return toErrorPayload(error instanceof Error ? error.message : String(error), { sessionId });
-      }
-    },
+    getMemoryGraphSessionErrors: wrapMcpHandler(
+      async ({ sessionId }) => ({ sessionId, errors: await memoryGraph.getSessionErrors(sessionId) }),
+      {
+        source: 'memory-graph:getMemoryGraphSessionErrors',
+        errorExtras: (_error, input) => ({ sessionId: input?.sessionId ?? null }),
+      },
+    ),
 
-    async getMemoryGraphActivationStatus() {
-      try {
-        return toTextPayload(memoryGraph.activationStatus());
-      } catch (error) {
-        return toErrorPayload(error instanceof Error ? error.message : String(error));
-      }
-    },
+    getMemoryGraphActivationStatus: wrapMcpHandler(
+      async () => memoryGraph.activationStatus(),
+      { source: 'memory-graph:getMemoryGraphActivationStatus' },
+    ),
 
-    async activateMemoryGraph({ logsDir, skipBackfill = false } = {}) {
-      try {
+    activateMemoryGraph: wrapMcpHandler(
+      async ({ logsDir, skipBackfill = false } = {}) => {
         const result = await memoryGraph.activate({ logsDir, skipBackfill });
         // activate() populates _backfillEngine but NOT _graph.
         // buildGraph() is required to set _graph before export() works.
@@ -116,11 +91,13 @@ export function createMemoryGraphHandlers(memoryGraph) {
         }
         // Persist immediately after activation — Windows doesn't reliably send SIGTERM on process kill
         await persistGraph(memoryGraph);
-        return toTextPayload(result);
-      } catch (error) {
-        return toErrorPayload(error instanceof Error ? error.message : String(error), { logsDir: logsDir || null });
-      }
-    },
+        return result;
+      },
+      {
+        source: 'memory-graph:activateMemoryGraph',
+        errorExtras: (_error, input) => ({ logsDir: input?.logsDir ?? null }),
+      },
+    ),
   };
 }
 
