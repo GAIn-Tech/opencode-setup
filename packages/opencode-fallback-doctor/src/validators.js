@@ -27,18 +27,20 @@ const KNOWN_MODELS = new Map([
   ['openai/o1', { provider: 'openai', tier: 11, family: 'o-series' }],
   ['openai/o1-mini', { provider: 'openai', tier: 12, family: 'o-series' }],
 
-  // Google Gemini 3 (Nov/Dec 2025 - current frontier)
-  ['google/gemini-3-pro', { provider: 'google', tier: 10, family: 'gemini' }],
-  ['google/gemini-3-flash', { provider: 'google', tier: 11, family: 'gemini' }],
-  ['google/gemini-3-flash-8b', { provider: 'google', tier: 12, family: 'gemini' }],
+  // Google Gemini API models (validated Mar 2026)
+  ['google/gemini-3.1-pro-preview', { provider: 'google', tier: 10, family: 'gemini' }],
+  ['google/gemini-3-pro-preview', { provider: 'google', tier: 10, family: 'gemini' }],
+  ['google/gemini-2.5-pro', { provider: 'google', tier: 10, family: 'gemini' }],
+  ['google/gemini-3.1-flash-lite-preview', { provider: 'google', tier: 11, family: 'gemini' }],
+  ['google/gemini-3-flash-preview', { provider: 'google', tier: 11, family: 'gemini' }],
+  ['google/gemini-2.5-flash', { provider: 'google', tier: 11, family: 'gemini' }],
   ['google/antigravity-gemini-3-pro', { provider: 'google', tier: 13, family: 'gemini' }],
   ['google/antigravity-gemini-3-flash', { provider: 'google', tier: 13, family: 'gemini' }],
   ['google/antigravity-gemini-3-flash-8b', { provider: 'google', tier: 14, family: 'gemini' }],
   ['google/antigravity-claude-sonnet-4-5', { provider: 'google', tier: 14, family: 'bridge' }],
   ['google/antigravity-claude-sonnet-4-5-thinking', { provider: 'google', tier: 14, family: 'bridge' }],
   ['google/antigravity-claude-opus-4-6-thinking', { provider: 'google', tier: 13, family: 'bridge' }],
-  // Legacy Gemini 2.0 (deprecated March 31, 2026)
-  ['google/gemini-2.0-pro', { provider: 'google', tier: 15, family: 'gemini' }],
+  // Legacy Gemini 2.0
   ['google/gemini-2.0-flash', { provider: 'google', tier: 16, family: 'gemini' }],
 
   // Groq (Meta Llama 4 - Apr 2025)

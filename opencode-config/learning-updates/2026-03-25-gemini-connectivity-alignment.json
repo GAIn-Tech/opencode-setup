@@ -1,0 +1,18 @@
+{
+  "id": "2026-03-25-gemini-connectivity-alignment",
+  "timestamp": "2026-03-25T22:58:00-04:00",
+  "summary": "Align Gemini model registry, fallback ordering, and budget metadata with currently reachable Google model IDs to reduce connectivity drift and fallback diagnostics noise.",
+  "affected_paths": [
+    "opencode-config/models/schema.json",
+    "opencode-config/rate-limit-fallback.json",
+    "rate-limit-fallback.json",
+    "packages/opencode-context-governor/src/budgets.json",
+    "packages/opencode-fallback-doctor/src/validators.js"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

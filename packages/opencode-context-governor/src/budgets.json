@@ -56,19 +56,40 @@
       "provider": "openai",
       "displayName": "GPT-4o Mini"
     },
-    "google/gemini-3-pro": {
+    "google/gemini-2.5-flash": {
       "maxTokens": 1000000,
       "warnThreshold": 0.75,
       "errorThreshold": 0.80,
       "provider": "google",
-      "displayName": "Gemini 3 Pro (Nov 2025)"
+      "displayName": "Gemini 2.5 Flash"
     },
-    "google/gemini-3-flash": {
+    "google/gemini-3-flash-preview": {
       "maxTokens": 1000000,
       "warnThreshold": 0.75,
       "errorThreshold": 0.80,
       "provider": "google",
-      "displayName": "Gemini 3 Flash (Dec 2025)"
+      "displayName": "Gemini 3 Flash Preview"
+    },
+    "google/gemini-3.1-flash-lite-preview": {
+      "maxTokens": 1000000,
+      "warnThreshold": 0.75,
+      "errorThreshold": 0.80,
+      "provider": "google",
+      "displayName": "Gemini 3.1 Flash Lite Preview"
+    },
+    "google/gemini-3-pro-preview": {
+      "maxTokens": 1000000,
+      "warnThreshold": 0.75,
+      "errorThreshold": 0.80,
+      "provider": "google",
+      "displayName": "Gemini 3 Pro Preview"
+    },
+    "google/gemini-3.1-pro-preview": {
+      "maxTokens": 1000000,
+      "warnThreshold": 0.75,
+      "errorThreshold": 0.80,
+      "provider": "google",
+      "displayName": "Gemini 3.1 Pro Preview"
     }
   },
   "defaults": {
