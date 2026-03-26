@@ -67,21 +67,37 @@ function applyBenchmarkBonus(modelId) {
 // ── T13: Cost-efficiency logic (extracted from ModelRouter) ────────────────
 
 /**
- * Extracted verbatim from ModelRouter._applyCostEfficiency in index.js.
- * Uses a real TokenCostCalculator instance for pricing lookups.
+ * Extracted from ModelRouter._applyCostEfficiency in index.js.
+ * Uses a real TokenCostCalculator instance for pricing lookups and supports
+ * config-driven behavior + model cost fallback.
  */
-function applyCostEfficiency(provider, modelName) {
+function applyCostEfficiency(provider, modelName, options = {}) {
   const calc = new TokenCostCalculator();
-  const pricing = calc.getPricing(provider, modelName);
+  const {
+    fallbackCost,
+    enabled = true,
+    maxCostThreshold = 15.0,
+    maxBonus = 0.05,
+  } = options;
 
-  if (!pricing) {
+  if (!enabled) {
     return { bonus: 0, reason: null };
   }
 
-  const avgCostPer1K = (pricing.input + pricing.output) / 2;
+  const pricing = calc.getPricing(provider, modelName);
+  const fallback = Number(fallbackCost);
+  let avgCostPer1K = null;
 
-  const maxCostThreshold = 15.0;
-  const maxBonus = 0.05;
+  if (pricing && Number.isFinite(pricing.input) && Number.isFinite(pricing.output)) {
+    avgCostPer1K = (pricing.input + pricing.output) / 2;
+  } else if (Number.isFinite(fallback) && fallback >= 0) {
+    avgCostPer1K = fallback;
+  }
+
+  if (!Number.isFinite(avgCostPer1K)) {
+    return { bonus: 0, reason: null };
+  }
+
   const bonus = avgCostPer1K < maxCostThreshold
     ? maxBonus * (1 - avgCostPer1K / maxCostThreshold)
     : 0;
@@ -175,6 +191,27 @@ describe('T13: Cost Efficiency', () => {
     const result = applyCostEfficiency('unknown', 'no-such-model');
     expect(result.bonus).toBe(0);
     expect(result.reason).toBeNull();
+  });
+
+  test('uses fallback model cost when token pricing is unavailable', () => {
+    const result = applyCostEfficiency('unknown', 'no-such-model', { fallbackCost: 3.5 });
+    expect(result.bonus).toBeGreaterThan(0);
+    expect(result.reason).toContain('$3.50/1K');
+  });
+
+  test('returns zero when cost efficiency is disabled by config', () => {
+    const result = applyCostEfficiency('anthropic', 'claude-haiku-4-5', { enabled: false });
+    expect(result.bonus).toBe(0);
+    expect(result.reason).toBeNull();
+  });
+
+  test('honors configured max bonus and threshold', () => {
+    const result = applyCostEfficiency('anthropic', 'claude-haiku-4-5', {
+      maxCostThreshold: 10,
+      maxBonus: 0.03,
+    });
+    expect(result.bonus).toBeLessThanOrEqual(0.03);
+    expect(result.bonus).toBeGreaterThan(0);
   });
 
   test('favors cheaper models over expensive ones', () => {
