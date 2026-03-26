@@ -1,0 +1,181 @@
+{
+  "generatedAt": "2026-03-24T23:36:07.237Z",
+  "sources": {
+    "workspaceDeclaration": "package.json",
+    "workspaceDirectory": "packages/",
+    "dormantPolicy": "opencode-config/mcp-dormant-policy.json",
+    "docsSurface": "packages/README.md"
+  },
+  "counts": {
+    "workspacePackages": 36,
+    "packagesWithCliEntrypoints": 10,
+    "packagesWithMcpWrappers": 3,
+    "hybridSurfacePackages": 3,
+    "libraryOnlyPackages": 26,
+    "dormantPackageSurfaces": 2
+  },
+  "workspacePackageNames": [
+    "opencode-backup-manager",
+    "opencode-circuit-breaker",
+    "opencode-codebase-memory",
+    "opencode-config-loader",
+    "opencode-context-governor",
+    "opencode-crash-guard",
+    "opencode-dashboard",
+    "opencode-dashboard-launcher",
+    "opencode-errors",
+    "opencode-eval-harness",
+    "opencode-event-bus",
+    "opencode-fallback-doctor",
+    "opencode-feature-flags",
+    "opencode-graphdb-bridge",
+    "opencode-health-check",
+    "opencode-integration-layer",
+    "opencode-learning-engine",
+    "opencode-logger",
+    "opencode-mcp-utils",
+    "opencode-memory-graph",
+    "opencode-model-benchmark",
+    "opencode-model-manager",
+    "opencode-model-router-x",
+    "opencode-plugin-healthd",
+    "opencode-plugin-lifecycle",
+    "opencode-plugin-preload-skills",
+    "opencode-proofcheck",
+    "opencode-registry-bridge",
+    "opencode-runbooks",
+    "opencode-safe-io",
+    "opencode-showboat-wrapper",
+    "opencode-sisyphus-state",
+    "opencode-skill-rl-manager",
+    "opencode-test-utils",
+    "opencode-tool-usage-tracker",
+    "opencode-validator"
+  ],
+  "cliPackages": [
+    {
+      "name": "opencode-codebase-memory",
+      "dir": "opencode-codebase-memory",
+      "hasBin": true,
+      "cliFile": "cli.mjs"
+    },
+    {
+      "name": "opencode-context-governor",
+      "dir": "opencode-context-governor",
+      "hasBin": true,
+      "cliFile": "cli.mjs"
+    },
+    {
+      "name": "opencode-dashboard-launcher",
+      "dir": "opencode-dashboard-launcher",
+      "hasBin": true,
+      "cliFile": "cli.js"
+    },
+    {
+      "name": "opencode-eval-harness",
+      "dir": "opencode-eval-harness",
+      "hasBin": true,
+      "cliFile": null
+    },
+    {
+      "name": "opencode-fallback-doctor",
+      "dir": "opencode-fallback-doctor",
+      "hasBin": true,
+      "cliFile": "cli.js"
+    },
+    {
+      "name": "opencode-graphdb-bridge",
+      "dir": "opencode-graphdb-bridge",
+      "hasBin": true,
+      "cliFile": null
+    },
+    {
+      "name": "opencode-memory-graph",
+      "dir": "opencode-memory-graph",
+      "hasBin": true,
+      "cliFile": "cli.js"
+    },
+    {
+      "name": "opencode-plugin-healthd",
+      "dir": "opencode-plugin-healthd",
+      "hasBin": true,
+      "cliFile": null
+    },
+    {
+      "name": "opencode-proofcheck",
+      "dir": "opencode-proofcheck",
+      "hasBin": true,
+      "cliFile": "cli.js"
+    },
+    {
+      "name": "opencode-runbooks",
+      "dir": "opencode-runbooks",
+      "hasBin": true,
+      "cliFile": null
+    }
+  ],
+  "mcpPackages": [
+    {
+      "name": "opencode-context-governor",
+      "dir": "opencode-context-governor",
+      "mcpFile": "mcp-server.mjs"
+    },
+    {
+      "name": "opencode-memory-graph",
+      "dir": "opencode-memory-graph",
+      "mcpFile": "mcp-server.mjs"
+    },
+    {
+      "name": "opencode-runbooks",
+      "dir": "opencode-runbooks",
+      "mcpFile": "mcp-server.mjs"
+    }
+  ],
+  "dormantPackageSurfaces": [
+    {
+      "packageName": "opencode-dashboard-launcher",
+      "policyPath": "opencode-config/mcp-dormant-policy.json"
+    },
+    {
+      "packageName": "opencode-model-router-x",
+      "policyPath": "opencode-config/mcp-dormant-policy.json"
+    }
+  ],
+  "docsDrift": {
+    "packagesReadmeListedPackages": 8,
+    "workspacePackages": 36,
+    "undocumentedWorkspacePackages": 28,
+    "undocumentedWorkspaceCoverageRatio": 0.778,
+    "listedButMissingWorkspacePackages": 0,
+    "missingFromReadme": [
+      "opencode-backup-manager",
+      "opencode-circuit-breaker",
+      "opencode-codebase-memory",
+      "opencode-config-loader",
+      "opencode-crash-guard",
+      "opencode-dashboard",
+      "opencode-dashboard-launcher",
+      "opencode-errors",
+      "opencode-event-bus",
+      "opencode-feature-flags",
+      "opencode-graphdb-bridge",
+      "opencode-health-check",
+      "opencode-integration-layer",
+      "opencode-learning-engine",
+      "opencode-logger",
+      "opencode-mcp-utils",
+      "opencode-model-benchmark",
+      "opencode-model-manager",
+      "opencode-plugin-lifecycle",
+      "opencode-plugin-preload-skills",
+      "opencode-registry-bridge",
+      "opencode-safe-io",
+      "opencode-showboat-wrapper",
+      "opencode-sisyphus-state",
+      "opencode-skill-rl-manager",
+      "opencode-test-utils",
+      "opencode-tool-usage-tracker",
+      "opencode-validator"
+    ]
+  }
+}

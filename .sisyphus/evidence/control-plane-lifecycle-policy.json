@@ -1,0 +1,346 @@
+{
+  "artifact": "control-plane-lifecycle-policy",
+  "version": "1.0.0",
+  "generatedAt": "2026-03-25",
+  "scope": "Tier-aware control-plane and lifecycle governance policy for ongoing anti-bloat enforcement.",
+  "inputsRead": [
+    "scripts/skills-manage.mjs",
+    "opencode-config/skills/registry.json",
+    "opencode-config/compound-engineering.json",
+    "opencode-config/learning-updates/*.json",
+    ".sisyphus/evidence/scenario-taxonomy-model.json",
+    ".sisyphus/evidence/skill-classification-recommendations.json",
+    ".sisyphus/evidence/package-surface-classification.json",
+    ".sisyphus/evidence/migration-semantics-policy.json",
+    ".sisyphus/evidence/governance-update-summary.json",
+    ".sisyphus/evidence/governance-routing-updates.json",
+    ".sisyphus/notepads/ecosystem-skill-package-audit/learnings.md",
+    ".sisyphus/notepads/ecosystem-skill-package-audit/decisions.md"
+  ],
+  "controlPlaneExpectations": {
+    "script": "scripts/skills-manage.mjs",
+    "approvedTierOperations": [
+      "enable",
+      "disable",
+      "list",
+      "audit",
+      "sync --dry-run"
+    ],
+    "commandConventions": {
+      "enable": "bun scripts/skills-manage.mjs enable <skill>",
+      "disable": "bun scripts/skills-manage.mjs disable <skill>",
+      "list_all": "bun scripts/skills-manage.mjs list --all",
+      "list_enabled": "bun scripts/skills-manage.mjs list --enabled",
+      "list_disabled": "bun scripts/skills-manage.mjs list --disabled",
+      "audit": "bun scripts/skills-manage.mjs audit",
+      "sync_dry_run": "bun scripts/skills-manage.mjs sync --dry-run"
+    },
+    "tierAwareInterpretation": {
+      "registered_but_not_enabled": {
+        "expectedTiers": [
+          "manual",
+          "dormant",
+          "candidate-prune"
+        ],
+        "violationTiers": [
+          "default",
+          "untiered"
+        ],
+        "policyNote": "Registered-but-disabled findings are not blanket failures; they are expected for non-default tiers. Default-tier skills must remain enabled."
+      },
+      "enabled_but_not_in_registry": {
+        "alwaysViolation": true
+      },
+      "missing_skill_file": {
+        "alwaysViolation": true,
+        "exception": "source=builtin"
+      },
+      "sync_behavior": {
+        "policy": "Governance path uses sync --dry-run only.",
+        "reason": "sync write-path auto-enables discovered skills and can re-inflate default exposure if used without tier metadata and review controls."
+      }
+    },
+    "guardrails": [
+      "Do not introduce a parallel migration control-plane outside skills-manage semantics.",
+      "Do not use remove for candidate-prune recommendation transitions.",
+      "Do not treat tierless skills as admissible runtime surfaces."
+    ]
+  },
+  "tierMetadataContract": {
+    "storage": {
+      "registryPath": "opencode-config/skills/registry.json",
+      "perSkillLocation": "skills.<skill>.governance"
+    },
+    "requiredFields": [
+      "tier",
+      "owner",
+      "rationale",
+      "review_date_utc",
+      "promotion_evidence_refs"
+    ],
+    "fieldRules": {
+      "tier": {
+        "type": "enum",
+        "allowed": [
+          "default",
+          "manual",
+          "dormant",
+          "candidate-prune"
+        ]
+      },
+      "owner": {
+        "type": "string",
+        "minLength": 3,
+        "examples": [
+          "@team-runtime-governance",
+          "@owner-handle"
+        ]
+      },
+      "rationale": {
+        "type": "string",
+        "minLength": 16,
+        "policy": "Must explain why this tier is correct for the planning->audit->debug model and anti-noise goals."
+      },
+      "review_date_utc": {
+        "type": "date",
+        "format": "YYYY-MM-DD",
+        "policy": "Must be in the future when metadata is written and updated on every lifecycle transition."
+      },
+      "promotion_evidence_refs": {
+        "type": "array<string>",
+        "policy": "Field is mandatory in all records; upward transitions require non-empty evidence."
+      }
+    },
+    "additionalRecommendedFields": [
+      "last_reviewed_utc",
+      "demotion_evidence_refs",
+      "rollback_refs",
+      "change_ticket",
+      "notes"
+    ],
+    "admissionRule": "No skill is considered lifecycle-governed unless all required fields are present.",
+    "governanceTieIn": "Tier metadata is a required input for interpreting skills-manage audit/list output and for approving enable/disable transitions."
+  },
+  "lifecycleGovernance": {
+    "reviewCadenceDays": {
+      "default": 30,
+      "manual": 45,
+      "dormant": 30,
+      "candidate-prune": 21
+    },
+    "stages": {
+      "admission": {
+        "intent": "Bring skill under governance with explicit tier metadata before routine operation.",
+        "requiredMetadata": [
+          "owner",
+          "rationale",
+          "review_date_utc",
+          "promotion_evidence_refs"
+        ],
+        "commandPattern": [
+          "bun scripts/skills-manage.mjs list --all",
+          "bun scripts/skills-manage.mjs audit",
+          "bun scripts/skills-manage.mjs sync --dry-run"
+        ],
+        "policy": "Admission defaults to non-default posture unless explicit default evidence already exists."
+      },
+      "graduation": {
+        "intent": "Promote capability upward (candidate-prune->dormant, dormant->manual, manual->default).",
+        "requiredMetadata": [
+          "owner",
+          "rationale",
+          "review_date_utc",
+          "promotion_evidence_refs"
+        ],
+        "promotionEvidenceRequirements": {
+          "candidate-prune_to_dormant": [
+            "Fresh scenario evidence proving non-redundant utility",
+            "Rollback plan to return to candidate-prune if signal decays"
+          ],
+          "dormant_to_manual": [
+            "Concrete specialist demand signal",
+            "Validation evidence after controlled reactivation"
+          ],
+          "manual_to_default": [
+            "Repeated core-loop dependency",
+            "Low activation-noise risk",
+            "Distinct value versus current default set"
+          ]
+        },
+        "commandPattern": [
+          "bun scripts/skills-manage.mjs enable <skill>",
+          "bun scripts/skills-manage.mjs audit",
+          "bun scripts/skills-manage.mjs sync --dry-run"
+        ]
+      },
+      "demotion": {
+        "intent": "Reduce activation posture when overlap, noise, or inactivity increases.",
+        "requiredMetadata": [
+          "owner",
+          "rationale",
+          "review_date_utc",
+          "promotion_evidence_refs"
+        ],
+        "demotionEvidenceExamples": [
+          "Reduced routine core-loop necessity",
+          "High overlap/misroute risk",
+          "Sustained low-demand across review windows"
+        ],
+        "commandPattern": [
+          "bun scripts/skills-manage.mjs disable <skill>",
+          "bun scripts/skills-manage.mjs audit"
+        ]
+      },
+      "dormancy": {
+        "intent": "Retain inactive fallback capability with explicit reactivation criteria.",
+        "requiredMetadata": [
+          "owner",
+          "rationale",
+          "review_date_utc",
+          "promotion_evidence_refs"
+        ],
+        "policy": "Dormant skills stay disabled until promotion evidence is re-established.",
+        "commandPattern": [
+          "bun scripts/skills-manage.mjs list --disabled",
+          "bun scripts/skills-manage.mjs audit"
+        ]
+      },
+      "sunset_review": {
+        "intent": "Evaluate dormant/candidate-prune items for retention rollback or explicit prune workflow entry.",
+        "requiredMetadata": [
+          "owner",
+          "rationale",
+          "review_date_utc",
+          "promotion_evidence_refs"
+        ],
+        "policy": [
+          "candidate-prune remains non-destructive recommendation state in this policy.",
+          "Deletion/removal requires separate approved workflow outside this lifecycle contract."
+        ],
+        "commandPattern": [
+          "bun scripts/skills-manage.mjs list --disabled",
+          "bun scripts/skills-manage.mjs audit",
+          "bun scripts/skills-manage.mjs sync --dry-run"
+        ]
+      }
+    },
+    "transitionRules": [
+      {
+        "transition": "default->manual",
+        "command": "disable",
+        "requiredEvidence": [
+          "demotion rationale",
+          "owner",
+          "review_date_utc"
+        ]
+      },
+      {
+        "transition": "manual->default",
+        "command": "enable",
+        "requiredEvidence": [
+          "promotion_evidence_refs (non-empty)",
+          "owner",
+          "review_date_utc"
+        ]
+      },
+      {
+        "transition": "manual->dormant",
+        "command": "disable",
+        "requiredEvidence": [
+          "sustained inactivity evidence",
+          "owner",
+          "review_date_utc"
+        ]
+      },
+      {
+        "transition": "dormant->manual",
+        "command": "enable",
+        "requiredEvidence": [
+          "promotion_evidence_refs (non-empty)",
+          "owner",
+          "review_date_utc"
+        ]
+      },
+      {
+        "transition": "dormant->candidate-prune",
+        "command": "disable",
+        "requiredEvidence": [
+          "sunset review notes",
+          "owner",
+          "review_date_utc"
+        ]
+      },
+      {
+        "transition": "candidate-prune->dormant",
+        "command": "disable",
+        "requiredEvidence": [
+          "promotion_evidence_refs (non-empty)",
+          "owner",
+          "review_date_utc"
+        ]
+      }
+    ]
+  },
+  "antiBloatPolicy": {
+    "objective": "Prevent default-surface re-inflation and metadata drift caused by learning-update activity.",
+    "learningUpdateDrift": {
+      "historicalSignals": [
+        "opencode-config/learning-updates/full-skill-activation-20260308.json",
+        "opencode-config/learning-updates/distill-context7-config-wiring-20260308.json",
+        "opencode-config/learning-updates/passive-mcp-registry-orchestration-20260310.json",
+        "opencode-config/learning-updates/enable-browser-and-dcp-skills-20260310.json",
+        "opencode-config/learning-updates/codebase-auditor-registry-wiring-20260310.json"
+      ],
+      "riskStatement": "Learning updates have repeatedly expanded enabled skill surfaces; without tier metadata gates this can re-introduce broad default behavior.",
+      "mandatoryGuards": [
+        "Any learning-update that changes registry skills or compound enabled set must include tier + owner + rationale + review_date_utc + promotion_evidence_refs for each affected skill.",
+        "Default tier count changes require explicit evidence that each promoted skill satisfies core-loop necessity and low-noise criteria.",
+        "sync write-path is not an allowed governance operation; only sync --dry-run is permitted for drift inspection.",
+        "Untiered skill additions are rejected until metadata contract is complete.",
+        "Tier changes without review_date_utc refresh are rejected.",
+        "Promotion transitions with empty promotion evidence are rejected."
+      ],
+      "defaultSurfaceBackstop": {
+        "sourceOfTruth": ".sisyphus/evidence/skill-classification-recommendations.json#tierRecommendations.default",
+        "policy": "Default core remains narrow and evidence-backed; non-default tiers must not be auto-enabled by learning-update side effects."
+      }
+    }
+  },
+  "ongoingGovernanceAttachment": {
+    "cadence": {
+      "pre_change": [
+        "bun scripts/skills-manage.mjs list --all",
+        "bun scripts/skills-manage.mjs sync --dry-run"
+      ],
+      "post_change": [
+        "bun scripts/skills-manage.mjs audit"
+      ],
+      "scheduled": [
+        "Review metadata review_date_utc against cadence rules",
+        "Reconcile default-tier enables with tier recommendations",
+        "Audit learning-update entries touching skills/compound for metadata completeness"
+      ]
+    },
+    "requiredTransitionRecordFields": [
+      "skill",
+      "from_tier",
+      "to_tier",
+      "owner",
+      "rationale",
+      "review_date_utc",
+      "promotion_evidence_refs",
+      "commands_executed",
+      "validation_commands",
+      "evidence_refs"
+    ],
+    "dependencyNotes": {
+      "dependsOn": [
+        "Task 3 tier recommendations",
+        "Task 5 migration semantics"
+      ],
+      "blocks": [
+        "Task 9 migration validation"
+      ]
+    }
+  }
+}

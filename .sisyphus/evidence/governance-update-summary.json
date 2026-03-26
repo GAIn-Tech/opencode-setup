@@ -1,0 +1,90 @@
+{
+  "artifact": "governance-update-summary",
+  "version": "1.0.0",
+  "generatedAt": "2026-03-25T02:19:30Z",
+  "goal": "Task 6: update governance and routing assumptions to support a narrow default core.",
+  "inputs": {
+    "scenarioTaxonomy": ".sisyphus/evidence/scenario-taxonomy-model.json",
+    "skillTierEvidence": ".sisyphus/evidence/skill-classification-recommendations.json",
+    "governanceScripts": [
+      "scripts/run-skill-routing-gates.mjs",
+      "scripts/check-skill-coverage.mjs",
+      "scripts/skill-routing-evaluator.mjs",
+      "scripts/check-skill-consistency.mjs"
+    ],
+    "tests": [
+      "scripts/tests/skill-implied-full-coverage.test.mjs",
+      "scripts/tests/check-skill-coverage.test.mjs"
+    ]
+  },
+  "findings": {
+    "narrowDefaultCoreStatus": "implemented",
+    "defaultCoreAllowlist": [
+      "codebase-auditor",
+      "context7",
+      "git-master",
+      "systematic-debugging",
+      "task-orchestrator",
+      "test-driven-development",
+      "using-superpowers",
+      "verification-before-completion",
+      "writing-plans"
+    ],
+    "routingFixtureScope": "built-in evaluator fixture uses default-core scenarios only and enforces default-tier routing",
+    "breadthBiasedAssumption": "removed: implied dynamic coverage is enforced for default-tier only, not for all on-disk skills",
+    "untieredPolicy": "hard-fail: untiered on-disk skills fail governance",
+    "leakagePolicy": "hard-fail: default-core fixture tasks routing to manual/dormant/candidate-prune/untiered skills fail governance",
+    "duplicateTierAssignmentPolicy": "hard-fail in evaluator + consistency checks"
+  },
+  "governanceMechanics": {
+    "coverageGate": {
+      "script": "scripts/check-skill-coverage.mjs",
+      "enforcement": [
+        "default-tier implied evidence required",
+        "untiered on-disk skills forbidden",
+        "alias-aware tier mapping (superpowers/* -> leaf alias supported)"
+      ]
+    },
+    "routingGate": {
+      "script": "scripts/skill-routing-evaluator.mjs",
+      "enforcement": [
+        "default fixture expected skills must be in default tier",
+        "default fixture top skill selections must remain in default tier",
+        "duplicate tier evidence assignments forbidden"
+      ]
+    },
+    "consistencyGate": {
+      "script": "scripts/check-skill-consistency.mjs",
+      "enforcement": [
+        "enabled skills must exist in registry",
+        "all on-disk skills must have explicit tier assignment",
+        "default-tier skills must remain baseline-enabled"
+      ]
+    }
+  },
+  "verification": {
+    "required": [
+      {
+        "command": "bun test scripts/tests/skill-implied-full-coverage.test.mjs",
+        "status": "pass",
+        "evidence": {
+          "testsPassed": 2,
+          "testsFailed": 0
+        }
+      },
+      {
+        "command": "bun scripts/run-skill-routing-gates.mjs",
+        "status": "pass",
+        "evidence": {
+          "gatesRun": 6,
+          "gatesPassed": 6,
+          "gatesFailed": 0
+        }
+      }
+    ]
+  },
+  "notes": [
+    "No additional governance-script code edits were required in this step because current scripts already satisfy the tier-aware narrow-default-core policy.",
+    "This summary supersedes ad-hoc narrative evidence and is intended as the canonical Task 6 status artifact."
+  ]
+}

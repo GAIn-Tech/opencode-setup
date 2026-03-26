@@ -1,0 +1,64 @@
+{
+  "generatedAt": "2026-03-24T23:36:07.237Z",
+  "source": ".sisyphus/skill-manifest.json",
+  "summary": {
+    "manifestSkills": 54,
+    "mustHaveCount": 54,
+    "mustHaveRatio": 1,
+    "manifestCategories": 10
+  },
+  "categoryCounts": {
+    "architecture": 9,
+    "security": 6,
+    "devops": 7,
+    "data-ai": 6,
+    "frontend": 5,
+    "backend": 5,
+    "database": 4,
+    "business": 5,
+    "testing": 5,
+    "code-quality": 2
+  },
+  "explicitlyFlaggedByUserStillMustHave": [
+    {
+      "skill": "rust-development",
+      "present": true,
+      "priority": "must-have",
+      "category": "backend"
+    },
+    {
+      "skill": "go-development",
+      "present": true,
+      "priority": "must-have",
+      "category": "backend"
+    },
+    {
+      "skill": "laravel-development",
+      "present": true,
+      "priority": "must-have",
+      "category": "backend"
+    },
+    {
+      "skill": "c4-architecture",
+      "present": true,
+      "priority": "must-have",
+      "category": "architecture"
+    },
+    {
+      "skill": "django-development",
+      "present": true,
+      "priority": "must-have",
+      "category": "backend"
+    },
+    {
+      "skill": "gtm-strategy",
+      "present": true,
+      "priority": "must-have",
+      "category": "business"
+    }
+  ],
+  "assumptionsCaptured": [
+    "Current manifest encodes breadth-first import stance: every listed skill is marked must-have.",
+    "Must-have status currently spans backend, architecture, and business domains that user requested not to remain first-class by default."
+  ]
+}
