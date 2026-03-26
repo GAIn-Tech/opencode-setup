@@ -1,439 +1,54 @@
 {
-  "active_plan": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\orchestration-parallelization-model-routing.md",
-  "plan_name": "orchestration-parallelization-model-routing",
-  "started_at": "2026-03-20T15:44:48.465Z",
-  "session_ids": ["ses_2f424b191ffe9I0MwFtdryphBe"],
+  "active_plan": null,
+  "plan_name": null,
+  "started_at": null,
+  "session_ids": [],
   "progress": {
-    "total_tasks": 7,
-    "completed": 7,
-    "current_task": "Completed (all plan TODOs and checklists)"
+    "total_tasks": 25,
+    "completed": 25,
+    "current_task": "COMPLETED"
   },
   "waves": {
-    "1": {"status": "completed", "tasks": [1, 2]},
-    "2": {"status": "completed", "tasks": [3, 4, 5]},
-    "3": {"status": "completed", "tasks": [6, 7]}
+    "1": {"status": "completed", "tasks": [1, 2, 3, 4, 5, 6, 7]},
+    "2": {"status": "completed", "tasks": [8, 9, 10, 11, 12, 13, 14]},
+    "3": {"status": "completed", "tasks": [15, 16, 17, 18, 19, 20]},
+    "4": {"status": "completed", "tasks": [21, 22, 23, 24, 25]}
   },
   "commits": [],
   "risk_points_reduced": 0,
-  "backlog": [
-    {
-      "priority": 1,
-      "plan": "debt-refinement-phase2",
-      "plan_path": ".sisyphus/plans/2026-02-24-debt-refinement-phase2.md",
-      "status": "completed",
-      "rationale": "SECURITY: fixes command injection in learning-gate.mjs (runs on every commit). Also improves CI reliability which all other work depends on.",
-      "unblocks": [
-        "all CI-dependent work"
-      ],
-      "effort": "medium",
-      "lines": 372,
-      "completed_tasks": "Fix Command Injection in learning-gate.mjs, Fix Timing Attack in Token Validation, Add Rate Limiting Middleware, Add Database Indexes, Add Pagination to History Queries, Replace Sync File I/O with Async, Standardize Error Response Format, Replace Silent Catch Blocks, Add Error Boundaries to React Components, Add RBAC to Audit Endpoint",
-      "remaining_tasks": []
-    },
-    {
-      "priority": 2,
-      "plan": "agent-surface-hardening",
-      "plan_path": ".sisyphus/plans/agent-surface-hardening.md",
-      "status": "completed",
-      "completed_tasks": [
-        "remove librarian.md from opencode-config/agents/ (done)",
-        "harden copy-config.mjs against phantom agent reintroduction (pruneDeprecatedRuntimeAgentPrompts + tests)",
-        "update README/agents-list.md (already accurate)",
-        "reconcile MCP boundary docs (aligned)"
-      ],
-      "remaining_tasks": [],
-      "rationale": "Foundation: ensures plugin-managed agent source of truth. Completed all tasks.",
-      "effort": "low"
-    },
-    {
-      "priority": 3,
-      "plan": "hardening-wave-concerns-1-3-4-5",
-      "plan_path": ".sisyphus/plans/hardening-wave-concerns-1-3-4-5.md",
-      "status": "completed",
-      "completed_tasks": [
-        "Task 1: ci-boundary-enforce.mjs extends to all packages + tests",
-        "Task 2: snapshot-schema.js with validateSnapshot + normalizeSnapshot",
-        "Task 3: Atomic compare-and-swap in state-machine.js (lines 432-444)",
-        "Task 4: warning budget baseline + ci-warning-budget.mjs + package.json scripts"
-      ],
-      "remaining_tasks": [],
-      "rationale": "Infrastructure-level: CI boundary enforcement, rollback schema, multi-process race fix, warning budget governance.",
-      "effort": "medium"
-    },
-    {
-      "priority": 4,
-      "plan": "passive-mcp-activation",
-      "plan_path": "docs/plans/2026-03-10-passive-mcp-activation.md",
-      "status": "completed",
-      "completed_tasks": [
-        "Task 1: Created skill definitions for supermemory, sequentialthinking, websearch, grep (all exist)",
-        "Agent prompts managed by oh-my-opencode plugin (opencode-config/agents/ is empty by design)"
-      ],
-      "remaining_tasks": [],
-      "rationale": "Quick catalyzer: creates skill+agent layer for already-installed MCPs. Completed.",
-      "effort": "low"
-    },
-    {
-      "priority": 5,
-      "plan": "wave2-package-wiring",
-      "plan_path": "docs/plans/2026-03-12-wave2-package-wiring.md",
-      "status": "completed",
-      "completed_at": "2026-03-17T22:00:00.000Z",
-      "rationale": "BLOCKER for plans 10+11: wires model-router-x into IntegrationLayer (prerequisite for dynamic-model-learning and model-management-protocol). Also enables full IntegrationLayer SkillRL path.",
-      "unblocks": [
-        "dynamic-model-learning",
-        "model-management-protocol"
-      ],
-      "effort": "medium",
-      "lines": 467,
-      "verification": "All delegate methods exist in IntegrationLayer: recordSessionError, getSessionErrors, getErrorFrequency, activateMemoryGraph, isMemoryGraphActive (memory-graph); validateFallbackChain, diagnoseFallbacks (fallback-doctor); evaluatePluginHealth, listPlugins (plugin-lifecycle); executeWorkflow, resumeWorkflow, getWorkflowState (sisyphus-state). Bootstrap wires model-router-x, plugin-lifecycle, sisyphus-state. Tests pass (22 wiring tests)."
-    },
-    {
-      "priority": 6,
-      "plan": "dashboard-auth-hardening",
-      "plan_path": ".sisyphus/plans/dashboard-auth-hardening.md",
-      "status": "completed",
-      "completed_at": "2026-03-17T22:30:00.000Z",
-      "verification": "All tasks complete: ROLE_MATRIX has new permissions (skills:promote, usage:write, providers:manage, orchestration:write), skills/promotions fixed with permission arg, 3 unprotected endpoints gated (status/usage, providers, orchestration), regression test passes (4 tests), dashboard-write-guard tests pass (10 tests), HARDENING-BACKLOG.md marked Concern 2 as RESOLVED.",
-      "rationale": "Security: gates 3 unprotected POST endpoints, fixes permission args. Should be done before any public dashboard exposure.",
-      "effort": "low",
-      "lines": 81
-    },
-    {
-      "priority": 7,
-      "plan": "config-coherence-wave",
-      "plan_path": ".sisyphus/plans/config-coherence-wave-plan.md",
-      "status": "completed",
-      "completed_at": "2026-03-17T22:40:00.000Z",
-      "verification": "All features implemented: getMachineId() generates/reads machine-id.json, appendAuditEntry() writes config-audit.ndjson with rotation, readConfigManifest() checks config-manifest.json with cross-machine warning, copy-config.mjs calls writeConfigManifest() after sync. Tests pass (8 tests).",
-      "rationale": "Prerequisite for disaster-recovery-system: adds audit logging (NDJSON) and version manifest to config coherence system.",
-      "unblocks": [
-        "disaster-recovery-system"
-      ],
-      "effort": "medium"
-    },
-    {
-      "priority": 8,
-      "plan": "central-config-dashboard",
-      "plan_path": "docs/plans/2026-02-23-central-config-dashboard.md",
-      "status": "completed",
-      "completed_tasks": [
-        "Task 1: central-config.schema.json + central-config.json exist",
-        "Task 2: mergeCentralConfig() with hard clamp + RL gating",
-        "Task 3: central-config-state.js with RL state + audit log + rollback",
-        "Task 4: Dashboard API loads central-config module",
-        "Task 5: migrate-central-config.mjs exists",
-        "Task 6: docs/central-config.md exists",
-        "Task 7: verify-setup.mjs validates central config (PASS)",
-        "Task 8: rollback() function exists in central-config-state.js"
-      ],
-      "remaining_tasks": [],
-      "rationale": "UX improvement: centralizes settings in central-config.json with dashboard editing, hard/soft bounds + RL merge.",
-      "effort": "medium"
-    },
-    {
-      "priority": 9,
-      "plan": "disaster-recovery-system",
-      "plan_path": ".sisyphus/plans/disaster-recovery-system.md",
-      "status": "completed",
-      "completed_tasks": [
-        "backup.sh with gzip compression and manifest checksums",
-        "recover.sh with interactive selection and --minimal flag",
-        "validate.sh with disk space, Bun version, DB integrity checks",
-        "health-checks/ with 6 Python modules (db, threadlock, memory, state, logs)",
-        "emergency-config/ with minimal opencode.json and oh-my-opencode.json",
-        "test-recovery.sh script",
-        "README.md with full documentation"
-      ],
-      "remaining_tasks": [],
-      "rationale": "Production reliability: git-style backup+recovery system.",
-      "effort": "large"
-    },
-    {
-      "priority": 10,
-      "plan": "dynamic-model-learning",
-      "plan_path": ".sisyphus/plans/dynamic-model-learning-assessment-plan.md",
-      "status": "completed",
-      "completed_tasks": [
-        "ExplorationMode class in exploration-mode.js",
-        "DynamicExplorationController with Thompson Sampling",
-        "ModelComprehensionMemory with SQLite persistence",
-        "SkillRLManager integration for RL weight updates",
-        "Model router tests pass (7/7 critical fixes verified)"
-      ],
-      "remaining_tasks": [],
-      "rationale": "Adaptive orchestration with ModelComprehensionMemory.",
-      "effort": "large"
-    },
-    {
-      "priority": 11,
-      "plan": "model-management-protocol",
-      "plan_path": ".sisyphus/plans/model-management-protocol.md",
-      "status": "done",
-      "requires": [
-        "wave2-package-wiring",
-        "dynamic-model-learning"
-      ],
-      "rationale": "Capstone: full automated model discovery (6 providers), lifecycle state machine, automated PR generation. Largest plan, highest long-term leverage.",
-      "effort": "xl",
-      "estimated_hours": "40-60",
-      "lines": 957,
-      "completed_at": "2026-03-16"
-    }
-  ],
+  "backlog": [],
   "completed_plans": [
-    {
-      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\runtime-concurrency-and-governance-batch.md",
-      "plan_name": "runtime-concurrency-and-governance-batch",
-      "started_at": "2026-03-14T06:42:03.877Z",
-      "completed_at": "2026-03-14T07:00:00.000Z",
-      "session_ids": [
-        "ses_316a178b8ffe5dt30Jhhc1ZYmQ"
-      ],
-      "agent": "atlas",
-      "commits": [
-        "2b9e496",
-        "bf3dd94"
-      ],
-      "tasks_completed": 4,
-      "risk_points_reduced": 80
-    },
-    {
-      "plan_path": ".sisyphus/plans/wave11-perf-and-context-management.md",
-      "plan_name": "wave11-perf-and-context-management",
-      "started_at": "2026-03-09T00:00:00.000Z",
-      "completed_at": "2026-03-09T00:30:00.000Z",
-      "session_ids": [
-        "current"
-      ],
-      "agent": "atlas",
-      "commits": [
-        "8db7698",
-        "d869df7",
-        "601cfe0",
-        "1c60c7f",
-        "7fb5ca2",
-        "af13c46",
-        "a0402b0",
-        "b1cd9d6",
-        "92f715d",
-        "cef37f0",
-        "592cfd5",
-        "723a041",
-        "6eed2c7",
-        "fe09bb4",
-        "d7f6adf"
-      ],
-      "tasks_completed": 25,
-      "risk_points_reduced": 200
-    },
-    {
-      "plan_path": ".sisyphus/plans/wave10-system-hardening.md",
-      "plan_name": "wave10-system-hardening",
-      "started_at": "2026-03-08T21:30:00.000Z",
-      "completed_at": "2026-03-08T19:30:00.000Z",
-      "session_ids": [
-        "current"
-      ],
-      "agent": "atlas",
-      "commits": [
-        "2509b21",
-        "032a397",
-        "0f20149",
-        "745c95f",
-        "fddd96a",
-        "d33dbc7",
-        "b1035bc",
-        "bf9b8c2",
-        "7aae907",
-        "a8bfcbb",
-        "f74283c"
-      ],
-      "tasks_completed": 25,
-      "risk_points_reduced": 400
-    },
-    {
-      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\tech-debt-wave4.md",
-      "plan_name": "tech-debt-wave4",
-      "started_at": "2026-02-25T04:07:46.701Z",
-      "completed_at": "2026-02-25T04:30:00.000Z",
-      "session_ids": [
-        "ses_36d2b76f5ffeOHUpdG4QXxsCh2"
-      ],
-      "agent": "atlas",
-      "commits": [
-        "e12b001",
-        "29224f3",
-        "ee87a2a"
-      ],
-      "tasks_completed": 4,
-      "risk_points_reduced": 70
-    },
-    {
-      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\wave5-naivete-remediation.md",
-      "plan_name": "wave5-naivete-remediation",
-      "started_at": "2026-02-25T05:51:16.237Z",
-      "completed_at": "2026-02-25T07:10:00.000Z",
-      "session_ids": [
-        "ses_36d2b76f5ffeOHUpdG4QXxsCh2"
-      ],
-      "agent": "atlas",
-      "commits": [
-        "cfd7f59",
-        "aa7ec10",
-        "00d85da",
-        "9ed5ddf",
-        "06edf11",
-        "3c3cc45",
-        "94d20e5",
-        "3774bda",
-        "4d65680"
-      ],
-      "tasks_completed": 10,
-      "risk_points_reduced": 250
-    },
-    {
-      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\wave6-naivete-remediation.md",
-      "plan_name": "wave6-naivete-remediation",
-      "started_at": "2026-02-25T17:15:00.000Z",
-      "completed_at": "2026-02-25T18:05:00.000Z",
-      "session_ids": [
-        "ses_36d2b76f5ffeOHUpdG4QXxsCh2"
-      ],
-      "agent": "atlas",
-      "commits": [
-        "c6edca1",
-        "0d1eaa1",
-        "0d82f71",
-        "15541f4",
-        "307cca2",
-        "d14695b",
-        "d758ecd",
-        "7030528",
-        "5e2db0a",
-        "f6a99dd",
-        "94f132f",
-        "02bef05"
-      ],
-      "tasks_completed": 29,
-      "risk_points_reduced": 160
-    },
-    {
-      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\wave7-naivete-remediation.md",
-      "plan_name": "wave7-naivete-remediation",
-      "started_at": "2026-02-25T21:00:00.000Z",
-      "completed_at": "2026-02-25T22:15:00.000Z",
-      "session_ids": [
-        "ses_36d2b76f5ffeOHUpdG4QXxsCh2"
-      ],
-      "agent": "atlas",
-      "commits": [
-        "57ed3fd",
-        "f709740",
-        "0933f2b",
-        "41cd342",
-        "fe97b40",
-        "88ab1e2",
-        "7654064",
-        "afa5035",
-        "caaa021",
-        "e5568c1",
-        "4e14065"
-      ],
-      "tasks_completed": 17,
-      "risk_points_reduced": 220
-    },
-    {
-      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\skill-system-upgrade-master.md",
-      "plan_name": "skill-system-upgrade-master",
-      "started_at": "2026-02-27T02:03:04.755Z",
-      "completed_at": "2026-02-26T23:05:00.000Z",
-      "session_ids": [
-        "ses_3633b9bdaffeMcCqpiqtBVe5dF"
-      ],
-      "agent": "atlas",
-      "commits": [
-        "bf8ea5b",
-        "af5c2a5",
-        "f2a2e6b",
-        "e905909"
-      ],
-      "tasks_completed": 8,
-      "risk_points_reduced": 180
-    },
-    {
-      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\context-distill-tracking-fixes.md",
-      "plan_name": "context-distill-tracking-fixes",
-      "started_at": "2026-02-27T00:00:00.000Z",
-      "completed_at": "2026-02-27T01:00:00.000Z",
-      "session_ids": [
-        "current"
-      ],
-      "agent": "atlas",
-      "commits": [
-        "6975aec",
-        "37e2965",
-        "7808097",
-        "4b4489d",
-        "08b4141"
-      ],
-      "tasks_completed": 6,
-      "risk_points_reduced": 200
-    },
-    {
-      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\wave8-system-completion.md",
-      "plan_name": "wave8-system-completion",
-      "started_at": "2026-03-08T00:00:00.000Z",
-      "completed_at": "2026-03-08T18:44:00.000Z",
-      "session_ids": [
-        "current"
-      ],
-      "agent": "atlas",
-      "commits": [
-        "04d937d",
-        "4342f3b"
-      ],
-      "tasks_completed": 13,
-      "risk_points_reduced": 200
-    },
-    {
-      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\wave9-meta-knowledge-base.md",
-      "plan_name": "wave9-meta-knowledge-base",
-      "started_at": "2026-03-08T19:00:00.000Z",
-      "completed_at": "2026-03-08T21:00:00.000Z",
-      "session_ids": [
-        "current"
-      ],
-      "agent": "atlas",
-      "commits": [
-        "9559768",
-        "fc1eb46",
-        "03b03af",
-        "9d9a243",
-        "0dc9e03",
-        "549420f",
-        "e717224",
-        "bfe83fd",
-        "8f5247e",
-        "222ce63",
-        "f595c45",
-        "332f02f",
-        "6597107"
-      ],
-      "tasks_completed": 14,
-      "risk_points_reduced": 300
-    },
     {
       "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\orchestration-parallelization-model-routing.md",
       "plan_name": "orchestration-parallelization-model-routing",
       "started_at": "2026-03-20T15:44:48.465Z",
       "completed_at": "2026-03-20T17:07:24.867Z",
-      "session_ids": [
-        "ses_2f424b191ffe9I0MwFtdryphBe"
-      ],
+      "session_ids": ["ses_2f424b191ffe9I0MwFtdryphBe"],
       "agent": "sisyphus-junior",
       "commits": [],
       "tasks_completed": 7,
+      "risk_points_reduced": 0
+    },
+    {
+      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\ecosystem-skill-package-audit.md",
+      "plan_name": "ecosystem-skill-package-audit",
+      "started_at": "2026-03-24T23:11:53.115Z",
+      "completed_at": "2026-03-25T03:31:00.000Z",
+      "session_ids": ["ses_2de719340ffeA250d6tr1VpnRt"],
+      "agent": "sisyphus-junior",
+      "commits": [],
+      "tasks_completed": 10,
+      "risk_points_reduced": 0
+    },
+    {
+      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\wave11-perf-and-context-management.md",
+      "plan_name": "wave11-perf-and-context-management",
+      "started_at": "2026-03-26T03:45:00.000Z",
+      "completed_at": "2026-03-26T04:45:00.000Z",
+      "session_ids": [],
+      "agent": "sisyphus-junior",
+      "commits": [],
+      "tasks_completed": 25,
       "risk_points_reduced": 0
     }
   ]

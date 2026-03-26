@@ -1,8 +1,14 @@
 # Wave 11: Performance Optimization & Context Management Activation
 
-> **Status**: IN PROGRESS (core activation and observability landed; follow-up integration gaps remain)
+> **Status**: COMPLETED (all 25/25 tasks validated and closure artifacts reconciled)
 > **Scope**: 5 tracks, 25 tasks across 4 phases
 > **Dependencies**: Wave 10 (System Hardening) COMPLETE
+
+> **Reconciliation Update (2026-03-26)**
+> - ✅ Task 9 complete: `opencode-config/agents/librarian.md` added with explicit Context7-first workflow.
+> - ✅ Task 11 complete: WAL pragmas + prepared-statement cache path added in `packages/opencode-model-manager/src/monitoring/metrics-collector.js`.
+> - ✅ Task 24 complete: `.sisyphus/boulder.json` now tracks Wave11 as active (`completed: 24`, `current_task: Task 25`).
+> - ✅ Task 25 complete: targeted Wave11 suite passed (117/117), governance gates passed (6/6), health-check has 0 failures (1 non-blocking warning), and full `bun test` passes after metrics shape normalization fix in `packages/opencode-tool-usage-tracker/src/index.js`.
 
 ## Goal
 
