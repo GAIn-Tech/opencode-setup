@@ -3,10 +3,5 @@
     "reason": "Disabled until a dedicated MCP wrapper and startup path exist for launching the dashboard intentionally.",
     "reactivation_criteria": "Enable only after a supported launcher wrapper and verification flow are implemented.",
     "owner": "dashboard"
-  },
-  "opencode-model-router-x": {
-    "reason": "Disabled as a standalone MCP until model-router-x has an explicit operator-facing MCP wrapper beyond internal integration paths.",
-    "reactivation_criteria": "Enable only after an operator-facing MCP wrapper and runtime smoke verification exist.",
-    "owner": "routing"
   }
 }

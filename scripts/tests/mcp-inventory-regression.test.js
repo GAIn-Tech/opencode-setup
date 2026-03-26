@@ -27,13 +27,10 @@ describe('MCP inventory regression checks', () => {
     expect(config.mcp['opencode-context-governor']?.enabled).toBe(true);
     expect(config.mcp['opencode-runbooks']?.enabled).toBe(true);
     expect(config.mcp['opencode-dashboard-launcher']?.enabled).toBe(false);
-    expect(config.mcp['opencode-model-router-x']?.enabled).toBe(false);
-    expect(Object.keys(dormantPolicy).sort()).toEqual([
-      'opencode-dashboard-launcher',
-      'opencode-model-router-x',
-    ]);
+    expect(config.mcp['opencode-model-router-x']).toBeUndefined();
+    expect(Object.keys(dormantPolicy).sort()).toEqual(['opencode-dashboard-launcher']);
     expect(internalMirror.mcpServers['opencode-dashboard-launcher']?.enabled).toBe(false);
-    expect(internalMirror.mcpServers['opencode-model-router-x']?.enabled).toBe(false);
+    expect(internalMirror.mcpServers['opencode-model-router-x']).toBeUndefined();
     expect(internalMirror.mcpServers['opencode-memory-graph']?.enabled).toBe(true);
     expect(internalMirror.mcpServers['opencode-context-governor']?.enabled).toBe(true);
     expect(internalMirror.mcpServers['opencode-runbooks']?.enabled).toBe(true);
@@ -55,7 +52,7 @@ describe('MCP inventory regression checks', () => {
     expect(enabled.has('agent-browser')).toBe(true);
   });
 
-  test('required MCP skill files exist and repo agent mirror is empty', () => {
+  test('required MCP skill files exist and canonical librarian agent is present', () => {
     const requiredPaths = [
       'opencode-config/skills/supermemory/SKILL.md',
       'opencode-config/skills/playwright/SKILL.md',
@@ -70,6 +67,7 @@ describe('MCP inventory regression checks', () => {
       expect(existsSync(join(ROOT, relativePath))).toBe(true);
     }
 
-    expect(readdirSync(join(ROOT, 'opencode-config/agents'))).toEqual(['.gitkeep']);
+    const agentFiles = readdirSync(join(ROOT, 'opencode-config/agents')).sort();
+    expect(agentFiles).toEqual(['.gitkeep', 'librarian.md']);
   });
 });

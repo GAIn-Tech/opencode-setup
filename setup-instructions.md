@@ -121,7 +121,7 @@ MCP servers are also defined in `opencode.json` under `"mcp"`. They connect auto
 
 **Exercise live MCP coverage**: run `bun run mcp:smoke` to see which enabled MCPs have recent telemetry activity and which still need explicit exercise after restart.
 
-**Internal MCP policy**: `opencode-context-governor`, `opencode-memory-graph`, and `opencode-runbooks` are now valid host-facing MCP wrappers. `opencode-dashboard-launcher` and `opencode-model-router-x` remain intentionally dormant until they have the right public operator contract. Do not enable dormant internal entries opportunistically; use `docs/architecture/cli-mcp-surface-policy.md` for surface decisions.
+**Internal MCP policy**: `opencode-context-governor`, `opencode-memory-graph`, and `opencode-runbooks` are now valid host-facing MCP wrappers. `opencode-dashboard-launcher` remains intentionally dormant until it has the right public operator contract. `opencode-model-router-x` is retained as an internal runtime library and is no longer registered as a host-facing MCP entry. Do not enable dormant internal entries opportunistically; use `docs/architecture/cli-mcp-surface-policy.md` for surface decisions.
 
 ### Supermemory Setup
 

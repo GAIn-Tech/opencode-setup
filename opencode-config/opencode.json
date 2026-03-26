@@ -555,14 +555,6 @@
       ],
       "enabled": true
     },
-    "opencode-model-router-x": {
-      "type": "local",
-      "command": [
-        "node",
-        "packages/opencode-model-router-x/src/index.js"
-      ],
-      "enabled": false
-    },
     "opencode-context-governor": {
       "type": "local",
       "command": [

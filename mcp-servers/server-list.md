@@ -81,7 +81,8 @@ All MCP servers are defined in `~/.config/opencode/opencode.json` under the `"mc
 These remain intentionally disabled in `opencode-config/opencode.json` until they have the right public operator contract:
 
 - `opencode-dashboard-launcher` — CLI-first; keep dashboard lifecycle operations out of the host-facing MCP pool by default
-- `opencode-model-router-x` — library-only for now; do not expose its orchestration-heavy internals as a raw MCP surface yet
+
+`opencode-model-router-x` has been removed from the host-facing MCP registry and is retained as an internal runtime routing library.
 
 ## Configuration Format
 
