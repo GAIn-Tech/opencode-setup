@@ -357,7 +357,8 @@
         "test-driven-development"
       ],
       "conflicts": [
-        "agent-browser"
+        "agent-browser",
+        "playwright"
       ],
       "triggers": [
         "go to url",
@@ -406,7 +407,8 @@
         "verification-before-completion"
       ],
       "conflicts": [
-        "agent-browser"
+        "agent-browser",
+        "dev-browser"
       ],
       "triggers": [
         "playwright",
@@ -1181,6 +1183,18 @@
         "investigation tracking",
         "unclear root cause"
       ],
+      "processPhase": "analysis",
+      "domain": "debugging",
+      "selectionHints": {
+        "useWhen": [
+          "complex multi-file incident",
+          "incident response",
+          "unclear root cause"
+        ],
+        "avoidWhen": [
+          "single obvious implementation"
+        ]
+      },
       "recommended_agents": [
         "metis"
       ],
@@ -1352,6 +1366,18 @@
         "orchestrate work",
         "decompose task"
       ],
+      "processPhase": "pre-analysis",
+      "domain": "orchestration",
+      "selectionHints": {
+        "useWhen": [
+          "multi-step task",
+          "unclear approach",
+          "complex workflow"
+        ],
+        "avoidWhen": [
+          "single obvious implementation"
+        ]
+      },
       "recommended_agents": [
         "atlas",
         "prometheus"
@@ -3971,7 +3997,7 @@
       ],
       "source": "builtin",
       "dependencies": [
-        "opencode-tool-usage-tracker"
+        "tool-usage-tracker"
       ],
       "synergies": [
         "tool-usage-tracker"
