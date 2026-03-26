@@ -90,12 +90,25 @@ class ConfigLoader {
         logsDir: resolveDataDir(),
         databaseDir: resolveDataDir()
       },
+      routing: {
+        jitter_enabled: true,
+        jitter_factor: 0.1,
+        score_jitter_max_delta: 0.02,
+        cost_efficiency_enabled: true,
+        cost_efficiency_max_bonus: 0.05,
+        cost_efficiency_max_cost_per_1k: 15.0,
+        budget_penalty_enabled: true
+      },
       exploration: {
         active: true,
         mode: 'balanced',
         budget: 20,
         tokenBudgetRatio: 0.1,
-        minTokens: 500
+        minTokens: 500,
+        budget_aware_enabled: true,
+        cap_explore_above_pct: 0.8,
+        cap_explore_to: 0.05,
+        disable_explore_above_pct: 0.95
       }
     };
   }
