@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadMetaAwarenessTracker, readMetaAwarenessRollups } from '@/lib/meta-awareness';
+import { loadMetaAwarenessTrackerWithStatus, readMetaAwarenessRollups } from '@/lib/meta-awareness';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(_request: NextRequest) {
   try {
-    const tracker = loadMetaAwarenessTracker();
+    const trackerStatus = loadMetaAwarenessTrackerWithStatus();
+    const tracker = trackerStatus.tracker;
     if (tracker && typeof tracker.getStability === 'function') {
+      const liveStability = await tracker.getStability();
       return NextResponse.json({
-        ...tracker.getStability(),
+        ...liveStability,
         data_fidelity: 'live',
         fallback: false,
       });
     }
+
+    const fallbackReason = tracker ? 'live_tracker_method_unavailable' : trackerStatus.statusReason;
 
     const rollups = await readMetaAwarenessRollups();
     const stability = rollups?.stability || {
@@ -38,6 +42,8 @@ export async function GET(_request: NextRequest) {
       },
       data_fidelity: rollups ? 'degraded' : 'demo',
       fallback: true,
+      status_reason: rollups ? 'file_fallback' : 'missing_state',
+      fallback_reason: fallbackReason,
     });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
