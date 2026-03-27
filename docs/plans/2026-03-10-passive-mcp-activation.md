@@ -39,7 +39,7 @@ Mirror the `distill` / `context7` structure:
 
 **Step 3: Write the agent prompts**
 
-Mirror `opencode-config/agents/librarian.md` with one agent per MCP domain.
+Reference `opencode-config/agents/librarian.md` as canonical policy style guidance for prompt structure; do not mirror or duplicate it as a runtime-managed prompt artifact.
 
 **Step 4: Verify artifact presence**
 

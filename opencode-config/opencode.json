@@ -4,15 +4,14 @@
     "oh-my-opencode@3.5.2",
     "opencode-antigravity-auth@1.4.6",
     "opencode-antigravity-quota@0.1.6",
-    "opencode-supermemory@2.0.1",
     "@tarquinen/opencode-dcp@latest",
     "opencode-plugin-preload-skills@1.8.0",
     "opencode-plugin-langfuse@0.1.8",
     "opencode-pty@0.2.1",
     "opencode-rate-limit-fallback@latest",
-    "opencode-notifier@latest",
-    "opencode-envsitter-guard@latest",
-    "opencode-safety-net@latest"
+    "@mohak34/opencode-notifier@latest",
+    "envsitter-guard@latest",
+    "cc-safety-net@latest"
   ],
   "provider": {
     "google": {
@@ -21,162 +20,6 @@
         "apiKey": "{env:GOOGLE_API_KEY}"
       },
       "models": {
-        "antigravity-gemini-3-pro": {
-          "name": "Gemini 3 Pro (Antigravity) - CURRENT FRONTIER",
-          "limit": {
-            "context": 1048576,
-            "output": 65535
-          },
-          "modalities": {
-            "input": [
-              "text",
-              "image",
-              "pdf",
-              "video"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "variants": {
-            "low": {
-              "thinkingLevel": "low"
-            },
-            "high": {
-              "thinkingLevel": "high"
-            }
-          },
-          "priority": "primary"
-        },
-        "antigravity-gemini-3-flash": {
-          "name": "Gemini 3 Flash (Antigravity) - CURRENT FRONTIER",
-          "limit": {
-            "context": 1048576,
-            "output": 65536
-          },
-          "modalities": {
-            "input": [
-              "text",
-              "image",
-              "pdf",
-              "video"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "variants": {
-            "minimal": {
-              "thinkingLevel": "minimal"
-            },
-            "low": {
-              "thinkingLevel": "low"
-            },
-            "medium": {
-              "thinkingLevel": "medium"
-            },
-            "high": {
-              "thinkingLevel": "high"
-            }
-          },
-          "priority": "primary"
-        },
-        "antigravity-gemini-3-flash-8b": {
-          "name": "Gemini 3 Flash 8B (Antigravity) - FAST",
-          "limit": {
-            "context": 1048576,
-            "output": 65536
-          },
-          "modalities": {
-            "input": [
-              "text",
-              "image",
-              "pdf"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "priority": "secondary"
-        },
-        "antigravity-claude-sonnet-4-5": {
-          "name": "Claude Sonnet 4.5 (Antigravity)",
-          "limit": {
-            "context": 200000,
-            "output": 64000
-          },
-          "modalities": {
-            "input": [
-              "text",
-              "image",
-              "pdf"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "priority": "secondary"
-        },
-        "antigravity-claude-sonnet-4-5-thinking": {
-          "name": "Claude Sonnet 4.5 Thinking (Antigravity)",
-          "limit": {
-            "context": 200000,
-            "output": 64000
-          },
-          "modalities": {
-            "input": [
-              "text",
-              "image",
-              "pdf"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "variants": {
-            "low": {
-              "thinkingConfig": {
-                "thinkingBudget": 8192
-              }
-            },
-            "max": {
-              "thinkingConfig": {
-                "thinkingBudget": 32768
-              }
-            }
-          },
-          "priority": "secondary"
-        },
-        "antigravity-claude-opus-4-6-thinking": {
-          "name": "Claude Opus 4.6 Thinking (Antigravity)",
-          "limit": {
-            "context": 200000,
-            "output": 64000
-          },
-          "modalities": {
-            "input": [
-              "text",
-              "image",
-              "pdf"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "variants": {
-            "low": {
-              "thinkingConfig": {
-                "thinkingBudget": 8192
-              }
-            },
-            "max": {
-              "thinkingConfig": {
-                "thinkingBudget": 32768
-              }
-            }
-          },
-          "priority": "secondary"
-        },
         "gemini-2.5-flash": {
           "name": "Gemini 2.5 Flash",
           "limit": {
@@ -194,7 +37,6 @@
               "text"
             ]
           },
-          "provider": "google",
           "providerId": "google-ai-gemini-2.5-flash",
           "cost": {
             "input": 0.000075,
@@ -208,7 +50,7 @@
           ],
           "description": "Gemini 2.5 Flash - stable fast model",
           "released": "2025-06-01",
-          "status": "active"
+          "status": "beta"
         },
         "gemini-3-flash-preview": {
           "name": "Gemini 3 Flash (Gemini CLI)",
@@ -227,7 +69,6 @@
               "text"
             ]
           },
-          "provider": "google",
           "providerId": "google-ai-gemini-3-flash-preview",
           "cost": {
             "input": 0.000075,
@@ -241,7 +82,7 @@
           ],
           "description": "Latest Gemini 3 Flash",
           "released": "2026-03-15",
-          "status": "active"
+          "status": "beta"
         },
         "gemini-3-pro-preview": {
           "name": "Gemini 3 Pro (Gemini CLI)",
@@ -260,7 +101,6 @@
               "text"
             ]
           },
-          "provider": "google",
           "providerId": "google-ai-gemini-3-pro-preview",
           "cost": {
             "input": 0.00125,
@@ -275,7 +115,7 @@
           ],
           "description": "Latest Gemini 3 Pro for complex reasoning",
           "released": "2026-03-15",
-          "status": "active"
+          "status": "beta"
         },
         "gemini-3.1-flash-lite-preview": {
           "name": "Gemini 3.1 Flash Lite",
@@ -294,7 +134,6 @@
               "text"
             ]
           },
-          "provider": "google",
           "providerId": "google-ai-gemini-3.1-flash-lite-preview",
           "cost": {
             "input": 0.000075,
@@ -308,7 +147,7 @@
           ],
           "description": "Gemini 3.1 Flash - latest fast model",
           "released": "2026-03-15",
-          "status": "active"
+          "status": "beta"
         },
         "gemini-3.1-pro-preview": {
           "name": "Gemini 3.1 Pro",
@@ -327,7 +166,6 @@
               "text"
             ]
           },
-          "provider": "google",
           "providerId": "google-ai-gemini-3.1-pro-preview",
           "cost": {
             "input": 0.00125,
@@ -342,86 +180,11 @@
           ],
           "description": "Gemini 3.1 Pro - latest model for complex reasoning",
           "released": "2026-03-15",
-          "status": "active"
+          "status": "beta"
         }
       }
     },
-    "anthropic": {
-      "npm": "@ai-sdk/anthropic",
-      "options": {
-        "apiKey": "{env:ANTHROPIC_API_KEYS}"
-      },
-      "models": {
-        "claude-opus-4-6": {
-          "name": "Claude Opus 4.6",
-          "limit": {
-            "context": 200000,
-            "output": 64000
-          },
-          "modalities": {
-            "input": [
-              "text",
-              "image",
-              "pdf"
-            ],
-            "output": [
-              "text"
-            ]
-          }
-        },
-        "claude-sonnet-4-5": {
-          "name": "Claude Sonnet 4.5",
-          "limit": {
-            "context": 200000,
-            "output": 64000
-          },
-          "modalities": {
-            "input": [
-              "text",
-              "image",
-              "pdf"
-            ],
-            "output": [
-              "text"
-            ]
-          }
-        },
-        "claude-haiku-4-5": {
-          "name": "Claude Haiku 4.5",
-          "limit": {
-            "context": 200000,
-            "output": 64000
-          },
-          "modalities": {
-            "input": [
-              "text",
-              "image",
-              "pdf"
-            ],
-            "output": [
-              "text"
-            ]
-          }
-        },
-        "claude-sonnet-4-6": {
-          "name": "Claude Sonnet 4.6",
-          "limit": {
-            "context": 200000,
-            "output": 64000
-          },
-          "modalities": {
-            "input": [
-              "text",
-              "image",
-              "pdf"
-            ],
-            "output": [
-              "text"
-            ]
-          }
-        }
-      }
-    },
+    
     "openai": {
       "npm": "@ai-sdk/openai",
       "options": {
@@ -679,7 +442,7 @@
   "command": {
     "agent": {
       "description": "Display available agent personalities and their models",
-      "template": "# Agent Mode Selector\n\nDisplay available agent personalities and their associated models.\n\n## Available Agents\n\n| Agent | Model | Best For |\n|-------|-------|----------|\n| **atlas** | anthropic/claude-sonnet-4-6 | Architecture decisions, multi-system design |\n| **hephaestus** | openai/gpt-5.3-codex | Implementation, code generation (PRIORITY) |\n| **librarian** | anthropic/claude-sonnet-4-6 | Research, documentation lookup |\n| **metis** | anthropic/claude-opus-4-6 | Planning, pre-execution analysis |\n| **momus** | openai/gpt-5.2 | Review, quality assurance |\n| **oracle** | openai/gpt-5.2 | Complex debugging, hard problems |\n| **prometheus** | anthropic/claude-opus-4-6 | Forward-thinking, innovation |\n| **sisyphus** | anthropic/claude-opus-4-6 | Deep work, complex refactoring |\n\n## 2025-2026 Frontier Models\n\n| Provider | Model | Specialty |\n|----------|-------|-----------|\n| OpenAI | gpt-5.3-codex | Coding specialist (PRIMARY) |\n| OpenAI | gpt-5.2 | Reasoning |\n| OpenAI | gpt-5 | General |\n| Google | gemini-3-pro | Complex reasoning, long context |\n| Google | gemini-3-flash | Fast research, general |\n| Anthropic | claude-opus-4-6 | Deep analysis, hard problems |\n| Anthropic | claude-sonnet-4-6 | Balanced reasoning |\n| Google (Antigravity) | antigravity-gemini-3-flash-8b | Ultra-efficient fallback |\n| Zen | zen/kimi-k2.5-pro | Cost-efficient long-context backup |\n| NVIDIA | moonshotai/kimi-k2.5 | Hosted Kimi backup |\n| NVIDIA | z-ai/glm-5 | Hosted GLM-5 backup |\n| NVIDIA | z-ai/glm4.7 | Hosted GLM-4.7 backup |\n| Zen | zen/minimax-m2.5 | MiniMax M2.5 via Zen backup |\n| Zen | zen/minimax-m2.5-lightning | MiniMax M2.5 Lightning via Zen backup |\n| Zen | zen/glm-4.7 | Additional GLM fallback |\n\n## Usage\n\n**To invoke an agent, type @agentname at the start of your message:**\n\n```\n@oracle help me debug this complex error\n@hephaestus implement this feature\n@librarian find examples of this pattern\n@metis plan this implementation\n@momus review this code\n```\n\n**Note:** Agent selection is informational only. The model router dynamically selects the appropriate model based on task requirements."
+      "template": "# Agent Mode Selector\n\nDisplay available agent personalities and their associated models.\n\n## Available Agents\n\n| Agent | Model | Best For |\n|-------|-------|----------|\n| **atlas** | deepseek-ai/deepseek-v3.2 | Architecture decisions, multi-system design |\n| **hephaestus** | deepseek-ai/deepseek-v3.2 | Implementation, code generation (PRIORITY) |\n| **librarian** | deepseek-ai/deepseek-v3.2 | Research, documentation lookup |\n| **metis** | deepseek-ai/deepseek-v3.2 | Planning, pre-execution analysis |\n| **momus** | deepseek-ai/deepseek-v3.2 | Review, quality assurance |\n| **oracle** | deepseek-ai/deepseek-v3.2 | Complex debugging, hard problems |\n| **prometheus** | deepseek-ai/deepseek-v3.2 | Forward-thinking, innovation |\n| **sisyphus** | deepseek-ai/deepseek-v3.2 | Deep work, complex refactoring |\n\n## 2025-2026 Frontier Models\n\n| Provider | Model | Specialty |\n|----------|-------|-----------|\n| DeepSeek | deepseek-v3.2 | Coding specialist (PRIMARY) |\n| DeepSeek | deepseek-v3 | Reasoning |\n| Google | gemini-3-pro | Complex reasoning, long context |\n| Google | gemini-3-flash | Fast research, general |\n| Google (Antigravity) | antigravity-gemini-3-flash-8b | Ultra-efficient fallback |\n| Zen | zen/kimi-k2.5-pro | Cost-efficient long-context backup |\n| NVIDIA | moonshotai/kimi-k2.5 | Hosted Kimi backup |\n| NVIDIA | z-ai/glm-5 | Hosted GLM-5 backup |\n| NVIDIA | z-ai/glm4.7 | Hosted GLM-4.7 backup |\n| Zen | zen/minimax-m2.5 | MiniMax M2.5 via Zen backup |\n| Zen | zen/minimax-m2.5-lightning | MiniMax M2.5 Lightning via Zen backup |\n| Zen | zen/glm-4.7 | Additional GLM fallback |\n\n## Usage\n\n**To invoke an agent, type @agentname at the start of your message:**\n\n```\n@oracle help me debug this complex error\n@hephaestus implement this feature\n@librarian find examples of this pattern\n@metis plan this implementation\n@momus review this code\n```\n\n**Note:** Agent selection is informational only. The model router dynamically selects the appropriate model based on task requirements."
     },
     "workflows:deepen-plan": {
       "description": "Enhance a plan with parallel research agents for each section to add depth, best practices, and implementation details",
@@ -791,14 +554,6 @@
         "packages/opencode-memory-graph/src/mcp-server.mjs"
       ],
       "enabled": true
-    },
-    "opencode-model-router-x": {
-      "type": "local",
-      "command": [
-        "node",
-        "packages/opencode-model-router-x/src/index.js"
-      ],
-      "enabled": false
     },
     "opencode-context-governor": {
       "type": "local",

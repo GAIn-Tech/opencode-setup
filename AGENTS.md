@@ -1,14 +1,14 @@
 # AGENTS.md
 
 ## OVERVIEW
-OpenCode ecosystem: Bun-native monorepo (32 packages) for AI agent orchestration, model management, learning engine, and dashboard. NOT Node.js-compatible without adaptation.
+OpenCode ecosystem: Bun-native monorepo (36 packages) for AI agent orchestration, model management, learning engine, and dashboard. NOT Node.js-compatible without adaptation.
 
 ## STRUCTURE
 ```
 .
-├── packages/              # 32 workspace packages (opencode-*)
+├── packages/              # 36 workspace packages (opencode-*)
 ├── plugins/               # 12 external OpenCode plugins (oh-my-opencode, antigravity-auth)
-├── scripts/               # 59 .mjs infrastructure scripts (governance, deployment, validation)
+├── scripts/               # 92 .mjs infrastructure scripts (governance, deployment, validation)
 ├── opencode-config/       # Central config hub (agents, skills, models, learning-updates)
 ├── .sisyphus/             # Persistent workflow state (plans, notepads, docs)
 ├── .worktrees/            # Git worktrees for isolated feature branches
@@ -24,7 +24,7 @@ OpenCode ecosystem: Bun-native monorepo (32 packages) for AI agent orchestration
 |----------------|------------|
 | Package implementation | packages/opencode-{name}/ |
 | External plugins | plugins/ |
-| Infrastructure automation | scripts/ (59 .mjs files) |
+| Infrastructure automation | scripts/ (92 .mjs files) |
 | Agent/skill/model config | opencode-config/ |
 | Workflow state | .sisyphus/ |
 | Feature branches | .worktrees/ |
@@ -45,7 +45,7 @@ OpenCode ecosystem: Bun-native monorepo (32 packages) for AI agent orchestration
 - **No Build Step**: Source files consumed directly (except opencode-dashboard/.next/)
 - **Mixed Modules**: ESM (type: "module") and CJS (type: "commonjs") inconsistently
 - **Flat Namespace**: opencode-* prefix, NOT @org/ scoped packages
-- **Scripts as Infrastructure**: 59 .mjs files are core infrastructure, not utilities
+- **Scripts as Infrastructure**: 92 .mjs files are core infrastructure, not utilities
 - **Documentation Versioned**: 20+ markdown files at root (STATUS.md, COMPLETE-INVENTORY.md, MODEL_AUDIT_REPORT.md)
 
 ## ANTI-PATTERNS

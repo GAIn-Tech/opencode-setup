@@ -6,8 +6,8 @@ Central configuration hub for agents, skills, models, commands, and learning upd
 ## STRUCTURE
 ```
 opencode-config/
-├── agents/              # Empty (agents managed by oh-my-opencode plugin)
-├── skills/              # 21 skill directories (budget-aware-router, code-doctor, superpowers/*, etc.)
+├── agents/              # Canonical agent prompts (librarian.md)
+├── skills/              # 77 skill directories (budget-aware-router, code-doctor, superpowers/*, etc.)
 ├── commands/            # Custom commands
 ├── models/              # Model configurations
 ├── learning-updates/    # Learning state and updates
@@ -22,8 +22,8 @@ opencode-config/
 ## WHERE TO LOOK
 | If you need... | Look in... |
 |----------------|------------|
-| Agent definitions | agents/ (empty, managed by oh-my-opencode plugin) |
-| Skill definitions | skills/ (21 dirs, superpowers/ has 14 sub-skills) |
+| Agent definitions | agents/ (librarian.md canonical prompt) |
+| Skill definitions | skills/ (77 dirs, includes superpowers/ namespace) |
 | Model config | models/, opencode.json |
 | Learning updates | learning-updates/ |
 | Main config | opencode.json (116KB) |
@@ -41,8 +41,8 @@ None specific to config
 
 ## UNIQUE STYLES
 - **Multi-File Config**: opencode.json (main), central-config.json (schema), oh-my-opencode.json (overrides), compound-engineering.json (skills/commands)
-- **12 Skill Dirs**: 11 standalone + superpowers/ (14 sub-skills) on disk
-- **0 Agents on disk**: Agent definitions managed by oh-my-opencode plugin (8 agents)
+- **77 Skill Dirs**: broad on-disk skill catalog including superpowers/ namespace and domain skills
+- **1 Agent prompt on disk**: `agents/librarian.md` is retained as canonical governed deliverable
 - **Learning Updates**: Governed file changes tracked in learning-updates/
 
 ## CONTEXT MANAGEMENT (Wave 11)

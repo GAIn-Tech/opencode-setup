@@ -1,0 +1,514 @@
+{
+  "artifact": "package-surface-classification",
+  "version": "1.0.0",
+  "generatedAt": "2026-03-24",
+  "taskContext": {
+    "task": "Classify package surfaces and build package↔skill cohesion map",
+    "purpose": "Ensure package surface posture and skill tiers/scenarios are coherent before any routing/config changes.",
+    "inputsRead": [
+      "docs/architecture/cli-mcp-surface-policy.md",
+      "opencode-config/mcp-dormant-policy.json",
+      "setup-instructions.md",
+      "packages/README.md",
+      "packages/opencode-context-governor/src/cli.mjs",
+      "packages/opencode-context-governor/src/mcp-server.mjs",
+      "packages/opencode-memory-graph/src/cli.js",
+      "packages/opencode-memory-graph/src/mcp-server.mjs",
+      "packages/opencode-runbooks/src/mcp-server.mjs",
+      ".sisyphus/evidence/ecosystem-baseline-packages.json",
+      ".sisyphus/evidence/scenario-taxonomy-model.json",
+      ".sisyphus/evidence/skill-classification-recommendations.json",
+      ".sisyphus/notepads/ecosystem-skill-package-audit/decisions.md",
+      ".sisyphus/notepads/ecosystem-skill-package-audit/learnings.md"
+    ]
+  },
+  "modelIntent": {
+    "scope": "Surface-role classification and skill-package cohesion evidence",
+    "explicitlyInScope": [
+      "Classify all 36 workspace packages as CLI-first, MCP-first, hybrid, or library-only",
+      "Map package-like skills to package surfaces and tier posture",
+      "Enumerate orphan skills, orphan package surfaces, and documentation/routing drift"
+    ],
+    "explicitlyOutOfScope": [
+      "Refactoring package implementation",
+      "Changing routing/configuration activation",
+      "Reopening CLI-vs-MCP strategy debate beyond future-work hooks"
+    ]
+  },
+  "policyBasis": {
+    "surfacePolicy": "docs/architecture/cli-mcp-surface-policy.md",
+    "dormantPolicy": "opencode-config/mcp-dormant-policy.json",
+    "runtimeSetup": "setup-instructions.md",
+    "scenarioTierModel": ".sisyphus/evidence/scenario-taxonomy-model.json",
+    "skillTierRecommendations": ".sisyphus/evidence/skill-classification-recommendations.json",
+    "classificationRule": "Policy overrides observed transport shape: context-governor -> MCP-first, runbooks -> MCP-first, memory-graph -> hybrid, dashboard-launcher -> CLI-first, model-router-x -> library-only with dormant MCP policy hook."
+  },
+  "anchoringBaseline": {
+    "workspacePackages": 36,
+    "packagesWithCliEntrypoints": 10,
+    "packagesWithMcpWrappers": 3,
+    "dormantPackageSurfaces": 2
+  },
+  "packageSurfaceClassification": {
+    "summary": {
+      "totalPackages": 36,
+      "cliFirst": 7,
+      "mcpFirst": 2,
+      "hybrid": 1,
+      "libraryOnly": 26,
+      "outOfScope": 0
+    },
+    "roleAssignments": {
+      "cli-first": [
+        "opencode-codebase-memory",
+        "opencode-dashboard-launcher",
+        "opencode-eval-harness",
+        "opencode-fallback-doctor",
+        "opencode-graphdb-bridge",
+        "opencode-plugin-healthd",
+        "opencode-proofcheck"
+      ],
+      "mcp-first": [
+        "opencode-context-governor",
+        "opencode-runbooks"
+      ],
+      "hybrid": [
+        "opencode-memory-graph"
+      ],
+      "library-only": [
+        "opencode-backup-manager",
+        "opencode-circuit-breaker",
+        "opencode-config-loader",
+        "opencode-crash-guard",
+        "opencode-dashboard",
+        "opencode-errors",
+        "opencode-event-bus",
+        "opencode-feature-flags",
+        "opencode-health-check",
+        "opencode-integration-layer",
+        "opencode-learning-engine",
+        "opencode-logger",
+        "opencode-mcp-utils",
+        "opencode-model-benchmark",
+        "opencode-model-manager",
+        "opencode-model-router-x",
+        "opencode-plugin-lifecycle",
+        "opencode-plugin-preload-skills",
+        "opencode-registry-bridge",
+        "opencode-safe-io",
+        "opencode-showboat-wrapper",
+        "opencode-sisyphus-state",
+        "opencode-skill-rl-manager",
+        "opencode-test-utils",
+        "opencode-tool-usage-tracker",
+        "opencode-validator"
+      ],
+      "out-of-scope": []
+    },
+    "surfaceEvidence": {
+      "opencode-codebase-memory": {
+        "cliEntrypoints": [
+          {
+            "command": "opencode-codebase",
+            "target": "./src/cli.mjs"
+          }
+        ],
+        "mcpEntrypoints": []
+      },
+      "opencode-dashboard-launcher": {
+        "cliEntrypoints": [
+          {
+            "command": "opencode-dashboard",
+            "target": "src/cli.js"
+          }
+        ],
+        "mcpEntrypoints": [],
+        "dormantMcpPolicy": true
+      },
+      "opencode-eval-harness": {
+        "cliEntrypoints": [
+          {
+            "command": "opencode-eval",
+            "target": "bin/cli.js"
+          }
+        ],
+        "mcpEntrypoints": []
+      },
+      "opencode-fallback-doctor": {
+        "cliEntrypoints": [
+          {
+            "command": "fallback-doctor",
+            "target": "src/cli.js"
+          }
+        ],
+        "mcpEntrypoints": []
+      },
+      "opencode-graphdb-bridge": {
+        "cliEntrypoints": [
+          {
+            "command": "graphdb-bridge",
+            "target": "./bin/cli.js"
+          }
+        ],
+        "mcpEntrypoints": []
+      },
+      "opencode-plugin-healthd": {
+        "cliEntrypoints": [
+          {
+            "command": "opencode-healthd",
+            "target": "src/daemon.js"
+          }
+        ],
+        "mcpEntrypoints": []
+      },
+      "opencode-proofcheck": {
+        "cliEntrypoints": [
+          {
+            "command": "proofcheck",
+            "target": "src/cli.js"
+          }
+        ],
+        "mcpEntrypoints": []
+      },
+      "opencode-context-governor": {
+        "cliEntrypoints": [
+          {
+            "command": "opencode-context-governor-cli",
+            "target": "src/cli.mjs",
+            "role": "companion"
+          }
+        ],
+        "mcpEntrypoints": [
+          {
+            "command": "opencode-context-governor-mcp",
+            "target": "src/mcp-server.mjs",
+            "role": "primary"
+          }
+        ]
+      },
+      "opencode-runbooks": {
+        "cliEntrypoints": [],
+        "mcpEntrypoints": [
+          {
+            "command": "opencode-runbooks-mcp",
+            "target": "src/mcp-server.mjs"
+          }
+        ]
+      },
+      "opencode-memory-graph": {
+        "cliEntrypoints": [
+          {
+            "command": "opencode-memory-graph",
+            "target": "src/cli.js"
+          }
+        ],
+        "mcpEntrypoints": [
+          {
+            "command": "opencode-memory-graph-mcp",
+            "target": "src/mcp-server.mjs"
+          }
+        ]
+      }
+    },
+    "perPackageNotes": [
+      {
+        "package": "opencode-dashboard",
+        "note": "Application package (Next.js dashboard), no intentional CLI/MCP public wrapper. Classified library-only for policy purposes."
+      },
+      {
+        "package": "opencode-dashboard-launcher",
+        "note": "MCP surface intentionally dormant by policy; command surface remains primary."
+      },
+      {
+        "package": "opencode-model-router-x",
+        "note": "No narrow operator contract yet; dormant MCP policy confirms library-only posture."
+      },
+      {
+        "package": "opencode-eval-harness",
+        "note": "Marked @deprecated as orphaned in src/index.js; currently CLI-first but candidate-prune skill linkage."
+      },
+      {
+        "package": "opencode-graphdb-bridge",
+        "note": "Marked @deprecated as orphaned in src/index.js; currently CLI-first but candidate-prune skill linkage."
+      },
+      {
+        "package": "opencode-model-benchmark",
+        "note": "Marked @deprecated as orphaned in src/index.js; library-only with candidate-prune skill linkage."
+      },
+      {
+        "package": "opencode-showboat-wrapper",
+        "note": "Skill exists in dormant tier but package has no CLI/MCP wrapper, creating weak discoverability coupling."
+      }
+    ]
+  },
+  "skillPackageCohesionMap": {
+    "mappingMethod": "Direct name alignment between package-like skills and opencode-* workspace packages; tier labels from skill-classification-recommendations.json",
+    "defaultTierCoherenceCheck": {
+      "defaultSkills": [
+        "codebase-auditor",
+        "context7",
+        "git-master",
+        "systematic-debugging",
+        "task-orchestrator",
+        "test-driven-development",
+        "using-superpowers",
+        "verification-before-completion",
+        "writing-plans"
+      ],
+      "packageBoundDefaults": [],
+      "result": "pass",
+      "finding": "Default runtime spine does not bind to package-specific CLI/MCP wrappers, avoiding incoherent default coupling."
+    },
+    "edges": [
+      {
+        "skill": "context-governor",
+        "tier": "manual",
+        "package": "opencode-context-governor",
+        "packageSurfaceRole": "mcp-first",
+        "cohesion": "strong"
+      },
+      {
+        "skill": "runbooks",
+        "tier": "manual",
+        "package": "opencode-runbooks",
+        "packageSurfaceRole": "mcp-first",
+        "cohesion": "strong"
+      },
+      {
+        "skill": "memory-graph",
+        "tier": "dormant",
+        "package": "opencode-memory-graph",
+        "packageSurfaceRole": "hybrid",
+        "cohesion": "medium"
+      },
+      {
+        "skill": "proofcheck",
+        "tier": "dormant",
+        "package": "opencode-proofcheck",
+        "packageSurfaceRole": "cli-first",
+        "cohesion": "medium"
+      },
+      {
+        "skill": "showboat-wrapper",
+        "tier": "dormant",
+        "package": "opencode-showboat-wrapper",
+        "packageSurfaceRole": "library-only",
+        "cohesion": "weak"
+      },
+      {
+        "skill": "codebase-memory",
+        "tier": "candidate-prune",
+        "package": "opencode-codebase-memory",
+        "packageSurfaceRole": "cli-first",
+        "cohesion": "medium"
+      },
+      {
+        "skill": "graphdb-bridge",
+        "tier": "candidate-prune",
+        "package": "opencode-graphdb-bridge",
+        "packageSurfaceRole": "cli-first",
+        "cohesion": "weak"
+      },
+      {
+        "skill": "eval-harness",
+        "tier": "candidate-prune",
+        "package": "opencode-eval-harness",
+        "packageSurfaceRole": "cli-first",
+        "cohesion": "weak"
+      },
+      {
+        "skill": "model-benchmark",
+        "tier": "candidate-prune",
+        "package": "opencode-model-benchmark",
+        "packageSurfaceRole": "library-only",
+        "cohesion": "weak"
+      },
+      {
+        "skill": "model-router-x",
+        "tier": "candidate-prune",
+        "package": "opencode-model-router-x",
+        "packageSurfaceRole": "library-only",
+        "cohesion": "medium"
+      },
+      {
+        "skill": "integration-layer",
+        "tier": "candidate-prune",
+        "package": "opencode-integration-layer",
+        "packageSurfaceRole": "library-only",
+        "cohesion": "medium"
+      },
+      {
+        "skill": "learning-engine",
+        "tier": "candidate-prune",
+        "package": "opencode-learning-engine",
+        "packageSurfaceRole": "library-only",
+        "cohesion": "medium"
+      },
+      {
+        "skill": "skill-rl-manager",
+        "tier": "candidate-prune",
+        "package": "opencode-skill-rl-manager",
+        "packageSurfaceRole": "library-only",
+        "cohesion": "medium"
+      },
+      {
+        "skill": "plugin-preload-skills",
+        "tier": "candidate-prune",
+        "package": "opencode-plugin-preload-skills",
+        "packageSurfaceRole": "library-only",
+        "cohesion": "medium"
+      },
+      {
+        "skill": "tool-usage-tracker",
+        "tier": "candidate-prune",
+        "package": "opencode-tool-usage-tracker",
+        "packageSurfaceRole": "library-only",
+        "cohesion": "medium"
+      }
+    ],
+    "orphanSkills": [
+      {
+        "skill": "agent-browser",
+        "tier": "dormant",
+        "reason": "No workspace package surface; external browser path overlaps/conflicts with canonical dev-browser/playwright cluster."
+      },
+      {
+        "skill": "token-reporter",
+        "tier": "dormant",
+        "reason": "No dedicated workspace package surface; telemetry-only behavior is config/plugin-driven."
+      },
+      {
+        "skill": "beads",
+        "tier": "manual",
+        "reason": "No workspace package surface; command-style task manager skill without package counterpart."
+      }
+    ],
+    "orphanPackageSurfaces": [
+      {
+        "package": "opencode-dashboard-launcher",
+        "surfaceRole": "cli-first",
+        "reason": "No corresponding skill namespace in registry/recommendations; command exists but is not skill-routable."
+      },
+      {
+        "package": "opencode-fallback-doctor",
+        "surfaceRole": "cli-first",
+        "reason": "No corresponding skill namespace in registry/recommendations; utility remains package-only."
+      },
+      {
+        "package": "opencode-plugin-healthd",
+        "surfaceRole": "cli-first",
+        "reason": "No corresponding skill namespace in registry/recommendations; daemon utility remains package-only."
+      }
+    ],
+    "alignmentFindings": [
+      "Manual package-bound skills align to MCP-first surfaces (context-governor, runbooks), which is consistent with policy and secondary-scenario posture.",
+      "Dormant/candidate-prune package-bound skills are mostly attached to non-default surfaces, preserving default-loop focus.",
+      "One dormant skill (showboat-wrapper) points to a library-only package with no wrapper, reducing discoverability and creating weak cohesion.",
+      "No default-tier skill currently points to candidate-prune or dormant package surfaces."
+    ]
+  },
+  "documentationDrift": [
+    {
+      "file": "packages/README.md",
+      "severity": "high",
+      "finding": "Documented package inventory is stale and namespace-skewed.",
+      "evidence": {
+        "packagesReadmeListedPackages": 8,
+        "workspacePackages": 36,
+        "undocumentedWorkspacePackages": 28,
+        "undocumentedWorkspaceCoverageRatio": 0.778,
+        "missingFromReadme": [
+          "opencode-backup-manager",
+          "opencode-circuit-breaker",
+          "opencode-codebase-memory",
+          "opencode-config-loader",
+          "opencode-crash-guard",
+          "opencode-dashboard",
+          "opencode-dashboard-launcher",
+          "opencode-errors",
+          "opencode-event-bus",
+          "opencode-feature-flags",
+          "opencode-graphdb-bridge",
+          "opencode-health-check",
+          "opencode-integration-layer",
+          "opencode-learning-engine",
+          "opencode-logger",
+          "opencode-mcp-utils",
+          "opencode-model-benchmark",
+          "opencode-model-manager",
+          "opencode-plugin-lifecycle",
+          "opencode-plugin-preload-skills",
+          "opencode-registry-bridge",
+          "opencode-safe-io",
+          "opencode-showboat-wrapper",
+          "opencode-sisyphus-state",
+          "opencode-skill-rl-manager",
+          "opencode-test-utils",
+          "opencode-tool-usage-tracker",
+          "opencode-validator"
+        ]
+      }
+    },
+    {
+      "file": "docs/architecture/cli-mcp-surface-policy.md",
+      "severity": "medium",
+      "finding": "Current matrix documents only 5 packages and omits additional active CLI-first surfaces, reducing discoverability for non-core wrappers.",
+      "evidence": {
+        "documentedMatrixPackages": 5,
+        "omittedExposedSurfaces": [
+          "opencode-codebase-memory",
+          "opencode-eval-harness",
+          "opencode-fallback-doctor",
+          "opencode-graphdb-bridge",
+          "opencode-plugin-healthd",
+          "opencode-proofcheck"
+        ]
+      }
+    },
+    {
+      "file": "setup-instructions.md and opencode-config/mcp-dormant-policy.json",
+      "severity": "none",
+      "finding": "No drift observed for internal MCP activation posture.",
+      "evidence": "Active wrappers (context-governor, memory-graph, runbooks) and dormant wrappers (dashboard-launcher, model-router-x) are consistent across setup docs and dormant policy."
+    }
+  ],
+  "routingDiscoverabilityDrift": [
+    {
+      "surface": "opencode-config/compound-engineering.json",
+      "severity": "high",
+      "finding": "Always-enabled skill surface (39) remains much wider than recommended default tier (9).",
+      "evidence": {
+        "enabledCount": 39,
+        "recommendedDefaultCount": 9,
+        "enabledButNotDefaultRecommendedCount": 30
+      },
+      "impact": "Increases false activation and weakens planning->audit->debug default spine coherence."
+    },
+    {
+      "surface": "opencode-config/compound-engineering.json + skill tier recommendations",
+      "severity": "medium",
+      "finding": "Package-like skills currently always-enabled include manual/dormant-tier items without coherent package surfaces.",
+      "evidence": {
+        "alwaysEnabledPackageLikeSkills": [
+          "context-governor",
+          "agent-browser",
+          "token-reporter",
+          "beads"
+        ],
+        "tierPosture": {
+          "context-governor": "manual",
+          "agent-browser": "dormant",
+          "token-reporter": "dormant",
+          "beads": "manual"
+        }
+      },
+      "impact": "Discoverability/routing may imply first-class status for skills intentionally not default-tier."
+    }
+  ],
+  "futureWorkHooks": [
+    "If routing changes are approved later, stage transitions according to taxonomy policy: default -> manual -> dormant -> candidate-prune.",
+    "Address orphan surfaces by either adding explicit skills (dashboard-launcher, fallback-doctor, plugin-healthd) or documenting intentional package-only posture.",
+    "Resolve weak cohesion entries (showboat-wrapper, deprecated candidate-prune packages) before any promotion/reactivation decisions.",
+    "Update package inventory docs before changing routing so discoverability reflects current package reality."
+  ]
+}

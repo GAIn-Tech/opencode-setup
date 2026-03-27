@@ -1,0 +1,9 @@
+{
+  "gate": "skill-implied-coverage",
+  "label": "Implied Skill Coverage",
+  "exitCode": 0,
+  "durationMs": 1014,
+  "stdout": "=== Skill Coverage (Implied) ===\nSkills: 88/88 covered\nMissing: 0\nTest files scanned: 238\n\nAll skills have implied coverage evidence.",
+  "stderr": "",
+  "timestamp": "2026-03-24T23:36:07.236Z"
+}

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "version": "1.0.0",
-  "lastUpdated": "2026-03-23",
+  "lastUpdated": "2026-03-25",
   "providers": {
     "anthropic": {
       "name": "Anthropic",
@@ -116,44 +116,80 @@
       "apiEndpoint": "https://generativelanguage.googleapis.com/v1",
       "models": [
         {
-          "id": "gemini-2.0-pro",
-          "displayName": "Gemini 2.0 Pro",
+          "id": "gemini-2.5-flash",
+          "displayName": "Gemini 2.5 Flash",
           "contextWindow": 1000000,
-          "maxOutputTokens": 8192,
-          "capabilities": ["text", "vision", "audio", "video"],
-          "pricingTier": "standard",
-          "inputCostPer1M": 1.25,
-          "outputCostPer1M": 5.00,
-          "status": "active",
-          "releasedAt": "2024-12-11"
-        },
-        {
-          "id": "gemini-2.0-flash",
-          "displayName": "Gemini 2.0 Flash",
-          "contextWindow": 1000000,
-          "maxOutputTokens": 8192,
+          "maxOutputTokens": 65535,
           "capabilities": ["text", "vision", "audio", "video"],
           "pricingTier": "budget",
           "inputCostPer1M": 0.075,
           "outputCostPer1M": 0.30,
           "status": "active",
-          "releasedAt": "2024-12-11"
+          "releasedAt": "2025-06-01"
         },
         {
-          "id": "gemini-3-pro",
-          "displayName": "Gemini 3 Pro (Deprecated)",
-          "status": "deprecated",
-          "deprecatedAt": "2025-11-01",
-          "replacementModel": "gemini-2.0-pro",
-          "deprecationReason": "Model ID was speculative, gemini-2.0-pro is current frontier model"
+          "id": "gemini-3-flash-preview",
+          "displayName": "Gemini 3 Flash Preview",
+          "contextWindow": 1000000,
+          "maxOutputTokens": 65535,
+          "capabilities": ["text", "vision", "audio", "video"],
+          "pricingTier": "budget",
+          "inputCostPer1M": 0.075,
+          "outputCostPer1M": 0.30,
+          "status": "active",
+          "releasedAt": "2026-03-15"
         },
         {
-          "id": "gemini-3-flash",
-          "displayName": "Gemini 3 Flash (Deprecated)",
+          "id": "gemini-3-pro-preview",
+          "displayName": "Gemini 3 Pro Preview",
+          "contextWindow": 1000000,
+          "maxOutputTokens": 65535,
+          "capabilities": ["text", "vision", "audio", "video"],
+          "pricingTier": "standard",
+          "inputCostPer1M": 1.25,
+          "outputCostPer1M": 5.00,
+          "status": "active",
+          "releasedAt": "2026-03-15"
+        },
+        {
+          "id": "gemini-3.1-flash-lite-preview",
+          "displayName": "Gemini 3.1 Flash Lite Preview",
+          "contextWindow": 1000000,
+          "maxOutputTokens": 65535,
+          "capabilities": ["text", "vision", "audio", "video"],
+          "pricingTier": "budget",
+          "inputCostPer1M": 0.075,
+          "outputCostPer1M": 0.30,
+          "status": "active",
+          "releasedAt": "2026-03-15"
+        },
+        {
+          "id": "gemini-3.1-pro-preview",
+          "displayName": "Gemini 3.1 Pro Preview",
+          "contextWindow": 1000000,
+          "maxOutputTokens": 65535,
+          "capabilities": ["text", "vision", "audio", "video"],
+          "pricingTier": "standard",
+          "inputCostPer1M": 1.25,
+          "outputCostPer1M": 5.00,
+          "status": "active",
+          "releasedAt": "2026-03-15"
+        },
+        {
+          "id": "gemini-2.0-pro",
+          "displayName": "Gemini 2.0 Pro (Deprecated)",
           "status": "deprecated",
-          "deprecatedAt": "2025-11-01",
-          "replacementModel": "gemini-2.0-flash",
-          "deprecationReason": "Model ID was speculative, gemini-2.0-flash is current budget model"
+          "deprecatedAt": "2026-03-25",
+          "replacementModel": "gemini-3.1-pro-preview",
+          "deprecationReason": "Model returns not found for generateContent in v1beta; use current 2.5/3.x endpoints"
+        },
+        {
+          "id": "gemini-2.0-flash",
+          "displayName": "Gemini 2.0 Flash (Deprecated)",
+          "status": "deprecated",
+          "deprecatedAt": "2026-03-25",
+          "replacementModel": "gemini-2.5-flash",
+          "deprecationReason": "Superseded by gemini-2.5-flash and 3.x preview family for primary text generation flows"
         }
       ]
     },

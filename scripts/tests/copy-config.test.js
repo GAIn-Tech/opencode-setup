@@ -34,8 +34,8 @@ describe('copy-config runtime-safe merge', () => {
     const userConfig = {
       plugin: ['custom-plugin'],
       mcp: {
-        'opencode-model-router-x': {
-          command: ['node', 'packages/opencode-model-router-x/src/index.js'],
+        'opencode-dashboard-launcher': {
+          command: ['node', 'packages/opencode-dashboard-launcher/src/index.js'],
           enabled: false,
         },
         'my-custom-mcp': {
@@ -48,7 +48,7 @@ describe('copy-config runtime-safe merge', () => {
     const merged = buildRuntimeSafeUserConfig(
       canonicalConfig,
       userConfig,
-      new Set(['opencode-model-router-x']),
+      new Set(['opencode-dashboard-launcher']),
     );
 
     expect(merged.plugin).toEqual(['custom-plugin']);

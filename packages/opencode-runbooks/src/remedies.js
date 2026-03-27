@@ -345,6 +345,99 @@ const remedies = {
       },
     };
   },
+
+  /**
+   * Fix Gemini API authentication errors
+   * @param {object} ctx - { errorCode?: string, platform?: string }
+   * @returns {{ action: string, status: string, details: object }}
+   */
+  fixGeminiAuth(ctx = {}) {
+    const errorCode = ctx.errorCode || 'unknown';
+    const platform = ctx.platform || process.platform;
+    const isWindows = platform === 'win32';
+
+    // Check if key exists in environment (don't expose value)
+    const keyExists = !!process.env.GOOGLE_API_KEY;
+    const wrongKeyExists = !!process.env.GOOGLE_API_KEYS; // Common typo
+
+    return {
+      action: 'fix_gemini_auth',
+      status: 'instruction',
+      details: {
+        errorCode,
+        message: 'Gemini API authentication failed.',
+        keyStatus: {
+          GOOGLE_API_KEY: keyExists ? 'set' : 'not set',
+          GOOGLE_API_KEYS: wrongKeyExists ? 'set (likely typo — should be GOOGLE_API_KEY)' : 'not set',
+        },
+        steps: [
+          wrongKeyExists
+            ? 'Rename GOOGLE_API_KEYS to GOOGLE_API_KEY (singular) in your .env file.'
+            : keyExists
+              ? 'GOOGLE_API_KEY is set but may be invalid.'
+              : 'GOOGLE_API_KEY is not set.',
+          'Confirm your key is valid at https://aistudio.google.com/app/apikey',
+          'In opencode.json provider.google, ensure the env field is "GOOGLE_API_KEY" (singular).',
+          'Restart opencode after making .env changes.',
+        ],
+        commands: isWindows
+          ? ['setx GOOGLE_API_KEY "your-api-key-here"', 'Restart your terminal.']
+          : ['export GOOGLE_API_KEY="your-api-key-here"', 'Add to ~/.bashrc or ~/.zshrc for persistence.'],
+      },
+    };
+  },
+
+  /**
+   * Fix Gemini model ID errors (invalid or unrecognized model names)
+   * @param {object} ctx - { modelId?: string }
+   * @returns {{ action: string, status: string, details: object }}
+   */
+  fixGeminiModelId(ctx = {}) {
+    const modelId = ctx.modelId || '(unknown)';
+
+    // Known valid Gemini model IDs (as of 2026)
+    const validModels = [
+      'gemini-2.5-flash',
+      'gemini-3-flash-preview',
+      'gemini-3-pro-preview',
+      'gemini-3.1-flash-lite-preview',
+      'gemini-3.1-pro-preview',
+    ];
+
+    // Detect common mistakes
+    const suggestions = [];
+    if (modelId.includes('-2-5-') || modelId.includes('-2-5.')) {
+      suggestions.push('Use dots, not hyphens for version: gemini-2.5-flash (not gemini-2-5-flash)');
+    }
+    if (modelId.endsWith('-flash') && !modelId.endsWith('-lite') && modelId.includes('-3-')) {
+      suggestions.push('Missing -preview suffix: gemini-3-flash-preview (not gemini-3-flash)');
+    }
+    if (modelId.endsWith('-pro') && modelId.includes('-3-')) {
+      suggestions.push('Missing -preview suffix: gemini-3-pro-preview (not gemini-3-pro)');
+    }
+
+    return {
+      action: 'fix_model_id',
+      status: 'instruction',
+      details: {
+        invalidModel: modelId,
+        message: `Gemini model ID '${modelId}' is not recognized by the API.`,
+        validModels,
+        suggestions: suggestions.length > 0 ? suggestions : ['Check the exact model ID against the list below.'],
+        steps: [
+          'Update the model ID in opencode.json under provider.google.model.',
+          'Use one of the valid model IDs listed below.',
+          'To list all available models from the API, run:',
+        ],
+        verifyCommand: 'curl "https://generativelanguage.googleapis.com/v1beta/models?key=$GOOGLE_API_KEY"',
+        commonMistakes: [
+          'gemini-3-flash → gemini-3-flash-preview (missing -preview)',
+          'gemini-2-5-flash → gemini-2.5-flash (dots, not hyphens)',
+          'gemini-3-pro → gemini-3-pro-preview (missing -preview)',
+        ],
+      },
+    };
+  },
 };
 
 module.exports = { remedies, MODEL_FALLBACK_CHAIN };

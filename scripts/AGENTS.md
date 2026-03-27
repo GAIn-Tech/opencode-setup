@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## OVERVIEW
-32 infrastructure scripts (.mjs) for governance, deployment, validation, and automation. Core infrastructure, not utilities.
+92 infrastructure scripts (.mjs) for governance, deployment, validation, and automation. Core infrastructure, not utilities.
 
 ## STRUCTURE
 ```
@@ -34,7 +34,7 @@ scripts/
 ## CONVENTIONS
 - **ESM Scripts**: All .mjs files (ES modules)
 - **Scripts as Infrastructure**: Not utilities — core to project operation
-- **Governance-Heavy**: 32 scripts for validation/governance (unusual for typical projects)
+- **Governance-Heavy**: 92 scripts for validation/governance (unusual for typical projects)
 - **Complex Logic**: health-check.mjs (11KB), model-rollback.mjs (26KB)
 
 ## ANTI-PATTERNS

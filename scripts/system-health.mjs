@@ -31,6 +31,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 const HOME = homedir();
 const OPENCODE_DIR = join(HOME, '.opencode');
+const CENTRAL_CONFIG_PATH = join(ROOT, 'opencode-config', 'central-config.json');
 
 const args = process.argv.slice(2);
 const JSON_MODE = args.includes('--json');
@@ -89,6 +90,58 @@ function ageStr(hours) {
   if (hours < 1) return `${Math.round(hours * 60)}m`;
   if (hours < 48) return `${hours.toFixed(1)}h`;
   return `${(hours / 24).toFixed(1)}d`;
+}
+
+function readTelemetryRolloutFlags() {
+  const metrics = {
+    rollout_config_present: false,
+    rollout_section_present: false,
+    telemetry_quality_mode: 'missing',
+    meta_awareness_live_enabled: null,
+  };
+  const issues = [];
+
+  const config = safeRead(CENTRAL_CONFIG_PATH);
+  if (!config || typeof config !== 'object') {
+    issues.push('central-config.json missing or invalid (cannot verify telemetry rollout flags)');
+    return { metrics, issues };
+  }
+
+  metrics.rollout_config_present = true;
+
+  const sections = config.sections;
+  if (!sections || typeof sections !== 'object') {
+    issues.push('central-config.json missing sections object (cannot verify telemetry rollout flags)');
+    return { metrics, issues };
+  }
+
+  const telemetry = sections.telemetry;
+  if (!telemetry || typeof telemetry !== 'object') {
+    issues.push('Missing rollout section: sections.telemetry');
+    return { metrics, issues };
+  }
+
+  metrics.rollout_section_present = true;
+
+  const qualityMode = telemetry.quality_mode?.value;
+  if (typeof qualityMode === 'string' && qualityMode.trim().length > 0) {
+    metrics.telemetry_quality_mode = qualityMode;
+  } else {
+    issues.push('Invalid rollout flag: sections.telemetry.quality_mode.value must be a non-empty string');
+  }
+
+  const metaAwarenessLiveEnabled = telemetry.meta_awareness_live_enabled?.value;
+  if (typeof metaAwarenessLiveEnabled === 'boolean') {
+    metrics.meta_awareness_live_enabled = metaAwarenessLiveEnabled;
+  } else {
+    issues.push('Invalid rollout flag: sections.telemetry.meta_awareness_live_enabled.value must be boolean');
+  }
+
+  if (metrics.telemetry_quality_mode === 'off' && metrics.meta_awareness_live_enabled === true) {
+    issues.push('Inconsistent rollout flags: quality_mode=off but meta_awareness_live_enabled=true');
+  }
+
+  return { metrics, issues };
 }
 
 // ── Individual subsystem auditors ─────────────────────────────────────────────
@@ -368,11 +421,24 @@ function auditOrchestrationAdvisor() {
 }
 
 function auditToolTelemetry() {
+  const rollout = readTelemetryRolloutFlags();
+
   const invPath = join(OPENCODE_DIR, 'tool-usage', 'invocations.json');
   const data = safeRead(invPath);
 
   if (!data) {
-    return { status: 'UNKNOWN', summary: '~/.opencode/tool-usage/invocations.json not found', metrics: {} };
+    const status = rollout.issues.length > 0 ? 'WARNING' : 'UNKNOWN';
+    const rolloutSummaryLive = rollout.metrics.meta_awareness_live_enabled === null ? 'missing' : rollout.metrics.meta_awareness_live_enabled;
+    return {
+      status,
+      summary: `~/.opencode/tool-usage/invocations.json not found | rollout: quality_mode=${rollout.metrics.telemetry_quality_mode}, meta_awareness_live_enabled=${rolloutSummaryLive}`,
+      metrics: {
+        total_invocations: 0,
+        unique_sessions: 0,
+        ...rollout.metrics,
+      },
+      issues: rollout.issues,
+    };
   }
 
   const invocations = Array.isArray(data) ? data : (data.invocations || []);
@@ -411,9 +477,16 @@ function auditToolTelemetry() {
     issues.push('At cap (5000 entries) — oldest entries being overwritten');
   }
 
+  if (rollout.issues.length > 0) {
+    issues.push(...rollout.issues);
+    if (status === 'HEALTHY') status = 'WARNING';
+  }
+
+  const rolloutSummaryLive = rollout.metrics.meta_awareness_live_enabled === null ? 'missing' : rollout.metrics.meta_awareness_live_enabled;
+
   return {
     status,
-    summary: `${total} invocations across ${sessions} sessions | unknown: ${unknownRate} | param capture: ${paramCaptureRate}`,
+    summary: `${total} invocations across ${sessions} sessions | unknown: ${unknownRate} | param capture: ${paramCaptureRate} | rollout: quality_mode=${rollout.metrics.telemetry_quality_mode}, meta_awareness_live_enabled=${rolloutSummaryLive}`,
     metrics: {
       total_invocations: total,
       unique_sessions: sessions,
@@ -425,6 +498,7 @@ function auditToolTelemetry() {
       at_cap: total >= 1000,
       most_recent_invocation: ageStr(mostRecent),
       top_categories: sortedCats.slice(0, 5).map(([k, v]) => `${k}(${v})`).join(', '),
+      ...rollout.metrics,
     },
     issues,
   };

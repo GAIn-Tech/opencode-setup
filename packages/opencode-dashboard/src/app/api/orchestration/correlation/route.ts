@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { loadMetaAwarenessTracker, readMetaAwarenessEvents } from '@/lib/meta-awareness';
+import { loadMetaAwarenessTrackerWithStatus, readMetaAwarenessEvents } from '@/lib/meta-awareness';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,14 +12,18 @@ function parseSinceDays(value: string | null): number {
 export async function GET(request: NextRequest) {
   try {
     const sinceDays = parseSinceDays(request.nextUrl.searchParams.get('sinceDays'));
-    const tracker = loadMetaAwarenessTracker();
+    const trackerStatus = loadMetaAwarenessTrackerWithStatus();
+    const tracker = trackerStatus.tracker;
     if (tracker && typeof tracker.getCorrelation === 'function') {
+      const liveCorrelation = await tracker.getCorrelation({ sinceDays });
       return NextResponse.json({
-        ...tracker.getCorrelation({ sinceDays }),
+        ...liveCorrelation,
         data_fidelity: 'live',
         fallback: false,
       });
     }
+
+    const fallbackReason = tracker ? 'live_tracker_method_unavailable' : trackerStatus.statusReason;
 
     const events = await readMetaAwarenessEvents(1000);
     const cutoff = Date.now() - sinceDays * 24 * 60 * 60 * 1000;
@@ -54,6 +58,8 @@ export async function GET(request: NextRequest) {
       distributions: { model, skill, tool, outcome },
       data_fidelity: filtered.length > 0 ? 'degraded' : 'demo',
       fallback: true,
+      status_reason: filtered.length > 0 ? 'event_fallback' : 'missing_state',
+      fallback_reason: fallbackReason,
     });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });

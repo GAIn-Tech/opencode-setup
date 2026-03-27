@@ -1,0 +1,14 @@
+{
+  "id": "learning-governance-hash-refresh-post-mcp-2026-03-26",
+  "timestamp": "2026-03-26T05:05:00.000Z",
+  "summary": "Refreshed governance hash manifest after approved MCP surface retirement config updates to restore hook-level integrity checks.",
+  "affected_paths": [
+    "opencode-config/.governance-hashes.json"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

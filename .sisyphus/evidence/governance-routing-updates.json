@@ -1,0 +1,105 @@
+{
+  "artifact": "governance-routing-updates",
+  "version": "1.0.0",
+  "generatedAt": "2026-03-25",
+  "objective": "Shift routing governance from breadth-biased assumptions to tier-aware, narrow default-core enforcement.",
+  "inputs": [
+    ".sisyphus/evidence/skill-classification-recommendations.json",
+    ".sisyphus/evidence/migration-semantics-policy.json",
+    ".sisyphus/notepads/ecosystem-skill-package-audit/decisions.md",
+    ".sisyphus/notepads/ecosystem-skill-package-audit/learnings.md",
+    "opencode-config/compound-engineering.json",
+    "scripts/run-skill-routing-gates.mjs",
+    "scripts/check-skill-coverage.mjs",
+    "scripts/check-skill-consistency.mjs",
+    "scripts/skill-routing-evaluator.mjs",
+    "scripts/tests/skill-implied-full-coverage.test.mjs",
+    "scripts/tests/check-skill-coverage.test.mjs"
+  ],
+  "policyDecisionsImplemented": {
+    "defaultCoreSpine": "planning -> audit -> debug",
+    "allowlistSource": ".sisyphus/evidence/skill-classification-recommendations.json#tierRecommendations.default",
+    "defaultCoreSelection": "Built-in routing evaluator fixtures now require default-tier top-skill selection.",
+    "untieredAssets": "On-disk skills missing explicit tier assignment now fail consistency/coverage governance.",
+    "breadthAssumptionRemoved": "Coverage no longer requires all on-disk skills to show implied dynamic selection evidence. Only default-tier skills are required.",
+    "manualDormantLeakageGuard": "Default-core evaluator run fails if built-in default fixtures route to manual/dormant/candidate-prune/untiered skills."
+  },
+  "fileChanges": [
+    {
+      "path": "scripts/check-skill-consistency.mjs",
+      "changes": [
+        "Added tier-evidence loading and validation for required 4-tier model.",
+        "Added duplicate tier assignment detection.",
+        "Added on-disk tier assignment enforcement (untiered skill = failure).",
+        "Added default-tier enabled-state enforcement and enabled-but-untiered failure checks."
+      ]
+    },
+    {
+      "path": "scripts/check-skill-coverage.mjs",
+      "changes": [
+        "Coverage scope narrowed to default-tier skills only.",
+        "Added tier evidence parsing via --tier-evidence option.",
+        "Added untiered on-disk detection and strict failure behavior.",
+        "Added alias-aware tier resolution for superpowers/* disk paths.",
+        "Extended report with checkedTier, totalSkillsOnDisk, untiered, and non-default counts."
+      ]
+    },
+    {
+      "path": "scripts/skill-routing-evaluator.mjs",
+      "changes": [
+        "Replaced broad default fixtures with narrow default-core fixture set.",
+        "Added tier evidence loading and default-core leakage breach checks.",
+        "Added fixture validation for optional enforceDefaultCore boolean.",
+        "Added report section for default-core enforcement and leakage breaches."
+      ]
+    },
+    {
+      "path": "scripts/run-skill-routing-gates.mjs",
+      "changes": [
+        "Updated gate descriptions to reflect tier-aware governance.",
+        "Wired --tier-evidence argument into evaluator and coverage gates."
+      ]
+    },
+    {
+      "path": "scripts/tests/skill-implied-full-coverage.test.mjs",
+      "changes": [
+        "Redesigned test from all-skills implied matrix to default-core implied matrix.",
+        "Added explicit untiered-skill assertion."
+      ]
+    },
+    {
+      "path": "scripts/tests/check-skill-coverage.test.mjs",
+      "changes": [
+        "Updated fixtures for tier-aware coverage analysis.",
+        "Added untiered-skill detection test case."
+      ]
+    }
+  ],
+  "verification": {
+    "commands": [
+      {
+        "command": "bun test scripts/tests/check-skill-coverage.test.mjs",
+        "result": "pass"
+      },
+      {
+        "command": "bun test scripts/tests/skill-implied-full-coverage.test.mjs",
+        "result": "pass"
+      },
+      {
+        "command": "bun scripts/skill-routing-evaluator.mjs --tier-evidence .sisyphus/evidence/skill-classification-recommendations.json",
+        "result": "pass",
+        "metrics": {
+          "ambiguityRate": 0,
+          "switchRate": 0,
+          "onePassCorrectness": 1,
+          "medianRoutingMs": 0.26,
+          "defaultCoreLeakageBreaches": 0
+        }
+      },
+      {
+        "command": "bun scripts/run-skill-routing-gates.mjs",
+        "result": "pass"
+      }
+    ]
+  }
+}

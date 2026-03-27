@@ -1,0 +1,186 @@
+{
+  "artifact": "skill-family-registry",
+  "version": "1.0.0",
+  "generatedAt": "2026-03-25",
+  "purpose": "Map skill family names to individual skill lists for auto-expansion in task(load_skills=[])",
+  "source": ".sisyphus/evidence/skill-classification-recommendations.json#familyRubric",
+  "usage": "task(load_skills=[\"workflow-orchestration\"]) expands to all skills in that family",
+  
+  "families": {
+    "core-loop": {
+      "skills": [
+        "writing-plans",
+        "codebase-auditor",
+        "systematic-debugging",
+        "test-driven-development",
+        "verification-before-completion",
+        "git-master",
+        "context7",
+        "task-orchestrator",
+        "using-superpowers"
+      ],
+      "tier": "default",
+      "activation_noise_risk": "low",
+      "note": "Core planning/audit/debug loop skills - already default tier"
+    },
+    "workflow-orchestration": {
+      "skills": [
+        "brainstorming",
+        "executing-plans",
+        "dispatching-parallel-agents",
+        "subagent-driven-development",
+        "skill-orchestrator-runtime",
+        "writing-skills",
+        "beads",
+        "research-builder",
+        "innovation-migration-planner"
+      ],
+      "tier": "manual",
+      "activation_noise_risk": "medium",
+      "note": "Workflow orchestration family - candidate for context-aware tier"
+    },
+    "context-optimization": {
+      "skills": [
+        "budget-aware-router",
+        "context-governor",
+        "dcp",
+        "distill",
+        "token-reporter"
+      ],
+      "tier": "manual",
+      "activation_noise_risk": "medium",
+      "note": "Context optimization family - candidate for context-aware tier"
+    },
+    "browser-qa": {
+      "skills": [
+        "playwright",
+        "dev-browser",
+        "agent-browser",
+        "frontend-ui-ux",
+        "e2e-testing",
+        "accessibility-testing",
+        "screen-reader-testing"
+      ],
+      "tier": "manual",
+      "activation_noise_risk": "high",
+      "note": "Browser QA family - high activation noise risk, keep manual"
+    },
+    "architecture-deep-dive": {
+      "skills": [
+        "c4-architecture",
+        "architecture-design",
+        "ddd-strategic-design",
+        "event-sourcing",
+        "microservices-patterns",
+        "api-design-principles",
+        "clean-architecture",
+        "system-design",
+        "ddd-context-mapping"
+      ],
+      "tier": "manual",
+      "activation_noise_risk": "high",
+      "note": "Architecture deep dive - high activation noise risk"
+    },
+    "security-specialist": {
+      "skills": [
+        "security-auditing",
+        "pentesting",
+        "vulnerability-scanning",
+        "threat-modeling",
+        "secure-coding",
+        "api-security"
+      ],
+      "tier": "manual",
+      "activation_noise_risk": "high",
+      "note": "Security specialist family"
+    },
+    "devops-specialist": {
+      "skills": [
+        "docker-containerization",
+        "kubernetes-orchestration",
+        "terraform-iac",
+        "aws-cloud",
+        "ci-cd-automation",
+        "monitoring-observability",
+        "github-actions"
+      ],
+      "tier": "manual",
+      "activation_noise_risk": "high",
+      "note": "DevOps specialist family"
+    },
+    "data-ai-specialist": {
+      "skills": [
+        "rag-implementation",
+        "llm-ops",
+        "ml-engineering",
+        "prompt-engineering",
+        "data-pipelines",
+        "vector-databases"
+      ],
+      "tier": "manual",
+      "activation_noise_risk": "high",
+      "note": "Data/AI specialist family"
+    },
+    "frontend-framework-specialist": {
+      "skills": [
+        "react-patterns",
+        "angular-development",
+        "accessibility-audit",
+        "tailwind-css",
+        "responsive-design"
+      ],
+      "tier": "manual",
+      "activation_noise_risk": "high",
+      "note": "Frontend framework specialist"
+    },
+    "quality-assurance": {
+      "skills": [
+        "linting-standards",
+        "performance-testing",
+        "load-testing",
+        "evaluation-harness-builder",
+        "postgresql-optimization"
+      ],
+      "tier": "manual",
+      "activation_noise_risk": "medium",
+      "note": "Quality assurance family - candidate for context-aware tier"
+    },
+    "incident-response": {
+      "skills": [
+        "incident-commander",
+        "code-doctor",
+        "runbooks"
+      ],
+      "tier": "manual",
+      "activation_noise_risk": "medium",
+      "note": "Incident response family - candidate for context-aware tier"
+    },
+    "database-specialist": {
+      "skills": [
+        "database-design",
+        "database-migration",
+        "postgresql-optimization"
+      ],
+      "tier": "manual",
+      "activation_noise_risk": "medium",
+      "note": "Database specialist family"
+    }
+  },
+  
+  "expansionPolicy": {
+    "allowMixedReferences": true,
+    "example": "task(load_skills=[\"workflow-orchestration\", \"git-master\"]) expands to workflow family skills + git-master",
+    "duplicateHandling": "deduplicate",
+    "validation": "Must not expand to dormant or candidate-prune skills",
+    "governanceIntegration": "Track which skills were auto-expanded vs explicitly specified"
+  },
+  
+  "contextAwareCandidates": [
+    "workflow-orchestration",
+    "context-optimization", 
+    "quality-assurance",
+    "incident-response",
+    "database-specialist"
+  ],
+  "contextAwareCriteria": "activation_noise_risk: medium AND scenario_frequency: medium+"
+}

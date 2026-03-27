@@ -12,12 +12,6 @@
       "description": "Session-to-error graph builder from OpenCode runtime logs",
       "enabled": true
     },
-    "opencode-model-router-x": {
-      "command": "node",
-      "args": ["{{OPENCODE_ROOT}}/packages/opencode-model-router-x/src/index.js"],
-      "description": "Policy-based model router with outcome tuning — needs CLI wrapper before enabling",
-      "enabled": false
-    },
     "opencode-context-governor": {
       "command": "node",
       "args": ["{{OPENCODE_ROOT}}/packages/opencode-context-governor/src/mcp-server.mjs"],
