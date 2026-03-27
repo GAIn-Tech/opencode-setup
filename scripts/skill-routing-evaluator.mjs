@@ -8,105 +8,108 @@ import { loadRegistry, routeHierarchical } from "./skill-profile-loader.mjs"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const THRESHOLDS_PATH = path.resolve(__dirname, "skill-routing-thresholds.json")
+const TIER_EVIDENCE_PATH = path.resolve(
+  __dirname,
+  "../.sisyphus/evidence/skill-classification-recommendations.json"
+)
+const REQUIRED_TIERS = ["default", "manual", "dormant", "candidate-prune"]
 
 // --- Built-in default evaluation tasks ---
 const DEFAULT_TASKS = [
   {
-    id: "debug-1",
-    scenarioId: "debugging",
+    id: "core-debug-1",
+    scenarioId: "core-debug-1",
     taskText: "debug flaky integration tests",
-    expectedDomain: "debugging",
     expectedTopSkill: "systematic-debugging",
   },
   {
-    id: "debug-2",
-    scenarioId: "debugging",
-    taskText: "fix failing test with root cause analysis",
-    expectedDomain: "debugging",
-    expectedTopSkill: "systematic-debugging",
-  },
-  {
-    id: "plan-1",
-    scenarioId: "planning",
-    taskText: "let's brainstorm how to redesign the auth system",
-    expectedDomain: "planning",
-    expectedTopSkill: "brainstorming",
-  },
-  {
-    id: "plan-2",
-    scenarioId: "planning",
+    id: "core-plan-1",
+    scenarioId: "core-plan-1",
     taskText: "write a plan for the new feature before we code",
-    expectedDomain: "planning",
     expectedTopSkill: "writing-plans",
   },
   {
-    id: "impl-1",
-    scenarioId: "implementation",
-    taskText: "implement feature with TDD red-green-refactor cycle",
-    expectedDomain: "testing",
-    expectedTopSkill: "test-driven-development",
+    id: "core-audit-1",
+    scenarioId: "core-audit-1",
+    taskText: "audit codebase and run a coherence pass to identify disconnected architecture",
+    expectedTopSkill: "codebase-auditor",
   },
   {
-    id: "verify-1",
-    scenarioId: "verification",
+    id: "core-verify-1",
+    scenarioId: "core-verify-1",
     taskText: "verify before done, check completion gates before PR",
-    expectedDomain: "quality",
     expectedTopSkill: "verification-before-completion",
   },
   {
-    id: "orchestrate-1",
-    scenarioId: "orchestration",
-    taskText: "multi-step ambiguous cross-cutting task needing dynamic workflow",
-    expectedDomain: "orchestration",
+    id: "core-tdd-1",
+    scenarioId: "core-tdd-1",
+    taskText: "implement feature with TDD red-green-refactor cycle",
+    expectedTopSkill: "test-driven-development",
+  },
+  {
+    id: "core-orchestrate-1",
+    scenarioId: "core-orchestrate-1",
+    taskText: "complex workflow with unclear approach for a multi-step task",
     expectedTopSkill: "task-orchestrator",
   },
   {
-    id: "incident-1",
-    scenarioId: "debugging",
-    taskText: "complex multi-file incident response needing structured triage",
-    expectedDomain: "debugging",
-    expectedTopSkill: "incident-commander",
-  },
-  // --- Browser automation (untagged domain) ---
-  {
-    id: "browser-1",
-    scenarioId: "browser",
-    taskText: "go to url click on login button fill form with test credentials take screenshot",
-    expectedTopSkill: "dev-browser",
-  },
-  // --- Git operations (untagged domain) ---
-  {
-    id: "git-1",
-    scenarioId: "git",
+    id: "core-git-1",
+    scenarioId: "core-git-1",
     taskText: "commit staged changes then squash the last three commits into one",
     expectedTopSkill: "git-master",
   },
-  // --- Code review: requesting (untagged domain) ---
   {
-    id: "review-request-1",
-    scenarioId: "code-review",
-    taskText: "request review on the implementation ready for review need feedback",
-    expectedTopSkill: "requesting-code-review",
+    id: "core-context-1",
+    scenarioId: "core-context-1",
+    taskText: "need library docs and api reference, run ctx7 query before coding",
+    expectedTopSkill: "context7",
   },
-  // --- Code review: receiving (untagged domain) ---
   {
-    id: "review-receive-1",
-    scenarioId: "code-review",
-    taskText: "received feedback on the PR and address feedback from review comments",
-    expectedTopSkill: "receiving-code-review",
-  },
-  // --- Meta: skill creation (untagged domain) ---
-  {
-    id: "meta-skill-1",
-    scenarioId: "meta",
-    taskText: "create skill and write skill definition for a new deployment automation workflow",
-    expectedTopSkill: "writing-skills",
+    id: "core-skill-discovery-1",
+    scenarioId: "core-skill-discovery-1",
+    taskText: "starting conversation and need to find skill discovery guidance",
+    expectedTopSkill: "using-superpowers",
   },
 ]
 
 function loadThresholds(thresholdsPath = THRESHOLDS_PATH) {
   const raw = fs.readFileSync(thresholdsPath, "utf8")
   return JSON.parse(raw)
+}
+
+function loadTierEvidence(tierEvidencePath = TIER_EVIDENCE_PATH) {
+  const raw = JSON.parse(fs.readFileSync(tierEvidencePath, "utf8"))
+  const tierRecommendations = raw?.tierRecommendations
+
+  if (!tierRecommendations || typeof tierRecommendations !== "object") {
+    throw new Error(`Invalid tier evidence format: ${tierEvidencePath}`)
+  }
+
+  for (const tier of REQUIRED_TIERS) {
+    if (!Array.isArray(tierRecommendations[tier])) {
+      throw new Error(
+        `Tier '${tier}' missing or not an array in tier evidence: ${tierEvidencePath}`
+      )
+    }
+  }
+
+  const skillToTier = new Map()
+  const duplicateAssignments = []
+  for (const tier of REQUIRED_TIERS) {
+    for (const skill of tierRecommendations[tier]) {
+      if (skillToTier.has(skill)) {
+        duplicateAssignments.push({ skill, tiers: [skillToTier.get(skill), tier] })
+      } else {
+        skillToTier.set(skill, tier)
+      }
+    }
+  }
+
+  return {
+    tierRecommendations,
+    skillToTier,
+    duplicateAssignments,
+  }
 }
 
 /**
@@ -146,6 +149,11 @@ function validateFixture(data, source) {
           `${prefix}: optional field '${opt}' must be a string when present, got ${typeof task[opt]}.`
         )
       }
+    }
+    if ("enforceDefaultCore" in task && typeof task.enforceDefaultCore !== "boolean") {
+      throw new Error(
+        `${prefix}: optional field 'enforceDefaultCore' must be a boolean when present, got ${typeof task.enforceDefaultCore}.`
+      )
     }
   }
   return data
@@ -347,14 +355,89 @@ function getDeferredThresholdWarnings(thresholds) {
   return warnings
 }
 
+function shouldEnforceDefaultCore(task, usingDefaultFixture) {
+  if (usingDefaultFixture) return true
+  return task.enforceDefaultCore === true
+}
+
+function evaluateDefaultCoreBreaches(results, tasks, tierEvidence, usingDefaultFixture) {
+  const defaultAllowlist = new Set(tierEvidence.tierRecommendations.default)
+  const breaches = []
+
+  if (tierEvidence.duplicateAssignments.length > 0) {
+    breaches.push({
+      metric: "tierAssignments",
+      value: tierEvidence.duplicateAssignments.length,
+      threshold: 0,
+      direction: "above",
+      reason: "Duplicate tier assignments in classification evidence",
+      details: tierEvidence.duplicateAssignments,
+    })
+  }
+
+  for (const task of tasks) {
+    if (!shouldEnforceDefaultCore(task, usingDefaultFixture)) continue
+    if (!task.expectedTopSkill) continue
+
+    if (!defaultAllowlist.has(task.expectedTopSkill)) {
+      breaches.push({
+        metric: "defaultCoreFixture",
+        value: task.expectedTopSkill,
+        threshold: "must be default-tier skill",
+        direction: "outside",
+        taskId: task.id,
+        reason: `Fixture task '${task.id}' expects non-default skill '${task.expectedTopSkill}'`,
+      })
+    }
+  }
+
+  const resultById = new Map(results.map((result) => [result.id, result]))
+  for (const task of tasks) {
+    if (!shouldEnforceDefaultCore(task, usingDefaultFixture)) continue
+
+    const result = resultById.get(task.id)
+    const topSkill = result?.topSkill || null
+
+    if (!topSkill) {
+      breaches.push({
+        metric: "defaultCoreSelection",
+        value: null,
+        threshold: "must select default-tier skill",
+        direction: "outside",
+        taskId: task.id,
+        reason: `Task '${task.id}' did not produce a top skill under default-core enforcement`,
+      })
+      continue
+    }
+
+    const tier = tierEvidence.skillToTier.get(topSkill) || "untiered"
+    if (tier !== "default") {
+      breaches.push({
+        metric: "defaultCoreLeakage",
+        value: topSkill,
+        threshold: "default-tier",
+        direction: "outside",
+        taskId: task.id,
+        tier,
+        reason: `Task '${task.id}' routed to non-default skill '${topSkill}' (${tier})`,
+      })
+    }
+  }
+
+  return breaches
+}
+
 function main(argv) {
   const args = argv
   let fixturePath = null
+  let tierEvidencePath = TIER_EVIDENCE_PATH
   let dryRun = false
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--fixture" && args[i + 1]) {
       fixturePath = args[++i]
+    } else if (args[i] === "--tier-evidence" && args[i + 1]) {
+      tierEvidencePath = path.resolve(args[++i])
     } else if (args[i] === "--dry-run") {
       dryRun = true
     }
@@ -362,6 +445,16 @@ function main(argv) {
 
   const registry = loadRegistry()
   const thresholds = loadThresholds()
+  let tierEvidence
+
+  try {
+    tierEvidence = loadTierEvidence(tierEvidencePath)
+  } catch (err) {
+    console.error(`ERROR: ${err.message}`)
+    process.exit(1)
+  }
+
+  const usingDefaultFixture = !fixturePath
 
   // Consolidate task loading with validation (runs for both --dry-run and evaluation)
   let tasks
@@ -380,6 +473,8 @@ function main(argv) {
       JSON.stringify(
         {
           dryRun: true,
+          enforceDefaultCoreOnBuiltInFixture: usingDefaultFixture,
+          defaultCoreAllowlist: tierEvidence.tierRecommendations.default,
           taskCount: tasks.length,
           thresholds,
           deferredWarnings,
@@ -404,7 +499,14 @@ function main(argv) {
 
   const results = evaluateTasks(tasks, registry)
   const metrics = computeMetrics(results)
-  const breaches = checkThresholds(metrics, thresholds)
+  const thresholdBreaches = checkThresholds(metrics, thresholds)
+  const defaultCoreBreaches = evaluateDefaultCoreBreaches(
+    results,
+    tasks,
+    tierEvidence,
+    usingDefaultFixture
+  )
+  const breaches = [...thresholdBreaches, ...defaultCoreBreaches]
   const deferredWarnings = getDeferredThresholdWarnings(thresholds)
 
   const report = {
@@ -413,6 +515,12 @@ function main(argv) {
     metrics,
     thresholds,
     breaches,
+    defaultCore: {
+      enforced: usingDefaultFixture,
+      allowlistSize: tierEvidence.tierRecommendations.default.length,
+      leakageBreaches: defaultCoreBreaches,
+      tierEvidencePath,
+    },
     deferredWarnings,
     pass: breaches.length === 0,
     details: results,
@@ -438,6 +546,8 @@ export {
   loadThresholds,
   validateFixture,
   loadAndValidateFixture,
+  loadTierEvidence,
+  evaluateDefaultCoreBreaches,
   evaluateTasks,
   computeMetrics,
   checkThresholds,

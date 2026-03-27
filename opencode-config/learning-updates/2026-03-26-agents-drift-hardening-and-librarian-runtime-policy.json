@@ -1,0 +1,19 @@
+{
+  "id": "learning-agents-drift-hardening-and-librarian-runtime-policy-2026-03-26",
+  "timestamp": "2026-03-26T05:15:00.000Z",
+  "summary": "Hardened AGENTS drift detection for nested STRUCTURE paths, added regression coverage, and aligned runtime copy policy/tests with canonical librarian prompt retention.",
+  "affected_paths": [
+    "scripts/check-agents-drift.mjs",
+    "scripts/tests/check-agents-drift-structure-nesting.test.mjs",
+    "scripts/copy-config.mjs",
+    "scripts/tests/copy-config.test.js",
+    "scripts/AGENTS.md",
+    "packages/opencode-model-manager/AGENTS.md"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

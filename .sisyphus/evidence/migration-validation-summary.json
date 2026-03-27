@@ -1,0 +1,138 @@
+{
+  "artifact": "migration-validation-summary",
+  "version": "1.1.0",
+  "generatedAt": "2026-03-25T03:22:40Z",
+  "task": "Task 9: Validate migration safety, rollback paths, and default-path behavior",
+  "inputsRead": [
+    ".sisyphus/evidence/migration-semantics-policy.json",
+    ".sisyphus/evidence/control-plane-lifecycle-policy.json",
+    ".sisyphus/evidence/governance-update-summary.json",
+    ".sisyphus/notepads/ecosystem-skill-package-audit/learnings.md",
+    ".sisyphus/notepads/ecosystem-skill-package-audit/decisions.md"
+  ],
+  "validation": {
+    "governance": {
+      "command": "bun scripts/run-skill-routing-gates.mjs",
+      "status": "pass",
+      "summary": {
+        "mode": "fail-fast",
+        "gatesRun": 6,
+        "gatesPassed": 6,
+        "gatesFailed": 0
+      }
+    },
+    "tests": [
+      {
+        "command": "bun test",
+        "status": "pass",
+        "evidence": {
+          "exitCode": 0,
+          "note": "Executed immediately before governance gates in a single verification chain."
+        }
+      }
+    ],
+    "defaultPathFixture": {
+      "command": "bun scripts/skill-routing-evaluator.mjs --tier-evidence .sisyphus/evidence/skill-classification-recommendations.json",
+      "status": "pass",
+      "evidence": {
+        "taskCount": 9,
+        "onePassCorrectness": 1,
+        "ambiguityRate": 0,
+        "switchRate": 0,
+        "medianRoutingMs": 0.26,
+        "defaultCoreLeakageBreaches": 0
+      }
+    },
+    "negativeLeakageFixture": {
+      "command": "bun -e inline fixture evaluation with enforceDefaultCore=true for planning/audit/debug specialist-overlay phrasing",
+      "status": "pass",
+      "threshold": {
+        "maxBreaches": 0,
+        "maxMismatches": 0
+      },
+      "evidence": {
+        "taskCount": 3,
+        "breachCount": 0,
+        "mismatchCount": 0,
+        "topSkills": [
+          "writing-plans",
+          "codebase-auditor",
+          "systematic-debugging"
+        ]
+      }
+    }
+  },
+  "rollbackValidation": {
+    "approach": "dry-run command-path validation using scripts/skills-manage.mjs (no config mutation)",
+    "baselineCommands": [
+      {
+        "command": "bun scripts/skills-manage.mjs list --all",
+        "status": "executed"
+      },
+      {
+        "command": "bun scripts/skills-manage.mjs audit",
+        "status": "executed"
+      },
+      {
+        "command": "bun scripts/skills-manage.mjs sync --dry-run",
+        "status": "executed",
+        "note": "Dry-run reported 54 potential enables; confirms why sync write-path is governance-restricted."
+      }
+    ],
+    "transitionChecks": [
+      {
+        "transition": "default->manual",
+        "command": "bun scripts/skills-manage.mjs disable writing-plans --dry-run",
+        "result": "would-disable"
+      },
+      {
+        "transition": "manual->default rollback command validity",
+        "command": "bun scripts/skills-manage.mjs enable writing-plans --dry-run",
+        "result": "command-valid (already enabled in current baseline)"
+      },
+      {
+        "transition": "manual->default",
+        "command": "bun scripts/skills-manage.mjs enable c4-architecture --dry-run",
+        "result": "would-enable"
+      },
+      {
+        "transition": "default/manual rollback command validity",
+        "command": "bun scripts/skills-manage.mjs disable c4-architecture --dry-run",
+        "result": "command-valid (already disabled in current baseline)"
+      },
+      {
+        "transition": "dormant->manual",
+        "command": "bun scripts/skills-manage.mjs enable memory-graph --dry-run",
+        "result": "would-enable"
+      },
+      {
+        "transition": "manual->dormant rollback command validity",
+        "command": "bun scripts/skills-manage.mjs disable memory-graph --dry-run",
+        "result": "command-valid (already disabled in current baseline)"
+      },
+      {
+        "transition": "candidate-prune/dormant safety posture",
+        "command": "bun scripts/skills-manage.mjs disable model-router-x --dry-run",
+        "result": "command-valid (already disabled in current baseline)"
+      },
+      {
+        "transition": "candidate-prune exception-path command viability",
+        "command": "bun scripts/skills-manage.mjs enable model-router-x --dry-run",
+        "result": "would-enable"
+      }
+    ]
+  },
+  "observations": [
+    "Tier-aware policy expectation is preserved: many registered-but-disabled entries are expected for manual/dormant/candidate-prune tiers.",
+    "Rollback command paths are validated without mutating registry or enabled-state files.",
+    "Default-path and negative leakage fixtures both passed under enforced default-core constraints.",
+    "Required verification commands were re-run after evidence/notepad updates to keep completion evidence fresh."
+  ],
+  "outcome": {
+    "governancePass": true,
+    "testsPass": true,
+    "rollbackValidationExecuted": true,
+    "defaultPathFixturesPass": true,
+    "leakageFixturesUnderThreshold": true
+  }
+}

@@ -168,6 +168,44 @@ const TOOL_APPROPRIATENESS_RULES = [
 ];
 
 /**
+ * Default metrics shape for on-disk metrics.json.
+ *
+ * Keep this centralized so legacy/partial files can be normalized safely
+ * without breaking existing sessions or requiring destructive resets.
+ */
+function createDefaultMetrics() {
+  return {
+    totalSessions: 0,
+    totalInvocations: 0,
+    toolCounts: {},
+    categoryCounts: {},
+    breadthScore: 0,
+    underUseEvents: 0,
+    appropriatenessScore: 0,
+  };
+}
+
+/**
+ * Normalize possibly legacy/partial metrics payload to current shape.
+ */
+function normalizeMetricsShape(metrics) {
+  const defaults = createDefaultMetrics();
+  if (!metrics || typeof metrics !== 'object') return defaults;
+
+  return {
+    ...defaults,
+    ...metrics,
+    totalSessions: Number.isFinite(metrics.totalSessions) ? metrics.totalSessions : 0,
+    totalInvocations: Number.isFinite(metrics.totalInvocations) ? metrics.totalInvocations : 0,
+    toolCounts: metrics.toolCounts && typeof metrics.toolCounts === 'object' ? metrics.toolCounts : {},
+    categoryCounts: metrics.categoryCounts && typeof metrics.categoryCounts === 'object' ? metrics.categoryCounts : {},
+    breadthScore: Number.isFinite(metrics.breadthScore) ? metrics.breadthScore : 0,
+    underUseEvents: Number.isFinite(metrics.underUseEvents) ? metrics.underUseEvents : 0,
+    appropriatenessScore: Number.isFinite(metrics.appropriatenessScore) ? metrics.appropriatenessScore : 0,
+  };
+}
+
+/**
  * Read JSON file asynchronously, returning defaultValue if file missing or parse fails.
  */
 async function readJsonAsync(filePath, defaultValue = {}) {
@@ -379,15 +417,8 @@ async function updateMetrics(toolName, invocation) {
   // Queue full read-modify-write to prevent concurrent callers from
   // reading stale metrics and losing increments.
   const doTransaction = async () => {
-    let metrics = await readJsonAsync(METRICS_FILE, {
-      totalSessions: 0,
-      totalInvocations: 0,
-      toolCounts: {},
-      categoryCounts: {},
-      breadthScore: 0,
-      underUseEvents: 0,
-      appropriatenessScore: 0
-    });
+    let metrics = await readJsonAsync(METRICS_FILE, createDefaultMetrics());
+    metrics = normalizeMetricsShape(metrics);
 
     metrics.totalInvocations++;
     metrics.toolCounts[toolName] = (metrics.toolCounts[toolName] || 0) + 1;
@@ -495,7 +526,7 @@ async function detectUnderUse(context) {
   
   // Update metrics if under-use detected
   if (underUseEvents.length > 0) {
-    const metrics = await readJsonAsync(METRICS_FILE);
+    const metrics = normalizeMetricsShape(await readJsonAsync(METRICS_FILE, createDefaultMetrics()));
     metrics.underUseEvents += underUseEvents.length;
     await writeJsonAsync(METRICS_FILE, metrics);
   }
@@ -577,7 +608,7 @@ function getRuleSeverity(rule, toolsUsed) {
 async function getUsageReport() {
   await initAsync();
   
-  const metrics = await readJsonAsync(METRICS_FILE);
+  const metrics = normalizeMetricsShape(await readJsonAsync(METRICS_FILE, createDefaultMetrics()));
   const invocations = (await readJsonAsync(INVOCATIONS_FILE, { invocations: [] })).invocations;
   
   const usedTools = Object.keys(metrics.toolCounts);
@@ -674,7 +705,7 @@ async function startSession(sessionId, context = {}) {
   }).catch(() => {});
   
   // Update session count
-  const metrics = await readJsonAsync(METRICS_FILE);
+  const metrics = normalizeMetricsShape(await readJsonAsync(METRICS_FILE, createDefaultMetrics()));
   metrics.totalSessions++;
   await writeJsonAsync(METRICS_FILE, metrics);
   

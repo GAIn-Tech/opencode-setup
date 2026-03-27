@@ -1,0 +1,30 @@
+{
+  "id": "2026-03-26-skill-routing-governance-reconcile",
+  "timestamp": "2026-03-26T04:10:00-04:00",
+  "summary": "Reconcile the skill-routing governance lane by restoring tiered routing artifacts, aligning hierarchical test expectations with the current core scenario IDs, and refreshing governed config state for hash-verified policy checks.",
+  "affected_paths": [
+    "opencode-config/opencode.json",
+    "opencode-config/oh-my-opencode.json",
+    "opencode-config/opencode-clean.json",
+    "opencode-config/skills/registry.json",
+    "opencode-config/tool-tiers.json",
+    "package.json",
+    "packages/README.md",
+    "packages/opencode-plugin-preload-skills/src/index.js",
+    "packages/opencode-plugin-preload-skills/test/metadata-counts.test.js",
+    "scripts/check-skill-consistency.mjs",
+    "scripts/run-skill-routing-gates.mjs",
+    "scripts/skill-routing-evaluator.mjs",
+    "scripts/check-skill-coverage.mjs",
+    "scripts/tests/protocol-compliance-pass.test.js",
+    "scripts/tests/skill-hierarchical-routing.test.js",
+    "scripts/tests/check-skill-coverage.test.mjs",
+    "scripts/tests/skill-implied-full-coverage.test.mjs"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

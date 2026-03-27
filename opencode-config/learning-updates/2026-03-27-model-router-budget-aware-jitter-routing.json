@@ -1,0 +1,15 @@
+{
+  "id": "learning-model-router-budget-aware-jitter-routing-2026-03-27",
+  "timestamp": "2026-03-27T03:45:00.000Z",
+  "summary": "Add budget-aware exploration controls and deterministic score jitter in model-router-x so exploration probability is capped/disabled under high budget pressure while routing remains replay-stable.",
+  "affected_paths": [
+    "packages/opencode-model-router-x/src/dynamic-exploration-controller.js",
+    "packages/opencode-model-router-x/src/index.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

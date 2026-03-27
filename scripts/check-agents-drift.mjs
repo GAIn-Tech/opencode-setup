@@ -121,10 +121,25 @@ function parseStructureDirectories(content, baseDir) {
   for (const block of blocks) {
     const body = block.replace(/^```[a-z]*\s*/i, '').replace(/```$/, '');
     const lines = body.split('\n');
-    for (const line of lines) {
-      const treeMatch = line.match(/^[\s│]*[├└]──\s+([^#\s]+\/)/);
+    let treeRoot = null;
+    let treeStack = [];
+
+    for (let index = 0; index < lines.length; index += 1) {
+      const line = lines[index];
+      const treeMatch = line.match(/^([\s│]*)[├└]──\s+([^#\s]+\/)/);
       if (treeMatch) {
-        dirs.push({ entry: treeMatch[1], lineText: line.trim() });
+        const prefix = treeMatch[1] || '';
+        const depth = Math.floor(prefix.length / 4);
+        const entry = treeMatch[2].replace(/\/$/, '');
+
+        treeStack[depth] = entry;
+        treeStack.length = depth + 1;
+
+        const parts = treeRoot
+          ? [treeRoot, ...treeStack.slice(0, depth + 1)]
+          : treeStack.slice(0, depth + 1);
+
+        dirs.push({ entry: parts.join('/'), lineText: line.trim() });
         continue;
       }
 
@@ -134,7 +149,24 @@ function parseStructureDirectories(content, baseDir) {
       const entry = standaloneMatch[1];
       const currentDirName = `${basename(baseDir)}/`;
       if (entry === currentDirName || entry === './') continue;
-      dirs.push({ entry, lineText: line.trim() });
+
+      const normalizedEntry = entry.replace(/\/$/, '');
+      dirs.push({ entry: normalizedEntry, lineText: line.trim() });
+
+      let nextNonEmptyLine = null;
+      for (let lookahead = index + 1; lookahead < lines.length; lookahead += 1) {
+        if (!lines[lookahead].trim()) continue;
+        nextNonEmptyLine = lines[lookahead];
+        break;
+      }
+
+      if (nextNonEmptyLine && /^[\s│]*[├└]──\s+([^#\s]+\/)/.test(nextNonEmptyLine)) {
+        treeRoot = normalizedEntry;
+        treeStack = [];
+      } else {
+        treeRoot = null;
+        treeStack = [];
+      }
     }
   }
 
@@ -209,7 +241,7 @@ function actualForClaimType(type) {
     return countFilesRecursive(join(ROOT, 'scripts'), (name) => name.endsWith('.mjs'));
   }
   if (type === 'agent_count') {
-    return countFilesRecursive(join(ROOT, 'opencode-config', 'agents'), () => true);
+    return countFilesRecursive(join(ROOT, 'opencode-config', 'agents'), (name) => name.endsWith('.md'));
   }
   if (type === 'skill_count') {
     return countImmediateDirectories(join(ROOT, 'opencode-config', 'skills'));

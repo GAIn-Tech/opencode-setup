@@ -1,0 +1,154 @@
+{
+  "artifact": "context-aware-tier-spec",
+  "version": "1.0.0",
+  "generatedAt": "2026-03-25",
+  "purpose": "Specification for context-aware tier between default and manual tiers",
+  "designPrinciple": "Auto-suggest, not auto-trigger - reduce cognitive load while maintaining governance",
+  
+  "tierArchitecture": {
+    "hierarchy": [
+      {
+        "tier": "default",
+        "count": 9,
+        "activation": "auto-trigger",
+        "criteria": "activation_noise_risk: low, core_loop_necessity: high"
+      },
+      {
+        "tier": "context-aware",
+        "targetCount": "15-20",
+        "activation": "auto-suggest",
+        "criteria": "activation_noise_risk: medium, scenario_frequency: medium+"
+      },
+      {
+        "tier": "manual",
+        "count": "~60",
+        "activation": "explicit load_skills or family reference",
+        "criteria": "activation_noise_risk: high OR scenario_frequency: low"
+      },
+      {
+        "tier": "dormant",
+        "count": 5,
+        "activation": "disabled, evidence-gated",
+        "criteria": "sustained inactivity"
+      },
+      {
+        "tier": "candidate-prune",
+        "count": 10,
+        "activation": "review only",
+        "criteria": "low-signal internal wrappers"
+      }
+    ],
+    "totalSkills": 107
+  },
+  
+  "contextAwareActivationSemantics": {
+    "trigger": "Task context matches skill domain",
+    "suggestionFormat": "Context suggests skill '[skill-name]' would help with '[task aspect]'. Load it? [Y/n]",
+    "acceptance": "Single-key acceptance (Y) adds skill to current task load_skills",
+    "rejection": "Single-key rejection (n) skips suggestion, may provide feedback",
+    "learning": "Track accept/reject patterns to refine future suggestions",
+    "throttling": "Max 2 suggestions per task to avoid annoyance"
+  },
+  
+  "candidateSkillsForContextAware": [
+    {
+      "family": "workflow-orchestration",
+      "skills": [
+        "brainstorming",
+        "executing-plans",
+        "dispatching-parallel-agents",
+        "subagent-driven-development"
+      ],
+      "activationContext": "Task mentions 'plan', 'orchestrate', 'multi-step', 'complex workflow'"
+    },
+    {
+      "family": "context-optimization",
+      "skills": [
+        "budget-aware-router",
+        "context-governor",
+        "dcp",
+        "distill"
+      ],
+      "activationContext": "Task mentions 'context', 'token budget', 'compression', 'long session'"
+    },
+    {
+      "family": "quality-assurance",
+      "skills": [
+        "linting-standards",
+        "performance-testing",
+        "evaluation-harness-builder"
+      ],
+      "activationContext": "Task mentions 'verify', 'test', 'quality', 'performance'"
+    },
+    {
+      "family": "incident-response",
+      "skills": [
+        "incident-commander",
+        "code-doctor"
+      ],
+      "activationContext": "Task mentions 'debug', 'failure', 'incident', 'broken'"
+    },
+    {
+      "family": "database-specialist",
+      "skills": [
+        "database-design",
+        "database-migration"
+      ],
+      "activationContext": "Task mentions 'database', 'schema', 'migration', 'SQL'"
+    }
+  ],
+  
+  "estimatedImpact": {
+    "cognitiveLoadReduction": "83 manual skills → 12 family names + 15 context-aware suggestions",
+    "workflowEfficiency": "Reduces explicit skill listing by ~70%",
+    "governanceRisk": "Maintains 0% ambiguity (suggestions don't affect routing)",
+    "falseActivationControl": "User confirmation required for each suggestion"
+  },
+  
+  "implementationPhases": {
+    "phase1": {
+      "name": "Skill Family Auto-Load",
+      "status": "COMPLETED",
+      "artifacts": [
+        ".sisyphus/evidence/skill-family-registry.json",
+        ".sisyphus/evidence/skill-family-expansion-demo.mjs"
+      ],
+      "benefit": "Reduces 83 skills → 12 family references"
+    },
+    "phase2": {
+      "name": "Context-Aware Tier Prototype",
+      "status": "DESIGNED",
+      "required": [
+        "Context matching logic",
+        "Suggestion UI integration",
+        "Accept/reject tracking",
+        "Governance integration"
+      ],
+      "benefit": "Auto-suggests relevant skills based on task context"
+    },
+    "phase3": {
+      "name": "Learning Refinement",
+      "status": "FUTURE",
+      "required": [
+        "Pattern learning from accept/reject",
+        "Context matching improvement",
+        "Personalized suggestions"
+      ],
+      "benefit": "Smarter suggestions over time"
+    }
+  },
+  
+  "governanceIntegration": {
+    "tierEvidenceUpdate": "Add context-aware tier to skill-classification-recommendations.json",
+    "routingEvaluator": "Context-aware skills treated as manual for routing decisions",
+    "coverageCheck": "Context-aware skills require family/individual coverage evidence",
+    "consistencyCheck": "Must maintain tier hierarchy integrity"
+  },
+  
+  "verificationRequirements": [
+    "Governance gates must still pass (0% ambiguity, 100% correctness)",
+    "Family expansion must not include dormant/candidate-prune skills",
+    "Context suggestions must be dismissible without penalty",
+    "Suggestion acceptance must be tracked for learning"
+  ]
+}

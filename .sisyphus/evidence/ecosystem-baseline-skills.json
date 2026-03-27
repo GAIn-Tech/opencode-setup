@@ -1,0 +1,67 @@
+{
+  "generatedAt": "2026-03-24T23:36:07.237Z",
+  "sources": {
+    "registry": "opencode-config/skills/registry.json",
+    "compoundEngineering": "opencode-config/compound-engineering.json"
+  },
+  "counts": {
+    "registeredSkills": 107,
+    "enabledDefaultSkills": 39,
+    "registeredSkillCategories": 29,
+    "enabledSkillCategories": 15,
+    "compoundConfiguredSkillCategories": 12
+  },
+  "enabledMissingFromRegistry": [],
+  "registeredCategoryCounts": {
+    "optimization": 4,
+    "research": 4,
+    "memory": 2,
+    "reasoning": 1,
+    "git": 3,
+    "implementation": 4,
+    "browser": 3,
+    "planning": 3,
+    "analysis": 1,
+    "observability": 2,
+    "review": 4,
+    "debugging": 5,
+    "testing": 7,
+    "meta": 4,
+    "architecture": 9,
+    "security": 6,
+    "devops": 7,
+    "data-ai": 6,
+    "frontend": 5,
+    "backend": 5,
+    "database": 4,
+    "business": 5,
+    "code-quality": 2,
+    "orchestration": 4,
+    "task-management": 1,
+    "verification": 2,
+    "evaluation": 2,
+    "routing": 1,
+    "utility": 1
+  },
+  "enabledCategoryCounts": {
+    "planning": 3,
+    "optimization": 4,
+    "debugging": 3,
+    "analysis": 1,
+    "research": 4,
+    "browser": 3,
+    "implementation": 4,
+    "testing": 2,
+    "git": 3,
+    "review": 4,
+    "reasoning": 1,
+    "meta": 4,
+    "memory": 1,
+    "observability": 1,
+    "task-management": 1
+  },
+  "notes": [
+    "Enabled/default skill set is taken from compound-engineering skills.enabled.",
+    "Registry has substantially broader category coverage than default-enabled routing surface."
+  ]
+}

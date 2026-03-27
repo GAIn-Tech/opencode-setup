@@ -1,10 +1,12 @@
 # Agent Surface Hardening Implementation Plan
 
+> **Status**: SUPERSEDED (reconciled 2026-03-26)
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Make plugin-managed agent surfaces and host-facing MCP surfaces durable by fixing runtime config sync, removing stale on-disk agent mirrors, and adding regression coverage so phantom agent options cannot silently return.
 
-**Architecture:** Treat `opencode-config/oh-my-opencode.json` as the only canonical source for named agents and `opencode-config/opencode.json` as the canonical source for host-facing MCPs. Stop mirroring repo `agents/` into `~/.config/opencode`, explicitly purge deprecated repo-managed agent prompt files from runtime config, then align tests and docs with that architecture before moving on to MCP boundary refinements.
+**Architecture:** Treat `opencode-config/oh-my-opencode.json` as the only canonical source for named agents and `opencode-config/opencode.json` as the canonical source for host-facing MCPs. Keep `opencode-config/agents/librarian.md` as a canonical governed deliverable, stop mirroring repo `agents/` into `~/.config/opencode`, explicitly purge only deprecated runtime prompt remnants (excluding `librarian.md`), then align tests and docs with that architecture before moving on to MCP boundary refinements.
 
 **Tech Stack:** Bun, ESM infrastructure scripts, governed config + learning updates, runtime user config under `~/.config/opencode`.
 
@@ -12,21 +14,21 @@
 
 ## Phase 1: Plugin-Managed Agent Source of Truth
 
-### Task 1: Remove stale repo-managed agent prompt remnants
+### Task 1: Reconcile stale repo-managed agent prompt assumptions
 
 **Files:**
-- Delete: `opencode-config/agents/librarian.md`
+- Retain/validate: `opencode-config/agents/librarian.md`
 - Modify: `scripts/tests/mcp-inventory-regression.test.js`
 - Modify: `scripts/check-agents-drift.mjs`
 
 **Intent:**
-- Make `opencode-config/agents/` truly empty except `.gitkeep`
-- Stop tests and drift tooling from asserting file-based agent prompts still exist
+- Keep canonical librarian prompt deliverable on disk
+- Stop tests and drift tooling from asserting stale deletion assumptions
 
 **Validation:**
-- `opencode-config/agents/` contains only `.gitkeep`
-- regression test expects skill files only, not agent markdown files
-- drift checker distinguishes plugin-managed named agents from on-disk prompt files
+- `opencode-config/agents/librarian.md` remains present as canonical prompt deliverable
+- regression test and docs inventory align with retained canonical librarian file
+- drift checker distinguishes stale assumptions vs factual on-disk state
 
 ### Task 2: Harden runtime config sync against phantom agent reintroduction
 
@@ -36,7 +38,7 @@
 
 **Intent:**
 - Remove `agents` from wholesale config mirroring
-- Add targeted cleanup of deprecated repo-managed agent prompt files in `~/.config/opencode/agents`
+- Add targeted cleanup of deprecated repo-managed agent prompt files in `~/.config/opencode/agents` (excluding canonical `librarian.md`)
 - Preserve user-installed custom skills and avoid broad destructive cleanup of unknown custom agent files
 
 **Validation:**
@@ -109,7 +111,7 @@
 ## First Execution Wave
 
 Execute Phase 1 now:
-1. delete final stale repo agent prompt (`opencode-config/agents/librarian.md`)
+1. retain and validate canonical librarian prompt (`opencode-config/agents/librarian.md`)
 2. harden `scripts/copy-config.mjs`
 3. add regression coverage in `scripts/tests/copy-config.test.js`
 4. fix stale inventory/drift expectations
@@ -122,7 +124,7 @@ Run in `C:\Users\jack\work\opencode-setup`:
 
 ```bash
 bun test scripts/tests/copy-config.test.js scripts/tests/mcp-inventory-regression.test.js scripts/tests/mcp-audit-classification.test.js scripts/tests/skill-surface-regression.test.js
-node scripts/check-agents-drift.mjs --json
+node scripts/check-agents-drift.mjs --dry-run
 ```
 
 If config sync behavior is exercised directly, also verify:

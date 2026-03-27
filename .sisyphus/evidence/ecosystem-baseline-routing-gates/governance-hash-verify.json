@@ -1,0 +1,9 @@
+{
+  "gate": "governance-hash-verify",
+  "label": "Governance Hash Verification",
+  "exitCode": 0,
+  "durationMs": 415,
+  "stdout": "learning-gate: PASS\n- governed changes: 14\n- learning updates: 1",
+  "stderr": "",
+  "timestamp": "2026-03-24T23:36:05.957Z"
+}

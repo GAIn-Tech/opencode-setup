@@ -53,15 +53,7 @@
     },
     {
       "providerID": "google",
-      "modelID": "gemini-3-pro-preview"
-    },
-    {
-      "providerID": "google",
-      "modelID": "gemini-3.1-pro-preview"
-    },
-    {
-      "providerID": "google",
-      "modelID": "gemini-3.1-flash-lite-preview"
+      "modelID": "gemini-2.5-flash"
     },
     {
       "providerID": "google",
@@ -69,7 +61,15 @@
     },
     {
       "providerID": "google",
-      "modelID": "gemini-2.5-flash"
+      "modelID": "gemini-3.1-flash-lite-preview"
+    },
+    {
+      "providerID": "google",
+      "modelID": "gemini-3-pro-preview"
+    },
+    {
+      "providerID": "google",
+      "modelID": "gemini-3.1-pro-preview"
     }
   ],
   "retryPolicy": {

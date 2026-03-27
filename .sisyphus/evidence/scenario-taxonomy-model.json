@@ -1,0 +1,286 @@
+{
+	"artifact": "scenario-taxonomy-model",
+	"version": "1.0.0",
+	"generatedAt": "2026-03-24",
+	"taskContext": {
+		"task": "Wave 1 Task 2 - Define scenario taxonomy and target capability layer model",
+		"purpose": "Provide a canonical, classification-ready model centered on planning, audit, and debug default flows.",
+		"inputsRead": [
+			"opencode-config/compound-engineering.json",
+			"scripts/tests/skill-implied-full-coverage.test.mjs",
+			"docs/architecture/cli-mcp-surface-policy.md",
+			".sisyphus/evidence/ecosystem-baseline-summary.json",
+			".sisyphus/notepads/ecosystem-skill-package-audit/learnings.md"
+		],
+		"inputMissing": [
+			".sisyphus/drafts/ecosystem-audit-cohesion.md (not found in repository at execution time)"
+		],
+		"anchoringBaseline": {
+			"registeredSkills": 107,
+			"enabledDefaultSkills": 39,
+			"workspacePackages": 36,
+			"packagesWithCliEntrypoints": 10,
+			"packagesWithMcpWrappers": 3,
+			"userFlaggedNotDefaultFirstClass": [
+				"rust-development",
+				"go-development",
+				"laravel-development",
+				"c4-architecture",
+				"django-development",
+				"gtm-strategy"
+			]
+		}
+	},
+	"modelIntent": {
+		"scope": "Skill/package classification model for runtime capability layering",
+		"explicitlyInScope": [
+			"Scenario taxonomy for planning/audit/debug-led operation",
+			"Relationship model between core flows and secondary specialist flows",
+			"4-tier activation model with entry/exit criteria",
+			"Classification guidance that can be applied in Task 3"
+		],
+		"explicitlyOutOfScope": [
+			"Classifying individual assets",
+			"Changing routing/configuration files",
+			"Creating a universal ontology outside this audit objective"
+		]
+	},
+	"taxonomy": {
+		"designPrinciples": [
+			"Default runtime must optimize for planning, audit, and debug loop completion.",
+			"Secondary scenarios should attach to core flows, not replace them.",
+			"Auto-activation surface should be intentionally narrow to reduce false activation.",
+			"Preserve non-core capabilities via manual or dormant tiers before prune decisions.",
+			"Reject breadth-biased assumption that every on-disk skill needs implied dynamic activation evidence."
+		],
+		"coreDefaultScenarios": [
+			{
+				"id": "planning-core",
+				"name": "Planning",
+				"defaultFlowRole": "entry",
+				"objective": "Turn ambiguous requests into scoped, executable tasks with explicit constraints and verification targets.",
+				"requiredOutcomes": [
+					"Clear objective and scope boundaries",
+					"Ordered execution path",
+					"Risk/assumption visibility",
+					"Verification expectations before implementation"
+				],
+				"classificationSignal": "Capability directly increases plan quality, decomposition quality, or execution readiness in routine tasks."
+			},
+			{
+				"id": "audit-core",
+				"name": "Audit",
+				"defaultFlowRole": "control-loop",
+				"objective": "Inspect repo/config/runtime evidence to validate alignment, detect drift, and identify highest-signal remediation priorities.",
+				"requiredOutcomes": [
+					"Evidence-backed state assessment",
+					"Reality-vs-intent gap detection",
+					"Prioritized findings",
+					"Actionable next steps with minimal safe changes"
+				],
+				"classificationSignal": "Capability primarily improves evidence gathering, comparison, drift detection, prioritization, or governance confidence."
+			},
+			{
+				"id": "debug-core",
+				"name": "Debug",
+				"defaultFlowRole": "stabilization-loop",
+				"objective": "Diagnose failures systematically, isolate root causes, apply minimal fixes, and verify closure.",
+				"requiredOutcomes": [
+					"Fault localization",
+					"Root cause articulation",
+					"Minimal corrective change",
+					"Verification proof (diagnostics/tests/build evidence)"
+				],
+				"classificationSignal": "Capability materially improves triage, diagnosis, fix strategy, or verification reliability under failure conditions."
+			}
+		],
+		"secondaryScenarios": [
+			{
+				"id": "browser-qa-secondary",
+				"name": "Browser QA",
+				"objective": "Validate behavior in real browser flows, especially for UI regressions and interaction bugs.",
+				"relationshipToCore": {
+					"extends": ["debug-core", "audit-core"],
+					"dependsOnCoreContext": true,
+					"defaultStatus": "manual-first"
+				},
+				"promotionRule": "Can influence default only for assets that are universally needed to complete core debug/audit loops; otherwise remains manual specialist support."
+			},
+			{
+				"id": "architecture-deep-dive-secondary",
+				"name": "Architecture Deep-Dive",
+				"objective": "Evaluate multi-module/system trade-offs beyond routine planning scope.",
+				"relationshipToCore": {
+					"extends": ["planning-core", "audit-core"],
+					"dependsOnCoreContext": true,
+					"defaultStatus": "manual-first"
+				},
+				"promotionRule": "Stays manual unless evidence shows repeated necessity in everyday planning for this ecosystem."
+			},
+			{
+				"id": "incident-response-secondary",
+				"name": "Incident Response",
+				"objective": "Coordinate urgent diagnosis/recovery under service instability or outage-like pressure.",
+				"relationshipToCore": {
+					"extends": ["debug-core", "audit-core", "planning-core"],
+					"dependsOnCoreContext": true,
+					"defaultStatus": "manual-first"
+				},
+				"promotionRule": "Manual by default due to lower frequency; promote only if incident mode becomes routine in default operations."
+			},
+			{
+				"id": "specialist-framework-secondary",
+				"name": "Specialist Framework/Domain Work",
+				"objective": "Handle language/framework/business-domain specific tasks not central to default ecosystem operation.",
+				"relationshipToCore": {
+					"extends": ["planning-core", "debug-core"],
+					"dependsOnCoreContext": true,
+					"defaultStatus": "manual-first"
+				},
+				"examples": [
+					"Rust/Go/Laravel/Django specific implementation",
+					"GTM/pricing/PM domain strategy",
+					"Niche framework specialist tasks"
+				],
+				"promotionRule": "Do not place in default unless required for the majority of default planning/audit/debug flows."
+			}
+		],
+		"coreSecondaryRelationshipRules": [
+			"Core scenarios define the default runtime spine: planning -> audit -> debug.",
+			"Secondary scenarios are overlays activated by explicit intent or concrete contextual evidence.",
+			"A secondary capability cannot be default only because it exists or has broad triggers.",
+			"Secondary scenario assets should degrade to manual before dormant, and to candidate-prune only after redundancy/low-value evidence accumulates."
+		],
+		"defaultFlowChoreography": {
+			"loop": ["planning-core", "audit-core", "debug-core"],
+			"handoffExpectations": [
+				"Planning must provide audit/debug-ready constraints and acceptance criteria.",
+				"Audit findings feed planning refinements or direct debug priorities.",
+				"Debug resolution feeds back into audit confidence and planning patterns."
+			],
+			"secondaryInjectionPoints": {
+				"browser-qa-secondary": "Inject after audit or during debug verification when browser behavior is material.",
+				"architecture-deep-dive-secondary": "Inject during planning when scope spans multiple subsystems or ADR-level trade-offs.",
+				"incident-response-secondary": "Inject when failure urgency/coordination needs exceed routine debug flow.",
+				"specialist-framework-secondary": "Inject only when explicit framework/domain requirements are present."
+			}
+		}
+	},
+	"tierModel": {
+		"tiers": {
+			"default": {
+				"definition": "Auto-available baseline capability required to reliably execute the core planning/audit/debug loop in normal operation.",
+				"defaultActivationRule": "Enabled by default and eligible for first-pass routing without explicit user opt-in.",
+				"entryCriteria": [
+					"Primary scenario alignment to at least one core scenario (planning-core, audit-core, debug-core)",
+					"Recurring necessity across routine tasks, not niche episodes",
+					"Low false-activation risk relative to other enabled defaults",
+					"Provides distinct value (not redundant overlap with existing default capabilities)"
+				],
+				"exitCriteria": [
+					"No longer needed for routine core loop completion",
+					"Shows high overlap or ambiguity that harms routing precision",
+					"Better positioned as explicit specialist/manual invocation"
+				],
+				"demotionCondition": "When core-loop necessity weakens or ambiguity cost rises, demote to manual.",
+				"reactivationCondition": "Promote from manual when repeated core-loop dependency is demonstrated with low activation noise."
+			},
+			"manual": {
+				"definition": "Available capability for secondary or specialized scenarios that should require explicit intent/context before use.",
+				"defaultActivationRule": "Not pre-activated by default; activated through explicit user request or high-confidence specialist context.",
+				"entryCriteria": [
+					"Secondary scenario alignment (browser QA, architecture deep-dive, incident response, specialist framework/domain)",
+					"Useful but not essential for routine default core loop",
+					"Higher ambiguity/noise risk if always-on",
+					"Preserves value without polluting default surface"
+				],
+				"exitCriteria": [
+					"Demonstrated routine core-loop necessity (promote to default)",
+					"Sustained low-demand or weak scenario fit (demote to dormant)"
+				],
+				"demotionCondition": "If rarely invoked and not needed for core flows, demote to dormant.",
+				"reactivationCondition": "Promote to default only with evidence of repeated default-flow necessity; otherwise remain manual."
+			},
+			"dormant": {
+				"definition": "Retained but inactive capability kept for contingency, migration safety, or low-frequency edge need.",
+				"defaultActivationRule": "Disabled from normal routing and default loading; available only via explicit reactivation path.",
+				"entryCriteria": [
+					"Not required for default or regular manual specialist operation",
+					"Still has plausible fallback, compatibility, or occasional recovery value",
+					"Insufficient evidence to prune immediately"
+				],
+				"exitCriteria": [
+					"Revalidated scenario value and usage confidence (promote to manual)",
+					"No meaningful value across review cycles (demote to candidate-prune)"
+				],
+				"demotionCondition": "If dormant utility cannot be justified during periodic review, move to candidate-prune.",
+				"reactivationCondition": "Promote to manual when a concrete scenario requires it and value is validated in use."
+			},
+			"candidate-prune": {
+				"definition": "Low-value or redundant capability with no compelling scenario role; staged for removal unless new evidence appears.",
+				"defaultActivationRule": "Never default-activated; excluded from runtime routing except explicit review contexts.",
+				"entryCriteria": [
+					"No strong alignment to core or secondary scenarios",
+					"Redundant with stronger alternatives",
+					"Negligible demand or persistent activation noise cost",
+					"No strategic reason to keep as dormant fallback"
+				],
+				"exitCriteria": [
+					"Evidence-backed scenario requirement reappears (promote to dormant/manual)",
+					"No reactivation case after review window (proceed to removal workflow)"
+				],
+				"demotionCondition": "If no valid reactivation case is found in review, remove from active ecosystem surfaces.",
+				"reactivationCondition": "Only with explicit, current scenario evidence and non-redundant value; re-enter via dormant or manual first."
+			}
+		},
+		"tierTransitionPolicy": {
+			"preferredDemotionPath": [
+				"default",
+				"manual",
+				"dormant",
+				"candidate-prune"
+			],
+			"preferredReactivationPath": [
+				"candidate-prune",
+				"dormant",
+				"manual",
+				"default"
+			],
+			"policyNotes": [
+				"Demote in stages to preserve optionality and reduce abrupt capability loss.",
+				"Require stronger evidence for promotion as tier impact increases.",
+				"Avoid direct candidate-prune -> default jumps unless emergency and explicitly justified."
+			]
+		}
+	},
+	"classificationReadiness": {
+		"decisionQuestions": [
+			"Which scenario does this asset primarily serve: planning-core, audit-core, debug-core, or a secondary scenario?",
+			"Is this asset necessary for routine core-loop completion, or only specialized contexts?",
+			"If always enabled, does it increase false activation/routing ambiguity?",
+			"Is the asset meaningfully distinct, or mostly redundant with current capabilities?",
+			"If demoted, is fallback retention needed (dormant) or is prune candidacy more appropriate?"
+		],
+		"minimumEvidenceFieldsForTask3": [
+			"primary_scenario",
+			"secondary_scenario_if_any",
+			"core_loop_necessity (high|medium|low)",
+			"activation_noise_risk (low|medium|high)",
+			"redundancy_assessment (distinct|overlap|redundant)",
+			"recommended_tier",
+			"promotion_or_demotion_trigger"
+		],
+		"tierAssignmentHeuristics": [
+			"Core-aligned + routine necessity + low noise => default",
+			"Secondary/specialist + explicit intent needed => manual",
+			"Low-frequency fallback without active demand => dormant",
+			"No scenario fit or clear redundancy => candidate-prune"
+		],
+		"antiPatternsToAvoid": [
+			"Classifying by legacy category label alone",
+			"Promoting assets to default because they are broadly worded",
+			"Treating low usage as immediate deletion without dormant staging",
+			"Keeping candidate-prune assets indefinitely without revalidation"
+		]
+	}
+}

@@ -21,6 +21,18 @@ describe('protocol-compliance-pass', () => {
     expect(pkg.scripts['runtime:workflow-scenarios']).toBe('node scripts/runtime-workflow-scenarios.mjs');
   });
 
+  test('package.json exposes skills:coverage script', () => {
+    const pkg = JSON.parse(readFileSync(PACKAGE_JSON, 'utf8'));
+    expect(pkg.scripts['skills:coverage']).toBe(
+      'node scripts/check-skill-coverage.mjs --report .sisyphus/reports/skill-coverage-gap-report.json'
+    );
+  });
+
+  test('governance:check includes skills:coverage gate', () => {
+    const pkg = JSON.parse(readFileSync(PACKAGE_JSON, 'utf8'));
+    expect(pkg.scripts['governance:check']).toContain('bun run skills:coverage');
+  });
+
   test('evaluateRuntimeProof passes when all selected tools are visible', () => {
     const result = evaluateRuntimeProof({
       allSelectedToolsVisible: true,

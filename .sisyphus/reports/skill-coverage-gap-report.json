@@ -1,0 +1,1578 @@
+{
+  "summary": {
+    "totalSkills": 88,
+    "passed": 88,
+    "failed": 0,
+    "testFilesScanned": 238,
+    "generatedAt": "2026-03-24T19:08:16.867Z"
+  },
+  "missingSkills": [],
+  "skills": {
+    "accessibility-audit": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "accessibility-testing": {
+      "pass": true,
+      "impliedFiles": [
+        "packages/opencode-learning-engine/test/advise-edge-cases.test.js",
+        "packages/opencode-skill-rl-manager/test/selection.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "packages/opencode-learning-engine/test/advise-edge-cases.test.js",
+          "reason": "implied by trigger phrase: aria"
+        },
+        {
+          "file": "packages/opencode-skill-rl-manager/test/selection.test.js",
+          "reason": "implied by trigger phrase: aria"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "angular-development": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/lib/test/yaml-frontmatter-parser.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/lib/test/yaml-frontmatter-parser.test.mjs",
+          "reason": "implied by trigger phrase: angular"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "api-design-principles": {
+      "pass": true,
+      "impliedFiles": [
+        "packages/opencode-model-router-x/test/tier-router.test.js",
+        "scripts/lib/test/import-pipeline.test.mjs",
+        "scripts/lib/test/yaml-frontmatter-parser.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "packages/opencode-model-router-x/test/tier-router.test.js",
+          "reason": "implied by trigger phrase: optimi"
+        },
+        {
+          "file": "scripts/lib/test/import-pipeline.test.mjs",
+          "reason": "implied by trigger phrase: optimi"
+        },
+        {
+          "file": "scripts/lib/test/yaml-frontmatter-parser.test.mjs",
+          "reason": "implied by trigger phrase: optimi"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "api-security": {
+      "pass": true,
+      "impliedFiles": [
+        "packages/opencode-model-router-x/test/tier-router.test.js",
+        "scripts/lib/test/import-pipeline.test.mjs",
+        "scripts/lib/test/yaml-frontmatter-parser.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "packages/opencode-model-router-x/test/tier-router.test.js",
+          "reason": "implied by trigger phrase: authentication"
+        },
+        {
+          "file": "scripts/lib/test/import-pipeline.test.mjs",
+          "reason": "implied by trigger phrase: authentication"
+        },
+        {
+          "file": "scripts/lib/test/yaml-frontmatter-parser.test.mjs",
+          "reason": "implied by trigger phrase: api security"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "architecture-design": {
+      "pass": true,
+      "impliedFiles": [
+        "packages/opencode-model-router-x/test/tier-router.test.js",
+        "scripts/lib/test/yaml-frontmatter-parser.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "packages/opencode-model-router-x/test/tier-router.test.js",
+          "reason": "implied by trigger phrase: architecture design"
+        },
+        {
+          "file": "scripts/lib/test/yaml-frontmatter-parser.test.mjs",
+          "reason": "implied by trigger phrase: architectural decision"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "aws-cloud": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/lib/test/yaml-frontmatter-parser.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/lib/test/yaml-frontmatter-parser.test.mjs",
+          "reason": "implied by trigger phrase: serverless"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "budget-aware-router": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "c4-architecture": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "ci-cd-automation": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "clean-architecture": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "code-doctor": {
+      "pass": true,
+      "impliedFiles": [
+        "packages/opencode-context-governor/test/debounce-regression.test.js",
+        "packages/opencode-skill-rl-manager/test/selection.test.js",
+        "scripts/lib/test/yaml-frontmatter-parser.test.mjs",
+        "scripts/tests/mcp-inventory-regression.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "packages/opencode-context-governor/test/debounce-regression.test.js",
+          "reason": "implied by trigger phrase: regression"
+        },
+        {
+          "file": "packages/opencode-skill-rl-manager/test/selection.test.js",
+          "reason": "implied by trigger phrase: regression"
+        },
+        {
+          "file": "scripts/lib/test/yaml-frontmatter-parser.test.mjs",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "scripts/tests/mcp-inventory-regression.test.js",
+          "reason": "implied by trigger phrase: regression"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "codebase-auditor": {
+      "pass": true,
+      "impliedFiles": [
+        "packages/opencode-plugin-preload-skills/test/routing-seeds.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "packages/opencode-plugin-preload-skills/test/routing-seeds.test.js",
+          "reason": "implied by routing/profile assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "competitive-analysis": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "context-governor": {
+      "pass": true,
+      "impliedFiles": [
+        "packages/opencode-integration-layer/tests/distill-wiring.test.js",
+        "packages/opencode-integration-layer/tests/wave11-phase2-components.test.js",
+        "packages/opencode-model-router-x/test/tier-router.test.js",
+        "packages/opencode-plugin-preload-skills/test/routing-seeds.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "packages/opencode-integration-layer/tests/distill-wiring.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "packages/opencode-integration-layer/tests/wave11-phase2-components.test.js",
+          "reason": "implied by trigger phrase: budget check"
+        },
+        {
+          "file": "packages/opencode-model-router-x/test/tier-router.test.js",
+          "reason": "implied by trigger phrase: context budget"
+        },
+        {
+          "file": "packages/opencode-plugin-preload-skills/test/routing-seeds.test.js",
+          "reason": "implied by routing/profile assertion"
+        }
+      ],
+      "explicitEvidence": [
+        {
+          "file": "packages/opencode-integration-layer/tests/execute-task-runtime-context.test.js",
+          "reason": "explicit skill load/call"
+        },
+        {
+          "file": "scripts/tests/runtime-workflow-scenarios.test.mjs",
+          "reason": "explicit skill load/call"
+        }
+      ]
+    },
+    "context7": {
+      "pass": true,
+      "impliedFiles": [
+        "integration-tests/critical-plugin-contracts.test.js",
+        "scripts/tests/runtime-tool-telemetry.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "integration-tests/critical-plugin-contracts.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "scripts/tests/runtime-tool-telemetry.test.js",
+          "reason": "implied by trigger phrase: grep tool"
+        }
+      ],
+      "explicitEvidence": [
+        {
+          "file": "packages/opencode-plugin-preload-skills/test/metadata-counts.test.js",
+          "reason": "explicit skill load/call"
+        }
+      ]
+    },
+    "data-pipelines": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "database-design": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "database-migration": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "dcp": {
+      "pass": true,
+      "impliedFiles": [
+        "integration-tests/critical-plugin-contracts.test.js",
+        "packages/opencode-integration-layer/tests/distill-wiring.test.js",
+        "packages/opencode-integration-layer/tests/execute-task-runtime-context.test.js",
+        "scripts/tests/runtime-context-compliance.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "integration-tests/critical-plugin-contracts.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "packages/opencode-integration-layer/tests/distill-wiring.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "packages/opencode-integration-layer/tests/execute-task-runtime-context.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "scripts/tests/runtime-context-compliance.test.mjs",
+          "reason": "implied by routing/profile assertion"
+        }
+      ],
+      "explicitEvidence": [
+        {
+          "file": "packages/opencode-integration-layer/tests/execute-task-runtime-context.test.js",
+          "reason": "explicit skill load/call"
+        },
+        {
+          "file": "scripts/tests/runtime-context-compliance.test.mjs",
+          "reason": "explicit skill load/call"
+        },
+        {
+          "file": "scripts/tests/runtime-workflow-scenarios.test.mjs",
+          "reason": "explicit skill load/call"
+        }
+      ]
+    },
+    "ddd-context-mapping": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "ddd-database-patterns": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "ddd-strategic-design": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "distill": {
+      "pass": true,
+      "impliedFiles": [
+        "integration-tests/critical-plugin-contracts.test.js",
+        "integration-tests/telemetry-contract.test.js",
+        "packages/opencode-integration-layer/tests/distill-wiring.test.js",
+        "packages/opencode-learning-engine/test/session-mcp-invocations.test.js",
+        "packages/opencode-tool-usage-tracker/test/tool-usage-tracker.test.js",
+        "scripts/tests/mcp-exercise-harness.test.js",
+        "scripts/tests/runtime-tool-telemetry.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "integration-tests/critical-plugin-contracts.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "integration-tests/telemetry-contract.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "packages/opencode-integration-layer/tests/distill-wiring.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "packages/opencode-learning-engine/test/session-mcp-invocations.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "packages/opencode-tool-usage-tracker/test/tool-usage-tracker.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "scripts/tests/mcp-exercise-harness.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "scripts/tests/runtime-tool-telemetry.test.js",
+          "reason": "implied by routing/profile assertion"
+        }
+      ],
+      "explicitEvidence": [
+        {
+          "file": "packages/opencode-integration-layer/tests/execute-task-runtime-context.test.js",
+          "reason": "explicit skill load/call"
+        },
+        {
+          "file": "scripts/tests/runtime-context-compliance.test.mjs",
+          "reason": "explicit skill load/call"
+        },
+        {
+          "file": "scripts/tests/runtime-workflow-scenarios.test.mjs",
+          "reason": "explicit skill load/call"
+        }
+      ]
+    },
+    "django-development": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "docker-containerization": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "e2e-testing": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "evaluation-harness-builder": {
+      "pass": true,
+      "impliedFiles": [
+        "packages/opencode-plugin-preload-skills/test/routing-seeds.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "packages/opencode-plugin-preload-skills/test/routing-seeds.test.js",
+          "reason": "implied by routing/profile assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "event-sourcing": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "fastapi-development": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "github-actions": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "github-triage": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "go-development": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "grep": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/mcp-exercise-harness.test.js",
+        "scripts/tests/runtime-tool-telemetry.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/mcp-exercise-harness.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "scripts/tests/runtime-tool-telemetry.test.js",
+          "reason": "implied by trigger phrase: grep tool"
+        }
+      ],
+      "explicitEvidence": [
+        {
+          "file": "integration-tests/skillrl-showboat-e2e.test.js",
+          "reason": "explicit skill load/call"
+        }
+      ]
+    },
+    "gtm-strategy": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "incident-commander": {
+      "pass": true,
+      "impliedFiles": [
+        "packages/opencode-plugin-preload-skills/test/routing-seeds.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "packages/opencode-plugin-preload-skills/test/routing-seeds.test.js",
+          "reason": "implied by routing/profile assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "innovation-migration-planner": {
+      "pass": true,
+      "impliedFiles": [
+        "packages/opencode-plugin-preload-skills/test/routing-seeds.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "packages/opencode-plugin-preload-skills/test/routing-seeds.test.js",
+          "reason": "implied by routing/profile assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "kubernetes-orchestration": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "laravel-development": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "linting-standards": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "llm-ops": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/lib/test/import-pipeline.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/lib/test/import-pipeline.test.mjs",
+          "reason": "implied by trigger phrase: inference"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "load-testing": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "microservices-patterns": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "ml-engineering": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "monitoring-observability": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "pentesting": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/lib/test/import-pipeline.test.mjs",
+        "scripts/lib/test/yaml-frontmatter-parser.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/lib/test/import-pipeline.test.mjs",
+          "reason": "implied by trigger phrase: security audit"
+        },
+        {
+          "file": "scripts/lib/test/yaml-frontmatter-parser.test.mjs",
+          "reason": "implied by trigger phrase: security audit"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "performance-testing": {
+      "pass": true,
+      "impliedFiles": [
+        "packages/opencode-model-router-x/test/tier-router.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "packages/opencode-model-router-x/test/tier-router.test.js",
+          "reason": "implied by trigger phrase: speed"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "playwright": {
+      "pass": true,
+      "impliedFiles": [
+        "packages/opencode-plugin-preload-skills/test/mcp-selection.test.js",
+        "packages/opencode-plugin-preload-skills/test/routing-seeds.test.js",
+        "scripts/tests/mcp-exercise-harness.test.js",
+        "scripts/tests/mcp-inventory-regression.test.js",
+        "scripts/tests/mcp-lifecycle-report.test.js",
+        "scripts/tests/mcp-smoke-harness.test.js",
+        "scripts/tests/runtime-tool-telemetry.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "packages/opencode-plugin-preload-skills/test/mcp-selection.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "packages/opencode-plugin-preload-skills/test/routing-seeds.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "scripts/tests/mcp-exercise-harness.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "scripts/tests/mcp-inventory-regression.test.js",
+          "reason": "implied by trigger phrase: playwright"
+        },
+        {
+          "file": "scripts/tests/mcp-lifecycle-report.test.js",
+          "reason": "implied by trigger phrase: playwright"
+        },
+        {
+          "file": "scripts/tests/mcp-smoke-harness.test.js",
+          "reason": "implied by trigger phrase: playwright"
+        },
+        {
+          "file": "scripts/tests/runtime-tool-telemetry.test.js",
+          "reason": "implied by routing/profile assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "postgresql-optimization": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "pricing-strategy": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "product-management": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "prompt-engineering": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "rag-implementation": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "react-patterns": {
+      "pass": true,
+      "impliedFiles": [
+        "integration-tests/critical-plugin-contracts.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "integration-tests/critical-plugin-contracts.test.js",
+          "reason": "implied by trigger phrase: useeffect"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "research-builder": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/runtime-tool-telemetry.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/runtime-tool-telemetry.test.js",
+          "reason": "implied by trigger phrase: grep tool"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "responsive-design": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "rust-development": {
+      "pass": true,
+      "impliedFiles": [
+        "packages/opencode-model-router-x/test/tier-router.test.js",
+        "scripts/lib/test/import-pipeline.test.mjs",
+        "scripts/lib/test/yaml-frontmatter-parser.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "packages/opencode-model-router-x/test/tier-router.test.js",
+          "reason": "implied by trigger phrase: optimi"
+        },
+        {
+          "file": "scripts/lib/test/import-pipeline.test.mjs",
+          "reason": "implied by trigger phrase: optimi"
+        },
+        {
+          "file": "scripts/lib/test/yaml-frontmatter-parser.test.mjs",
+          "reason": "implied by trigger phrase: optimi"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "screen-reader-testing": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "secure-coding": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "security-auditing": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/lib/test/import-pipeline.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/lib/test/import-pipeline.test.mjs",
+          "reason": "implied by trigger phrase: running security audits or risk assessments"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "sequentialthinking": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/mcp-exercise-harness.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/mcp-exercise-harness.test.js",
+          "reason": "implied by routing/profile assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "skill-orchestrator-runtime": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "stakeholder-communication": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "supermemory": {
+      "pass": true,
+      "impliedFiles": [
+        "integration-tests/critical-plugin-contracts.test.js",
+        "packages/opencode-learning-engine/test/session-mcp-invocations.test.js",
+        "packages/opencode-learning-engine/test/tool-usage-file-bridge.test.js",
+        "scripts/tests/runtime-tool-telemetry.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "integration-tests/critical-plugin-contracts.test.js",
+          "reason": "implied by trigger phrase: remember this"
+        },
+        {
+          "file": "packages/opencode-learning-engine/test/session-mcp-invocations.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "packages/opencode-learning-engine/test/tool-usage-file-bridge.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "scripts/tests/runtime-tool-telemetry.test.js",
+          "reason": "implied by routing/profile assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "superpowers/brainstorming": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-hierarchical-routing.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-hierarchical-routing.test.js",
+          "reason": "implied by trigger phrase: explore approaches"
+        }
+      ],
+      "explicitEvidence": [
+        {
+          "file": "packages/opencode-learning-engine/test/orchestration-advisor.test.js",
+          "reason": "explicit skill load/call"
+        }
+      ]
+    },
+    "superpowers/dispatching-parallel-agents": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "superpowers/executing-plans": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "superpowers/finishing-a-development-branch": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "superpowers/receiving-code-review": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "superpowers/requesting-code-review": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "superpowers/subagent-driven-development": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "superpowers/systematic-debugging": {
+      "pass": true,
+      "impliedFiles": [
+        "packages/opencode-integration-layer/tests/mcp-skillrl-bridge.test.js",
+        "packages/opencode-integration-layer/tests/meta-kb-skillrl.test.js",
+        "packages/opencode-learning-engine/test/advise-edge-cases.test.js",
+        "packages/opencode-learning-engine/test/orchestration-advisor.test.js",
+        "packages/opencode-skill-rl-manager/test/selection.test.js",
+        "packages/opencode-skill-rl-manager/tests/selection.test.js",
+        "packages/opencode-skill-rl-manager/tests/sync-registry.test.js",
+        "packages/opencode-skill-rl-manager/tests/tool-affinities.test.js",
+        "scripts/lib/test/yaml-frontmatter-parser.test.mjs",
+        "scripts/tests/skill-hierarchical-routing.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "packages/opencode-integration-layer/tests/mcp-skillrl-bridge.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "packages/opencode-integration-layer/tests/meta-kb-skillrl.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "packages/opencode-learning-engine/test/advise-edge-cases.test.js",
+          "reason": "implied by trigger phrase: debug"
+        },
+        {
+          "file": "packages/opencode-learning-engine/test/orchestration-advisor.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "packages/opencode-skill-rl-manager/test/selection.test.js",
+          "reason": "implied by trigger phrase: debug"
+        },
+        {
+          "file": "packages/opencode-skill-rl-manager/tests/selection.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "packages/opencode-skill-rl-manager/tests/sync-registry.test.js",
+          "reason": "implied by trigger phrase: debug"
+        },
+        {
+          "file": "packages/opencode-skill-rl-manager/tests/tool-affinities.test.js",
+          "reason": "implied by trigger phrase: debug"
+        },
+        {
+          "file": "scripts/lib/test/yaml-frontmatter-parser.test.mjs",
+          "reason": "implied by trigger phrase: debug"
+        },
+        {
+          "file": "scripts/tests/skill-hierarchical-routing.test.js",
+          "reason": "implied by trigger phrase: debug"
+        }
+      ],
+      "explicitEvidence": [
+        {
+          "file": "packages/opencode-learning-engine/test/meta-kb-routing.test.js",
+          "reason": "explicit skill load/call"
+        },
+        {
+          "file": "packages/opencode-learning-engine/test/orchestration-advisor.test.js",
+          "reason": "explicit skill load/call"
+        }
+      ]
+    },
+    "superpowers/test-driven-development": {
+      "pass": true,
+      "impliedFiles": [
+        "packages/opencode-integration-layer/tests/meta-kb-skillrl.test.js",
+        "packages/opencode-integration-layer/tests/rotator-synergy.test.js",
+        "packages/opencode-skill-rl-manager/tests/sync-registry.test.js",
+        "scripts/lib/test/import-pipeline.test.mjs",
+        "scripts/lib/test/yaml-frontmatter-parser.test.mjs",
+        "scripts/tests/skill-hierarchical-routing.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "packages/opencode-integration-layer/tests/meta-kb-skillrl.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "packages/opencode-integration-layer/tests/rotator-synergy.test.js",
+          "reason": "implied by trigger phrase: test-driven"
+        },
+        {
+          "file": "packages/opencode-skill-rl-manager/tests/sync-registry.test.js",
+          "reason": "implied by trigger phrase: test-driven"
+        },
+        {
+          "file": "scripts/lib/test/import-pipeline.test.mjs",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "scripts/lib/test/yaml-frontmatter-parser.test.mjs",
+          "reason": "implied by trigger phrase: test-driven"
+        },
+        {
+          "file": "scripts/tests/skill-hierarchical-routing.test.js",
+          "reason": "implied by trigger phrase: implement feature"
+        }
+      ],
+      "explicitEvidence": [
+        {
+          "file": "packages/opencode-learning-engine/test/orchestration-advisor.test.js",
+          "reason": "explicit skill load/call"
+        }
+      ]
+    },
+    "superpowers/using-git-worktrees": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "superpowers/using-superpowers": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "superpowers/verification-before-completion": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "superpowers/writing-plans": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/runtime-tool-telemetry.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/runtime-tool-telemetry.test.js",
+          "reason": "implied by trigger phrase: grep tool"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "superpowers/writing-skills": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "system-design": {
+      "pass": true,
+      "impliedFiles": [
+        "packages/opencode-model-router-x/test/tier-router.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "packages/opencode-model-router-x/test/tier-router.test.js",
+          "reason": "implied by trigger phrase: distributed system"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "tailwind-css": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "task-orchestrator": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "tech-debt-assessment": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "terraform-iac": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "threat-modeling": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "token-reporter": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/tests/skill-implied-full-coverage.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
+          "reason": "implied by dynamic matrix routing assertion"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "vector-databases": {
+      "pass": true,
+      "impliedFiles": [
+        "packages/opencode-model-router-x/test/tier-router.test.js",
+        "scripts/lib/test/import-pipeline.test.mjs",
+        "scripts/lib/test/yaml-frontmatter-parser.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "packages/opencode-model-router-x/test/tier-router.test.js",
+          "reason": "implied by trigger phrase: optimi"
+        },
+        {
+          "file": "scripts/lib/test/import-pipeline.test.mjs",
+          "reason": "implied by trigger phrase: optimi"
+        },
+        {
+          "file": "scripts/lib/test/yaml-frontmatter-parser.test.mjs",
+          "reason": "implied by trigger phrase: optimi"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "vulnerability-scanning": {
+      "pass": true,
+      "impliedFiles": [
+        "scripts/lib/test/yaml-frontmatter-parser.test.mjs"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "scripts/lib/test/yaml-frontmatter-parser.test.mjs",
+          "reason": "implied by trigger phrase: owasp"
+        }
+      ],
+      "explicitEvidence": []
+    },
+    "websearch": {
+      "pass": true,
+      "impliedFiles": [
+        "packages/opencode-learning-engine/test/tool-usage-file-bridge.test.js",
+        "scripts/lib/test/yaml-frontmatter-parser.test.mjs",
+        "scripts/tests/mcp-exercise-harness.test.js",
+        "scripts/tests/runtime-tool-telemetry.test.js"
+      ],
+      "explicitOnlyFiles": [],
+      "impliedEvidence": [
+        {
+          "file": "packages/opencode-learning-engine/test/tool-usage-file-bridge.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "scripts/lib/test/yaml-frontmatter-parser.test.mjs",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "scripts/tests/mcp-exercise-harness.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "scripts/tests/runtime-tool-telemetry.test.js",
+          "reason": "implied by routing/profile assertion"
+        }
+      ],
+      "explicitEvidence": []
+    }
+  }
+}
