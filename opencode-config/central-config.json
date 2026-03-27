@@ -642,6 +642,22 @@
         "rl_allowed": false
       }
     },
+    "telemetry": {
+      "quality_mode": {
+        "value": "off",
+        "soft": null,
+        "hard": null,
+        "locked": false,
+        "rl_allowed": false
+      },
+      "meta_awareness_live_enabled": {
+        "value": false,
+        "soft": null,
+        "hard": null,
+        "locked": false,
+        "rl_allowed": false
+      }
+    },
     "exploration": {
       "budget": {
         "value": 20,
