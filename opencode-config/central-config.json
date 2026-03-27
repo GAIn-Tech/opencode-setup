@@ -75,12 +75,12 @@
       "jitter_factor": {
         "value": 0.1,
         "soft": {
-          "min": 0.0,
+          "min": 0,
           "max": 0.5
         },
         "hard": {
-          "min": 0.0,
-          "max": 1.0
+          "min": 0,
+          "max": 1
         },
         "locked": false,
         "rl_allowed": true
@@ -240,14 +240,14 @@
     },
     "governance": {
       "daily_budget_usd": {
-        "value": 10.0,
+        "value": 10,
         "soft": {
-          "min": 5.0,
-          "max": 50.0
+          "min": 5,
+          "max": 50
         },
         "hard": {
-          "min": 1.0,
-          "max": 1000.0
+          "min": 1,
+          "max": 1000
         },
         "locked": false,
         "rl_allowed": false
@@ -266,14 +266,14 @@
         "rl_allowed": false
       },
       "high_cost_alert_threshold_usd": {
-        "value": 5.0,
+        "value": 5,
         "soft": {
-          "min": 1.0,
-          "max": 20.0
+          "min": 1,
+          "max": 20
         },
         "hard": {
           "min": 0.1,
-          "max": 100.0
+          "max": 100
         },
         "locked": false,
         "rl_allowed": false
@@ -374,8 +374,8 @@
           "max": 0.95
         },
         "hard": {
-          "min": 0.0,
-          "max": 1.0
+          "min": 0,
+          "max": 1
         },
         "locked": false,
         "rl_allowed": true
@@ -543,7 +543,7 @@
           "max": 0.3
         },
         "hard": {
-          "min": 0.0,
+          "min": 0,
           "max": 0.5
         },
         "locked": false,
@@ -591,11 +591,11 @@
       "score_jitter_max_delta": {
         "value": 0.02,
         "soft": {
-          "min": 0.0,
+          "min": 0,
           "max": 0.05
         },
         "hard": {
-          "min": 0.0,
+          "min": 0,
           "max": 0.1
         },
         "locked": false,
@@ -611,25 +611,25 @@
       "cost_efficiency_max_bonus": {
         "value": 0.05,
         "soft": {
-          "min": 0.0,
+          "min": 0,
           "max": 0.1
         },
         "hard": {
-          "min": 0.0,
+          "min": 0,
           "max": 0.2
         },
         "locked": false,
         "rl_allowed": true
       },
       "cost_efficiency_max_cost_per_1k": {
-        "value": 15.0,
+        "value": 15,
         "soft": {
-          "min": 5.0,
-          "max": 25.0
+          "min": 5,
+          "max": 25
         },
         "hard": {
-          "min": 1.0,
-          "max": 50.0
+          "min": 1,
+          "max": 50
         },
         "locked": false,
         "rl_allowed": true
@@ -644,14 +644,14 @@
     },
     "telemetry": {
       "quality_mode": {
-        "value": "off",
+        "value": "warn",
         "soft": null,
         "hard": null,
         "locked": false,
         "rl_allowed": false
       },
       "meta_awareness_live_enabled": {
-        "value": false,
+        "value": true,
         "soft": null,
         "hard": null,
         "locked": false,
@@ -721,11 +721,11 @@
       "cap_explore_to": {
         "value": 0.05,
         "soft": {
-          "min": 0.0,
+          "min": 0,
           "max": 0.2
         },
         "hard": {
-          "min": 0.0,
+          "min": 0,
           "max": 0.5
         },
         "locked": false,

@@ -1,0 +1,17 @@
+{
+  "id": "learning-runbook-remedies-telemetry-enable-2026-03-27",
+  "timestamp": "2026-03-27T11:45:00.000Z",
+  "summary": "Added missing fixGeminiAuth() and fixGeminiModelId() remedy functions to opencode-runbooks for GEMINI_AUTH_ERROR and GEMINI_MODEL_NOT_FOUND patterns. Enabled telemetry quality gate (warn mode) and live meta-awareness tracking in central-config.",
+  "affected_paths": [
+    "packages/opencode-runbooks/src/remedies.js",
+    "opencode-config/central-config.json",
+    "opencode-config/meta-knowledge-index.json",
+    "opencode-config/.governance-hashes.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}
