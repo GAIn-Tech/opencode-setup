@@ -74,3 +74,10 @@ nul
 evidence-*.md
 test-output*.txt
 test-regression*.txt
+
+# Test artifacts (generated during test runs)
+.fresh-state-*.json
+entourage-*.db
+entourage-*.db-wal
+entourage-*.db-shm
+**/e2e-evidence/

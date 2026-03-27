@@ -3,6 +3,7 @@
 
 const os = require('os');
 const fs = require('fs');
+const fsPromises = require('fs/promises');
 const path = require('path');
 const { Healthd } = require('./index');
 
@@ -28,11 +29,12 @@ function ensureDir(dir) {
 const MAX_LOG_SIZE_MB = 10;
 const MAX_LOG_FILES = 5;
 
-function rotateLogs() {
+async function rotateLogsAsync() {
   try {
-    if (!fs.existsSync(LOG_FILE)) return;
+    const exists = await fsPromises.access(LOG_FILE).then(() => true).catch(() => false);
+    if (!exists) return;
 
-    const stats = fs.statSync(LOG_FILE);
+    const stats = await fsPromises.stat(LOG_FILE);
     const sizeMB = stats.size / (1024 * 1024);
 
     // Only rotate if exceeds max size
@@ -43,16 +45,46 @@ function rotateLogs() {
       const oldFile = `${LOG_FILE}.${i}`;
       const newFile = `${LOG_FILE}.${i + 1}`;
       
+      const oldExists = await fsPromises.access(oldFile).then(() => true).catch(() => false);
+      if (oldExists) {
+        if (i === MAX_LOG_FILES - 1) {
+          await fsPromises.unlink(oldFile); // Delete oldest
+        } else {
+          await fsPromises.rename(oldFile, newFile);
+        }
+      }
+    }
+
+    // Rotate current log to .1
+    await fsPromises.rename(LOG_FILE, `${LOG_FILE}.1`);
+  } catch (err) {
+    process.stderr.write(`[ERROR] Log rotation failed: ${err.message}\n`);
+  }
+}
+
+// Keep sync version for backward compatibility
+function rotateLogs() {
+  try {
+    if (!fs.existsSync(LOG_FILE)) return;
+
+    const stats = fs.statSync(LOG_FILE);
+    const sizeMB = stats.size / (1024 * 1024);
+
+    if (sizeMB < MAX_LOG_SIZE_MB) return;
+
+    for (let i = MAX_LOG_FILES - 1; i >= 1; i--) {
+      const oldFile = `${LOG_FILE}.${i}`;
+      const newFile = `${LOG_FILE}.${i + 1}`;
+      
       if (fs.existsSync(oldFile)) {
         if (i === MAX_LOG_FILES - 1) {
-          fs.unlinkSync(oldFile); // Delete oldest
+          fs.unlinkSync(oldFile);
         } else {
           fs.renameSync(oldFile, newFile);
         }
       }
     }
 
-    // Rotate current log to .1
     fs.renameSync(LOG_FILE, `${LOG_FILE}.1`);
   } catch (err) {
     process.stderr.write(`[ERROR] Log rotation failed: ${err.message}\n`);
@@ -67,20 +99,31 @@ function log(level, message, data) {
     ? `[${ts}] [${level.toUpperCase()}] ${message} ${JSON.stringify(data)}`
     : `[${ts}] [${level.toUpperCase()}] ${message}`;
 
-  // Console output
+  // Console output (synchronous - fast)
   if (level === 'error') {
     process.stderr.write(line + '\n');
   } else {
     process.stdout.write(line + '\n');
   }
 
-  // File output (append) with rotation check
-  try {
-    rotateLogs(); // Check and rotate before appending
-    fs.appendFileSync(LOG_FILE, line + '\n', 'utf8');
-  } catch (err) {
+  // File output - fire-and-forget async to avoid blocking event loop
+  fsPromises.access(LOG_FILE).then(() => {
+    // Check size and rotate if needed (async)
+    return fsPromises.stat(LOG_FILE).then(stats => {
+      const sizeMB = stats.size / (1024 * 1024);
+      if (sizeMB >= MAX_LOG_SIZE_MB) {
+        return rotateLogsAsync();
+      }
+    });
+  }).then(() => {
+    return fsPromises.appendFile(LOG_FILE, line + '\n', 'utf8');
+  }).catch(err => {
+    // If file doesn't exist, create it
+    if (err.code === 'ENOENT') {
+      return fsPromises.writeFile(LOG_FILE, line + '\n', 'utf8');
+    }
     process.stderr.write(`[${ts}] [ERROR] Failed to write log: ${err.message}\n`);
-  }
+  });
 }
 
 // --- PID management ---
@@ -144,14 +187,15 @@ function runCheckWithTimeout(healthd, timeoutMs = CHECK_TIMEOUT_MS) {
 
 // --- Crash logging ---
 
-function logCrash(err) {
+async function logCrashAsync(err) {
   try {
     let crashes = [];
     
     // Read existing crashes if file exists
-    if (fs.existsSync(CRASH_LOG_FILE)) {
+    const exists = await fsPromises.access(CRASH_LOG_FILE).then(() => true).catch(() => false);
+    if (exists) {
       try {
-        const content = fs.readFileSync(CRASH_LOG_FILE, 'utf8');
+        const content = await fsPromises.readFile(CRASH_LOG_FILE, 'utf8');
         crashes = JSON.parse(content);
         if (!Array.isArray(crashes)) crashes = [];
       } catch {
@@ -173,9 +217,40 @@ function logCrash(err) {
     }
     
     // Write back to file
-    fs.writeFileSync(CRASH_LOG_FILE, JSON.stringify(crashes, null, 2), 'utf8');
+    await fsPromises.writeFile(CRASH_LOG_FILE, JSON.stringify(crashes, null, 2), 'utf8');
   } catch (logErr) {
     // Crash logging failure should not crash the daemon
+    process.stderr.write(`[ERROR] Failed to log crash: ${logErr.message}\n`);
+  }
+}
+
+// Sync version for backward compatibility
+function logCrash(err) {
+  try {
+    let crashes = [];
+    
+    if (fs.existsSync(CRASH_LOG_FILE)) {
+      try {
+        const content = fs.readFileSync(CRASH_LOG_FILE, 'utf8');
+        crashes = JSON.parse(content);
+        if (!Array.isArray(crashes)) crashes = [];
+      } catch {
+        crashes = [];
+      }
+    }
+    
+    crashes.push({
+      timestamp: new Date().toISOString(),
+      error: err.message,
+      stack: err.stack,
+    });
+    
+    if (crashes.length > 10) {
+      crashes = crashes.slice(-10);
+    }
+    
+    fs.writeFileSync(CRASH_LOG_FILE, JSON.stringify(crashes, null, 2), 'utf8');
+  } catch (logErr) {
     process.stderr.write(`[ERROR] Failed to log crash: ${logErr.message}\n`);
   }
 }
@@ -295,4 +370,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { main, CHECK_INTERVAL_MS, CHECK_TIMEOUT_MS, LOG_FILE, PID_FILE, CRASH_LOG_FILE, runCheckWithTimeout, logCrash };
+module.exports = { main, CHECK_INTERVAL_MS, CHECK_TIMEOUT_MS, LOG_FILE, PID_FILE, CRASH_LOG_FILE, runCheckWithTimeout, logCrash, logCrashAsync, rotateLogsAsync };

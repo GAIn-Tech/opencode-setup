@@ -127,29 +127,31 @@ function _appendPkgEvent(event) {
   // Async flush to file (non-blocking, fail-open)
   if (!_pkgEventsFlushing) {
     _pkgEventsFlushing = true;
-    setImmediate(() => {
+    setImmediate(async () => {
       try {
         _pkgEventsFlushing = false;
         const fp = _getPkgEventsPath();
         if (!fp) return;
-        const fs = require('fs');
-        const dir = require('path').dirname(fp);
-        if (!fs.existsSync(dir)) {
-          fs.mkdirSync(dir, { recursive: true });
+        const fs = require('fs').promises;
+        const path = require('path');
+        const dir = path.dirname(fp);
+        try {
+          await fs.access(dir);
+        } catch {
+          await fs.mkdir(dir, { recursive: true });
         }
         // Read existing events, append new ones, write back
         let existing = [];
         try {
-          if (fs.existsSync(fp)) {
-            existing = JSON.parse(fs.readFileSync(fp, 'utf8'));
-          }
+          const data = await fs.readFile(fp, 'utf8');
+          existing = JSON.parse(data);
         } catch {
           existing = [];
         }
         const cutoff = Date.now() - (7 * 24 * 60 * 60 * 1000); // Keep 7 days
         const recent = existing.filter(e => e && e.timestamp && e.timestamp > cutoff);
         const merged = [...recent, ..._pkgEvents].slice(-MAX_PKG_EVENTS);
-        fs.writeFileSync(fp, JSON.stringify(merged, null, 2), 'utf8');
+        await fs.writeFile(fp, JSON.stringify(merged, null, 2), 'utf8');
         _pkgEvents = [];
       } catch {
         _pkgEventsFlushing = false;

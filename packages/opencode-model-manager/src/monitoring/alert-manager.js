@@ -119,12 +119,14 @@ class AlertManager extends EventEmitter {
         if (alert) newAlerts.push(alert);
       }
     } else if (pct >= 0.80) {
-      if (!this._activeAlerts.has(alertId)) {
+      if (!this._activeAlerts.has(alertId) || this._activeAlerts.get(alertId).severity !== ALERT_SEVERITY.CRITICAL) {
+        // Upgrade to CRITICAL — aligns with Governor COMPRESS_URGENT at 80%
+        if (this._activeAlerts.has(alertId)) this._activeAlerts.delete(alertId);
         const alert = this._fireAlert({
           id: alertId,
           type: ALERT_TYPE.BUDGET_THRESHOLD,
-          severity: ALERT_SEVERITY.WARNING,
-          message: `Token budget WARNING: ${(pct * 100).toFixed(1)}% used for session ${sessionId} on ${model}`,
+          severity: ALERT_SEVERITY.CRITICAL,
+          message: `Token budget CRITICAL: ${(pct * 100).toFixed(1)}% used — compression mandatory for session ${sessionId} on ${model}`,
           sessionId,
           model,
           pct,
