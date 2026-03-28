@@ -1,0 +1,15 @@
+{
+  "id": "agents-drift-fix-2026-03-29",
+  "timestamp": "2026-03-29T00:00:00.000Z",
+  "summary": "Fixed AGENTS.md drift - updated script count from 92 to 93 in root AGENTS.md and scripts/AGENTS.md",
+  "affected_paths": [
+    "AGENTS.md",
+    "scripts/AGENTS.md"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

@@ -8,7 +8,7 @@ OpenCode ecosystem: Bun-native monorepo (36 packages) for AI agent orchestration
 .
 ├── packages/              # 36 workspace packages (opencode-*)
 ├── plugins/               # 12 external OpenCode plugins (oh-my-opencode, antigravity-auth)
-├── scripts/               # 92 .mjs infrastructure scripts (governance, deployment, validation)
+├── scripts/               # 93 .mjs infrastructure scripts (governance, deployment, validation)
 ├── opencode-config/       # Central config hub (agents, skills, models, learning-updates)
 ├── .sisyphus/             # Persistent workflow state (plans, notepads, docs)
 ├── .worktrees/            # Git worktrees for isolated feature branches
@@ -24,7 +24,7 @@ OpenCode ecosystem: Bun-native monorepo (36 packages) for AI agent orchestration
 |----------------|------------|
 | Package implementation | packages/opencode-{name}/ |
 | External plugins | plugins/ |
-| Infrastructure automation | scripts/ (92 .mjs files) |
+| Infrastructure automation | scripts/ (93 .mjs files) |
 | Agent/skill/model config | opencode-config/ |
 | Workflow state | .sisyphus/ |
 | Feature branches | .worktrees/ |
