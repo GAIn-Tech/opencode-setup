@@ -1,13 +1,168 @@
 {
-  "generated_at": "2026-03-28T02:05:44.906Z",
+  "generated_at": "2026-03-28T10:41:46.881Z",
   "schema_version": 1,
-  "total_records": 416,
+  "total_records": 418,
   "source_files": {
-    "learning_updates": 416,
+    "learning_updates": 418,
     "agents_md": 12
   },
   "by_category": {
+    "governance": [
+      {
+        "id": "governance-hash-regen-20260328",
+        "summary": "Regenerate governance hashes after model diversification push",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/.governance-hashes.json"
+        ],
+        "timestamp": "2026-03-28T16:05:00.000Z"
+      },
+      {
+        "id": "learning-governance-hash-refresh-post-mcp-2026-03-26",
+        "summary": "Refreshed governance hash manifest after approved MCP surface retirement config updates to restore hook-level integrity checks.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/.governance-hashes.json"
+        ],
+        "timestamp": "2026-03-26T05:05:00.000Z"
+      },
+      {
+        "id": "2026-03-19-governance-updates",
+        "summary": "Updated 3 governance scripts and created 1 new import validator for 92-skill scale. check-skill-overlap-governance.mjs: added circular dependency detection and transitive conflict detection. normalize-superpowers-skills.mjs: extended skill discovery to all opencode-config/skills/*/SKILL.md (not just superpowers/), validates frontmatter has required name+description fields. validate-skill-import.mjs (NEW): checks registry-to-SKILL.md consistency, orphan detection, bidirectional synergy refs, acyclic dependency refs. 16 TDD tests added, all governance scripts exit 0.",
+        "risk_level": "low",
+        "affected_paths": [
+          "scripts/check-skill-overlap-governance.mjs",
+          "scripts/normalize-superpowers-skills.mjs",
+          "scripts/validate-skill-import.mjs",
+          "scripts/tests/governance-enhancements.test.js"
+        ],
+        "timestamp": "2026-03-19T00:00:00Z"
+      },
+      {
+        "id": "wave1-governance-config-refresh-20260318",
+        "summary": "Refresh governance/config surfaces, workspace dependency metadata, and runtime plan state tracking files.",
+        "risk_level": "low",
+        "affected_paths": [
+          ".githooks/pre-commit",
+          "AGENTS.md",
+          "opencode-config/AGENTS.md",
+          "opencode-config/tool-tiers.json",
+          "package.json",
+          "bun.lock",
+          ".sisyphus/boulder.json",
+          ".sisyphus/plans/runtime-concurrency-and-governance-batch.md"
+        ],
+        "timestamp": "2026-03-18T23:50:00.000Z"
+      },
+      {
+        "id": "warning-budget-v2-enforcement-2026-03-16",
+        "summary": "Rewrote warning budget baseline and CI enforcement. Baseline now uses object-keyed categories with max/description (was array-based). Script supports --capture (write baseline from test output) and --check (default, compare against baseline). Hardcoded 5 category regex patterns. Added warning:check and warning:capture scripts to package.json. Updated governance:check to use bun run warning:check.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/warning-baseline.json",
+          "scripts/ci-warning-budget.mjs",
+          "scripts/tests/ci-warning-budget.test.js",
+          "package.json"
+        ],
+        "timestamp": "2026-03-16T00:00:00.000Z"
+      },
+      {
+        "id": "warning-budget-governance-2026-03-14",
+        "summary": "Created warning budget baseline and CI enforcement system. warning-baseline.json defines 5 intentional warning categories with regex patterns and maxCount thresholds. ci-warning-budget.mjs runs bun test, matches warnings against baseline, detects unknowns, supports --json and --update-baseline. Added to governance:check in package.json.",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/warning-baseline.json",
+          "scripts/ci-warning-budget.mjs",
+          "scripts/tests/ci-warning-budget.test.js",
+          "package.json"
+        ],
+        "timestamp": "2026-03-14T00:00:00.000Z"
+      },
+      {
+        "id": "logger-wiring-integration-layer-20260311",
+        "summary": "Wire structured logger into integration-layer, replacing raw console calls with logger.warn/info/error.",
+        "risk_level": "low",
+        "affected_paths": [
+          "packages/opencode-integration-layer/src/index.js",
+          "packages/opencode-integration-layer/tests/logger-wiring.test.js",
+          "opencode-config/.governance-hashes.json"
+        ],
+        "timestamp": "2026-03-11T00:00:00Z"
+      },
+      {
+        "id": "wave10-phase1-ci-20260308",
+        "summary": "Wave 10 Phase 1 CI re-enablement: moved governance-gate.yml and opencode-ci.yml from disabled to active with paths filters and bun test step",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/.governance-hashes.json"
+        ],
+        "timestamp": "2026-03-08T19:22:00Z"
+      },
+      {
+        "id": "portability-closure-hardening-20260222",
+        "summary": "Completed closure hardening for clone portability by unifying setup/verify workflows, enforcing env/docs governance in CI, adding devcontainer baseline, and validating Bun path recovery behavior.",
+        "risk_level": "medium",
+        "affected_paths": [
+          "README.md",
+          "SYSTEM_REQUIREMENTS.md",
+          "INSTALL.md",
+          "PORTABILITY.md",
+          "SETUP_COMPLETE.md",
+          "QUICK-REFERENCE.md",
+          "export-checklist.md",
+          "setup.sh",
+          "scripts/setup.sh",
+          "verify-setup.sh",
+          "scripts/health-check.sh",
+          "scripts/verify-setup.mjs",
+          "scripts/preflight-versions.mjs",
+          "scripts/fix-bun-path.ps1",
+          "scripts/install-git-hooks.mjs",
+          "scripts/docs-governance-check.mjs",
+          "scripts/env-contract-check.mjs",
+          ".githooks/pre-commit",
+          ".github/workflows/governance-gate.yml",
+          ".github/workflows/model-catalog-sync.yml",
+          ".github/workflows/opencode-ci.yml",
+          ".github/workflows/container-parity.yml",
+          ".devcontainer/devcontainer.json",
+          "Dockerfile",
+          ".env.example"
+        ],
+        "timestamp": "2026-02-22T03:05:00Z"
+      },
+      {
+        "id": "living-docs-governance-system-20260218",
+        "summary": "Add living-docs governance system with drift gate enforcement",
+        "risk_level": "medium",
+        "affected_paths": [
+          "opencode-config/docs-governance.json",
+          "scripts/docs-gate.mjs",
+          "package.json",
+          "INTEGRATION-GUIDE.md",
+          "TROUBLESHOOTING.md",
+          "setup-instructions.md",
+          "README.md",
+          "LIVING-DOCS.md",
+          "scripts/copy-config.mjs",
+          "setup.sh",
+          "verify-setup.sh",
+          "scripts/verify-setup.mjs",
+          "opencode-config/skills/innovation-migration-planner/"
+        ],
+        "timestamp": "2026-02-18T18:00:00.000Z"
+      }
+    ],
     "configuration": [
+      {
+        "id": "model-diversification-20260328",
+        "summary": "Model diversification - use NVIDIA/Google/OpenAI providers with gemini-3",
+        "risk_level": "medium",
+        "affected_paths": [
+          "opencode-config/oh-my-opencode.json"
+        ],
+        "timestamp": "2026-03-28T04:00:00.000Z"
+      },
       {
         "id": "model-revert-20260327",
         "summary": "Revert model changes - restore GPT and DeepSeek models",
@@ -1833,143 +1988,6 @@
           "opencode-config/AGENTS.md"
         ],
         "timestamp": "2026-03-09T00:00:00Z"
-      }
-    ],
-    "governance": [
-      {
-        "id": "learning-governance-hash-refresh-post-mcp-2026-03-26",
-        "summary": "Refreshed governance hash manifest after approved MCP surface retirement config updates to restore hook-level integrity checks.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/.governance-hashes.json"
-        ],
-        "timestamp": "2026-03-26T05:05:00.000Z"
-      },
-      {
-        "id": "2026-03-19-governance-updates",
-        "summary": "Updated 3 governance scripts and created 1 new import validator for 92-skill scale. check-skill-overlap-governance.mjs: added circular dependency detection and transitive conflict detection. normalize-superpowers-skills.mjs: extended skill discovery to all opencode-config/skills/*/SKILL.md (not just superpowers/), validates frontmatter has required name+description fields. validate-skill-import.mjs (NEW): checks registry-to-SKILL.md consistency, orphan detection, bidirectional synergy refs, acyclic dependency refs. 16 TDD tests added, all governance scripts exit 0.",
-        "risk_level": "low",
-        "affected_paths": [
-          "scripts/check-skill-overlap-governance.mjs",
-          "scripts/normalize-superpowers-skills.mjs",
-          "scripts/validate-skill-import.mjs",
-          "scripts/tests/governance-enhancements.test.js"
-        ],
-        "timestamp": "2026-03-19T00:00:00Z"
-      },
-      {
-        "id": "wave1-governance-config-refresh-20260318",
-        "summary": "Refresh governance/config surfaces, workspace dependency metadata, and runtime plan state tracking files.",
-        "risk_level": "low",
-        "affected_paths": [
-          ".githooks/pre-commit",
-          "AGENTS.md",
-          "opencode-config/AGENTS.md",
-          "opencode-config/tool-tiers.json",
-          "package.json",
-          "bun.lock",
-          ".sisyphus/boulder.json",
-          ".sisyphus/plans/runtime-concurrency-and-governance-batch.md"
-        ],
-        "timestamp": "2026-03-18T23:50:00.000Z"
-      },
-      {
-        "id": "warning-budget-v2-enforcement-2026-03-16",
-        "summary": "Rewrote warning budget baseline and CI enforcement. Baseline now uses object-keyed categories with max/description (was array-based). Script supports --capture (write baseline from test output) and --check (default, compare against baseline). Hardcoded 5 category regex patterns. Added warning:check and warning:capture scripts to package.json. Updated governance:check to use bun run warning:check.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/warning-baseline.json",
-          "scripts/ci-warning-budget.mjs",
-          "scripts/tests/ci-warning-budget.test.js",
-          "package.json"
-        ],
-        "timestamp": "2026-03-16T00:00:00.000Z"
-      },
-      {
-        "id": "warning-budget-governance-2026-03-14",
-        "summary": "Created warning budget baseline and CI enforcement system. warning-baseline.json defines 5 intentional warning categories with regex patterns and maxCount thresholds. ci-warning-budget.mjs runs bun test, matches warnings against baseline, detects unknowns, supports --json and --update-baseline. Added to governance:check in package.json.",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/warning-baseline.json",
-          "scripts/ci-warning-budget.mjs",
-          "scripts/tests/ci-warning-budget.test.js",
-          "package.json"
-        ],
-        "timestamp": "2026-03-14T00:00:00.000Z"
-      },
-      {
-        "id": "logger-wiring-integration-layer-20260311",
-        "summary": "Wire structured logger into integration-layer, replacing raw console calls with logger.warn/info/error.",
-        "risk_level": "low",
-        "affected_paths": [
-          "packages/opencode-integration-layer/src/index.js",
-          "packages/opencode-integration-layer/tests/logger-wiring.test.js",
-          "opencode-config/.governance-hashes.json"
-        ],
-        "timestamp": "2026-03-11T00:00:00Z"
-      },
-      {
-        "id": "wave10-phase1-ci-20260308",
-        "summary": "Wave 10 Phase 1 CI re-enablement: moved governance-gate.yml and opencode-ci.yml from disabled to active with paths filters and bun test step",
-        "risk_level": "low",
-        "affected_paths": [
-          "opencode-config/.governance-hashes.json"
-        ],
-        "timestamp": "2026-03-08T19:22:00Z"
-      },
-      {
-        "id": "portability-closure-hardening-20260222",
-        "summary": "Completed closure hardening for clone portability by unifying setup/verify workflows, enforcing env/docs governance in CI, adding devcontainer baseline, and validating Bun path recovery behavior.",
-        "risk_level": "medium",
-        "affected_paths": [
-          "README.md",
-          "SYSTEM_REQUIREMENTS.md",
-          "INSTALL.md",
-          "PORTABILITY.md",
-          "SETUP_COMPLETE.md",
-          "QUICK-REFERENCE.md",
-          "export-checklist.md",
-          "setup.sh",
-          "scripts/setup.sh",
-          "verify-setup.sh",
-          "scripts/health-check.sh",
-          "scripts/verify-setup.mjs",
-          "scripts/preflight-versions.mjs",
-          "scripts/fix-bun-path.ps1",
-          "scripts/install-git-hooks.mjs",
-          "scripts/docs-governance-check.mjs",
-          "scripts/env-contract-check.mjs",
-          ".githooks/pre-commit",
-          ".github/workflows/governance-gate.yml",
-          ".github/workflows/model-catalog-sync.yml",
-          ".github/workflows/opencode-ci.yml",
-          ".github/workflows/container-parity.yml",
-          ".devcontainer/devcontainer.json",
-          "Dockerfile",
-          ".env.example"
-        ],
-        "timestamp": "2026-02-22T03:05:00Z"
-      },
-      {
-        "id": "living-docs-governance-system-20260218",
-        "summary": "Add living-docs governance system with drift gate enforcement",
-        "risk_level": "medium",
-        "affected_paths": [
-          "opencode-config/docs-governance.json",
-          "scripts/docs-gate.mjs",
-          "package.json",
-          "INTEGRATION-GUIDE.md",
-          "TROUBLESHOOTING.md",
-          "setup-instructions.md",
-          "README.md",
-          "LIVING-DOCS.md",
-          "scripts/copy-config.mjs",
-          "setup.sh",
-          "verify-setup.sh",
-          "scripts/verify-setup.mjs",
-          "opencode-config/skills/innovation-migration-planner/"
-        ],
-        "timestamp": "2026-02-18T18:00:00.000Z"
       }
     ],
     "context-management": [
@@ -4991,6 +5009,15 @@
   },
   "by_risk_level": {
     "low": [
+      {
+        "id": "governance-hash-regen-20260328",
+        "summary": "Regenerate governance hashes after model diversification push",
+        "risk_level": "low",
+        "affected_paths": [
+          "opencode-config/.governance-hashes.json"
+        ],
+        "timestamp": "2026-03-28T16:05:00.000Z"
+      },
       {
         "id": "model-revert-20260327",
         "summary": "Revert model changes - restore GPT and DeepSeek models",
@@ -8883,6 +8910,15 @@
     ],
     "medium": [
       {
+        "id": "model-diversification-20260328",
+        "summary": "Model diversification - use NVIDIA/Google/OpenAI providers with gemini-3",
+        "risk_level": "medium",
+        "affected_paths": [
+          "opencode-config/oh-my-opencode.json"
+        ],
+        "timestamp": "2026-03-28T04:00:00.000Z"
+      },
+      {
         "id": "learning-dashboard-live-meta-awareness-loader-and-fallback-reasons-2026-03-27",
         "summary": "Added feature-flagged live meta-awareness tracker loading in dashboard runtime and updated orchestration meta endpoints to await live tracker methods while exposing explicit fallback reason metadata.",
         "risk_level": "medium",
@@ -9886,7 +9922,135 @@
     "high": []
   },
   "by_affected_path": {
+    "opencode-config/.governance-hashes.json": [
+      {
+        "id": "governance-hash-regen-20260328",
+        "summary": "Regenerate governance hashes after model diversification push",
+        "risk_level": "low",
+        "timestamp": "2026-03-28T16:05:00.000Z"
+      },
+      {
+        "id": "learning-runbook-remedies-telemetry-enable-2026-03-27",
+        "summary": "Added missing fixGeminiAuth() and fixGeminiModelId() remedy functions to opencode-runbooks for GEMINI_AUTH_ERROR and GEMINI_MODEL_NOT_FOUND patterns. Enabled telemetry quality gate (warn mode) and live meta-awareness tracking in central-config.",
+        "risk_level": "low",
+        "timestamp": "2026-03-27T11:45:00.000Z"
+      },
+      {
+        "id": "learning-model-router-budget-aware-routing-controls-2026-03-27",
+        "summary": "Added central routing and exploration budget-control knobs (cost-efficiency gates, bounded score jitter, budget-aware exploration caps/disable thresholds) and aligned config-loader defaults plus governance hashes for model-router-x behavior control.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-27T03:30:00.000Z"
+      },
+      {
+        "id": "learning-governance-hash-refresh-post-mcp-2026-03-26",
+        "summary": "Refreshed governance hash manifest after approved MCP surface retirement config updates to restore hook-level integrity checks.",
+        "risk_level": "low",
+        "timestamp": "2026-03-26T05:05:00.000Z"
+      },
+      {
+        "id": "2026-03-23-p2-implementation",
+        "summary": "Phase 2 Technical Debt Refinement - Replace silent catch blocks with proper error logging",
+        "risk_level": "low",
+        "timestamp": "2026-03-23T16:30:00.000Z"
+      },
+      {
+        "id": "2026-03-23-final-governance-updates",
+        "summary": "Updated governance hashes and meta-knowledge index synchronization",
+        "risk_level": "low",
+        "timestamp": "2026-03-23T12:00:00Z"
+      },
+      {
+        "id": "governance-hash-baseline-sync-20260312",
+        "summary": "Refresh the governed hash baseline so the stored hash for opencode-config/meta-knowledge-index.json matches the current tracked file content and removes the persistent verify-hashes warning.",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T22:37:30Z"
+      },
+      {
+        "id": "bootstrap-runtime-entry-point-20260311",
+        "summary": "Add bootstrap-runtime.mjs ESM entry point that wraps CJS bootstrap module for runtime package wiring.",
+        "risk_level": "low",
+        "timestamp": "2026-03-12T01:15:00Z"
+      },
+      {
+        "id": "governance-hash-refresh-model-sync-pruning-20260311",
+        "summary": "Refresh governance hashes and meta-knowledge-index after model-sync package pruning.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:35:00Z"
+      },
+      {
+        "id": "meta-knowledge-index-sync-20260311",
+        "summary": "Refresh governance hashes after automatic meta-knowledge index updates from learning gate hooks.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:20:00Z"
+      },
+      {
+        "id": "mcp-runtime-governance-20260311",
+        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T23:10:00Z"
+      },
+      {
+        "id": "package-mcp-alignment-20260311",
+        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T22:05:00Z"
+      },
+      {
+        "id": "protocol-compliance-pass-20260311",
+        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
+        "risk_level": "medium",
+        "timestamp": "2026-03-11T21:20:00Z"
+      },
+      {
+        "id": "logger-wiring-integration-layer-20260311",
+        "summary": "Wire structured logger into integration-layer, replacing raw console calls with logger.warn/info/error.",
+        "risk_level": "low",
+        "timestamp": "2026-03-11T00:00:00Z"
+      },
+      {
+        "id": "governance-hash-refresh-20260309",
+        "summary": "Refresh governance hashes and meta-knowledge index after file-bridge commits. Auto-generated files only, no code changes.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T12:10:00Z"
+      },
+      {
+        "id": "meta-kb-rehash-20260309",
+        "summary": "Regenerate governance hashes after learning-gate auto-refreshed meta-knowledge-index.json during the AGENTS.md drift fix commit. No content changes — hash chain integrity maintenance only.",
+        "risk_level": "low",
+        "timestamp": "2026-03-09T00:01:00Z"
+      },
+      {
+        "id": "wave11-t4-budget-scoring-20260308",
+        "summary": "Wave 11 Phase 1 complete (7/7 tasks): context-governor activation, model-router perf caches, advice cache, integration-layer wiring, budget-aware scoring",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T23:50:00Z"
+      },
+      {
+        "id": "governance-refresh-20260308",
+        "summary": "Refresh auto-generated governance hashes and meta-KB index after AGENTS.md drift fixes",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:40:00Z"
+      },
+      {
+        "id": "wave10-phase1-ci-20260308",
+        "summary": "Wave 10 Phase 1 CI re-enablement: moved governance-gate.yml and opencode-ci.yml from disabled to active with paths filters and bun test step",
+        "risk_level": "low",
+        "timestamp": "2026-03-08T19:22:00Z"
+      },
+      {
+        "id": "governance-hash-refresh-20260227",
+        "summary": "Refreshed governance hash baseline after approved setup portability and script changes to keep learning-gate drift detection aligned with current governed config state.",
+        "risk_level": "low",
+        "timestamp": "2026-02-27T22:40:00Z"
+      }
+    ],
     "opencode-config/oh-my-opencode.json": [
+      {
+        "id": "model-diversification-20260328",
+        "summary": "Model diversification - use NVIDIA/Google/OpenAI providers with gemini-3",
+        "risk_level": "medium",
+        "timestamp": "2026-03-28T04:00:00.000Z"
+      },
       {
         "id": "model-revert-20260327",
         "summary": "Revert model changes - restore GPT and DeepSeek models",
@@ -11440,122 +11604,6 @@
         "summary": "Add synthesize-meta-kb.mjs script that aggregates 161 learning-update JSONs and 7 AGENTS.md files into a single queryable meta-knowledge index at opencode-config/meta-knowledge-index.json. Indexes by category, risk level, and affected path. Extracts anti-patterns, conventions, and commands from AGENTS.md sections.",
         "risk_level": "low",
         "timestamp": "2026-03-08T00:00:00Z"
-      }
-    ],
-    "opencode-config/.governance-hashes.json": [
-      {
-        "id": "learning-runbook-remedies-telemetry-enable-2026-03-27",
-        "summary": "Added missing fixGeminiAuth() and fixGeminiModelId() remedy functions to opencode-runbooks for GEMINI_AUTH_ERROR and GEMINI_MODEL_NOT_FOUND patterns. Enabled telemetry quality gate (warn mode) and live meta-awareness tracking in central-config.",
-        "risk_level": "low",
-        "timestamp": "2026-03-27T11:45:00.000Z"
-      },
-      {
-        "id": "learning-model-router-budget-aware-routing-controls-2026-03-27",
-        "summary": "Added central routing and exploration budget-control knobs (cost-efficiency gates, bounded score jitter, budget-aware exploration caps/disable thresholds) and aligned config-loader defaults plus governance hashes for model-router-x behavior control.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-27T03:30:00.000Z"
-      },
-      {
-        "id": "learning-governance-hash-refresh-post-mcp-2026-03-26",
-        "summary": "Refreshed governance hash manifest after approved MCP surface retirement config updates to restore hook-level integrity checks.",
-        "risk_level": "low",
-        "timestamp": "2026-03-26T05:05:00.000Z"
-      },
-      {
-        "id": "2026-03-23-p2-implementation",
-        "summary": "Phase 2 Technical Debt Refinement - Replace silent catch blocks with proper error logging",
-        "risk_level": "low",
-        "timestamp": "2026-03-23T16:30:00.000Z"
-      },
-      {
-        "id": "2026-03-23-final-governance-updates",
-        "summary": "Updated governance hashes and meta-knowledge index synchronization",
-        "risk_level": "low",
-        "timestamp": "2026-03-23T12:00:00Z"
-      },
-      {
-        "id": "governance-hash-baseline-sync-20260312",
-        "summary": "Refresh the governed hash baseline so the stored hash for opencode-config/meta-knowledge-index.json matches the current tracked file content and removes the persistent verify-hashes warning.",
-        "risk_level": "low",
-        "timestamp": "2026-03-12T22:37:30Z"
-      },
-      {
-        "id": "bootstrap-runtime-entry-point-20260311",
-        "summary": "Add bootstrap-runtime.mjs ESM entry point that wraps CJS bootstrap module for runtime package wiring.",
-        "risk_level": "low",
-        "timestamp": "2026-03-12T01:15:00Z"
-      },
-      {
-        "id": "governance-hash-refresh-model-sync-pruning-20260311",
-        "summary": "Refresh governance hashes and meta-knowledge-index after model-sync package pruning.",
-        "risk_level": "low",
-        "timestamp": "2026-03-11T23:35:00Z"
-      },
-      {
-        "id": "meta-knowledge-index-sync-20260311",
-        "summary": "Refresh governance hashes after automatic meta-knowledge index updates from learning gate hooks.",
-        "risk_level": "low",
-        "timestamp": "2026-03-11T23:20:00Z"
-      },
-      {
-        "id": "mcp-runtime-governance-20260311",
-        "summary": "Sync MCP runtime/config governance artifacts and add distill/runtime script coverage for compliance workflows.",
-        "risk_level": "low",
-        "timestamp": "2026-03-11T23:10:00Z"
-      },
-      {
-        "id": "package-mcp-alignment-20260311",
-        "summary": "Align package/runtime MCP tool routing, add distill wrapper coverage, and stabilize integration tests for current SkillRL behavior.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T22:05:00Z"
-      },
-      {
-        "id": "protocol-compliance-pass-20260311",
-        "summary": "Add a one-command protocol compliance pass and align runtime proof plus portability checks with current DCP/distill runtime tool surface.",
-        "risk_level": "medium",
-        "timestamp": "2026-03-11T21:20:00Z"
-      },
-      {
-        "id": "logger-wiring-integration-layer-20260311",
-        "summary": "Wire structured logger into integration-layer, replacing raw console calls with logger.warn/info/error.",
-        "risk_level": "low",
-        "timestamp": "2026-03-11T00:00:00Z"
-      },
-      {
-        "id": "governance-hash-refresh-20260309",
-        "summary": "Refresh governance hashes and meta-knowledge index after file-bridge commits. Auto-generated files only, no code changes.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T12:10:00Z"
-      },
-      {
-        "id": "meta-kb-rehash-20260309",
-        "summary": "Regenerate governance hashes after learning-gate auto-refreshed meta-knowledge-index.json during the AGENTS.md drift fix commit. No content changes — hash chain integrity maintenance only.",
-        "risk_level": "low",
-        "timestamp": "2026-03-09T00:01:00Z"
-      },
-      {
-        "id": "wave11-t4-budget-scoring-20260308",
-        "summary": "Wave 11 Phase 1 complete (7/7 tasks): context-governor activation, model-router perf caches, advice cache, integration-layer wiring, budget-aware scoring",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T23:50:00Z"
-      },
-      {
-        "id": "governance-refresh-20260308",
-        "summary": "Refresh auto-generated governance hashes and meta-KB index after AGENTS.md drift fixes",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:40:00Z"
-      },
-      {
-        "id": "wave10-phase1-ci-20260308",
-        "summary": "Wave 10 Phase 1 CI re-enablement: moved governance-gate.yml and opencode-ci.yml from disabled to active with paths filters and bun test step",
-        "risk_level": "low",
-        "timestamp": "2026-03-08T19:22:00Z"
-      },
-      {
-        "id": "governance-hash-refresh-20260227",
-        "summary": "Refreshed governance hash baseline after approved setup portability and script changes to keep learning-gate drift detection aligned with current governed config state.",
-        "risk_level": "low",
-        "timestamp": "2026-02-27T22:40:00Z"
       }
     ],
     "packages/opencode-model-router-x": [
