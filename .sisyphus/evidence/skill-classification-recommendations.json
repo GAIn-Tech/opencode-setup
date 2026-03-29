@@ -565,6 +565,7 @@
       "grep",
       "gtm-strategy",
       "incident-commander",
+      "init-kb",
       "innovation-migration-planner",
       "kubernetes-orchestration",
       "laravel-development",
@@ -630,10 +631,10 @@
   },
   "summary": {
     "defaultCount": 9,
-    "manualCount": 83,
+    "manualCount": 84,
     "dormantCount": 5,
     "candidatePruneCount": 10,
-    "total": 107,
+    "total": 108,
     "decisionRationale": "Narrow default surface to core planning/audit/debug loop, preserve specialist breadth as manual, retain low-frequency fallback as dormant, and stage low-signal runtime-internal wrappers as candidate-prune."
   }
 }

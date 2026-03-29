@@ -309,6 +309,82 @@ class MetaKBReader {
   }
 }
 
+/**
+ * Load project-specific KB from .sisyphus/kb/ directory.
+ * Supports loading meta-knowledge from external projects.
+ * 
+ * @param {string} projectRoot - Path to project root
+ * @returns {Object|null} Project KB data or null if not found
+ */
+static loadProjectKB(projectRoot) {
+  const kbDir = path.join(projectRoot, '.sisyphus', 'kb');
+  const metaPath = path.join(kbDir, 'meta-knowledge.json');
+  
+  try {
+    if (!fs.existsSync(metaPath)) {
+      return null;
+    }
+    const raw = fs.readFileSync(metaPath, 'utf-8');
+    const parsed = JSON.parse(raw);
+    
+    // Validate schema
+    if (!parsed.schema || !parsed.schema.startsWith('meta-kb')) {
+      return null;
+    }
+    return { kbDir, data: parsed, loadedAt: Date.now() };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Check if project has project-specific audit files.
+ * 
+ * @param {string} projectRoot - Path to project root
+ * @returns {string[]} Array of audit file paths
+ */
+static getProjectAuditFiles(projectRoot) {
+  const notepadsDir = path.join(projectRoot, '.sisyphus', 'notepads');
+  const auditFiles = [];
+  
+  try {
+    if (!fs.existsSync(notepadsDir)) {
+      return auditFiles;
+    }
+    const files = fs.readdirSync(notepadsDir);
+    for (const file of files) {
+      if (file.startsWith('project-') && file.endsWith('.md')) {
+        auditFiles.push(path.join(notepadsDir, file));
+      }
+    }
+  } catch {
+    // Fail-open: return empty array
+  }
+  
+  return auditFiles;
+}
+
+
+
+/**
+ * Read from global meta-KB for synthesis.
+ * @returns {Object|null}
+ */
+static readFromGlobalKB() {
+  const globalPath = path.join(
+    __dirname, '..', '..', '..', '.sisyphus', 'kb', 'meta-knowledge.json'
+  );
+  try {
+    if (!fs.existsSync(globalPath)) {
+      return null;
+    }
+    const raw = fs.readFileSync(globalPath, 'utf-8');
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 module.exports = {
   MetaKBReader,
   MAX_META_CONTEXT_TOKENS,
