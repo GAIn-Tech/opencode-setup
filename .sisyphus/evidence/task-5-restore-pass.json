@@ -1,0 +1,10 @@
+{
+  "task": 5,
+  "scenario": "restore-drill-slo-pass",
+  "startedAt": "2026-03-31T00:00:00.000Z",
+  "completedAt": "2026-03-31T00:45:00.000Z",
+  "backupTimestamp": "2026-03-30T23:50:00.000Z",
+  "integrityCheck": "pass",
+  "checksum": "sha256:task5-pass-fixture",
+  "recordConsistency": "pass"
+}

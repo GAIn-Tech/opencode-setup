@@ -8,10 +8,18 @@ import { appendWriteAuditEntry } from '../_lib/write-audit';
 import { rateLimited, badRequest, internalError, successResponse } from '../_lib/api-response';
 import { errorResponse } from '../_lib/api-response';
 
+const OPENCODE_DIRNAME = '.opencode';
+
+function resolveDataHome(): string {
+  if (process.env.OPENCODE_DATA_HOME) return process.env.OPENCODE_DATA_HOME;
+  if (process.env.XDG_DATA_HOME) return path.join(process.env.XDG_DATA_HOME, 'opencode');
+  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
+  return path.join(homeDir, OPENCODE_DIRNAME);
+}
+
 // Extract real model usage from message files
 function getRealModelUsage(): Record<string, { selections: number; successes: number; failures: number; totalLatency: number }> | null {
-  const homeDir = os.homedir();
-  const messagesDir = path.join(homeDir, '.opencode', 'messages');
+  const messagesDir = path.join(resolveDataHome(), 'messages');
   
   if (!fs.existsSync(messagesDir)) {
     return null;
@@ -155,7 +163,7 @@ export async function POST(request: Request) {
 
     // 2. Model router live state (real data only - no mock)
     let routerState: Record<string, unknown> | null = null;
-    const routerStatePath = path.join(os.homedir(), '.opencode', 'model-router-state.json');
+    const routerStatePath = path.join(resolveDataHome(), 'model-router-state.json');
     try {
       if (fs.existsSync(routerStatePath)) {
         routerState = JSON.parse(fs.readFileSync(routerStatePath, 'utf-8'));
@@ -166,7 +174,7 @@ export async function POST(request: Request) {
 
     // 3. RL manager state
     let rlState = null;
-    const rlStatePath = path.join(os.homedir(), '.opencode', 'skill-rl.json');
+    const rlStatePath = path.join(resolveDataHome(), 'skill-rl.json');
     try {
       if (fs.existsSync(rlStatePath)) {
         rlState = JSON.parse(fs.readFileSync(rlStatePath, 'utf-8'));

@@ -48,16 +48,42 @@ try {
   toolUsageTracker = null;
 }
 
+// Import PipelineMetricsCollector for SQLite persistence (lazy-loaded to avoid debug noise)
+let PipelineMetricsCollector = null;
+
+// Map PascalCase to internal snake_case using AVAILABLE_TOOLS keys
+function resolveToolName(pascalToolName) {
+  // Direct lookup in AVAILABLE_TOOLS - try both forms
+  if (AVAILABLE_TOOLS[pascalToolName]) {
+    return pascalToolName;
+  }
+  // Try snake_case conversion
+  const snake = toSnakeCase(pascalToolName);
+  if (AVAILABLE_TOOLS[snake]) {
+    return snake;
+  }
+  // Return original if not found
+  return pascalToolName;
+}
+
+function toSnakeCase(str) {
+  return str.replace(/(?<=[a-z])(?=[A-Z])/g, '_')
+            .replace(/^([A-Z])/, (m) => m.toLowerCase())
+            .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+            .toLowerCase();
+}
+
 // ---- Configuration ----
 const HOME = process.env.USERPROFILE || process.env.HOME || homedir();
-const DATA_DIR = join(HOME, '.opencode', 'tool-usage');
+const DATA_HOME = process.env.OPENCODE_DATA_HOME || (process.env.XDG_DATA_HOME ? join(process.env.XDG_DATA_HOME, 'opencode') : join(HOME, '.opencode'));
+const DATA_DIR = join(DATA_HOME, 'tool-usage');
 const SESSIONS_DIR = join(DATA_DIR, 'sessions');
 const INVOCATIONS_FILE = join(DATA_DIR, 'invocations.json');
-const METRICS_HISTORY_FILE = join(HOME, '.opencode', 'metrics-history.db.events.json');
-const DELEGATION_LOG_FILE = join(HOME, '.opencode', 'delegation-log.json');
-const PKG_EVENTS_FILE = join(HOME, '.opencode', 'package-execution', 'events.json');
+const METRICS_HISTORY_FILE = join(DATA_HOME, 'metrics-history.db.events.json');
+const DELEGATION_LOG_FILE = join(DATA_HOME, 'delegation-log.json');
+const PKG_EVENTS_FILE = join(DATA_HOME, 'package-execution', 'events.json');
 const MODEL_SELECTION_FILE = join(DATA_DIR, 'sessions', '~-model-selection.json');
-const MODEL_ROUTER_OUTCOMES_FILE = join(HOME, '.opencode', 'model-router-runtime-outcomes.json');
+const MODEL_ROUTER_OUTCOMES_FILE = join(DATA_HOME, 'model-router-runtime-outcomes.json');
 const MAX_INVOCATIONS = 5000;
 const MAX_METRICS_EVENTS = 5000;
 const MAX_DELEGATION_EVENTS = 2000;
@@ -70,39 +96,42 @@ const LOCK_RETRY_DELAY_MS = 5;
 const WINDOWS_RENAME_RETRIES = 3;
 const WINDOWS_RENAME_RETRY_DELAY_MS = 10;
 
+// Initialize PipelineMetricsCollector for SQLite persistence (lazy, inside main)
+let metricsCollector = null;
+
 // ---- Category/Agent → Model lookup (mirrors opencode-config/oh-my-opencode.json) ----
 // Updated from opencode-config/oh-my-opencode.json categories and agents sections.
 // These are the actual models assigned by oh-my-opencode for each category/agent.
 const CATEGORY_TO_MODEL = {
-  'visual-engineering':  { modelId: 'antigravity-gemini-3-pro',   provider: 'google' },
+  'visual-engineering':  { modelId: 'gpt-5.2',                    provider: 'openai' },
   'ultrabrain':          { modelId: 'gpt-5.3-codex',              provider: 'openai' },
-  'deep':                { modelId: 'gpt-5.3-codex',              provider: 'openai' },
-  'artistry':            { modelId: 'antigravity-gemini-3-pro',   provider: 'google' },
-  'quick':               { modelId: 'claude-haiku-4-5',           provider: 'anthropic' },
-  'unspecified-low':     { modelId: 'claude-sonnet-4-5',          provider: 'anthropic' },
-  'unspecified-high':    { modelId: 'claude-opus-4-6',            provider: 'anthropic' },
-  'writing':             { modelId: 'antigravity-gemini-3-flash', provider: 'google' },
+  'deep':                { modelId: 'glm-5',                      provider: 'z-ai' },
+  'artistry':            { modelId: 'gpt-5.2',                    provider: 'openai' },
+  'quick':               { modelId: 'gemini-2.5-flash',           provider: 'google' },
+  'unspecified-low':     { modelId: 'kimi-k2.5',                  provider: 'moonshotai' },
+  'unspecified-high':    { modelId: 'gpt-5.3-codex',              provider: 'openai' },
+  'writing':             { modelId: 'gemini-2.5-flash',           provider: 'google' },
 };
 
 const AGENT_TO_MODEL = {
-  'atlas':               { modelId: 'claude-sonnet-4-5',          provider: 'anthropic' },
+  'atlas':               { modelId: 'kimi-k2.5',                  provider: 'moonshotai' },
   'hephaestus':          { modelId: 'gpt-5.3-codex',              provider: 'openai' },
-  'librarian':           { modelId: 'claude-sonnet-4-5',          provider: 'anthropic' },
-  'metis':               { modelId: 'claude-opus-4-6',            provider: 'anthropic' },
-  'momus':               { modelId: 'gpt-5.2',                    provider: 'openai' },
-  'oracle':              { modelId: 'gpt-5.2',                    provider: 'openai' },
-  'prometheus':          { modelId: 'claude-opus-4-6',            provider: 'anthropic' },
-  'sisyphus':            { modelId: 'claude-opus-4-6',            provider: 'anthropic' },
-  'explore':             { modelId: 'claude-haiku-4-5',           provider: 'anthropic' },
-  'multimodal-looker':   { modelId: 'antigravity-gemini-3-flash', provider: 'google' },
+  'librarian':           { modelId: 'gemini-2.5-flash',           provider: 'google' },
+  'metis':               { modelId: 'gpt-5.2',                    provider: 'openai' },
+  'momus':               { modelId: 'glm-5',                      provider: 'z-ai' },
+  'oracle':              { modelId: 'gpt-5.3-codex',              provider: 'openai' },
+  'prometheus':          { modelId: 'kimi-k2.5',                  provider: 'moonshotai' },
+  'sisyphus':            { modelId: 'gpt-5.3-codex',              provider: 'openai' },
+  'explore':             { modelId: 'gemini-2.5-flash',           provider: 'google' },
+  'multimodal-looker':   { modelId: 'gemini-2.5-flash',           provider: 'google' },
 };
 
 // ---- Per-Model Pricing (avg of input+output cost per 1K tokens) ----
 // Source: packages/opencode-model-router-x/src/strategies/token-cost-calculator.js
 const MODEL_PRICING = {
-  'claude-opus-4-6':     15.0,    // ($5 in + $25 out) / 2
-  'claude-sonnet-4-5':    9.0,    // ($3 in + $15 out) / 2
-  'claude-haiku-4-5':     3.0,    // ($1 in + $5 out) / 2
+  'kimi-k2.5':            3.0,    // conservative fallback until calibrated
+  'glm-5':                3.0,    // conservative fallback until calibrated
+  'gemini-2.5-flash':     1.75,   // approximate flash-tier average
   'gemini-3-pro':         6.0,    // ($2 in + $10 out) / 2
   'gemini-3-flash':       1.75,   // ($0.50 in + $3 out) / 2
   'gpt-5':                6.25,   // ($2.50 in + $10 out) / 2
@@ -789,7 +818,12 @@ function captureMonitoringMetrics(toolName, toolInput, toolResponse) {
   if (toolName === 'distill_run_tool') {
     const tokensBefore = findNumericMetric(toolResponse, ['tokens_before', 'token_before', 'before_tokens']);
     const tokensAfter = findNumericMetric(toolResponse, ['tokens_after', 'token_after', 'after_tokens']);
+    
+    // Log to stderr for test visibility
     if (tokensBefore !== null && tokensAfter !== null) {
+      const savings = Math.round(((tokensBefore - tokensAfter) / tokensBefore) * 100);
+      process.stderr.write(`[distill] compressed: ${tokensBefore} -> ${tokensAfter} tokens (~${savings}% savings)\n`);
+      
       appendMetricsHistory('compression', {
         sessionId: findFirstString(toolInput, ['session_id']) || 'runtime-hook',
         tokensBefore: Math.round(tokensBefore),
@@ -800,7 +834,14 @@ function captureMonitoringMetrics(toolName, toolInput, toolResponse) {
         durationMs: findNumericMetric(toolResponse, ['duration_ms', 'duration', 'elapsed_ms']) || 0,
         timestamp: Date.now(),
       });
+    } else {
+      process.stderr.write('[distill] run tool invoked\n');
     }
+    return;
+  }
+
+  if (toolName === 'distill_browse_tools') {
+    process.stderr.write('[distill] browse tools invoked\n');
     return;
   }
 
@@ -1397,9 +1438,23 @@ async function main() {
     process.exit(0);
   }
 
-  // Reverse-map PascalCase → snake_case
+  // Resolve tool name (handles PascalCase→snake_case + MCP wrapper unwrapping)
   const toolName = resolveRuntimeToolName(pascalToolName, input.tool_input);
-  const toolInfo = AVAILABLE_TOOLS[toolName] || { category: 'unknown', priority: 'unknown' };
+
+  // Lazy-initialize PipelineMetricsCollector (only when needed, avoid debug noise on startup)
+  if (!metricsCollector && PipelineMetricsCollector) {
+    try {
+      if (!PipelineMetricsCollector) {
+        PipelineMetricsCollector = require('../packages/opencode-model-manager/src/monitoring/metrics-collector.js').PipelineMetricsCollector;
+      }
+      const metricsDbPath = join(DATA_HOME, 'metrics-history.db');
+      metricsCollector = new PipelineMetricsCollector({ dbPath: metricsDbPath });
+    } catch {
+      metricsCollector = null;
+    }
+  }
+
+  const toolInfo = AVAILABLE_TOOLS[toolName] || AVAILABLE_TOOLS[pascalToolName] || { category: 'unknown', priority: 'unknown' };
   const invocationOutcome = deriveInvocationOutcome(input.tool_response);
   const inferredTaskType = deriveTaskType(input.tool_input) || 'general';
 
@@ -1479,12 +1534,50 @@ async function main() {
     // Capture compress tool as a distill event (was missing — distill_events was always empty)
     captureCompressAsDistillEvent(sessionId, toolName, input.tool_input, input.tool_response, state);
 
+    // Capture distill_run_tool and distill_browse_tools events (fills distill_events for tests)
+    captureDistillMetrics(toolName, input.tool_response, state);
+
     state.last_updated = new Date().toISOString();
     writeJsonAtomicSync(stateFile, state);
   });
 
   // Standard distill + context7 monitoring
   captureMonitoringMetrics(toolName, input.tool_input, input.tool_response);
+
+  // Persist to SQLite via PipelineMetricsCollector
+  if (metricsCollector) {
+    try {
+      // Record distill compression events (check both PascalCase and snake_case)
+      if ((toolName === 'distill_run_tool' || toolName === 'distill' || pascalToolName === 'Distill') && input.tool_response) {
+        const before = findNumericMetric(input.tool_response, ['tokens_before', 'token_before', 'before_tokens']);
+        const after = findNumericMetric(input.tool_response, ['tokens_after', 'token_after', 'after_tokens']);
+        if (before !== null && after !== null) {
+          const details = {
+            beforeTokens: before,
+            afterTokens: after,
+            tool: toolName,
+            timestamp: new Date().toISOString(),
+          };
+          metricsCollector.recordCompression('distill', details);
+        }
+      }
+      // Record Context7 lookups (check both PascalCase and snake_case)
+      if ((toolName === 'context7_query_docs' || toolName === 'context7' || pascalToolName === 'Context7QueryDocs') && input.tool_response) {
+        const isError = input.tool_response?.error || input.tool_response?.status === 'error';
+        const details = {
+          query: input.tool_input?.query || '',
+          libraryId: input.tool_input?.libraryId || '',
+          success: !isError,
+          error: isError ? (input.tool_response?.error?.message || 'unknown') : null,
+          timestamp: new Date().toISOString(),
+        };
+        metricsCollector.recordContext7Lookup(details);
+      }
+    } catch (e) {
+      // fail-open: never block telemetry hook due to metrics collector errors
+      process.stderr.write(`warning: metricsCollector error: ${e.message}\n`);
+    }
+  }
 
   // Suggest skills on failure/test patterns (item 6)
   suggestSkillOnSignal(toolName, input.tool_input, input.tool_response);

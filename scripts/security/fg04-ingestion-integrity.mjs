@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { resolveUserDataPath } from '../resolve-root.mjs';
 
 const require = createRequire(import.meta.url);
 const { LearningEngine } = require('../../packages/opencode-learning-engine/src/index.js');
@@ -13,9 +13,8 @@ function writeJson(filePath, value) {
 }
 
 function main() {
-  const home = os.homedir();
   const sessionId = `fg04_${Date.now()}`;
-  const sessionDir = path.join(home, '.opencode', 'messages', sessionId);
+  const sessionDir = resolveUserDataPath('messages', sessionId);
   fs.mkdirSync(sessionDir, { recursive: true });
 
   const validMsg = {

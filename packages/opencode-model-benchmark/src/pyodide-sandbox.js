@@ -1,20 +1,36 @@
+function composeEvaluationScript(completion, testCode) {
+  return `${completion || ''}\n\n${testCode || ''}`;
+}
+
 /**
  * Create Pyodide sandbox for Python code execution
  * @async
- * @returns {Promise<Object|null>} Sandbox object with run() method, or null if Pyodide fails to load
- * @returns {Promise<Function>} sandbox.run - Async function to execute Python code
- * @example
- * const sandbox = await createPyodideSandbox();
- * if (sandbox) {
- *   const result = await sandbox.run('print("Hello")');
- * }
+ * @param {Object} [options]
+ * @param {Function} [options.loadPyodide] Optional injection for testing
+ * @returns {Promise<Object|null>} Sandbox API or null when Pyodide is unavailable
  */
-export async function createPyodideSandbox() {
+export async function createPyodideSandbox(options = {}) {
   try {
-    const { loadPyodide } = await import('pyodide');
-    const pyodide = await loadPyodide();
+    const loader =
+      options.loadPyodide ||
+      (await import('pyodide')).loadPyodide;
+    const pyodide = await loader();
+
+    const run = async (code) => {
+      if (typeof pyodide.runPythonAsync === 'function') {
+        return pyodide.runPythonAsync(code);
+      }
+
+      return pyodide.runPython(code);
+    };
+
     return {
-      run: async (code) => pyodide.runPython(code),
+      run,
+      evaluate: async (completion, testCode) => {
+        const script = composeEvaluationScript(completion, testCode);
+        await run(script);
+        return true;
+      }
     };
   } catch (error) {
     return null;

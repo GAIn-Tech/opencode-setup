@@ -236,8 +236,12 @@ export class ModelBenchmarkRunner {
         const sandbox = await this.getPythonSandbox();
         if (sandbox) {
           try {
-            await sandbox.run(problem?.test || '');
-            result.passed = true;
+            if (typeof sandbox.evaluate === 'function') {
+              result.passed = await sandbox.evaluate(result.completion, problem?.test || '');
+            } else {
+              await sandbox.run(problem?.test || '');
+              result.passed = true;
+            }
           } catch (error) {
             result.error = error.message || String(error);
           }

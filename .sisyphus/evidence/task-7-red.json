@@ -1,0 +1,19 @@
+{
+  "task": "task-7",
+  "phase": "red",
+  "command": "node scripts/verify-portability.mjs --strict --json",
+  "simulatedViolation": {
+    "OPENCODE_PORTABILITY_OBSERVABILITY_LOG_CHAIN": "tampered"
+  },
+  "result": {
+    "exitCode": 1,
+    "observabilityIntegrityReport": {
+      "status": "fail",
+      "violations": [
+        "log integrity hash chain verification failed"
+      ]
+    },
+    "containsExpectedFailure": true,
+    "expectedFailure": "Observability integrity gate failed: log integrity hash chain verification failed"
+  }
+}

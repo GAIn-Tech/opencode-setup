@@ -1,0 +1,17 @@
+{
+  "task": 10,
+  "phase": "negative",
+  "scenario": "missing ADR policy documents",
+  "command": "OPENCODE_PORTABILITY_ADR_DIR=.sisyphus/evidence/non-existent-adr node scripts/verify-portability.mjs --strict --json",
+  "expected": "strict verification fails closed",
+  "observed": {
+    "adrGovernanceReport": {
+      "status": "failed",
+      "violations": [
+        "missing required ADR document: control-ownership-governance.md",
+        "missing required ADR document: exception-governance-policy.md"
+      ]
+    },
+    "failurePrefix": "ADR governance gate failed"
+  }
+}

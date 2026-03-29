@@ -1,0 +1,52 @@
+{
+  "task": "task-2-setup-idempotent-bootstrap",
+  "timestamp": "2026-03-31T15:10:21Z",
+  "changes": {
+    "modified": [
+      "scripts/setup-resilient.mjs",
+      ".sisyphus/notepads/clone-pull-zero-touch-bootstrap/learnings.md"
+    ],
+    "created": [
+      "scripts/tests/setup-idempotency.test.js"
+    ]
+  },
+  "verification": {
+    "tests": [
+      {
+        "command": "bun test scripts/tests/setup-idempotency.test.js",
+        "status": "pass"
+      }
+    ],
+    "syntax": [
+      {
+        "command": "node --check scripts/setup-resilient.mjs",
+        "status": "pass"
+      }
+    ],
+    "lsp_diagnostics": {
+      "scripts/tests/setup-idempotency.test.js": "clean",
+      "scripts/setup-resilient.mjs": "unavailable: typescript-language-server not found"
+    }
+  },
+  "report_contract": {
+    "shape": {
+      "ok": "boolean",
+      "duration_seconds": "number",
+      "steps": "array",
+      "timestamp": "string"
+    },
+    "step_statuses": [
+      "success",
+      "skipped",
+      "failed"
+    ]
+  },
+  "idempotency_outcome": {
+    "second_run_no_additional_required_changes": true,
+    "mechanism": "fingerprint-based probe paths for mutating steps"
+  },
+  "safety": {
+    "global_writes_default": "disabled",
+    "enable_flag": "--allow-global-writes or OPENCODE_SETUP_ALLOW_GLOBAL_WRITES=1"
+  }
+}

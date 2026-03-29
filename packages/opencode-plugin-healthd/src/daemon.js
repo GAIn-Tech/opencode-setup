@@ -7,11 +7,20 @@ const fsPromises = require('fs/promises');
 const path = require('path');
 const { Healthd } = require('./index');
 
+const OPENCODE_DIRNAME = '.opencode';
+
+function resolveDataHome() {
+  if (process.env.OPENCODE_DATA_HOME) return process.env.OPENCODE_DATA_HOME;
+  if (process.env.XDG_DATA_HOME) return path.join(process.env.XDG_DATA_HOME, 'opencode');
+  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
+  return path.join(homeDir, OPENCODE_DIRNAME);
+}
+
 // --- Constants ---
 
 const CHECK_INTERVAL_MS = 300_000; // 5 minutes
 const CHECK_TIMEOUT_MS = 30_000; // 30 seconds max per check
-const OPENCODE_DIR = path.join(os.homedir(), '.opencode');
+const OPENCODE_DIR = resolveDataHome();
 const LOG_FILE = path.join(OPENCODE_DIR, 'healthd.log');
 const PID_FILE = path.join(OPENCODE_DIR, 'healthd.pid');
 const CRASH_LOG_FILE = path.join(OPENCODE_DIR, 'healthd-crashes.json');

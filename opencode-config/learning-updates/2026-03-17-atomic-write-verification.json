@@ -1,25 +1,16 @@
 {
-  "id": "2026-03-17-atomic-write-verification",
-  "date": "2026-03-17",
-  "task": "Atomic Write Verification",
-  "summary": "Added integrity verification to atomicWriteFile() in packages/opencode-config-loader/src/central-config-state.js to prevent silent data corruption.",
-  "description": "The AGENTS.md lists 'Atomic Write Verification' as a CRITICAL anti-pattern. The existing atomicWriteFile() function performed atomic writes but did not verify file integrity after writing, which could lead to silent data corruption. Added verification by reading back the written file and comparing it with the original data.",
-  "changes": [
-    {
-      "file": "packages/opencode-config-loader/src/central-config-state.js",
-      "function": "atomicWriteFile",
-      "modification": "Added integrity verification after write and rename operations",
-      "details": "The function now reads the temporary file after writing and compares it with the original data. If they don't match, it throws an error and cleans up the temporary file."
-    }
+  "id": "atomic-write-verification-2026-03-17",
+  "timestamp": "2026-03-17T00:00:00.000Z",
+  "summary": "Add post-write integrity verification to atomicWriteFile() in opencode-config-loader to prevent silent corruption during atomic file writes.",
+  "affected_paths": [
+    "packages/opencode-config-loader/src/central-config-state.js",
+    "packages/opencode-config-loader/src/paths.js"
   ],
-  "risk": "low",
   "validation": {
-    "tests_passed": true,
-    "tests_run": "bun test packages/opencode-config-loader",
-    "test_results": "12 pass, 0 fail"
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
   },
-  "links": {
-    "anti_pattern_doc": "AGENTS.md line 55",
-    "implementation": "packages/opencode-config-loader/src/central-config-state.js:25"
-  }
+  "risk_level": "low",
+  "notes": "Validated with bun test packages/opencode-config-loader (12 pass, 0 fail). Aligns with AGENTS.md anti-pattern guidance on mandatory atomic-write verification."
 }

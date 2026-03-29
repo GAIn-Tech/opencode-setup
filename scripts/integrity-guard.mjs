@@ -3,7 +3,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { resolveRoot } from './resolve-root.mjs';
+import { resolveRoot, userDataDir } from './resolve-root.mjs';
 
 const ROOT = resolveRoot();
 const BASELINE_PATH = path.join(ROOT, 'opencode-config', 'integrity-baseline.json');
@@ -24,19 +24,28 @@ const USER_SKILLS_DIR = path.join(os.homedir(), '.config', 'opencode', 'skills')
 const USER_CONFIG_DIR = path.join(os.homedir(), '.config', 'opencode');
 
 function resolveDataDir() {
-  const configuredDataDir = process.env.OPENCODE_DATA_DIR?.trim();
-  if (configuredDataDir) {
+  const configuredDataHome = process.env.OPENCODE_DATA_HOME?.trim();
+  if (configuredDataHome) {
     return {
-      source: 'OPENCODE_DATA_DIR',
-      rawValue: process.env.OPENCODE_DATA_DIR,
-      resolvedPath: path.resolve(configuredDataDir)
+      source: 'OPENCODE_DATA_HOME',
+      rawValue: process.env.OPENCODE_DATA_HOME,
+      resolvedPath: userDataDir()
+    };
+  }
+
+  const xdgDataHome = process.env.XDG_DATA_HOME?.trim();
+  if (xdgDataHome) {
+    return {
+      source: 'XDG_DATA_HOME',
+      rawValue: process.env.XDG_DATA_HOME,
+      resolvedPath: userDataDir()
     };
   }
 
   return {
     source: 'default',
     rawValue: null,
-    resolvedPath: path.join(process.env.HOME || process.env.USERPROFILE || os.homedir(), '.opencode')
+    resolvedPath: userDataDir()
   };
 }
 

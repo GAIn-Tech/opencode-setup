@@ -1,0 +1,15 @@
+{
+  "task": 1,
+  "scenario": "tdd-green",
+  "command": "bun test scripts/tests/verify-portability.test.js",
+  "result": {
+    "pass": 9,
+    "fail": 0,
+    "assertions": 18,
+    "includes": [
+      "support floor reports supported contract when platform/runtime match",
+      "support floor rejects simulated unsupported platform/runtime contract",
+      "strict json exits non-zero with explicit support-floor reason for unsupported env"
+    ]
+  }
+}

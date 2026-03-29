@@ -12,7 +12,7 @@ const SOURCE_CONFIG_DIR = resolvePath('opencode-config');
 const TARGET_CONFIG_DIR = userConfigDir();
 const TARGET_DATA_DIR = userDataDir();
 
-const CONFIG_FILES = [
+export const CONFIG_FILES = [
   'opencode.json',
   'antigravity.json',
   'oh-my-opencode.json',
@@ -25,7 +25,7 @@ const CONFIG_FILES = [
   'tool-tiers.json',
 ];
 
-const CONFIG_DIRS = [
+export const CONFIG_DIRS = [
   'commands',
   'docs',
   'learning-updates',
@@ -37,8 +37,9 @@ const CONFIG_DIRS = [
 
 // Directories that are MERGED (repo entries copied in, existing user entries preserved).
 // Never replace wholesale — user may have skills/agents not in this repo.
-const MERGE_DIRS = [
+export const MERGE_DIRS = [
   'skills',
+  'agents',
 ];
 
 const backupEnabled = String(process.env.OPENCODE_COPY_CONFIG_BACKUP || '1') !== '0';
@@ -180,12 +181,72 @@ function rollbackOperations(operations) {
         rmSync(operation.targetPath, { recursive: true, force: true });
       }
       if (operation.swapPath && existsSync(operation.swapPath)) {
-        renameSync(operation.swapPath, operation.targetPath);
+        moveWithExdevFallback(operation.swapPath, operation.targetPath);
       }
     } catch {
       // Best-effort rollback.
     }
   }
+}
+
+function moveWithExdevFallback(sourcePath, targetPath) {
+  try {
+    renameSync(sourcePath, targetPath);
+    return;
+  } catch (error) {
+    if (error?.code !== 'EXDEV') {
+      throw error;
+    }
+  }
+
+  cpSync(sourcePath, targetPath, { recursive: true, force: true });
+  rmSync(sourcePath, { recursive: true, force: true });
+}
+
+function isLegacyModelReference(modelRef) {
+  if (typeof modelRef !== 'string' || !modelRef.trim()) return false;
+  const value = modelRef.trim();
+  if (!value.includes('/')) return true;
+  return value.startsWith('anthropic/') || value.startsWith('claude-') || value.startsWith('antigravity-claude-');
+}
+
+function migrateOhMyModelDefaults() {
+  const canonicalPath = path.join(SOURCE_CONFIG_DIR, 'oh-my-opencode.json');
+  const runtimePath = path.join(TARGET_CONFIG_DIR, 'oh-my-opencode.json');
+  if (!existsSync(canonicalPath) || !existsSync(runtimePath)) {
+    return { changed: false, migrated: [] };
+  }
+
+  const canonical = JSON.parse(readFileSync(canonicalPath, 'utf8'));
+  const runtime = JSON.parse(readFileSync(runtimePath, 'utf8'));
+  const migrated = [];
+
+  const migrateSection = (sectionName) => {
+    const canonicalSection = canonical?.[sectionName];
+    const runtimeSection = runtime?.[sectionName];
+    if (!canonicalSection || !runtimeSection || typeof canonicalSection !== 'object' || typeof runtimeSection !== 'object') {
+      return;
+    }
+
+    for (const [name, canonicalEntry] of Object.entries(canonicalSection)) {
+      if (!canonicalEntry || typeof canonicalEntry !== 'object' || typeof canonicalEntry.model !== 'string') continue;
+      const runtimeEntry = runtimeSection[name];
+      if (!runtimeEntry || typeof runtimeEntry !== 'object') continue;
+      if (!isLegacyModelReference(runtimeEntry.model)) continue;
+      if (runtimeEntry.model === canonicalEntry.model) continue;
+      runtimeEntry.model = canonicalEntry.model;
+      migrated.push(`${sectionName}.${name}`);
+    }
+  };
+
+  migrateSection('agents');
+  migrateSection('categories');
+
+  if (migrated.length > 0) {
+    writeFileSync(runtimePath, `${JSON.stringify(runtime, null, 2)}\n`, 'utf8');
+  }
+
+  return { changed: migrated.length > 0, migrated };
 }
 
 export function writeConfigManifest(runtimeConfigDir, configFiles) {
@@ -239,7 +300,7 @@ function main() {
           renameSync(operation.targetPath, swapPath);
         }
 
-        renameSync(operation.stagedPath, operation.targetPath);
+        moveWithExdevFallback(operation.stagedPath, operation.targetPath);
         applied.push({ ...operation, swapPath });
         console.log(`[copy-config] Copied ${operation.label}`);
       }
@@ -268,6 +329,10 @@ function main() {
   }
 
   syncRuntimeSafeUserConfig();
+  const migration = migrateOhMyModelDefaults();
+  if (migration.changed) {
+    console.log(`[copy-config] Migrated legacy oh-my model defaults: ${migration.migrated.join(', ')}`);
+  }
   writeConfigManifest(TARGET_CONFIG_DIR, CONFIG_FILES);
   console.log('[copy-config] Configuration sync complete');
 }

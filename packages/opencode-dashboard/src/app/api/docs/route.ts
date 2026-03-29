@@ -7,6 +7,15 @@ import { rateLimited } from '../_lib/api-response';
 
 export const dynamic = 'force-dynamic';
 
+const OPENCODE_DIRNAME = '.opencode';
+
+function resolveDataHome(): string {
+  if (process.env.OPENCODE_DATA_HOME) return process.env.OPENCODE_DATA_HOME;
+  if (process.env.XDG_DATA_HOME) return path.join(process.env.XDG_DATA_HOME, 'opencode');
+  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
+  return path.join(homeDir, OPENCODE_DIRNAME);
+}
+
 interface DocEntry {
   name: string;
   path: string;
@@ -58,7 +67,7 @@ async function findDocs(): Promise<DocEntry[]> {
     { dir: path.join(projectRoot, 'plugins'), category: 'Plugins', scanSubdirs: true },
     { dir: path.join(projectRoot, 'mcp-servers'), category: 'MCP Servers' },
     { dir: path.join(projectRoot, 'project-templates'), category: 'Templates' },
-    { dir: path.join(os.homedir(), '.opencode'), files: ['PLUGINS-LOCAL.md'], category: 'User' },
+    { dir: resolveDataHome(), files: ['PLUGINS-LOCAL.md'], category: 'User' },
   ];
 
   for (const loc of locations) {

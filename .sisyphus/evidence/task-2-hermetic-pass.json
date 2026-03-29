@@ -1,0 +1,148 @@
+{
+  "ok": true,
+  "failures": [],
+  "budget": {
+    "skipCount": 0,
+    "fallbackCount": 0,
+    "skipReasons": [],
+    "fallbackReasons": []
+  },
+  "probeReport": {
+    "total": 8,
+    "exercised": 4,
+    "skipped": 4,
+    "failed": 0,
+    "byCategory": {
+      "launched": {
+        "count": 4,
+        "items": [
+          {
+            "name": "distill",
+            "reason": "launched with exit=0"
+          },
+          {
+            "name": "opencode-context-governor",
+            "reason": "launched with exit=0"
+          },
+          {
+            "name": "opencode-memory-graph",
+            "reason": "launched with exit=0"
+          },
+          {
+            "name": "opencode-runbooks",
+            "reason": "launched with exit=0"
+          }
+        ]
+      },
+      "unsafe-launcher": {
+        "count": 4,
+        "items": [
+          {
+            "name": "grep",
+            "reason": "launcher 'uvx' is not probe-safe"
+          },
+          {
+            "name": "playwright",
+            "reason": "launcher 'bunx' is not probe-safe"
+          },
+          {
+            "name": "sequentialthinking",
+            "reason": "launcher 'bunx' is not probe-safe"
+          },
+          {
+            "name": "websearch",
+            "reason": "launcher 'bunx' is not probe-safe"
+          }
+        ]
+      }
+    }
+  },
+  "stalenessReport": {
+    "checkedSkills": 89,
+    "checkedAgents": 1,
+    "checkedMcp": 0,
+    "staleSkills": [],
+    "staleAgents": [],
+    "staleMcp": [],
+    "unexpectedSkills": [],
+    "unexpectedAgents": [],
+    "unexpectedMcp": []
+  },
+  "rollbackReport": {
+    "catalogExists": true,
+    "snapshotStoreExists": false,
+    "auditLogExists": false,
+    "backupDirExists": false,
+    "dryRunPassed": true,
+    "dryRunOutput": "=== Model Rollback CLI (Wave 8.2) ===\n\nℹ  DRY RUN mode — no changes will be applied\n\nℹ  Loaded SnapshotStore module\nℹ  AuditLogger module not available — using direct file access\n\nℹ  No rollback target specified. Showing current state overview:\n\nℹ  Current catalog: C:\\Users\\jack\\work\\opencode-setup\\opencode-config\\models\\catalog-2026.json\nℹ    Models: 20\nℹ    Version: 2026-02-22\n\nℹ  Available snapshots: 0\n\nℹ  No previous backups found\n\n✔ Dry run complete. No changes applied.\nℹ  Completed in 0.01s",
+    "dryRunError": "⚠  Could not load AuditLogger: __non_webpack_require__ is not defined"
+  },
+  "integrityReport": {
+    "lockFilesChecked": 2,
+    "staleLocksFound": 0,
+    "allowlistedLocks": 2,
+    "cacheIntegrityOk": true,
+    "staleLockDetails": []
+  },
+  "supportFloorReport": {
+    "supported": true,
+    "reason": "supported",
+    "detected": {
+      "platform": "linux",
+      "release": "6.8.0",
+      "arch": "x64",
+      "bunVersion": "1.3.10",
+      "requiredBunVersion": "1.3.10"
+    }
+  },
+  "supplyChainReport": {
+    "status": "passed",
+    "reason": "trusted release inputs verified",
+    "checks": {
+      "releaseMode": "release",
+      "source": "trusted",
+      "pinning": "verified",
+      "integrity": "ok",
+      "provenance": "verified",
+      "signature": "valid"
+    },
+    "exception": null
+  },
+  "hermeticityReport": {
+    "status": "ok",
+    "violations": [],
+    "baseline": {
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "requiredRoots": [
+        "OPENCODE_CONFIG_HOME",
+        "OPENCODE_DATA_HOME",
+        "XDG_CACHE_HOME"
+      ],
+      "deterministicTempVars": [
+        "TMPDIR",
+        "TEMP",
+        "TMP"
+      ]
+    },
+    "observed": {
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "OPENCODE_CONFIG_HOME": "C:/Users/jack/.config/opencode",
+      "OPENCODE_DATA_HOME": "C:/Users/jack/.opencode",
+      "XDG_CACHE_HOME": "C:/Users/jack/work/opencode-setup/.sisyphus/tmp/task-2/cache",
+      "TMPDIR": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\tmp\\task-2\\temp",
+      "TEMP": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\tmp\\task-2\\temp",
+      "TMP": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\tmp\\task-2\\temp"
+    },
+    "scannedScripts": [
+      "scripts/verify-portability.mjs",
+      "scripts/verify-setup.mjs",
+      "scripts/supply-chain-guard.mjs",
+      "scripts/model-rollback.mjs",
+      "scripts/doctor.mjs"
+    ]
+  },
+  "probeCoverageOk": true,
+  "timestamp": "2026-03-31T05:24:28.342Z"
+}

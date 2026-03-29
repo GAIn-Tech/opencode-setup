@@ -40,12 +40,17 @@ describe('mcp-smoke-harness', () => {
       ]
     }, null, 2));
 
-    const { exitCode, stdout } = runHarness({ HOME: tempHome, USERPROFILE: tempHome }, ['--json']);
-    rmSync(tempHome, { recursive: true, force: true });
+const { exitCode, stdout, stderr } = runHarness({ HOME: tempHome, USERPROFILE: tempHome }, ['--json']);
+rmSync(tempHome, { recursive: true, force: true });
 
-    expect(exitCode).toBe(0);
-    const payload = JSON.parse(stdout);
-    expect(payload.liveMcpCount).toBeGreaterThan(0);
+// Debug: log stderr if failing
+if (exitCode !== 0) {
+  console.error('Test: reports recent exercise coverage - stderr:', stderr);
+}
+
+expect(exitCode).toBe(0);
+const payload = JSON.parse(stdout);
+expect(payload.liveMcpCount).toBeGreaterThan(0);
     expect(payload.exercisedCount).toBeGreaterThan(0);
     expect(payload.entries.some((entry) => entry.name === 'context7' && entry.recentlyExercised)).toBe(true);
     expect(payload.entries.some((entry) => entry.name === 'supermemory' && entry.recentlyExercised)).toBe(true);
@@ -63,18 +68,40 @@ describe('mcp-smoke-harness', () => {
     mkdirSync(toolUsageDir, { recursive: true });
     writeFileSync(join(toolUsageDir, 'mcp-exercises.json'), JSON.stringify({
       entries: [
-        { name: 'playwright', verifiedAt: new Date().toISOString(), source: 'mcp-exercise-harness' },
-        { name: 'distill', verifiedAt: new Date().toISOString(), source: 'mcp-exercise-harness' }
+        {
+          name: 'playwright',
+          verifiedAt: new Date().toISOString(),
+          source: 'mcp-exercise-harness',
+          runId: 'run-123',
+          commitSha: 'commit-123',
+        },
+        {
+          name: 'distill',
+          verifiedAt: new Date().toISOString(),
+          source: 'mcp-exercise-harness',
+          runId: 'run-123',
+          commitSha: 'commit-123',
+        }
       ]
     }, null, 2));
 
-    const { exitCode, stdout } = runHarness({ HOME: tempHome, USERPROFILE: tempHome }, ['--json']);
+    const { exitCode, stdout } = runHarness(
+      {
+        HOME: tempHome,
+        USERPROFILE: tempHome,
+        OPENCODE_PROOF_RUN_ID: 'run-123',
+        OPENCODE_PROOF_COMMIT_SHA: 'commit-123',
+      },
+      ['--json'],
+    );
     rmSync(tempHome, { recursive: true, force: true });
 
     expect(exitCode).toBe(0);
     const payload = JSON.parse(stdout);
     expect(payload.entries.some((entry) => entry.name === 'playwright' && entry.smokeVerified === true)).toBe(true);
     expect(payload.entries.some((entry) => entry.name === 'distill' && entry.smokeVerified === true)).toBe(true);
+    expect(payload.universalProof.missingAttestations).not.toContain('playwright');
+    expect(payload.universalProof.missingAttestations).not.toContain('distill');
   });
 
   test('recent exercise probes count as recently exercised for local MCPs', () => {

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
+import { userDataDir } from '../resolve-root.mjs';
 
 function averagePrecisionAtK(predicted, groundTruth, k) {
   const truth = new Set(groundTruth);
@@ -48,7 +48,7 @@ function main() {
     benchmark_id: 'fg11-synthetic-v1',
   };
 
-  const opencodeDir = path.join(os.homedir(), '.opencode');
+  const opencodeDir = userDataDir();
   fs.mkdirSync(opencodeDir, { recursive: true });
   const outputPath = path.join(opencodeDir, 'retrieval-quality.json');
   fs.writeFileSync(outputPath, JSON.stringify(report, null, 2), 'utf8');

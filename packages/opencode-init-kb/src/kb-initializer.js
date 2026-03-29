@@ -9,11 +9,21 @@
 
 const fsSync = require('fs');
 const path = require('path');
+const os = require('os');
+
+const OPENCODE_DIRNAME = '.opencode';
+
+function resolveDataHome() {
+  if (process.env.OPENCODE_DATA_HOME) return process.env.OPENCODE_DATA_HOME;
+  if (process.env.XDG_DATA_HOME) return path.join(process.env.XDG_DATA_HOME, 'opencode');
+  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
+  return path.join(homeDir, OPENCODE_DIRNAME);
+}
 
 class KbInitializer {
   constructor(options = {}) {
     this.workspaceRoot = options.workspaceRoot || process.cwd();
-    this.persistPath = options.persistPath || path.join(this.workspaceRoot, '.opencode', 'kb-init-state.json');
+    this.persistPath = options.persistPath || path.join(resolveDataHome(), 'kb-init-state.json');
     this.templateDir = options.templateDir || path.join(__dirname, 'templates');
     this.forceInit = options.forceInit || false;
     this._ensureDir();

@@ -1,0 +1,16 @@
+{
+  "task": 9,
+  "phase": "green",
+  "command": "bun test scripts/tests/verify-portability.test.js",
+  "result": "passed",
+  "summary": {
+    "pass": 26,
+    "fail": 0,
+    "expectCalls": 90
+  },
+  "assertionsCovered": [
+    "strict JSON includes releaseVerdict",
+    "releaseVerdict includes per-gate status/reasons",
+    "releaseVerdict fails when supply-chain gate fails"
+  ]
+}

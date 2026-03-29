@@ -1,0 +1,12 @@
+{
+  "task": 10,
+  "phase": "red",
+  "command": "bun test scripts/tests/verify-portability.test.js --test-name-pattern \"adrGovernanceReport|ADR governance\"",
+  "result": "failed",
+  "observed": {
+    "pass": 0,
+    "fail": 3,
+    "keyFailure": "Expected path: adrGovernanceReport; Unable to find property"
+  },
+  "intentValidated": "New tests fail before ADR governance implementation"
+}

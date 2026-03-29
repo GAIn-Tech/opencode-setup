@@ -15,6 +15,12 @@ const DynamicExplorationController = require('./dynamic-exploration-controller')
 const TokenBudgetManager = require('./token-budget-manager');
 const TokenCostCalculator = require('./strategies/token-cost-calculator');
 const { createRandomSource } = require('./deterministic-rng');
+let ThompsonSamplingRouter;
+try {
+  ThompsonSamplingRouter = require('./thompson-sampling-router');
+} catch (e) {
+  ThompsonSamplingRouter = null;
+}
 
 // Resilient subagent routing components
 const { resolveModelAlias, hasAlias, getAliasesFor, MODEL_ALIASES } = require('./model-alias-resolver');
@@ -439,6 +445,13 @@ class ModelRouter {
 
     // T4 (Wave 11): Context Governor for budget-aware routing
     this.contextGovernor = options.contextGovernor || null;
+
+// Category-based routing via Thompson Sampling
+// Explicit null = disable Thompson, undefined = auto-create, instance = use provided
+this.thompsonRouter = options.thompsonRouter !== undefined 
+  ? options.thompsonRouter 
+  : (ThompsonSamplingRouter ? new ThompsonSamplingRouter() : null);
+    this._categoryConfigCache = null;
     
     // P1: Atomic Write for Stats - add stats persistence path
     this.statsPersistPath = options.statsPersistPath || null;
@@ -754,38 +767,40 @@ class ModelRouter {
    * @returns {Object} `{ model, key, score, reason, rotator }`
    */
   route(ctx = {}) {
-    const explorationSelection = this.explorationController?.selectModelForTaskSync({
-      taskId: ctx.taskId || ctx.sessionId || 'unknown',
-      intentCategory: ctx.taskType || ctx.task || 'general',
-      complexity: ctx.complexity || 'moderate',
-      availableTokens: ctx.availableTokens,
-      sessionId: ctx.sessionId,
-      modelId: ctx.modelId,
-      language: ctx.language,
-      fileSize: ctx.fileSize,
-    });
+    if (!ctx.category) {
+      const explorationSelection = this.explorationController?.selectModelForTaskSync({
+        taskId: ctx.taskId || ctx.sessionId || 'unknown',
+        intentCategory: ctx.taskType || ctx.task || 'general',
+        complexity: ctx.complexity || 'moderate',
+        availableTokens: ctx.availableTokens,
+        sessionId: ctx.sessionId,
+        modelId: ctx.modelId,
+        language: ctx.language,
+        fileSize: ctx.fileSize,
+      });
 
-    if (explorationSelection?.model) {
-      const resolved = this.resolveModelId ? this.resolveModelId(explorationSelection.model) : explorationSelection.model;
-      const model = this.models[resolved];
-      if (model) {
-        const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
-        const key = rotator ? rotator.getNextKey() : null;
-        return {
-          model,
-          keyId: key ? key.id : null,
-          modelId: resolved,
-          score: 1,
-          reason: explorationSelection.isExploration ? 'exploration:thompson' : 'exploration:best-known',
-          rotator,
-          key,
-        };
+      if (explorationSelection?.model) {
+        const resolved = this.resolveModelId ? this.resolveModelId(explorationSelection.model) : explorationSelection.model;
+        const model = this.models[resolved];
+        if (model && !this._isAnthropicModel(model.provider) && !this._isAnthropicModel(model.id)) {
+          const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
+          const key = rotator ? rotator.getNextKey() : null;
+          return {
+            model,
+            keyId: key ? key.id : null,
+            modelId: resolved,
+            score: 1,
+            reason: explorationSelection.isExploration ? 'exploration:thompson' : 'exploration:best-known',
+            rotator,
+            key,
+          };
+        }
       }
     }
 
     if (ctx && typeof ctx.overrideModelId === 'string') {
       const forcedModel = this.models[ctx.overrideModelId];
-      if (forcedModel) {
+      if (forcedModel && !this._isAnthropicModel(forcedModel.provider) && !this._isAnthropicModel(forcedModel.id)) {
         const forcedRotator = this.rotators[forcedModel.provider];
         const forcedKey = forcedRotator ? forcedRotator.getNextKey() : null;
         return {
@@ -797,6 +812,13 @@ class ModelRouter {
           rotator: forcedRotator,
           key: forcedKey,
         };
+      }
+    }
+
+    if (ctx.category) {
+      const categorySelection = this.selectModelForCategory(ctx.category);
+      if (categorySelection) {
+        return categorySelection;
       }
     }
 
@@ -879,7 +901,9 @@ class ModelRouter {
 
     if (scored.length === 0) {
       // Emergency fallback: try any available model regardless of constraints
-      const emergencyModels = Object.values(this.models).filter(m => m.provider);
+      const emergencyModels = Object.values(this.models).filter(
+        (m) => m.provider && !this._isAnthropicModel(m.provider) && !this._isAnthropicModel(m.id)
+      );
       if (emergencyModels.length > 0) {
         const fallback = emergencyModels[0];
         const rotator = KeyRotatorFactory.getRotator(this.rotators, fallback.provider);
@@ -926,7 +950,212 @@ class ModelRouter {
     };
   }
 
+  /**
+   * Select model for a category using Thompson Sampling.
+   * Falls back to static category ordering if Thompson data is unavailable.
+   * @param {string} category
+   * @returns {Object|null}
+   */
+  selectModelForCategory(category) {
+    if (typeof category !== 'string' || category.trim().length === 0) {
+      return null;
+    }
+
+    const categoryConfig = this._loadCategoryConfig(category);
+    if (!categoryConfig) {
+      return null;
+    }
+
+    const candidates = [categoryConfig.model, ..._asArray(categoryConfig.fallbacks)]
+      .filter((modelId) => typeof modelId === 'string' && modelId.trim().length > 0)
+      .map((modelId) => modelId.trim())
+      .filter((modelId) => !this._isAnthropicModel(modelId));
+    const uniqueCandidates = [...new Set(candidates)];
+
+    if (uniqueCandidates.length === 0) {
+      return null;
+    }
+
+    if (!this.thompsonRouter) {
+      return this._staticCategorySelection(category, uniqueCandidates);
+    }
+
+    const normalizedCandidates = [...new Set(
+      uniqueCandidates
+        .map((modelId) => this._normalizeModelIdForThompson(modelId))
+        .filter((modelId) => typeof modelId === 'string' && modelId.length > 0)
+        .filter((modelId) => !this._isAnthropicModel(modelId))
+    )];
+
+    if (normalizedCandidates.length === 0) {
+      return this._staticCategorySelection(category, uniqueCandidates);
+    }
+
+    const availableModels = new Set(
+      _asArray(this.thompsonRouter.getAvailableModels?.())
+        .filter((modelId) => typeof modelId === 'string' && modelId.trim().length > 0)
+        .map((modelId) => modelId.trim())
+        .filter((modelId) => !this._isAnthropicModel(modelId))
+    );
+    for (const modelId of normalizedCandidates) {
+      availableModels.add(modelId);
+    }
+    this.thompsonRouter._models = [...availableModels];
+
+    // Ensure category map exists and is constrained to configured candidates.
+    if (!this.thompsonRouter.posteriors.has(category)) {
+      this.thompsonRouter.posteriors.set(category, new Map());
+    }
+    const posteriors = this.thompsonRouter.posteriors.get(category);
+    const candidateSet = new Set(normalizedCandidates);
+
+    const existingByCandidate = new Map();
+    for (const [trackedId, posterior] of posteriors.entries()) {
+      const normalizedTrackedId = this._normalizeModelIdForThompson(trackedId);
+      if (!candidateSet.has(normalizedTrackedId) || !posterior || typeof posterior !== 'object') {
+        continue;
+      }
+      const alpha = Number.isFinite(posterior.alpha) && posterior.alpha > 0 ? posterior.alpha : 1;
+      const beta = Number.isFinite(posterior.beta) && posterior.beta > 0 ? posterior.beta : 1;
+      existingByCandidate.set(normalizedTrackedId, { alpha, beta });
+    }
+
+    posteriors.clear();
+    // CRITICAL: initialize uniform priors (alpha=1, beta=1) BEFORE selection.
+    for (const candidateId of normalizedCandidates) {
+      posteriors.set(candidateId, existingByCandidate.get(candidateId) || { alpha: 1, beta: 1 });
+    }
+
+    const selectedId = this.thompsonRouter.select(category);
+    const normalizedSelected = this._normalizeModelIdForThompson(selectedId);
+    if (!selectedId || !candidateSet.has(normalizedSelected) || this._isAnthropicModel(selectedId)) {
+      return this._staticCategorySelection(category, uniqueCandidates);
+    }
+
+    const candidateMatch = uniqueCandidates.find(
+      (candidateId) => this._normalizeModelIdForThompson(candidateId) === normalizedSelected
+    );
+
+    const resolvedSelected = this.resolveModelId(candidateMatch)
+      || this.resolveModelId(normalizedSelected)
+      || this.resolveModelId(selectedId)
+      || normalizedSelected;
+
+    const model = this.models[resolvedSelected] || this.models[candidateMatch] || this.models[normalizedSelected];
+    if (!model || this._isAnthropicModel(model.provider) || this._isAnthropicModel(model.id)) {
+      return this._staticCategorySelection(category, uniqueCandidates);
+    }
+
+    const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
+    const key = rotator ? rotator.getNextKey() : null;
+
+    return {
+      model,
+      modelId: model.id || resolvedSelected,
+      keyId: key ? key.id : null,
+      key,
+      reason: `thompson-sampling:category=${category}`,
+      rotator,
+      candidates: uniqueCandidates,
+    };
+  }
+
+  /**
+   * Normalize model ID for Thompson router.
+   * Example: openai/gpt-5.3-codex -> gpt-5.3-codex
+   * @private
+   */
+  _normalizeModelIdForThompson(modelId) {
+    if (!modelId || typeof modelId !== 'string') return modelId;
+    const segments = modelId.split('/').filter(Boolean);
+    return segments.length > 0 ? segments[segments.length - 1] : modelId;
+  }
+
+  /**
+   * Reject Anthropic/Claude models globally.
+   * @private
+   */
+  _isAnthropicModel(modelId) {
+    if (!modelId || typeof modelId !== 'string') return false;
+    const normalized = modelId.toLowerCase();
+    return normalized.includes('anthropic') || normalized.includes('claude');
+  }
+
+  /**
+   * Load category config from oh-my-opencode.json.
+   * @private
+   */
+  _loadCategoryConfig(category) {
+    if (typeof category !== 'string' || category.trim().length === 0) {
+      return null;
+    }
+
+    try {
+      if (!this._categoryConfigCache) {
+        const fs = require('fs');
+        const configPath = path.resolve(__dirname, '../../../opencode-config/oh-my-opencode.json');
+        const configRaw = fs.readFileSync(configPath, 'utf-8');
+        const parsed = JSON.parse(configRaw);
+        this._categoryConfigCache = _asObject(parsed?.categories);
+      }
+      return this._categoryConfigCache[category] || null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
+   * Static category selection fallback.
+   * @private
+   */
+  _staticCategorySelection(category, presetCandidates = null) {
+    const config = this._loadCategoryConfig(category);
+    if (!config) {
+      return null;
+    }
+
+    const candidates = Array.isArray(presetCandidates) && presetCandidates.length > 0
+      ? presetCandidates
+      : [config.model, ..._asArray(config.fallbacks)]
+          .filter((modelId) => typeof modelId === 'string' && modelId.trim().length > 0)
+          .map((modelId) => modelId.trim())
+          .filter((modelId) => !this._isAnthropicModel(modelId));
+
+    for (const candidateId of candidates) {
+      const normalizedId = this._normalizeModelIdForThompson(candidateId);
+      const resolvedId = this.resolveModelId(candidateId)
+        || this.resolveModelId(normalizedId)
+        || candidateId;
+      const model = this.models[resolvedId] || this.models[candidateId] || this.models[normalizedId];
+      if (!model || this._isAnthropicModel(model.provider) || this._isAnthropicModel(model.id)) {
+        continue;
+      }
+
+      const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
+      const key = rotator ? rotator.getNextKey() : null;
+
+      return {
+        model,
+        modelId: model.id || resolvedId,
+        keyId: key ? key.id : null,
+        key,
+        reason: `static:category=${category}`,
+        rotator,
+        candidates,
+      };
+    }
+
+    return null;
+  }
+
   async routeAsync(ctx = {}) {
+    if (ctx.category) {
+      const categorySelection = this.selectModelForCategory(ctx.category);
+      if (categorySelection) {
+        return categorySelection;
+      }
+    }
+
     const explorationSelection = await this.explorationController?.selectModelForTask({
       taskId: ctx.taskId || ctx.sessionId || 'unknown',
       intentCategory: ctx.taskType || ctx.task || 'general',
@@ -941,7 +1170,7 @@ class ModelRouter {
     if (explorationSelection?.model) {
       const resolved = this.resolveModelId ? this.resolveModelId(explorationSelection.model) : explorationSelection.model;
       const model = this.models[resolved];
-      if (model) {
+      if (model && !this._isAnthropicModel(model.provider) && !this._isAnthropicModel(model.id)) {
         const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
         const key = rotator ? await rotator.getNextKey() : null;
         return {
@@ -963,6 +1192,9 @@ class ModelRouter {
         const resolvedModelId = this.resolveModelId(selection?.model_id);
         if (selection && selection.model_id && resolvedModelId) {
           const model = this.models[resolvedModelId];
+          if (!model || this._isAnthropicModel(model.provider) || this._isAnthropicModel(model.id)) {
+            return this.route(ctx);
+          }
           const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
           const key = rotator ? await rotator.getNextKey() : null;
           // P1: Track adviceId for learning correlation
@@ -1072,6 +1304,10 @@ class ModelRouter {
     return Object.keys(this.models).filter((modelId) => {
       const model = this.models[modelId];
       if (!model) return false;
+
+      if (this._isAnthropicModel(model.provider) || this._isAnthropicModel(model.id)) {
+        return false;
+      }
 
       // P3: Feature Flags for Model Rollouts - Check rollout percentage
       if (this.featureFlags) {
@@ -2323,8 +2559,9 @@ class ModelRouter {
    * @param {string} modelId - Model ID (namespaced or bare)
    * @param {boolean} success - Whether the model call succeeded
    * @param {number} latencyMs - Latency in milliseconds (0 if unknown)
+   * @param {object} ctx - Optional routing context (supports ctx.category)
    */
-  recordResult(modelId, success, latencyMs = 0) {
+  recordResult(modelId, success, latencyMs = 0, ctx = {}) {
     const resolved = this.resolveModelId(modelId) || modelId;
     if (!this.stats[resolved]) {
       // Initialize if model not in registry (e.g., new model)
@@ -2400,6 +2637,25 @@ class ModelRouter {
       }
     }
 
+    // Category Thompson posterior update (best-effort, fail-open).
+    if (this.thompsonRouter && typeof ctx?.category === 'string' && ctx.category.trim().length > 0) {
+      try {
+        const category = ctx.category.trim();
+        const posteriors = this.thompsonRouter.getPosteriors(category);
+        const resolvedNormalized = this._normalizeModelIdForThompson(resolved);
+        const modelNormalized = this._normalizeModelIdForThompson(modelId);
+        const trackedModelId = [resolved, modelId, resolvedNormalized, modelNormalized]
+          .find((candidate) => typeof candidate === 'string' && posteriors.has(candidate))
+          || resolvedNormalized;
+
+        if (trackedModelId && !this._isAnthropicModel(trackedModelId)) {
+          this.thompsonRouter.update(category, trackedModelId, Boolean(success));
+        }
+      } catch (_) {
+        // Never block result recording on posterior update.
+      }
+    }
+
     // Async persist to disk (non-blocking)
     this._persistStats();
 
@@ -2471,8 +2727,8 @@ class ModelRouter {
   /**
    * Alias for recordResult() - forward compatibility
    */
-  recordOutcome(modelId, success, latencyOrError = 0) {
-    return this.recordResult(modelId, success, latencyOrError);
+  recordOutcome(modelId, success, latencyOrError = 0, ctx = {}) {
+    return this.recordResult(modelId, success, latencyOrError, ctx);
   }
 
   /**

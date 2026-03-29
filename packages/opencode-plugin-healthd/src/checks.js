@@ -6,6 +6,15 @@ const path = require('path');
 const fs = require('fs');
 const { safeJsonParse } = require('opencode-safe-io');
 
+const OPENCODE_DIRNAME = '.opencode';
+
+function resolveDataHome() {
+  if (process.env.OPENCODE_DATA_HOME) return process.env.OPENCODE_DATA_HOME;
+  if (process.env.XDG_DATA_HOME) return path.join(process.env.XDG_DATA_HOME, 'opencode');
+  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
+  return path.join(homeDir, OPENCODE_DIRNAME);
+}
+
 // --- Configuration ---
 
 const KNOWN_BAD_PLUGINS = [
@@ -233,7 +242,7 @@ function checkMCPs(mcpList, mcpConfig) {
   }
 
   // Also check for OpenCode MCP config file
-  const opencodeDir = path.join(os.homedir(), '.opencode');
+  const opencodeDir = resolveDataHome();
   const mcpConfigPaths = [
     path.join(opencodeDir, 'mcp.json'),
     path.join(opencodeDir, 'config', 'mcp.json'),
@@ -307,7 +316,7 @@ function checkMCPs(mcpList, mcpConfig) {
  * @returns {Object|null} MCP server configuration or null if not found
  */
 function loadMcpConfig() {
-  const opencodeDir = path.join(os.homedir(), '.opencode');
+  const opencodeDir = resolveDataHome();
   const configPaths = [
     path.join(opencodeDir, 'mcp.json'),
     path.join(opencodeDir, 'config', 'mcp.json'),

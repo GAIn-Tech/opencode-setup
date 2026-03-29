@@ -2,6 +2,7 @@
 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { getRuntime } from './bootstrap-runtime.mjs';
 
 export function evaluateRuntimeExecution(payload) {
@@ -83,7 +84,7 @@ export async function runRuntimeCompliance() {
       {
         task: 'runtime-context-compliance',
         sessionId: 'runtime-compliance-session',
-        model: 'anthropic/claude-sonnet-4-5',
+        model: 'openai/gpt-5.2',
       },
       async (taskContext, _skills, adaptiveOptions) => {
         capturedTaskContext = taskContext;
@@ -114,11 +115,23 @@ export async function runRuntimeCompliance() {
 }
 
 async function main() {
-  const outputJson = process.argv.includes('--json');
+  const args = process.argv.slice(2);
+  const outputJson = args.includes('--json');
+  const outputIndex = args.indexOf('--output');
+  const outputPath = outputIndex !== -1 && args[outputIndex + 1] ? args[outputIndex + 1] : null;
   const payload = await runRuntimeCompliance();
   const evaluation = evaluateRuntimeExecution(payload);
-  if (outputJson) {
-    process.stdout.write(`${RUNTIME_CONTEXT_JSON_MARKER}${JSON.stringify({ ...payload, evaluation })}`);
+  const fullPayload = { ...payload, evaluation };
+  
+  if (outputPath) {
+    const dir = path.dirname(outputPath);
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true });
+    }
+    writeFileSync(outputPath, JSON.stringify(fullPayload, null, 2), 'utf8');
+    console.error(`[OK] Runtime context compliance proof written to ${outputPath}`);
+  } else if (outputJson) {
+    process.stdout.write(`${RUNTIME_CONTEXT_JSON_MARKER}${JSON.stringify(fullPayload)}`);
   } else {
     console.log('# Runtime Context Compliance');
     console.log(`- attachedRuntimeContext: ${payload.attachedRuntimeContext ? 'yes' : 'no'}`);

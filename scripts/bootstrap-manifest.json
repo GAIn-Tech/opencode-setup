@@ -1,0 +1,303 @@
+{
+  "schemaVersion": 1,
+  "policy": {
+    "scope": "entire-declared-surface",
+    "officialSource": "authoritative-static-manifest",
+    "notes": [
+      "Official plugins are explicitly listed here and must not be inferred from uncontrolled runtime state.",
+      "Validator extends official checks to every declared plugin directory under plugins/ and cross-references plugin specs against opencode-config/opencode.json."
+    ]
+  },
+  "ownershipDefaults": {
+    "owner": "platform-bootstrap",
+    "contact": "#opencode-bootstrap",
+    "failureAction": "block-bootstrap"
+  },
+  "core": [
+    {
+      "id": "setup-resilient",
+      "description": "Primary one-command bootstrap entry point",
+      "ownership": {
+        "owner": "platform-bootstrap",
+        "contact": "#opencode-bootstrap",
+        "failureAction": "block-bootstrap"
+      },
+      "loadChecks": {
+        "requiredFiles": [
+          "scripts/setup-resilient.mjs"
+        ],
+        "entryPoints": [
+          "scripts/setup-resilient.mjs"
+        ]
+      }
+    },
+    {
+      "id": "verify-setup",
+      "description": "Setup readiness and integrity verification",
+      "ownership": {
+        "owner": "platform-bootstrap",
+        "contact": "#opencode-bootstrap",
+        "failureAction": "block-bootstrap"
+      },
+      "loadChecks": {
+        "requiredFiles": [
+          "scripts/verify-setup.mjs"
+        ],
+        "entryPoints": [
+          "scripts/verify-setup.mjs"
+        ]
+      }
+    },
+    {
+      "id": "sync-user-config",
+      "description": "Post-pull reconcile command for deterministic config sync",
+      "ownership": {
+        "owner": "platform-bootstrap",
+        "contact": "#opencode-bootstrap",
+        "failureAction": "warn-and-block-ci"
+      },
+      "loadChecks": {
+        "requiredFiles": [
+          "scripts/sync-user-config.mjs"
+        ],
+        "entryPoints": [
+          "scripts/sync-user-config.mjs"
+        ]
+      }
+    },
+    {
+      "id": "canonical-opencode-config",
+      "description": "Canonical plugin/model/MCP configuration",
+      "ownership": {
+        "owner": "config-governance",
+        "contact": "#opencode-config",
+        "failureAction": "block-bootstrap"
+      },
+      "loadChecks": {
+        "requiredFiles": [
+          "opencode-config/opencode.json"
+        ],
+        "entryPoints": [
+          "opencode-config/opencode.json"
+        ]
+      }
+    },
+    {
+      "id": "plugin-metadata-catalog",
+      "description": "Canonical external plugin metadata index",
+      "ownership": {
+        "owner": "plugin-governance",
+        "contact": "#opencode-plugins",
+        "failureAction": "warn-and-block-ci"
+      },
+      "loadChecks": {
+        "requiredFiles": [
+          "plugins/README.md"
+        ],
+        "entryPoints": [
+          "plugins/README.md"
+        ]
+      }
+    }
+  ],
+  "officialPlugins": [
+    {
+      "id": "oh-my-opencode",
+      "package": "oh-my-opencode@3.5.2",
+      "ownership": {
+        "owner": "agent-platform",
+        "contact": "#opencode-agents",
+        "failureAction": "block-bootstrap"
+      },
+      "loadChecks": {
+        "requiredFiles": [
+          "plugins/oh-my-opencode/info.md"
+        ],
+        "entryPoints": [
+          "plugins/oh-my-opencode/info.md"
+        ],
+        "opencodePluginSpec": "oh-my-opencode@3.5.2"
+      }
+    },
+    {
+      "id": "antigravity-auth",
+      "package": "opencode-antigravity-auth@1.4.6",
+      "ownership": {
+        "owner": "auth-platform",
+        "contact": "#opencode-auth",
+        "failureAction": "block-bootstrap"
+      },
+      "loadChecks": {
+        "requiredFiles": [
+          "plugins/antigravity-auth/info.md"
+        ],
+        "entryPoints": [
+          "plugins/antigravity-auth/info.md"
+        ],
+        "opencodePluginSpec": "opencode-antigravity-auth@1.4.6"
+      }
+    },
+    {
+      "id": "antigravity-quota",
+      "package": "opencode-antigravity-quota@0.1.6",
+      "ownership": {
+        "owner": "auth-platform",
+        "contact": "#opencode-auth",
+        "failureAction": "warn-and-block-ci"
+      },
+      "loadChecks": {
+        "requiredFiles": [
+          "plugins/antigravity-quota/info.md"
+        ],
+        "entryPoints": [
+          "plugins/antigravity-quota/info.md"
+        ],
+        "opencodePluginSpec": "opencode-antigravity-quota@0.1.6"
+      }
+    },
+    {
+      "id": "opencode-dcp",
+      "package": "@tarquinen/opencode-dcp@latest",
+      "ownership": {
+        "owner": "context-platform",
+        "contact": "#opencode-context",
+        "failureAction": "warn-and-block-ci"
+      },
+      "loadChecks": {
+        "requiredFiles": [
+          "plugins/opencode-dcp/info.md"
+        ],
+        "entryPoints": [
+          "plugins/opencode-dcp/info.md"
+        ],
+        "opencodePluginSpec": "@tarquinen/opencode-dcp@latest"
+      }
+    },
+    {
+      "id": "preload-skills",
+      "package": "opencode-plugin-preload-skills@1.8.0",
+      "ownership": {
+        "owner": "skills-platform",
+        "contact": "#opencode-skills",
+        "failureAction": "warn-and-block-ci"
+      },
+      "loadChecks": {
+        "requiredFiles": [
+          "plugins/preload-skills/info.md"
+        ],
+        "entryPoints": [
+          "plugins/preload-skills/info.md"
+        ],
+        "opencodePluginSpec": "opencode-plugin-preload-skills@1.8.0"
+      }
+    },
+    {
+      "id": "langfuse",
+      "package": "opencode-plugin-langfuse@0.1.8",
+      "ownership": {
+        "owner": "observability-platform",
+        "contact": "#opencode-observability",
+        "failureAction": "warn-and-block-ci"
+      },
+      "loadChecks": {
+        "requiredFiles": [
+          "plugins/langfuse/info.md"
+        ],
+        "entryPoints": [
+          "plugins/langfuse/info.md"
+        ],
+        "opencodePluginSpec": "opencode-plugin-langfuse@0.1.8"
+      }
+    },
+    {
+      "id": "pty",
+      "package": "opencode-pty@0.2.1",
+      "ownership": {
+        "owner": "runtime-platform",
+        "contact": "#opencode-runtime",
+        "failureAction": "warn-and-block-ci"
+      },
+      "loadChecks": {
+        "requiredFiles": [
+          "plugins/pty/info.md"
+        ],
+        "entryPoints": [
+          "plugins/pty/info.md"
+        ],
+        "opencodePluginSpec": "opencode-pty@0.2.1"
+      }
+    },
+    {
+      "id": "rate-limit-fallback",
+      "package": "opencode-rate-limit-fallback@latest",
+      "ownership": {
+        "owner": "runtime-platform",
+        "contact": "#opencode-runtime",
+        "failureAction": "warn-and-block-ci"
+      },
+      "loadChecks": {
+        "requiredFiles": [
+          "plugins/rate-limit-fallback/info.md"
+        ],
+        "entryPoints": [
+          "plugins/rate-limit-fallback/info.md"
+        ],
+        "opencodePluginSpec": "opencode-rate-limit-fallback@latest"
+      }
+    },
+    {
+      "id": "notifier",
+      "package": "@mohak34/opencode-notifier@latest",
+      "ownership": {
+        "owner": "runtime-platform",
+        "contact": "#opencode-runtime",
+        "failureAction": "warn-only"
+      },
+      "loadChecks": {
+        "requiredFiles": [
+          "plugins/notifier/info.md"
+        ],
+        "entryPoints": [
+          "plugins/notifier/info.md"
+        ],
+        "opencodePluginSpec": "@mohak34/opencode-notifier@latest"
+      }
+    },
+    {
+      "id": "envsitter-guard",
+      "package": "envsitter-guard@latest",
+      "ownership": {
+        "owner": "security-platform",
+        "contact": "#opencode-security",
+        "failureAction": "block-bootstrap"
+      },
+      "loadChecks": {
+        "requiredFiles": [
+          "plugins/envsitter-guard/info.md"
+        ],
+        "entryPoints": [
+          "plugins/envsitter-guard/info.md"
+        ],
+        "opencodePluginSpec": "envsitter-guard@latest"
+      }
+    },
+    {
+      "id": "safety-net",
+      "package": "cc-safety-net@latest",
+      "ownership": {
+        "owner": "security-platform",
+        "contact": "#opencode-security",
+        "failureAction": "block-bootstrap"
+      },
+      "loadChecks": {
+        "requiredFiles": [
+          "plugins/safety-net/info.md"
+        ],
+        "entryPoints": [
+          "plugins/safety-net/info.md"
+        ],
+        "opencodePluginSpec": "cc-safety-net@latest"
+      }
+    }
+  ]
+}

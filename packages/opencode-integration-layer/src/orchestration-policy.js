@@ -14,13 +14,17 @@ const PRECEDENCE_RULES = Object.freeze([
 ]);
 
 const CATEGORY_BASE_CAPS = Object.freeze({
-  deep: { fanout: 8, concurrency: 6 },
-  ultrabrain: { fanout: 7, concurrency: 5 },
-  research: { fanout: 6, concurrency: 5 },
-  architecture: { fanout: 6, concurrency: 4 },
-  'unspecified-high': { fanout: 5, concurrency: 4 },
-  quick: { fanout: 3, concurrency: 2 },
-  default: { fanout: 4, concurrency: 3 },
+  deep: { fanout: 30, concurrency: 25 },
+  ultrabrain: { fanout: 25, concurrency: 20 },
+  research: { fanout: 20, concurrency: 15 },
+  architecture: { fanout: 20, concurrency: 15 },
+  'unspecified-high': { fanout: 15, concurrency: 12 },
+  'unspecified-low': { fanout: 15, concurrency: 12 },
+  quick: { fanout: 10, concurrency: 8 },
+  default: { fanout: 15, concurrency: 12 },
+  'visual-engineering': { fanout: 20, concurrency: 15 },
+  artistry: { fanout: 20, concurrency: 15 },
+  writing: { fanout: 10, concurrency: 8 },
 });
 
 const COMPLEXITY_MULTIPLIERS = Object.freeze({

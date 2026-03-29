@@ -15,14 +15,13 @@
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import { readFileSync, writeFileSync, renameSync, unlinkSync, existsSync } from 'fs';
-import { homedir } from 'os';
 import path from 'path';
+import { resolveUserDataPath } from './resolve-root.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 
-const HOME = process.env.USERPROFILE || process.env.HOME || homedir();
-const DELEGATION_LOG_FILE = path.join(HOME, '.opencode', 'delegation-log.json');
+const DELEGATION_LOG_FILE = resolveUserDataPath('delegation-log.json');
 const WINDOWS_RENAME_RETRIES = 3;
 const WINDOWS_RENAME_RETRY_DELAY_MS = 10;
 

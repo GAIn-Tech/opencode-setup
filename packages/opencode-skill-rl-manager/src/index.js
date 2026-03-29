@@ -19,35 +19,114 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-// Cross-process file lock to prevent concurrent write corruption
-// Uses filesystem locks instead of in-memory Map (which fails across processes)
-const LOCK_DIR = path.join(process.cwd(), '.opencode', 'locks');
+const OPENCODE_DIRNAME = '.opencode';
 
-async function _ensureLockDir() {
-  if (!fs.existsSync(LOCK_DIR)) {
-    fs.mkdirSync(LOCK_DIR, { recursive: true });
+function resolveDataHome() {
+  if (process.env.OPENCODE_DATA_HOME) return process.env.OPENCODE_DATA_HOME;
+  if (process.env.XDG_DATA_HOME) return path.join(process.env.XDG_DATA_HOME, 'opencode');
+  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
+  return path.join(homeDir, OPENCODE_DIRNAME);
+}
+
+// Cross-process file lock to prevent concurrent write corruption.
+// Lock files live next to the target file (e.g. ~/.opencode/skill-rl.json.lock),
+// so all processes coordinate on the same path regardless of cwd.
+const LOCK_STALE_MS = 30_000;
+
+async function _ensureLockDir(lockPath) {
+  const lockDir = path.dirname(lockPath);
+  if (!fs.existsSync(lockDir)) {
+    fs.mkdirSync(lockDir, { recursive: true });
+  }
+}
+
+function _isProcessAlive(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    if (error.code === 'EPERM') return true;
+    if (error.code === 'ESRCH') return false;
+    return false;
+  }
+}
+
+function _readLockInfo(lockPath) {
+  try {
+    const raw = fs.readFileSync(lockPath, 'utf8').trim();
+    if (!raw) return { pid: null };
+
+    if (raw.startsWith('{')) {
+      const parsed = SafeJSON.parse(raw, {});
+      return {
+        pid: Number.isInteger(parsed.pid) ? parsed.pid : null,
+      };
+    }
+
+    const pid = Number.parseInt(raw, 10);
+    return { pid: Number.isInteger(pid) ? pid : null };
+  } catch {
+    return { pid: null };
+  }
+}
+
+function _shouldBreakStaleLock(lockPath) {
+  try {
+    if (!fs.existsSync(lockPath)) return false;
+
+    const { pid } = _readLockInfo(lockPath);
+    if (pid && !_isProcessAlive(pid)) {
+      return true;
+    }
+
+    const stats = fs.statSync(lockPath);
+    const ageMs = Date.now() - stats.mtimeMs;
+    if (ageMs > LOCK_STALE_MS && !pid) {
+      return true;
+    }
+
+    return false;
+  } catch {
+    return false;
   }
 }
 
 async function _acquireLock(lockPath, timeout = 5000) {
-  await _ensureLockDir();
-  const lockFile = path.join(LOCK_DIR, `${lockPath.replace(/[^a-zA-Z0-9]/g, '_')}.lock`);
+  await _ensureLockDir(lockPath);
   const start = Date.now();
-  
-  // Use atomic lock acquisition with O_EXCL flag
+
+  // Use atomic lock acquisition with O_EXCL flag.
   while (true) {
     if (Date.now() - start > timeout) {
       throw new Error(`Lock acquisition timeout for ${lockPath}`);
     }
     try {
-      // O_EXCL creates atomically - fails if file exists
-      fs.closeSync(fs.openSync(lockFile, 'wx'));
-      // Write pid after atomic creation
-      fs.writeFileSync(lockFile, String(process.pid), 'utf8');
+      // O_EXCL creates atomically - fails if file exists.
+      const fd = fs.openSync(lockPath, 'wx');
+      try {
+        fs.writeFileSync(fd, SafeJSON.stringify({
+          pid: process.pid,
+          createdAtMs: Date.now(),
+        }), 'utf8');
+      } finally {
+        fs.closeSync(fd);
+      }
       return; // Lock acquired
     } catch (err) {
       if (err.code === 'EEXIST') {
-        // Lock exists, wait and retry
+        if (_shouldBreakStaleLock(lockPath)) {
+          try {
+            fs.unlinkSync(lockPath);
+          } catch (unlinkErr) {
+            if (unlinkErr.code !== 'ENOENT') {
+              await new Promise(r => setTimeout(r, 50));
+            }
+          }
+          continue;
+        }
+
+        // Lock exists, wait and retry.
         await new Promise(r => setTimeout(r, 50));
         continue;
       }
@@ -57,9 +136,12 @@ async function _acquireLock(lockPath, timeout = 5000) {
 }
 
 function _releaseLock(lockPath) {
-  const lockFile = path.join(LOCK_DIR, `${lockPath.replace(/[^a-zA-Z0-9]/g, '_')}.lock`);
-  if (fs.existsSync(lockFile)) {
-    fs.unlinkSync(lockFile);
+  try {
+    if (fs.existsSync(lockPath)) {
+      fs.unlinkSync(lockPath);
+    }
+  } catch (_) {
+    // fail-open: lock release errors should not crash runtime.
   }
 }
 
@@ -129,14 +211,20 @@ const LearningValidator = {
 
 class SkillRLManager {
   constructor(options = {}) {
-    const _defaultRLPath = path.join(os.homedir(), '.opencode', 'skill-rl.json');
-    this.persistencePath = options.persistencePath || options.stateFile || _defaultRLPath;
+    const _defaultRLPath = path.join(resolveDataHome(), 'skill-rl.json');
+    if (Object.prototype.hasOwnProperty.call(options, 'persistencePath')) {
+      this.persistencePath = options.persistencePath;
+    } else if (Object.prototype.hasOwnProperty.call(options, 'stateFile')) {
+      this.persistencePath = options.stateFile;
+    } else {
+      this.persistencePath = _defaultRLPath;
+    }
     this.skillBank = new SkillBank(options.skillBank);
     this.evolutionEngine = new EvolutionEngine(this.skillBank, options.evolution);
 
     // One-time migration: old ./skill-rl-state.json → canonical ~/.opencode/skill-rl.json
     const _legacyPath = path.join(process.cwd(), 'skill-rl-state.json');
-    if (fs.existsSync(_legacyPath) && !fs.existsSync(this.persistencePath)) {
+    if (this.persistencePath && fs.existsSync(_legacyPath) && !fs.existsSync(this.persistencePath)) {
       try {
         fs.mkdirSync(path.dirname(this.persistencePath), { recursive: true });
         fs.copyFileSync(_legacyPath, this.persistencePath);
@@ -148,7 +236,7 @@ class SkillRLManager {
 
     // Load persisted state BEFORE syncWithRegistry so existing usage_count/success_rate are preserved.
     // syncWithRegistry is additive (skips skills already in the Map), so it won't overwrite loaded data.
-    if (fs.existsSync(this.persistencePath)) {
+    if (this.persistencePath && fs.existsSync(this.persistencePath)) {
       try {
         const _persisted = SafeJSON.parse(fs.readFileSync(this.persistencePath, 'utf-8'));
         if (_persisted.skillBank) this.skillBank.import(_persisted.skillBank);
@@ -221,8 +309,8 @@ class SkillRLManager {
       evolutionResult = this.evolutionEngine.learnFromFailure(outcome);
     }
     
-    // Save state
-    this._save();
+    // Save state (fail-open)
+    this._save().catch(() => {});
     
     // Return combined result: both updates and evolution details
     return {

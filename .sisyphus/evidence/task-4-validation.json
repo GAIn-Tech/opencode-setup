@@ -1,0 +1,36 @@
+{
+  "task": 4,
+  "phase": "verification",
+  "timestamp": "2026-03-31T05:35:00.000Z",
+  "checks": [
+    {
+      "name": "strict json includes determinismReport",
+      "command": "node scripts/verify-portability.mjs --strict --json (with deterministic baseline env)",
+      "status": "passed",
+      "exitCode": 1,
+      "observed": {
+        "hasDeterminismReport": true,
+        "determinismReport": {
+          "status": "ok",
+          "violations": []
+        }
+      },
+      "notes": "Process remains non-zero due to other strict gates in this environment; determinism gate itself is clean."
+    },
+    {
+      "name": "negative gate - fault injected determinism violation",
+      "command": "node scripts/verify-portability.mjs --strict --json (with OPENCODE_PORTABILITY_FAULT_DETERMINISM=1)",
+      "status": "passed",
+      "exitCode": 1,
+      "observed": {
+        "determinismReport": {
+          "status": "fail",
+          "violations": [
+            "fault injection: intentional determinism leak detected"
+          ]
+        },
+        "failure": "Determinism gate failed: fault injection: intentional determinism leak detected"
+      }
+    }
+  ]
+}

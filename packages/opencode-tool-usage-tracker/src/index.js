@@ -13,6 +13,16 @@
 const fs = require('fs');
 const fsPromises = require('fs/promises');
 const path = require('path');
+const os = require('os');
+
+const OPENCODE_DIRNAME = '.opencode';
+
+function resolveDataHome() {
+  if (process.env.OPENCODE_DATA_HOME) return process.env.OPENCODE_DATA_HOME;
+  if (process.env.XDG_DATA_HOME) return path.join(process.env.XDG_DATA_HOME, 'opencode');
+  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
+  return path.join(homeDir, OPENCODE_DIRNAME);
+}
 
 // Module-level tracker (injectable; defaults to no-op)
 let _tracker = { trackEvent: () => Promise.resolve() };
@@ -37,8 +47,7 @@ let _testMetrics = { toolCounts: {}, categoryCounts: {}, totalInvocations: 0 };
 let _initPromise = null;
 
 // Paths
-const HOME = process.env.USERPROFILE || process.env.HOME;
-const DATA_DIR = path.join(HOME, '.opencode', 'tool-usage');
+const DATA_DIR = path.join(resolveDataHome(), 'tool-usage');
 const INVOCATIONS_FILE = path.join(DATA_DIR, 'invocations.json');
 const METRICS_FILE = path.join(DATA_DIR, 'metrics.json');
 const SESSION_FILE = path.join(DATA_DIR, 'current-session.json');

@@ -317,16 +317,45 @@ function main() {
   const rootPackage = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
   const workspacePackages = listWorkspacePackages();
   const pluginScope = detectPluginScope(rootPackage.name, workspacePackages);
+  const globalNodeModulesPaths = resolveGlobalNodeModulesPaths();
 
   if (!pluginScope) {
-    printCheck(
-      'Plugin symlinks',
-      true,
-      'Skipped: no scoped workspace packages detected (set PLUGIN_SCOPE to enforce scoped link checks).'
-    );
+    const unscopedPackages = workspacePackages.filter((packageName) => !packageName.startsWith('@'));
+    if (unscopedPackages.length === 0) {
+      printCheck(
+        'Plugin symlinks',
+        true,
+        'Skipped: no scoped or unscoped workspace packages detected.'
+      );
+    } else {
+      const missing = unscopedPackages.filter((packageName) => {
+        return !globalNodeModulesPaths.some((basePath) => {
+          const linkedPath = path.join(basePath, packageName);
+          if (!existsSync(linkedPath)) return false;
+          try {
+            return lstatSync(linkedPath).isSymbolicLink();
+          } catch {
+            return false;
+          }
+        });
+      });
+
+      const passed = missing.length === 0;
+      if (!passed) {
+        failed += 1;
+      }
+
+      printCheck(
+        'Plugin symlinks (unscoped workspace packages)',
+        passed,
+        passed
+          ? `${unscopedPackages.length}/${unscopedPackages.length} linked across ${globalNodeModulesPaths.join(', ')}`
+          : `Missing links: ${missing.join(', ')}`,
+        'Run: bun run link-all'
+      );
+    }
   } else {
     const scopedPackages = workspacePackages.filter((packageName) => packageName.startsWith(`${pluginScope}/`));
-    const globalNodeModulesPaths = resolveGlobalNodeModulesPaths();
 
     const missing = scopedPackages.filter((packageName) => {
       const packageLeaf = packageName.split('/')[1];
@@ -586,22 +615,26 @@ function main() {
       'OPENCODE_DATA_HOME',
       'PLUGIN_SCOPE',
       'BUN_INSTALL',
-      'ANTHROPIC_API_KEYS',
-      'OPENAI_API_KEYS',
-      'GOOGLE_API_KEYS',
       'GITHUB_TOKEN',
       'TAVILY_API_KEY',
       'SUPERMEMORY_API_KEY'
     ];
+    const providerKeys = ['OPENAI_API_KEYS', 'GOOGLE_API_KEYS', 'ANTHROPIC_API_KEYS'];
     const missing = requiredKeys.filter((name) => !hasNonEmptyEnvVar(name));
-    const envContractOk = missing.length === 0;
+    const hasProviderKey = providerKeys.some(hasNonEmptyEnvVar);
+    const envContractOk = missing.length === 0 && hasProviderKey;
     if (!envContractOk) {
       failed += 1;
     }
     printCheck(
       'Environment contract (strict)',
       envContractOk,
-      envContractOk ? 'All required env vars present.' : `Missing: ${missing.join(', ')}`,
+      envContractOk
+        ? 'All required env vars present.'
+        : [
+            missing.length > 0 ? `Missing: ${missing.join(', ')}` : null,
+            !hasProviderKey ? `Missing provider key (one required): ${providerKeys.join(', ')}` : null,
+          ].filter(Boolean).join(' | '),
       'Populate required variables in your environment and rerun verify.'
     );
   } else {
@@ -621,12 +654,24 @@ function main() {
       const profileRequirements = {
         mcp: ['GITHUB_TOKEN'],
         research: ['TAVILY_API_KEY', 'SUPERMEMORY_API_KEY'],
-        strict: ['ANTHROPIC_API_KEYS', 'OPENAI_API_KEYS', 'GOOGLE_API_KEYS', 'GITHUB_TOKEN'],
+        strict: ['GITHUB_TOKEN'],
       };
       const required = profileRequirements[envProfile] || [];
       const missing = required.filter((name) => !hasNonEmptyEnvVar(name));
-      envReady = missing.length === 0;
-      detail = envReady ? `Profile ${envProfile} requirements satisfied.` : `Missing: ${missing.join(', ')}`;
+      if (envProfile === 'strict') {
+        const providerKeys = ['OPENAI_API_KEYS', 'GOOGLE_API_KEYS', 'ANTHROPIC_API_KEYS'];
+        const hasProvider = providerKeys.some(hasNonEmptyEnvVar);
+        envReady = missing.length === 0 && hasProvider;
+        detail = envReady
+          ? `Profile ${envProfile} requirements satisfied.`
+          : [
+              missing.length > 0 ? `Missing: ${missing.join(', ')}` : null,
+              !hasProvider ? `Missing provider key (one required): ${providerKeys.join(', ')}` : null,
+            ].filter(Boolean).join(' | ');
+      } else {
+        envReady = missing.length === 0;
+        detail = envReady ? `Profile ${envProfile} requirements satisfied.` : `Missing: ${missing.join(', ')}`;
+      }
     }
 
     if (!envReady) {

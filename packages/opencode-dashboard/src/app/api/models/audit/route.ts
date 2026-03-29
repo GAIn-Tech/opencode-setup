@@ -8,10 +8,18 @@ import { forbidden, badRequest, internalError, rateLimited } from '../../_lib/ap
 
 export const dynamic = 'force-dynamic';
 
+const OPENCODE_DIRNAME = '.opencode';
+
+function resolveDataHome(): string {
+  if (process.env.OPENCODE_DATA_HOME) return process.env.OPENCODE_DATA_HOME;
+  if (process.env.XDG_DATA_HOME) return path.join(process.env.XDG_DATA_HOME, 'opencode');
+  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
+  return path.join(homeDir, OPENCODE_DIRNAME);
+}
+
 // Initialize audit logger
 const getAuditLogger = () => {
-  const homeDir = os.homedir();
-  const dbPath = path.join(homeDir, '.opencode', 'model-manager', 'audit.db');
+  const dbPath = path.join(resolveDataHome(), 'model-manager', 'audit.db');
   return new AuditLogger({ dbPath });
 };
 

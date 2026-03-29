@@ -114,6 +114,35 @@
       ],
       "compatible_agents": []
     },
+    "init-kb": {
+      "description": "Initialize hierarchical AGENTS.md knowledge base and project-local KB templates for bootstrap portability.",
+      "category": "planning",
+      "tags": [
+        "bootstrap",
+        "knowledge-base",
+        "initialization",
+        "meta-kb"
+      ],
+      "source": "custom",
+      "dependencies": [],
+      "synergies": [
+        "innovation-migration-planner",
+        "writing-plans",
+        "research-builder"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "init kb",
+        "initialize knowledge base",
+        "bootstrap project kb",
+        "new machine setup"
+      ],
+      "recommended_agents": [
+        "metis",
+        "sisyphus"
+      ],
+      "compatible_agents": []
+    },
     "supermemory": {
       "description": "Persistent memory retrieval and storage via Supermemory for cross-session project knowledge, preferences, and reusable findings.",
       "category": "memory",

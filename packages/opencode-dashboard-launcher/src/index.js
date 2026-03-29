@@ -5,6 +5,15 @@ const os = require('os');
 const { safeJsonParse } = require('opencode-safe-io');
 const { whichSync } = require('which');
 
+const OPENCODE_DIRNAME = '.opencode';
+
+function resolveDataHome() {
+  if (process.env.OPENCODE_DATA_HOME) return process.env.OPENCODE_DATA_HOME;
+  if (process.env.XDG_DATA_HOME) return path.join(process.env.XDG_DATA_HOME, 'opencode');
+  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
+  return path.join(homeDir, OPENCODE_DIRNAME);
+}
+
 /**
  * Check if a command exists before trying to spawn it
  * Prevents Bun segfaults from ENOENT
@@ -56,8 +65,9 @@ function getConfigValue(path, defaultValue) {
   return value;
 }
 
-const LOCK_FILE = path.join(os.homedir(), '.opencode', 'dashboard.lock');
-const LOG_FILE = path.join(os.homedir(), '.opencode', 'dashboard.log');
+const DATA_HOME = resolveDataHome();
+const LOCK_FILE = path.join(DATA_HOME, 'dashboard.lock');
+const LOG_FILE = path.join(DATA_HOME, 'dashboard.log');
 const DASHBOARD_DIR = path.join(__dirname, '..', '..', 'opencode-dashboard');
 
 /** Dashboard host - configurable via env var */
@@ -73,7 +83,7 @@ const DASHBOARD_LAUNCH_TIMEOUT_MS = 30000;
  * Ensures ~/.opencode directory exists
  */
 function ensureOpencodeDir() {
-  const dir = path.join(os.homedir(), '.opencode');
+  const dir = DATA_HOME;
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -158,8 +168,13 @@ function openBrowser(port) {
   
   if (!autoOpen) return;
   
-  const command = process.platform === 'win32' ? 'start' :
-                  process.platform === 'darwin' ? 'open' : 'xdg-open';
+  const isWindows = process.platform === 'win32';
+  const command = isWindows
+    ? 'cmd.exe'
+    : (process.platform === 'darwin' ? 'open' : 'xdg-open');
+  const args = isWindows
+    ? ['/c', 'start', '', url]
+    : [url];
   
   // Wait 2s for server to be ready
   setTimeout(() => {
@@ -170,10 +185,11 @@ function openBrowser(port) {
         return;
       }
       
-      const proc = spawn(command, [url], { 
+      const proc = spawn(command, args, {
         detached: true, 
         stdio: 'ignore',
-        shell: true 
+        shell: false,
+        windowsHide: isWindows,
       });
       // Kill browser-open process if it hangs beyond timeout
       const killTimer = setTimeout(() => {

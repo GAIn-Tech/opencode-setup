@@ -623,7 +623,7 @@
     "playwright": {
       "type": "local",
       "command": [
-        "npx",
+        "bunx",
         "@playwright/mcp@0.0.64"
       ],
       "enabled": true
@@ -631,7 +631,7 @@
     "sequentialthinking": {
       "type": "local",
       "command": [
-        "npx",
+        "bunx",
         "-y",
         "@modelcontextprotocol/server-sequential-thinking"
       ],
@@ -640,7 +640,7 @@
     "websearch": {
       "type": "local",
       "command": [
-        "npx",
+        "bunx",
         "-y",
         "@ignidor/web-search-mcp"
       ],
@@ -657,7 +657,7 @@
     "distill": {
       "type": "local",
       "command": [
-        "node",
+        "bun",
         "scripts/run-distill-mcp.mjs",
         "serve",
         "--lazy"
@@ -667,7 +667,7 @@
     "opencode-dashboard-launcher": {
       "type": "local",
       "command": [
-        "node",
+        "bun",
         "packages/opencode-dashboard-launcher/src/index.js"
       ],
       "enabled": false
@@ -675,7 +675,7 @@
     "opencode-memory-graph": {
       "type": "local",
       "command": [
-        "node",
+        "bun",
         "packages/opencode-memory-graph/src/mcp-server.mjs"
       ],
       "enabled": true
@@ -683,7 +683,7 @@
     "opencode-model-router-x": {
       "type": "local",
       "command": [
-        "node",
+        "bun",
         "packages/opencode-model-router-x/src/index.js"
       ],
       "enabled": false
@@ -691,7 +691,7 @@
     "opencode-context-governor": {
       "type": "local",
       "command": [
-        "node",
+        "bun",
         "packages/opencode-context-governor/src/mcp-server.mjs"
       ],
       "enabled": true
@@ -699,7 +699,7 @@
     "opencode-runbooks": {
       "type": "local",
       "command": [
-        "node",
+        "bun",
         "packages/opencode-runbooks/src/mcp-server.mjs"
       ],
       "enabled": true
