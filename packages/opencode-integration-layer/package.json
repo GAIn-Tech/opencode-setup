@@ -23,7 +23,18 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "opencode-logger": "workspace:*",
+    "opencode-config-loader": "workspace:*",
+    "opencode-validator": "workspace:*",
+    "opencode-health-check": "workspace:*",
+    "opencode-backup-manager": "workspace:*",
+    "opencode-feature-flags": "workspace:*",
+    "opencode-context-governor": "workspace:*",
+    "opencode-memory-graph": "workspace:*",
+    "opencode-errors": "workspace:*",
+    "opencode-crash-guard": "workspace:*"
+  },
   "peerDependencies": {
     "opencode-skill-rl-manager": "workspace:*",
     "opencode-learning-engine": "workspace:*"

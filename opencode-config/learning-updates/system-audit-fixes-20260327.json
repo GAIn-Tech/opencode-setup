@@ -1,0 +1,20 @@
+{
+  "id": "system-audit-fixes-20260327",
+  "timestamp": "2026-03-27T21:30:00.000Z",
+  "summary": "System audit fixes: integration layer wiring, async I/O conversion, threshold alignment, skill registry cleanup",
+  "affected_paths": [
+    "packages/opencode-integration-layer/package.json",
+    "packages/opencode-integration-layer/src/index.js",
+    "packages/opencode-model-manager/src/monitoring/alert-manager.js",
+    "packages/opencode-plugin-healthd/src/daemon.js",
+    "opencode-config/compound-engineering.json",
+    "opencode-config/skills/registry.json",
+    ".gitignore"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

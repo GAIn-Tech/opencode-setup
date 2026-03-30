@@ -1,0 +1,29 @@
+{
+  "name": "opencode-init-kb",
+  "version": "0.1.0",
+  "description": "Knowledge Base initialization module for OpenCode",
+  "main": "src/kb-initializer.js",
+  "keywords": [
+    "opencode",
+    "knowledge-base",
+    "kb",
+    "templates",
+    "audit",
+    "meta-knowledge"
+  ],
+  "author": "OpenCode",
+  "license": "MIT",
+  "files": [
+    "src/"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "scripts": {
+    "test": "echo \"no tests\""
+  },
+  "dependencies": {
+    "opencode-mcp-utils": "workspace:*",
+    "opencode-logger": "workspace:*"
+  }
+}

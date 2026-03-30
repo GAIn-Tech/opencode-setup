@@ -130,7 +130,7 @@ const LearningValidator = {
 class SkillRLManager {
   constructor(options = {}) {
     const _defaultRLPath = path.join(os.homedir(), '.opencode', 'skill-rl.json');
-    this.persistencePath = options.stateFile || _defaultRLPath;
+    this.persistencePath = options.persistencePath || options.stateFile || _defaultRLPath;
     this.skillBank = new SkillBank(options.skillBank);
     this.evolutionEngine = new EvolutionEngine(this.skillBank, options.evolution);
 
@@ -214,17 +214,24 @@ class SkillRLManager {
     }
 
     // Also route to evolution engine for success/failure learning
-    let result;
+    let evolutionResult;
     if (outcome.success) {
-      result = this.evolutionEngine.learnFromSuccess(outcome);
+      evolutionResult = this.evolutionEngine.learnFromSuccess(outcome);
     } else {
-      result = this.evolutionEngine.learnFromFailure(outcome);
+      evolutionResult = this.evolutionEngine.learnFromFailure(outcome);
     }
     
     // Save state
     this._save();
     
-    return updated;
+    // Return combined result: both updates and evolution details
+    return {
+      ...(updated || {}),
+      ...evolutionResult,
+      skills_updated: evolutionResult.skills_updated || [],
+      skills_created: evolutionResult.skills_created || [],
+      reinforced_skills: evolutionResult.reinforced_skills || []
+    };
   }
 
   /**
@@ -233,8 +240,8 @@ class SkillRLManager {
    * @param {Object} taskContext - Task context from OrchestrationAdvisor
    * @returns {Array} Ranked list of relevant skills
    */
-   selectSkills(taskContext) {
-     const skills = this.skillBank.querySkills(taskContext);
+selectSkills(taskContext) {
+      const skills = this.skillBank.querySkills(taskContext);
 
      let result;
      if (this.explorationMode === 'ucb') {
@@ -345,7 +352,34 @@ class SkillRLManager {
     }
     
     if (this.persistencePath) {
-      this._save();
+      this._saveSync();
+    }
+  }
+
+  /**
+   * Save state synchronously for immediate-read flows (e.g. tests)
+   */
+  _saveSync() {
+    if (!this.persistencePath) return;
+
+    try {
+      const state = {
+        skillBank: this.skillBank.export(),
+        evolutionEngine: this.evolutionEngine.export(),
+        timestamp: Date.now()
+      };
+
+      const parentDir = path.dirname(this.persistencePath);
+      const tempPath = `${this.persistencePath}.tmp`;
+
+      if (!fs.existsSync(parentDir)) {
+        fs.mkdirSync(parentDir, { recursive: true });
+      }
+
+      fs.writeFileSync(tempPath, SafeJSON.stringify(state, null, 2));
+      fs.renameSync(tempPath, this.persistencePath);
+    } catch (error) {
+      console.warn('Failed to persist SkillRL state:', error.message);
     }
   }
 

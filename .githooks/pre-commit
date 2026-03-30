@@ -4,4 +4,9 @@ set -euo pipefail
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
+# Governance gate - learning updates must follow conventions
 bun run scripts/learning-gate.mjs --staged
+
+# Portability verification - warn but don't block on portability issues
+# (Full portability requires user environment setup)
+echo "Hint: Run 'node scripts/verify-portability.mjs' to check environment portability"

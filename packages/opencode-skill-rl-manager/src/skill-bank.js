@@ -192,7 +192,7 @@ class SkillBank {
   /**
    * Configuration constants for querySkills() cap behavior
    */
-  static DEFAULT_MAX_RESULTS = 10;
+  static DEFAULT_MAX_RESULTS = 5;
   static SOURCE_RATIO = 0.6;
   static ABSOLUTE_MAX_RESULTS = 20;
 
@@ -202,7 +202,7 @@ class SkillBank {
    * 
    * @param {Object} taskContext - Task context from OrchestrationAdvisor
    * @param {Object} options - Configuration options
-   * @param {number} options.maxResults - Maximum number of results to return (default: 10, max: 20)
+   * @param {number} options.maxResults - Maximum number of results to return (default: 5, max: 20)
    * @returns {Array} Ranked list of relevant skills
    */
   querySkills(taskContext, { maxResults = SkillBank.DEFAULT_MAX_RESULTS } = {}) {

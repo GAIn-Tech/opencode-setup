@@ -5299,8 +5299,7 @@
     "browser": {
       "description": "Skills for browser automation",
       "skills": [
-        "dev-browser",
-        "agent-browser"
+        "dev-browser"
       ]
     },
     "research": {

@@ -1,0 +1,12 @@
+{
+  "schema": "learning-sync-v1",
+  "syncEnabled": false,
+  "autoSync": false,
+  "intervalMs": 3600000,
+  "lastSync": null,
+  "crossProjectLearning": {
+    "enabled": false,
+    "globalPatterns": [],
+    "modelPerformance": []
+  }
+}

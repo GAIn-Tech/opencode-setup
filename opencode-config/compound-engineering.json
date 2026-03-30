@@ -15,7 +15,6 @@
         "codebase-auditor",
         "context-governor",
         "context7",
-        "agent-browser",
         "dev-browser",
         "playwright",
         "dispatching-parallel-agents",
@@ -45,8 +44,7 @@
        "verification-before-completion",
        "websearch",
        "writing-plans",
-       "writing-skills",
-       "beads"
+        "writing-skills"
       ],
       "categories": {
        "core-workflow": [
@@ -83,8 +81,7 @@
          "github-triage"
        ],
         "browser": [
-         "agent-browser",
-         "dev-browser",
+          "dev-browser",
           "playwright",
           "frontend-ui-ux"
         ],
@@ -111,8 +108,7 @@
            "task-orchestrator",
            "skill-orchestrator-runtime",
            "using-superpowers",
-          "writing-skills",
-          "beads"
+          "writing-skills"
         ],
         "task-management": [
           "beads"

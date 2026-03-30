@@ -1,0 +1,19 @@
+{
+  "id": "portability-sync-system-20260328",
+  "timestamp": "2026-03-28T16:10:00.000Z",
+  "summary": "Add portability sync system - git hooks hint, sync-user-config script, PORTABILITY.md updates",
+  "affected_paths": [
+    ".githooks/pre-commit",
+    "scripts/install-git-hooks.mjs",
+    "scripts/sync-user-config.mjs",
+    "PORTABILITY.md",
+    "opencode-config/meta-knowledge-index.json",
+    "opencode-config/.governance-hashes.json"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}
