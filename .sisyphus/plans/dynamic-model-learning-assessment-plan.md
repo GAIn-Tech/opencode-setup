@@ -1158,13 +1158,13 @@ OPENCODE_BENCHMARK_SANDBOX=pyodide            # pyodide | docker
 - `packages/opencode-model-router-x/src/model-discovery.js` — 3-tier fallback (API → docs → community)
 - Key rotation, subagent retry
 
-### Phase 5: BenchmarkRunner — FUNCTIONAL (Pyodide deferred)
+### Phase 5: BenchmarkRunner — COMPLETE
 - `packages/opencode-model-benchmark/src/benchmark-runner.js` — Pluggable ModelClient + Evaluator interfaces, SQLite storage (bun:sqlite), built-in 4 mini Python problems, real pass@k formula (binomial coefficient)
 - `loadProblems()` loads from benchmark JSON or falls back to built-in set
 - `storeResults()` persists to SQLite with `benchmark_results` table
 - `getHistory()` reads from SQLite with JSON parsing
-- Pyodide sandbox (code execution) deferred — evaluator interface ready for it
-- 8 tests, all passing
+- `packages/opencode-model-benchmark/src/pyodide-sandbox.js` now provides `run()` + `evaluate()` API (with graceful fallback to null when Pyodide is unavailable)
+- 11 tests covering runner + sandbox behavior
 
 ### Phase 6: Hierarchy & Pipeline — COMPLETE
 - `model-comparator.js` (137 lines) — Weighted multi-dimension comparison (benchmark, cost, latency, reliability). `compare()`, `rank()`
@@ -1187,11 +1187,11 @@ OPENCODE_BENCHMARK_SANDBOX=pyodide            # pyodide | docker
 - Unblocks `protocol-compliance-pass.mjs` line 69 (`bun run config:coherence`)
 - Tests: 8 pass (5 coherence + 3 audit/manifest/machine)
 
-### Overall: ~90% complete (Phases 1-4 + 5-7 functional, only Pyodide sandbox deferred)
+### Overall: complete for planned scope (Phases 1-7 functional with optional Pyodide runtime)
 ### Exploration mode DEPLOYED via ConfigLoader → bootstrap → ModelRouter wiring
 ### Benchmark pipeline FUNCTIONAL — ready for real model evaluation when model client is connected
 
-### Test Coverage: 32 benchmark tests + 16 routing tests + 8 coherence tests + 4 RL tests = 60+ tests passing
+### Test Coverage: 35 benchmark tests + 16 routing tests + 8 coherence tests + 4 RL tests = 63+ tests passing
 
 ---
 

@@ -3,6 +3,8 @@
 const path = require("path");
 const os = require("os");
 
+const OPENCODE_DIRNAME = ".opencode";
+
 function resolveConfigDir() {
   if (process.env.OPENCODE_CONFIG_HOME) {
     return path.resolve(process.env.OPENCODE_CONFIG_HOME);
@@ -15,8 +17,11 @@ function resolveDataDir() {
   if (process.env.OPENCODE_DATA_HOME) {
     return path.resolve(process.env.OPENCODE_DATA_HOME);
   }
-  const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
-  return path.join(home, ".opencode");
+  if (process.env.XDG_DATA_HOME) {
+    return path.join(process.env.XDG_DATA_HOME, "opencode");
+  }
+  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
+  return path.join(homeDir, OPENCODE_DIRNAME);
 }
 
 module.exports = { resolveConfigDir, resolveDataDir };

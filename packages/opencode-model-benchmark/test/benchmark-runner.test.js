@@ -115,4 +115,65 @@ describe('ModelBenchmarkRunner', () => {
     expect(result.passed).toBe(true);
     expect(result.completion.length).toBeGreaterThan(0);
   });
+
+  test('evaluateProblem uses sandbox evaluate with generated completion when evaluator is missing', async () => {
+    let receivedCompletion = null;
+    let receivedTestCode = null;
+
+    const modelClient = {
+      complete: async () => ({ text: 'def reverse_words(text):\n    return " ".join(reversed(text.split(" ")))'
+      })
+    };
+
+    const injected = new ModelBenchmarkRunner({ modelClient });
+    injected.getPythonSandbox = async () => ({
+      evaluate: async (completion, testCode) => {
+        receivedCompletion = completion;
+        receivedTestCode = testCode;
+        return true;
+      }
+    });
+
+    const result = await injected.evaluateProblem(
+      'model-a',
+      {
+        task_id: 'mini-y',
+        prompt: 'Write reverse_words',
+        test: 'assert reverse_words("a b") == "b a"',
+        language: 'python',
+        entry_point: 'reverse_words'
+      },
+      BENCHMARKS.humaneval
+    );
+
+    expect(receivedCompletion).toContain('def reverse_words');
+    expect(receivedTestCode).toContain('assert reverse_words');
+    expect(result.passed).toBe(true);
+  });
+
+  test('evaluateProblem falls back to sandbox run when evaluate is unavailable', async () => {
+    let runCalled = false;
+    const injected = new ModelBenchmarkRunner();
+    injected.getPythonSandbox = async () => ({
+      run: async (code) => {
+        runCalled = true;
+        expect(code).toContain('assert True');
+      }
+    });
+
+    const result = await injected.evaluateProblem(
+      'model-a',
+      {
+        task_id: 'mini-z',
+        prompt: 'prompt',
+        test: 'assert True',
+        language: 'python',
+        entry_point: 'x'
+      },
+      BENCHMARKS.humaneval
+    );
+
+    expect(runCalled).toBe(true);
+    expect(result.passed).toBe(true);
+  });
 });

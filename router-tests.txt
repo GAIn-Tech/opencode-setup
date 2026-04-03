@@ -1,0 +1,42 @@
+bun test v1.3.10 (30e609e0)
+========================================
+CRITICAL FIX VERIFICATION TESTS
+========================================
+
+=== Test 1: Key Rotator Race Condition ===
+  Acquired keys: 20
+  Unique keys: 6
+  ✓ Race condition test PASSED
+
+=== Test 2: Filesystem Locking ===
+  Found 2/4 filesystem locking patterns
+  ✓ Filesystem locking test PASSED
+
+=== Test 3: Groq Header Parsing ===
+  Found 4/6 Groq header patterns in source
+  ✓ Groq header parsing test PASSED
+
+=== Test 4: Cache TTL Configuration ===
+[32m[2026-04-02T17:46:50.713Z] INFO[0m: [Startup] ModelRouter {
+  startupMs: 1.5,
+}
+  Learning advice cache TTL: 300000ms
+  ✓ Cache TTL test PASSED
+
+=== Test 5: Async Index Rebuild ===
+  Found 4/4 async patterns
+  ✓ Async index rebuild test PASSED
+
+=== Test 6: Learning Engine Catalog Reference ===
+  Has broken 'this.catalog.entries': false
+  Has correct pattern reference: true
+  ✓ Learning engine catalog test PASSED
+
+=== Test 7: Skill RL Duplicate Method Merge ===
+  Found 1 learnFromOutcome definitions
+  ✓ Skill RL merge test PASSED
+
+========================================
+RESULTS: 7/7 tests passed
+========================================
+✓ ALL CRITICAL FIX TESTS PASSED

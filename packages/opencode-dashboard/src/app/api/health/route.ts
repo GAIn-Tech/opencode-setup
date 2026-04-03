@@ -6,6 +6,8 @@ import { rateLimited } from '../_lib/api-response';
 
 export const dynamic = 'force-dynamic';
 
+const OPENCODE_DIRNAME = '.opencode';
+
 interface PackageInfo {
   name: string;
   version?: string;
@@ -26,6 +28,17 @@ interface ModelCatalogHealth {
   schemaLastUpdated?: string;
   modelCount: number;
   issues: string[];
+}
+
+function resolveDataHome(): string {
+  if (process.env.OPENCODE_DATA_HOME && process.env.OPENCODE_DATA_HOME.trim()) {
+    return process.env.OPENCODE_DATA_HOME;
+  }
+  if (process.env.XDG_DATA_HOME && process.env.XDG_DATA_HOME.trim()) {
+    return path.join(process.env.XDG_DATA_HOME, 'opencode');
+  }
+  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
+  return path.join(homeDir, OPENCODE_DIRNAME);
 }
 
 const OBSOLETE_MODEL_PATTERNS: RegExp[] = [
@@ -113,7 +126,7 @@ export async function GET() {
 
   try {
     const projectRoot = process.cwd().replace('/packages/opencode-dashboard', '').replace('\\packages\\opencode-dashboard', '');
-    const opencodePath = path.join(os.homedir(), '.opencode');
+    const opencodePath = resolveDataHome();
     
     // Get packages info
     const packagesDir = path.join(projectRoot, 'packages');

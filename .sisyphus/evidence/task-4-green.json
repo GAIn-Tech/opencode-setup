@@ -1,0 +1,17 @@
+{
+  "task": 4,
+  "phase": "green",
+  "timestamp": "2026-03-31T05:33:00.000Z",
+  "command": "bun test scripts/tests/verify-portability.test.js -t determinism",
+  "result": "passed",
+  "summary": {
+    "passCount": 2,
+    "failCount": 0,
+    "expectCalls": 10
+  },
+  "contractChecks": [
+    "checkDeterminismFailures reports filesystem/time/locale/encoding violations",
+    "strict --json includes determinismReport",
+    "fault-injected determinism leak produces fail status and non-zero exit"
+  ]
+}

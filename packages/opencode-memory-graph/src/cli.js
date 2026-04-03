@@ -6,9 +6,18 @@ const os = require('os');
 const fs = require('fs');
 const { MemoryGraph } = require('./index');
 
-const HOME = process.env.USERPROFILE || process.env.HOME || os.homedir();
-const DEFAULT_MESSAGES_DIR = path.join(HOME, '.opencode', 'messages');
-const DEFAULT_GRAPH_PATH = path.join(HOME, '.opencode', 'memory-graph.json');
+const OPENCODE_DIRNAME = '.opencode';
+
+function resolveDataHome() {
+  if (process.env.OPENCODE_DATA_HOME) return process.env.OPENCODE_DATA_HOME;
+  if (process.env.XDG_DATA_HOME) return path.join(process.env.XDG_DATA_HOME, 'opencode');
+  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
+  return path.join(homeDir, OPENCODE_DIRNAME);
+}
+
+const DATA_HOME = resolveDataHome();
+const DEFAULT_MESSAGES_DIR = path.join(DATA_HOME, 'messages');
+const DEFAULT_GRAPH_PATH = path.join(DATA_HOME, 'memory-graph.json');
 
 const SUBCOMMANDS = ['get-graph', 'get-sessions', 'get-session-path', 'get-error-freq', 'build', 'export', 'health'];
 

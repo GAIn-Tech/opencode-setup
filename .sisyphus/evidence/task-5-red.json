@@ -1,0 +1,15 @@
+{
+  "task": 5,
+  "phase": "red",
+  "timestamp": "2026-03-31T06:05:00.000Z",
+  "command": "bun test scripts/tests/verify-portability.test.js --test-name-pattern \"restore-drill\"",
+  "result": "failed-as-expected",
+  "failingAssertions": [
+    "strict output missing restoreDrillReport for missing evidence",
+    "strict output missing restoreDrillReport for RTO/RPO breach evidence"
+  ],
+  "evidence": {
+    "passCount": 0,
+    "failCount": 2
+  }
+}

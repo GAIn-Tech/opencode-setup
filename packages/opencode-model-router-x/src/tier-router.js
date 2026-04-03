@@ -87,20 +87,33 @@ const FALLBACK_TIER_MAP = {
 // Pre-filter: models missing required capabilities are excluded before scoring.
 // Capabilities: vision, tools, reasoning, large_context (>128k tokens).
 const MODEL_CAPABILITIES = {
-  'opus-thinking':  { vision: true,  tools: true,  reasoning: true,  large_context: true  },
-  'opus':           { vision: true,  tools: true,  reasoning: true,  large_context: true  },
-  'sonnet':         { vision: true,  tools: true,  reasoning: true,  large_context: true  },
-  'haiku':          { vision: false, tools: true,  reasoning: false, large_context: false },
-  // Extended provider models
-  'gpt-5':          { vision: true,  tools: true,  reasoning: true,  large_context: true  },
-  'gpt-5.2':        { vision: true,  tools: true,  reasoning: true,  large_context: true  },
-  'gemini-3-flash': { vision: true,  tools: true,  reasoning: true,  large_context: true  },
-  'gemini-2.5-pro': { vision: true,  tools: true,  reasoning: true,  large_context: true  },
-  'kimi-k2.5':      { vision: false, tools: true,  reasoning: true,  large_context: true  },
-  'deepseek-v3.2':  { vision: false, tools: true,  reasoning: true,  large_context: true  },
-  'glm5':           { vision: false, tools: true,  reasoning: false, large_context: false },
-  'glm-4.7':        { vision: false, tools: true,  reasoning: false, large_context: false },
+  // OpenAI
+  'gpt-5': { vision: true, tools: true, reasoning: true, large_context: true },
+  'gpt-5.2': { vision: true, tools: true, reasoning: true, large_context: true },
+  'gpt-5.3-codex': { vision: true, tools: true, reasoning: true, large_context: true },
+  // Google Gemini
+  'gemini-2.5-flash': { vision: true, tools: true, reasoning: true, large_context: true },
+  'gemini-3-flash-preview': { vision: true, tools: true, reasoning: true, large_context: true },
+  'gemini-3-pro-preview': { vision: true, tools: true, reasoning: true, large_context: true },
+  'gemini-3.1-flash-lite-preview': { vision: true, tools: true, reasoning: true, large_context: true },
+  'gemini-3.1-pro-preview': { vision: true, tools: true, reasoning: true, large_context: true },
+  // NVIDIA/Zen models
+  'kimi-k2.5': { vision: false, tools: true, reasoning: true, large_context: true },
+  'glm-5': { vision: false, tools: true, reasoning: true, large_context: true },
+  'glm4.7': { vision: false, tools: true, reasoning: false, large_context: false },
+  'minimax-m2.5': { vision: false, tools: true, reasoning: true, large_context: true },
+  // Legacy aliases
+  'deepseek-v3.2': { vision: false, tools: true, reasoning: true, large_context: true },
 };
+
+// Helper: Normalize model IDs from provider-prefixed to short form
+function normalizeModelId(id) {
+  if (!id) return id;
+  // Remove provider prefix: openai/gpt-5.3-codex → gpt-5.3-codex
+  // Remove org prefix: z-ai/glm-5 → glm-5
+  // Remove zen/ prefix: zen/kimi-k2.5 → kimi-k2.5
+  return id.split('/').pop();
+}
 
 class TierRouter {
   constructor(options = {}) {

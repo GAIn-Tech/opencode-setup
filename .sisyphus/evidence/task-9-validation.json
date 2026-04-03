@@ -1,0 +1,31 @@
+{
+  "task": 9,
+  "phase": "validation",
+  "commands": [
+    {
+      "name": "strict-json-contract",
+      "command": "node -e \"spawn verify-portability strict json and parse releaseVerdict\"",
+      "result": {
+        "exitCode": 1,
+        "hasReleaseVerdict": true,
+        "releaseVerdictStatus": "failed",
+        "releaseGateCount": 10
+      }
+    },
+    {
+      "name": "report-aggregation",
+      "command": "node scripts/generate-portability-report.mjs --output .sisyphus/evidence/task-9-report.json",
+      "result": {
+        "exitCode": 1,
+        "reportPath": ".sisyphus/evidence/task-9-report.json",
+        "hasReleaseVerdict": true,
+        "hasGateStatusReasons": true
+      }
+    }
+  ],
+  "contractChecks": [
+    "node scripts/verify-portability.mjs --strict --json includes releaseVerdict",
+    "releaseVerdict aggregates gate statuses and reasons",
+    "release verdict is fail-closed when any gate fails"
+  ]
+}

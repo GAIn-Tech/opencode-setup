@@ -2,11 +2,9 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'fs';
 import path from 'path';
-import { homedir } from 'os';
-import { resolveRoot } from './resolve-root.mjs';
+import { resolveRoot, resolveUserDataPath } from './resolve-root.mjs';
 
 const root = resolveRoot();
-const HOME = process.env.USERPROFILE || process.env.HOME || homedir();
 
 const MCP_ALIASES = {
   playwright: {
@@ -91,7 +89,7 @@ function readText(relativePath) {
 }
 
 function readTelemetryInvocations() {
-  const filePath = path.join(HOME, '.opencode', 'tool-usage', 'invocations.json');
+  const filePath = resolveUserDataPath('tool-usage', 'invocations.json');
   try {
     const data = JSON.parse(readFileSync(filePath, 'utf8'));
     return Array.isArray(data.invocations) ? data.invocations : [];
@@ -102,7 +100,7 @@ function readTelemetryInvocations() {
 }
 
 function readExerciseInvocations() {
-  const filePath = path.join(HOME, '.opencode', 'tool-usage', 'mcp-exercises.json');
+  const filePath = resolveUserDataPath('tool-usage', 'mcp-exercises.json');
   try {
     const data = JSON.parse(readFileSync(filePath, 'utf8'));
     return Array.isArray(data.entries) ? data.entries : [];

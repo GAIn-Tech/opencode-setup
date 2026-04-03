@@ -2,12 +2,49 @@
 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { getRuntime } from './bootstrap-runtime.mjs';
 
 export const RUNTIME_WORKFLOW_JSON_MARKER = '__RUNTIME_WORKFLOW_JSON__';
+export const MIN_NON_MOCKED_SCENARIO_RATIO = 0.6;
+export const CRITICAL_REAL_SCENARIOS = Object.freeze(['setup', 'sync', 'verify', 'report']);
+
+const REASON_CODES = Object.freeze({
+  OK: 'OK',
+  MOCKED_RATIO_BELOW_THRESHOLD: 'SCENARIO_MOCKED_RATIO_BELOW_THRESHOLD',
+  CRITICAL_REAL_MISSING: 'SCENARIO_CRITICAL_REAL_MISSING',
+  REAL_EXECUTION_FAILED: 'SCENARIO_REAL_EXECUTION_FAILED',
+});
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
+}
+
+function policyFailure(reasonCode, reason, details = {}) {
+  return { ok: false, reasonCode, reason, details };
+}
+
+function policySuccess(details = {}) {
+  return { ok: true, reasonCode: REASON_CODES.OK, reason: 'ok', details };
+}
+
+function collectScenarioExecutionStats(scenarios) {
+  const tracked = Object.entries(scenarios).filter(([, scenario]) => {
+    const mode = String(scenario?.executionMode || '').toLowerCase();
+    return mode === 'real' || mode === 'mocked';
+  });
+
+  const real = tracked.filter(([, scenario]) => String(scenario.executionMode).toLowerCase() === 'real');
+  const mocked = tracked.length - real.length;
+  const ratio = tracked.length > 0 ? real.length / tracked.length : 0;
+
+  return {
+    trackedCount: tracked.length,
+    realCount: real.length,
+    mockedCount: mocked,
+    ratio,
+    tracked,
+  };
 }
 
 export function evaluateWorkflowScenarios(payload) {
@@ -18,34 +55,34 @@ export function evaluateWorkflowScenarios(payload) {
   const workflow = scenarios.workflowPersistence;
 
   if (!healthy?.attachedRuntimeContext) {
-    return { ok: false, reason: 'healthyCodeEdit did not attach runtime context' };
+    return policyFailure('SCENARIO_POLICY_VALIDATION_FAILED', 'healthyCodeEdit did not attach runtime context');
   }
 
   if (healthy?.budgetAction !== 'none' || healthy?.compressionActive !== false) {
-    return { ok: false, reason: 'healthyCodeEdit expected budgetAction none with inactive compression' };
+    return policyFailure('SCENARIO_POLICY_VALIDATION_FAILED', 'healthyCodeEdit expected budgetAction none with inactive compression');
   }
 
   if (healthy?.adaptiveRetries !== 3 || healthy?.adaptiveBackoff !== 1000) {
-    return { ok: false, reason: 'healthyCodeEdit adaptive options did not preserve healthy defaults' };
+    return policyFailure('SCENARIO_POLICY_VALIDATION_FAILED', 'healthyCodeEdit adaptive options did not preserve healthy defaults');
   }
 
   if (!compressed?.attachedRuntimeContext) {
-    return { ok: false, reason: 'compressedResearch did not attach runtime context' };
+    return policyFailure('SCENARIO_POLICY_VALIDATION_FAILED', 'compressedResearch did not attach runtime context');
   }
 
   if (compressed?.budgetAction !== 'compress_urgent' || compressed?.compressionActive !== true) {
-    return { ok: false, reason: 'compressedResearch expected compress_urgent budget action' };
+    return policyFailure('SCENARIO_POLICY_VALIDATION_FAILED', 'compressedResearch expected compress_urgent budget action');
   }
 
   if (compressed?.adaptiveRetries !== 1 || compressed?.adaptiveBackoff !== 3000) {
-    return { ok: false, reason: 'compressedResearch adaptive options did not tighten for compression' };
+    return policyFailure('SCENARIO_POLICY_VALIDATION_FAILED', 'compressedResearch adaptive options did not tighten for compression');
   }
 
   const compressionTools = Array.isArray(compressed?.compressionRecommendedTools)
     ? compressed.compressionRecommendedTools
     : [];
   if (!compressionTools.includes('distill_run_tool')) {
-    return { ok: false, reason: 'compressedResearch missing distill_run_tool recommendation' };
+    return policyFailure('SCENARIO_POLICY_VALIDATION_FAILED', 'compressedResearch missing distill_run_tool recommendation');
   }
 
   const compressionSkills = Array.isArray(compressed?.compressionRecommendedSkills)
@@ -53,27 +90,67 @@ export function evaluateWorkflowScenarios(payload) {
     : [];
   for (const skill of ['dcp', 'distill', 'context-governor']) {
     if (!compressionSkills.includes(skill)) {
-      return { ok: false, reason: `compressedResearch missing compression skill ${skill}` };
+      return policyFailure('SCENARIO_POLICY_VALIDATION_FAILED', `compressedResearch missing compression skill ${skill}`);
     }
   }
 
   if (!touchpoints?.dashboard?.running || touchpoints?.dashboard?.port !== 3000) {
-    return { ok: false, reason: 'serviceTouchpoints dashboard status did not propagate' };
+    return policyFailure('SCENARIO_POLICY_VALIDATION_FAILED', 'serviceTouchpoints dashboard status did not propagate');
   }
 
   if (touchpoints?.health?.status !== 'warn' || touchpoints?.healthSnapshot?.checkCount !== 4) {
-    return { ok: false, reason: 'serviceTouchpoints health snapshot did not propagate' };
+    return policyFailure('SCENARIO_POLICY_VALIDATION_FAILED', 'serviceTouchpoints health snapshot did not propagate');
   }
 
   if (workflow?.execute?.runId !== 'workflow-run-1' || workflow?.resume?.status !== 'resumed') {
-    return { ok: false, reason: 'workflowPersistence execution/resume results were incorrect' };
+    return policyFailure('SCENARIO_POLICY_VALIDATION_FAILED', 'workflowPersistence execution/resume results were incorrect');
   }
 
   if (workflow?.state?.step !== 2) {
-    return { ok: false, reason: 'workflowPersistence state snapshot was incorrect' };
+    return policyFailure('SCENARIO_POLICY_VALIDATION_FAILED', 'workflowPersistence state snapshot was incorrect');
   }
 
-  return { ok: true, reason: 'ok' };
+  const executionStats = collectScenarioExecutionStats(scenarios);
+  if (executionStats.ratio < MIN_NON_MOCKED_SCENARIO_RATIO) {
+    return policyFailure(
+      REASON_CODES.MOCKED_RATIO_BELOW_THRESHOLD,
+      `non-mocked scenario ratio ${executionStats.ratio.toFixed(2)} below required ${MIN_NON_MOCKED_SCENARIO_RATIO.toFixed(2)}`,
+      {
+        requiredRatio: MIN_NON_MOCKED_SCENARIO_RATIO,
+        actualRatio: executionStats.ratio,
+        realCount: executionStats.realCount,
+        mockedCount: executionStats.mockedCount,
+        trackedCount: executionStats.trackedCount,
+      },
+    );
+  }
+
+  for (const scenarioName of CRITICAL_REAL_SCENARIOS) {
+    const scenario = scenarios[scenarioName];
+    if (!scenario || String(scenario.executionMode || '').toLowerCase() !== 'real') {
+      return policyFailure(
+        REASON_CODES.CRITICAL_REAL_MISSING,
+        `critical scenario ${scenarioName} must exist and run in real mode`,
+        { scenario: scenarioName },
+      );
+    }
+    if (scenario.executionOk !== true) {
+      return policyFailure(
+        REASON_CODES.REAL_EXECUTION_FAILED,
+        `critical real scenario ${scenarioName} did not complete successfully`,
+        { scenario: scenarioName, error: scenario.error || null },
+      );
+    }
+  }
+
+  return policySuccess({
+    requiredRatio: MIN_NON_MOCKED_SCENARIO_RATIO,
+    actualRatio: executionStats.ratio,
+    realCount: executionStats.realCount,
+    mockedCount: executionStats.mockedCount,
+    trackedCount: executionStats.trackedCount,
+    criticalRealScenarios: CRITICAL_REAL_SCENARIOS,
+  });
 }
 
 async function runTaskScenario(runtime, taskContext, collaborators) {
@@ -114,7 +191,93 @@ async function runTaskScenario(runtime, taskContext, collaborators) {
     recommendedTools: capturedAdaptiveOptions?.recommendedTools || [],
     compressionRecommendedTools: capturedAdaptiveOptions?.compressionRecommendedTools || [],
     compressionRecommendedSkills: capturedAdaptiveOptions?.compressionRecommendedSkills || [],
+    executionMode: 'mocked',
+    executionOk: true,
   };
+}
+
+async function runRealScenario(name, executor) {
+  try {
+    const detail = await executor();
+    return {
+      name,
+      executionMode: 'real',
+      executionOk: true,
+      detail,
+    };
+  } catch (error) {
+    return {
+      name,
+      executionMode: 'real',
+      executionOk: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+async function runCriticalRealScenarios(runtime) {
+  const setup = await runRealScenario('setup', async () => {
+    if (typeof runtime.resolveRuntimeContext !== 'function') {
+      throw new Error('runtime.resolveRuntimeContext unavailable');
+    }
+    const ctx = await runtime.resolveRuntimeContext({
+      task: 'runtime-workflow-setup',
+      sessionId: 'runtime-workflow-suite',
+      model: 'openai/gpt-5.2',
+    });
+    if (!ctx || typeof ctx !== 'object') {
+      throw new Error('resolveRuntimeContext returned invalid payload');
+    }
+    return { hasContext: true };
+  });
+
+  const sync = await runRealScenario('sync', async () => {
+    if (typeof runtime.selectToolsForTask !== 'function') {
+      throw new Error('runtime.selectToolsForTask unavailable');
+    }
+    const selected = await runtime.selectToolsForTask({
+      task: 'runtime-workflow-sync',
+      sessionId: 'runtime-workflow-suite',
+      model: 'openai/gpt-5.2',
+    });
+    return {
+      toolCount: Array.isArray(selected?.tools) ? selected.tools.length : 0,
+      totalTokens: Number(selected?.totalTokens || 0),
+    };
+  });
+
+  const verify = await runRealScenario('verify', async () => {
+    if (typeof runtime.checkContextBudget !== 'function') {
+      throw new Error('runtime.checkContextBudget unavailable');
+    }
+    const budget = await runtime.checkContextBudget({
+      sessionId: 'runtime-workflow-suite',
+      model: 'openai/gpt-5.2',
+      proposedTokens: 500,
+    });
+    if (!budget || typeof budget !== 'object') {
+      throw new Error('checkContextBudget returned invalid payload');
+    }
+    return {
+      action: budget.action || null,
+      pct: Number.isFinite(budget.pct) ? budget.pct : null,
+    };
+  });
+
+  const report = await runRealScenario('report', async () => {
+    if (typeof runtime.getIntegrationStatus !== 'function') {
+      throw new Error('runtime.getIntegrationStatus unavailable');
+    }
+    const status = runtime.getIntegrationStatus();
+    if (!status || typeof status !== 'object') {
+      throw new Error('getIntegrationStatus returned invalid payload');
+    }
+    return {
+      loadedIntegrationCount: Object.values(status).filter(Boolean).length,
+    };
+  });
+
+  return { setup, sync, verify, report };
 }
 
 export async function runRuntimeWorkflowScenarios() {
@@ -123,7 +286,7 @@ export async function runRuntimeWorkflowScenarios() {
   const healthyCodeEdit = await runTaskScenario(runtime, {
     task: 'healthy-code-edit',
     sessionId: 'runtime-workflow-suite',
-    model: 'anthropic/claude-sonnet-4-5',
+    model: 'openai/gpt-5.2',
   }, {
     contextBridge: {
       evaluateAndCompress: () => ({
@@ -146,7 +309,7 @@ export async function runRuntimeWorkflowScenarios() {
   const compressedResearch = await runTaskScenario(runtime, {
     task: 'compressed-research',
     sessionId: 'runtime-workflow-suite',
-    model: 'anthropic/claude-sonnet-4-5',
+    model: 'openai/gpt-5.2',
   }, {
     contextBridge: {
       evaluateAndCompress: () => ({
@@ -168,6 +331,8 @@ export async function runRuntimeWorkflowScenarios() {
       advise: () => ({ risk_score: 18, quota_risk: 0.2 }),
     },
   });
+
+  const criticalReal = await runCriticalRealScenarios(runtime);
 
   const originalDashboardLauncher = runtime.dashboardLauncher;
   const originalHealthd = runtime.healthd;
@@ -215,6 +380,10 @@ export async function runRuntimeWorkflowScenarios() {
       scenarios: {
         healthyCodeEdit,
         compressedResearch,
+        setup: criticalReal.setup,
+        sync: criticalReal.sync,
+        verify: criticalReal.verify,
+        report: criticalReal.report,
         serviceTouchpoints,
         workflowPersistence,
       },
@@ -228,12 +397,23 @@ export async function runRuntimeWorkflowScenarios() {
 }
 
 async function main() {
-  const outputJson = process.argv.includes('--json');
+  const args = process.argv.slice(2);
+  const outputJson = args.includes('--json');
+  const outputIndex = args.indexOf('--output');
+  const outputPath = outputIndex !== -1 && args[outputIndex + 1] ? args[outputIndex + 1] : null;
   const payload = await runRuntimeWorkflowScenarios();
   const evaluation = evaluateWorkflowScenarios(payload);
+  const fullPayload = { ...payload, evaluation };
 
-  if (outputJson) {
-    process.stdout.write(`${RUNTIME_WORKFLOW_JSON_MARKER}${JSON.stringify({ ...payload, evaluation })}`);
+  if (outputPath) {
+    const dir = path.dirname(outputPath);
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true });
+    }
+    writeFileSync(outputPath, JSON.stringify(fullPayload, null, 2), 'utf8');
+    console.error(`[OK] Runtime workflow scenarios proof written to ${outputPath}`);
+  } else if (outputJson) {
+    process.stdout.write(`${RUNTIME_WORKFLOW_JSON_MARKER}${JSON.stringify(fullPayload)}`);
   } else {
     console.log('# Runtime Workflow Scenarios');
     console.log(`- healthyCodeEdit budgetAction: ${payload.scenarios.healthyCodeEdit.budgetAction}`);

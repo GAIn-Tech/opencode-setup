@@ -4,6 +4,13 @@ const os = require('os');
 const path = require('path');
 const { IntegrationLayer } = require('./index.js');
 
+const OPENCODE_DATA_DIR = process.env.OPENCODE_DATA_HOME
+  || (process.env.XDG_DATA_HOME ? path.join(process.env.XDG_DATA_HOME, 'opencode') : path.join(os.homedir(), '.opencode'));
+
+function opencodeDataPath(...parts) {
+  return path.join(OPENCODE_DATA_DIR, ...parts);
+}
+
 // --- Fail-open package imports ---
 let initCrashGuard = null;
 let SkillRLManager = null;
@@ -176,7 +183,7 @@ function bootstrap(options = {}) {
   // Fail-open: if db missing, table absent, or constructor throws → adapter stays null
   if (ExplorationRLAdapterClass && config.skillRLManager) {
     try {
-      const _auditDbPath = path.join(os.homedir(), '.opencode', 'audit.db');
+      const _auditDbPath = opencodeDataPath('audit.db');
       const fs = require('fs');
       if (fs.existsSync(_auditDbPath)) {
         let _Database;
@@ -369,7 +376,7 @@ function bootstrap(options = {}) {
         tokenBudgetRatio: configLoader.get('exploration.tokenBudgetRatio', 0.1),
         minTokens: configLoader.get('exploration.minTokens', 500),
       } : undefined;
-      const statsPersistPath = path.join(os.homedir(), '.opencode', 'model-router-stats.json');
+      const statsPersistPath = opencodeDataPath('model-router-stats.json');
       config.modelRouter = new ModelRouter({
         skillRLManager: config.skillRLManager || null,
         fallbackDoctor: config.fallbackDoctor || null,
@@ -391,7 +398,7 @@ function bootstrap(options = {}) {
       // Sampling has real training data from prior delegations.
       let runtimeOutcomes = [];
       try {
-        const outcomesPath = path.join(os.homedir(), '.opencode', 'model-router-runtime-outcomes.json');
+        const outcomesPath = opencodeDataPath('model-router-runtime-outcomes.json');
         const raw = require('fs').readFileSync(outcomesPath, 'utf8');
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {

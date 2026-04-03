@@ -1,16 +1,27 @@
 #!/usr/bin/env node
 
-import { mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'fs';
 import { createRequire } from 'module';
 import path from 'path';
-import { homedir } from 'os';
 import { spawnSync } from 'child_process';
-import { resolveRoot } from './resolve-root.mjs';
+import { resolveRoot, resolveUserDataPath } from './resolve-root.mjs';
 
 const root = resolveRoot();
-const HOME = process.env.USERPROFILE || process.env.HOME || homedir();
 const outputJson = process.argv.includes('--json');
 const require = createRequire(import.meta.url);
+
+// Generate deterministic run ID and commit SHA for attestation binding
+function getRunBinding() {
+  const runId = process.env.GITHUB_RUN_ID || process.env.CI_PIPELINE_ID || `local-${Date.now()}`;
+  let commitSha = 'unknown';
+  try {
+    const result = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' });
+    if (result.status === 0) {
+      commitSha = result.stdout.trim();
+    }
+  } catch {}
+  return { runId, commitSha };
+}
 
 function resolveExecutable(name) {
   if (process.platform === 'win32') {
@@ -132,6 +143,7 @@ function getLocalLiveMcps() {
 
 function exerciseLocalMcps() {
   const now = new Date().toISOString();
+  const { runId, commitSha } = getRunBinding();
   const exercised = [];
   const skipped = [];
 
@@ -141,6 +153,8 @@ function exerciseLocalMcps() {
       skipped.push({
         name,
         skippedAt: now,
+        runId,
+        commitSha,
         reason: 'No repo-owned exercise probe available',
       });
       continue;
@@ -151,6 +165,8 @@ function exerciseLocalMcps() {
       exercised.push({
         name,
         verifiedAt: now,
+        runId,
+        commitSha,
         source: 'mcp-exercise-harness',
         probe: probe.source,
       });
@@ -158,27 +174,31 @@ function exerciseLocalMcps() {
       skipped.push({
         name,
         skippedAt: now,
+        runId,
+        commitSha,
         reason: error instanceof Error ? error.message : String(error),
       });
     }
   }
 
-  return { exercised, skipped, generatedAt: now };
+  return { exercised, skipped, generatedAt: now, runId, commitSha };
 }
 
 function main() {
-  const toolUsageDir = path.join(HOME, '.opencode', 'tool-usage');
+  const toolUsageDir = resolveUserDataPath('tool-usage');
   mkdirSync(toolUsageDir, { recursive: true });
   const filePath = path.join(toolUsageDir, 'mcp-exercises.json');
-  const { exercised, skipped, generatedAt } = exerciseLocalMcps();
+  const { exercised, skipped, generatedAt, runId, commitSha } = exerciseLocalMcps();
 
-  writeFileSync(filePath, JSON.stringify({ entries: exercised }, null, 2), 'utf8');
+  writeFileSync(filePath, JSON.stringify({ entries: exercised, runId, commitSha, generatedAt }, null, 2), 'utf8');
 
-  const payload = { generatedAt, exercised, skipped };
+  const payload = { generatedAt, exercised, skipped, runId, commitSha };
   if (outputJson) {
     process.stdout.write(JSON.stringify(payload, null, 2));
   } else {
     console.log('# MCP Exercise Harness');
+    console.log(`- runId: ${runId}`);
+    console.log(`- commitSha: ${commitSha}`);
     for (const entry of exercised) {
       console.log(`- ${entry.name}: verified`);
     }

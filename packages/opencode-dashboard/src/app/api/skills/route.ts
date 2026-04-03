@@ -14,6 +14,15 @@ interface SkillEntry {
   task_type?: string;
 }
 
+const OPENCODE_DIRNAME = '.opencode';
+
+function resolveDataHome(): string {
+  if (process.env.OPENCODE_DATA_HOME) return process.env.OPENCODE_DATA_HOME;
+  if (process.env.XDG_DATA_HOME) return path.join(process.env.XDG_DATA_HOME, 'opencode');
+  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
+  return path.join(homeDir, OPENCODE_DIRNAME);
+}
+
 function toNumber(value: unknown, fallback = 0): number {
   if (typeof value === 'number' && Number.isFinite(value)) {
     return value;
@@ -153,7 +162,7 @@ const demoData = {
 
 export async function GET() {
   try {
-    const opencodePath = path.join(os.homedir(), '.opencode');
+    const opencodePath = resolveDataHome();
     const skillsPath = path.join(opencodePath, 'skill-rl.json');
     
     // Check if skills file exists

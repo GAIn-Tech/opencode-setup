@@ -1,0 +1,13 @@
+{
+  "task": "task-6",
+  "phase": "red",
+  "description": "New privilege governance tests fail before implementation",
+  "command": "bun test scripts/tests/verify-portability.test.js",
+  "result": {
+    "status": "failed",
+    "evidence": [
+      "expect(received).toHaveProperty(path) Expected path: \"privilegeGovernanceReport\"",
+      "TypeError: undefined is not an object (evaluating 'payload.privilegeGovernanceReport.status')"
+    ]
+  }
+}

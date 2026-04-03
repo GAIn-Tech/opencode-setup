@@ -58,6 +58,15 @@ type EventRecord = {
 
 type SigningMode = 'off' | 'allow-unsigned' | 'require-signed' | 'require-valid-signature';
 
+const OPENCODE_DIRNAME = '.opencode';
+
+function resolveDataHome(): string {
+  if (process.env.OPENCODE_DATA_HOME) return process.env.OPENCODE_DATA_HOME;
+  if (process.env.XDG_DATA_HOME) return path.join(process.env.XDG_DATA_HOME, 'opencode');
+  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
+  return path.join(homeDir, OPENCODE_DIRNAME);
+}
+
 function resolveSigningMode(): SigningMode {
   const defaultMode = process.env.NODE_ENV === 'production' ? 'require-valid-signature' : 'allow-unsigned';
   const raw = String(process.env.OPENCODE_EVENT_SIGNING_MODE || defaultMode).trim().toLowerCase();
@@ -122,10 +131,6 @@ function readJson<T>(filePath: string, fallback: T): T {
   }
 }
 
-function resolveHome() {
-  return process.env.USERPROFILE || process.env.HOME || os.homedir();
-}
-
 function toBudgetStatus(pctValue: number): 'ok' | 'warn' | 'error' | 'exceeded' {
   if (pctValue >= 1) return 'exceeded';
   if (pctValue >= 0.8) return 'error';
@@ -134,7 +139,7 @@ function toBudgetStatus(pctValue: number): 'ok' | 'warn' | 'error' | 'exceeded' 
 }
 
 function readBudgetSummaries(limit = 5) {
-  const sessionsDir = path.join(resolveHome(), '.opencode', 'tool-usage', 'sessions');
+  const sessionsDir = path.join(resolveDataHome(), 'tool-usage', 'sessions');
   if (!fs.existsSync(sessionsDir)) return [];
   return fs
     .readdirSync(sessionsDir)
@@ -259,7 +264,7 @@ function countSkillUniverse(): number {
   const roots = [
     path.resolve(process.cwd(), '../../opencode-config/skills'),
     path.join(os.homedir(), '.config', 'opencode', 'skills'),
-    path.join(os.homedir(), '.opencode', 'skills'),
+    path.join(resolveDataHome(), 'skills'),
   ];
   const seen = new Set<string>();
   for (const root of roots) {
@@ -349,7 +354,7 @@ export async function GET(request: Request) {
     const providerHealthTarget = parseFloatParam(params.get('providerHealthTarget'), 80, 10, 100);
     const cutoffMs = Date.now() - sinceDays * 24 * 60 * 60 * 1000;
 
-    const op = path.join(os.homedir(), '.opencode');
+    const op = resolveDataHome();
     const repoRoot = path.resolve(process.cwd(), '..', '..');
     const messagesPath = path.join(op, 'messages');
     const skillRlPath = path.join(op, 'skill-rl.json');
@@ -721,7 +726,7 @@ export async function POST(request: Request) {
     if (!incoming.length) {
       return NextResponse.json({ message: 'No events submitted', accepted: 0 }, { status: 400 });
     }
-    const op = path.join(os.homedir(), '.opencode');
+    const op = resolveDataHome();
     const filePath = path.join(op, 'orchestration-events.json');
     const signingKey = process.env.OPENCODE_EVENT_SIGNING_KEY || '';
     const signingMode = resolveSigningMode();

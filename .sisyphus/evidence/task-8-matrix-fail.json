@@ -1,0 +1,23 @@
+{
+  "task": 8,
+  "scenario": "tiered-matrix-blocks-on-gate-failure",
+  "timestamp": "2026-03-31T05:58:24.000Z",
+  "workflow": ".github/workflows/portability-matrix.yml",
+  "commandSequence": [
+    "node scripts/copy-config.mjs",
+    "node scripts/generate-mcp-config.mjs",
+    "node scripts/verify-setup.mjs",
+    "node scripts/verify-portability.mjs --strict --json"
+  ],
+  "faultInjection": {
+    "OPENCODE_PORTABILITY_FAULT_DETERMINISM": "1"
+  },
+  "result": {
+    "exitCode": 1,
+    "ok": false,
+    "releaseVerdict": "failed",
+    "determinismReportStatus": "fail",
+    "firstFailure": "Determinism gate failed: fault injection: intentional determinism leak detected"
+  },
+  "assertion": "Strict matrix leg must fail-closed when any required gate fails"
+}

@@ -9,10 +9,18 @@ const { boundedDelta, clamp, detectAnomaly, selectiveReassessmentWeight } = requ
 const { initializeRollups, calculateConfidenceInterval, calculateComposite } = require('./meta-awareness-rollups');
 const { safeJsonParse } = require('opencode-safe-io');
 
+const OPENCODE_DIRNAME = '.opencode';
+
+function resolveDataHome() {
+  if (process.env.OPENCODE_DATA_HOME) return process.env.OPENCODE_DATA_HOME;
+  if (process.env.XDG_DATA_HOME) return path.join(process.env.XDG_DATA_HOME, 'opencode');
+  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
+  return path.join(homeDir, OPENCODE_DIRNAME);
+}
+
 class MetaAwarenessTracker {
   constructor(options = {}) {
-    const home = os.homedir();
-    this.telemetryDir = options.telemetryDir || path.join(home, '.opencode', 'telemetry');
+    this.telemetryDir = options.telemetryDir || path.join(resolveDataHome(), 'telemetry');
     this.eventsPath = options.eventsPath || path.join(this.telemetryDir, 'orchestration-intel.jsonl');
     this.rollupsPath = options.rollupsPath || path.join(this.telemetryDir, 'orchestration-intel-rollups.json');
 

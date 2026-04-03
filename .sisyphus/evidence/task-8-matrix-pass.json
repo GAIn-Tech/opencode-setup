@@ -1,0 +1,34 @@
+{
+  "task": 8,
+  "scenario": "healthy-baseline-passes-both-tiers",
+  "timestamp": "2026-03-31T05:57:58.000Z",
+  "workflow": ".github/workflows/portability-matrix.yml",
+  "commandSequence": [
+    "node scripts/copy-config.mjs",
+    "node scripts/generate-mcp-config.mjs",
+    "node scripts/verify-setup.mjs",
+    "node scripts/verify-portability.mjs --strict --json"
+  ],
+  "strictTierSimulation": [
+    "current",
+    "previous-stable"
+  ],
+  "result": {
+    "exitCode": 0,
+    "ok": true,
+    "releaseVerdict": "passed",
+    "gates": {
+      "supportFloor": "passed",
+      "supplyChain": "passed",
+      "observabilityIntegrity": "passed",
+      "privilegeGovernance": "passed",
+      "hermeticity": "passed",
+      "determinism": "passed",
+      "restoreDrill": "passed"
+    }
+  },
+  "notes": [
+    "Strict JSON mode returns deterministic reports for all required gates.",
+    "Hermetic and determinism baselines were explicitly provided via env to match CI matrix defaults."
+  ]
+}

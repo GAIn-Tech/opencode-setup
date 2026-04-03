@@ -35,10 +35,12 @@ describe('synthesize-meta-kb stability', () => {
       },
     };
 
-    const result = prepareOutputIndex(nextIndex, existingIndex);
-    expect(result.changed).toBe(false);
-    expect(result.index.generated_at).toBe(existingIndex.generated_at);
-  });
+  const result = prepareOutputIndex(nextIndex, existingIndex);
+  // Changed is always true so mtime reflects latest run (avoids false staleness warnings)
+  expect(result.changed).toBe(true);
+  // generated_at should be freshened to the new timestamp
+  expect(result.index.generated_at).toBe(nextIndex.generated_at);
+});
 
   test('uses new generated_at when semantic content changed', () => {
     const existingIndex = {

@@ -16,7 +16,7 @@
 
 import { execSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, parse, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
@@ -61,7 +61,7 @@ export function resolveRoot() {
   // 3. Walk up from script directory looking for monorepo root
   //    (identified by package.json with "workspaces" field)
   let dir = __dirname;
-  const root = (process.platform === 'win32') ? dir.split('\\')[0] + '\\' : '/';
+  const root = parse(dir).root || '/';
   while (dir !== root) {
     const pkgPath = join(dir, 'package.json');
     if (existsSync(pkgPath)) {
@@ -154,7 +154,17 @@ export function userDataDir() {
   if (process.env.OPENCODE_DATA_HOME) {
     return resolve(process.env.OPENCODE_DATA_HOME);
   }
+  if (process.env.XDG_DATA_HOME) {
+    return join(process.env.XDG_DATA_HOME, 'opencode');
+  }
   return join(process.env.HOME || process.env.USERPROFILE || homedir(), '.opencode');
+}
+
+/**
+ * Resolve path inside user data directory.
+ */
+export function resolveUserDataPath(...relativeParts) {
+  return join(userDataDir(), ...relativeParts);
 }
 
 /**

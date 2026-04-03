@@ -1,0 +1,33 @@
+{
+  "task": 4,
+  "topic": "no-hidden-execution-policy",
+  "phase": "verification",
+  "timestamp": "2026-03-31T00:00:00.000Z",
+  "checks": [
+    {
+      "name": "unit tests",
+      "command": "bun test scripts/tests/verify-no-hidden-exec.test.js",
+      "status": "passed",
+      "observed": {
+        "passCount": 4,
+        "failCount": 0,
+        "expectCalls": 10
+      }
+    },
+    {
+      "name": "repository policy compliance",
+      "command": "node scripts/verify-no-hidden-exec.mjs",
+      "status": "passed",
+      "observed": {
+        "compliant": true,
+        "violations": [],
+        "reasons": []
+      }
+    }
+  ],
+  "changes": [
+    "Removed implicit hooks installation from scripts/setup-resilient.mjs bootstrap flow.",
+    "Removed hooks install call from package.json setup:base.",
+    "Added policy:no-hidden-exec script for CI/local enforcement."
+  ]
+}

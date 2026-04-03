@@ -7,6 +7,9 @@ on:
     paths:
       - "packages/**"
       - "opencode-config/**"
+      - "mcp-servers/**"
+      - "plugins/**"
+      - "local/**"
       - "scripts/**"
   push:
     branches:
@@ -15,6 +18,9 @@ on:
     paths:
       - "packages/**"
       - "opencode-config/**"
+      - "mcp-servers/**"
+      - "plugins/**"
+      - "local/**"
       - "scripts/**"
 
 jobs:

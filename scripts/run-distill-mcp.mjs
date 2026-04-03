@@ -2,13 +2,13 @@
 
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import path from 'path';
-import { homedir } from 'os';
 import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
+import { resolveUserDataPath } from './resolve-root.mjs';
 
 const DISTILL_VERSION = '0.8.1';
 const DISTILL_PACKAGE = `distill-mcp@${DISTILL_VERSION}`;
-const HOME = process.env.USERPROFILE || process.env.HOME || homedir();
+const OFFLINE = String(process.env.OPENCODE_OFFLINE || '').trim() === '1' || process.argv.includes('--offline');
 
 const PATCH_RULES = [
   { relativePath: path.join('dist', 'shared', 'index.js'), replacements: [['./types"', './types.js"'], ["'./types'", "'./types.js'"], ['./constants"', './constants.js"'], ["'./constants'", "'./constants.js'"], ['./utils"', './utils.js"'], ["'./utils'", "'./utils.js'"]] },
@@ -59,7 +59,7 @@ function run(command, args, options = {}) {
 
 export function resolveDistillConfig() {
   return {
-    command: ['node'],
+    command: ['bun'],
     args: ['scripts/run-distill-mcp.mjs', 'serve', '--lazy'],
   };
 }
@@ -87,18 +87,25 @@ export function patchDistillPackage(packageRoot) {
 }
 
 function getCacheRoot() {
-  return path.join(HOME, '.opencode', 'mcp-cache', 'distill-mcp', DISTILL_VERSION);
+  return resolveUserDataPath('mcp-cache', 'distill-mcp', DISTILL_VERSION);
 }
 
 function getPreparedCliPath() {
   return path.join(getCacheRoot(), 'node_modules', 'distill-mcp', 'bin', 'cli.js');
 }
 
-function ensurePreparedPackage() {
+export function ensurePreparedPackage({ offline = OFFLINE } = {}) {
   const cliPath = getPreparedCliPath();
   if (existsSync(cliPath)) {
     patchDistillPackage(path.join(getCacheRoot(), 'node_modules', 'distill-mcp'));
     return cliPath;
+  }
+
+  if (offline) {
+    throw new Error(
+      `Distill cache missing in offline mode: ${cliPath}. ` +
+      'Run once online or prewarm via node scripts/run-distill-mcp.mjs --version.'
+    );
   }
 
   const cacheRoot = getCacheRoot();

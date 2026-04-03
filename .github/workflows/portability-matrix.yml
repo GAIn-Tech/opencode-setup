@@ -1,0 +1,222 @@
+name: Portability Matrix
+
+on:
+  pull_request:
+    paths:
+      - "scripts/**"
+      - "opencode-config/**"
+      - "mcp-servers/**"
+      - "plugins/**"
+      - "local/**"
+      - "packages/opencode-*/**"
+      - "package.json"
+      - ".github/workflows/**"
+  push:
+    branches: [ master, main ]
+    paths:
+      - "scripts/**"
+      - "opencode-config/**"
+      - "mcp-servers/**"
+      - "plugins/**"
+      - "local/**"
+      - "packages/opencode-*/**"
+      - "package.json"
+      - ".github/workflows/**"
+
+jobs:
+  bootstrap-and-portability:
+    name: ${{ matrix.os }} / ${{ matrix.shell }} / ${{ matrix.strict-tier }}${{ matrix.path-variant && format(' / {0}', matrix.path-variant) }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            shell: bash
+            strict-tier: current
+          - os: ubuntu-latest
+            shell: bash
+            strict-tier: previous-stable
+          - os: macos-latest
+            shell: bash
+            strict-tier: current
+          - os: macos-latest
+            shell: bash
+            strict-tier: previous-stable
+          - os: windows-latest
+            shell: pwsh
+            strict-tier: current
+          - os: windows-latest
+            shell: pwsh
+            strict-tier: previous-stable
+          - os: windows-latest
+            shell: bash
+            strict-tier: current
+          - os: windows-latest
+            shell: bash
+            strict-tier: previous-stable
+          # Edge-case: Spaces in paths
+          - os: ubuntu-latest
+            shell: bash
+            strict-tier: current
+            path-variant: spaces
+          - os: windows-latest
+            shell: pwsh
+            strict-tier: current
+            path-variant: spaces
+          - os: ubuntu-latest
+            shell: bash
+            strict-tier: previous-stable
+            path-variant: spaces
+          - os: windows-latest
+            shell: pwsh
+            strict-tier: previous-stable
+            path-variant: spaces
+          # Edge-case: Unicode in paths
+          - os: ubuntu-latest
+            shell: bash
+            strict-tier: current
+            path-variant: unicode
+          - os: windows-latest
+            shell: pwsh
+            strict-tier: current
+            path-variant: unicode
+          - os: ubuntu-latest
+            shell: bash
+            strict-tier: previous-stable
+            path-variant: unicode
+          - os: windows-latest
+            shell: pwsh
+            strict-tier: previous-stable
+            path-variant: unicode
+          # Edge-case: Non-default HOME
+          - os: ubuntu-latest
+            shell: bash
+            strict-tier: current
+            path-variant: custom-home
+          - os: windows-latest
+            shell: pwsh
+            strict-tier: current
+            path-variant: custom-home
+          - os: ubuntu-latest
+            shell: bash
+            strict-tier: previous-stable
+            path-variant: custom-home
+          - os: windows-latest
+            shell: pwsh
+            strict-tier: previous-stable
+            path-variant: custom-home
+    env:
+      OPENCODE_VERIFY_ENV_PROFILE: none
+      OPENAI_API_KEYS: ci-placeholder-key
+      LC_ALL: C
+      TZ: UTC
+      LANG: C.UTF-8
+      OPENCODE_PORTABILITY_FS_CASE_SENSITIVITY: sensitive
+      OPENCODE_PORTABILITY_ENCODING: UTF-8
+      OPENCODE_PORTABILITY_RESTORE_DRILL_EVIDENCE: .sisyphus/evidence/task-5-restore-pass.json
+      OPENCODE_CONFIG_HOME: ${{ runner.temp }}/opencode-config
+      OPENCODE_DATA_HOME: ${{ runner.temp }}/opencode-data
+      XDG_CACHE_HOME: ${{ runner.temp }}/opencode-cache
+      TMPDIR: ${{ runner.temp }}/opencode-tmp
+      TEMP: ${{ runner.temp }}/opencode-tmp
+      TMP: ${{ runner.temp }}/opencode-tmp
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+    steps:
+      - name: Setup path variant workspace
+        if: matrix.path-variant && matrix.shell == 'bash'
+        run: |
+          if [ "${{ matrix.path-variant }}" = "spaces" ]; then
+            NEW_DIR="$HOME/My Project With Spaces"
+          elif [ "${{ matrix.path-variant }}" = "unicode" ]; then
+            NEW_DIR="$HOME/项目测试目录"
+          elif [ "${{ matrix.path-variant }}" = "custom-home" ]; then
+            NEW_DIR="$HOME/custom-home-test"
+          else
+            NEW_DIR="$HOME"
+          fi
+          mkdir -p "$NEW_DIR"
+          echo "CUSTOM_WORKSPACE=$NEW_DIR" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Setup path variant workspace (PowerShell)
+        if: matrix.path-variant && matrix.shell == 'pwsh'
+        run: |
+          if ("${{ matrix.path-variant }}" -eq "spaces") {
+            $newDir = "$env:USERPROFILE\My Project With Spaces"
+          } elseif ("${{ matrix.path-variant }}" -eq "unicode") {
+            $newDir = "$env:USERPROFILE\项目测试目录"
+          } elseif ("${{ matrix.path-variant }}" -eq "custom-home") {
+            $newDir = "$env:USERPROFILE\custom-home-test"
+          } else {
+            $newDir = "$env:USERPROFILE"
+          }
+          New-Item -ItemType Directory -Force -Path $newDir
+          echo "CUSTOM_WORKSPACE=$newDir" >> $env:GITHUB_ENV
+        shell: pwsh
+
+      - uses: actions/checkout@v4
+        with:
+          path: ${{ env.CUSTOM_WORKSPACE || '.' }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
+
+      - name: Install dependencies
+        working-directory: ${{ env.CUSTOM_WORKSPACE || github.workspace }}
+        run: bun install --frozen-lockfile
+
+      - name: Link workspace packages
+        working-directory: ${{ env.CUSTOM_WORKSPACE || github.workspace }}
+        run: bun run link-all
+
+      - name: Prepare strict portability roots
+        if: matrix.shell == 'bash'
+        working-directory: ${{ env.CUSTOM_WORKSPACE || github.workspace }}
+        run: |
+          mkdir -p "$OPENCODE_CONFIG_HOME" "$OPENCODE_DATA_HOME" "$XDG_CACHE_HOME" "$TMPDIR"
+
+      - name: Prepare strict portability roots (PowerShell)
+        if: matrix.shell == 'pwsh'
+        working-directory: ${{ env.CUSTOM_WORKSPACE || github.workspace }}
+        run: |
+          New-Item -ItemType Directory -Force -Path $env:OPENCODE_CONFIG_HOME | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:OPENCODE_DATA_HOME | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:XDG_CACHE_HOME | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:TMPDIR | Out-Null
+
+      - name: Sync + generate config
+        working-directory: ${{ env.CUSTOM_WORKSPACE || github.workspace }}
+        run: |
+          node scripts/copy-config.mjs
+          node scripts/generate-mcp-config.mjs
+
+      - name: Contract checks
+        working-directory: ${{ env.CUSTOM_WORKSPACE || github.workspace }}
+        run: |
+          node scripts/mcp-mirror-coherence.mjs
+          node scripts/check-skill-consistency.mjs
+          node scripts/supply-chain-guard.mjs
+
+      - name: Generate runtime proofs (must run before verification)
+        working-directory: ${{ env.CUSTOM_WORKSPACE || github.workspace }}
+        run: |
+          node scripts/runtime-tool-surface-proof.mjs --output .sisyphus/evidence/runtime-tool-proof.json
+          node scripts/mcp-smoke-harness.mjs --output .sisyphus/evidence/mcp-smoke-proof.json
+          node scripts/runtime-context-compliance.mjs --json --output .sisyphus/evidence/runtime-context-proof.json
+          node scripts/runtime-workflow-scenarios.mjs --json --output .sisyphus/evidence/runtime-workflow-proof.json
+
+      - name: Setup + portability verification (runs after proofs)
+        working-directory: ${{ env.CUSTOM_WORKSPACE || github.workspace }}
+        run: |
+          node scripts/verify-setup.mjs
+          node scripts/verify-portability.mjs --strict --json

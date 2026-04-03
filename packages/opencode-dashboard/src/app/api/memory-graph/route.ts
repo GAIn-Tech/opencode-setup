@@ -25,6 +25,15 @@ type CachedGraphPayload = {
 const GRAPH_CACHE_TTL_MS = 10_000;
 const graphCache = new Map<string, CachedGraphPayload>();
 
+const OPENCODE_DIRNAME = '.opencode';
+
+function resolveDataHome(): string {
+  if (process.env.OPENCODE_DATA_HOME) return process.env.OPENCODE_DATA_HOME;
+  if (process.env.XDG_DATA_HOME) return path.join(process.env.XDG_DATA_HOME, 'opencode');
+  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
+  return path.join(homeDir, OPENCODE_DIRNAME);
+}
+
 interface MemoryGraphMessage {
   agent?: string;
   tools?: Array<string | { name?: string; id?: string }>;
@@ -522,8 +531,7 @@ function readOpenCodeData(opencodePath: string, options: GraphQueryOptions) {
 
 export async function GET(request: Request) {
   try {
-    const homeDir = os.homedir();
-    const opencodePath = path.join(homeDir, '.opencode');
+    const opencodePath = resolveDataHome();
     
     // Check if .opencode directory exists
     if (!fs.existsSync(opencodePath)) {

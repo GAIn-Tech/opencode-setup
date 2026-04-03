@@ -1,26 +1,34 @@
 {
   "mcpServers": {
     "opencode-dashboard-launcher": {
-      "command": "node",
-      "args": ["{{OPENCODE_ROOT}}/packages/opencode-dashboard-launcher/src/index.js"],
+      "command": "bun",
+      "args": [
+        "{{OPENCODE_ROOT}}/packages/opencode-dashboard-launcher/src/index.js"
+      ],
       "description": "Auto-starts the OpenCode dashboard when sessions begin",
       "enabled": false
     },
     "opencode-memory-graph": {
-      "command": "node",
-      "args": ["{{OPENCODE_ROOT}}/packages/opencode-memory-graph/src/mcp-server.mjs"],
+      "command": "bun",
+      "args": [
+        "{{OPENCODE_ROOT}}/packages/opencode-memory-graph/src/mcp-server.mjs"
+      ],
       "description": "Session-to-error graph builder from OpenCode runtime logs",
       "enabled": true
     },
     "opencode-context-governor": {
-      "command": "node",
-      "args": ["{{OPENCODE_ROOT}}/packages/opencode-context-governor/src/mcp-server.mjs"],
+      "command": "bun",
+      "args": [
+        "{{OPENCODE_ROOT}}/packages/opencode-context-governor/src/mcp-server.mjs"
+      ],
       "description": "Token budget controller per model/session",
       "enabled": true
     },
     "opencode-runbooks": {
-      "command": "node",
-      "args": ["{{OPENCODE_ROOT}}/packages/opencode-runbooks/src/mcp-server.mjs"],
+      "command": "bun",
+      "args": [
+        "{{OPENCODE_ROOT}}/packages/opencode-runbooks/src/mcp-server.mjs"
+      ],
       "description": "Auto-remediation based on error signatures",
       "enabled": true
     }

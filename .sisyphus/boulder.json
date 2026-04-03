@@ -1,23 +1,59 @@
 {
-  "active_plan": null,
-  "plan_name": null,
-  "started_at": null,
-  "session_ids": [],
-  "progress": {
-    "total_tasks": 25,
-    "completed": 25,
-    "current_task": "COMPLETED"
-  },
-  "waves": {
-    "1": {"status": "completed", "tasks": [1, 2, 3, 4, 5, 6, 7]},
-    "2": {"status": "completed", "tasks": [8, 9, 10, 11, 12, 13, 14]},
-    "3": {"status": "completed", "tasks": [15, 16, 17, 18, 19, 20]},
-    "4": {"status": "completed", "tasks": [21, 22, 23, 24, 25]}
-  },
+  "active_plan": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\autoopencode-integration-strategy.md",
+  "plan_name": "autoopencode-integration-strategy",
+  "started_at": "2026-04-03T05:12:00.000Z",
+  "session_ids": ["ses_current"],
+  "progress": {},
+  "waves": {},
   "commits": [],
   "risk_points_reduced": 0,
   "backlog": [],
   "completed_plans": [
+    {
+      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\parallel-agent-limits-delegation.md",
+      "plan_name": "parallel-agent-limits-delegation",
+      "started_at": "2026-04-02T00:00:00.000Z",
+      "completed_at": "2026-04-03T05:11:00.000Z",
+      "session_ids": ["ses_current"],
+      "agent": "atlas",
+      "commits": [],
+      "tasks_completed": 0,
+      "risk_points_reduced": 0
+    },
+    {
+      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\total-portability-p0-remediation.md",
+      "plan_name": "total-portability-p0-remediation",
+      "started_at": "2026-03-31T12:00:00.000Z",
+      "completed_at": "2026-04-01T00:00:00.000Z",
+      "session_ids": [],
+      "agent": "atlas",
+      "commits": [],
+      "tasks_completed": 11,
+      "risk_points_reduced": 0,
+      "test_results": {"pass": 83, "fail": 0, "duration_seconds": 34.63}
+    },
+    {
+      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\clone-pull-zero-touch-bootstrap.md",
+      "plan_name": "clone-pull-zero-touch-bootstrap",
+      "started_at": "2026-03-31T02:45:00.000Z",
+      "completed_at": "2026-03-31T11:59:00.000Z",
+      "session_ids": ["ses_2bdbc4ea4ffeyNJFHNfUuxp5Yo"],
+      "agent": "atlas",
+      "commits": [],
+      "tasks_completed": 9,
+      "risk_points_reduced": 0
+    },
+    {
+      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\bounded-portability-integrity-guarantee.md",
+      "plan_name": "bounded-portability-integrity-guarantee",
+      "started_at": "2026-03-31T00:28:50.0437925-04:00",
+      "completed_at": "2026-03-31T06:40:00.000Z",
+      "session_ids": ["ses_2bdbc4ea4ffeyNJFHNfUuxp5Yo"],
+      "agent": "atlas",
+      "commits": [],
+      "tasks_completed": 10,
+      "risk_points_reduced": 0
+    },
     {
       "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\orchestration-parallelization-model-routing.md",
       "plan_name": "orchestration-parallelization-model-routing",

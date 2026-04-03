@@ -1,0 +1,562 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-03-31T05:56:49.416Z",
+  "system": {
+    "os": "win32",
+    "arch": "x64",
+    "nodeVersion": "v24.14.0",
+    "bunVersion": "1.3.10",
+    "shell": "C:\\Program Files\\Git\\usr\\bin\\bash.exe",
+    "timestamp": "2026-03-31T05:56:49.415Z"
+  },
+  "summary": {
+    "overallOk": false,
+    "portabilityOk": false,
+    "releaseVerdictOk": false,
+    "faultTestsOk": false
+  },
+  "portability": {
+    "ok": false,
+    "failures": [
+      "Hermeticity gate failed: LC_ALL must be C in strict mode",
+      "Hermeticity gate failed: TZ must be UTC in strict mode",
+      "Hermeticity gate failed: OPENCODE_CONFIG_HOME must be set in strict mode",
+      "Hermeticity gate failed: OPENCODE_DATA_HOME must be set in strict mode",
+      "Hermeticity gate failed: XDG_CACHE_HOME must be set in strict mode",
+      "Hermeticity gate failed: release-critical scripts require OPENCODE_CONFIG_HOME or XDG_CONFIG_HOME in strict mode",
+      "Hermeticity gate failed: release-critical scripts require OPENCODE_DATA_HOME or XDG_DATA_HOME in strict mode",
+      "Determinism gate failed: filesystem case sensitivity policy must be explicit (sensitive|insensitive)",
+      "Determinism gate failed: TZ must be UTC in strict mode",
+      "Determinism gate failed: LC_ALL must be C in strict mode",
+      "Determinism gate failed: LANG must be set in strict mode for deterministic locale behavior",
+      "Determinism gate failed: character encoding must be UTF-8 (set OPENCODE_PORTABILITY_ENCODING=UTF-8 or LANG=*.UTF-8)"
+    ],
+    "budget": {
+      "skipCount": 0,
+      "fallbackCount": 0,
+      "skipReasons": [],
+      "fallbackReasons": []
+    },
+    "probeReport": {
+      "total": 8,
+      "exercised": 4,
+      "skipped": 4,
+      "failed": 0,
+      "byCategory": {
+        "launched": {
+          "count": 4,
+          "items": [
+            {
+              "name": "distill",
+              "reason": "launched with exit=0"
+            },
+            {
+              "name": "opencode-context-governor",
+              "reason": "launched with exit=0"
+            },
+            {
+              "name": "opencode-memory-graph",
+              "reason": "launched with exit=0"
+            },
+            {
+              "name": "opencode-runbooks",
+              "reason": "launched with exit=0"
+            }
+          ]
+        },
+        "unsafe-launcher": {
+          "count": 4,
+          "items": [
+            {
+              "name": "grep",
+              "reason": "launcher 'uvx' is not probe-safe"
+            },
+            {
+              "name": "playwright",
+              "reason": "launcher 'bunx' is not probe-safe"
+            },
+            {
+              "name": "sequentialthinking",
+              "reason": "launcher 'bunx' is not probe-safe"
+            },
+            {
+              "name": "websearch",
+              "reason": "launcher 'bunx' is not probe-safe"
+            }
+          ]
+        }
+      }
+    },
+    "stalenessReport": {
+      "checkedSkills": 89,
+      "checkedAgents": 1,
+      "checkedMcp": 0,
+      "staleSkills": [],
+      "staleAgents": [],
+      "staleMcp": [],
+      "unexpectedSkills": [],
+      "unexpectedAgents": [],
+      "unexpectedMcp": []
+    },
+    "rollbackReport": {
+      "catalogExists": true,
+      "snapshotStoreExists": false,
+      "auditLogExists": false,
+      "backupDirExists": false,
+      "dryRunPassed": true,
+      "dryRunOutput": "=== Model Rollback CLI (Wave 8.2) ===\n\nℹ  DRY RUN mode — no changes will be applied\n\nℹ  Loaded SnapshotStore module\nℹ  AuditLogger module not available — using direct file access\n\nℹ  No rollback target specified. Showing current state overview:\n\nℹ  Current catalog: C:\\Users\\jack\\work\\opencode-setup\\opencode-config\\models\\catalog-2026.json\nℹ    Models: 20\nℹ    Version: 2026-02-22\n\nℹ  Available snapshots: 0\n\nℹ  No previous backups found\n\n✔ Dry run complete. No changes applied.\nℹ  Completed in 0.01s",
+      "dryRunError": "⚠  Could not load AuditLogger: __non_webpack_require__ is not defined"
+    },
+    "integrityReport": {
+      "lockFilesChecked": 2,
+      "staleLocksFound": 0,
+      "allowlistedLocks": 2,
+      "cacheIntegrityOk": true,
+      "staleLockDetails": []
+    },
+    "supportFloorReport": {
+      "supported": true,
+      "reason": "supported",
+      "detected": {
+        "platform": "win32",
+        "release": "10.0.26200",
+        "arch": "x64",
+        "bunVersion": "1.3.10",
+        "requiredBunVersion": "1.3.10"
+      }
+    },
+    "supplyChainReport": {
+      "status": "passed",
+      "reason": "trusted release inputs verified",
+      "checks": {
+        "releaseMode": "release",
+        "source": "trusted",
+        "pinning": "verified",
+        "integrity": "ok",
+        "provenance": "verified",
+        "signature": "valid"
+      },
+      "exception": null
+    },
+    "observabilityIntegrityReport": {
+      "status": "ok",
+      "violations": [],
+      "checks": {
+        "logIntegrity": "verified",
+        "metricsIntegrity": "consistent",
+        "traceCompleteness": "complete",
+        "traceAuthenticity": "verified",
+        "auditTrailIntegrity": "verified"
+      },
+      "baseline": {
+        "logIntegrity": "verified",
+        "metricsIntegrity": "consistent",
+        "traceCompleteness": "complete",
+        "traceAuthenticity": "verified",
+        "auditTrailIntegrity": "verified"
+      }
+    },
+    "privilegeGovernanceReport": {
+      "status": "passed",
+      "violations": [],
+      "checks": {
+        "privilegeEscalation": "governed",
+        "breakGlassAccess": "inactive",
+        "breakGlassAuditTrail": "present",
+        "privilegedOperationApproval": "approved"
+      },
+      "approval": {
+        "approvalId": "",
+        "approvedBy": "",
+        "reason": "",
+        "ticket": "",
+        "expiresAt": "2099-01-01T00:00:00.000Z"
+      },
+      "auditTrail": {
+        "eventId": "",
+        "recordId": "",
+        "immutableDigest": ""
+      }
+    },
+    "hermeticityReport": {
+      "status": "fail",
+      "violations": [
+        "LC_ALL must be C in strict mode",
+        "TZ must be UTC in strict mode",
+        "OPENCODE_CONFIG_HOME must be set in strict mode",
+        "OPENCODE_DATA_HOME must be set in strict mode",
+        "XDG_CACHE_HOME must be set in strict mode",
+        "release-critical scripts require OPENCODE_CONFIG_HOME or XDG_CONFIG_HOME in strict mode",
+        "release-critical scripts require OPENCODE_DATA_HOME or XDG_DATA_HOME in strict mode"
+      ],
+      "baseline": {
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "requiredRoots": [
+          "OPENCODE_CONFIG_HOME",
+          "OPENCODE_DATA_HOME",
+          "XDG_CACHE_HOME"
+        ],
+        "deterministicTempVars": [
+          "TMPDIR",
+          "TEMP",
+          "TMP"
+        ]
+      },
+      "observed": {
+        "LC_ALL": "",
+        "TZ": "",
+        "OPENCODE_CONFIG_HOME": "",
+        "OPENCODE_DATA_HOME": "",
+        "XDG_CACHE_HOME": "",
+        "TMPDIR": "",
+        "TEMP": "C:\\Users\\jack\\AppData\\Local\\Temp",
+        "TMP": "C:\\Users\\jack\\AppData\\Local\\Temp"
+      },
+      "scannedScripts": [
+        "scripts/verify-portability.mjs",
+        "scripts/verify-setup.mjs",
+        "scripts/supply-chain-guard.mjs",
+        "scripts/model-rollback.mjs",
+        "scripts/doctor.mjs"
+      ]
+    },
+    "determinismReport": {
+      "status": "fail",
+      "violations": [
+        "filesystem case sensitivity policy must be explicit (sensitive|insensitive)",
+        "TZ must be UTC in strict mode",
+        "LC_ALL must be C in strict mode",
+        "LANG must be set in strict mode for deterministic locale behavior",
+        "character encoding must be UTF-8 (set OPENCODE_PORTABILITY_ENCODING=UTF-8 or LANG=*.UTF-8)"
+      ],
+      "baseline": {
+        "timezone": "UTC",
+        "lcAll": "C",
+        "encoding": "UTF-8",
+        "fsCaseSensitivityModes": [
+          "sensitive",
+          "insensitive"
+        ]
+      },
+      "observed": {
+        "filesystem": {
+          "repoRootResolved": "C:\\Users\\jack\\work\\opencode-setup",
+          "scriptRootResolved": "C:\\Users\\jack\\work\\opencode-setup",
+          "caseSensitivityPolicy": "",
+          "caseSensitivityPolicyProvided": false
+        },
+        "time": {
+          "TZ": "",
+          "SOURCE_DATE_EPOCH": "",
+          "epochIso": "1970-01-01T00:00:00.000Z"
+        },
+        "locale": {
+          "LC_ALL": "",
+          "LANG": ""
+        },
+        "encoding": {
+          "requested": "",
+          "runtime": "UTF-8",
+          "localeDerived": ""
+        }
+      }
+    },
+    "restoreDrillReport": {
+      "status": "passed",
+      "rto": {
+        "targetMinutes": 60,
+        "actualMinutes": 45,
+        "compliant": true
+      },
+      "rpo": {
+        "targetMinutes": 15,
+        "actualMinutes": 10,
+        "compliant": true
+      },
+      "evidence": {
+        "path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\evidence\\task-5-restore-pass.json",
+        "exists": true,
+        "valid": true,
+        "integrityCheck": "pass",
+        "startedAt": "2026-03-31T00:00:00.000Z",
+        "completedAt": "2026-03-31T00:45:00.000Z",
+        "backupTimestamp": "2026-03-30T23:50:00.000Z",
+        "issues": []
+      }
+    },
+    "releaseVerdict": {
+      "status": "failed",
+      "reasons": [
+        "hermeticity: LC_ALL must be C in strict mode",
+        "hermeticity: TZ must be UTC in strict mode",
+        "hermeticity: OPENCODE_CONFIG_HOME must be set in strict mode",
+        "hermeticity: OPENCODE_DATA_HOME must be set in strict mode",
+        "hermeticity: XDG_CACHE_HOME must be set in strict mode",
+        "hermeticity: release-critical scripts require OPENCODE_CONFIG_HOME or XDG_CONFIG_HOME in strict mode",
+        "hermeticity: release-critical scripts require OPENCODE_DATA_HOME or XDG_DATA_HOME in strict mode",
+        "determinism: filesystem case sensitivity policy must be explicit (sensitive|insensitive)",
+        "determinism: TZ must be UTC in strict mode",
+        "determinism: LC_ALL must be C in strict mode",
+        "determinism: LANG must be set in strict mode for deterministic locale behavior",
+        "determinism: character encoding must be UTF-8 (set OPENCODE_PORTABILITY_ENCODING=UTF-8 or LANG=*.UTF-8)"
+      ],
+      "gates": {
+        "supportFloor": {
+          "status": "passed",
+          "reasons": [
+            "supported"
+          ]
+        },
+        "supplyChain": {
+          "status": "passed",
+          "reasons": [
+            "trusted release inputs verified"
+          ]
+        },
+        "observabilityIntegrity": {
+          "status": "passed",
+          "reasons": [
+            "observability integrity checks passed"
+          ]
+        },
+        "privilegeGovernance": {
+          "status": "passed",
+          "reasons": [
+            "privilege governance checks passed"
+          ]
+        },
+        "hermeticity": {
+          "status": "failed",
+          "reasons": [
+            "LC_ALL must be C in strict mode",
+            "TZ must be UTC in strict mode",
+            "OPENCODE_CONFIG_HOME must be set in strict mode",
+            "OPENCODE_DATA_HOME must be set in strict mode",
+            "XDG_CACHE_HOME must be set in strict mode",
+            "release-critical scripts require OPENCODE_CONFIG_HOME or XDG_CONFIG_HOME in strict mode",
+            "release-critical scripts require OPENCODE_DATA_HOME or XDG_DATA_HOME in strict mode"
+          ]
+        },
+        "determinism": {
+          "status": "failed",
+          "reasons": [
+            "filesystem case sensitivity policy must be explicit (sensitive|insensitive)",
+            "TZ must be UTC in strict mode",
+            "LC_ALL must be C in strict mode",
+            "LANG must be set in strict mode for deterministic locale behavior",
+            "character encoding must be UTF-8 (set OPENCODE_PORTABILITY_ENCODING=UTF-8 or LANG=*.UTF-8)"
+          ]
+        },
+        "restoreDrill": {
+          "status": "passed",
+          "reasons": [
+            "restore-drill objectives satisfied"
+          ]
+        },
+        "budget": {
+          "status": "passed",
+          "reasons": [
+            "budget thresholds satisfied"
+          ]
+        },
+        "probeCoverage": {
+          "status": "passed",
+          "reasons": [
+            "exercised=4/8",
+            "coverage threshold >= 50%"
+          ]
+        },
+        "portabilityChecks": {
+          "status": "passed",
+          "reasons": [
+            "all non-release gate checks passed"
+          ]
+        }
+      }
+    },
+    "probeCoverageOk": true,
+    "timestamp": "2026-03-31T05:56:33.753Z"
+  },
+  "faultInjection": {
+    "exitCode": 1,
+    "passed": false
+  },
+  "contracts": {
+    "pathContract": "canonical-resolver",
+    "launcherContract": "scripts/launcher-contract.json",
+    "skipBudget": "scripts/skip-budget-allowlist.json",
+    "stalenessBudget": "scripts/mirror-staleness-allowlist.json",
+    "lockIntegrity": "scripts/lock-integrity-allowlist.json"
+  },
+  "gates": {
+    "staticPathCheck": true,
+    "launcherValidation": true,
+    "probeCoverage": true,
+    "rollbackDryRun": true,
+    "lockIntegrity": true
+  },
+  "releaseVerdict": {
+    "status": "failed",
+    "reasons": [
+      "hermeticity: LC_ALL must be C in strict mode",
+      "hermeticity: TZ must be UTC in strict mode",
+      "hermeticity: OPENCODE_CONFIG_HOME must be set in strict mode",
+      "hermeticity: OPENCODE_DATA_HOME must be set in strict mode",
+      "hermeticity: XDG_CACHE_HOME must be set in strict mode",
+      "hermeticity: release-critical scripts require OPENCODE_CONFIG_HOME or XDG_CONFIG_HOME in strict mode",
+      "hermeticity: release-critical scripts require OPENCODE_DATA_HOME or XDG_DATA_HOME in strict mode",
+      "determinism: filesystem case sensitivity policy must be explicit (sensitive|insensitive)",
+      "determinism: TZ must be UTC in strict mode",
+      "determinism: LC_ALL must be C in strict mode",
+      "determinism: LANG must be set in strict mode for deterministic locale behavior",
+      "determinism: character encoding must be UTF-8 (set OPENCODE_PORTABILITY_ENCODING=UTF-8 or LANG=*.UTF-8)"
+    ],
+    "gates": {
+      "supportFloor": {
+        "status": "passed",
+        "reasons": [
+          "supported"
+        ]
+      },
+      "supplyChain": {
+        "status": "passed",
+        "reasons": [
+          "trusted release inputs verified"
+        ]
+      },
+      "observabilityIntegrity": {
+        "status": "passed",
+        "reasons": [
+          "observability integrity checks passed"
+        ]
+      },
+      "privilegeGovernance": {
+        "status": "passed",
+        "reasons": [
+          "privilege governance checks passed"
+        ]
+      },
+      "hermeticity": {
+        "status": "failed",
+        "reasons": [
+          "LC_ALL must be C in strict mode",
+          "TZ must be UTC in strict mode",
+          "OPENCODE_CONFIG_HOME must be set in strict mode",
+          "OPENCODE_DATA_HOME must be set in strict mode",
+          "XDG_CACHE_HOME must be set in strict mode",
+          "release-critical scripts require OPENCODE_CONFIG_HOME or XDG_CONFIG_HOME in strict mode",
+          "release-critical scripts require OPENCODE_DATA_HOME or XDG_DATA_HOME in strict mode"
+        ]
+      },
+      "determinism": {
+        "status": "failed",
+        "reasons": [
+          "filesystem case sensitivity policy must be explicit (sensitive|insensitive)",
+          "TZ must be UTC in strict mode",
+          "LC_ALL must be C in strict mode",
+          "LANG must be set in strict mode for deterministic locale behavior",
+          "character encoding must be UTF-8 (set OPENCODE_PORTABILITY_ENCODING=UTF-8 or LANG=*.UTF-8)"
+        ]
+      },
+      "restoreDrill": {
+        "status": "passed",
+        "reasons": [
+          "restore-drill objectives satisfied"
+        ]
+      },
+      "budget": {
+        "status": "passed",
+        "reasons": [
+          "budget thresholds satisfied"
+        ]
+      },
+      "probeCoverage": {
+        "status": "passed",
+        "reasons": [
+          "exercised=4/8",
+          "coverage threshold >= 50%"
+        ]
+      },
+      "portabilityChecks": {
+        "status": "passed",
+        "reasons": [
+          "all non-release gate checks passed"
+        ]
+      }
+    }
+  },
+  "gateStatusReasons": {
+    "supportFloor": {
+      "status": "passed",
+      "reasons": [
+        "supported"
+      ]
+    },
+    "supplyChain": {
+      "status": "passed",
+      "reasons": [
+        "trusted release inputs verified"
+      ]
+    },
+    "observabilityIntegrity": {
+      "status": "passed",
+      "reasons": [
+        "observability integrity checks passed"
+      ]
+    },
+    "privilegeGovernance": {
+      "status": "passed",
+      "reasons": [
+        "privilege governance checks passed"
+      ]
+    },
+    "hermeticity": {
+      "status": "failed",
+      "reasons": [
+        "LC_ALL must be C in strict mode",
+        "TZ must be UTC in strict mode",
+        "OPENCODE_CONFIG_HOME must be set in strict mode",
+        "OPENCODE_DATA_HOME must be set in strict mode",
+        "XDG_CACHE_HOME must be set in strict mode",
+        "release-critical scripts require OPENCODE_CONFIG_HOME or XDG_CONFIG_HOME in strict mode",
+        "release-critical scripts require OPENCODE_DATA_HOME or XDG_DATA_HOME in strict mode"
+      ]
+    },
+    "determinism": {
+      "status": "failed",
+      "reasons": [
+        "filesystem case sensitivity policy must be explicit (sensitive|insensitive)",
+        "TZ must be UTC in strict mode",
+        "LC_ALL must be C in strict mode",
+        "LANG must be set in strict mode for deterministic locale behavior",
+        "character encoding must be UTF-8 (set OPENCODE_PORTABILITY_ENCODING=UTF-8 or LANG=*.UTF-8)"
+      ]
+    },
+    "restoreDrill": {
+      "status": "passed",
+      "reasons": [
+        "restore-drill objectives satisfied"
+      ]
+    },
+    "budget": {
+      "status": "passed",
+      "reasons": [
+        "budget thresholds satisfied"
+      ]
+    },
+    "probeCoverage": {
+      "status": "passed",
+      "reasons": [
+        "exercised=4/8",
+        "coverage threshold >= 50%"
+      ]
+    },
+    "portabilityChecks": {
+      "status": "passed",
+      "reasons": [
+        "all non-release gate checks passed"
+      ]
+    }
+  }
+}
