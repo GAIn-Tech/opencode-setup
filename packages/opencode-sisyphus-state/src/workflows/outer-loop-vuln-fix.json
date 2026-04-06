@@ -1,0 +1,58 @@
+{
+  "name": "outer-loop-vuln-fix",
+  "version": "1.0.0",
+  "description": "Autonomous vulnerability remediation — detects vuln, implements fix, runs tests, creates PR",
+  "pe_roles": ["planner", "executor", "verifier"],
+  "policy": {
+    "max_retries": 3,
+    "backoff_ms": 3000,
+    "timeout_ms": 600000,
+    "budget_enforcement": true,
+    "sandbox_enforcement": true
+  },
+  "steps": [
+    {
+      "id": "analyze-vulnerability",
+      "type": "read",
+      "description": "Analyze vulnerability report and affected code",
+      "pe_role": "planner",
+      "input": {
+        "source": "sast_scan",
+        "include_context": true
+      }
+    },
+    {
+      "id": "implement-fix",
+      "type": "edit",
+      "description": "Implement vulnerability fix",
+      "pe_role": "executor",
+      "input": {
+        "fix_strategy": "minimal_change",
+        "include_tests": true
+      }
+    },
+    {
+      "id": "run-tests",
+      "type": "bash",
+      "description": "Run test suite to verify fix",
+      "pe_role": "verifier",
+      "input": {
+        "command": "bun test"
+      }
+    },
+    {
+      "id": "create-pr",
+      "type": "bash",
+      "description": "Create PR with fix",
+      "pe_role": "executor",
+      "input": {
+        "command": "gh pr create --title 'Fix: $VULN_ID' --body-file fix-description.md"
+      }
+    }
+  ],
+  "outputs": ["fix_diff", "test_results", "pr_url"],
+  "metadata": {
+    "author": "opencode",
+    "tags": ["outer-loop", "vulnerability", "remediation", "automation"]
+  }
+}

@@ -26,6 +26,8 @@ const FAILURE_PATTERNS = {
     /quota.*exceeded/i,
     /please.?try.?again.?later/i,
     /429/,
+    /Request rate increased too quickly/i,
+    /adjust your client logic/i,
   ],
   [FAILURE_TYPES.MODEL_UNAVAILABLE]: [
     /model.*(unavailable|not.?found|deprecated)/i,

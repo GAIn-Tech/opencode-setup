@@ -103,6 +103,52 @@ function validateResponse(response, expected) {
   }
 }
 
+/**
+ * Deep equality comparison for JSON values
+ * @param {any} a - First value to compare
+ * @param {any} b - Second value to compare
+ * @returns {boolean} True if values are deeply equal
+ */
+function deepEqual(a, b) {
+  // Handle strict equality and null/undefined
+  if (a === b) return true;
+  
+  // Handle null/undefined cases
+  if (a == null || b == null) return a === b;
+  
+  // Handle different types
+  const typeA = typeof a;
+  const typeB = typeof b;
+  if (typeA !== typeB) return false;
+  
+  // Handle primitives
+  if (typeA !== 'object') return a === b;
+  
+  // Handle arrays
+  if (Array.isArray(a)) {
+    if (!Array.isArray(b) || a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (!deepEqual(a[i], b[i])) return false;
+    }
+    return true;
+  }
+  
+  // Handle objects
+  if (Array.isArray(b)) return false; // b is array, a is not
+  
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  
+  if (keysA.length !== keysB.length) return false;
+  
+  for (const key of keysA) {
+    if (!Object.prototype.hasOwnProperty.call(b, key)) return false;
+    if (!deepEqual(a[key], b[key])) return false;
+  }
+  
+  return true;
+}
+
 // ─── Percentile helper ───────────────────────────────────────────────
 
 function percentile(sortedArr, p) {
@@ -355,6 +401,80 @@ class Harness {
       rankings: ranked,
       best_model: ranked[0]?.model || null,
       timestamp: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * Evaluate a single tool's quality against a test suite.
+   *
+   * Measures: success_rate, avg_tokens, avg_latency, error_rate, confusion_rate
+   * confusion_rate: how often the tool is misused (wrong params, wrong context)
+   *
+   * @param {string} toolName - Tool identifier (e.g., 'grep', 'lsp_goto_definition')
+   * @param {Array<object>} testCases - Array of { input, expectedOutput, expectedTokens }
+   * @param {function} executor - async (toolName, input) => { output, tokensUsed, error }
+   * @returns {Promise<object>} Tool evaluation result
+   */
+  async evaluateTool(toolName, testCases, executor) {
+    const results = [];
+    let errorCount = 0;
+    let confusionCount = 0;
+
+    for (const tc of testCases) {
+      const startTime = performance.now();
+      let result;
+
+      try {
+        result = await executor(toolName, tc.input);
+      } catch (err) {
+        errorCount++;
+        results.push({
+          passed: false,
+          error: err.message,
+          latency_ms: Math.round((performance.now() - startTime) * 100) / 100,
+          tokens_used: 0,
+          confused: false,
+        });
+        continue;
+      }
+
+       const elapsed = performance.now() - startTime;
+       const outputMatches = tc.expectedOutput
+         ? deepEqual(result.output, tc.expectedOutput)
+         : true;
+       const tokensUsed = result.tokensUsed || 0;
+       const confused = tc.expectedTokens && tokensUsed > tc.expectedTokens * 2;
+
+      if (confused) confusionCount++;
+
+      results.push({
+        passed: outputMatches,
+        error: null,
+        latency_ms: Math.round(elapsed * 100) / 100,
+        tokens_used: tokensUsed,
+        confused,
+      });
+    }
+
+    const total = results.length;
+    const passed = results.filter((r) => r.passed).length;
+    const latencies = results.map((r) => r.latency_ms).sort((a, b) => a - b);
+    const tokenValues = results.map((r) => r.tokens_used);
+    const totalTokens = tokenValues.reduce((sum, t) => sum + t, 0);
+
+    return {
+      tool_name: toolName,
+      success_rate: total > 0 ? Math.round((passed / total) * 10000) / 10000 : 0,
+      avg_tokens: total > 0 ? Math.round((totalTokens / total) * 100) / 100 : 0,
+      avg_latency_ms: total > 0 ? Math.round((latencies.reduce((s, l) => s + l, 0) / total) * 100) / 100 : 0,
+      latency_p50_ms: Math.round(percentile(latencies, 50) * 100) / 100,
+      latency_p95_ms: Math.round(percentile(latencies, 95) * 100) / 100,
+      error_rate: total > 0 ? Math.round((errorCount / total) * 10000) / 10000 : 0,
+      confusion_rate: total > 0 ? Math.round((confusionCount / total) * 10000) / 10000 : 0,
+      tests_total: total,
+      tests_passed: passed,
+      timestamp: new Date().toISOString(),
+      details: results,
     };
   }
 

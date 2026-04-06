@@ -1,0 +1,49 @@
+# Task 1 Evidence: Runtime Authority Contract
+
+## Summary
+Created `packages/opencode-runtime-authority/` package to establish a single source of truth for agent/category/model resolution with provenance tracking.
+
+## Files Created
+1. `packages/opencode-runtime-authority/package.json` - Package definition
+2. `packages/opencode-runtime-authority/src/index.js` - Authority resolver implementation
+3. `packages/opencode-runtime-authority/test/authority-resolver.test.js` - Test suite (20 tests)
+4. `packages/opencode-runtime-authority/README.md` - Documentation
+
+## Files Modified
+1. `scripts/runtime-tool-telemetry.mjs` - Updated to import from authority resolver instead of hardcoded maps
+
+## Test Results
+```
+bun test v1.3.10
+20 pass 0 fail 102 expect() calls
+Ran 20 tests across 1 file. [40.00ms]
+```
+
+## Acceptance Criteria Status
+- [x] Failing tests added first for authority precedence and provenance reporting
+- [x] A single resolver/contract exists for effective agent/category/model authority
+- [x] Mirrored runtime consumers (runtime-tool-telemetry.mjs) now consume the shared authority
+- [x] `bun test` for the affected packages passes
+
+## Precedence Chain Implemented
+1. Environment variables (OPENCODE_AGENT_{NAME}_MODEL, OPENCODE_CATEGORY_{NAME}_MODEL)
+2. Home config (~/.config/opencode/oh-my-opencode.json)
+3. Repo config (opencode-config/oh-my-opencode.json)
+4. Defaults (hardcoded fallbacks)
+
+## Source Identifiers
+- `env-override` - Environment variable
+- `home-config` - Home directory config
+- `repo-config` - Repository config
+- `default` - Hardcoded default
+- `not-found` - No configuration
+
+## Provenance Tracking
+Every resolution includes:
+- `modelId` - The resolved model ID
+- `provider` - The provider (e.g., 'openai', 'google')
+- `source` - Where the value came from
+- `provenance` - Detailed path (e.g., 'file:/path/to/config.json:agents.atlas.model')
+
+## Backwards Compatibility
+The `getTelemetryMaps()` function returns `CATEGORY_TO_MODEL` and `AGENT_TO_MODEL` maps in the format expected by existing consumers.

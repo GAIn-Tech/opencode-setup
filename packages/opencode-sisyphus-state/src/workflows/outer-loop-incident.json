@@ -1,0 +1,72 @@
+{
+  "name": "outer-loop-incident",
+  "version": "1.0.0",
+  "description": "Autonomous incident triage workflow — investigates alert, finds root cause, suggests fix, creates PR",
+  "pe_roles": ["planner", "executor", "verifier"],
+  "policy": {
+    "max_retries": 2,
+    "backoff_ms": 3000,
+    "timeout_ms": 600000,
+    "budget_enforcement": true,
+    "sandbox_enforcement": true
+  },
+  "steps": [
+    {
+      "id": "investigate-alert",
+      "type": "read",
+      "description": "Investigate monitoring alert and gather context",
+      "pe_role": "planner",
+      "input": {
+        "source": "monitoring_alert",
+        "include_logs": true,
+        "include_metrics": true,
+        "include_recent_changes": true
+      }
+    },
+    {
+      "id": "root-cause-analysis",
+      "type": "edit",
+      "description": "Perform root cause analysis and document findings",
+      "pe_role": "planner",
+      "input": {
+        "output_format": "incident-report.md",
+        "include_timeline": true,
+        "include_affected_services": true
+      }
+    },
+    {
+      "id": "implement-fix",
+      "type": "edit",
+      "description": "Implement fix for identified root cause",
+      "pe_role": "executor",
+      "input": {
+        "fix_strategy": "minimal_change",
+        "include_tests": true,
+        "include_rollback_plan": true
+      }
+    },
+    {
+      "id": "test-fix",
+      "type": "bash",
+      "description": "Run tests to verify fix",
+      "pe_role": "verifier",
+      "input": {
+        "command": "bun test"
+      }
+    },
+    {
+      "id": "create-pr",
+      "type": "bash",
+      "description": "Create PR with fix and incident report",
+      "pe_role": "executor",
+      "input": {
+        "command": "gh pr create --title 'Fix: $INCIDENT_ID - $ROOT_CAUSE' --body-file incident-report.md --label incident"
+      }
+    }
+  ],
+  "outputs": ["incident_report", "root_cause", "fix_diff", "test_results", "pr_url"],
+  "metadata": {
+    "author": "opencode",
+    "tags": ["outer-loop", "incident", "triage", "automation"]
+  }
+}

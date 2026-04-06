@@ -1,0 +1,67 @@
+# Task 4 Evidence: Delegation Liveness Tests/Specs
+
+## Summary
+Created `packages/opencode-delegation-liveness/` package to define delegation progress signals and liveness detection contract.
+
+## Files Created
+1. `packages/opencode-delegation-liveness/package.json` - Package definition
+2. `packages/opencode-delegation-liveness/src/index.js` - Liveness detection implementation
+3. `packages/opencode-delegation-liveness/test/liveness.test.js` - Test suite (33 tests)
+4. `packages/opencode-delegation-liveness/README.md` - Documentation
+
+## Test Results
+```
+bun test v1.3.10
+33 pass 0 fail 64 expect() calls
+Ran 33 tests across 1 file. [35.00ms]
+```
+
+## Acceptance Criteria Status
+- [x] Failing tests/specs added first for progress/no-progress classification
+- [x] Progress signals are defined per task/tool category
+- [x] Edge cases include quiet long-running work, rate limits, and brownouts
+- [x] Targeted tests fail for missing liveness behavior before implementation begins
+
+## Task State Classification Taxonomy
+- `healthy` - Task is making progress
+- `slow` - Task is running but slower than expected
+- `stalled` - No progress detected within timeout
+- `failed` - Task has failed
+- `waiting-on-human` - Task is blocked waiting for human input
+- `unknown` - State cannot be determined
+
+## Progress Signal Types
+- `tool-invocation` - A tool was invoked
+- `file-read` - A file was read
+- `file-write` - A file was written
+- `bash-command` - A bash command was executed
+- `browser-action` - A browser action was performed
+- `heartbeat` - Generic heartbeat signal
+- `status-update` - Status was updated
+- `subagent-spawn` - A subagent was spawned
+- `subagent-complete` - A subagent completed
+- `error` - An error occurred
+- `human-input-required` - Waiting for human input
+
+## Category-Specific Timeouts
+| Category | Timeout | Slow Threshold |
+|----------|---------|----------------|
+| quick | 30s | 50% |
+| unspecified-low | 60s | 60% |
+| deep | 5min | 70% |
+| ultrabrain | 10min | 80% |
+| visual-engineering | 3min | 60% |
+| artistry | 5min | 60% |
+| unspecified-high | 5min | 60% |
+| writing | 2min | 60% |
+
+## Key Classes
+- `ProgressTracker` - Tracks progress for a single delegation
+- `LivenessDetector` - Manages progress tracking for multiple delegations
+- `classifyTaskState()` - Pure function for state classification
+
+## Edge Cases Tested
+- Long-running quiet tasks classified as slow, not stalled
+- Rate-limited tasks not misclassified as stalled
+- Brownout scenarios with intermittent progress
+- Concurrent sessions tracked independently

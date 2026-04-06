@@ -1028,7 +1028,7 @@ this.thompsonRouter = options.thompsonRouter !== undefined
 
     const selectedId = this.thompsonRouter.select(category);
     const normalizedSelected = this._normalizeModelIdForThompson(selectedId);
-    if (!selectedId || !candidateSet.has(normalizedSelected) || this._isAnthropicModel(selectedId)) {
+    if (!selectedId || !candidateSet.has(normalizedSelected)) {
       return this._staticCategorySelection(category, uniqueCandidates);
     }
 
@@ -1042,8 +1042,17 @@ this.thompsonRouter = options.thompsonRouter !== undefined
       || normalizedSelected;
 
     const model = this.models[resolvedSelected] || this.models[candidateMatch] || this.models[normalizedSelected];
-    if (!model || this._isAnthropicModel(model.provider) || this._isAnthropicModel(model.id)) {
+    if (!model) {
       return this._staticCategorySelection(category, uniqueCandidates);
+    }
+
+    // Apply soft penalty for constrained providers instead of hard filtering
+    let constraintPenalty = 0;
+    let penaltyReason = null;
+    if (this._isAnthropicModel(model.provider) || this._isAnthropicModel(model.id)) {
+      constraintPenalty = 0.3; // Soft penalty: reduces confidence but doesn't block
+      penaltyReason = 'anthropic_provider_penalty';
+      console.log(`[ModelRouter] Applied soft constraint penalty to ${model.id} (${penaltyReason})`);
     }
 
     const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
@@ -1054,9 +1063,10 @@ this.thompsonRouter = options.thompsonRouter !== undefined
       modelId: model.id || resolvedSelected,
       keyId: key ? key.id : null,
       key,
-      reason: `thompson-sampling:category=${category}`,
+      reason: `thompson-sampling:category=${category}${penaltyReason ? `+${penaltyReason}` : ''}`,
       rotator,
       candidates: uniqueCandidates,
+      constraintPenalty,
     };
   }
 
@@ -1118,8 +1128,8 @@ this.thompsonRouter = options.thompsonRouter !== undefined
       ? presetCandidates
       : [config.model, ..._asArray(config.fallbacks)]
           .filter((modelId) => typeof modelId === 'string' && modelId.trim().length > 0)
-          .map((modelId) => modelId.trim())
-          .filter((modelId) => !this._isAnthropicModel(modelId));
+          .map((modelId) => modelId.trim());
+    // Note: Anthropic models are no longer hard-filtered; soft penalty applied below
 
     for (const candidateId of candidates) {
       const normalizedId = this._normalizeModelIdForThompson(candidateId);
@@ -1127,8 +1137,17 @@ this.thompsonRouter = options.thompsonRouter !== undefined
         || this.resolveModelId(normalizedId)
         || candidateId;
       const model = this.models[resolvedId] || this.models[candidateId] || this.models[normalizedId];
-      if (!model || this._isAnthropicModel(model.provider) || this._isAnthropicModel(model.id)) {
+      if (!model) {
         continue;
+      }
+
+      // Apply soft penalty for constrained providers instead of hard filtering
+      let constraintPenalty = 0;
+      let penaltyReason = null;
+      if (this._isAnthropicModel(model.provider) || this._isAnthropicModel(model.id)) {
+        constraintPenalty = 0.3;
+        penaltyReason = 'anthropic_provider_penalty';
+        console.log(`[ModelRouter] Static selection: applied soft constraint penalty to ${model.id} (${penaltyReason})`);
       }
 
       const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
@@ -1139,9 +1158,10 @@ this.thompsonRouter = options.thompsonRouter !== undefined
         modelId: model.id || resolvedId,
         keyId: key ? key.id : null,
         key,
-        reason: `static:category=${category}`,
+        reason: `static:category=${category}${penaltyReason ? `+${penaltyReason}` : ''}`,
         rotator,
         candidates,
+        constraintPenalty,
       };
     }
 

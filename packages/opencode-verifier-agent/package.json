@@ -1,0 +1,13 @@
+{
+  "name": "opencode-verifier-agent",
+  "version": "1.0.0",
+  "description": "Dedicated verifier agent for code output verification (PEV Verifier role)",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "bun test"
+  },
+  "keywords": ["verifier", "verification", "pev", "testing", "static-analysis"],
+  "dependencies": {},
+  "devDependencies": {}
+}

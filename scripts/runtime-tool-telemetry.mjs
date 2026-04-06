@@ -99,31 +99,35 @@ const WINDOWS_RENAME_RETRY_DELAY_MS = 10;
 // Initialize PipelineMetricsCollector for SQLite persistence (lazy, inside main)
 let metricsCollector = null;
 
-// ---- Category/Agent → Model lookup (mirrors opencode-config/oh-my-opencode.json) ----
-// Updated from opencode-config/oh-my-opencode.json categories and agents sections.
-// These are the actual models assigned by oh-my-opencode for each category/agent.
-const CATEGORY_TO_MODEL = {
-  'visual-engineering':  { modelId: 'gpt-5.2',                    provider: 'openai' },
-  'ultrabrain':          { modelId: 'gpt-5.3-codex',              provider: 'openai' },
-  'deep':                { modelId: 'glm-5',                      provider: 'z-ai' },
-  'artistry':            { modelId: 'gpt-5.2',                    provider: 'openai' },
-  'quick':               { modelId: 'gemini-2.5-flash',           provider: 'google' },
-  'unspecified-low':     { modelId: 'kimi-k2.5',                  provider: 'moonshotai' },
-  'unspecified-high':    { modelId: 'gpt-5.3-codex',              provider: 'openai' },
-  'writing':             { modelId: 'gemini-2.5-flash',           provider: 'google' },
-};
+// ---- Category/Agent → Model lookup (from opencode-runtime-authority) ----
+// The authority resolver provides a single source of truth for model resolution
+// with provenance tracking. This replaces the previous hardcoded maps that
+// could diverge from the canonical oh-my-opencode.json config.
+// 
+// Precedence: env vars > home config > repo config > defaults
+// See packages/opencode-runtime-authority for details.
 
-const AGENT_TO_MODEL = {
-  'atlas':               { modelId: 'kimi-k2.5',                  provider: 'moonshotai' },
-  'hephaestus':          { modelId: 'gpt-5.3-codex',              provider: 'openai' },
-  'librarian':           { modelId: 'gemini-2.5-flash',           provider: 'google' },
-  'metis':               { modelId: 'gpt-5.2',                    provider: 'openai' },
-  'momus':               { modelId: 'glm-5',                      provider: 'z-ai' },
-  'oracle':              { modelId: 'gpt-5.3-codex',              provider: 'openai' },
-  'prometheus':          { modelId: 'kimi-k2.5',                  provider: 'moonshotai' },
-  'sisyphus':            { modelId: 'gpt-5.3-codex',              provider: 'openai' },
-  'explore':             { modelId: 'gemini-2.5-flash',           provider: 'google' },
-  'multimodal-looker':   { modelId: 'gemini-2.5-flash',           provider: 'google' },
+let runtimeAuthority = null;
+let CATEGORY_TO_MODEL = {};
+let AGENT_TO_MODEL = {};
+
+try {
+  runtimeAuthority = require('../packages/opencode-runtime-authority/src/index.js');
+  const maps = runtimeAuthority.getTelemetryMaps();
+  CATEGORY_TO_MODEL = maps.CATEGORY_TO_MODEL;
+  AGENT_TO_MODEL = maps.AGENT_TO_MODEL;
+} catch (e) {
+  // Fallback to hardcoded defaults if authority resolver is unavailable
+  // This maintains backwards compatibility during migration
+  CATEGORY_TO_MODEL = {
+    'visual-engineering': { modelId: 'gpt-5.2', provider: 'openai' },
+    'ultrabrain': { modelId: 'gpt-5.3-codex', provider: 'openai' },
+    'deep': { modelId: 'glm-5', provider: 'z-ai' },
+    'artistry': { modelId: 'gpt-5.2', provider: 'openai' },
+    'quick': { modelId: 'gemini-2.5-flash', provider: 'google' },
+    'unspecified-low': { modelId: 'kimi-k2.5', provider: 'moonshotai' },
+    'unspecified-high': { modelId: 'gpt-5.3-codex', provider: 'openai' },
+    'writing': { modelId: 'gemini-2.5-flash', provider: 'google' },
 };
 
 // ---- Per-Model Pricing (avg of input+output cost per 1K tokens) ----

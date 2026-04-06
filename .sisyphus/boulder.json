@@ -1,14 +1,35 @@
 {
-  "active_plan": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\autoopencode-integration-strategy.md",
-  "plan_name": "autoopencode-integration-strategy",
-  "started_at": "2026-04-03T05:12:00.000Z",
+  "active_plan": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\cascading-catalyzation-implementation.md",
+  "plan_name": "cascading-catalyzation-implementation",
+  "started_at": "2026-04-05T00:00:00.000Z",
   "session_ids": ["ses_current"],
-  "progress": {},
-  "waves": {},
+  "progress": {
+    "wave_1": { "status": "in_progress", "tasks": [1, 2, 3] },
+    "wave_2": { "status": "pending", "tasks": [4, 5, 6] },
+    "wave_3": { "status": "pending", "tasks": [7, 8, 9, 10, 11] },
+    "wave_4": { "status": "pending", "tasks": [12, 13, 14, 15, 16, 17, 18] }
+  },
+  "waves": {
+    "wave_1": { "tasks": [1, 2, 3], "parallel": true },
+    "wave_2": { "tasks": [4, 5, 6], "parallel": true },
+    "wave_3": { "tasks": [7, 8, 9, 10, 11], "parallel": false },
+    "wave_4": { "tasks": [12, 13, 14, 15, 16, 17, 18], "parallel": false }
+  },
   "commits": [],
   "risk_points_reduced": 0,
   "backlog": [],
   "completed_plans": [
+    {
+      "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\ecosystem-audit-improvements.md",
+      "plan_name": "ecosystem-audit-improvements",
+      "started_at": "2026-04-04T00:00:00.000Z",
+      "completed_at": "2026-04-05T00:00:00.000Z",
+      "session_ids": ["ses_current"],
+      "agent": "atlas",
+      "commits": [],
+      "tasks_completed": 8,
+      "risk_points_reduced": 0
+    },
     {
       "plan_path": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\plans\\parallel-agent-limits-delegation.md",
       "plan_name": "parallel-agent-limits-delegation",

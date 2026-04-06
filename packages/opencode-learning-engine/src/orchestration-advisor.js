@@ -314,6 +314,128 @@ class OrchestrationAdvisor {
   }
 
   /**
+   * Apply learning outcomes to routing decisions.
+   * This makes learning GOVERN routing, not just advise it.
+   *
+   * @param {Object} advice - The advice object from advise()
+   * @param {Object} taskContext - Original task context
+   * @param {Object} options - Governance options
+   * @param {number} options.antiPatternOverrideRisk - Risk score threshold for override (default: 20)
+   * @param {number} options.positivePatternBoostSuccess - Success rate threshold for boost (default: 0.8)
+   * @returns {Object} Potentially modified advice with learning_governance metadata
+   */
+  applyLearningToRouting(advice, taskContext, options = {}) {
+    const antiPatternOverrideRisk = options.antiPatternOverrideRisk ?? 20;
+    const positivePatternBoostSuccess = options.positivePatternBoostSuccess ?? 0.8;
+
+    const governance = {
+      applied: false,
+      overrides: [],
+      boosts: [],
+      reason: null
+    };
+
+    // Deep copy advice to avoid mutating original object
+    let modifiedAdvice = JSON.parse(JSON.stringify(advice));
+    let modifiedRouting = JSON.parse(JSON.stringify(advice.routing));
+
+    // === STRONG: Anti-pattern overrides ===
+    if (advice.risk_score > antiPatternOverrideRisk) {
+      governance.applied = true;
+
+      // Override to safer agent if current agent has anti-patterns
+      const agentWarnings = advice.warnings.filter(w => w.context?.agent === modifiedRouting.agent);
+      if (agentWarnings.length > 0) {
+        // Find safer agent (one without warnings)
+        const safeAgents = Object.keys(AGENT_CAPABILITIES).filter(
+          agent => !advice.warnings.some(w => w.context?.agent === agent)
+        );
+        if (safeAgents.length > 0) {
+          const saferAgent = safeAgents[0]; // Pick first safe agent
+          governance.overrides.push({
+            type: 'agent_override',
+            from: modifiedRouting.agent,
+            to: saferAgent,
+            reason: `Anti-pattern risk (${advice.risk_score}) for ${modifiedRouting.agent}`
+          });
+          modifiedRouting.agent = saferAgent;
+        }
+      }
+
+      // Force verification skills if not already present
+      if (!modifiedRouting.skills.includes('verification-before-completion')) {
+        modifiedRouting.skills.unshift('verification-before-completion');
+        governance.overrides.push({
+          type: 'skill_injection',
+          skill: 'verification-before-completion',
+          reason: 'High anti-pattern risk requires verification'
+        });
+      }
+
+      // Force systematic debugging if shotgun debugging detected
+      if (advice.warnings.some(w => w.type === 'shotgun_debug')) {
+        if (!modifiedRouting.skills.includes('systematic-debugging')) {
+          modifiedRouting.skills.unshift('systematic-debugging');
+          governance.overrides.push({
+            type: 'skill_injection',
+            skill: 'systematic-debugging',
+            reason: 'Shotgun debugging detected, forcing systematic approach'
+          });
+        }
+      }
+
+      // Reduce confidence due to overrides
+      modifiedRouting.confidence = Math.max(0.1, modifiedRouting.confidence - 0.2);
+    }
+
+    // === SOFT: Positive pattern boosts ===
+    const taskType = this._normalizeTextValue(taskContext.task_type || 'general');
+    const positiveType = this._inferPositiveType(taskContext);
+    const positivePatterns = this.positivePatterns.patterns.filter(
+      p => p.type === positiveType && p.success_rate >= positivePatternBoostSuccess
+    );
+
+    if (positivePatterns.length > 0) {
+      governance.applied = true;
+
+      // Boost confidence based on positive pattern success
+      const avgSuccessRate = positivePatterns.reduce((sum, p) => sum + p.success_rate, 0) / positivePatterns.length;
+      const boostAmount = Math.min((avgSuccessRate - positivePatternBoostSuccess) * 0.3, 0.15);
+      modifiedRouting.confidence = Math.min(0.95, modifiedRouting.confidence + boostAmount);
+
+      governance.boosts.push({
+        type: 'confidence_boost',
+        from: advice.routing.confidence,
+        to: modifiedRouting.confidence,
+        reason: `Positive pattern ${positiveType} has ${Math.round(avgSuccessRate * 100)}% success rate`
+      });
+
+      // Suggest top skills from successful patterns
+      for (const pattern of positivePatterns.slice(0, 2)) {
+        const patternSkills = pattern.context?.skills || [];
+        for (const skill of patternSkills) {
+          if (!modifiedRouting.skills.includes(skill)) {
+            modifiedRouting.skills.push(skill);
+            governance.boosts.push({
+              type: 'skill_suggestion',
+              skill,
+              reason: `Skill used in successful ${positiveType} pattern`
+            });
+          }
+        }
+      }
+    }
+
+    // Cap skills at 5
+    modifiedRouting.skills = modifiedRouting.skills.slice(0, 5);
+
+    modifiedAdvice.routing = modifiedRouting;
+    modifiedAdvice.learning_governance = governance;
+
+    return modifiedAdvice;
+  }
+
+  /**
    * Get a summary insights report.
    * @returns {Object}
    */

@@ -1,0 +1,36 @@
+== OpenCode Health Check ==
+[PASS] OpenCode CLI responds
+  1.3.15
+[WARN] Bun plugin link check
+  Skipped: no scoped workspace packages detected.
+  Fix: Set PLUGIN_SCOPE (for example: @your-scope) to enforce scoped link checks.
+[PASS] Hardcoded secret scan
+  Scanned 2 file(s)
+[PASS] MCP supermemory
+  Remote MCP enabled (https://mcp.supermemory.ai/mcp)
+[PASS] MCP context7
+  Remote MCP enabled (https://mcp.context7.com/mcp)
+[PASS] MCP playwright
+  Local MCP enabled (bunx at C:\Users\jack\.bun\bin\bunx.exe)
+[PASS] MCP sequentialthinking
+  Local MCP enabled (bunx at C:\Users\jack\.bun\bin\bunx.exe)
+[PASS] MCP websearch
+  Local MCP enabled (bunx at C:\Users\jack\.bun\bin\bunx.exe)
+[PASS] MCP grep
+  Local MCP enabled (uvx at C:\Users\jack\AppData\Local\Programs\Python\Python312\Scripts\uvx.exe)
+[PASS] MCP distill
+  Local MCP enabled (bun at C:\Users\jack\.bun\bin\bun.exe)
+[PASS] MCP opencode-memory-graph
+  Local MCP enabled (bun at C:\Users\jack\.bun\bin\bun.exe)
+[PASS] MCP opencode-context-governor
+  Local MCP enabled (bun at C:\Users\jack\.bun\bin\bun.exe)
+[PASS] MCP opencode-runbooks
+  Local MCP enabled (bun at C:\Users\jack\.bun\bin\bun.exe)
+[PASS] MCP server configuration
+  10 enabled, 0 disabled, 10 pass, 0 warn, 0 fail
+[PASS] Required env keys
+  4/4 present (profile: core)
+[PASS] Model connectivity smoke test
+  Model request succeeded (google/gemini-2.5-flash)
+
+Health check complete: 0 fail, 1 warn.

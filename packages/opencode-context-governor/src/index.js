@@ -31,6 +31,9 @@ class Governor {
    * @param {string} [opts.persistPath] – path to save/load state (default: ~/.opencode/session-budgets.json)
    * @param {boolean} [opts.autoLoad] – load persisted state on construction (default: true)
    * @param {object} [opts.learningEngine] – learning engine instance for budget pattern learning
+   * @param {'advisory'|'enforce-critical'} [opts.mode] – enforcement mode (default: 'advisory')
+   *   - 'advisory': checkBudget() always returns allowed=true (except exceeded) — current behavior
+   *   - 'enforce-critical': checkBudget() returns allowed=false when status is 'error' or 'exceeded'
    */
   constructor(opts = {}) {
     this._persistPath = opts.persistPath || DEFAULT_PERSIST_PATH;
@@ -38,6 +41,7 @@ class Governor {
     this._learningEngine = opts.learningEngine || null;
     this._saveDebounceMs = opts.saveDebounceMs ?? 200;
     this._saveTimer = null;
+    this._mode = opts.mode || process.env.OPENCODE_BUDGET_MODE || 'advisory';
 
      if (opts.autoLoad !== false) {
        try {
@@ -60,6 +64,25 @@ class Governor {
     if (this._cleanupInterval.unref) {
       this._cleanupInterval.unref();
     }
+  }
+
+  /**
+   * Get current enforcement mode.
+   * @returns {'advisory'|'enforce-critical'}
+   */
+  getMode() {
+    return this._mode;
+  }
+
+  /**
+   * Set enforcement mode.
+   * @param {'advisory'|'enforce-critical'} mode
+   */
+  setMode(mode) {
+    if (mode !== 'advisory' && mode !== 'enforce-critical') {
+      throw new Error(`Invalid budget mode: ${mode}. Must be 'advisory' or 'enforce-critical'.`);
+    }
+    this._mode = mode;
   }
 
   /**
@@ -99,8 +122,9 @@ class Governor {
       message = `Budget exceeded: ${wouldUse}/${config.maxTokens} tokens (${(wouldPct * 100).toFixed(1)}%). Request denied.`;
     } else if (wouldPct >= config.errorThreshold) {
       status = 'error';
-      allowed = true; // allow but flag urgently
-      message = `CRITICAL: Would reach ${(wouldPct * 100).toFixed(1)}% of budget (${wouldUse}/${config.maxTokens}). Consider wrapping up.`;
+      // In enforce-critical mode, block at error threshold
+      allowed = this._mode !== 'enforce-critical';
+      message = `CRITICAL: Would reach ${(wouldPct * 100).toFixed(1)}% of budget (${wouldUse}/${config.maxTokens}).${this._mode === 'enforce-critical' ? ' Request denied.' : ' Consider wrapping up.'}`;
     } else if (wouldPct >= config.warnThreshold) {
       status = 'warn';
       allowed = true;
@@ -261,4 +285,4 @@ class Governor {
   }
 }
 
-module.exports = { Governor, SessionTracker };
+module.exports = { Governor, SessionTracker, BUDGET_MODES: Object.freeze({ ADVISORY: 'advisory', ENFORCE_CRITICAL: 'enforce-critical' }) };

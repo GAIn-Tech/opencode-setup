@@ -1,0 +1,16 @@
+{
+  "name": "opencode-threshold-invariants",
+  "version": "1.0.0",
+  "description": "Shared threshold and policy invariants for cross-loop consistency",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "bun test test/"
+  },
+  "keywords": [
+    "opencode",
+    "thresholds",
+    "invariants",
+    "control-loop"
+  ],
+  "license": "MIT"
+}

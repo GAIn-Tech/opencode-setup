@@ -9,6 +9,8 @@ class RateLimitAdapter {
   #thresholds;
   #taskComplexityMultipliers;
   #taskVolumeMultipliers;
+  #minDelayMs;
+  #lastRequestTime;
 
   constructor() {
     // Rate limit thresholds per provider (requests per minute)
@@ -18,7 +20,8 @@ class RateLimitAdapter {
       'openai': 80,     // Moderate limit
       'nvidia': 30,     // Free tier limit
       'groq': 100,      // Very high limit on LPUs
-      'cerebras': 80    // High limit on CS-2
+      'cerebras': 80,   // High limit on CS-2
+      'opencode-zen': 10 // OpenCode zen provider - routes through Alibaba/DashScope upstream, conservative
     };
 
     // Complexity multipliers for different task types
@@ -36,7 +39,7 @@ class RateLimitAdapter {
       'Orchestration': 1.6         // High value
     };
 
-    // Volume multipliers based on token counts
+    // Volume multiplers based on token counts
     // Lower volume = higher tolerance for rate limit bursts
     this.#taskVolumeMultipliers = {
       'low': 0.5,    // < 1K tokens - can afford to wait
@@ -44,6 +47,30 @@ class RateLimitAdapter {
       'high': 1.2,   // 10K-50K tokens
       'very_high': 1.5 // > 50K tokens - need throughput
     };
+
+    // Minimum delay between requests to smooth traffic (ms)
+    this.#minDelayMs = 200; // 200ms = max 5 requests/sec smoothing
+    this.#lastRequestTime = 0;
+  }
+
+  /**
+   * Enforce minimum delay between requests for traffic smoothing
+   * @returns {number} - Actual delay applied in milliseconds
+   */
+  async enforceMinDelay() {
+    const now = Date.now();
+    const timeSinceLast = now - this.#lastRequestTime;
+    
+    if (timeSinceLast < this.#minDelayMs) {
+      const delayNeeded = this.#minDelayMs - timeSinceLast;
+      console.log(`[RateLimitAdapter] Smoothing delay: ${delayNeeded}ms (min ${this.#minDelayMs}ms between requests)`);
+      await new Promise(resolve => setTimeout(resolve, delayNeeded));
+      this.#lastRequestTime = Date.now(); // Update after delay
+      return delayNeeded;
+    }
+    
+    this.#lastRequestTime = now;
+    return 0;
   }
 
   /**
