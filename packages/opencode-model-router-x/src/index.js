@@ -3057,6 +3057,37 @@ const winner = scored[0];
     }
   }
 
+  // ─── Routing Decision Recording (Learning Integration) ─────────────────
+
+  /**
+   * Record a routing decision for learning - connected from execution layer
+   * Called by oh-my-opencode after response validation
+   * @param {Object} ctx - routing context (taskType, complexity, etc.)
+   * @param {string} modelId - selected model ID
+   * @param {Object} outcome - { valid, failureType, message } from validateResponse
+   * @param {number} latencyMs - response latency
+   */
+  recordRoutingDecision(ctx, modelId, outcome, latencyMs = 0) {
+    const success = outcome?.valid === true
+    this.recordResult(modelId, success, latencyMs, ctx);
+    
+    // Also store in skillRLManager if available (for pattern learning)
+    if (this.skillRLManager && ctx?.taskType) {
+      try {
+        this.skillRLManager.learnFromOutcome?.(
+          ctx.taskType,
+          modelId,
+          success ? 'success' : 'failure',
+          { ctx, failureType: outcome?.failureType, latencyMs }
+        )
+      } catch (e) {
+        // Silently skip if unavailable
+      }
+    }
+    
+    return { success, modelId, context: ctx }
+  }
+
   // ─── Backward Compatibility Aliases ─────────────────────────────────────
 
   /**
