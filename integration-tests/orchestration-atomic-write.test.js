@@ -11,6 +11,8 @@ const originalUserProfile = process.env.USERPROFILE;
 const originalHome = process.env.HOME;
 const WRITE_TOKEN_ENV = 'OPENCODE_DASHBOARD_WRITE_TOKEN';
 const ORIGINAL_TOKEN = process.env[WRITE_TOKEN_ENV];
+const SIGNING_MODE_ENV = 'OPENCODE_EVENT_SIGNING_MODE';
+const ORIGINAL_SIGNING_MODE = process.env[SIGNING_MODE_ENV];
 const TEST_TOKEN = 'test-atomic-write-token';
 
 function createTempPaths() {
@@ -49,6 +51,12 @@ afterEach(() => {
   } else {
     process.env[WRITE_TOKEN_ENV] = ORIGINAL_TOKEN;
   }
+
+  if (ORIGINAL_SIGNING_MODE === undefined) {
+    delete process.env[SIGNING_MODE_ENV];
+  } else {
+    process.env[SIGNING_MODE_ENV] = ORIGINAL_SIGNING_MODE;
+  }
 });
 
 describe('orchestration atomic write', () => {
@@ -57,6 +65,7 @@ describe('orchestration atomic write', () => {
     process.env.USERPROFILE = dir;
     process.env.HOME = dir;
     process.env[WRITE_TOKEN_ENV] = TEST_TOKEN;
+    process.env[SIGNING_MODE_ENV] = 'off';
 
     const request = new Request('http://localhost/api/orchestration', {
       method: 'POST',
@@ -78,6 +87,7 @@ describe('orchestration atomic write', () => {
     process.env.USERPROFILE = dir;
     process.env.HOME = dir;
     process.env[WRITE_TOKEN_ENV] = TEST_TOKEN;
+    process.env[SIGNING_MODE_ENV] = 'off';
 
     fsPromises.rename = () => {
       return Promise.reject(new Error('simulated rename interruption'));

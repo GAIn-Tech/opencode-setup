@@ -24,6 +24,16 @@ const USER_SKILLS_DIR = path.join(os.homedir(), '.config', 'opencode', 'skills')
 const USER_CONFIG_DIR = path.join(os.homedir(), '.config', 'opencode');
 
 function resolveDataDir() {
+  // Check OPENCODE_DATA_DIR first (test compatibility)
+  const configuredDataDir = process.env.OPENCODE_DATA_DIR?.trim();
+  if (configuredDataDir) {
+    return {
+      source: 'OPENCODE_DATA_DIR',
+      rawValue: process.env.OPENCODE_DATA_DIR,
+      resolvedPath: process.env.OPENCODE_DATA_DIR
+    };
+  }
+
   const configuredDataHome = process.env.OPENCODE_DATA_HOME?.trim();
   if (configuredDataHome) {
     return {

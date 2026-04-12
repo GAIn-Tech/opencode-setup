@@ -3,6 +3,7 @@
 const { EventEmitter } = require('events');
 
 const { OpenAIAdapter } = require('../adapters/openai');
+const { AnthropicAdapter } = require('../adapters/anthropic');
 const { GoogleAdapter } = require('../adapters/google');
 const { GroqAdapter } = require('../adapters/groq');
 const { CerebrasAdapter } = require('../adapters/cerebras');
@@ -13,11 +14,13 @@ const PROVIDER_ORDER = Object.freeze([
   'google',
   'groq',
   'cerebras',
-  'nvidia'
+  'nvidia',
+  'anthropic'
 ]);
 
 const ADAPTER_FACTORIES = {
   openai: () => new OpenAIAdapter(),
+  anthropic: () => new AnthropicAdapter(),
   google: () => new GoogleAdapter(),
   groq: () => new GroqAdapter(),
   cerebras: () => new CerebrasAdapter(),

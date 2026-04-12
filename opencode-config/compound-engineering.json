@@ -118,7 +118,7 @@
   "commands": {
     "count": 22,
     "categories": {
-      "core": ["brainstorm", "plan", "work", "review", "compound"],
+      "core": ["brainstorm", "plan", "work", "review", "compound", "init-deep"],
       "workflows": ["lfg", "slfg"],
       "enhancement": ["deepen", "planreview", "triage"],
       "resolution": ["resolvetodo", "resolvepr", "reproduce"],
