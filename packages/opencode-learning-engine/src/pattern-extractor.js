@@ -62,11 +62,18 @@ class PatternExtractor {
     positivePatterns.push(...this._detectGoodDelegation(messages, sessionId));
     positivePatterns.push(...this._detectFastResolution(messages, sessionId));
 
+    const antiPatternsWithConfidence = antiPatterns.map((pattern) =>
+      this._applyConfidence(pattern, messages.length)
+    );
+    const positivePatternsWithConfidence = positivePatterns.map((pattern) =>
+      this._applyConfidence(pattern, messages.length)
+    );
+
     return {
       session_id: sessionId,
       message_count: messages.length,
-      anti_patterns: antiPatterns,
-      positive_patterns: positivePatterns,
+      anti_patterns: antiPatternsWithConfidence,
+      positive_patterns: positivePatternsWithConfidence,
       extracted_at: new Date().toISOString(),
     };
   }
@@ -88,7 +95,9 @@ class PatternExtractor {
     }
 
     // Cross-session: repeated_mistake detection
-    const crossSession = this._detectRepeatedMistakes(allResults);
+    const crossSession = this._detectRepeatedMistakes(allResults).map((pattern) =>
+      this._applyConfidence(pattern, 0)
+    );
 
     return {
       sessions_analyzed: sessionDirs.length,
@@ -101,6 +110,43 @@ class PatternExtractor {
         0
       ),
       extracted_at: new Date().toISOString(),
+    };
+  }
+
+  _applyConfidence(pattern, messageCount) {
+    if (!pattern || typeof pattern !== 'object') {
+      return pattern;
+    }
+
+    const severityBase = {
+      critical: 0.95,
+      high: 0.8,
+      medium: 0.65,
+      low: 0.5,
+    };
+
+    const severity = String(pattern.severity || 'medium').toLowerCase();
+    const base = severityBase[severity] || severityBase.medium;
+
+    const context = pattern.context && typeof pattern.context === 'object' ? pattern.context : {};
+    const numericSignals = [
+      Number(context.occurrences),
+      Number(context.consecutive_failures),
+      Number(context.total_edits),
+      Number(context.failed_edits),
+      Number(context.ratio),
+      Number(context.affected_sessions),
+    ].filter((value) => Number.isFinite(value) && value > 0);
+
+    const strongestSignal = numericSignals.length > 0 ? Math.max(...numericSignals) : 0;
+    const signalBoost = strongestSignal > 0 ? Math.min(0.15, strongestSignal / 100) : 0;
+    const contextBoost = messageCount > 0 ? Math.min(0.05, messageCount / 500) : 0;
+
+    const confidence = Math.max(0, Math.min(0.99, base + signalBoost + contextBoost));
+
+    return {
+      ...pattern,
+      confidence: Math.round(confidence * 100) / 100,
     };
   }
 

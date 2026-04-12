@@ -19,9 +19,29 @@ interface CacheTier {
   hitRate: number;
 }
 
+interface DiscoveryAlertPrediction {
+  provider: string;
+  sampleSize: number;
+  firstHalfFailureRate: number;
+  secondHalfFailureRate: number;
+  delta: number;
+  predictedConsecutiveFailures: number;
+  threshold?: {
+    failureRate?: number;
+    delta?: number;
+  };
+  timestamp: number;
+}
+
 interface MonitoringSnapshot {
   timestamp: number;
   discovery: Record<string, DiscoveryRate>;
+  predictions?: {
+    discoveryAlerts?: {
+      totalEvents: number;
+      byProvider: Record<string, DiscoveryAlertPrediction>;
+    };
+  };
   cache: { l1: CacheTier; l2: CacheTier };
   transitions: Record<string, number>;
   prCreation: { total: number; successes: number; failures: number; rate: number };
@@ -392,6 +412,45 @@ export default function ObservabilityPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+      )}
+
+      {/* Predictive Discovery Alerts */}
+      {monitoring?.predictions?.discoveryAlerts && Object.keys(monitoring.predictions.discoveryAlerts.byProvider || {}).length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold text-white mb-3">Predictive Discovery Alerts</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {Object.entries(monitoring.predictions.discoveryAlerts.byProvider)
+              .sort((a, b) => b[1].secondHalfFailureRate - a[1].secondHalfFailureRate)
+              .map(([provider, prediction]) => (
+                <div key={provider} className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-zinc-200 capitalize">{provider}</span>
+                    <span className="text-xs px-2 py-0.5 rounded border border-amber-500/30 text-amber-400 bg-amber-500/10">
+                      advisory
+                    </span>
+                  </div>
+                  <div className="space-y-1 text-xs text-zinc-400">
+                    <div className="flex justify-between">
+                      <span>Failure rate (recent)</span>
+                      <span className="text-amber-300 font-medium">{(prediction.secondHalfFailureRate * 100).toFixed(1)}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Failure trend delta</span>
+                      <span className="text-zinc-200">+{(prediction.delta * 100).toFixed(1)}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Sample size</span>
+                      <span className="text-zinc-200">{prediction.sampleSize}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Pred. consecutive failures</span>
+                      <span className="text-zinc-200">{prediction.predictedConsecutiveFailures}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
           </div>
         </section>
       )}

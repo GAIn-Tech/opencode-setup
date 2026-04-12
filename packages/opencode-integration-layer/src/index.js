@@ -82,8 +82,24 @@ try {
   memoryGraph = null;
 }
 
+// Learning Engine for pre-task advice and post-task learning
+let LearningEngine;
+try {
+  ({ LearningEngine } = require('opencode-learning-engine'));
+} catch (e) {
+  LearningEngine = null;
+}
+
 // Context bridge for governor → distill advisory signals
 const { ContextBridge } = require('./context-bridge');
+
+// PEV Contract for Planner/Executor/Verifier/Critic orchestration
+let pevContract;
+try {
+  pevContract = require('../../opencode-pev-contract/src/index.js');
+} catch {
+  pevContract = null;
+}
 
 let resolveOrchestrationPolicy = null;
 try {
@@ -218,6 +234,36 @@ class IntegrationLayer {
     this.pipelineMetrics = config.pipelineMetrics || null;
     this.alertManager = config.alertManager || null;
     this.explorationAdapter = config.explorationAdapter || null;
+    
+    // [Task 1.5] Initialize PEV Contract — binding orchestration through contracts
+    this._pevContract = null;
+    if (pevContract && pevContract.PEVContract) {
+      try {
+        this._pevContract = new pevContract.PEVContract();
+        
+        // Register existing components as PEV roles (if they implement the interfaces)
+        if (this.advisor && typeof this.advisor.advise === 'function') {
+          // Wrap advisor as planner - use existing advise() output as plan
+          this._pevContract._advisor = this.advisor;
+        }
+        if (this.workflowExecutor && typeof this.workflowExecutor.execute === 'function') {
+          this._pevContract._workflowExecutor = this.workflowExecutor;
+        }
+        if (this.showboat && typeof this.showboat.captureEvidence === 'function') {
+          this._pevContract._showboat = this.showboat;
+        }
+        
+        logger.info('PEV Contract initialized', {
+          hasPlanner: !!this._pevContract._advisor,
+          hasExecutor: !!this._pevContract._workflowExecutor,
+          hasVerifier: !!this._pevContract._showboat
+        });
+      } catch (err) {
+        logger.warn('PEV Contract initialization failed', { error: err.message });
+        this._pevContract = null;
+      }
+    }
+    
     // P1 FIX: Use Map keyed by task_id instead of global mutable state
     this.taskContextMap = new Map();
     this.currentSessionId = config.currentSessionId || config.sessionId || null;
@@ -227,6 +273,17 @@ class IntegrationLayer {
 
     // [T22] Track consecutive failures per skill for early warning
     this._skillConsecutiveFailures = new Map(); // skillName → { count: number, lastTask: string }
+
+    // [GAP FIX 1] Event Subscription System
+    // Track registered event handlers for observability
+    this._eventHandlers = new Map(); // eventName → Array<{ handler: Function, label: string }>
+    this._eventStats = new Map(); // eventName → { count, lastRisk, lastTimestamp }
+    
+    // Initialize logger before using event handlers
+    this.logger = logger;
+    
+    // Initialize default event handlers for critical events
+    this._initDefaultEventHandlers(config);
 
     // Meta-KB index: fail-open loading for SkillRL integration
     this.metaKBIndex = null;
@@ -254,11 +311,33 @@ class IntegrationLayer {
     this.contextGovernor = contextGovernor;
     this.memoryGraph = config.memoryGraph || memoryGraph;
 
+    // [GAP FIX] Initialize Learning Engine if available
+    // This enables pre-task advice and post-task learning integration
+    if (!this.learningEngine && LearningEngine) {
+      try {
+        this.learningEngine = new LearningEngine({ autoLoad: true, autoSave: true });
+        logger.info('[IntegrationLayer] LearningEngine initialized for advice/learning');
+      } catch (err) {
+        logger.warn('[IntegrationLayer] LearningEngine init failed (non-fatal)', { error: err.message });
+        this.learningEngine = null;
+      }
+    }
+
+    // [GAP FIX] Learning advice hooks - fail-open if learning engine unavailable
+    this._learningAdviceEnabled = !!this.learningEngine;
+    this._learningAdviceCache = new Map(); // adviceId → { advice, timestamp }
+    this._learningAdviceCacheMaxAge = 5 * 60 * 1000; // 5 minutes
+
     // T8: ContextBridge — advisory bridge between governor and distill compression
+    // Note: Governor is lazy-loaded in _getGovernorInstance() method
+    // The contextBridge will be updated with actual governor on first check
     this.contextBridge = new ContextBridge({
-      governor: this._getGovernorInstance(),
+      governor: null, // Will be set lazily on first budget check
       logger,
     });
+    
+    // Lazy-initialize _governorInstance to null initially
+    this._governorInstance = null;
     
     // Log initialization status
     const _startupMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - _startupT0;
@@ -278,6 +357,401 @@ class IntegrationLayer {
       hasMemoryGraph: !!memoryGraph,
     });
     logger.info(`[Startup] IntegrationLayer: ${_startupMs.toFixed(1)}ms`);
+    
+    // [GAP FIX 4] Initialize feature flags with runtime check
+    this._initFeatureFlags(config);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Learning Engine Integration Hooks
+  // ---------------------------------------------------------------------------
+
+  /**
+   * [GAP FIX] Get learning advice for a task context.
+   * Returns warnings, suggestions, and routing recommendations from LearningEngine.
+   * Fail-open: returns null if LearningEngine unavailable.
+   * 
+   * @param {Object} taskContext - { task_type, description, files, complexity, ... }
+   * @returns {Object|null} - { warnings, suggestions, routing, should_pause, risk_score } or null
+   */
+  getLearningAdvice(taskContext) {
+    if (!this._learningAdviceEnabled || !this.learningEngine) {
+      return null;
+    }
+
+    try {
+      // Build context for advise()
+      const context = {
+        task_type: taskContext.task_type || taskContext.task || 'unspecified',
+        description: taskContext.description || taskContext.prompt || '',
+        files: Array.isArray(taskContext.files) ? taskContext.files : [],
+        complexity: taskContext.complexity || 'moderate',
+        attempt_number: taskContext.attempt_number || 1,
+      };
+
+      const advice = this.learningEngine.advise(context);
+      
+      // Cache the advice
+      if (advice && advice.advice_id) {
+        this._learningAdviceCache.set(advice.advice_id, {
+          advice,
+          timestamp: Date.now(),
+        });
+      }
+
+      return advice;
+    } catch (err) {
+      this.logger.warn('[IntegrationLayer] getLearningAdvice failed (fail-open)', { 
+        error: err.message 
+      });
+      return null;
+    }
+  }
+
+  /**
+   * [GAP FIX] Learn from task outcome - record success/failure for learning.
+   * 
+   * @param {string} adviceId - The advice_id from getLearningAdvice()
+   * @param {Object} outcome - { success, failure_reason, tokens_used }
+   */
+  learnFromOutcome(adviceId, outcome) {
+    if (!this._learningAdviceEnabled || !this.learningEngine) {
+      return;
+    }
+
+    if (!adviceId) {
+      // Check cache for most recent advice
+      const now = Date.now();
+      for (const [id, cached] of this._learningAdviceCache) {
+        if (now - cached.timestamp < this._learningAdviceCacheMaxAge) {
+          adviceId = id;
+          break;
+        }
+      }
+    }
+
+    if (!adviceId) {
+      return; // No advice to learn from
+    }
+
+    try {
+      this.learningEngine.learnFromOutcome(adviceId, outcome);
+    } catch (err) {
+      this.logger.warn('[IntegrationLayer] learnFromOutcome failed (non-fatal)', { 
+        error: err.message 
+      });
+    }
+  }
+
+  /**
+   * [GAP FIX] Check if learning advice is available.
+   * @returns {boolean}
+   */
+  isLearningAdviceEnabled() {
+    return this._learningAdviceEnabled;
+  }
+
+  /**
+   * [GAP FIX 4] Initialize feature flags and add isEnabled check.
+   * @private
+   */
+  _initFeatureFlags(config = {}) {
+    this._featureFlags = featureFlags || null;
+    
+    // Default feature flags if no feature flags package
+    if (!this._featureFlags) {
+      this._featureFlags = {
+        isEnabled: (flag) => {
+          // Default: all features enabled unless explicitly disabled
+          const disabled = process.env.OPENCODE_DISABLED_FEATURES || '';
+          return !disabled.split(',').includes(flag);
+        },
+        get: (flag, defaultValue) => {
+          const envKey = `OPENCODE_FEATURE_${flag.toUpperCase()}`;
+          return process.env[envKey] || defaultValue;
+        },
+        getAll: () => ({}),
+      };
+    }
+    
+    this.logger.info('[FeatureFlags] Initialized', {
+      hasFeatureFlags: !!featureFlags,
+    });
+  }
+
+  /**
+   * [GAP FIX 4] Check if a feature is enabled at runtime.
+   * 
+   * @param {string} featureName - Name of feature to check
+   * @returns {boolean} True if enabled
+   */
+  isFeatureEnabled(featureName) {
+    if (!this._featureFlags) return true; // Fail-open: enabled if no flags
+    
+    try {
+      if (typeof this._featureFlags.isEnabled === 'function') {
+        return this._featureFlags.isEnabled(featureName);
+      }
+      // Fallback for simpler flag objects
+      if (typeof this._featureFlags.get === 'function') {
+        const value = this._featureFlags.get(featureName, true);
+        return value !== false && value !== 'false';
+      }
+    } catch (err) {
+      this.logger.warn('[FeatureFlags] isEnabled failed', { featureName, error: err.message });
+    }
+    
+    return true; // Fail-open
+  }
+
+  /**
+   * [GAP FIX 4] Get feature flag value.
+   * 
+   * @param {string} flag - Flag name
+   * @param {any} defaultValue - Default if not set
+   * @returns {any} Flag value or default
+   */
+  getFeatureFlag(flag, defaultValue) {
+    if (!this._featureFlags) return defaultValue;
+    
+    try {
+      if (typeof this._featureFlags.get === 'function') {
+        return this._featureFlags.get(flag, defaultValue);
+      }
+    } catch (err) {
+      this.logger.warn('[FeatureFlags] get failed', { flag, error: err.message });
+    }
+    
+    return defaultValue;
+  }
+
+  /**
+   * [GAP FIX 5] Get package execution stats for dashboard display.
+   * Reads from the internal event tracking.
+   * 
+   * @returns {Object} Package execution summary
+   */
+  getPackageExecutionStats() {
+    return {
+      eventStats: Object.fromEntries(this._eventStats || new Map()),
+      handlerCount: this._eventHandlers?.size || 0,
+      handlers: this.getEventHandlers(),
+    };
+  }
+
+  /**
+   * [GAP FIX 6] Validate configuration at startup.
+   * Checks critical config files exist and are valid JSON.
+   * 
+   * @param {Object} configPaths - Paths to validate
+   * @returns {Object} Validation results
+   */
+  validateConfig(configPaths = {}) {
+    const results = {
+      valid: true,
+      errors: [],
+      warnings: [],
+    };
+
+    const fs = require('fs');
+    const path = require('path');
+
+    const defaultPaths = {
+      'opencode.json': path.join(__dirname, '../../../opencode-config/opencode.json'),
+      'registry.json': path.join(__dirname, '../../../opencode-config/skills/registry.json'),
+      'oh-my-opencode.json': path.join(__dirname, '../../../opencode-config/oh-my-opencode.json'),
+    };
+
+    const pathsToCheck = { ...defaultPaths, ...configPaths };
+
+    for (const [name, filePath] of Object.entries(pathsToCheck)) {
+      try {
+        if (!fs.existsSync(filePath)) {
+          results.warnings.push(`Config file not found: ${name} at ${filePath}`);
+          continue;
+        }
+
+        const content = fs.readFileSync(filePath, 'utf8');
+        const parsed = JSON.parse(content);
+        
+        // Basic schema validation hints
+        if (name === 'registry.json' && !parsed.skills) {
+          results.errors.push(`Invalid registry.json: missing 'skills' field`);
+          results.valid = false;
+        }
+        if (name === 'opencode.json' && !parsed.agents) {
+          results.warnings.push(`opencode.json may be missing 'agents' configuration`);
+        }
+      } catch (err) {
+        if (err instanceof SyntaxError) {
+          results.errors.push(`Invalid JSON in ${name}: ${err.message}`);
+          results.valid = false;
+        } else {
+          results.warnings.push(`Could not read ${name}: ${err.message}`);
+        }
+      }
+    }
+
+    if (!results.valid) {
+      this.logger.error('[ConfigValidation] Failed', { errors: results.errors });
+    } else if (results.warnings.length > 0) {
+      this.logger.warn('[ConfigValidation] Warnings', { warnings: results.warnings });
+    } else {
+      this.logger.info('[ConfigValidation] All configs valid');
+    }
+
+    return results;
+  }
+
+  /**
+   * [GAP FIX 1] Initialize default event handlers for critical events.
+   * These handlers respond to PEV lifecycle, learning overrides, and skill recommendations.
+   * @private
+   */
+  _initDefaultEventHandlers(config = {}) {
+    // Register default handlers - can be overridden by external subscribers
+    
+    // LEARNING_OVERRIDE: Log and potentially act on routing changes
+    this._registerEventHandler('LEARNING_OVERRIDE', (payload) => {
+      const { taskType, riskScore, routingOverride } = payload || {};
+      
+      // Log the override for audit
+      this.logger.info('[Event] LEARNING_OVERRIDE received', {
+        taskType,
+        riskScore,
+        agentOverride: routingOverride?.agentOverride,
+        skillOverride: routingOverride?.skillOverride,
+        penalty: routingOverride?.penalty,
+      });
+      
+      // Track override frequency for observability
+      const key = `learning_override_${taskType || 'unknown'}`;
+      const current = this._eventStats?.get(key) || { count: 0, lastRisk: 0 };
+      this._eventStats?.set(key, {
+        count: current.count + 1,
+        lastRisk: riskScore || 0,
+        lastTimestamp: Date.now(),
+      });
+      
+      return { handled: true, action: 'logged' };
+    }, 'learning-override-logger');
+
+    // SKILL_RECOMMENDATION: Log skill auto-detection results
+    this._registerEventHandler('SKILL_RECOMMENDATION', (payload) => {
+      const { taskType, recommendedSkills } = payload || {};
+      
+      this.logger.info('[Event] SKILL_RECOMMENDATION received', {
+        taskType,
+        recommendedSkills: recommendedSkills?.length || 0,
+        skills: recommendedSkills,
+      });
+      
+      return { handled: true, action: 'logged' };
+    }, 'skill-recommendation-logger');
+
+    // PEV events: Track planner/executor/verifier lifecycle
+    this._registerEventHandler('PEV_PLAN_START', (payload) => {
+      this.logger.debug('[Event] PEV_PLAN_START', payload);
+      return { handled: true };
+    }, 'pev-lifecycle');
+    
+    this._registerEventHandler('PEV_EXECUTE_START', (payload) => {
+      this.logger.debug('[Event] PEV_EXECUTE_START', payload);
+      return { handled: true };
+    }, 'pev-lifecycle');
+    
+    this._registerEventHandler('PEV_VERIFY_COMPLETE', (payload) => {
+      this.logger.debug('[Event] PEV_VERIFY_COMPLETE', payload);
+      return { handled: true };
+    }, 'pev-lifecycle');
+
+    // compression_triggered: Log when compression is auto-triggered
+    this._registerEventHandler('compression_triggered', (payload) => {
+      this.logger.info('[Event] compression_triggered', payload);
+      return { handled: true, action: 'compression_logged' };
+    }, 'compression-tracker');
+
+    this.logger.info('[EventSystem] Default handlers initialized', {
+      handlerCount: this._eventHandlers?.size || 0,
+    });
+  }
+
+  /**
+   * [GAP FIX 1] Register an event handler.
+   * 
+   * @param {string} eventName - Event to listen for
+   * @param {Function} handler - Handler function(payload) → result
+   * @param {string} label - Identifier for this handler
+   */
+  on(eventName, handler, label = 'anonymous') {
+    return this._registerEventHandler(eventName, handler, label);
+  }
+
+  /**
+   * [GAP FIX 1] Internal handler registration.
+   * @private
+   */
+  _registerEventHandler(eventName, handler, label) {
+    if (!this._eventHandlers) {
+      this._eventHandlers = new Map();
+    }
+    
+    if (!this._eventHandlers.has(eventName)) {
+      this._eventHandlers.set(eventName, []);
+    }
+    
+    this._eventHandlers.get(eventName).push({ handler, label });
+    
+    this.logger.debug('[EventSystem] Handler registered', { eventName, label });
+    return true;
+  }
+
+  /**
+   * [GAP FIX 1] Emit event to all registered handlers.
+   * 
+   * @param {string} eventName - Event to emit
+   * @param {Object} payload - Event data
+   * @returns {Array} Results from each handler
+   */
+  emit(eventName, payload) {
+    const handlers = this._eventHandlers?.get(eventName) || [];
+    const results = [];
+    
+    for (const { handler, label } of handlers) {
+      try {
+        const result = handler(payload);
+        results.push({ label, success: true, result });
+      } catch (err) {
+        this.logger.warn('[EventSystem] Handler error', { eventName, label, error: err.message });
+        results.push({ label, success: false, error: err.message });
+      }
+    }
+    
+    // Also emit through existing PEV system
+    if (eventName.startsWith('PEV_') || eventName === 'LEARNING_OVERRIDE' || eventName === 'SKILL_RECOMMENDATION') {
+      this.emitPEVEvent(eventName, payload);
+    }
+    
+    return results;
+  }
+
+  /**
+   * [GAP FIX 1] Get registered event handlers.
+   * 
+   * @param {string} [eventName] - Optional filter by event name
+   * @returns {Object} Map of event names to handler info
+   */
+  getEventHandlers(eventName) {
+    if (eventName) {
+      const handlers = this._eventHandlers?.get(eventName) || [];
+      return { [eventName]: handlers.map(h => h.label) };
+    }
+    
+    const result = {};
+    for (const [name, handlers] of (this._eventHandlers || new Map()).entries()) {
+      result[name] = handlers.map(h => h.label);
+    }
+    return result;
   }
 
   /**
@@ -286,6 +760,179 @@ class IntegrationLayer {
    */
   getIntegrationStatus() {
     return { ...integrationStatus };
+  }
+
+  /**
+   * Lazy-load and cache Governor instance for budget enforcement mode support.
+   * Supports 'advisory' (default) and 'enforce-critical' modes.
+   * When mode is 'enforce-critical', budget.checkBudget() returns allowed=false at error threshold.
+   *
+   * @returns {object|null} Governor instance or null if unavailable
+   */
+  _getGovernorInstance() {
+    if (this._governorInstance !== null) {
+      return this._governorInstance;
+    }
+
+    // Lazy-initialize Governor if contextGovernor module is available
+    if (contextGovernor && contextGovernor.Governor) {
+      try {
+        // Default to 'enforce-critical' - binding by default, not advisory
+        // Can still be overridden via OPENCODE_BUDGET_MODE env var for backward compatibility
+        const mode = process.env.OPENCODE_BUDGET_MODE || 'enforce-critical';
+        this._governorInstance = new contextGovernor.Governor({ mode });
+        logger.info('Governor initialized with mode (binding by default)', { mode });
+        
+        // Update contextBridge with actual governor instance
+        if (this.contextBridge) {
+          this.contextBridge._governor = this._governorInstance;
+        }
+      } catch (err) {
+        logger.warn('Governor initialization failed', { error: err.message });
+        this._governorInstance = null;
+      }
+    } else {
+      this._governorInstance = null;
+    }
+
+    return this._governorInstance;
+  }
+
+  /**
+   * Get current budget enforcement mode.
+   * @returns {'advisory'|'enforce-critical'|null}
+   */
+  getBudgetEnforcementMode() {
+    const gov = this._getGovernorInstance();
+    if (!gov) return null;
+    return gov.getMode ? gov.getMode() : null;
+  }
+
+  /**
+   * Set budget enforcement mode.
+   * @param {'advisory'|'enforce-critical'} mode
+   */
+  setBudgetEnforcementMode(mode) {
+    const gov = this._getGovernorInstance();
+    if (!gov || !gov.setMode) return false;
+    try {
+      gov.setMode(mode);
+      logger.info('Budget enforcement mode changed', { mode });
+      return true;
+    } catch (err) {
+      logger.warn('Failed to set budget enforcement mode', { mode, error: err.message });
+      return false;
+    }
+  }
+
+  /**
+   * Check context budget before execution with optional enforcement.
+   * In 'enforce-critical' mode, throws when budget status is 'error' or 'exceeded'.
+   *
+   * @param {string} sessionId
+   * @param {string} model
+   * @param {number} proposedTokens
+   * @returns {{ allowed: boolean, status: string, remaining: number, message: string }}
+   */
+  checkContextBudget(sessionId, model, proposedTokens) {
+    const gov = this._getGovernorInstance();
+    if (!gov) {
+      return { allowed: true, status: 'unknown', remaining: 0, message: 'Governor not available' };
+    }
+
+    try {
+      return gov.checkBudget(sessionId, model, proposedTokens);
+    } catch (err) {
+      logger.error('checkContextBudget failed', { sessionId, model, error: err.message });
+      if (OpenCodeError && ErrorCategory && ErrorCode) {
+        throw new OpenCodeError(`Context budget check failed: ${err.message}`, ErrorCategory.CONFIG, ErrorCode.CONFIG_INVALID, {
+          sessionId,
+          model,
+          originalError: err.message,
+          retryable: false
+        });
+      }
+      throw err;
+    }
+  }
+
+  /**
+   * [Task 1.5] Get PEV Contract status and lifecycle events.
+   * Returns null if PEV contract not available.
+   *
+   * @returns {object|null}
+   */
+  getPEVStatus() {
+    if (!this._pevContract) return null;
+    
+    return {
+      initialized: true,
+      hasPlanner: !!this._pevContract._advisor,
+      hasExecutor: !!this._pevContract._workflowExecutor,
+      hasVerifier: !!this._pevContract._showboat,
+      ready: !!(this._pevContract._advisor && this._pevContract._workflowExecutor)
+    };
+  }
+
+  /**
+   * [Task 1.5] Emit PEV lifecycle event for observability.
+   *
+   * @param {string} event - PEV lifecycle event name
+   * @param {object} payload - Event payload
+   */
+  emitPEVEvent(event, payload = {}) {
+    if (!this._pevContract) return;
+    
+    const eventObj = {
+      event,
+      payload,
+      timestamp: new Date().toISOString(),
+      source: 'integration-layer'
+    };
+    
+    // Emit through pipeline metrics if available
+    if (this.pipelineMetrics && typeof this.pipelineMetrics.recordPEVEvent === 'function') {
+      try {
+        this.pipelineMetrics.recordPEVEvent(eventObj);
+      } catch { /* fail-open */ }
+    }
+    
+    // Emit through contextBridge if available
+    if (this.contextBridge) {
+      try {
+        this.contextBridge._emit?.(event, payload);
+      } catch { /* fail-open */ }
+    }
+    
+    this.logger.info('[PEV]', event, payload);
+  }
+
+  /**
+   * [Task 2.3] Trigger context compression on budget warning.
+   * Attempts DCP compression, then Context7 if needed.
+   *
+   * @param {string} sessionId
+   * @param {string} model
+   * @private
+   */
+  _triggerCompression(sessionId, model) {
+    const governor = this._getGovernorInstance();
+    if (!governor) return;
+    
+    this.logger.info('Triggering compression due to budget warning', { sessionId, model });
+    
+    // Emit compression event for observability
+    this.emitPEVEvent('compression_triggered', { sessionId, model, reason: 'budget_warning' });
+    
+    // Try to trigger DCP via contextBridge
+    if (this.contextBridge && typeof this.contextBridge.evaluateAndEnforce === 'function') {
+      try {
+        const result = this.contextBridge.evaluateAndEnforce(sessionId, model, { trigger: 'budget_warning' });
+        this.logger.info('Compression triggered via contextBridge', { action: result?.action, reason: result?.reason });
+      } catch (err) {
+        this.logger.warn('Compression trigger failed', { error: err.message });
+      }
+    }
   }
 
   /**
@@ -368,29 +1015,375 @@ class IntegrationLayer {
     if (!this.memoryGraph) return null;
     const t0 = Date.now();
     try {
-      const errorData = error instanceof Error ? {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-      } : error;
-      const entry = {
-        sessionId,
-        ...errorData,
+      const graphData = {
+        session_id: sessionId,
         timestamp: new Date().toISOString(),
+        error_type: error?.name || error?.constructor?.name || 'UnknownError',
+        message: error?.message || String(error),
       };
-      const graphEntry = {
-        ...entry,
-        session_id: entry.sessionId || entry.session_id || sessionId,
-        error_type: entry.name || entry.error_type || entry.errorType || 'UnknownError',
-      };
-      const result = await this.memoryGraph.buildGraph([graphEntry]);
+      const result = this.memoryGraph.buildGraph([graphData]);
       this.recordPackageExecution('memoryGraph', 'buildGraph', true, Date.now() - t0, { sessionId });
       return result;
     } catch (err) {
-      this.recordPackageExecution('memoryGraph', 'buildGraph', false, Date.now() - t0, {
-        sessionId, error: err.message,
-      });
+      this.recordPackageExecution('memoryGraph', 'buildGraph', false, Date.now() - t0, { sessionId, error: err.message });
       return null;
+    }
+  }
+
+  /**
+   * [P0] Get skill recommendations with learning-driven routing overrides.
+   * 
+   * This method wires learning outcomes into skill selection:
+   * 1. Get base skill recommendations from SkillRLManager
+   * 2. Get anti-pattern advice from LearningEngine
+   * 3. Apply learning to routing via applyLearningToRouting()
+   * 4. Return combined result with any routing overrides
+   *
+   * @param {Object} taskContext - { taskType, files, complexity, ... }
+   * @returns {Object} { skills: [], routingOverride: { agentOverride, skillOverride, penalty, reason } }
+   */
+  getSkillRecommendations(taskContext) {
+    const defaultResult = { skills: [], routingOverride: null };
+    
+    // Step 1: Get base skill recommendations from SkillRL
+    let skills = [];
+    if (this.skillRL && typeof this.skillRL.selectSkills === 'function') {
+      try {
+        skills = this.skillRL.selectSkills(taskContext) || [];
+      } catch (err) {
+        this.logger.warn('SkillRL.selectSkills failed', { error: err.message });
+      }
+    }
+
+    // Step 2: Get learning advice if available
+    let advice = null;
+    let routingOverride = null;
+    
+    if (this.learningEngine) {
+      try {
+        // Get learning advice for this task
+        const taskType = taskContext?.taskType || taskContext?.task || 'general';
+        advice = this.learningEngine.advise({
+          task_type: taskType,
+          files: taskContext?.files || [],
+          complexity: taskContext?.complexity || 'moderate',
+          attempt_number: taskContext?.attemptNumber || 1,
+        });
+
+        // Step 3: Apply learning to routing (the key wiring!)
+        if (advice && this.learningEngine.applyLearningToRouting) {
+          routingOverride = this.learningEngine.applyLearningToRouting(taskContext, advice);
+          
+          // Emit LEARNING_OVERRIDE event for observability
+          if (routingOverride && (routingOverride.agentOverride || routingOverride.penalty !== 0)) {
+            this.emitPEVEvent('LEARNING_OVERRIDE', {
+              taskType,
+              riskScore: advice?.risk_score,
+              routingOverride,
+            });
+            this.logger.info('Learning routing override applied', { 
+              taskType, 
+              agentOverride: routingOverride.agentOverride,
+              penalty: routingOverride.penalty 
+            });
+          }
+        }
+      } catch (err) {
+        this.logger.warn('Learning engine advise failed', { error: err.message });
+      }
+    }
+
+    // Step 4: Apply routing override to skills if needed
+    if (routingOverride?.skillOverride && Array.isArray(routingOverride.skillOverride)) {
+      // Inject override skills at front of recommendations
+      skills = [...routingOverride.skillOverride, ...skills];
+    }
+
+    return {
+      skills,
+      advice: advice || null,
+      routingOverride,
+    };
+  }
+
+  /**
+   * [P1] Get session errors from memory graph.
+   * Delegates to memoryGraph.getSessionErrors() if available.
+   * Fail-open: returns empty array if memoryGraph unavailable.
+   *
+   * @param {string} sessionId - Session identifier
+   * @returns {Array} Array of error records for this session
+   */
+  getSessionErrors(sessionId) {
+    if (!this.memoryGraph) return [];
+    
+    try {
+      if (typeof this.memoryGraph.getSessionErrors === 'function') {
+        return this.memoryGraph.getSessionErrors(sessionId) || [];
+      }
+    } catch (err) {
+      this.logger.warn('getSessionErrors failed', { sessionId, error: err.message });
+    }
+    
+    return [];
+  }
+
+  /**
+   * [P1] Get error frequency statistics from memory graph.
+   * Delegates to memoryGraph.getErrorFrequency() if available.
+   * Fail-open: returns empty array if memoryGraph unavailable.
+   *
+   * @returns {Array} Array of { error_type, count, first_seen, last_seen }
+   */
+  getErrorFrequency() {
+    if (!this.memoryGraph) return [];
+    
+    try {
+      if (typeof this.memoryGraph.getErrorFrequency === 'function') {
+        return this.memoryGraph.getErrorFrequency() || [];
+      }
+    } catch (err) {
+      this.logger.warn('getErrorFrequency failed', { error: err.message });
+    }
+    
+    return [];
+  }
+
+  /**
+   * [P2] Get tool quality metrics for planning decisions.
+   * Reads from ~/.opencode/tool-quality/ directory.
+   * Returns tools with quality flags for deprioritization.
+   *
+   * @param {string} [toolName] - Optional filter by tool name
+   * @returns {Object} { totalTools, flaggedTools, summary }
+   */
+  getToolQualityMetrics(toolName = null) {
+    const fs = require('fs');
+    const path = require('path');
+    const os = require('os');
+    
+    const toolQualityDir = path.join(os.homedir(), '.opencode', 'tool-quality');
+    
+    if (!fs.existsSync(toolQualityDir)) {
+      return { totalTools: 0, flaggedTools: [], summary: {} };
+    }
+
+    try {
+      const files = fs.readdirSync(toolQualityDir).filter(f => f.endsWith('.json'));
+      const tools = [];
+      
+      for (const file of files) {
+        try {
+          const data = JSON.parse(fs.readFileSync(path.join(toolQualityDir, file), 'utf8'));
+          const toolNameFromFile = data.tool_name;
+          
+          // Filter if toolName specified
+          if (toolName && toolName !== toolNameFromFile) continue;
+          
+          // Check for quality flags
+          const flags = [];
+          if (data.confusion_rate > 0.2) flags.push('confusion_rate_high');
+          if (data.avg_tokens > 25000) flags.push('token_usage_high');
+          if (data.success_rate < 0.7) flags.push('success_rate_low');
+          
+          tools.push({
+            name: toolNameFromFile,
+            success_rate: data.success_rate,
+            confusion_rate: data.confusion_rate,
+            avg_tokens: data.avg_tokens,
+            flags,
+          });
+        } catch {
+          // Skip invalid files
+        }
+      }
+
+      const flaggedTools = tools.filter(t => t.flags.length > 0);
+      const avgSuccessRate = tools.length > 0 
+        ? tools.reduce((sum, t) => sum + (t.success_rate || 0), 0) / tools.length 
+        : 0;
+
+      return {
+        totalTools: tools.length,
+        flaggedTools,
+        summary: {
+          avgSuccessRate: Math.round(avgSuccessRate * 10000) / 10000,
+          flaggedCount: flaggedTools.length,
+        },
+      };
+    } catch (err) {
+      this.logger.warn('getToolQualityMetrics failed', { error: err.message });
+      return { totalTools: 0, flaggedTools: [], summary: {} };
+    }
+  }
+
+  /**
+   * [P3] Detect skill-orchestrator auto-recommendations based on task keywords.
+   * 
+   * This implements skill-orchestrator-runtime detection logic:
+   * - Analyzes task description for keywords
+   * - Matches against registered skill triggers
+   * - Returns recommended skills for the task
+   *
+   * @param {Object} taskContext - { description, taskType, ... }
+   * @returns {Array} Recommended skill names
+   */
+  detectSkillRecommendations(taskContext) {
+    // Skill-orchestrator detection keywords (from skill-orchestrator-runtime/SKILL.md)
+    const SKILL_DETECTION_KEYWORDS = {
+      'context7': ['documentation', 'library', 'api', 'docs', 'framework'],
+      'websearch': ['search', 'web', 'internet', 'latest', 'current'],
+      'sequentialthinking': ['think', 'reason', 'analyze', 'step by step', 'logical'],
+      'supermemory': ['remember', 'memory', 'store', 'recall', 'persist'],
+      'grep': ['search', 'find', 'grep', 'code search'],
+      'playwright': ['browser', 'click', 'navigate', 'screenshot', 'web'],
+      'code-doctor': ['bug', 'error', 'fix', 'debug', 'issue'],
+      'systematic-debugging': ['debug', 'troubleshoot', 'investigate', 'diagnose'],
+      'test-driven-development': ['test', 'tdd', 'spec', 'behavior'],
+      'brainstorming': ['idea', 'brainstorm', 'design', 'plan', 'create'],
+      'writing-plans': ['plan', 'roadmap', 'strategy', 'outline'],
+      'git-master': ['git', 'commit', 'branch', 'merge', 'rebase'],
+      'verification-before-completion': ['verify', 'check', 'validate', 'test'],
+      'task-orchestrator': ['orchestrate', 'coordinate', 'multi-step', 'workflow'],
+    };
+
+    const recommendedSkills = [];
+    const description = (taskContext?.description || '').toLowerCase();
+    const taskType = (taskContext?.taskType || taskContext?.task || '').toLowerCase();
+    const combinedText = `${description} ${taskType}`;
+
+    // Match keywords to skills
+    for (const [skill, keywords] of Object.entries(SKILL_DETECTION_KEYWORDS)) {
+      for (const keyword of keywords) {
+        if (combinedText.includes(keyword.toLowerCase())) {
+          if (!recommendedSkills.includes(skill)) {
+            recommendedSkills.push(skill);
+          }
+          break;
+        }
+      }
+    }
+
+    if (recommendedSkills.length > 0) {
+      this.logger.info('Skill-orchestrator detected recommendations', { 
+        skills: recommendedSkills,
+        taskType: taskContext?.taskType 
+      });
+      
+      // Emit event for observability
+      this.emitPEVEvent('SKILL_RECOMMENDATION', {
+        taskType: taskContext?.taskType,
+        recommendedSkills,
+      });
+    }
+
+    return recommendedSkills;
+  }
+
+  /**
+   * [GAP FIX 2] Evaluate skill triggers from registry at task start.
+   * 
+   * This implements the trigger matching logic from registry.json:
+   * - Load skill registry triggers (lazy-loaded)
+   * - Match task keywords against trigger phrases
+   * - Return skills whose triggers match
+   *
+   * @param {Object} taskContext - { description, taskType, files, ... }
+   * @returns {Array} Skill names that match task triggers
+   */
+  evaluateSkillTriggers(taskContext) {
+    // Lazy-load skill registry triggers
+    if (!this._skillRegistryTriggers) {
+      this._loadSkillRegistryTriggers();
+    }
+
+    const matchedSkills = [];
+    const taskText = [
+      taskContext?.description || '',
+      taskContext?.taskType || taskContext?.task || '',
+      taskContext?.intent || '',
+    ].join(' ').toLowerCase();
+
+    // Check each skill's triggers against task text
+    for (const [skillName, triggers] of Object.entries(this._skillRegistryTriggers || {})) {
+      for (const trigger of (triggers || [])) {
+        const triggerLower = String(trigger).toLowerCase();
+        if (taskText.includes(triggerLower)) {
+          if (!matchedSkills.includes(skillName)) {
+            matchedSkills.push(skillName);
+            
+            // Emit event for observability
+            this.emit('SKILL_TRIGGER_MATCH', {
+              skillName,
+              trigger: triggerLower,
+              taskType: taskContext?.taskType,
+            });
+          }
+          break; // One match per skill is enough
+        }
+      }
+    }
+
+    if (matchedSkills.length > 0) {
+      this.logger.info('[SkillTriggers] Matched skills for task', {
+        taskType: taskContext?.taskType,
+        matchedSkills,
+      });
+    }
+
+    return matchedSkills;
+  }
+
+  /**
+   * [GAP FIX 2] Load skill registry triggers from registry.json.
+   * @private
+   */
+  _loadSkillRegistryTriggers() {
+    this._skillRegistryTriggers = {};
+    
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const registryPath = path.join(__dirname, '../../../opencode-config/skills/registry.json');
+      
+      if (fs.existsSync(registryPath)) {
+        const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
+        
+        if (registry?.skills) {
+          for (const [skillName, skillData] of Object.entries(registry.skills || {})) {
+            const triggers = skillData?.triggers || [];
+            if (triggers.length > 0) {
+              this._skillRegistryTriggers[skillName] = triggers;
+            }
+          }
+        }
+        
+        this.logger.info('[SkillTriggers] Loaded triggers for skills', {
+          skillCount: Object.keys(this._skillRegistryTriggers).length,
+        });
+      }
+    } catch (err) {
+      this.logger.warn('[SkillTriggers] Failed to load registry', { error: err.message });
+    }
+
+    // Fallback: basic triggers from detectSkillRecommendations
+    if (Object.keys(this._skillRegistryTriggers).length === 0) {
+      this._skillRegistryTriggers = {
+        'context7': ['documentation', 'library', 'api', 'docs', 'framework'],
+        'websearch': ['search', 'web', 'internet', 'latest', 'current'],
+        'sequentialthinking': ['think', 'reason', 'analyze', 'step by step'],
+        'supermemory': ['remember', 'memory', 'store', 'recall', 'persist'],
+        'grep': ['search', 'find', 'grep', 'code search'],
+        'playwright': ['browser', 'click', 'navigate', 'screenshot'],
+        'code-doctor': ['bug', 'error', 'fix', 'debug', 'issue'],
+        'systematic-debugging': ['debug', 'troubleshoot', 'investigate', 'diagnose'],
+        'test-driven-development': ['test', 'tdd', 'spec', 'behavior'],
+        'brainstorming': ['idea', 'brainstorm', 'design', 'plan', 'create'],
+        'writing-plans': ['plan', 'roadmap', 'strategy', 'outline'],
+        'git-master': ['git', 'commit', 'branch', 'merge', 'rebase'],
+        'verification-before-completion': ['verify', 'check', 'validate', 'test'],
+        'task-orchestrator': ['orchestrate', 'coordinate', 'multi-step', 'workflow'],
+      };
     }
   }
 
@@ -1630,20 +2623,45 @@ class IntegrationLayer {
       }
     }
 
-    // [T11] Check context budget before execution — fail-open, never blocks
+    // [T11] Check context budget before execution — binding in enforce-critical mode
     const _sessionId = taskContext.session_id || taskContext.sessionId;
     const _model = taskContext.model || taskContext.modelId || runtimeContext?.model;
     if (_sessionId && _model) {
       try {
         const budget = this.checkContextBudget(_sessionId, _model, 1000 /* estimated */);
+        
+        // In enforce-critical mode, block when budget not allowed
+        if (!budget.allowed) {
+          const errorMsg = `Context budget ${budget.status}: ${budget.message}`;
+          this.logger.error('Context budget BLOCKED', { session: _sessionId, model: _model, status: budget.status, message: budget.message });
+          
+          // Throw error in enforce-critical mode
+          if (OpenCodeError && ErrorCategory && ErrorCode) {
+            throw new OpenCodeError(errorMsg, ErrorCategory.CONFIG, ErrorCode.CONTEXT_EXHAUSTED, {
+              sessionId: _sessionId,
+              model: _model,
+              budgetStatus: budget.status,
+              remaining: budget.remaining,
+              retryable: false
+            });
+          }
+          throw new Error(errorMsg);
+        }
+        
         if (budget.status === 'error') {
           this.logger.error('Context budget CRITICAL before task', { session: _sessionId, model: _model });
         } else if (budget.status === 'warn') {
           this.logger.warn('Context budget WARNING before task', { session: _sessionId, model: _model });
+          // [Task 2.3] Trigger compression on warning in enforce-critical mode
+          this._triggerCompression(_sessionId, _model);
         }
-        // Never block — budget check is advisory only
       } catch (e) {
-        // Fail-open: budget check failure does not block execution
+        // Re-throw errors in enforce-critical mode (budget.allowed === false)
+        // Fail-open only for actual check failures (not budget exhaustion)
+        if (!e.message?.includes('budget')) {
+          this.logger.warn('Budget check failed (fail-open)', { error: e?.message });
+        }
+        throw e; // Re-throw budget exhaustion errors
       }
     }
 

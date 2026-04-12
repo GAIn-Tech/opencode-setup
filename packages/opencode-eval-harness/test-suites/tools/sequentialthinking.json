@@ -1,0 +1,78 @@
+/**
+ * Test suite for sequentialthinking MCP tool
+ * Tests: reasoning chains, branching analysis
+ */
+[
+  {
+    "id": "sequentialthinking-basic-chain",
+    "prompt": "Use sequential thinking to solve: What is 15 + 27? Show step by step reasoning.",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "42",
+      "match": "contains"
+    },
+    "complexity_tier": 1,
+    "category": "reasoning",
+    "max_tokens": 512
+  },
+  {
+    "id": "sequentialthinking-branching",
+    "prompt": "Use sequential thinking with branching to analyze: Should I use React or Vue for a new project? Consider 3 factors.",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "react",
+      "match": "any_present"
+    },
+    "complexity_tier": 2,
+    "category": "branching",
+    "max_tokens": 2048
+  },
+  {
+    "id": "sequentialthinking-revision",
+    "prompt": "Use sequential thinking to solve, then revise: What is the square root of 144? First guess 10, then revise.",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "12",
+      "match": "contains"
+    },
+    "complexity_tier": 2,
+    "category": "revision",
+    "max_tokens": 1024
+  },
+  {
+    "id": "sequentialthinking-multi-step",
+    "prompt": "Solve multi-step: If a train travels 60mph for 2 hours, then stops for 1 hour, then travels 30mph for 1 hour, what's average speed?",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "30",
+      "match": "any_present"
+    },
+    "complexity_tier": 2,
+    "category": "math-reasoning",
+    "max_tokens": 1024
+  },
+  {
+    "id": "sequentialthinking-hypothesis-testing",
+    "prompt": "Use hypothesis-driven thinking to determine: Is the number prime? Test: 37",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "prime",
+      "match": "contains"
+    },
+    "complexity_tier": 2,
+    "category": "hypothesis",
+    "max_tokens": 1024
+  },
+  {
+    "id": "sequentialthinking-token-efficiency",
+    "prompt": "Use sequential thinking for complex analysis but keep response under 5000 tokens",
+    "expected_result_shape": {
+      "type": "number",
+      "value": 5000,
+      "match": "max_tokens"
+    },
+    "complexity_tier": 2,
+    "category": "token-efficiency",
+    "max_tokens": 5120
+  }
+]

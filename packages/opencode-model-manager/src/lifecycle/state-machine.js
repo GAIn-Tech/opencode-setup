@@ -418,6 +418,16 @@ async getHistory(modelId, options = {}) {
       nextMetadata.sideEffects.defaultModelConfigured = true;
     }
 
+    const predictivePerformance = buildPredictivePerformanceWeight({
+      toState,
+      context,
+      metadata: nextMetadata,
+    });
+
+    if (predictivePerformance) {
+      nextMetadata.predictivePerformance = predictivePerformance;
+    }
+
     return nextMetadata;
   }
 
@@ -698,6 +708,111 @@ function normalizeSideEffectResult(result) {
   return {
     value: result
   };
+}
+
+function buildPredictivePerformanceWeight({ toState, context, metadata }) {
+  if (!toState || toState === LIFECYCLE_STATES.DETECTED) {
+    return null;
+  }
+
+  const assessment = Object.keys(extractAssessmentResults(context)).length > 0
+    ? extractAssessmentResults(context)
+    : (isObject(metadata) && isObject(metadata.assessmentResults) ? metadata.assessmentResults : {});
+  const approval = extractApprovalContext(context);
+
+  const successRate = normalizePercent(
+    readFirstNumber([
+      assessment.successRate,
+      assessment.passRate,
+      assessment.accuracy,
+      isObject(assessment.humaneval) ? assessment.humaneval.passRate : undefined,
+      isObject(assessment.mbpp) ? assessment.mbpp.passRate : undefined,
+      isObject(assessment.benchmark) ? assessment.benchmark.successRate : undefined,
+    ])
+  );
+
+  const latencyMs = readFirstNumber([
+    assessment.latencyMs,
+    assessment.latency,
+    isObject(assessment.benchmark) ? assessment.benchmark.latencyMs : undefined,
+  ]);
+
+  const riskScore = readFirstNumber([
+    approval.riskScore,
+    isObject(approval.risk) ? approval.risk.score : undefined,
+    isObject(context) ? context.riskScore : undefined,
+  ]);
+
+  const components = [];
+  if (successRate !== null) {
+    components.push({ weight: 0.55, value: successRate });
+  }
+
+  if (latencyMs !== null) {
+    // Lower latency means higher score.
+    const latencyScore = clamp01(1 - (latencyMs / 8000));
+    components.push({ weight: 0.25, value: latencyScore });
+  }
+
+  if (riskScore !== null) {
+    // Lower risk score means higher score.
+    const normalizedRisk = clamp01(1 - (riskScore / 100));
+    components.push({ weight: 0.20, value: normalizedRisk });
+  }
+
+  if (components.length === 0) {
+    return null;
+  }
+
+  const weightedSum = components.reduce((sum, entry) => sum + (entry.weight * entry.value), 0);
+  const totalWeight = components.reduce((sum, entry) => sum + entry.weight, 0);
+  const weight = totalWeight > 0 ? roundTo(weightedSum / totalWeight, 4) : 0;
+  const confidence = roundTo(components.length / 3, 4);
+
+  return {
+    strategy: 'predictive_performance_v1',
+    forState: toState,
+    weight,
+    confidence,
+    signals: {
+      successRate,
+      latencyMs,
+      riskScore,
+    },
+    timestamp: Date.now(),
+  };
+}
+
+function readFirstNumber(values) {
+  for (const value of values) {
+    const num = Number(value);
+    if (Number.isFinite(num)) {
+      return num;
+    }
+  }
+
+  return null;
+}
+
+function normalizePercent(value) {
+  if (!Number.isFinite(value)) return null;
+  if (value > 1 && value <= 100) {
+    return roundTo(value / 100, 4);
+  }
+
+  return clamp01(value);
+}
+
+function clamp01(value) {
+  if (!Number.isFinite(value)) return 0;
+  if (value < 0) return 0;
+  if (value > 1) return 1;
+  return value;
+}
+
+function roundTo(value, decimals) {
+  const factor = 10 ** decimals;
+  return Math.round(value * factor) / factor;
 }
 
 function normalizeState(state) {

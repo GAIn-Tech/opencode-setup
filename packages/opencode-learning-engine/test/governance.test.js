@@ -1,12 +1,19 @@
 import { describe, test, expect, beforeEach } from 'bun:test';
 import { OrchestrationAdvisor } from '../src/orchestration-advisor.js';
+import { AntiPatternCatalog } from '../src/anti-patterns.js';
+import { PositivePatternTracker } from '../src/positive-patterns.js';
 
 describe('Learning Governance', () => {
-  let advisor;
+let advisor;
 
-  beforeEach(() => {
-    advisor = new OrchestrationAdvisor();
-  });
+beforeEach(() => {
+  // Pass empty pattern trackers with skipLoad to ensure test isolation
+  // Prevents persisted data from affecting test expectations
+  advisor = new OrchestrationAdvisor(
+    new AntiPatternCatalog({ skipLoad: true }),
+    new PositivePatternTracker({ skipLoad: true })
+  );
+});
 
   describe('applyLearningToRouting', () => {
     test('returns unchanged advice when risk is low', () => {

@@ -6,7 +6,7 @@ const { EventEmitter } = require('events');
 let _eventBus = null;
 function _getEventBus() {
   if (_eventBus === null) {
-    try { _eventBus = require('opencode-event-bus'); } catch { _eventBus = undefined; }
+    try { _eventBus = require('../../../opencode-event-bus/src/index.js'); } catch { _eventBus = undefined; }
   }
   return _eventBus || null;
 }
@@ -25,6 +25,7 @@ const ALERT_SEVERITY = Object.freeze({
 
 const ALERT_TYPE = Object.freeze({
   PROVIDER_FAILURE: 'provider_failure',
+  PREDICTED_PROVIDER_FAILURE: 'predicted_provider_failure',
   STALE_CATALOG: 'stale_catalog',
   PR_FAILURES: 'pr_failures',
   BUDGET_THRESHOLD: 'budget_threshold'
@@ -76,6 +77,9 @@ class AlertManager extends EventEmitter {
 
     // Check provider failures
     newAlerts.push(...this._checkProviderFailures(snapshot.discovery));
+
+    // Check predictive provider-failure advisories (shadow-mode signal consumption)
+    newAlerts.push(...this._checkPredictedProviderFailures(snapshot.predictions?.discoveryAlerts, snapshot.discovery));
 
     // Check stale catalog
     newAlerts.push(...this._checkStaleCatalog(snapshot.catalogFreshness));
@@ -260,6 +264,53 @@ class AlertManager extends EventEmitter {
         if (this._activeAlerts.has(alertId)) {
           this.resolveAlert(alertId);
         }
+      }
+    }
+
+    return newAlerts;
+  }
+
+  _checkPredictedProviderFailures(predictionSummary, discoveryRates) {
+    const newAlerts = [];
+    const byProvider = predictionSummary && typeof predictionSummary === 'object'
+      ? predictionSummary.byProvider
+      : null;
+    const providerPredictions = byProvider && typeof byProvider === 'object' ? byProvider : {};
+
+    // Resolve predicted alerts when provider no longer has a prediction payload.
+    const activePredictedAlerts = this.getActiveAlerts().filter((a) => a.type === ALERT_TYPE.PREDICTED_PROVIDER_FAILURE);
+    for (const alert of activePredictedAlerts) {
+      if (!providerPredictions[alert.provider]) {
+        this.resolveAlert(alert.id);
+      }
+    }
+
+    for (const [provider, prediction] of Object.entries(providerPredictions)) {
+      const alertId = `${ALERT_TYPE.PREDICTED_PROVIDER_FAILURE}:${provider}`;
+      const providerDiscovery = discoveryRates && typeof discoveryRates === 'object'
+        ? discoveryRates[provider]
+        : null;
+      const reactiveThresholdHit = providerDiscovery
+        && Number(providerDiscovery.consecutiveFailures) >= this.thresholds.providerConsecutiveFailures;
+
+      const likely = Boolean(prediction)
+        && Number(prediction.secondHalfFailureRate) >= Number(prediction.threshold?.failureRate)
+        && !reactiveThresholdHit;
+
+      if (likely) {
+        if (!this._activeAlerts.has(alertId)) {
+          const alert = this._fireAlert({
+            id: alertId,
+            type: ALERT_TYPE.PREDICTED_PROVIDER_FAILURE,
+            severity: ALERT_SEVERITY.WARNING,
+            message: `Provider "${provider}" predicted to hit provider-failure threshold soon (failureRate=${prediction.secondHalfFailureRate}, delta=${prediction.delta})`,
+            provider,
+            prediction
+          });
+          if (alert) newAlerts.push(alert);
+        }
+      } else if (this._activeAlerts.has(alertId)) {
+        this.resolveAlert(alertId);
       }
     }
 

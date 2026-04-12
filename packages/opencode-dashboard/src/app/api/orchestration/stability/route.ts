@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(_request: NextRequest) {
   try {
-    const trackerStatus = loadMetaAwarenessTrackerWithStatus();
+    const trackerStatus = await loadMetaAwarenessTrackerWithStatus();
     const tracker = trackerStatus.tracker;
     if (tracker && typeof tracker.getStability === 'function') {
       const liveStability = await tracker.getStability();

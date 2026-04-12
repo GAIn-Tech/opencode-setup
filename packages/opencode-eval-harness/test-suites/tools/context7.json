@@ -1,0 +1,82 @@
+/**
+ * Test suite for context7 MCP tool
+ * Tests: resolve-library-id, query-docs
+ */
+[
+  {
+    "id": "context7-resolve-library-id-react",
+    "prompt": "Resolve the Context7 library ID for React library documentation",
+    "expected_result_shape": {
+      "type": "object",
+      "value": {
+        "must_contain": ["libraryId", "react"],
+        "match": "code_check"
+      }
+    },
+    "complexity_tier": 1,
+    "category": "library-resolution",
+    "max_tokens": 256
+  },
+  {
+    "id": "context7-resolve-library-id-express",
+    "prompt": "Resolve the Context7 library ID for Express.js",
+    "expected_result_shape": {
+      "type": "object",
+      "value": {
+        "must_contain": ["libraryId", "express"],
+        "match": "code_check"
+      }
+    },
+    "complexity_tier": 1,
+    "category": "library-resolution",
+    "max_tokens": 256
+  },
+  {
+    "id": "context7-query-docs-react-useState",
+    "prompt": "Query Context7 for React useState hook documentation",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "useState",
+      "match": "contains"
+    },
+    "complexity_tier": 2,
+    "category": "documentation-query",
+    "max_tokens": 2048
+  },
+  {
+    "id": "context7-query-docs-express-middleware",
+    "prompt": "Query Context7 for Express.js middleware pattern documentation",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "middleware",
+      "match": "contains"
+    },
+    "complexity_tier": 2,
+    "category": "documentation-query",
+    "max_tokens": 2048
+  },
+  {
+    "id": "context7-query-docs-missing-library",
+    "prompt": "Query Context7 for a non-existent library 'nonexistent-framework'",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "not found",
+      "match": "any_present"
+    },
+    "complexity_tier": 1,
+    "category": "error-handling",
+    "max_tokens": 256
+  },
+  {
+    "id": "context7-token-efficiency-large-query",
+    "prompt": "Query Context7 for 'React hooks complete reference' and verify response under 25000 tokens",
+    "expected_result_shape": {
+      "type": "number",
+      "value": 25000,
+      "match": "max_tokens"
+    },
+    "complexity_tier": 2,
+    "category": "token-efficiency",
+    "max_tokens": 25600
+  }
+]

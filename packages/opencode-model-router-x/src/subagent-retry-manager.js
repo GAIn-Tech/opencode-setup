@@ -63,6 +63,7 @@ const DEFAULT_FALLBACKS = [
 
 class SubagentRetryManager {
   #failureCounts = new Map();
+  #failurePatternCounts = new Map();
   #unstableModels = new Set();
   #options;
 
@@ -71,6 +72,9 @@ class SubagentRetryManager {
       maxRetries: options.maxRetries || 3,
       failureThreshold: options.failureThreshold || 5,
       unstableWindowMs: options.unstableWindowMs || 5 * 60 * 1000, // 5 minutes
+      predictiveFailureThreshold: options.predictiveFailureThreshold || 3,
+      predictiveWindowMs: options.predictiveWindowMs || 10 * 60 * 1000, // 10 minutes
+      predictiveRetryPolicy: options.predictiveRetryPolicy || 'observe', // observe | block
       ...options,
     };
   }
@@ -79,6 +83,20 @@ class SubagentRetryManager {
    * Record a model failure
    */
   recordFailure(modelId, failureType) {
+    const now = Date.now();
+    // Evict stale entries from failureCounts
+    for (const [key, value] of this.#failureCounts) {
+      if (now - value.lastFailure > this.#options.unstableWindowMs) {
+        this.#failureCounts.delete(key);
+      }
+    }
+    // Evict stale entries from failurePatternCounts  
+    for (const [key, value] of this.#failurePatternCounts) {
+      if (now - value.lastFailure > this.#options.predictiveWindowMs) {
+        this.#failurePatternCounts.delete(key);
+      }
+    }
+
     const resolved = resolveModelAlias(modelId);
     const key = resolved;
     
@@ -93,12 +111,33 @@ class SubagentRetryManager {
       this.#unstableModels.add(key);
       console.warn(`[SubagentRetryManager] Model ${resolved} marked unstable after ${current.count} failures`);
     }
+
+    // Track failure pattern frequency for predictive retry advisory.
+    const patternKey = `${resolved}:${failureType || 'unknown'}`;
+    const pattern = this.#failurePatternCounts.get(patternKey) || { count: 0, lastFailure: 0 };
+    pattern.count++;
+    pattern.lastFailure = Date.now();
+    this.#failurePatternCounts.set(patternKey, pattern);
   }
 
   /**
    * Record a model success (reduces failure count)
    */
   recordSuccess(modelId) {
+    const now = Date.now();
+    // Evict stale entries from failureCounts
+    for (const [key, value] of this.#failureCounts) {
+      if (now - value.lastFailure > this.#options.unstableWindowMs) {
+        this.#failureCounts.delete(key);
+      }
+    }
+    // Evict stale entries from failurePatternCounts
+    for (const [key, value] of this.#failurePatternCounts) {
+      if (now - value.lastFailure > this.#options.predictiveWindowMs) {
+        this.#failurePatternCounts.delete(key);
+      }
+    }
+
     const resolved = resolveModelAlias(modelId);
     const current = this.#failureCounts.get(resolved);
     
@@ -137,15 +176,47 @@ class SubagentRetryManager {
   }
 
   /**
+   * Predict whether retry is likely to fail using recent repeated failure patterns.
+   * Shadow-mode by default (advisory only).
+   */
+  predictRetryFailure({ modelId, failureType }) {
+    if (!modelId || !failureType) return null;
+
+    const resolved = resolveModelAlias(modelId);
+    const patternKey = `${resolved}:${failureType}`;
+    const pattern = this.#failurePatternCounts.get(patternKey);
+    if (!pattern) return null;
+
+    const withinWindow = Date.now() - pattern.lastFailure <= this.#options.predictiveWindowMs;
+    const likelyToFail = withinWindow && pattern.count >= this.#options.predictiveFailureThreshold;
+    if (!likelyToFail) return null;
+
+    const prediction = {
+      likelyToFail,
+      count: pattern.count,
+      failureType,
+      modelId: resolved,
+      windowMs: this.#options.predictiveWindowMs,
+    };
+
+    return prediction;
+  }
+
+  /**
    * Determine if we should retry
    */
-  shouldRetry({ attemptNumber, failureType }) {
+  shouldRetry({ attemptNumber, failureType, modelId }) {
     if (attemptNumber > this.#options.maxRetries) {
       return false;
     }
 
     // Don't retry auth errors - they won't magically fix themselves
     if (failureType === FAILURE_TYPES.AUTH_ERROR) {
+      return false;
+    }
+
+    const prediction = this.predictRetryFailure({ modelId, failureType });
+    if (prediction && this.#options.predictiveRetryPolicy === 'block') {
       return false;
     }
 
@@ -188,6 +259,7 @@ class SubagentRetryManager {
    */
   reset() {
     this.#failureCounts.clear();
+    this.#failurePatternCounts.clear();
     this.#unstableModels.clear();
   }
 }

@@ -25,6 +25,9 @@ const DATA_DIR = path.join(tmpDir, '.opencode', 'tool-usage');
 const INVOCATIONS_FILE = path.join(DATA_DIR, 'invocations.json');
 const METRICS_FILE = path.join(DATA_DIR, 'metrics.json');
 
+// Create directory structure before any tests run
+fs.mkdirSync(DATA_DIR, { recursive: true });
+
 function restoreEnv() {
   process.env.HOME = savedHome;
   process.env.USERPROFILE = savedUserProfile;

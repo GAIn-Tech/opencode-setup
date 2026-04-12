@@ -4,9 +4,14 @@ import { timingSafeEqual } from 'crypto';
 const WRITE_TOKEN_HEADER = 'x-opencode-write-token';
 const WRITE_TOKEN_ENV = 'OPENCODE_DASHBOARD_WRITE_TOKEN';
 
-// Validate security-critical env vars at import time
-const writeToken = process.env[WRITE_TOKEN_ENV];
-if (!writeToken) {
+let hasWarnedMissingWriteToken = false;
+
+function warnMissingWriteTokenOnce(): void {
+  if (hasWarnedMissingWriteToken) {
+    return;
+  }
+
+  hasWarnedMissingWriteToken = true;
   console.warn('[write-access] Write token env var is empty:', WRITE_TOKEN_ENV);
 }
 
@@ -148,6 +153,7 @@ export function requireWriteAccess(request: Request, requiredPermission?: string
   const configuredToken = (process.env[WRITE_TOKEN_ENV] || '').trim();
 
   if (!configuredToken) {
+    warnMissingWriteTokenOnce();
     return NextResponse.json(
       {
         error: 'Write routes are disabled',
@@ -204,6 +210,7 @@ export function requireReadAccess(request: Request, requiredPermission?: string)
   // If token is presented, validate it
   const configuredToken = (process.env[WRITE_TOKEN_ENV] || '').trim();
   if (!configuredToken) {
+    warnMissingWriteTokenOnce();
     // No token configured - allow if no specific permission required
     if (!requiredPermission) {
       return null;

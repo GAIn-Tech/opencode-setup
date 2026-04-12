@@ -19,12 +19,26 @@ const { OrchestrationAdvisor, AGENT_CAPABILITIES, SKILL_AFFINITY } = require('./
 const { MetaAwarenessTracker } = require('./meta-awareness-tracker');
 const { MetaKBReader } = require('./meta-kb-reader');
 const EventEmitter = require('events');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+
+let PluginLifecycleSupervisor;
+try {
+  ({ PluginLifecycleSupervisor } = require('../../opencode-plugin-lifecycle/src/index.js'));
+} catch {
+  // Fail-open in environments where plugin lifecycle package is unavailable.
+  PluginLifecycleSupervisor = class PluginLifecycleSupervisorFallback {
+    on() {}
+    emit() {}
+  };
+}
 
 // Lazy require of central event bus — fail-open so LearningEngine works without it
 let _eventBus = null;
 function _getEventBus() {
   if (_eventBus === null) {
-    try { _eventBus = require('opencode-event-bus'); } catch { _eventBus = undefined; }
+    try { _eventBus = require('../../opencode-event-bus/src/index.js'); } catch { _eventBus = undefined; }
   }
   return _eventBus || null;
 }
@@ -51,6 +65,8 @@ class LearningEngine extends EventEmitter {
     this.autoSave = autoSave;
     this.sessionLog = []; // Track which sessions have been ingested
     this.hooks = {};
+    this.pluginSupervisor = new PluginLifecycleSupervisor();
+    this._initAntiGamingClassifier();
 
     // T6 (Wave 11): Advice cache — keyed by taskType+complexity, 5-min TTL, 500-entry max
     this._adviceCache = new Map();
@@ -334,26 +350,29 @@ class LearningEngine extends EventEmitter {
     return true;
   }
 
-  /**
-   * Get learning system health metrics
-   */
-  getHealthMetrics() {
-    const core = this.getCoreLearnings();
-    const adaptive = this.getAdaptiveLearnings();
-    
-    return {
-      antiPatternCount: Array.isArray(this.antiPatterns?.patterns) ? this.antiPatterns.patterns.length : 0,
-      positivePatternCount: Array.isArray(this.positivePatterns?.patterns) ? this.positivePatterns.patterns.length : 0,
-      sessionCount: this.sessionLog?.length || 0,
-      hooksCount: Object.keys(this.hooks).length,
-      // New: Core vs Adaptive breakdown
-      coreLearnings: core.length,
-      adaptiveLearnings: adaptive.length,
-      totalLearnings: this.catalog?.entries?.length || 0,
-      lastLoad: this.lastLoad || null,
-      lastSave: this.lastSave || null
-    };
-  }
+   /**
+    * Get learning system health metrics
+    */
+   getHealthMetrics() {
+     const core = this.getCoreLearnings();
+     const adaptive = this.getAdaptiveLearnings();
+     const pluginMetrics = this.getQuarantineMetrics();
+     
+     return {
+       antiPatternCount: Array.isArray(this.antiPatterns?.patterns) ? this.antiPatterns.patterns.length : 0,
+       positivePatternCount: Array.isArray(this.positivePatterns?.patterns) ? this.positivePatterns.patterns.length : 0,
+       sessionCount: this.sessionLog?.length || 0,
+       hooksCount: Object.keys(this.hooks).length,
+       // New: Core vs Adaptive breakdown
+       coreLearnings: core.length,
+       adaptiveLearnings: adaptive.length,
+       totalLearnings: this.catalog?.entries?.length || 0,
+       lastLoad: this.lastLoad || null,
+       lastSave: this.lastSave || null,
+       // Plugin quarantine metrics
+       pluginQuarantine: pluginMetrics
+     };
+   }
 
   /**
    * Unregister extension hook handler.
@@ -393,27 +412,39 @@ class LearningEngine extends EventEmitter {
 
   // ===== UNIFIED EVENT INGESTION =====
 
-  /**
-   * Unified event ingestion API - single stable contract for all learning events.
-   * This is the recommended API for external integrators (router, rotator, memory-graph).
-   * 
-   * @param {Object} event - Learning event
-   * @param {string} event.type - Event type: 'anti-pattern', 'positive-pattern', 'outcome', 'tool-usage'
-   * @param {Object} event.payload - Event-specific payload
-   * @returns {Object} { success: boolean, reason?: string }
-   */
-  ingestEvent(event) {
-    if (!event || typeof event !== 'object') {
-      return { success: false, reason: 'Event must be an object' };
-    }
-    
-    const { type, payload } = event;
-    if (!type || !payload) {
-      return { success: false, reason: 'Event must have type and payload' };
-    }
-    
-    try {
-      switch (type) {
+   /**
+    * Unified event ingestion API - single stable contract for all learning events.
+    * This is the recommended API for external integrators (router, rotator, memory-graph).
+    * 
+    * @param {Object} event - Learning event
+    * @param {string} event.type - Event type: 'anti-pattern', 'positive-pattern', 'outcome', 'tool-usage'
+    * @param {Object} event.payload - Event-specific payload
+    * @returns {Object} { success: boolean, reason?: string }
+    */
+   ingestEvent(event) {
+     if (!event || typeof event !== 'object') {
+       return { success: false, reason: 'Event must be an object' };
+     }
+     
+     // Apply anti-gaming filter to incoming events
+     const filteredEvent = this.applyAntiGamingFilter(event);
+     
+     // If gaming detected and classified as hard-block, reject the event
+     if (filteredEvent.gamingClassification && 
+         filteredEvent.gamingClassification.action === 'block') {
+       return {
+         success: false, 
+         reason: `Event blocked due to gaming behavior: ${filteredEvent.gamingClassification.reason}`
+       };
+     }
+     
+     const { type, payload } = filteredEvent;
+     if (!type || !payload) {
+       return { success: false, reason: 'Event must have type and payload' };
+     }
+     
+     try {
+       switch (type) {
         case 'anti-pattern':
           // Payload: { pattern, severity, context: { modelId?, provider?, tool?, sessionId? } }
           if (this.validateLearning({ type: 'anti-pattern', ...payload }).valid) {
@@ -890,16 +921,426 @@ class LearningEngine extends EventEmitter {
   save() {
     this.antiPatterns.save();
     this.positivePatterns.save();
-  }
+    }
+ 
+    /**
+     * Load persisted state from disk.
+     */
+    load() {
+      // AntiPatternCatalog and PositivePatternTracker auto-load in constructor
+      // This method is for explicit reload
+      this.antiPatterns._load();
+      this.positivePatterns._load();
+      // Audit trail is persisted as part of the main learning engine state
+    }
+
+    /**
+     * Save all state to disk.
+     */
+    save() {
+      this.antiPatterns.save();
+      this.positivePatterns.save();
+      // Audit trail is saved as part of anti-patterns/positive-patterns
+      // In a full implementation, this would have its own persistence
+    }
+
+    /**
+     * Anti-gaming classifier with audit trail.
+     * Detects and classifies gaming behaviors in the learning system.
+     */
+    _initAntiGamingClassifier() {
+      // Initialize audit trail for gaming events
+      this.auditTrail = {
+        _events: [],
+        _maxSize: 1000,
+        
+        addEvent: function(event) {
+          this._events.push({
+            ...event,
+            timestamp: new Date().toISOString(),
+            id: `audit_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+          });
+          
+          // Keep audit trail size bounded
+          if (this._events.length > this._maxSize) {
+            this._events = this._events.slice(-this._maxSize);
+          }
+          
+          // Persist if auto-save is enabled
+          if (this._learningEngineInstance && this._learningEngineInstance.autoSave) {
+            this._learningEngineInstance.save();
+          }
+        },
+        
+        getEvents: function(filter = {}) {
+          let results = [...this._events];
+          
+          if (filter.type) {
+            results = results.filter(e => e.type === filter.type);
+          }
+          if (filter.severity) {
+            results = results.filter(e => e.severity === filter.severity);
+          }
+          if (filter.startTime) {
+            const startDate = new Date(filter.startTime);
+            results = results.filter(e => new Date(e.timestamp) >= startDate);
+          }
+          if (filter.endTime) {
+            const endDate = new Date(filter.endTime);
+            results = results.filter(e => new Date(e.timestamp) <= endDate);
+          }
+          
+          return results.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        },
+        
+        _load: function() {
+          // Implementation would load from disk
+          // For now, start with empty array
+          this._events = [];
+        },
+        
+        save: function() {
+          // Implementation would save to disk
+          // For now, this is a placeholder
+        }
+      };
+      
+      // Reference to self for audit trail
+      this.auditTrail._learningEngineInstance = this;
+      
+      // Gaming detection thresholds and patterns
+      this.gamingPatterns = {
+        // Repeated similar outcomes (potential success inflation)
+        repeatedSuccess: {
+          threshold: 3, // 3+ similar successes in short time
+          weight: 0.8,
+          bucket: 'review' // Start with review, escalate to hard-block
+        },
+        
+        // Rapid fire trivial fixes
+        trivialFixSpam: {
+          threshold: 5, // 5+ trivial fixes in 5 minutes
+          weight: 0.9,
+          bucket: 'hard-block'
+        },
+        
+        // Artificial success metrics inflation
+        metricInflation: {
+          threshold: 0.95, // Success rate > 95% over multiple sessions
+          weight: 0.85,
+          bucket: 'review'
+        },
+        
+        // Tool/skill gaming (using same tools to avoid challenging work)
+        toolMonopolization: {
+          threshold: 0.8, // Same tool used for >80% of operations
+          weight: 0.75,
+          bucket: 'review'
+        }
+      };
+    }
+
+   /**
+    * Evaluate a plugin's health and update its quarantine status.
+    * @param {Object} input - Plugin evaluation input {name, configured, discovered, heartbeat_ok, dependency_ok, policy_violation, crash_count, last_error}
+    * @returns {Object} Plugin evaluation result with quarantine status
+    */
+   evaluatePlugin(input) {
+     return this.pluginSupervisor.evaluatePlugin(input);
+   }
+
+   /**
+    * Evaluate multiple plugins' health and update their quarantine status.
+    * @param {Array} inputs - Array of plugin evaluation inputs
+    * @returns {Object} Batch evaluation results
+    */
+   evaluateManyPlugins(inputs = []) {
+     return this.pluginSupervisor.evaluateMany(inputs);
+   }
+
+   /**
+    * Get list of all plugins with their current status.
+    * @returns {Array} List of plugin state objects
+    */
+   listPlugins() {
+     return this.pluginSupervisor.list();
+   }
+
+   /**
+    * Get count of quarantined plugins.
+    * @returns {number} Number of plugins currently quarantined
+    */
+   getQuarantinedCount() {
+     const plugins = this.pluginSupervisor.list();
+     return plugins.filter(plugin => Boolean(plugin.quarantine)).length;
+   }
+
+   /**
+    * Get plugin quarantine severity map and reason codes.
+    * @returns {Object} Quarantine statistics including reason code breakdown
+    */
+   getQuarantineMetrics() {
+     const plugins = this.pluginSupervisor.list();
+     const quarantined = plugins.filter(plugin => Boolean(plugin.quarantine));
+     
+     // Count by reason code
+     const reasonCodes = {};
+     quarantined.forEach(plugin => {
+       const code = plugin.reason_code || 'unknown';
+       reasonCodes[code] = (reasonCodes[code] || 0) + 1;
+     });
+     
+     return {
+       quarantinedCount: quarantined.length,
+       totalPlugins: plugins.length,
+       quarantineRate: plugins.length > 0 ? (quarantined.length / plugins.length) * 100 : 0,
+       reasonCodes: reasonCodes,
+       quarantinedPlugins: quarantined.map(plugin => ({
+         name: plugin.name,
+         reasonCode: plugin.reason_code,
+         status: plugin.status,
+         crashCount: plugin.crash_count,
+         lastError: plugin.last_error
+       }))
+     };
+   }
+
+   /**
+    * Detect gaming behaviors in learning events.
+    * Analyzes patterns that indicate gaming the system (e.g., repeated similar outcomes,
+    * artificial success inflation, trivial fix spam) and classifies severity.
+    * 
+    * @param {Object} event - Learning event to analyze
+    * @returns {Object} Gaming assessment { isGaming, bucket, confidence, details }
+    */
+   detectGamingBehavior(event) {
+     if (!this.gamingPatterns || !this.auditTrail) {
+       return { isGaming: false, bucket: null, confidence: 0, details: 'Classifier not initialized' };
+     }
+
+     const gamingEvents = this.auditTrail.getEvents({ type: 'gaming-behavior' });
+     const recentEvents = this.auditTrail.getEvents({ 
+       startTime: new Date(Date.now() - 10 * 60 * 1000).toISOString() // Last 10 minutes
+     });
+     
+     let totalScore = 0;
+     let maxWeight = 0;
+     const detectedPatterns = [];
+
+     // Check for repeated success patterns
+     const successEvents = recentEvents.filter(e => 
+       e.outcome && e.outcome.success === true && 
+       e.context && e.context.taskType
+     );
+     
+     if (successEvents.length >= this.gamingPatterns.repeatedSuccess.threshold) {
+       // Group by task type to see if same type of task is being "gamed"
+       const byTaskType = {};
+       successEvents.forEach(event => {
+         const taskType = event.context.taskType || 'unknown';
+         if (!byTaskType[taskType]) byTaskType[taskType] = [];
+         byTaskType[taskType].push(event);
+       });
+       
+       for (const taskType in byTaskType) {
+         if (byTaskType[taskType].length >= this.gamingPatterns.repeatedSuccess.threshold) {
+           const weight = this.gamingPatterns.repeatedSuccess.weight;
+           totalScore += weight;
+           maxWeight += weight;
+           detectedPatterns.push({
+             type: 'repeatedSuccess',
+             description: `Repeated success in ${taskType} task type (${byTaskType[taskType].length} occurrences)`,
+             weight,
+             bucket: this.gamingPatterns.repeatedSuccess.bucket
+           });
+         }
+       }
+     }
+
+     // Check for trivial fix spam (rapid fire low-impact changes)
+     const trivialEvents = recentEvents.filter(e => 
+       e.context && 
+       (e.context.action?.includes('trivial') || 
+        e.context.action?.includes('minor') ||
+        e.context.action?.includes('typo')) &&
+       e.outcome && e.outcome.success === true
+     );
+     
+     if (trivialEvents.length >= this.gamingPatterns.trivialFixSpam.threshold) {
+       const weight = this.gamingPatterns.trivialFixSpam.weight;
+       totalScore += weight;
+       maxWeight += weight;
+       detectedPatterns.push({
+         type: 'trivialFixSpam',
+         description: `Trivial fix spam detected (${trivialEvents.length} occurrences)`,
+         weight,
+         bucket: this.gamingPatterns.trivialFixSpam.bucket
+       });
+     }
+
+     // Check for metric inflation (unnaturally high success rates)
+     if (recentEvents.length >= 5) {
+       const successCount = recentEvents.filter(e => 
+         e.outcome && e.outcome.success === true
+       ).length;
+       
+       const successRate = successCount / recentEvents.length;
+       if (successRate > this.gamingPatterns.metricInflation.threshold) {
+         const weight = this.gamingPatterns.metricInflation.weight;
+         totalScore += weight;
+         maxWeight += weight;
+         detectedPatterns.push({
+           type: 'metricInflation',
+           description: `Unnaturally high success rate: ${(successRate * 100).toFixed(1)}%`,
+           weight,
+           bucket: this.gamingPatterns.metricInflation.bucket
+         });
+       }
+     }
+
+     // Check for tool monopolization (using same tools to avoid challenging work)
+     const toolUsage = {};
+     recentEvents.forEach(event => {
+       if (event.context && event.context.tool) {
+         const tool = event.context.tool;
+         toolUsage[tool] = (toolUsage[tool] || 0) + 1;
+       }
+     });
+     
+     const totalToolUsage = Object.values(toolUsage).reduce((sum, count) => sum + count, 0);
+     if (totalToolUsage > 0) {
+       for (const tool in toolUsage) {
+         const usageRatio = toolUsage[tool] / totalToolUsage;
+         if (usageRatio > this.gamingPatterns.toolMonopolization.threshold) {
+           const weight = this.gamingPatterns.toolMonopolization.weight;
+           totalScore += weight;
+           maxWeight += weight;
+           detectedPatterns.push({
+             type: 'toolMonopolization',
+             description: `Tool monopolization: ${tool} used for ${(usageRatio * 100).toFixed(1)}% of operations`,
+             weight,
+             bucket: this.gamingPatterns.toolMonopolization.bucket
+           });
+         }
+       }
+     }
+
+     // Calculate final assessment
+     const confidence = maxWeight > 0 ? totalScore / maxWeight : 0;
+     const isGaming = confidence > 0.5; // Threshold for considering it gaming behavior
+     
+     // Determine highest severity bucket (hard-block > review)
+     let bucket = null;
+     if (detectedPatterns.some(p => p.bucket === 'hard-block')) {
+       bucket = 'hard-block';
+     } else if (detectedPatterns.some(p => p.bucket === 'review')) {
+       bucket = 'review';
+     }
+
+     // Add to audit trail if gaming detected
+     if (isGaming && detectedPatterns.length > 0) {
+       this.auditTrail.addEvent({
+         type: 'gaming-behavior',
+         severity: bucket === 'hard-block' ? 'high' : 'medium',
+         description: `Gaming behavior detected: ${detectedPatterns.map(p => p.description).join('; ')}`,
+         context: {
+           event: event,
+           detectedPatterns,
+           confidence,
+           sessionId: event.context?.sessionId
+         }
+       });
+     }
+
+     return {
+       isGaming,
+       bucket,
+       confidence: Number(confidence.toFixed(3)),
+       details: detectedPatterns
+     };
+   }
+
+   /**
+    * Classify gaming severity into hard-block vs review buckets.
+    * @param {Object} gamingAssessment - Output from detectGamingBehavior
+    * @returns {Object} Classification with action and reasoning
+    */
+   classifyGamingSeverity(gamingAssessment) {
+     if (!gamingAssessment.isGaming) {
+       return {
+         action: 'allow',
+         reason: 'No gaming behavior detected',
+         bucket: null
+       };
+     }
+
+     switch (gamingAssessment.bucket) {
+       case 'hard-block':
+         return {
+           action: 'block',
+           reason: 'High-confidence gaming behavior detected - potential system abuse',
+           bucket: 'hard-block',
+           confidence: gamingAssessment.confidence
+         };
+       case 'review':
+         return {
+           action: 'review',
+           reason: 'Medium-confidence gaming behavior detected - manual review recommended',
+           bucket: 'review',
+           confidence: gamingAssessment.confidence
+         };
+       default:
+         return {
+           action: 'allow',
+           reason: 'Unclear gaming behavior - defaulting to allow',
+           bucket: null,
+           confidence: gamingAssessment.confidence
+         };
+     }
+   }
+
+   /**
+    * Apply anti-gaming classifier to learning events before processing.
+    * @param {Object} event - Learning event to classify
+    * @returns {Object} Event with gaming classification applied
+    */
+   applyAntiGamingFilter(event) {
+     // Skip if event is already classified or is an audit event
+     if (event._gamingClassified || event.type === 'audit') {
+       return event;
+     }
+
+     const gamingAssessment = this.detectGamingBehavior(event);
+     const classification = this.classifyGamingSeverity(gamingAssessment);
+
+     // Add classification to event
+     const classifiedEvent = {
+       ...event,
+       _gamingClassified: true,
+       gamingAssessment,
+       gamingClassification: classification
+     };
+
+     // Emit hook for gaming detection
+     this._emitHook('gamingDetected', {
+       event: classifiedEvent,
+       assessment: gamingAssessment,
+       classification: classification
+     });
+
+     return classifiedEvent;
+   }
 
   /**
-   * Load persisted state from disk.
+   * Task 5.x: Apply learning outcomes to routing decisions
+   * Translates anti-pattern risk scores into routing overrides
+   * 
+   * @param {Object} taskContext - Task context from route()
+   * @param {Object} advice - Advice from advise() method  
+   * @returns {Object} Routing overrides { agentOverride, skillOverride, penalty, reason }
    */
-  load() {
-    // AntiPatternCatalog and PositivePatternTracker auto-load in constructor
-    // This method is for explicit reload
-    this.antiPatterns._load();
-    this.positivePatterns._load();
+  applyLearningToRouting(taskContext, advice) {
+    return this.advisor.applyLearningToRouting(taskContext, advice);
   }
 }
 

@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const sessionId = request.nextUrl.searchParams.get('sessionId') || undefined;
     const limit = parseLimit(request.nextUrl.searchParams.get('limit'));
 
-    const trackerStatus = loadMetaAwarenessTrackerWithStatus();
+    const trackerStatus = await loadMetaAwarenessTrackerWithStatus();
     const tracker = trackerStatus.tracker;
     if (tracker && typeof tracker.getForensics === 'function') {
       const liveForensics = await tracker.getForensics({ sessionId, limit });

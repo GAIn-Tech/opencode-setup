@@ -67,6 +67,14 @@ this._randomFn = typeof options.randomFn === 'function' ? options.randomFn : Mat
     // Discovery metrics per provider
     this._discoveryEvents = [];
 
+    // Predictive alerting events (shadow-mode advisory)
+    this._discoveryPredictionEvents = [];
+    this._predictiveAlertingEnabled = options.predictiveAlertingEnabled !== false;
+    this._predictionMinSamples = Math.max(4, Number(options.predictionMinSamples) || 6);
+    this._predictionWindowMs = Math.max(60_000, Number(options.predictionWindowMs) || (30 * 60 * 1000));
+    this._predictionFailureRateThreshold = Number(options.predictionFailureRateThreshold) || 0.7;
+    this._predictionDeltaThreshold = Number(options.predictionDeltaThreshold) || 0.25;
+
     // Cache metrics
     this._cacheEvents = [];
 
@@ -170,8 +178,10 @@ _createSqliteClient(dbPath) {
     }
     
     try {
-      // Use regular require instead of __non_webpack_require__
-      const BetterSqliteDatabase = require('better-sqlite3');
+      // Resolve optionally via createRequire to avoid hard bundler resolution.
+      const { createRequire } = require('node:module');
+      const localRequire = createRequire(__filename);
+      const BetterSqliteDatabase = localRequire('better-sqlite3');
       const database = new BetterSqliteDatabase(dbPath);
       return {
         prepare: (sql) => database.prepare(sql),
@@ -280,6 +290,20 @@ recordDiscovery(provider, success, details = {}) {
     
     // Store the event if quality check passes
     this._discoveryEvents.push(event);
+
+    // Predictive alerting (shadow mode): detect rising failure trend before threshold breach.
+    const prediction = this._calculateDiscoveryFailurePrediction(event.provider);
+    if (prediction) {
+      const predictionEvent = {
+        ...prediction,
+        eventType: 'provider_failure_alert_prediction',
+      };
+      this._discoveryPredictionEvents.push(predictionEvent);
+      if (this._discoveryPredictionEvents.length > this._maxEvents) {
+        this._discoveryPredictionEvents.splice(0, this._discoveryPredictionEvents.length - this._maxEvents);
+      }
+
+    }
     
     // Update catalog freshness timestamp for successful discoveries
     if (success) {
@@ -414,6 +438,7 @@ recordDiscovery(provider, success, details = {}) {
     this._cacheEvents = [];
     this._transitionEvents = [];
     this._prEvents = [];
+    this._discoveryPredictionEvents = [];
     this._compressionEvents = [];
     this._context7Events = [];
     this._policyDecisionEvents = [];
@@ -539,6 +564,75 @@ recordDiscovery(provider, success, details = {}) {
     }
     
     return consecutive;
+  }
+
+  /**
+   * Build a predictive advisory for provider discovery failures.
+   * Conservative extension: read-only signal, no automatic state mutation.
+   */
+  _calculateDiscoveryFailurePrediction(provider) {
+    if (!this._predictiveAlertingEnabled) return null;
+
+    const now = this.nowFn();
+    const cutoff = now - this._predictionWindowMs;
+    const events = this._discoveryEvents
+      .filter((e) => e.provider === provider && e.timestamp >= cutoff && !e.qualityRejected)
+      .sort((a, b) => {
+        const timeDiff = a.timestamp - b.timestamp;
+        if (timeDiff !== 0) return timeDiff;
+        return (a._sequence || 0) - (b._sequence || 0);
+      });
+
+    if (events.length < this._predictionMinSamples) return null;
+
+    const midpoint = Math.floor(events.length / 2);
+    const firstHalf = events.slice(0, midpoint);
+    const secondHalf = events.slice(midpoint);
+    const failureRate = (slice) => {
+      if (slice.length === 0) return 0;
+      return slice.filter((e) => !e.success).length / slice.length;
+    };
+
+    const firstHalfFailureRate = failureRate(firstHalf);
+    const secondHalfFailureRate = failureRate(secondHalf);
+    const delta = round(secondHalfFailureRate - firstHalfFailureRate, 4);
+    const likelyAlert = secondHalfFailureRate >= this._predictionFailureRateThreshold
+      && delta >= this._predictionDeltaThreshold;
+
+    if (!likelyAlert) return null;
+
+    return {
+      provider,
+      sampleSize: events.length,
+      firstHalfFailureRate: round(firstHalfFailureRate, 4),
+      secondHalfFailureRate: round(secondHalfFailureRate, 4),
+      delta,
+      predictedConsecutiveFailures: this._calculateConsecutiveFailures(provider, events),
+      threshold: {
+        failureRate: this._predictionFailureRateThreshold,
+        delta: this._predictionDeltaThreshold,
+      },
+      timestamp: now,
+    };
+  }
+
+  getDiscoveryAlertPredictions(timeWindowMs = null) {
+    const now = this.nowFn();
+    const cutoff = timeWindowMs !== null ? now - timeWindowMs : now - this.retentionMs;
+    const events = this._discoveryPredictionEvents.filter((e) => e.timestamp >= cutoff);
+
+    const latestByProvider = {};
+    for (const event of events) {
+      const existing = latestByProvider[event.provider];
+      if (!existing || event.timestamp > existing.timestamp) {
+        latestByProvider[event.provider] = event;
+      }
+    }
+
+    return {
+      totalEvents: events.length,
+      byProvider: latestByProvider,
+    };
   }
 
   /**
@@ -1033,6 +1127,7 @@ recordDiscovery(provider, success, details = {}) {
     
     // Get discovery rates
     const discoveryRates = this.getDiscoveryRates();
+    const discoveryPredictions = this.getDiscoveryAlertPredictions();
     
     // Get cache rates
     const cacheRates = this.getCacheRates();
@@ -1061,6 +1156,9 @@ recordDiscovery(provider, success, details = {}) {
     return {
       timestamp: now,
       discovery: discoveryRates,
+      predictions: {
+        discoveryAlerts: discoveryPredictions,
+      },
       cache: {
         l1: cacheRates.l1,
         l2: cacheRates.l2
@@ -1672,6 +1770,7 @@ recordDiscovery(provider, success, details = {}) {
     this._cacheEvents = [];
     this._transitionEvents = [];
     this._prEvents = [];
+    this._discoveryPredictionEvents = [];
     this._compressionEvents = [];
     this._context7Events = [];
     this._policyDecisionEvents = [];

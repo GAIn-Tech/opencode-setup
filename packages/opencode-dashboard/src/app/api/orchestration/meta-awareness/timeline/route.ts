@@ -12,7 +12,7 @@ function parseSinceDays(value: string | null): number {
 export async function GET(request: NextRequest) {
   try {
     const sinceDays = parseSinceDays(request.nextUrl.searchParams.get('sinceDays'));
-    const trackerStatus = loadMetaAwarenessTrackerWithStatus();
+    const trackerStatus = await loadMetaAwarenessTrackerWithStatus();
     const tracker = trackerStatus.tracker;
     if (tracker && typeof tracker.getTimeline === 'function') {
       const livePoints = await tracker.getTimeline({ sinceDays });

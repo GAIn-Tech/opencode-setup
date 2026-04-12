@@ -16,19 +16,19 @@ describe('Context Budget Enforcement', () => {
   });
 
   describe('Mode getter/setter', () => {
-    test('defaults to advisory mode', () => {
-      expect(governor.getMode()).toBe('advisory');
-    });
-
-    test('can switch to enforce-critical mode', () => {
-      governor.setMode('enforce-critical');
+    test('defaults to enforce-critical mode (binding by default)', () => {
       expect(governor.getMode()).toBe('enforce-critical');
     });
 
-    test('can switch back to advisory mode', () => {
-      governor.setMode('enforce-critical');
+    test('can switch to advisory mode', () => {
       governor.setMode('advisory');
       expect(governor.getMode()).toBe('advisory');
+    });
+
+    test('can switch back to enforce-critical mode', () => {
+      governor.setMode('advisory');
+      governor.setMode('enforce-critical');
+      expect(governor.getMode()).toBe('enforce-critical');
     });
 
     test('rejects invalid mode', () => {
@@ -36,8 +36,11 @@ describe('Context Budget Enforcement', () => {
     });
   });
 
-  describe('Advisory mode (default)', () => {
+  describe('Advisory mode (opt-in)', () => {
     test('allows requests even at error threshold', () => {
+      // Switch to advisory mode explicitly
+      governor.setMode('advisory');
+      
       const session = 'ses-advisory-test';
       const model = 'gpt-5'; // 100,000 max, error at 80%
 

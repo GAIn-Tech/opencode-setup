@@ -1,0 +1,102 @@
+/**
+ * Test suite for grep MCP tool
+ * Tests: code search, pattern matching
+ */
+[
+  {
+    "id": "grep-search-typescript",
+    "prompt": "Search for 'function' in TypeScript files under src/",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "function",
+      "match": "contains"
+    },
+    "complexity_tier": 1,
+    "category": "search",
+    "max_tokens": 2048
+  },
+  {
+    "id": "grep-search-react-hooks",
+    "prompt": "Search for 'useState' hook usage in React component files",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "useState",
+      "match": "contains"
+    },
+    "complexity_tier": 1,
+    "category": "search",
+    "max_tokens": 2048
+  },
+  {
+    "id": "grep-regex-pattern",
+    "prompt": "Search using regex pattern 'console\\\\.log\\\\(.*\\\\)' to find all console.log statements",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "console",
+      "match": "contains"
+    },
+    "complexity_tier": 2,
+    "category": "regex-search",
+    "max_tokens": 2048
+  },
+  {
+    "id": "grep-language-filter",
+    "prompt": "Search for 'class' in Python files only",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "class",
+      "match": "contains"
+    },
+    "complexity_tier": 1,
+    "category": "language-filter",
+    "max_tokens": 1024
+  },
+  {
+    "id": "grep-case-sensitive",
+    "prompt": "Case-sensitive search for 'CONSTANT' in the codebase",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "CONSTANT",
+      "match": "contains"
+    },
+    "complexity_tier": 1,
+    "category": "search-options",
+    "max_tokens": 1024
+  },
+  {
+    "id": "grep-no-results",
+    "prompt": "Search for 'definitelynon_existent123' and verify empty results handled",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "found",
+      "match": "any_present"
+    },
+    "complexity_tier": 1,
+    "category": "error-handling",
+    "max_tokens": 256
+  },
+  {
+    "id": "grep-repo-filter",
+    "prompt": "Search for 'async function' in facebook/react repository",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "async",
+      "match": "contains"
+    },
+    "complexity_tier": 2,
+    "category": "repo-filter",
+    "max_tokens": 2048
+  },
+  {
+    "id": "grep-token-efficiency",
+    "prompt": "Search for pattern in large codebase and verify response under 5000 tokens",
+    "expected_result_shape": {
+      "type": "number",
+      "value": 5000,
+      "match": "max_tokens"
+    },
+    "complexity_tier": 2,
+    "category": "token-efficiency",
+    "max_tokens": 5120
+  }
+]

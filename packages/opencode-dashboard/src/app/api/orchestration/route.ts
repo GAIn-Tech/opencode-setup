@@ -68,7 +68,8 @@ function resolveDataHome(): string {
 }
 
 function resolveSigningMode(): SigningMode {
-  const defaultMode = process.env.NODE_ENV === 'production' ? 'require-valid-signature' : 'allow-unsigned';
+  // Enforce production default policy: require-valid-signature unless explicit override
+  const defaultMode = 'require-valid-signature';
   const raw = String(process.env.OPENCODE_EVENT_SIGNING_MODE || defaultMode).trim().toLowerCase();
   if (raw === 'off') return 'off';
   if (raw === 'allow-unsigned') return 'allow-unsigned';
@@ -166,7 +167,7 @@ function readBudgetSummaries(limit = 5) {
 async function collectInternalRuntime(repoRoot: string) {
   const budgetSessions = readBudgetSummaries();
   const rollups = await readMetaAwarenessRollups();
-  const liveTracker = loadMetaAwarenessTracker();
+  const liveTracker = await loadMetaAwarenessTracker();
 
   const runtimeInfo = {
     source: 'fallback' as 'live' | 'fallback',
@@ -210,7 +211,7 @@ async function collectInternalRuntime(repoRoot: string) {
   };
 
   try {
-    const runtimeModule = await import(pathToFileURL(path.join(repoRoot, 'scripts', 'bootstrap-runtime.mjs')).href);
+    const runtimeModule = await import(/* webpackIgnore: true */ pathToFileURL(path.join(repoRoot, 'scripts', 'bootstrap-runtime.mjs')).href);
     const runtime = typeof runtimeModule.getRuntime === 'function' ? runtimeModule.getRuntime({ sessionId: 'dashboard-observability' }) : null;
     const runtimeStatus = typeof runtimeModule.getRuntimeStatus === 'function' ? runtimeModule.getRuntimeStatus() : null;
     if (runtimeStatus) {
@@ -726,7 +727,45 @@ export async function POST(request: Request) {
     if (!incoming.length) {
       return NextResponse.json({ message: 'No events submitted', accepted: 0 }, { status: 400 });
     }
+
+    // Learning update gate: policy-mutating updates require live fidelity
     const op = resolveDataHome();
+    const learningPath = path.join(op, 'learning');
+    const hasLearning = fs.existsSync(learningPath);
+    const observedRecords = incoming.length; // Simplified - in reality would count total messages
+    
+    // Determine current fidelity mode (duplicated from GET handler for gate logic)
+    const hasMessages = fs.existsSync(path.join(op, 'messages'));
+    const hasSkillRl = fs.existsSync(path.join(op, 'skill-rl.json'));
+    const hasProviderStatus = fs.existsSync(path.join(op, 'provider-status.json'));
+    const fidelityMode: 'live' | 'degraded' | 'demo' =
+      observedRecords > 0 && hasMessages && hasSkillRl && hasProviderStatus
+        ? 'live'
+        : observedRecords > 0
+          ? 'degraded'
+          : 'demo';
+    
+    // Block policy-mutating updates when not in live fidelity mode
+    // Policy-mutating events are those that could affect learning or orchestration decisions
+    const isPolicyMutating = incoming.some(event => 
+      event.skill?.includes('learning') || 
+      event.tool?.includes('learning') ||
+      event.model?.includes('learning') ||
+      event.provenance?.source?.includes('learning')
+    );
+    
+    if (isPolicyMutating && fidelityMode !== 'live') {
+      return NextResponse.json(
+        {
+          message: 'Policy-mutating updates require live fidelity mode',
+          accepted: 0,
+          rejected: incoming.length,
+          fidelityMode,
+          reason: 'learning_update_gate_blocked'
+        },
+        { status: 403 }
+      );
+    }
     const filePath = path.join(op, 'orchestration-events.json');
     const signingKey = process.env.OPENCODE_EVENT_SIGNING_KEY || '';
     const signingMode = resolveSigningMode();

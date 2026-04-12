@@ -4,8 +4,14 @@ import { requireWriteAccess } from '../../_lib/write-access';
 
 export const dynamic = 'force-dynamic';
 
-// Validate security-critical env vars at import time
-if (process.env.NODE_ENV === 'production' && !process.env.OPENCODE_EVENT_SIGNING_KEY) {
+let hasWarnedMissingSigningKey = false;
+
+function warnMissingSigningKeyOnce(): void {
+  if (hasWarnedMissingSigningKey) {
+    return;
+  }
+
+  hasWarnedMissingSigningKey = true;
   console.warn('[policy-sim] OPENCODE_EVENT_SIGNING_KEY is empty in production mode');
 }
 
@@ -113,6 +119,9 @@ export async function POST(request: Request) {
 
     const signingMode = normalizeSigningMode(payload?.policy?.signing_mode);
     const signingKey = process.env.OPENCODE_EVENT_SIGNING_KEY || '';
+    if (process.env.NODE_ENV === 'production' && !signingKey) {
+      warnMissingSigningKeyOnce();
+    }
     const requireTraceIds = Boolean(payload?.policy?.require_trace_ids);
     const replaySeedEnabled = Boolean(payload?.policy?.replay_seed_enabled ?? process.env.OPENCODE_REPLAY_SEED);
     const minimumFidelity = (payload?.policy?.minimum_fidelity || 'degraded') as 'demo' | 'degraded' | 'live';

@@ -130,6 +130,79 @@ describe('AlertManager', () => {
     });
   });
 
+  // ─── Predictive Provider Failure Alerts ───────────────────
+
+  describe('predictive provider failure alerts', () => {
+    beforeEach(() => {
+      metricsCollector.markCatalogUpdated(now);
+    });
+
+    test('fires advisory predicted-provider-failure alert from prediction snapshot', () => {
+      const advisoryAlertManager = new AlertManager({
+        nowFn: () => now,
+        thresholds: { providerConsecutiveFailures: 4 }
+      });
+
+      // First half: healthy, second half: degraded (triggers predictive trend)
+      metricsCollector.recordDiscovery('openai', true);
+      metricsCollector.recordDiscovery('openai', true);
+      metricsCollector.recordDiscovery('openai', true);
+      metricsCollector.recordDiscovery('openai', false);
+      metricsCollector.recordDiscovery('openai', false);
+      metricsCollector.recordDiscovery('openai', false);
+
+      const newAlerts = advisoryAlertManager.evaluate(metricsCollector);
+      const predictedAlerts = newAlerts.filter(a => a.type === ALERT_TYPE.PREDICTED_PROVIDER_FAILURE);
+
+      expect(predictedAlerts).toHaveLength(1);
+      expect(predictedAlerts[0].provider).toBe('openai');
+      expect(predictedAlerts[0].severity).toBe(ALERT_SEVERITY.WARNING);
+    });
+
+    test('does not duplicate predicted alert on repeated evaluate', () => {
+      const advisoryAlertManager = new AlertManager({
+        nowFn: () => now,
+        thresholds: { providerConsecutiveFailures: 4 }
+      });
+
+      metricsCollector.recordDiscovery('openai', true);
+      metricsCollector.recordDiscovery('openai', true);
+      metricsCollector.recordDiscovery('openai', true);
+      metricsCollector.recordDiscovery('openai', false);
+      metricsCollector.recordDiscovery('openai', false);
+      metricsCollector.recordDiscovery('openai', false);
+
+      const first = advisoryAlertManager.evaluate(metricsCollector);
+      const second = advisoryAlertManager.evaluate(metricsCollector);
+
+      expect(first.filter(a => a.type === ALERT_TYPE.PREDICTED_PROVIDER_FAILURE)).toHaveLength(1);
+      expect(second.filter(a => a.type === ALERT_TYPE.PREDICTED_PROVIDER_FAILURE)).toHaveLength(0);
+    });
+
+    test('resolves predicted alert when reactive provider-failure threshold is reached', () => {
+      const advisoryAlertManager = new AlertManager({
+        nowFn: () => now,
+        thresholds: { providerConsecutiveFailures: 4 }
+      });
+
+      metricsCollector.recordDiscovery('openai', true);
+      metricsCollector.recordDiscovery('openai', true);
+      metricsCollector.recordDiscovery('openai', true);
+      metricsCollector.recordDiscovery('openai', false);
+      metricsCollector.recordDiscovery('openai', false);
+      metricsCollector.recordDiscovery('openai', false);
+      advisoryAlertManager.evaluate(metricsCollector);
+
+      // Cross reactive threshold
+      metricsCollector.recordDiscovery('openai', false);
+      advisoryAlertManager.evaluate(metricsCollector);
+
+      const active = advisoryAlertManager.getActiveAlerts();
+      expect(active.filter(a => a.type === ALERT_TYPE.PREDICTED_PROVIDER_FAILURE)).toHaveLength(0);
+      expect(active.filter(a => a.type === ALERT_TYPE.PROVIDER_FAILURE)).toHaveLength(1);
+    });
+  });
+
   // ─── Stale Catalog Alerts ────────────────────────────────
 
   describe('stale catalog alerts', () => {

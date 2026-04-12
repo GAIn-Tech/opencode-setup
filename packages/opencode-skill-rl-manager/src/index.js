@@ -301,6 +301,12 @@ class SkillRLManager {
       Object.assign(updated, LearningValidator.sanitize(updated));
     }
 
+    // Task 3.4: Wire Tool Eval into Skill RL optimization loop
+    // Update tool quality metrics if provided in outcome
+    if (outcome.toolEvalResults && Array.isArray(outcome.toolEvalResults)) {
+      this._updateToolQualityMetrics(outcome.toolEvalResults);
+    }
+
     // Also route to evolution engine for success/failure learning
     let evolutionResult;
     if (outcome.success) {
@@ -697,6 +703,67 @@ selectSkills(taskContext) {
     }
     if (data.evolutionEngine) {
       this.evolutionEngine.import(data.evolutionEngine);
+    }
+  }
+
+  /**
+   * Task 3.4: Update tool quality metrics from eval results
+   * Flags tools for review if they exceed quality thresholds
+   * @param {Array} toolEvalResults - Array of tool eval results from eval harness
+   */
+  _updateToolQualityMetrics(toolEvalResults) {
+    const TOOL_QUALITY_DIR = path.join(resolveDataHome(), 'tool-quality');
+    const CONFUSION_THRESHOLD = 0.2;  // Flag if confusion_rate > 20%
+    const TOKEN_THRESHOLD = 25000;   // Flag if avg_tokens > 25k
+
+    // Ensure tool-quality directory exists
+    if (!fs.existsSync(TOOL_QUALITY_DIR)) {
+      try {
+        fs.mkdirSync(TOOL_QUALITY_DIR, { recursive: true });
+      } catch (err) {
+        console.warn('[SkillRL] Failed to create tool-quality directory:', err.message);
+        return;
+      }
+    }
+
+    for (const evalResult of toolEvalResults) {
+      if (!evalResult.tool_name) continue;
+
+      // Write eval result to file for dashboard API to read
+      const filename = path.join(TOOL_QUALITY_DIR, `${evalResult.tool_name}.json`);
+      try {
+        fs.writeFileSync(filename, JSON.stringify(evalResult, null, 2));
+      } catch (err) {
+        console.warn(`[SkillRL] Failed to write tool eval for ${evalResult.tool_name}:`, err.message);
+      }
+
+      // Flag for review if thresholds exceeded
+      if (evalResult.confusion_rate > CONFUSION_THRESHOLD) {
+        console.warn(`[SkillRL] Tool quality flag: ${evalResult.tool_name} confusion_rate ${evalResult.confusion_rate} exceeds threshold ${CONFUSION_THRESHOLD}`);
+        // Update skill bank with low-confidence tool indicator
+        this._flagToolForReview(evalResult.tool_name, 'confusion_rate_high');
+      }
+
+      if (evalResult.avg_tokens > TOKEN_THRESHOLD) {
+        console.warn(`[SkillRL] Tool quality flag: ${evalResult.tool_name} avg_tokens ${evalResult.avg_tokens} exceeds threshold ${TOKEN_THRESHOLD}`);
+        this._flagToolForReview(evalResult.tool_name, 'token_usage_high');
+      }
+    }
+  }
+
+  /**
+   * Flag a tool for review in skill bank
+   * Links skill usage to tool quality issues
+   * @param {string} toolName - Name of the tool
+   * @param {string} flag - Quality flag reason
+   */
+  _flagToolForReview(toolName, flag) {
+    // Find skills that frequently use this tool and flag them
+    for (const skill of this.skillBank.generalSkills.values()) {
+      if (skill.tool_affinities && skill.tool_affinities[toolName]) {
+        skill.tool_quality_flags = skill.tool_quality_flags || {};
+        skill.tool_quality_flags[toolName] = flag;
+      }
     }
   }
 }

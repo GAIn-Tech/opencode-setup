@@ -316,7 +316,7 @@ class MetaKBReader {
  * @param {string} projectRoot - Path to project root
  * @returns {Object|null} Project KB data or null if not found
  */
-static loadProjectKB(projectRoot) {
+function loadProjectKB(projectRoot) {
   const kbDir = path.join(projectRoot, '.sisyphus', 'kb');
   const metaPath = path.join(kbDir, 'meta-knowledge.json');
   
@@ -343,7 +343,7 @@ static loadProjectKB(projectRoot) {
  * @param {string} projectRoot - Path to project root
  * @returns {string[]} Array of audit file paths
  */
-static getProjectAuditFiles(projectRoot) {
+function getProjectAuditFiles(projectRoot) {
   const notepadsDir = path.join(projectRoot, '.sisyphus', 'notepads');
   const auditFiles = [];
   
@@ -370,7 +370,7 @@ static getProjectAuditFiles(projectRoot) {
  * Read from global meta-KB for synthesis.
  * @returns {Object|null}
  */
-static readFromGlobalKB() {
+function readFromGlobalKB() {
   const globalPath = path.join(
     __dirname, '..', '..', '..', '.sisyphus', 'kb', 'meta-knowledge.json'
   );
@@ -400,3 +400,7 @@ module.exports = {
   MAX_CONVENTION_RESULTS,
   MAX_QUERY_OPERATIONS,
 };
+
+MetaKBReader.loadProjectKB = loadProjectKB;
+MetaKBReader.getProjectAuditFiles = getProjectAuditFiles;
+MetaKBReader.readFromGlobalKB = readFromGlobalKB;

@@ -1,0 +1,90 @@
+/**
+ * Test suite for websearch MCP tool
+ * Tests: search, crawl, extract
+ */
+[
+  {
+    "id": "websearch-basic-search",
+    "prompt": "Search the web for 'latest React 19 features 2026'",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "react",
+      "match": "contains"
+    },
+    "complexity_tier": 1,
+    "category": "search",
+    "max_tokens": 2048
+  },
+  {
+    "id": "websearch-youtube-transcript",
+    "prompt": "Get transcript from YouTube video 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "transcript",
+      "match": "contains"
+    },
+    "complexity_tier": 2,
+    "category": "media",
+    "max_tokens": 4096
+  },
+  {
+    "id": "websearch-url-extraction",
+    "prompt": "Extract structured data from URL 'https://example.com' using selector '.content'",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "example",
+      "match": "contains"
+    },
+    "complexity_tier": 2,
+    "category": "extraction",
+    "max_tokens": 2048
+  },
+  {
+    "id": "websearch-regex-extraction",
+    "prompt": "Extract all email addresses from URL 'https://example.com'",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "email",
+      "match": "any_present"
+    },
+    "complexity_tier": 2,
+    "category": "extraction",
+    "max_tokens": 1024
+  },
+  {
+    "id": "websearch-javascript-execution",
+    "prompt": "Execute JavaScript 'return document.title' on URL 'https://example.com'",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "Example",
+      "match": "contains"
+    },
+    "complexity_tier": 2,
+    "category": "scripting",
+    "max_tokens": 256
+  },
+  {
+    "id": "websearch-pdf-generation",
+    "prompt": "Generate PDF from URL 'https://example.com'",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "pdf",
+      "match": "contains"
+    },
+    "complexity_tier": 2,
+    "category": "conversion",
+    "max_tokens": 256
+  },
+  {
+    "id": "websearch-rate-limiting",
+    "prompt": "Make 10 rapid search requests and verify rate limiting kicks in",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "rate",
+      "match": "any_present"
+    },
+    "complexity_tier": 3,
+    "category": "error-handling",
+    "max_tokens": 1024
+  }
+]

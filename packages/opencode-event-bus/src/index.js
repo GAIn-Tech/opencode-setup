@@ -25,8 +25,15 @@ class EventBus extends EventEmitter {
   }
 }
 
-// Singleton export — one shared instance per process
 const _bus = new EventBus();
+
+// Initialize Telemetry Observer for Unified Event Bus (Wave 1)
+try {
+    const TelemetryObserver = require('./telemetry-observer');
+    new TelemetryObserver(_bus);
+} catch (e) {
+    console.error('[EVENT_BUS] Failed to initialize Telemetry Observer:', e);
+}
 
 module.exports = _bus;
 module.exports.EventBus = EventBus; // For testing (create fresh instances)

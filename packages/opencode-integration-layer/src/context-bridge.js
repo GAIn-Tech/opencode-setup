@@ -42,6 +42,10 @@ class ContextBridge {
     this._warnThreshold = opts.warnThreshold ?? 0.65;
     this._blockThreshold = opts.blockThreshold ?? 0.85;
     this._enforcementEnabled = opts.enforcementEnabled !== false;
+    
+    // Compression callback - called when action is 'compress' or 'compress_urgent'
+    this._onCompress = typeof opts.onCompress === 'function' ? opts.onCompress : null;
+    
     this._auditTrail = [];
     this._maxAuditTrail = this._normalizePositiveInteger(opts.maxAuditTrail, 10000);
     this._trimTo = Math.min(this._maxAuditTrail, this._normalizePositiveInteger(opts.trimTo, Math.max(1, Math.floor(this._maxAuditTrail * 0.9))));
@@ -137,21 +141,29 @@ class ContextBridge {
         return { action: 'block', reason, pct, veto: vetoResult };
       }
 
-      // Check for mandatory compression conditions
-      if (this._enforcementEnabled && pct >= this._urgentThreshold) {
-        const vetoResult = this._applyBudgetVeto('context-budget-critical', operation, pct);
-        const reason = `Budget at ${(pct * 100).toFixed(1)}% — COMPRESSION MANDATORY within grace period`;
-        this._logger.error('[ContextBridge] budget critical - compress_urgent', { sessionId, model, pct, vetoResult });
-        return { action: 'compress_urgent', reason, pct, veto: vetoResult };
-      }
+// Check for mandatory compression conditions
+  if (this._enforcementEnabled && pct >= this._urgentThreshold) {
+    const vetoResult = this._applyBudgetVeto('context-budget-critical', operation, pct);
+    const reason = `Budget at ${(pct * 100).toFixed(1)}% — COMPRESSION MANDATORY within grace period`;
+    this._logger.error('[ContextBridge] budget critical - compress_urgent', { sessionId, model, pct, vetoResult });
+    // Trigger compression callback
+    if (this._onCompress) {
+      this._onCompress({ action: 'compress_urgent', sessionId, model, pct, reason });
+    }
+    return { action: 'compress_urgent', reason, pct, veto: vetoResult };
+  }
 
-      // Proactive compression advisory (convertible to mandatory with enforcement flag)
-      if (pct >= this._warnThreshold) {
-        const reason = `Budget at ${(pct * 100).toFixed(1)}% — proactive compression ${this._enforcementEnabled ? 'required' : 'recommended'}`;
-        const severity = this._enforcementEnabled ? 'warn' : 'info';
-        this._logger[severity]('[ContextBridge] compression advisory', { sessionId, model, pct });
-        return { action: 'compress', reason, pct, veto: null };
-      }
+  // Proactive compression advisory (convertible to mandatory with enforcement flag)
+  if (pct >= this._warnThreshold) {
+    const reason = `Budget at ${(pct * 100).toFixed(1)}% — proactive compression ${this._enforcementEnabled ? 'required' : 'recommended'}`;
+    const severity = this._enforcementEnabled ? 'warn' : 'info';
+    this._logger[severity]('[ContextBridge] compression advisory', { sessionId, model, pct });
+    // Trigger compression callback
+    if (this._onCompress) {
+      this._onCompress({ action: 'compress', sessionId, model, pct, reason });
+    }
+    return { action: 'compress', reason, pct, veto: null };
+  }
 
       return { action: 'none', reason: `Budget healthy at ${(pct * 100).toFixed(1)}%`, pct, veto: null };
     } catch (err) {

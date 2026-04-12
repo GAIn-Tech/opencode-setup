@@ -35,10 +35,16 @@ const SEVERITY_WEIGHTS = {
 };
 
 class AntiPatternCatalog {
-  constructor() {
+  /**
+   * @param {Object} options - Constructor options
+   * @param {boolean} options.skipLoad - Skip loading from disk (for testing)
+   */
+  constructor(options = {}) {
     this.patterns = [];
     this.index = { byType: {}, bySession: {}, bySeverity: {} };
-    this._load();
+    if (!options.skipLoad) {
+      this._load();
+    }
   }
 
   /**

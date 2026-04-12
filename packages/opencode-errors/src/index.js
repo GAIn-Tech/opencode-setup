@@ -42,6 +42,7 @@ export const ErrorCode = {
   CONFIG_INVALID: 'CONFIG_INVALID',
   CONFIG_CORRUPTED: 'CONFIG_CORRUPTED',
   SCHEMA_VALIDATION_FAILED: 'SCHEMA_VALIDATION_FAILED',
+  CONTEXT_EXHAUSTED: 'CONTEXT_EXHAUSTED',
   
   // State errors (STATE)
   STATE_CORRUPTED: 'STATE_CORRUPTED',
@@ -118,6 +119,16 @@ function isRecoverable(code) {
     ErrorCode.TIMEOUT,
     ErrorCode.PROVIDER
   ];
+  // Non-recoverable: context exhaustion, config errors, validation errors
+  const nonRecoverableCodes = [
+    ErrorCode.CONTEXT_EXHAUSTED,
+    ErrorCode.CONFIG_INVALID,
+    ErrorCode.CONFIG_CORRUPTED,
+    ErrorCode.INVALID_INPUT
+  ];
+  if (nonRecoverableCodes.includes(code)) {
+    return false;
+  }
   return recoverableCodes.includes(code);
 }
 
@@ -274,8 +285,69 @@ export function getUserMessage(error) {
   return messages[error.code] || error.message;
 }
 
+/**
+ * [GAP FIX 3] Validate error code is from defined ErrorCode enum.
+ * Returns true if valid, false otherwise.
+ * 
+ * @param {string} code - Error code to validate
+ * @returns {boolean} True if code is a valid ErrorCode
+ */
+export function isValidErrorCode(code) {
+  if (!code || typeof code !== 'string') return false;
+  return Object.values(ErrorCode).includes(code);
+}
+
+/**
+ * [GAP FIX 3] Get all defined error codes for debugging/documentation.
+ * 
+ * @returns {Array<string>} List of all valid error codes
+ */
+export function getAllErrorCodes() {
+  return Object.values(ErrorCode);
+}
+
+/**
+ * [GAP FIX 3] Validate error code usage - warns if code is not defined.
+ * Use in catch blocks to validate error codes are from the enum.
+ * 
+ * @param {string|undefined} code - Error code to validate
+ * @param {string} context - Context where error was caught (for logging)
+ * @returns {boolean} True if valid or null/undefined, false if invalid
+ */
+export function validateErrorCodeUsage(code, context = 'unknown') {
+  if (code === undefined || code === null) {
+    return true; // No code provided is valid (optional)
+  }
+  
+  if (!isValidErrorCode(code)) {
+    console.warn(`[ErrorCodeValidation] Invalid error code '${code}' used in ${context}. Valid codes: ${Object.values(ErrorCode).join(', ')}`);
+    return false;
+  }
+  
+  return true;
+}
+
 export default {
   ErrorCategory,
+  ErrorCode,
+  OpenCodeError,
+  fromError,
+  fromUnknown,
+  isRetryable,
+  getUserMessage,
+  isValidErrorCode,
+  getAllErrorCodes,
+  validateErrorCodeUsage,
+};
+  OpenCodeError,
+  fromError,
+  fromUnknown,
+  isRetryable,
+  getUserMessage,
+  isValidErrorCode,
+  getAllErrorCodes,
+  validateErrorCodeUsage,
+};
   ErrorCode,
   OpenCodeError,
   fromUnknown,

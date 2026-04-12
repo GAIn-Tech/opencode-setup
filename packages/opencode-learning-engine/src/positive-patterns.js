@@ -27,9 +27,15 @@ const VALID_TYPES = [
 ];
 
 class PositivePatternTracker {
-  constructor() {
+  /**
+   * @param {Object} options - Constructor options
+   * @param {boolean} options.skipLoad - Skip loading from disk (for testing)
+   */
+  constructor(options = {}) {
     this.patterns = [];
-    this._load(); // Sync for constructor - only called once at startup
+    if (!options.skipLoad) {
+      this._load(); // Sync for constructor - only called once at startup
+    }
   }
 
   /**

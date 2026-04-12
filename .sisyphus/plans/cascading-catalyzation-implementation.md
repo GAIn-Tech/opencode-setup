@@ -81,7 +81,7 @@ Task 2.2: Wire Binding Enforcement into Integration Layer
       throw new Error('Context budget exhausted')
   - If mode === 'enforce-critical' && budget.status === 'warn':
       emit BUDGET_WARNING event, continue with compression
-  - Keep advisory mode as default for backward compatibility
+  - DEFAULT TO 'enforce-critical' — binding by default, not advisory
 
 Task 2.3: Add Compression Trigger on Warning
   File: packages/opencode-integration-layer/src/index.js
@@ -100,7 +100,8 @@ Task 2.4: Add Budget Enforcement Tests
 Acceptance Criteria:
   - Budget enforcement mode configurable via env var
   - enforce-critical mode throws at 80%+ budget
-  - Advisory mode preserves current behavior
+  - **'enforce-critical' is the DEFAULT** (binding by default)
+  - Advisory mode available via OPENCODE_BUDGET_MODE=advisory for backward compatibility
   - Compression triggered automatically on warning in enforce-critical mode
   - All tests pass (advisory + enforce-critical modes)
 ```

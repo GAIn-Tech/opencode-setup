@@ -65,6 +65,7 @@ try {
 // Fallback imports for direct access (used in constructor)
 // These are kept for backwards compatibility - the adapter is preferred
 let Logger, ValidatorLib, OpenCodeErrors, FallbackDoctor, HealthCheck;
+let DefaultOpenCodeError, DefaultErrorCategory, DefaultErrorCode;
 let MetaAwarenessTracker, MetaKBReader;
 try { Logger = require('@jackoatmon/opencode-logger'); } catch (e) {
   try { Logger = require('../../opencode-logger/src/index.js'); } catch (e2) { Logger = null; }
@@ -77,6 +78,15 @@ try { ValidatorLib = require('@jackoatmon/opencode-validator'); } catch (e) {
 }
 try { OpenCodeErrors = require('@jackoatmon/opencode-errors'); } catch (e) {
   try { OpenCodeErrors = require('../../opencode-errors/src/index.js'); } catch (e2) { OpenCodeErrors = null; }
+}
+if (OpenCodeErrors) {
+  DefaultOpenCodeError = OpenCodeErrors.OpenCodeError || null;
+  DefaultErrorCategory = OpenCodeErrors.ErrorCategory || null;
+  DefaultErrorCode = OpenCodeErrors.ErrorCode || null;
+} else {
+  DefaultOpenCodeError = null;
+  DefaultErrorCategory = null;
+  DefaultErrorCode = null;
 }
 try { FallbackDoctor = require('@jackoatmon/opencode-fallback-doctor'); } catch (e) {
   try { FallbackDoctor = require('../../opencode-fallback-doctor/src/index.js'); } catch (e2) { FallbackDoctor = null; }
@@ -402,6 +412,9 @@ class ModelRouter {
     // T19 (Wave 11): Startup time instrumentation
     const _startupT0 = typeof performance !== 'undefined' ? performance.now() : Date.now();
 
+    // Debug mode for routing visibility
+    this._debug = options.debug || process.env.OPENCODE_ROUTER_DEBUG === 'true';
+
     // P4: INTEGRATION ADAPTER - Single point of integration (fixes option creep)
     // Instead of 10+ if-checks, use the adapter for all integrations
     this._adapter = new RouterIntegrationAdapter(IntegrationLayer, {
@@ -537,10 +550,11 @@ this.thompsonRouter = options.thompsonRouter !== undefined
     }
 
     // P1: Errors Integration - use standardized error taxonomy
-    const errorTaxonomy = options.openCodeErrors || OpenCodeErrors;
+    const errorTaxonomy = options.openCodeErrors || OpenCodeErrors || {};
     this.errorHandler = options.errorHandler || null;
-    this._errorCategory = errorTaxonomy?.ErrorCategory || null;
-    this._errorCode = errorTaxonomy?.ErrorCode || null;
+    this._openCodeError = errorTaxonomy.OpenCodeError || DefaultOpenCodeError || null;
+    this._errorCategory = errorTaxonomy.ErrorCategory || DefaultErrorCategory || null;
+    this._errorCode = errorTaxonomy.ErrorCode || DefaultErrorCode || null;
 
     this.healthCheck = options.healthCheck || HealthCheck || null;
     this.CircuitBreaker = options.circuitBreakerClass || CircuitBreaker || null;
@@ -767,6 +781,7 @@ this.thompsonRouter = options.thompsonRouter !== undefined
    * @returns {Object} `{ model, key, score, reason, rotator }`
    */
   route(ctx = {}) {
+    try {
     if (!ctx.category) {
       const explorationSelection = this.explorationController?.selectModelForTaskSync({
         taskId: ctx.taskId || ctx.sessionId || 'unknown',
@@ -918,14 +933,36 @@ this.thompsonRouter = options.thompsonRouter !== undefined
           key,
         };
       }
-      throw new Error('No model available for the given constraints');
+      throw this._createError(
+        this._getErrorCode('MODEL_NOT_FOUND', 'PROVIDER_ERROR'),
+        'No model available for the given constraints',
+        {
+          method: 'route',
+          taskType: ctx?.taskType || ctx?.task || 'general',
+          category: ctx?.category || null,
+        }
+      );
     }
 
-    const winner = scored[0];
-    const model = this.models[winner.modelId];
-    const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
-    const key = rotator ? rotator.getNextKey() : null;
-    if (this.metaAwarenessTracker) {
+const winner = scored[0];
+  const model = this.models[winner.modelId];
+  const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
+  const key = rotator ? rotator.getNextKey() : null;
+  
+  // Debug: Log routing decision path
+  if (this._debug) {
+    console.log('[ModelRouter DEBUG] Route decision:', {
+      taskType: ctx?.taskType || ctx?.task || 'general',
+      complexity: ctx?.complexity || 'moderate',
+      candidates: scored.length,
+      selected: winner.modelId,
+      score: winner.score,
+      reason: winner.reason,
+      top3: scored.slice(0, 3).map(s => ({ model: s.modelId, score: s.score }))
+    });
+  }
+  
+  if (this.metaAwarenessTracker) {
       this.metaAwarenessTracker.trackEvent({
         event_type: 'orchestration.model_selected',
         task_type: ctx?.taskType || ctx?.task || 'general',
@@ -948,6 +985,9 @@ this.thompsonRouter = options.thompsonRouter !== undefined
       rotator,
       key,
     };
+    } catch (error) {
+      throw this._handleRoutingError(error, ctx, 'route');
+    }
   }
 
   /**
@@ -1169,6 +1209,7 @@ this.thompsonRouter = options.thompsonRouter !== undefined
   }
 
   async routeAsync(ctx = {}) {
+    try {
     if (ctx.category) {
       const categorySelection = this.selectModelForCategory(ctx.category);
       if (categorySelection) {
@@ -1237,6 +1278,9 @@ this.thompsonRouter = options.thompsonRouter !== undefined
     }
 
     return this.route(ctx);
+    } catch (error) {
+      throw this._handleRoutingError(error, ctx, 'routeAsync');
+    }
   }
 
   /**
@@ -1271,20 +1315,298 @@ this.thompsonRouter = options.thompsonRouter !== undefined
    * P1: Errors Integration - Create standardized error using OpenCodeErrors taxonomy
    * @private
    */
-  _createError(code, message, context = {}) {
-    if (this.errorHandler && this._errorCategory && this._errorCode) {
-      // Use the provided error handler with standardized taxonomy
-      return this.errorHandler.createError({
-        code: code,
-        message: message,
-        context: context,
-        category: this._errorCategory.ORCHESTRATION
-      });
+  _getErrorCode(name, fallback = 'UNEXPECTED_ERROR') {
+    const hasCodeMap = this._errorCode && typeof this._errorCode === 'object';
+
+    if (typeof name === 'string' && name.length > 0) {
+      if (hasCodeMap && typeof this._errorCode[name] === 'string' && this._errorCode[name].length > 0) {
+        return this._errorCode[name];
+      }
+      if (hasCodeMap && Object.values(this._errorCode).includes(name)) {
+        return name;
+      }
+      return name;
     }
-    // Fallback to standard Error
-    const err = new Error(message);
-    err.code = code;
-    err.context = context;
+
+    if (typeof fallback === 'string' && fallback.length > 0) {
+      if (hasCodeMap && typeof this._errorCode[fallback] === 'string' && this._errorCode[fallback].length > 0) {
+        return this._errorCode[fallback];
+      }
+      return fallback;
+    }
+
+    if (hasCodeMap && typeof this._errorCode.UNEXPECTED_ERROR === 'string') {
+      return this._errorCode.UNEXPECTED_ERROR;
+    }
+
+    return 'UNEXPECTED_ERROR';
+  }
+
+  _getErrorCategory(name, fallback = 'UNKNOWN') {
+    const hasCategoryMap = this._errorCategory && typeof this._errorCategory === 'object';
+
+    if (typeof name === 'string' && name.length > 0) {
+      if (hasCategoryMap && typeof this._errorCategory[name] === 'string' && this._errorCategory[name].length > 0) {
+        return this._errorCategory[name];
+      }
+      if (hasCategoryMap && Object.values(this._errorCategory).includes(name)) {
+        return name;
+      }
+      return name;
+    }
+
+    if (typeof fallback === 'string' && fallback.length > 0) {
+      if (hasCategoryMap && typeof this._errorCategory[fallback] === 'string' && this._errorCategory[fallback].length > 0) {
+        return this._errorCategory[fallback];
+      }
+      return fallback;
+    }
+
+    if (hasCategoryMap && typeof this._errorCategory.UNKNOWN === 'string') {
+      return this._errorCategory.UNKNOWN;
+    }
+
+    return 'UNKNOWN';
+  }
+
+  _resolveErrorCode(code, message = '', context = {}) {
+    const safeContext = _asObject(context);
+    const hintedCode = typeof code === 'string' && code.length > 0
+      ? code
+      : (typeof safeContext.code === 'string' && safeContext.code.length > 0 ? safeContext.code : null);
+    if (hintedCode) {
+      return this._getErrorCode(hintedCode, hintedCode);
+    }
+
+    const text = String(message || '').toLowerCase();
+    if (text.includes('rate limit') || text.includes('429')) {
+      return this._getErrorCode('RATE_LIMIT_EXCEEDED', 'PROVIDER_ERROR');
+    }
+    if (text.includes('quota')) {
+      return this._getErrorCode('QUOTA_EXHAUSTED', 'RATE_LIMIT_EXCEEDED');
+    }
+    if (text.includes('timeout') || text.includes('timed out') || text.includes('etimedout')) {
+      return this._getErrorCode('REQUEST_TIMEOUT', 'PROVIDER_ERROR');
+    }
+    if (text.includes('invalid api key') || (text.includes('api key') && text.includes('invalid'))) {
+      return this._getErrorCode('INVALID_API_KEY', 'PROVIDER_ERROR');
+    }
+    if (text.includes('missing api key') || text.includes('no api key')) {
+      return this._getErrorCode('MISSING_API_KEY', 'PROVIDER_ERROR');
+    }
+    if (text.includes('model not found') || text.includes('unknown model') || text.includes('no model available')) {
+      return this._getErrorCode('MODEL_NOT_FOUND', 'PROVIDER_ERROR');
+    }
+    if (text.includes('unsupported')) {
+      return this._getErrorCode('MODEL_UNSUPPORTED', 'PROVIDER_ERROR');
+    }
+    if (text.includes('content policy')) {
+      return this._getErrorCode('CONTENT_POLICY', 'PROVIDER_ERROR');
+    }
+    if (text.includes('provider unavailable') || text.includes('service unavailable') || text.includes('503')) {
+      return this._getErrorCode('PROVIDER_UNAVAILABLE', 'PROVIDER_ERROR');
+    }
+    if (text.includes('network') || text.includes('connect') || text.includes('socket') || text.includes('econn') || text.includes('dns') || text.includes('ssl')) {
+      return this._getErrorCode('CONNECTION_FAILED', 'PROVIDER_ERROR');
+    }
+
+    return this._getErrorCode('UNEXPECTED_ERROR', 'UNEXPECTED_ERROR');
+  }
+
+  _resolveErrorCategory(code, message = '', context = {}) {
+    const safeContext = _asObject(context);
+    if (typeof safeContext.category === 'string' && safeContext.category.length > 0) {
+      return this._getErrorCategory(safeContext.category, 'UNKNOWN');
+    }
+
+    const resolvedCode = this._getErrorCode(code, code || 'UNEXPECTED_ERROR');
+    const codeMatches = (names) => names.some((name) => resolvedCode === this._getErrorCode(name, name));
+
+    if (codeMatches(['INVALID_API_KEY', 'EXPIRED_API_KEY', 'MISSING_API_KEY'])) {
+      return this._getErrorCategory('AUTH', 'UNKNOWN');
+    }
+    if (codeMatches(['RATE_LIMIT_EXCEEDED', 'QUOTA_EXHAUSTED', 'TPM_LIMIT', 'RPM_LIMIT'])) {
+      return this._getErrorCategory('RATE_LIMIT', 'UNKNOWN');
+    }
+    if (codeMatches(['REQUEST_TIMEOUT', 'OPERATION_TIMEOUT'])) {
+      return this._getErrorCategory('TIMEOUT', 'UNKNOWN');
+    }
+    if (codeMatches(['CONNECTION_FAILED', 'DNS_ERROR', 'SSL_ERROR', 'RESET_CONNECTION'])) {
+      return this._getErrorCategory('NETWORK', 'UNKNOWN');
+    }
+    if (codeMatches(['CONFIG_MISSING', 'CONFIG_INVALID', 'CONFIG_CORRUPTED', 'SCHEMA_VALIDATION_FAILED', 'CONTEXT_EXHAUSTED'])) {
+      return this._getErrorCategory('CONFIG', 'UNKNOWN');
+    }
+    if (codeMatches(['INVALID_INPUT', 'MISSING_REQUIRED_FIELD', 'INVALID_FORMAT'])) {
+      return this._getErrorCategory('VALIDATION', 'UNKNOWN');
+    }
+    if (codeMatches(['MODEL_NOT_FOUND', 'MODEL_UNSUPPORTED', 'PROVIDER_ERROR', 'PROVIDER_UNAVAILABLE', 'CONTENT_POLICY'])) {
+      return this._getErrorCategory('PROVIDER', 'UNKNOWN');
+    }
+    if (codeMatches(['STATE_CORRUPTED', 'STATE_NOT_FOUND', 'TRANSACTION_FAILED', 'PERSISTENCE_FAILED'])) {
+      return this._getErrorCategory('STATE', 'UNKNOWN');
+    }
+    if (codeMatches(['UNEXPECTED_ERROR', 'NOT_IMPLEMENTED', 'CIRCULAR_REFERENCE', 'MEMORY_ERROR'])) {
+      return this._getErrorCategory('INTERNAL', 'UNKNOWN');
+    }
+
+    const text = String(message || '').toLowerCase();
+    if (text.includes('rate limit') || text.includes('quota') || text.includes('429')) {
+      return this._getErrorCategory('RATE_LIMIT', 'UNKNOWN');
+    }
+    if (text.includes('timeout') || text.includes('timed out') || text.includes('etimedout')) {
+      return this._getErrorCategory('TIMEOUT', 'UNKNOWN');
+    }
+    if (text.includes('api key') || text.includes('unauthorized') || text.includes('authentication')) {
+      return this._getErrorCategory('AUTH', 'UNKNOWN');
+    }
+    if (text.includes('network') || text.includes('connect') || text.includes('socket') || text.includes('dns') || text.includes('ssl')) {
+      return this._getErrorCategory('NETWORK', 'UNKNOWN');
+    }
+    if (text.includes('provider') || text.includes('model')) {
+      return this._getErrorCategory('PROVIDER', 'UNKNOWN');
+    }
+
+    return this._getErrorCategory('INTERNAL', 'UNKNOWN');
+  }
+
+  _isOpenCodeError(error) {
+    if (!error || typeof error !== 'object') {
+      return false;
+    }
+
+    if (this._openCodeError && error instanceof this._openCodeError) {
+      return true;
+    }
+
+    return error.name === 'OpenCodeError'
+      && typeof error.code === 'string'
+      && typeof error.category === 'string';
+  }
+
+  _looksLikeProviderError(error, message = '') {
+    if (this._isOpenCodeError(error)) {
+      const providerCategories = new Set([
+        this._getErrorCategory('PROVIDER', 'PROVIDER'),
+        this._getErrorCategory('RATE_LIMIT', 'RATE_LIMIT'),
+        this._getErrorCategory('TIMEOUT', 'TIMEOUT'),
+        this._getErrorCategory('NETWORK', 'NETWORK'),
+        this._getErrorCategory('AUTH', 'AUTH'),
+      ]);
+      return providerCategories.has(error.category);
+    }
+
+    const text = `${String(message || '')} ${String(error?.code || '')}`.toLowerCase();
+    return text.includes('provider')
+      || text.includes('api key')
+      || text.includes('unauthorized')
+      || text.includes('rate limit')
+      || text.includes('quota')
+      || text.includes('429')
+      || text.includes('timeout')
+      || text.includes('timed out')
+      || text.includes('model not found')
+      || text.includes('unknown model')
+      || text.includes('no model available')
+      || text.includes('network')
+      || text.includes('connect')
+      || text.includes('socket')
+      || text.includes('econn')
+      || text.includes('dns')
+      || text.includes('ssl');
+  }
+
+  _classifyProviderErrorCode(error, message = '') {
+    const text = `${String(message || '')} ${String(error?.code || '')}`.toLowerCase();
+
+    if (text.includes('rate limit') || text.includes('429')) {
+      return this._getErrorCode('RATE_LIMIT_EXCEEDED', 'PROVIDER_ERROR');
+    }
+    if (text.includes('quota')) {
+      return this._getErrorCode('QUOTA_EXHAUSTED', 'RATE_LIMIT_EXCEEDED');
+    }
+    if (text.includes('timeout') || text.includes('timed out') || text.includes('etimedout')) {
+      return this._getErrorCode('REQUEST_TIMEOUT', 'PROVIDER_ERROR');
+    }
+    if (text.includes('invalid api key') || (text.includes('api key') && text.includes('invalid'))) {
+      return this._getErrorCode('INVALID_API_KEY', 'PROVIDER_ERROR');
+    }
+    if (text.includes('missing api key') || text.includes('no api key')) {
+      return this._getErrorCode('MISSING_API_KEY', 'PROVIDER_ERROR');
+    }
+    if (text.includes('model not found') || text.includes('unknown model') || text.includes('no model available')) {
+      return this._getErrorCode('MODEL_NOT_FOUND', 'PROVIDER_ERROR');
+    }
+    if (text.includes('unsupported')) {
+      return this._getErrorCode('MODEL_UNSUPPORTED', 'PROVIDER_ERROR');
+    }
+    if (text.includes('content policy')) {
+      return this._getErrorCode('CONTENT_POLICY', 'PROVIDER_ERROR');
+    }
+    if (text.includes('provider unavailable') || text.includes('service unavailable') || text.includes('503')) {
+      return this._getErrorCode('PROVIDER_UNAVAILABLE', 'PROVIDER_ERROR');
+    }
+    if (text.includes('network') || text.includes('connect') || text.includes('socket') || text.includes('econn') || text.includes('dns') || text.includes('ssl')) {
+      return this._getErrorCode('CONNECTION_FAILED', 'PROVIDER_ERROR');
+    }
+
+    return this._getErrorCode('PROVIDER_ERROR', 'UNEXPECTED_ERROR');
+  }
+
+  _handleRoutingError(error, ctx = {}, method = 'route') {
+    if (this._isOpenCodeError(error)) {
+      return error;
+    }
+
+    const safeCtx = _asObject(ctx);
+    const message = error?.message || `${method} failed`;
+    const code = this._looksLikeProviderError(error, message)
+      ? this._classifyProviderErrorCode(error, message)
+      : this._resolveErrorCode(error?.code, message, safeCtx);
+
+    return this._createError(code, message, {
+      method,
+      taskType: safeCtx.taskType || safeCtx.task || 'general',
+      category: safeCtx.category || null,
+      modelId: safeCtx.modelId || safeCtx.overrideModelId || null,
+      provider: safeCtx.provider || null,
+      originalError: error?.name || 'Error',
+      originalMessage: message,
+      originalCode: error?.code || null,
+    });
+  }
+
+  _createError(code, message, context = {}) {
+    const safeContext = _asObject(context);
+    const safeMessage = typeof message === 'string' && message.length > 0
+      ? message
+      : 'Model router encountered an unexpected error';
+    const normalizedCode = this._resolveErrorCode(code, safeMessage, safeContext);
+    const category = this._resolveErrorCategory(normalizedCode, safeMessage, safeContext);
+
+    if (this._openCodeError) {
+      return new this._openCodeError(safeMessage, category, normalizedCode, safeContext);
+    }
+
+    if (this.errorHandler && typeof this.errorHandler.createError === 'function') {
+      try {
+        return this.errorHandler.createError({
+          code: normalizedCode,
+          message: safeMessage,
+          context: safeContext,
+          category,
+        });
+      } catch (_errorHandlerError) {
+        // Continue to fallback error object
+      }
+    }
+
+    const err = new Error(safeMessage);
+    err.name = 'OpenCodeError';
+    err.code = normalizedCode;
+    err.category = category;
+    err.context = safeContext;
+    err.details = safeContext;
     return err;
   }
 

@@ -1,10 +1,8 @@
 import fs from 'fs';
 import fsPromises from 'fs/promises';
-import { createRequire } from 'module';
 import os from 'os';
 import path from 'path';
-
-const require = createRequire(import.meta.url);
+import { pathToFileURL } from 'url';
 
 type MetaAwarenessTrackerCtor = new (options?: Record<string, unknown>) => MetaAwarenessTrackerLike;
 
@@ -129,7 +127,7 @@ function extractTrackerCtor(moduleValue: unknown): MetaAwarenessTrackerCtor | nu
   return typeof candidate === 'function' ? candidate : null;
 }
 
-function resolveTrackerCtor(): MetaAwarenessTrackerCtor | null {
+async function resolveTrackerCtor(): Promise<MetaAwarenessTrackerCtor | null> {
   if (trackerCtor) return trackerCtor;
   if (trackerModuleFailed) return null;
 
@@ -137,7 +135,7 @@ function resolveTrackerCtor(): MetaAwarenessTrackerCtor | null {
   for (const candidatePath of pathCandidates) {
     if (!fs.existsSync(candidatePath)) continue;
     try {
-      const loaded = require(candidatePath);
+      const loaded = await import(/* webpackIgnore: true */ pathToFileURL(candidatePath).href);
       const candidate = extractTrackerCtor(loaded);
       if (candidate) {
         trackerCtor = candidate;
@@ -161,7 +159,7 @@ function fallbackPaths() {
   };
 }
 
-export function loadMetaAwarenessTrackerWithStatus(): MetaAwarenessTrackerLoadStatus {
+export async function loadMetaAwarenessTrackerWithStatus(): Promise<MetaAwarenessTrackerLoadStatus> {
   const telemetryFlags = readTelemetryFlags();
 
   if (!telemetryFlags.metaAwarenessLiveEnabled) {
@@ -182,7 +180,7 @@ export function loadMetaAwarenessTrackerWithStatus(): MetaAwarenessTrackerLoadSt
     };
   }
 
-  const ctor = resolveTrackerCtor();
+  const ctor = await resolveTrackerCtor();
   if (!ctor) {
     return {
       tracker: null,
@@ -210,8 +208,9 @@ export function loadMetaAwarenessTrackerWithStatus(): MetaAwarenessTrackerLoadSt
   }
 }
 
-export function loadMetaAwarenessTracker(): MetaAwarenessTrackerLike | null {
-  return loadMetaAwarenessTrackerWithStatus().tracker;
+export async function loadMetaAwarenessTracker(): Promise<MetaAwarenessTrackerLike | null> {
+  const status = await loadMetaAwarenessTrackerWithStatus();
+  return status.tracker;
 }
 
 export async function readMetaAwarenessRollups() {

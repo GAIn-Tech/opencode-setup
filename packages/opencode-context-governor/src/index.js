@@ -41,7 +41,13 @@ class Governor {
     this._learningEngine = opts.learningEngine || null;
     this._saveDebounceMs = opts.saveDebounceMs ?? 200;
     this._saveTimer = null;
-    this._mode = opts.mode || process.env.OPENCODE_BUDGET_MODE || 'advisory';
+    this._mode = opts.mode || process.env.OPENCODE_BUDGET_MODE || 'enforce-critical';
+    
+    // Callback for error threshold (80%) - enables automatic context compression
+    this._onErrorThresholdCallbacks = [];
+    if (typeof opts.onErrorThreshold === 'function') {
+      this._onErrorThresholdCallbacks.push(opts.onErrorThreshold);
+    }
 
      if (opts.autoLoad !== false) {
        try {
@@ -93,6 +99,31 @@ class Governor {
     this._learningEngine = learningEngine;
   }
 
+  /**
+   * Register callback for error threshold (80%) events.
+   * Enables automatic context compression when budget is critical.
+   * @param {Function} callback - Called with { sessionId, model, wouldPct, wouldUse, maxTokens }
+   */
+  onErrorThreshold(callback) {
+    if (typeof callback === 'function') {
+      this._onErrorThresholdCallbacks.push(callback);
+    }
+  }
+
+  /**
+   * Trigger all error threshold callbacks.
+   * @private
+   */
+  _triggerErrorThreshold(sessionId, model, wouldPct, wouldUse, maxTokens) {
+    for (const cb of this._onErrorThresholdCallbacks) {
+      try {
+        cb({ sessionId, model, wouldPct, wouldUse, maxTokens });
+      } catch (e) {
+        console.warn('[Governor] Error threshold callback failed:', e.message);
+      }
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Core API
   // ---------------------------------------------------------------------------
@@ -120,12 +151,14 @@ class Governor {
       status = 'exceeded';
       allowed = false;
       message = `Budget exceeded: ${wouldUse}/${config.maxTokens} tokens (${(wouldPct * 100).toFixed(1)}%). Request denied.`;
-    } else if (wouldPct >= config.errorThreshold) {
-      status = 'error';
-      // In enforce-critical mode, block at error threshold
-      allowed = this._mode !== 'enforce-critical';
-      message = `CRITICAL: Would reach ${(wouldPct * 100).toFixed(1)}% of budget (${wouldUse}/${config.maxTokens}).${this._mode === 'enforce-critical' ? ' Request denied.' : ' Consider wrapping up.'}`;
-    } else if (wouldPct >= config.warnThreshold) {
+} else if (wouldPct >= config.errorThreshold) {
+    status = 'error';
+    // In enforce-critical mode, block at error threshold
+    allowed = this._mode !== 'enforce-critical';
+    message = `CRITICAL: Would reach ${(wouldPct * 100).toFixed(1)}% of budget (${wouldUse}/${config.maxTokens}).${this._mode === 'enforce-critical' ? ' Request denied.' : ' Consider wrapping up.'}`;
+    // Trigger error threshold callbacks for automatic context compression
+    this._triggerErrorThreshold(sessionId, model, wouldPct, wouldUse, config.maxTokens);
+  } else if (wouldPct >= config.warnThreshold) {
       status = 'warn';
       allowed = true;
       message = `WARNING: Would reach ${(wouldPct * 100).toFixed(1)}% of budget (${wouldUse}/${config.maxTokens}).`;
@@ -207,6 +240,23 @@ class Governor {
      } catch (err) {
        console.warn(`[Governor] Budget state save after reset failed (non-fatal): ${err.message}`);
      }
+   }
+
+   /**
+    * Graceful shutdown - clears intervals and saves state.
+    * Call this when shutting down the Governor to prevent memory leaks.
+    */
+   shutdown() {
+     if (this._cleanupInterval) {
+       clearInterval(this._cleanupInterval);
+       this._cleanupInterval = null;
+     }
+     if (this._saveTimer) {
+       clearTimeout(this._saveTimer);
+       this._saveTimer = null;
+     }
+     // Force save before shutdown
+     this.saveToFile(this._persistPath).catch(() => {});
    }
 
   // ---------------------------------------------------------------------------

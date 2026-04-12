@@ -177,6 +177,67 @@ describe('Subagent Retry Manager', () => {
         failureType: FAILURE_TYPES.RATE_LIMITED 
       })).toBe(true);
     });
+
+    test('predictive retry remains advisory in observe mode', () => {
+      const observed = new SubagentRetryManager({
+        predictiveFailureThreshold: 2,
+        predictiveRetryPolicy: 'observe',
+      });
+
+      observed.recordFailure('google/gemini-3-pro', FAILURE_TYPES.EMPTY_RESPONSE);
+      observed.recordFailure('google/gemini-3-pro', FAILURE_TYPES.EMPTY_RESPONSE);
+
+      expect(observed.shouldRetry({
+        modelId: 'google/gemini-3-pro',
+        attemptNumber: 1,
+        failureType: FAILURE_TYPES.EMPTY_RESPONSE,
+      })).toBe(true);
+    });
+
+    test('predictive retry can block when policy is block', () => {
+      const blocking = new SubagentRetryManager({
+        predictiveFailureThreshold: 2,
+        predictiveRetryPolicy: 'block',
+      });
+
+      blocking.recordFailure('google/gemini-3-pro', FAILURE_TYPES.EMPTY_RESPONSE);
+      blocking.recordFailure('google/gemini-3-pro', FAILURE_TYPES.EMPTY_RESPONSE);
+
+      expect(blocking.shouldRetry({
+        modelId: 'google/gemini-3-pro',
+        attemptNumber: 1,
+        failureType: FAILURE_TYPES.EMPTY_RESPONSE,
+      })).toBe(false);
+    });
+  });
+
+  describe('predictRetryFailure', () => {
+    test('returns prediction after repeated failure pattern', () => {
+      const predictive = new SubagentRetryManager({ predictiveFailureThreshold: 2 });
+      predictive.recordFailure('google/gemini-3-pro', FAILURE_TYPES.RATE_LIMITED);
+      predictive.recordFailure('google/gemini-3-pro', FAILURE_TYPES.RATE_LIMITED);
+
+      const result = predictive.predictRetryFailure({
+        modelId: 'google/gemini-3-pro',
+        failureType: FAILURE_TYPES.RATE_LIMITED,
+      });
+
+      expect(result).toBeDefined();
+      expect(result.likelyToFail).toBe(true);
+      expect(result.count).toBe(2);
+    });
+
+    test('returns null when pattern threshold is not reached', () => {
+      const predictive = new SubagentRetryManager({ predictiveFailureThreshold: 3 });
+      predictive.recordFailure('google/gemini-3-pro', FAILURE_TYPES.RATE_LIMITED);
+
+      const result = predictive.predictRetryFailure({
+        modelId: 'google/gemini-3-pro',
+        failureType: FAILURE_TYPES.RATE_LIMITED,
+      });
+
+      expect(result).toBeNull();
+    });
   });
 
   describe('getUnstableModels', () => {

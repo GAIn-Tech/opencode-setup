@@ -44,13 +44,44 @@ const _testLog = [];
 let _testMetrics = { toolCounts: {}, categoryCounts: {}, totalInvocations: 0 };
 
 // Init singleton (prevents concurrent init races)
+// Track the data dir to detect HOME changes between tests
 let _initPromise = null;
+let _initDataDir = null;
 
-// Paths
-const DATA_DIR = path.join(resolveDataHome(), 'tool-usage');
-const INVOCATIONS_FILE = path.join(DATA_DIR, 'invocations.json');
-const METRICS_FILE = path.join(DATA_DIR, 'metrics.json');
-const SESSION_FILE = path.join(DATA_DIR, 'current-session.json');
+// Paths - computed dynamically to support test isolation
+// Each process gets fresh HOME resolution at runtime
+function getDataDir() {
+  return path.join(resolveDataHome(), 'tool-usage');
+}
+function getInvocationsFile() {
+  return path.join(getDataDir(), 'invocations.json');
+}
+function getMetricsFile() {
+  return path.join(getDataDir(), 'metrics.json');
+}
+function getSessionFile() {
+  return path.join(getDataDir(), 'current-session.json');
+}
+
+// Legacy constants for backward compatibility - call dynamic functions at require-time
+// This ensures each test process gets fresh HOME resolution
+const DATA_DIR = getDataDir();
+const INVOCATIONS_FILE = getInvocationsFile();
+const METRICS_FILE = getMetricsFile();
+const SESSION_FILE = getSessionFile();
+
+// Ensure data directory exists at startup AND on demand
+function ensureDataDir() {
+  try {
+    fs.mkdirSync(getDataDir(), { recursive: true });
+  } catch (err) {
+    if (err.code !== 'EEXIST') {
+      console.warn('[ToolUsageTracker] Failed to create data directory:', err.message);
+    }
+  }
+}
+// Call at module load
+ensureDataDir();
 
 // Available tools in the system (can be extended)
 const AVAILABLE_TOOLS = {
@@ -229,10 +260,14 @@ async function readJsonAsync(filePath, defaultValue = {}) {
 
 /**
  * Ensure DATA_DIR exists (singleton via _initPromise to avoid race conditions).
+ * Invalidates cache if HOME changes between tests.
  */
 async function initAsync() {
-  if (!_initPromise) {
-    _initPromise = fsPromises.mkdir(DATA_DIR, { recursive: true });
+  const currentDataDir = getDataDir();
+  // Invalidate if HOME changed (e.g., between test files in suite)
+  if (!_initPromise || _initDataDir !== currentDataDir) {
+    _initDataDir = currentDataDir;
+    _initPromise = fsPromises.mkdir(currentDataDir, { recursive: true });
   }
   return _initPromise;
 }
@@ -267,6 +302,9 @@ async function writeJsonAsync(filePath, data) {
  * Log a tool invocation
  */
 async function logInvocation(toolName, params, result, context = {}) {
+  // Ensure directory exists synchronously BEFORE any async operations
+  // This handles test isolation where HOME may change between tests
+  ensureDataDir();
   await initAsync();
   toolName = normalizeMcpToolName(toolName);
   const canonicalSession = resolveSessionKey(context) || 'default';
@@ -301,7 +339,7 @@ async function logInvocation(toolName, params, result, context = {}) {
   const doTransaction = async () => {
     let data;
     try {
-      data = await readJsonAsync(INVOCATIONS_FILE, { invocations: [] });
+      data = await readJsonAsync(getInvocationsFile(), { invocations: [] });
     } catch {
       data = { invocations: [] };
     }
@@ -312,20 +350,23 @@ async function logInvocation(toolName, params, result, context = {}) {
       data.invocations = data.invocations.slice(-1000);
     }
 
-    // Atomic write inlined (avoid double-queuing through writeJsonAsync)
-    const json = JSON.stringify(data, null, 2);
-    const tmp = INVOCATIONS_FILE + '.tmp';
-    try {
-      await fsPromises.writeFile(tmp, json, 'utf8');
-      await fsPromises.rename(tmp, INVOCATIONS_FILE);
-    } catch (err) {
-      if (err.code === 'EPERM' || err.code === 'EACCES') {
-        await fsPromises.writeFile(INVOCATIONS_FILE, json, 'utf8');
-        try { await fsPromises.unlink(tmp); } catch { /* best-effort */ }
-      } else {
-        throw err;
-      }
+// Atomic write inlined (avoid double-queuing through writeJsonAsync)
+  // Ensure directory exists before write (handles race conditions in tests)
+  ensureDataDir();
+  const json = JSON.stringify(data, null, 2);
+  const invocationsFile = getInvocationsFile();
+  const tmp = invocationsFile + '.tmp';
+  try {
+    await fsPromises.writeFile(tmp, json, 'utf8');
+    await fsPromises.rename(tmp, invocationsFile);
+  } catch (err) {
+    if (err.code === 'EPERM' || err.code === 'EACCES') {
+      await fsPromises.writeFile(invocationsFile, json, 'utf8');
+      try { await fsPromises.unlink(tmp); } catch { /* best-effort */ }
+    } else {
+      throw err;
     }
+  }
   };
   _writePromise = _writePromise.catch(() => {}).then(doTransaction);
   await _writePromise;
