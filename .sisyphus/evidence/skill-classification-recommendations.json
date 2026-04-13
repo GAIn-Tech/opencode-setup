@@ -526,6 +526,7 @@
     "manual": [
       "accessibility-audit",
       "accessibility-testing",
+      "adaptive-journey-driven-swarm",
       "angular-development",
       "api-design-principles",
       "api-security",
@@ -631,10 +632,10 @@
   },
   "summary": {
     "defaultCount": 9,
-    "manualCount": 84,
+    "manualCount": 85,
     "dormantCount": 5,
     "candidatePruneCount": 10,
-    "total": 108,
+    "total": 109,
     "decisionRationale": "Narrow default surface to core planning/audit/debug loop, preserve specialist breadth as manual, retain low-frequency fallback as dormant, and stage low-signal runtime-internal wrappers as candidate-prune."
   }
 }
