@@ -49,7 +49,9 @@ state/
 .opencode/
 .worktrees/
 .claude/
-local/
+local/*
+!local/oh-my-opencode/
+!local/oh-my-opencode/**
 bun.lockb
 
 # Next.js build artifacts
