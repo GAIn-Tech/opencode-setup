@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-14T00:46:02.156Z",
+  "generated_at": "2026-04-14T00:57:58.205Z",
   "schema_version": 1,
   "total_records": 431,
   "source_files": {
@@ -10,7 +10,7 @@
     "context-management": [
       {
         "id": "hyper-param-delegation-stability-20260414",
-        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, and align integration-layer fail-open test contracts.",
+        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, align integration-layer fail-open and memory-graph test contracts, and refresh governance artifacts.",
         "risk_level": "medium",
         "affected_paths": [
           "packages/opencode-hyper-param-learner/",
@@ -29,7 +29,7 @@
           "docs/architecture/system-synthesis.md",
           "bun.lock"
         ],
-        "timestamp": "2026-04-14T00:45:00.000Z"
+        "timestamp": "2026-04-13T21:25:00.000Z"
       },
       {
         "id": "2026-03-25-gemini-connectivity-alignment",
@@ -9181,7 +9181,7 @@
     "medium": [
       {
         "id": "hyper-param-delegation-stability-20260414",
-        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, and align integration-layer fail-open test contracts.",
+        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, align integration-layer fail-open and memory-graph test contracts, and refresh governance artifacts.",
         "risk_level": "medium",
         "affected_paths": [
           "packages/opencode-hyper-param-learner/",
@@ -9200,7 +9200,7 @@
           "docs/architecture/system-synthesis.md",
           "bun.lock"
         ],
-        "timestamp": "2026-04-14T00:45:00.000Z"
+        "timestamp": "2026-04-13T21:25:00.000Z"
       },
       {
         "id": "skill-rl-outcome-contract-and-persistence-fix-2026-03-29",
@@ -10261,17 +10261,17 @@
     "packages/opencode-hyper-param-learner": [
       {
         "id": "hyper-param-delegation-stability-20260414",
-        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, and align integration-layer fail-open test contracts.",
+        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, align integration-layer fail-open and memory-graph test contracts, and refresh governance artifacts.",
         "risk_level": "medium",
-        "timestamp": "2026-04-14T00:45:00.000Z"
+        "timestamp": "2026-04-13T21:25:00.000Z"
       }
     ],
     "packages/opencode-learning-engine": [
       {
         "id": "hyper-param-delegation-stability-20260414",
-        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, and align integration-layer fail-open test contracts.",
+        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, align integration-layer fail-open and memory-graph test contracts, and refresh governance artifacts.",
         "risk_level": "medium",
-        "timestamp": "2026-04-14T00:45:00.000Z"
+        "timestamp": "2026-04-13T21:25:00.000Z"
       },
       {
         "id": "init-kb-bootstrap-and-cross-project-sync-2026-03-29",
@@ -10565,9 +10565,9 @@
     "packages/opencode-integration-layer": [
       {
         "id": "hyper-param-delegation-stability-20260414",
-        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, and align integration-layer fail-open test contracts.",
+        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, align integration-layer fail-open and memory-graph test contracts, and refresh governance artifacts.",
         "risk_level": "medium",
-        "timestamp": "2026-04-14T00:45:00.000Z"
+        "timestamp": "2026-04-13T21:25:00.000Z"
       },
       {
         "id": "parallel-agent-limits-2026-04-02",
@@ -10849,9 +10849,9 @@
     "packages/opencode-skill-rl-manager": [
       {
         "id": "hyper-param-delegation-stability-20260414",
-        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, and align integration-layer fail-open test contracts.",
+        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, align integration-layer fail-open and memory-graph test contracts, and refresh governance artifacts.",
         "risk_level": "medium",
-        "timestamp": "2026-04-14T00:45:00.000Z"
+        "timestamp": "2026-04-13T21:25:00.000Z"
       },
       {
         "id": "skill-rl-outcome-contract-and-persistence-fix-2026-03-29",
@@ -10977,9 +10977,9 @@
     "packages/opencode-model-router-x": [
       {
         "id": "hyper-param-delegation-stability-20260414",
-        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, and align integration-layer fail-open test contracts.",
+        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, align integration-layer fail-open and memory-graph test contracts, and refresh governance artifacts.",
         "risk_level": "medium",
-        "timestamp": "2026-04-14T00:45:00.000Z"
+        "timestamp": "2026-04-13T21:25:00.000Z"
       },
       {
         "id": "parallel-agent-limits-2026-04-02",
@@ -11279,9 +11279,9 @@
     "packages/opencode-context-governor": [
       {
         "id": "hyper-param-delegation-stability-20260414",
-        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, and align integration-layer fail-open test contracts.",
+        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, align integration-layer fail-open and memory-graph test contracts, and refresh governance artifacts.",
         "risk_level": "medium",
-        "timestamp": "2026-04-14T00:45:00.000Z"
+        "timestamp": "2026-04-13T21:25:00.000Z"
       },
       {
         "id": "2026-03-25-gemini-connectivity-alignment",
@@ -11377,9 +11377,9 @@
     "packages/opencode-model-manager": [
       {
         "id": "hyper-param-delegation-stability-20260414",
-        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, and align integration-layer fail-open test contracts.",
+        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, align integration-layer fail-open and memory-graph test contracts, and refresh governance artifacts.",
         "risk_level": "medium",
-        "timestamp": "2026-04-14T00:45:00.000Z"
+        "timestamp": "2026-04-13T21:25:00.000Z"
       },
       {
         "id": "system-audit-fixes-20260327",
@@ -11601,9 +11601,9 @@
     "packages/opencode-plugin-preload-skills": [
       {
         "id": "hyper-param-delegation-stability-20260414",
-        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, and align integration-layer fail-open test contracts.",
+        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, align integration-layer fail-open and memory-graph test contracts, and refresh governance artifacts.",
         "risk_level": "medium",
-        "timestamp": "2026-04-14T00:45:00.000Z"
+        "timestamp": "2026-04-13T21:25:00.000Z"
       },
       {
         "id": "2026-03-26-skill-routing-governance-reconcile",
@@ -11699,9 +11699,9 @@
     "integration-tests": [
       {
         "id": "hyper-param-delegation-stability-20260414",
-        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, and align integration-layer fail-open test contracts.",
+        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, align integration-layer fail-open and memory-graph test contracts, and refresh governance artifacts.",
         "risk_level": "medium",
-        "timestamp": "2026-04-14T00:45:00.000Z"
+        "timestamp": "2026-04-13T21:25:00.000Z"
       },
       {
         "id": "package-wiring-cleanup-20260311",
@@ -11713,9 +11713,9 @@
     "opencode-config/opencode.json": [
       {
         "id": "hyper-param-delegation-stability-20260414",
-        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, and align integration-layer fail-open test contracts.",
+        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, align integration-layer fail-open and memory-graph test contracts, and refresh governance artifacts.",
         "risk_level": "medium",
-        "timestamp": "2026-04-14T00:45:00.000Z"
+        "timestamp": "2026-04-13T21:25:00.000Z"
       },
       {
         "id": "model-revert-20260327",
@@ -11841,9 +11841,9 @@
     "opencode-config/oh-my-opencode.json": [
       {
         "id": "hyper-param-delegation-stability-20260414",
-        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, and align integration-layer fail-open test contracts.",
+        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, align integration-layer fail-open and memory-graph test contracts, and refresh governance artifacts.",
         "risk_level": "medium",
-        "timestamp": "2026-04-14T00:45:00.000Z"
+        "timestamp": "2026-04-13T21:25:00.000Z"
       },
       {
         "id": "parallel-agent-limits-2026-04-02",
@@ -11921,9 +11921,9 @@
     "opencode-config/.governance-hashes.json": [
       {
         "id": "hyper-param-delegation-stability-20260414",
-        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, and align integration-layer fail-open test contracts.",
+        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, align integration-layer fail-open and memory-graph test contracts, and refresh governance artifacts.",
         "risk_level": "medium",
-        "timestamp": "2026-04-14T00:45:00.000Z"
+        "timestamp": "2026-04-13T21:25:00.000Z"
       },
       {
         "id": "portability-sync-system-20260328",
@@ -12061,9 +12061,9 @@
     "docs/architecture": [
       {
         "id": "hyper-param-delegation-stability-20260414",
-        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, and align integration-layer fail-open test contracts.",
+        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, align integration-layer fail-open and memory-graph test contracts, and refresh governance artifacts.",
         "risk_level": "medium",
-        "timestamp": "2026-04-14T00:45:00.000Z"
+        "timestamp": "2026-04-13T21:25:00.000Z"
       },
       {
         "id": "mcp-boundary-reconciliation-2026-03-14",
@@ -12075,9 +12075,9 @@
     "bun.lock": [
       {
         "id": "hyper-param-delegation-stability-20260414",
-        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, and align integration-layer fail-open test contracts.",
+        "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, align integration-layer fail-open and memory-graph test contracts, and refresh governance artifacts.",
         "risk_level": "medium",
-        "timestamp": "2026-04-14T00:45:00.000Z"
+        "timestamp": "2026-04-13T21:25:00.000Z"
       },
       {
         "id": "wave1-governance-config-refresh-20260318",
