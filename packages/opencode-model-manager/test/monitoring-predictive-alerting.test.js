@@ -47,12 +47,12 @@ describe('PipelineMetricsCollector predictive alerting', () => {
 
     const pattern = [true, false, true, false, true, false];
     for (const success of pattern) {
-      collector.recordDiscovery('anthropic', success, { durationMs: 100 });
+      collector.recordDiscovery('google', success, { durationMs: 100 });
       now += 1000;
     }
 
     const predictionSummary = collector.getDiscoveryAlertPredictions();
     expect(predictionSummary.totalEvents).toBe(0);
-    expect(predictionSummary.byProvider.anthropic).toBeUndefined();
+    expect(predictionSummary.byProvider.google).toBeUndefined();
   });
 });

@@ -18,6 +18,7 @@ const { PatternExtractor } = require('./pattern-extractor');
 const { OrchestrationAdvisor, AGENT_CAPABILITIES, SKILL_AFFINITY } = require('./orchestration-advisor');
 const { MetaAwarenessTracker } = require('./meta-awareness-tracker');
 const { MetaKBReader } = require('./meta-kb-reader');
+const { DOMAIN_SLUGS, buildDomainWeightHyperParameters } = require('./meta-awareness-rules');
 const EventEmitter = require('events');
 const fs = require('fs');
 const path = require('path');
@@ -32,6 +33,54 @@ try {
     on() {}
     emit() {}
   };
+}
+
+// Hyper-parameter registry (Task 7: per-task_type decay floors/half-life) — fail-open.
+let HyperParameterRegistry;
+try {
+  ({ HyperParameterRegistry } = require('../../opencode-hyper-param-learner/src/index.js'));
+} catch {
+  HyperParameterRegistry = null;
+}
+
+// Optional: feedback collector + learner used to adapt hyper-parameters from outcomes.
+let FeedbackCollector;
+let ParameterLearner;
+try {
+  ({ FeedbackCollector } = require('../../opencode-hyper-param-learner/src/feedback-collector.js'));
+  ({ ParameterLearner } = require('../../opencode-hyper-param-learner/src/parameter-learner.js'));
+} catch {
+  FeedbackCollector = null;
+  ParameterLearner = null;
+}
+
+// Task 8: advice cache TTL bounds + defaults
+const ADVICE_CACHE_TTL_MS_DEFAULT = 300000; // 5 minutes
+const ADVICE_CACHE_MAX_DEFAULT = 500;
+const ADVICE_CACHE_TTL_MS_MIN = 60000; // MUST NOT go below 1 minute
+const ADVICE_CACHE_TTL_MS_MAX = 3600000; // MUST NOT exceed 1 hour
+
+function _normalizeTaskTypeKey(taskType) {
+  if (typeof taskType !== 'string' || taskType.trim() === '') return 'general';
+  let key = taskType
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .replace(/_+/g, '_');
+  if (!key) key = 'general';
+  if (!/^[a-z]/.test(key)) key = `t_${key}`;
+  // HyperParameterRegistry name rules: /^[a-z][a-z0-9_]*$/
+  key = key.replace(/[^a-z0-9_]/g, '_');
+  if (!/^[a-z][a-z0-9_]*$/.test(key)) return 'general';
+  return key;
+}
+
+function _clampNumber(value, min, max, fallback) {
+  const num = typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+  if (typeof num !== 'number' || !Number.isFinite(num)) return fallback;
+  if (num < min) return min;
+  if (num > max) return max;
+  return num;
 }
 
 // Lazy require of central event bus — fail-open so LearningEngine works without it
@@ -62,16 +111,44 @@ class LearningEngine extends EventEmitter {
     this.advisor = new OrchestrationAdvisor(this.antiPatterns, this.positivePatterns);
     this.metaAwarenessTracker = options.metaAwarenessTracker || new MetaAwarenessTracker();
 
+    // Task 7 (hyper-param-learning-system): per-task_type decay floors + half-life params.
+    this._initDecayHyperParams({ autoLoad });
+
+    // Wire registry into meta-awareness tracker (constructed earlier).
+    if (this.hyperParamRegistry && this.metaAwarenessTracker) {
+      this.metaAwarenessTracker.hyperParamRegistry = this.hyperParamRegistry;
+    }
+
+    // Feedback collector: used for hyper-parameter adaptation from outcome feedback.
+    this.feedbackCollector = null;
+    if (FeedbackCollector && this.hyperParamRegistry) {
+      try {
+        const learner = ParameterLearner ? new ParameterLearner() : null;
+        this.feedbackCollector = new FeedbackCollector({
+          registry: this.hyperParamRegistry,
+          parameterLearner: learner,
+        });
+      } catch (err) {
+        this.feedbackCollector = null;
+        console.warn(`[LearningEngine] FeedbackCollector init failed (non-fatal): ${err.message}`);
+      }
+    }
+
+    // Advice meta snapshots (used to correlate domain scores with outcomes)
+    this._metaSnapshotByAdviceId = new Map();
+
     this.autoSave = autoSave;
     this.sessionLog = []; // Track which sessions have been ingested
     this.hooks = {};
     this.pluginSupervisor = new PluginLifecycleSupervisor();
     this._initAntiGamingClassifier();
 
-    // T6 (Wave 11): Advice cache — keyed by taskType+complexity, 5-min TTL, 500-entry max
+    // T6 (Wave 11): Advice cache — keyed by taskType+complexity
     this._adviceCache = new Map();
-    this._adviceCacheTTL = 300000; // 5 minutes
-    this._adviceCacheMax = 500;
+    this._adviceCacheTTL = ADVICE_CACHE_TTL_MS_DEFAULT;
+    this._adviceCacheMax = ADVICE_CACHE_MAX_DEFAULT;
+    this._initAdviceCacheHyperParams();
+    this._initAdviceCacheAdaptiveLearning();
 
     // Meta-KB reader: loads the synthesized meta-knowledge index (fail-open)
     this.metaKB = new MetaKBReader(options.metaKBPath);
@@ -140,6 +217,467 @@ class LearningEngine extends EventEmitter {
     // T19 (Wave 11): Log startup duration
     const _startupMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - _startupT0;
     console.log(`[Startup] LearningEngine: ${_startupMs.toFixed(1)}ms`);
+  }
+
+  /**
+   * Task 7: Ensure required decay hyper-parameters exist.
+   * Fail-open: if registry package is unavailable or registry is invalid, defaults are used.
+   */
+  _initDecayHyperParams({ autoLoad } = {}) {
+    this.hyperParamRegistry = null;
+    this._decayParamTelemetry = {
+      calls: 0,
+      legacy_comparisons: 0,
+      legacy_delta_mean: 0,
+      legacy_delta_max: 0,
+      by_task_type: {},
+    };
+
+    if (!HyperParameterRegistry) return;
+
+    const makeDecayFloor = (name, currentValue) => ({
+      name,
+      current_value: currentValue,
+      learning_config: {
+        adaptation_strategy: 'ema',
+        triggers: {
+          outcome_type: 'feedback',
+          min_samples: 30,
+          confidence_threshold: 0.9,
+        },
+        bounds: {
+          soft: { min: 0.05, max: 0.3 },
+          hard: { min: 0.01, max: 0.5 },
+        },
+        exploration_policy: {
+          enabled: false,
+          epsilon: 0,
+          annealing_rate: 1,
+        },
+      },
+      grouping: {
+        group_by_task_type: false,
+        group_by_complexity: false,
+        aggregate_function: 'mean',
+      },
+      individual_tracking: {
+        per_session: false,
+        per_task: true,
+      },
+    });
+
+    // NOTE: bounds here are distinct from decay floors. Half-life is in days.
+    const makeDecayHalfLifeDays = (name, currentValue) => ({
+      name,
+      current_value: currentValue,
+      learning_config: {
+        adaptation_strategy: 'ema',
+        triggers: {
+          outcome_type: 'feedback',
+          min_samples: 30,
+          confidence_threshold: 0.9,
+        },
+        bounds: {
+          soft: { min: 60, max: 240 },
+          hard: { min: 7, max: 730 },
+        },
+        exploration_policy: {
+          enabled: false,
+          epsilon: 0,
+          annealing_rate: 1,
+        },
+      },
+      grouping: {
+        group_by_task_type: false,
+        group_by_complexity: false,
+        aggregate_function: 'mean',
+      },
+      individual_tracking: {
+        per_session: false,
+        per_task: true,
+      },
+    });
+
+    const defaults = [
+      makeDecayFloor('decay_floor_default', 0.1),
+      makeDecayHalfLifeDays('decay_half_life_days_default', 120),
+    ];
+
+    let registry;
+    try {
+      registry = new HyperParameterRegistry({
+        defaults,
+        autoLoad: autoLoad !== false,
+      });
+    } catch (err) {
+      console.warn(`[LearningEngine] HyperParameterRegistry init failed: ${err.message}`);
+      return;
+    }
+
+    const TASK_TYPES = [
+      'debug',
+      'feature',
+      'refactor',
+      'fix',
+      'test',
+      'docs',
+      'build',
+      'chore',
+      'general',
+    ];
+
+    const ensure = (parameter) => {
+      try {
+        if (!registry.has(parameter.name)) {
+          registry.create(parameter);
+        }
+      } catch (err) {
+        // Fail-open: invalid registry state should not break LearningEngine.
+        console.warn(`[LearningEngine] Hyper-parameter ensure failed (${parameter.name}): ${err.message}`);
+      }
+    };
+
+    // Ensure defaults exist even if registry loaded without them.
+    for (const param of defaults) ensure(param);
+
+    // Ensure per-task_type overrides exist.
+    for (const taskType of TASK_TYPES) {
+      const key = _normalizeTaskTypeKey(taskType);
+      ensure(makeDecayFloor(`decay_floor_${key}`, 0.1));
+      ensure(makeDecayHalfLifeDays(`decay_half_life_days_${key}`, 120));
+    }
+
+    // Task 10 (hyper-param-learning-system): meta-awareness domain weights.
+    // Register global + optional per-workflow overrides.
+    try {
+      const domainWeightParams = buildDomainWeightHyperParameters({ workflowTypes: TASK_TYPES });
+      for (const param of domainWeightParams) ensure(param);
+    } catch (err) {
+      console.warn(`[LearningEngine] Domain weight hyper-parameter init failed (non-fatal): ${err.message}`);
+    }
+
+    this.hyperParamRegistry = registry;
+  }
+
+  /**
+   * Task 8: advice cache hyper-parameters
+   * - advice_cache_ttl_ms_default (default 300000)
+   * - advice_cache_ttl_ms_{task_type}
+   * - advice_cache_max_default (default 500)
+   */
+  _initAdviceCacheHyperParams() {
+    const registry = this.hyperParamRegistry;
+    if (!registry || typeof registry.has !== 'function' || typeof registry.create !== 'function') return;
+
+    const makeAdviceCacheTTL = (name, currentValue) => ({
+      name,
+      current_value: currentValue,
+      learning_config: {
+        adaptation_strategy: 'ema',
+        triggers: {
+          outcome_type: 'feedback',
+          min_samples: 15,
+          confidence_threshold: 0.75,
+        },
+        bounds: {
+          soft: { min: 120000, max: 1800000 },
+          hard: { min: ADVICE_CACHE_TTL_MS_MIN, max: ADVICE_CACHE_TTL_MS_MAX },
+        },
+        exploration_policy: {
+          enabled: false,
+          epsilon: 0,
+          annealing_rate: 1,
+        },
+      },
+      grouping: {
+        group_by_task_type: true,
+        group_by_complexity: false,
+        aggregate_function: 'mean',
+      },
+      individual_tracking: {
+        per_session: false,
+        per_task: true,
+      },
+    });
+
+    const makeAdviceCacheMax = (name, currentValue) => ({
+      name,
+      current_value: currentValue,
+      learning_config: {
+        adaptation_strategy: 'none',
+        triggers: {
+          outcome_type: 'feedback',
+          min_samples: 1,
+          confidence_threshold: 0,
+        },
+        bounds: {
+          soft: { min: 100, max: 2000 },
+          hard: { min: 50, max: 5000 },
+        },
+        exploration_policy: {
+          enabled: false,
+          epsilon: 0,
+          annealing_rate: 1,
+        },
+      },
+      grouping: {
+        group_by_task_type: false,
+        group_by_complexity: false,
+        aggregate_function: 'mean',
+      },
+      individual_tracking: {
+        per_session: false,
+        per_task: false,
+      },
+    });
+
+    const ensure = (parameter) => {
+      try {
+        if (!registry.has(parameter.name)) {
+          registry.create(parameter);
+        }
+      } catch (err) {
+        console.warn(`[LearningEngine] Hyper-parameter ensure failed (${parameter?.name || 'unknown'}): ${err.message}`);
+      }
+    };
+
+    ensure(makeAdviceCacheTTL('advice_cache_ttl_ms_default', ADVICE_CACHE_TTL_MS_DEFAULT));
+    ensure(makeAdviceCacheMax('advice_cache_max_default', ADVICE_CACHE_MAX_DEFAULT));
+
+    const TASK_TYPES = [
+      'debug',
+      'feature',
+      'refactor',
+      'fix',
+      'test',
+      'docs',
+      'build',
+      'chore',
+      'general',
+    ];
+    for (const taskType of TASK_TYPES) {
+      const key = _normalizeTaskTypeKey(taskType);
+      ensure(makeAdviceCacheTTL(`advice_cache_ttl_ms_${key}`, ADVICE_CACHE_TTL_MS_DEFAULT));
+    }
+
+    // Read-time safety clamps (fail-open)
+    this._adviceCacheTTL = this._getAdviceCacheTTLms('general');
+    this._adviceCacheMax = this._getAdviceCacheMax();
+  }
+
+  _getAdviceCacheTTLms(taskType) {
+    const key = _normalizeTaskTypeKey(taskType);
+    const v = this._readHyperParamValue(`advice_cache_ttl_ms_${key}`, null);
+    const resolved = v === null
+      ? this._readHyperParamValue('advice_cache_ttl_ms_default', ADVICE_CACHE_TTL_MS_DEFAULT)
+      : v;
+    return _clampNumber(resolved, ADVICE_CACHE_TTL_MS_MIN, ADVICE_CACHE_TTL_MS_MAX, ADVICE_CACHE_TTL_MS_DEFAULT);
+  }
+
+  _getAdviceCacheMax() {
+    const v = this._readHyperParamValue('advice_cache_max_default', ADVICE_CACHE_MAX_DEFAULT);
+    return _clampNumber(v, 50, 5000, ADVICE_CACHE_MAX_DEFAULT);
+  }
+
+  _initAdviceCacheAdaptiveLearning() {
+    this._adviceCacheLearning = {
+      byAdviceId: new Map(),
+      qualityByTaskType: new Map(),
+      qualityByCacheKey: new Map(),
+      telemetry: {
+        cache_hits: 0,
+        cache_misses: 0,
+        ttl_updates: 0,
+        ttl_update_blocked: 0,
+      },
+    };
+
+    this._adviceCacheParamLearner = ParameterLearner ? new ParameterLearner() : null;
+  }
+
+  _recordAdviceCacheLookup({ taskContext, cacheKey, cached }) {
+    const learning = this._adviceCacheLearning;
+    if (!learning) return;
+
+    const taskTypeKey = _normalizeTaskTypeKey(taskContext?.task_type || 'general');
+
+    if (cached) {
+      learning.telemetry.cache_hits++;
+
+      // If last cached outcome was good and we see a repeat request, consider increasing TTL.
+      const byKey = learning.qualityByCacheKey.get(cacheKey);
+      if (byKey?.last_outcome_success === true) {
+        this._maybeIncreaseAdviceCacheTTL(taskTypeKey);
+      }
+
+      const adviceId = cached?.value?.advice_id || cached?.value?.adviceId;
+      if (typeof adviceId === 'string' && adviceId) {
+        learning.byAdviceId.set(adviceId, {
+          cache_key: cacheKey,
+          task_type_key: taskTypeKey,
+          was_cache_hit: true,
+          served_at: Date.now(),
+        });
+      }
+      return;
+    }
+
+    learning.telemetry.cache_misses++;
+  }
+
+  _updateAdviceCacheQuality({ adviceId, outcome }) {
+    const learning = this._adviceCacheLearning;
+    if (!learning) return;
+
+    const meta = learning.byAdviceId.get(adviceId);
+    if (!meta || !meta.was_cache_hit) return;
+
+    // Prevent unbounded growth.
+    learning.byAdviceId.delete(adviceId);
+
+    const success = outcome?.success === true;
+
+    // MUST DO: wire FeedbackCollector to compute cache hit quality (success_rate)
+    try {
+      this.feedbackCollector?.recordOutcome?.(
+        { success },
+        {
+          outcome_type: 'feedback',
+          advice_id: adviceId,
+          cache_key: meta.cache_key,
+          task_type_key: meta.task_type_key,
+        }
+      );
+    } catch {
+      // fail-open
+    }
+
+    // Update per-task_type EMA quality (0..1)
+    const entry = learning.qualityByTaskType.get(meta.task_type_key) || {
+      samples: 0,
+      ema_quality: 0.5,
+      last_at: null,
+    };
+    const alpha = 0.2;
+    entry.samples += 1;
+    entry.ema_quality = (entry.ema_quality * (1 - alpha)) + ((success ? 1 : 0) * alpha);
+    entry.last_at = Date.now();
+    learning.qualityByTaskType.set(meta.task_type_key, entry);
+
+    learning.qualityByCacheKey.set(meta.cache_key, {
+      last_outcome_success: success,
+      last_outcome_at: Date.now(),
+    });
+
+    if (!success) {
+      this._maybeDecreaseAdviceCacheTTL(meta.task_type_key);
+    }
+  }
+
+  _shouldAdaptAdviceCacheTTL(taskTypeKey) {
+    const learning = this._adviceCacheLearning;
+    if (!learning || !this._adviceCacheParamLearner) return false;
+    const entry = learning.qualityByTaskType.get(taskTypeKey);
+    if (!entry) return false;
+
+    // Learning config (required): min_samples=15, confidence_threshold=0.75
+    const confidence = this._adviceCacheParamLearner.computeConfidence(entry.samples, 15);
+    return confidence >= 0.75;
+  }
+
+  _tryUpdateAdviceCacheTTLParam(taskTypeKey, nextValue) {
+    const registry = this.hyperParamRegistry;
+    const learning = this._adviceCacheLearning;
+    if (!registry?.update || !registry?.has || !learning) return;
+
+    const key = _normalizeTaskTypeKey(taskTypeKey);
+    const name = `advice_cache_ttl_ms_${key}`;
+    if (!registry.has(name)) return;
+
+    const clamped = _clampNumber(nextValue, ADVICE_CACHE_TTL_MS_MIN, ADVICE_CACHE_TTL_MS_MAX, ADVICE_CACHE_TTL_MS_DEFAULT);
+    try {
+      registry.update(name, { current_value: clamped });
+      learning.telemetry.ttl_updates++;
+    } catch (err) {
+      console.warn(`[LearningEngine] TTL hyper-parameter update blocked (${name}): ${err.message}`);
+    }
+  }
+
+  _maybeIncreaseAdviceCacheTTL(taskTypeKey) {
+    const learning = this._adviceCacheLearning;
+    if (!learning) return;
+    if (!this._shouldAdaptAdviceCacheTTL(taskTypeKey)) {
+      learning.telemetry.ttl_update_blocked++;
+      return;
+    }
+
+    const quality = learning.qualityByTaskType.get(taskTypeKey);
+    if (!quality || quality.ema_quality < 0.75) return;
+
+    const current = this._getAdviceCacheTTLms(taskTypeKey);
+    const candidate = _clampNumber(current * 1.25, ADVICE_CACHE_TTL_MS_MIN, ADVICE_CACHE_TTL_MS_MAX, current);
+    const next = Math.round((current * 0.8) + (candidate * 0.2));
+    this._tryUpdateAdviceCacheTTLParam(taskTypeKey, next);
+  }
+
+  _maybeDecreaseAdviceCacheTTL(taskTypeKey) {
+    const learning = this._adviceCacheLearning;
+    if (!learning) return;
+    if (!this._shouldAdaptAdviceCacheTTL(taskTypeKey)) {
+      learning.telemetry.ttl_update_blocked++;
+      return;
+    }
+
+    const quality = learning.qualityByTaskType.get(taskTypeKey);
+    if (!quality || quality.ema_quality > 0.45) return;
+
+    const current = this._getAdviceCacheTTLms(taskTypeKey);
+    const candidate = _clampNumber(current * 0.8, ADVICE_CACHE_TTL_MS_MIN, ADVICE_CACHE_TTL_MS_MAX, current);
+    const next = Math.round((current * 0.8) + (candidate * 0.2));
+    this._tryUpdateAdviceCacheTTLParam(taskTypeKey, next);
+  }
+
+  _getLearningTaskType(learning) {
+    const raw =
+      learning?.task_type ||
+      learning?.taskType ||
+      learning?.context?.task_type ||
+      learning?.context?.taskType ||
+      learning?.context?.taskType ||
+      learning?.context?.task_type;
+    return _normalizeTaskTypeKey(raw || 'general');
+  }
+
+  _readHyperParamValue(name, fallback) {
+    try {
+      const param = this.hyperParamRegistry?.get?.(name);
+      const v = param?.current_value;
+      return typeof v === 'number' && Number.isFinite(v) ? v : fallback;
+    } catch {
+      return fallback;
+    }
+  }
+
+  _getDecayFloor(taskTypeKey) {
+    const key = _normalizeTaskTypeKey(taskTypeKey);
+    const v = this._readHyperParamValue(`decay_floor_${key}`, null);
+    if (v === null) {
+      return this._readHyperParamValue('decay_floor_default', 0.1);
+    }
+    return v;
+  }
+
+  _getDecayHalfLifeDays(taskTypeKey) {
+    const key = _normalizeTaskTypeKey(taskTypeKey);
+    const v = this._readHyperParamValue(`decay_half_life_days_${key}`, null);
+    if (v === null) {
+      return this._readHyperParamValue('decay_half_life_days_default', 120);
+    }
+    return v;
+  }
+
+  getDecayParamTelemetry() {
+    return JSON.parse(JSON.stringify(this._decayParamTelemetry || {}));
   }
 
   /**
@@ -249,10 +787,69 @@ class LearningEngine extends EventEmitter {
     const age = Date.now() - new Date(learning.timestamp).getTime();
     const days = age / (1000 * 60 * 60 * 24);
 
-    if (days < 7) return 1.0;
-    if (days < 30) return 1.0 - ((days - 7) / 23) * 0.7; // 1.0 → 0.3
-    if (days < 90) return 0.3 - ((days - 30) / 60) * 0.2; // 0.3 → 0.1
-    return 0.1; // Keep learnings indefinitely but with minimal weight
+    // Invalid timestamps fail-open to full weight.
+    if (!Number.isFinite(days) || days < 0) return 1.0;
+
+    const taskTypeKey = this._getLearningTaskType(learning);
+    const decayFloor = _clampNumber(this._getDecayFloor(taskTypeKey), 0.01, 0.5, 0.1);
+    const halfLifeDays = _clampNumber(this._getDecayHalfLifeDays(taskTypeKey), 7, 730, 120);
+
+    // Schedule (backward-compatible shape):
+    // - <7d: 1.0
+    // - 7..30d: 1.0 → 0.3 (linear)
+    // - 30..halfLifeDays: 0.3 → decayFloor (linear)
+    // - >=halfLifeDays: decayFloor
+    const FULL_WEIGHT_DAYS = 7;
+    const MID_DAYS = 30;
+    const floorAtDays = Math.max(MID_DAYS, halfLifeDays);
+
+    let weight;
+    if (days < FULL_WEIGHT_DAYS) {
+      weight = 1.0;
+    } else if (days < MID_DAYS) {
+      weight = 1.0 - ((days - FULL_WEIGHT_DAYS) / (MID_DAYS - FULL_WEIGHT_DAYS)) * 0.7; // 1.0 → 0.3
+    } else if (days < floorAtDays) {
+      const span = floorAtDays - MID_DAYS;
+      if (span <= 0) {
+        weight = decayFloor;
+      } else {
+        // 0.3 → decayFloor
+        weight = 0.3 - ((days - MID_DAYS) / span) * (0.3 - decayFloor);
+      }
+    } else {
+      weight = decayFloor;
+    }
+
+    // Telemetry: compare vs legacy schedule (pre-Task 7) to detect behavior drift.
+    try {
+      const legacyFloor = 0.1;
+      let legacyWeight;
+      if (days < 7) legacyWeight = 1.0;
+      else if (days < 30) legacyWeight = 1.0 - ((days - 7) / 23) * 0.7;
+      else if (days < 90) legacyWeight = 0.3 - ((days - 30) / 60) * 0.2;
+      else legacyWeight = legacyFloor;
+
+      const delta = Math.abs(weight - legacyWeight);
+      const t = this._decayParamTelemetry;
+      if (t) {
+        t.calls = (t.calls || 0) + 1;
+        t.legacy_comparisons = (t.legacy_comparisons || 0) + 1;
+        const n = t.legacy_comparisons;
+        t.legacy_delta_mean = ((t.legacy_delta_mean || 0) * (n - 1) + delta) / n;
+        t.legacy_delta_max = Math.max(t.legacy_delta_max || 0, delta);
+        const bucket = t.by_task_type || (t.by_task_type = {});
+        const key = taskTypeKey || 'general';
+        const entry = bucket[key] || (bucket[key] = { comparisons: 0, delta_mean: 0, delta_max: 0 });
+        entry.comparisons += 1;
+        entry.delta_mean = (entry.delta_mean * (entry.comparisons - 1) + delta) / entry.comparisons;
+        entry.delta_max = Math.max(entry.delta_max, delta);
+      }
+    } catch {
+      // no-op
+    }
+
+    // Final clamp for safety.
+    return _clampNumber(weight, 0.01, 1.0, 0.1);
   }
 
   /**
@@ -701,9 +1298,12 @@ class LearningEngine extends EventEmitter {
     if (!hasSessionSignals) {
       const cacheKey = `${taskContext?.task_type || 'general'}:${taskContext?.complexity || 'moderate'}`;
       const cached = this._adviceCache.get(cacheKey);
-      if (cached && (Date.now() - cached.ts) < this._adviceCacheTTL) {
-        return { ...cached.value };  // Return shallow copy to prevent mutation
+      const ttlMs = this._getAdviceCacheTTLms(taskContext?.task_type || 'general');
+      if (cached && (Date.now() - cached.ts) < ttlMs) {
+        this._recordAdviceCacheLookup({ taskContext, cacheKey, cached });
+        return { ...cached.value, cache: { hit: true, key: cacheKey } }; // shallow copy to prevent mutation
       }
+      this._recordAdviceCacheLookup({ taskContext, cacheKey, cached: null });
     }
 
     this._emitHook('preOrchestrate', { task_context: taskContext });
@@ -748,6 +1348,31 @@ class LearningEngine extends EventEmitter {
       accepted: meta?.rl_signal?.accepted ?? false,
       max_influence: meta?.rl_signal?.max_influence ?? 0.15,
     };
+
+    // Capture per-domain snapshot for outcome correlation learning.
+    try {
+      const domainScores = {};
+      const domains = meta?.domains && typeof meta.domains === 'object' ? meta.domains : {};
+      for (const [domainKey, bucket] of Object.entries(domains)) {
+        const slug = DOMAIN_SLUGS[domainKey] || domainKey;
+        domainScores[slug] = bucket?.score_mean ?? 50;
+      }
+
+      // Cap to prevent unbounded memory growth.
+      if (this._metaSnapshotByAdviceId.size > 2000) {
+        const oldestKey = this._metaSnapshotByAdviceId.keys().next().value;
+        this._metaSnapshotByAdviceId.delete(oldestKey);
+      }
+
+      this._metaSnapshotByAdviceId.set(advice.advice_id, {
+        at: new Date().toISOString(),
+        workflow_type: taskContext?.task_type || 'general',
+        composite_score: meta?.composite?.score_mean ?? 50,
+        domain_scores: domainScores,
+      });
+    } catch {
+      // Fail-open
+    }
     this._emitHook('adviceGenerated', { task_context: taskContext, advice });
 
     // Enrich advice with meta-KB context (fail-open: empty if unavailable)
@@ -782,9 +1407,11 @@ class LearningEngine extends EventEmitter {
     // T6 (Wave 11): Store in cache if no session-specific signals
     if (!hasSessionSignals) {
       const cacheKey = `${taskContext?.task_type || 'general'}:${taskContext?.complexity || 'moderate'}`;
-      // Evict oldest if over max
-      if (this._adviceCache.size >= this._adviceCacheMax) {
+      // Evict oldest if over max (parameterized)
+      const cacheMax = this._getAdviceCacheMax();
+      while (this._adviceCache.size >= cacheMax) {
         const oldest = this._adviceCache.keys().next().value;
+        if (oldest === undefined) break;
         this._adviceCache.delete(oldest);
       }
       this._adviceCache.set(cacheKey, { value: advice, ts: Date.now() });
@@ -808,7 +1435,53 @@ class LearningEngine extends EventEmitter {
    */
   learnFromOutcome(adviceId, outcome) {
     this._adviceCache.clear(); // T6 (Wave 11): Invalidate cache on new learning data
+    const snapshot = this._metaSnapshotByAdviceId.get(adviceId) || null;
+    if (snapshot) {
+      this._metaSnapshotByAdviceId.delete(adviceId);
+    }
+
     const result = this.advisor.learnFromOutcome(adviceId, outcome);
+
+    // Record feedback signals for domain-weight learning (fail-open).
+    try {
+      const entry = Array.isArray(this.advisor?.outcomeLog)
+        ? this.advisor.outcomeLog.find((e) => e.advice_id === adviceId)
+        : null;
+      const workflowType = snapshot?.workflow_type || entry?.task_context?.task_type || 'general';
+
+      if (this.feedbackCollector && typeof this.feedbackCollector.recordMetaAwarenessFeedback === 'function') {
+        this.feedbackCollector.recordMetaAwarenessFeedback({
+          workflow_type: workflowType,
+          domain_scores: snapshot?.domain_scores || null,
+          outcome: outcome || {},
+        });
+      }
+
+      const verificationScore = snapshot?.domain_scores?.verification;
+      const testsPassed =
+        outcome?.tests_passed ??
+        outcome?.testsPassed ??
+        outcome?.verification_passed ??
+        outcome?.verificationPassed ??
+        outcome?.build_passed ??
+        outcome?.buildPassed;
+
+      // If verification was scored high but tests/build failed, penalize verification domain.
+      if (testsPassed === false && typeof verificationScore === 'number' && verificationScore >= 75) {
+        this.metaAwarenessTracker.trackEvent({
+          event_type: 'orchestration.verification_mismatch',
+          task_type: workflowType,
+          complexity: 'moderate',
+          metadata: {
+            tests_passed: false,
+            verification_score: verificationScore,
+            advice_id: adviceId,
+          },
+        });
+      }
+    } catch {
+      // Fail-open
+    }
     this.metaAwarenessTracker.trackEvent({
       event_type: 'orchestration.failure_recovery_step',
       outcome: outcome?.success === false ? 'repeated_failure' : 'recovered',
@@ -821,6 +1494,14 @@ class LearningEngine extends EventEmitter {
       },
     });
     this._emitHook('outcomeRecorded', { advice_id: adviceId, outcome, result });
+
+    // Task 8: cache-quality feedback drives adaptive advice-cache TTL.
+    try {
+      this._updateAdviceCacheQuality({ adviceId, outcome });
+    } catch {
+      // fail-open
+    }
+
     if (outcome && outcome.success === false) {
       this._emitHook('onFailureDistill', {
         advice_id: adviceId,

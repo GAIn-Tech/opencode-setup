@@ -19,6 +19,15 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
+// Optional dependency: hyper-parameter registry (fail-open).
+let HyperParameterRegistry = null;
+try {
+  // Workspace package name
+  ({ HyperParameterRegistry } = require('opencode-hyper-param-learner'));
+} catch (_) {
+  HyperParameterRegistry = null;
+}
+
 const OPENCODE_DIRNAME = '.opencode';
 
 function resolveDataHome() {
@@ -248,6 +257,17 @@ class SkillRLManager {
     const _registryPath = path.resolve(__dirname, '../../../opencode-config/skills/registry.json');
     this.syncWithRegistry(_registryPath);
 
+    // Hyper-parameter registry (for multi-dimensional skill metrics)
+    this._hyperParamRegistry = null;
+    if (HyperParameterRegistry) {
+      try {
+        const hpPath = path.resolve(__dirname, '../../../opencode-config/hyper-parameter-registry.json');
+        this._hyperParamRegistry = new HyperParameterRegistry({ persistPath: hpPath });
+      } catch (_) {
+        this._hyperParamRegistry = null;
+      }
+    }
+
     // Exploration policy (env-driven, NOT persisted)
     this.explorationMode = process.env.OPENCODE_EXPLORATION_MODE || 'greedy';
     this.epsilon = Math.min(1, Math.max(0, parseFloat(process.env.OPENCODE_EPSILON || '0.1')));
@@ -270,10 +290,36 @@ class SkillRLManager {
       }
     }
     
-    // Process through skill bank - update success rate for used skill
+    // Normalize legacy shape: { skills: [...] } -> { skills_used: [...] }
+    if (!outcome.skills_used && Array.isArray(outcome.skills)) {
+      outcome.skills_used = outcome.skills;
+    }
+
+    // Process through skill bank - update multi-dimensional metrics for all used skills
+    const skillNames = Array.isArray(outcome.skills_used) && outcome.skills_used.length > 0
+      ? outcome.skills_used
+      : (outcome.skill_used ? [outcome.skill_used] : []);
+
+    const primarySkillName = outcome.skill_used || skillNames[0] || null;
     let updated = null;
-    if (outcome.skill_used) {
-      updated = this.skillBank.updateSuccessRate(outcome.skill_used, outcome.success, outcome.task_type);
+
+    for (const skillName of skillNames) {
+      if (!skillName) continue;
+
+      // Pass full outcome so SkillBank can update complexity/task_type buckets,
+      // efficiency metrics (tokens_used, latency_ms), and evidence counts.
+      const updatedSkill = this.skillBank.updateSuccessRate(skillName, outcome.success, {
+        ...outcome,
+        skill_used: skillName,
+        record_sample: true,
+      });
+
+      if (updatedSkill && skillName === primarySkillName) {
+        updated = updatedSkill;
+      }
+
+      // Register/update hyper-parameters for this skill's metric dimensions (fail-open).
+      this._registerSkillMetricHyperParams({ ...outcome, skill_used: skillName }, updatedSkill);
     }
     
     // Track MCP tool affinities for the used skill (before validation gate
@@ -301,6 +347,8 @@ class SkillRLManager {
       Object.assign(updated, LearningValidator.sanitize(updated));
     }
 
+    // (Hyper-parameters registered per-skill above)
+
     // Task 3.4: Wire Tool Eval into Skill RL optimization loop
     // Update tool quality metrics if provided in outcome
     if (outcome.toolEvalResults && Array.isArray(outcome.toolEvalResults)) {
@@ -326,6 +374,218 @@ class SkillRLManager {
       skills_created: evolutionResult.skills_created || [],
       reinforced_skills: evolutionResult.reinforced_skills || []
     };
+  }
+
+  /**
+   * Backward-compatible alias for callers expecting recordOutcome().
+   * @param {object} outcome
+   */
+  recordOutcome(outcome) {
+    return this.learnFromOutcome(outcome);
+  }
+
+  _normalizeHyperParamPart(value) {
+    const raw = String(value ?? '').toLowerCase();
+    // Keep [a-z0-9_] only; translate '-' and whitespace into underscores.
+    const normalized = raw
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .replace(/_+/g, '_');
+
+    if (!normalized) return 'unknown';
+    if (!/^[a-z]/.test(normalized)) return `x_${normalized}`;
+    return normalized;
+  }
+
+  _buildHyperParam(name, currentValue, { adaptationStrategy, boundsHard, boundsSoft }) {
+    return {
+      name,
+      current_value: currentValue,
+      learning_config: {
+        adaptation_strategy: adaptationStrategy,
+        triggers: {
+          outcome_type: 'success/failure',
+          min_samples: 5,
+          confidence_threshold: 0.7,
+        },
+        bounds: {
+          soft: { ...boundsSoft },
+          hard: { ...boundsHard },
+        },
+        exploration_policy: {
+          enabled: false,
+          epsilon: 0,
+          annealing_rate: 0,
+        },
+      },
+      grouping: {
+        group_by_task_type: false,
+        group_by_complexity: false,
+        aggregate_function: 'mean',
+      },
+      individual_tracking: {
+        per_session: false,
+        per_task: false,
+      },
+    };
+  }
+
+  _upsertHyperParam(name, parameter) {
+    if (!this._hyperParamRegistry) return;
+
+    try {
+      if (this._hyperParamRegistry.has(name)) {
+        this._hyperParamRegistry.update(name, { current_value: parameter.current_value });
+      } else {
+        this._hyperParamRegistry.create(parameter);
+      }
+    } catch (_) {
+      // fail-open
+    }
+  }
+
+  _registerSkillMetricHyperParams(outcome, updatedSkill) {
+    if (!this._hyperParamRegistry) return;
+    if (!outcome || typeof outcome !== 'object') return;
+    if (!updatedSkill || typeof updatedSkill !== 'object') return;
+    if (!outcome.skill_used) return;
+
+    const skillPart = this._normalizeHyperParamPart(outcome.skill_used);
+    const taskType = outcome.task_type ? this._normalizeHyperParamPart(outcome.task_type) : null;
+    const complexity = outcome.complexity ? this._normalizeHyperParamPart(outcome.complexity) : null;
+
+    const rateHard = { min: 0, max: 1 };
+    const rateSoft = { min: 0, max: 1 };
+
+    const tokensHard = { min: 0, max: 10_000_000 };
+    const tokensSoft = { min: 0, max: 1_000_000 };
+
+    const latencyHard = { min: 0, max: 600_000 };
+    const latencySoft = { min: 0, max: 60_000 };
+
+    const countHard = { min: 0, max: 1_000_000_000 };
+    const countSoft = { min: 0, max: 1_000_000_000 };
+
+    // Overall success rate
+    if (typeof updatedSkill.success_rate_overall === 'number') {
+      const name = `skill_${skillPart}_success_rate_overall`;
+      this._upsertHyperParam(
+        name,
+        this._buildHyperParam(name, updatedSkill.success_rate_overall, {
+          adaptationStrategy: 'ema',
+          boundsHard: rateHard,
+          boundsSoft: rateSoft,
+        })
+      );
+    }
+
+    // Per complexity success rate
+    if (complexity && updatedSkill.success_rate_by_complexity && updatedSkill.success_rate_by_complexity[outcome.complexity]) {
+      const bucket = updatedSkill.success_rate_by_complexity[outcome.complexity];
+      const bucketRate = typeof bucket === 'number' ? bucket : bucket?.success_rate;
+      if (typeof bucketRate === 'number') {
+        const name = `skill_${skillPart}_success_rate_complexity_${complexity}`;
+        this._upsertHyperParam(
+          name,
+          this._buildHyperParam(name, bucketRate, {
+            adaptationStrategy: 'ema',
+            boundsHard: rateHard,
+            boundsSoft: rateSoft,
+          })
+        );
+      }
+    }
+
+    // Per task-type success rate
+    if (taskType && updatedSkill.success_rate_by_task_type && updatedSkill.success_rate_by_task_type[outcome.task_type]) {
+      const bucket = updatedSkill.success_rate_by_task_type[outcome.task_type];
+      const bucketRate = typeof bucket === 'number' ? bucket : bucket?.success_rate;
+      if (typeof bucketRate === 'number') {
+        const name = `skill_${skillPart}_success_rate_task_type_${taskType}`;
+        this._upsertHyperParam(
+          name,
+          this._buildHyperParam(name, bucketRate, {
+            adaptationStrategy: 'ema',
+            boundsHard: rateHard,
+            boundsSoft: rateSoft,
+          })
+        );
+      }
+    }
+
+    // Efficiency metrics
+    if (typeof updatedSkill.avg_tokens_used === 'number') {
+      const name = `skill_${skillPart}_avg_tokens_used`;
+      this._upsertHyperParam(
+        name,
+        this._buildHyperParam(name, updatedSkill.avg_tokens_used, {
+          adaptationStrategy: 'ema',
+          boundsHard: tokensHard,
+          boundsSoft: tokensSoft,
+        })
+      );
+    }
+
+    if (typeof updatedSkill.avg_latency_ms === 'number') {
+      const name = `skill_${skillPart}_avg_latency_ms`;
+      this._upsertHyperParam(
+        name,
+        this._buildHyperParam(name, updatedSkill.avg_latency_ms, {
+          adaptationStrategy: 'ema',
+          boundsHard: latencyHard,
+          boundsSoft: latencySoft,
+        })
+      );
+    }
+
+    // Evidence weight
+    if (Number.isInteger(updatedSkill.sample_count)) {
+      const name = `skill_${skillPart}_sample_count`;
+      this._upsertHyperParam(
+        name,
+        this._buildHyperParam(name, updatedSkill.sample_count, {
+          adaptationStrategy: 'none',
+          boundsHard: countHard,
+          boundsSoft: countSoft,
+        })
+      );
+    }
+
+    // Confidence interval bounds (derived; keep static)
+    if (updatedSkill.confidence_interval && typeof updatedSkill.confidence_interval === 'object') {
+      const lower = updatedSkill.confidence_interval.lower;
+      const upper = updatedSkill.confidence_interval.upper;
+
+      if (typeof lower === 'number') {
+        const name = `skill_${skillPart}_confidence_interval_lower`;
+        this._upsertHyperParam(
+          name,
+          this._buildHyperParam(name, lower, {
+            adaptationStrategy: 'none',
+            boundsHard: rateHard,
+            boundsSoft: rateSoft,
+          })
+        );
+      }
+
+      if (typeof upper === 'number') {
+        const name = `skill_${skillPart}_confidence_interval_upper`;
+        this._upsertHyperParam(
+          name,
+          this._buildHyperParam(name, upper, {
+            adaptationStrategy: 'none',
+            boundsHard: rateHard,
+            boundsSoft: rateSoft,
+          })
+        );
+      }
+    }
+
+    try {
+      this._hyperParamRegistry.save();
+    } catch (_) {
+      // fail-open
+    }
   }
 
   /**

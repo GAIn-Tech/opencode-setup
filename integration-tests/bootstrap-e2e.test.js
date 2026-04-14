@@ -41,7 +41,7 @@ describe('bootstrap E2E', () => {
     // resolveRuntimeContext doesn't throw
     const ctx = runtime.resolveRuntimeContext({
       sessionId: 'e2e-test',
-      model: 'claude-sonnet-4-20250514',
+      model: 'google/gemini-2.5-flash',
       taskType: 'code-edit',
     });
     expect(ctx).toBeDefined();

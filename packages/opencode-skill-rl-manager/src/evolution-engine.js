@@ -82,7 +82,10 @@ class EvolutionEngine {
     // Reinforce all skills that were used
     if (skills_used && Array.isArray(skills_used)) {
       skills_used.forEach(skillName => {
-        const updated = this.skillBank.updateSuccessRate(skillName, true, task_type);
+        const updated = this.skillBank.updateSuccessRate(skillName, true, {
+          task_type,
+          record_sample: false,
+        });
         if (updated) {
           reinforcements.push(skillName);
         }
@@ -195,7 +198,10 @@ class EvolutionEngine {
 
     if (success && Array.isArray(skills_used)) {
       skills_used.forEach((skillName) => {
-        this.skillBank.updateSuccessRate(skillName, true, task_type);
+        this.skillBank.updateSuccessRate(skillName, true, {
+          task_type,
+          record_sample: false,
+        });
       });
     }
   }
@@ -275,7 +281,10 @@ class EvolutionEngine {
     // Step 1: Penalize skills that were used in failure
     if (skills_used && Array.isArray(skills_used)) {
       skills_used.forEach(skillName => {
-        const updated = this.skillBank.updateSuccessRate(skillName, false, task_type);
+        const updated = this.skillBank.updateSuccessRate(skillName, false, {
+          task_type,
+          record_sample: false,
+        });
         if (updated) {
           result.updated_skills.push({
             name: skillName,

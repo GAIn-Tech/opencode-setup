@@ -115,6 +115,7 @@ describe('error wiring', () => {
 
   it('fail-open: returns gracefully when OpenCodeError unavailable', () => {
     const integration = new IntegrationLayer({});
+    integration.validator = null;
     
     // Test validateInput with no validator
     const result = integration.validateInput(null, { required: true });
@@ -124,7 +125,8 @@ describe('error wiring', () => {
 
   it('fail-open: checkContextBudget returns default when governor unavailable', () => {
     const integration = new IntegrationLayer({});
-    // contextGovernor is null by default
+    integration.contextGovernor = null;
+    integration._governorInstance = null;
     
     const result = integration.checkContextBudget('session-123', 'claude-3', 1000);
     expect(result).toBeDefined();

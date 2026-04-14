@@ -4,14 +4,14 @@
     "oh-my-opencode@3.5.2",
     "opencode-antigravity-auth@1.4.6",
     "opencode-antigravity-quota@0.1.6",
-    "@tarquinen/opencode-dcp@latest",
+    "@tarquinen/opencode-dcp@1.0.0",
     "opencode-plugin-preload-skills@1.8.0",
     "opencode-plugin-langfuse@0.1.8",
     "opencode-pty@0.2.1",
-    "opencode-rate-limit-fallback@latest",
-    "@mohak34/opencode-notifier@latest",
-    "envsitter-guard@latest",
-    "cc-safety-net@latest"
+    "opencode-rate-limit-fallback@1.2.0",
+    "@mohak34/opencode-notifier@1.0.0",
+    "envsitter-guard@1.0.0",
+    "cc-safety-net@1.0.0"
   ],
   "provider": {
     "google": {

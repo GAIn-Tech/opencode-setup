@@ -9,6 +9,22 @@
  * Integrates with SkillRLManager for promotion/demotion feedback loop.
  */
 
+// === SKILL PRELOAD CONSTANTS ===
+// Token and count budgets for tier management
+const PRELOAD_CONSTANTS = Object.freeze({
+  token: {
+    maxTotalTokenBudget: 2500,   // Approximate token budget for tool definitions
+  },
+  count: {
+    maxTier1Tools: 15,           // Cap on Tier 1 tools per prompt (prevent context bloat)
+  },
+  rl: {
+    promotionThreshold: 5,       // On-demand loads before promoting T2→T1
+    demotionSessionWindow: 50,   // Sessions to track for demotion analysis
+    demotionUsageFloor: 0.05,    // Usage rate below which T1→T2 demotion triggers
+  },
+});
+
 const { EventEmitter } = require('events');
 const { TierResolver } = require('./tier-resolver');
 const { generateMetaContext } = require('./meta-context-injector');
@@ -25,12 +41,12 @@ const MCP_TOOL_REGISTRY = {
 
 const DEFAULTS = {
   tiersConfigPath: null,       // Path to tool-tiers.json, auto-resolved if null
-  maxTier1Tools: 15,           // Cap on Tier 1 tools per prompt (prevent context bloat)
-  maxTotalTokenBudget: 2500,   // Approximate token budget for tool definitions
+  maxTier1Tools: PRELOAD_CONSTANTS.count.maxTier1Tools,
+  maxTotalTokenBudget: PRELOAD_CONSTANTS.token.maxTotalTokenBudget,
   rlEnabled: true,             // Whether to use SkillRL for boost/adjustments
-  promotionThreshold: 5,       // On-demand loads before promoting T2→T1
-  demotionSessionWindow: 50,   // Sessions to track for demotion analysis
-  demotionUsageFloor: 0.05,    // Usage rate below which T1→T2 demotion triggers
+  promotionThreshold: PRELOAD_CONSTANTS.rl.promotionThreshold,
+  demotionSessionWindow: PRELOAD_CONSTANTS.rl.demotionSessionWindow,
+  demotionUsageFloor: PRELOAD_CONSTANTS.rl.demotionUsageFloor,
   logLevel: 'info',            // 'debug' | 'info' | 'warn' | 'error'
   metaKBIndex: null,           // Pre-loaded meta-KB index object (fail-open if null)
 };

@@ -33,7 +33,7 @@
     "variant": "high"
   },
   "prometheus": {
-    "model": "nvidia/moonshotai/kimi-k2.5"
+    "model": "openai/gpt-5.3-codex"
   },
   "sisyphus": {
     "model": "openai/gpt-5.3-codex"

@@ -17,7 +17,7 @@ describe('IntegrationLayer memory-graph wiring', () => {
 
     expect(result).toBeDefined();
     expect(result.success).toBe(true);
-    expect(result.data[0].sessionId).toBe('session-123');
+    expect(result.data[0].session_id).toBe('session-123');
     expect(result.data[0].message).toBe('Test error');
     expect(result.data[0].timestamp).toBeDefined();
   });

@@ -42,12 +42,11 @@ describe('model-manager pipeline integration', () => {
     const { DiscoveryEngine } = require(`${MODEL_MANAGER_ROOT}/discovery/discovery-engine`);
 
     const modelsA = [makeModel({ id: 'openai/gpt-5', provider: 'openai' })];
-    const modelsB = [makeModel({ id: 'anthropic/claude-6', provider: 'anthropic' })];
+    const modelsB = [makeModel({ id: 'google/gemini-3', provider: 'google' })];
 
     const engine = new DiscoveryEngine({
       openai: makeMockAdapter(modelsA),
-      anthropic: makeMockAdapter(modelsB),
-      google: makeMockAdapter([]),
+      google: makeMockAdapter(modelsB),
       groq: makeMockAdapter([]),
       cerebras: makeMockAdapter([]),
       nvidia: makeMockAdapter([]),
@@ -58,7 +57,7 @@ describe('model-manager pipeline integration', () => {
     expect(result.models.length).toBe(2);
     expect(result.errors.length).toBe(0);
     expect(result.models.map((m) => m.id).sort()).toEqual([
-      'anthropic/claude-6',
+      'google/gemini-3',
       'openai/gpt-5',
     ]);
   });
@@ -236,7 +235,6 @@ describe('model-manager pipeline integration', () => {
         makeModel({ id: 'openai/gpt-5', provider: 'openai' }),
         makeModel({ id: 'openai/gpt-4', provider: 'openai' }),
       ]),
-      anthropic: makeMockAdapter([]),
       google: makeMockAdapter([]),
       groq: makeMockAdapter([]),
       cerebras: makeMockAdapter([]),

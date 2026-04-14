@@ -9,6 +9,29 @@
  *                      clean_refactor, fast_resolution
  */
 
+// === CONFIDENCE CALCULATION CONSTANTS ===
+// Base confidence values by severity level (0-1 scale)
+const CONFIDENCE_SEVERITY_BASE = Object.freeze({
+  critical: 0.95,
+  high: 0.8,
+  medium: 0.65,
+  low: 0.5,
+});
+
+// Boost caps and divisors for signal-based confidence adjustment
+const CONFIDENCE_SIGNAL_BOOST = Object.freeze({
+  maxBoost: 0.15,       // Maximum boost from strongest signal
+  divisor: 100,         // Divisor for normalizing signal magnitude
+});
+const CONFIDENCE_CONTEXT_BOOST = Object.freeze({
+  maxBoost: 0.05,       // Maximum boost from message count
+  divisor: 500,         // Divisor for normalizing message count
+});
+const CONFIDENCE_CLAMP = Object.freeze({
+  min: 0,
+  max: 0.99,           // Cap at 99% confidence
+});
+
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -118,15 +141,9 @@ class PatternExtractor {
       return pattern;
     }
 
-    const severityBase = {
-      critical: 0.95,
-      high: 0.8,
-      medium: 0.65,
-      low: 0.5,
-    };
-
+    // Use severity-based base confidence
     const severity = String(pattern.severity || 'medium').toLowerCase();
-    const base = severityBase[severity] || severityBase.medium;
+    const base = CONFIDENCE_SEVERITY_BASE[severity] || CONFIDENCE_SEVERITY_BASE.medium;
 
     const context = pattern.context && typeof pattern.context === 'object' ? pattern.context : {};
     const numericSignals = [
@@ -138,11 +155,22 @@ class PatternExtractor {
       Number(context.affected_sessions),
     ].filter((value) => Number.isFinite(value) && value > 0);
 
+    // Calculate signal boost with configurable cap and divisor
     const strongestSignal = numericSignals.length > 0 ? Math.max(...numericSignals) : 0;
-    const signalBoost = strongestSignal > 0 ? Math.min(0.15, strongestSignal / 100) : 0;
-    const contextBoost = messageCount > 0 ? Math.min(0.05, messageCount / 500) : 0;
+    const signalBoost = strongestSignal > 0 
+      ? Math.min(CONFIDENCE_SIGNAL_BOOST.maxBoost, strongestSignal / CONFIDENCE_SIGNAL_BOOST.divisor) 
+      : 0;
+    
+    // Calculate context boost (message count) with configurable cap and divisor
+    const contextBoost = messageCount > 0 
+      ? Math.min(CONFIDENCE_CONTEXT_BOOST.maxBoost, messageCount / CONFIDENCE_CONTEXT_BOOST.divisor) 
+      : 0;
 
-    const confidence = Math.max(0, Math.min(0.99, base + signalBoost + contextBoost));
+    // Apply clamps to final confidence
+    const confidence = Math.max(
+      CONFIDENCE_CLAMP.min, 
+      Math.min(CONFIDENCE_CLAMP.max, base + signalBoost + contextBoost)
+    );
 
     return {
       ...pattern,

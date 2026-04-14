@@ -90,6 +90,23 @@ try {
   LearningEngine = null;
 }
 
+// [HYPER-PARAM] Hyper-parameterized learning system
+let HyperParameterRegistry, FeedbackCollector, ParameterLearner;
+let _hyperParamRegistry = null;
+let _hyperParamFeedback = null;
+let _hyperParamLearner = null;
+try {
+  const hyperPkg = require('opencode-hyper-param-learner');
+  HyperParameterRegistry = hyperPkg.HyperParameterRegistry;
+  FeedbackCollector = hyperPkg.FeedbackCollector;
+  ParameterLearner = hyperPkg.ParameterLearner;
+} catch (e) {
+  // Fail-open: hyper-param system unavailable
+  HyperParameterRegistry = null;
+  FeedbackCollector = null;
+  ParameterLearner = null;
+}
+
 // Context bridge for governor → distill advisory signals
 const { ContextBridge } = require('./context-bridge');
 
@@ -328,6 +345,48 @@ class IntegrationLayer {
     this._learningAdviceCache = new Map(); // adviceId → { advice, timestamp }
     this._learningAdviceCacheMaxAge = 5 * 60 * 1000; // 5 minutes
 
+    // [HYPER-PARAM] Initialize hyper-parameterized learning system
+    this._hyperParamEnabled = false;
+    this._hyperParamRegistry = null;
+    this._hyperParamFeedback = null;
+    this._hyperParamLearner = null;
+    if (HyperParameterRegistry && FeedbackCollector && ParameterLearner) {
+      try {
+        // Create registry with persistence path
+        const registryPath = config.hyperParamRegistryPath || 
+          path.join(process.cwd(), 'opencode-config', 'hyper-parameter-registry.json');
+        
+        this._hyperParamRegistry = new HyperParameterRegistry(registryPath);
+        
+        // Create feedback collector
+        this._hyperParamFeedback = new FeedbackCollector();
+        
+        // Create parameter learner with registry
+        this._hyperParamLearner = new ParameterLearner(this._hyperParamRegistry, this._hyperParamFeedback);
+        
+        this._hyperParamEnabled = true;
+        
+        // [OPTIMIZATION] Performance optimizations
+        this._hyperParamPendingFlush = [];        // Batch pending outcomes
+        this._hyperParamFlushScheduled = false;      // Debounce scheduled flush
+        this._hyperParamFlushMs = config.hyperParamFlushMs || 500; // Debounce window (ms)
+        this._hyperParamMaxBatch = config.hyperParamMaxBatch || 10;  // Max batched outcomes
+        this._hyperParamCircuitOpen = false;  // Circuit breaker
+        this._hyperParamCircuitMs = 5000;   // Circuit reset timeout
+        this._hyperParamSlowCount = 0;       // Track slow calls
+        this._hyperParamSlowThreshold = 100; // Slow threshold (ms)
+        this._hyperParamCache = new Map();      // LRU parameter cache
+        this._hyperParamCacheMax = 50;         // Max cached params
+        
+        logger.info('[HyperParam] Initialized', { 
+          registryPath,
+          paramCount: this._hyperParamRegistry.count() 
+        });
+      } catch (err) {
+        logger.warn('[HyperParam] Init failed (fail-open)', { error: err.message });
+      }
+    }
+
     // T8: ContextBridge — advisory bridge between governor and distill compression
     // Note: Governor is lazy-loaded in _getGovernorInstance() method
     // The contextBridge will be updated with actual governor on first check
@@ -368,28 +427,68 @@ class IntegrationLayer {
 
   /**
    * [GAP FIX] Get learning advice for a task context.
-   * Returns warnings, suggestions, and routing recommendations from LearningEngine.
-   * Fail-open: returns null if LearningEngine unavailable.
+   * Enhanced with hyper-parameter adaptation for tuned advice.
    * 
    * @param {Object} taskContext - { task_type, description, files, complexity, ... }
-   * @returns {Object|null} - { warnings, suggestions, routing, should_pause, risk_score } or null
+   * @returns {Object|null} - { warnings, suggestions, routing, should_pause, risk_score, adapted_params } or null
    */
   getLearningAdvice(taskContext) {
+    const taskType = taskContext.task_type || taskContext.task || 'unspecified';
+    const complexity = taskContext.complexity || 'moderate';
+    const context = { task_type: taskType, complexity };
+
+    // [HYPER-PARAM] Pre-fetch adapted parameter values for this context
+    const adaptedParams = {};
+    if (this._hyperParamEnabled && this._hyperParamRegistry) {
+      try {
+        const paramNames = [
+          'risk_threshold_complexity',
+          'skill_success_rate',
+          'core_decay_floor',
+          'advice_cache_ttl',
+          'meta_awareness_weight',
+        ];
+        
+        for (const paramName of paramNames) {
+          const param = this._hyperParamRegistry.get(paramName);
+          if (param) {
+            adaptedParams[paramName] = this.getAdaptableParameter(paramName, context, param.default_value);
+          }
+        }
+      } catch (err) {
+        // Fail-open: params are optional
+      }
+    }
+
     if (!this._learningAdviceEnabled || !this.learningEngine) {
-      return null;
+      // Return hyper-param enriched result even without learning engine
+      return adaptedParams ? { adapted_params: adaptedParams } : null;
     }
 
     try {
       // Build context for advise()
-      const context = {
-        task_type: taskContext.task_type || taskContext.task || 'unspecified',
+      const adviseContext = {
+        task_type: taskType,
         description: taskContext.description || taskContext.prompt || '',
         files: Array.isArray(taskContext.files) ? taskContext.files : [],
-        complexity: taskContext.complexity || 'moderate',
+        complexity,
         attempt_number: taskContext.attempt_number || 1,
       };
 
-      const advice = this.learningEngine.advise(context);
+      const advice = this.learningEngine.advise(adviseContext);
+      
+      // [HYPER-PARAM] Inject adapted parameters into advice
+      if (advice) {
+        advice.adapted_params = { ...adaptedParams };
+        
+        // Apply adapted risk threshold if available
+        if (adaptedParams.risk_threshold_complexity !== undefined) {
+          advice.risk_score = Math.min(
+            advice.risk_score || 0.5,
+            adaptedParams.risk_threshold_complexity
+          );
+        }
+      }
       
       // Cache the advice
       if (advice && advice.advice_id) {
@@ -404,17 +503,47 @@ class IntegrationLayer {
       this.logger.warn('[IntegrationLayer] getLearningAdvice failed (fail-open)', { 
         error: err.message 
       });
-      return null;
+      return adaptedParams ? { adapted_params: adaptedParams } : null;
     }
   }
 
   /**
    * [GAP FIX] Learn from task outcome - record success/failure for learning.
+   * Also flows to hyper-parameter system for parameter adaptation.
    * 
    * @param {string} adviceId - The advice_id from getLearningAdvice()
-   * @param {Object} outcome - { success, failure_reason, tokens_used }
+   * @param {Object} outcome - { success, failure_reason, tokens_used, task_type, complexity }
    */
   learnFromOutcome(adviceId, outcome) {
+    // [HYPER-PARAM] Flow outcome to parameter learning system
+    if (this._hyperParamEnabled && outcome?.task_type) {
+      try {
+        const context = {
+          task_type: outcome.task_type,
+          complexity: outcome.complexity,
+          domain: outcome.domain,
+        };
+        
+        // Map outcome to relevant parameters
+        const paramMappings = [
+          'severity_weight_shotgun_debug',   // Anti-pattern severity
+          'risk_threshold_complexity',         // Context-aware thresholds
+          'skill_success_rate',               // Skill success rates
+          'core_decay_floor',                  // Decay floors
+          'advice_cache_ttl',                // Cache TTL
+          'model_selection_weight',           // Model weights
+          'meta_awareness_weight',           // Domain weights
+        ];
+        
+        for (const paramName of paramMappings) {
+          this.recordHyperParamOutcome(paramName, outcome, context);
+        }
+      } catch (err) {
+        // Fail-open: hyper-param error should not break normal learning
+        this.logger.warn('[HyperParam] learnFromOutcome hook failed', { error: err.message });
+      }
+    }
+
     if (!this._learningAdviceEnabled || !this.learningEngine) {
       return;
     }
@@ -449,6 +578,191 @@ class IntegrationLayer {
    */
   isLearningAdviceEnabled() {
     return this._learningAdviceEnabled;
+  }
+
+  // ============================================================================
+  // Hyper-Parameterized Learning Bridge Methods
+  // ============================================================================
+
+  /**
+   * [HYPER-PARAM] Check if hyper-parameter system is enabled.
+   * @returns {boolean}
+   */
+  isHyperParamEnabled() {
+    return this._hyperParamEnabled;
+  }
+
+  /**
+   * [HYPER-PARAM] Get adaptable parameter value.
+   * OPTIMIZED: LRU cache, circuit breaker, fail-fast.
+   * 
+   * @param {string} paramName - Parameter name (e.g., 'severity_weight_shotgun_debug')
+   * @param {Object} context - { task_type, complexity, domain, ... }
+   * @param {number} defaultValue - Fallback value
+   * @returns {number} Adapted parameter value
+   */
+  getAdaptableParameter(paramName, context = {}, defaultValue) {
+    const t0 = this._hyperParamEnabled ? performance.now() : 0;
+
+    // Circuit breaker check
+    if (this._hyperParamCircuitOpen) {
+      return defaultValue;
+    }
+
+    if (!this._hyperParamEnabled || !this._hyperParamRegistry || !this._hyperParamLearner) {
+      return defaultValue;
+    }
+
+    // LRU cache lookup
+    const cacheKey = `${paramName}:${context.task_type || 'default'}`;
+    const cached = this._hyperParamCache.get(cacheKey);
+    if (cached !== undefined) {
+      // Move to front (most recently used)
+      this._hyperParamCache.delete(cacheKey);
+      this._hyperParamCache.set(cacheKey, cached);
+      return cached;
+    }
+
+    try {
+      const result = this._hyperParamLearner.getAdaptedValue(paramName, context, defaultValue);
+      
+      // LRU cache update (limit size)
+      if (this._hyperParamCache.size >= this._hyperParamCacheMax) {
+        // Remove oldest entry
+        const firstKey = this._hyperParamCache.keys().next().value;
+        this._hyperParamCache.delete(firstKey);
+      }
+      this._hyperParamCache.set(cacheKey, result);
+      
+      // Track latency
+      if (t0) {
+        const latency = performance.now() - t0;
+        if (latency > this._hyperParamSlowThreshold) {
+          this._hyperParamSlowCount++;
+        }
+      }
+      
+      return result;
+    } catch (err) {
+      this.logger.warn('[HyperParam] getAdaptableParameter failed', { paramName, error: err.message });
+      this._checkHyperParamCircuit();
+      return defaultValue;
+    }
+  }
+
+  /**
+   * [HYPER-PARAM] Record outcome for parameter learning.
+   * OPTIMIZED: Batched with debounce, circuit breaker.
+   * 
+   * @param {string} paramName - Parameter name
+   * @param {Object} outcome - { success, outcome_type, latency_ms, tokens_used, cost_cents, ... }
+   * @param {Object} context - { task_type, complexity, domain, ... }
+   */
+  recordHyperParamOutcome(paramName, outcome, context = {}) {
+    if (this._hyperParamCircuitOpen || !this._hyperParamEnabled || !this._hyperParamFeedback) {
+      return;
+    }
+
+    // Add to batch queue
+    this._hyperParamPendingFlush.push({ paramName, outcome, context });
+
+    // Check batch size - trigger early flush
+    if (this._hyperParamPendingFlush.length >= this._hyperParamMaxBatch) {
+      this._doHyperParamFlush();
+      return;
+    }
+
+    // Debounce flush - schedule if not already scheduled
+    if (!this._hyperParamFlushScheduled) {
+      this._hyperParamFlushScheduled = true;
+      setTimeout(() => {
+        this._hyperParamFlushScheduled = false;
+        this._doHyperParamFlush();
+      }, this._hyperParamFlushMs);
+    }
+  }
+
+  /**
+   * [HYPER-PARAM] Internal flush - processes batched outcomes.
+   * @private
+   */
+  _doHyperParamFlush() {
+    if (!this._hyperParamEnabled || !this._hyperParamLearner || !this._hyperParamRegistry) {
+      return;
+    }
+
+    const batch = this._hyperParamPendingFlush;
+    this._hyperParamPendingFlush = []; // Clear for next batch
+
+    try {
+      // Process batch
+      for (const item of batch) {
+        this._hyperParamFeedback.record(item.paramName, item.outcome, item.context);
+      }
+
+      // Trigger learning for all tracked parameters
+      const adapted = this._hyperParamLearner.runAdaptation();
+      
+      // Persist registry changes only if adapted
+      if (adapted > 0) {
+        this._hyperParamRegistry.save();
+        logger.info('[HyperParam] Flushed', { adapted, batchSize: batch.length });
+      }
+    } catch (err) {
+      this.logger.warn('[HyperParam] flushHyperParamLearning failed', { error: err.message });
+      this._checkHyperParamCircuit();
+    }
+  }
+
+  /**
+   * [HYPER-PARAM] Circuit breaker check.
+   * @private
+   */
+  _checkHyperParamCircuit() {
+    this._hyperParamSlowCount++;
+    if (this._hyperParamSlowCount >= 5) {
+      this._hyperParamCircuitOpen = true;
+      this.logger.warn('[HyperParam] Circuit OPEN', { slowCount: this._hyperParamSlowCount });
+      
+      // Auto-reset after timeout
+      setTimeout(() => {
+        this._hyperParamCircuitOpen = false;
+        this._hyperParamSlowCount = 0;
+        this.logger.info('[HyperParam] Circuit RESET');
+      }, this._hyperParamCircuitMs);
+    }
+  }
+
+  /**
+   * [HYPER-PARAM] Flush and learn from recorded outcomes.
+   * Should be called periodically or after task completion.
+   */
+  flushHyperParamLearning() {
+    // Clear debounce and flush immediately
+    this._hyperParamFlushScheduled = false;
+    this._doHyperParamFlush();
+  }
+
+  /**
+   * [HYPER-PARAM] Get parameter learning status for observability.
+   * Includes optimization metrics.
+   * @returns {Object} Status object
+   */
+  getHyperParamStatus() {
+    if (!this._hyperParamEnabled) {
+      return { enabled: false };
+    }
+
+    return {
+      enabled: true,
+      parameterCount: this._hyperParamRegistry?.count() || 0,
+      pendingOutcomes: this._hyperParamFeedback?.getPendingCount?.() || 0,
+      // Optimization metrics
+      circuitOpen: this._hyperParamCircuitOpen || false,
+      slowCallCount: this._hyperParamSlowCount || 0,
+      cacheSize: this._hyperParamCache?.size || 0,
+      pendingBatch: this._hyperParamPendingFlush?.length || 0,
+    };
   }
 
   /**
@@ -1020,8 +1334,10 @@ class IntegrationLayer {
         timestamp: new Date().toISOString(),
         error_type: error?.name || error?.constructor?.name || 'UnknownError',
         message: error?.message || String(error),
+        code: error?.code,
+        details: error?.details,
       };
-      const result = this.memoryGraph.buildGraph([graphData]);
+      const result = await this.memoryGraph.buildGraph([graphData]);
       this.recordPackageExecution('memoryGraph', 'buildGraph', true, Date.now() - t0, { sessionId });
       return result;
     } catch (err) {

@@ -12,6 +12,26 @@ const DOMAIN_KEYS = {
   RECOVERY: 'failure_recovery_quality',
 };
 
+// Hyper-parameter naming expects /^[a-z][a-z0-9_]*$/.
+// Domain keys are metric identifiers; domain slugs are stable param suffixes.
+const DOMAIN_SLUGS = Object.freeze({
+  [DOMAIN_KEYS.DELEGATION]: 'delegation',
+  [DOMAIN_KEYS.TOOL_SELECTION]: 'tool_selection',
+  [DOMAIN_KEYS.VERIFICATION]: 'verification',
+  [DOMAIN_KEYS.PHASE]: 'phase',
+  [DOMAIN_KEYS.TODO]: 'todo',
+  [DOMAIN_KEYS.COMMUNICATION]: 'communication',
+  [DOMAIN_KEYS.DECOMPOSITION]: 'decomposition',
+  [DOMAIN_KEYS.SKILL_LOADING]: 'skill_loading',
+  [DOMAIN_KEYS.RECOVERY]: 'recovery',
+});
+
+const DOMAIN_WEIGHT_BOUNDS = Object.freeze({
+  // Soft bounds are guidance; hard bounds are MUST NOT rules.
+  soft: { min: 0.8, max: 2.0 },
+  hard: { min: 0.5, max: 2.5 },
+});
+
 const DEFAULT_DOMAIN_WEIGHTS = {
   [DOMAIN_KEYS.DELEGATION]: 1.2,
   [DOMAIN_KEYS.TOOL_SELECTION]: 1.2,
@@ -23,6 +43,83 @@ const DEFAULT_DOMAIN_WEIGHTS = {
   [DOMAIN_KEYS.SKILL_LOADING]: 1.0,
   [DOMAIN_KEYS.RECOVERY]: 1.1,
 };
+
+function clampDomainWeight(value, fallback) {
+  const num = typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+  if (typeof num !== 'number' || !Number.isFinite(num)) return fallback;
+  if (num < DOMAIN_WEIGHT_BOUNDS.hard.min) return DOMAIN_WEIGHT_BOUNDS.hard.min;
+  if (num > DOMAIN_WEIGHT_BOUNDS.hard.max) return DOMAIN_WEIGHT_BOUNDS.hard.max;
+  return num;
+}
+
+function normalizeWorkflowType(value) {
+  if (typeof value !== 'string' || value.trim() === '') return 'general';
+  let key = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .replace(/_+/g, '_');
+  if (!key) key = 'general';
+  if (!/^[a-z]/.test(key)) key = `t_${key}`;
+  key = key.replace(/[^a-z0-9_]/g, '_');
+  if (!/^[a-z][a-z0-9_]*$/.test(key)) return 'general';
+  return key;
+}
+
+function buildDomainWeightHyperParameters({ workflowTypes = [] } = {}) {
+  const uniqueWorkflows = Array.from(new Set((workflowTypes || [])
+    .filter((w) => typeof w === 'string' && w.trim())
+    .map(normalizeWorkflowType)));
+
+  const params = [];
+  for (const domainKey of Object.values(DOMAIN_KEYS)) {
+    const slug = DOMAIN_SLUGS[domainKey] || normalizeWorkflowType(domainKey);
+    const defaultWeight = clampDomainWeight(DEFAULT_DOMAIN_WEIGHTS[domainKey] ?? 1.0, 1.0);
+    const base = {
+      current_value: defaultWeight,
+      learning_config: {
+        adaptation_strategy: 'ema',
+        triggers: {
+          outcome_type: 'feedback',
+          min_samples: 25,
+          confidence_threshold: 0.85,
+        },
+        bounds: {
+          soft: { ...DOMAIN_WEIGHT_BOUNDS.soft },
+          hard: { ...DOMAIN_WEIGHT_BOUNDS.hard },
+        },
+        exploration_policy: {
+          enabled: false,
+          epsilon: 0,
+          annealing_rate: 1,
+        },
+      },
+      grouping: {
+        group_by_task_type: false,
+        group_by_complexity: false,
+        aggregate_function: 'mean',
+      },
+      individual_tracking: {
+        per_session: false,
+        per_task: true,
+      },
+    };
+
+    params.push({
+      ...base,
+      name: `domain_weight_${slug}`,
+    });
+
+    for (const wf of uniqueWorkflows) {
+      params.push({
+        ...base,
+        name: `domain_weight_${slug}_${wf}`,
+      });
+    }
+  }
+
+  return params;
+}
 
 function complexityMultiplier(complexity) {
   const key = String(complexity || 'moderate').toLowerCase();
@@ -143,11 +240,22 @@ function evaluateMetaAwarenessEvent(event = {}, context = {}) {
     addDelta(deltas, DOMAIN_KEYS.VERIFICATION, -10 * c, 'Completion claimed without verification', event);
   }
 
+  // Explicit mismatch: verification discipline scored high, but downstream verification failed.
+  // Used to calibrate both scoring and domain weight learning.
+  if (eventType === 'orchestration.verification_mismatch') {
+    addDelta(deltas, DOMAIN_KEYS.VERIFICATION, -12 * c, 'Verification mismatch: claimed high, but tests/build failed', event);
+  }
+
   return deltas;
 }
 
 module.exports = {
   DOMAIN_KEYS,
+  DOMAIN_SLUGS,
+  DOMAIN_WEIGHT_BOUNDS,
   DEFAULT_DOMAIN_WEIGHTS,
+  clampDomainWeight,
+  normalizeWorkflowType,
+  buildDomainWeightHyperParameters,
   evaluateMetaAwarenessEvent,
 };

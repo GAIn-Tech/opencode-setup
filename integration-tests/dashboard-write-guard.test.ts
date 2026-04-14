@@ -178,7 +178,7 @@ describe('Dashboard mutable API write guard', () => {
         'content-type': 'application/json',
         'x-opencode-write-token': 'wrong-token'
       },
-      body: JSON.stringify({ action: 'test', provider: 'anthropic' })
+      body: JSON.stringify({ action: 'test', provider: 'google' })
     });
 
     const response = await postProviders(request);

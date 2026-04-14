@@ -1,10 +1,52 @@
 'use strict';
 
-const DEFAULT_BUDGET_WEIGHTS = Object.freeze({
-  context: 0.7,
-  cost: 0.3,
+// === ORCHESTRATION POLICY CONSTANTS ===
+// These define task execution caps and scaling factors.
+// Could be externalized to a config file (e.g., orchestration-config.json) in the future.
+
+const ORCHESTRATION_CAPS = Object.freeze({
+  // Budget weights for combined scoring
+  budgetWeights: {
+    context: 0.7,
+    cost: 0.3,
+  },
+  // Base fanout/concurrency caps per category
+  categoryBase: {
+    deep: { fanout: 30, concurrency: 25 },
+    ultrabrain: { fanout: 25, concurrency: 20 },
+    research: { fanout: 20, concurrency: 15 },
+    architecture: { fanout: 20, concurrency: 15 },
+    'unspecified-high': { fanout: 15, concurrency: 12 },
+    'unspecified-low': { fanout: 15, concurrency: 12 },
+    quick: { fanout: 10, concurrency: 8 },
+    default: { fanout: 15, concurrency: 12 },
+    'visual-engineering': { fanout: 20, concurrency: 15 },
+    artistry: { fanout: 20, concurrency: 15 },
+    writing: { fanout: 10, concurrency: 8 },
+  },
+  // Multipliers applied based on task complexity
+  complexityMultipliers: {
+    low: 0.8,
+    moderate: 1,
+    high: 1.2,
+    critical: 1.35,
+  },
+  // Budget scaling factors by health band
+  budgetScaleByBand: {
+    critical: 0.35,
+    high: 0.5,
+    medium: 0.75,
+    healthy: 1,
+  },
+  // Health band thresholds (score ranges)
+  healthBands: {
+    critical: 0.85,
+    high: 0.65,
+    medium: 0.4,
+  },
 });
 
+// Precedence rules for policy resolution
 const PRECEDENCE_RULES = Object.freeze([
   'runtime.forceSerial',
   'runtime.parallel.disabled',
@@ -13,26 +55,10 @@ const PRECEDENCE_RULES = Object.freeze([
   'budget.adaptiveScale',
 ]);
 
-const CATEGORY_BASE_CAPS = Object.freeze({
-  deep: { fanout: 30, concurrency: 25 },
-  ultrabrain: { fanout: 25, concurrency: 20 },
-  research: { fanout: 20, concurrency: 15 },
-  architecture: { fanout: 20, concurrency: 15 },
-  'unspecified-high': { fanout: 15, concurrency: 12 },
-  'unspecified-low': { fanout: 15, concurrency: 12 },
-  quick: { fanout: 10, concurrency: 8 },
-  default: { fanout: 15, concurrency: 12 },
-  'visual-engineering': { fanout: 20, concurrency: 15 },
-  artistry: { fanout: 20, concurrency: 15 },
-  writing: { fanout: 10, concurrency: 8 },
-});
-
-const COMPLEXITY_MULTIPLIERS = Object.freeze({
-  low: 0.8,
-  moderate: 1,
-  high: 1.2,
-  critical: 1.35,
-});
+// Backward compatibility aliases
+const DEFAULT_BUDGET_WEIGHTS = ORCHESTRATION_CAPS.budgetWeights;
+const CATEGORY_BASE_CAPS = ORCHESTRATION_CAPS.categoryBase;
+const COMPLEXITY_MULTIPLIERS = ORCHESTRATION_CAPS.complexityMultipliers;
 
 function clamp01(value) {
   const numeric = Number(value);
@@ -51,17 +77,15 @@ function asPositiveInt(value) {
 }
 
 function scoreToBand(score) {
-  if (score >= 0.85) return 'critical';
-  if (score >= 0.65) return 'high';
-  if (score >= 0.4) return 'medium';
+  const { critical, high, medium } = ORCHESTRATION_CAPS.healthBands;
+  if (score >= critical) return 'critical';
+  if (score >= high) return 'high';
+  if (score >= medium) return 'medium';
   return 'healthy';
 }
 
 function budgetScaleForBand(band) {
-  if (band === 'critical') return 0.35;
-  if (band === 'high') return 0.5;
-  if (band === 'medium') return 0.75;
-  return 1;
+  return ORCHESTRATION_CAPS.budgetScaleByBand[band] ?? 1;
 }
 
 function getBaseCaps(taskClassification = {}) {

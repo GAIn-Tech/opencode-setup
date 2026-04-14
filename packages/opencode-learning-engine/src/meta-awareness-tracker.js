@@ -4,7 +4,13 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const { evaluateMetaAwarenessEvent, DEFAULT_DOMAIN_WEIGHTS } = require('./meta-awareness-rules');
+const {
+  evaluateMetaAwarenessEvent,
+  DEFAULT_DOMAIN_WEIGHTS,
+  DOMAIN_SLUGS,
+  clampDomainWeight,
+  normalizeWorkflowType,
+} = require('./meta-awareness-rules');
 const { boundedDelta, clamp, detectAnomaly, selectiveReassessmentWeight } = require('./meta-awareness-stability');
 const { initializeRollups, calculateConfidenceInterval, calculateComposite } = require('./meta-awareness-rollups');
 const { safeJsonParse } = require('opencode-safe-io');
@@ -39,6 +45,10 @@ class MetaAwarenessTracker {
     this._rollupCache = null;   // in-memory rollup; null = not yet loaded
     this._flushTimer = null;
 
+    // Optional HyperParameterRegistry (wired by LearningEngine after construction).
+    // Fail-open: tracker works with persisted rollups + defaults without registry.
+    this.hyperParamRegistry = options.hyperParamRegistry || null;
+
     // One-time sync setup (constructor cannot be async)
     if (!fs.existsSync(this.telemetryDir)) {
       fs.mkdirSync(this.telemetryDir, { recursive: true });
@@ -55,6 +65,39 @@ class MetaAwarenessTracker {
         this._rollupCache = initializeRollups();
       }
     }
+  }
+
+  _readHyperParamValue(name, fallback) {
+    try {
+      const param = this.hyperParamRegistry?.get?.(name);
+      const v = param?.current_value;
+      return typeof v === 'number' && Number.isFinite(v) ? v : fallback;
+    } catch {
+      return fallback;
+    }
+  }
+
+  _getDomainWeights({ workflow_type, fallbackWeights } = {}) {
+    const workflowKey = normalizeWorkflowType(workflow_type || 'general');
+    const fallback = (fallbackWeights && typeof fallbackWeights === 'object')
+      ? fallbackWeights
+      : DEFAULT_DOMAIN_WEIGHTS;
+
+    const out = {};
+    const domainKeys = Object.keys(fallback);
+    for (const domainKey of domainKeys) {
+      const slug = DOMAIN_SLUGS[domainKey] || normalizeWorkflowType(domainKey);
+      const baseName = `domain_weight_${slug}`;
+      const wfName = `domain_weight_${slug}_${workflowKey}`;
+
+      const defaultWeight = clampDomainWeight(Number(fallback[domainKey] || 1.0), 1.0);
+      const wfValue = this._readHyperParamValue(wfName, null);
+      const baseValue = this._readHyperParamValue(baseName, null);
+      const chosen = wfValue ?? baseValue ?? defaultWeight;
+      out[domainKey] = clampDomainWeight(chosen, defaultWeight);
+    }
+
+    return out;
   }
 
   async trackEvent(event = {}, options = {}) {
@@ -152,7 +195,18 @@ class MetaAwarenessTracker {
       rollups.domains[domain] = bucket;
     }
 
-    const composite = calculateComposite(rollups.domains, rollups.domain_weights || DEFAULT_DOMAIN_WEIGHTS);
+    const workflowType = normalizeWorkflowType(
+      normalized.metadata?.workflow_type || normalized.task_type || 'general'
+    );
+    const domainWeights = this._getDomainWeights({
+      workflow_type: workflowType,
+      fallbackWeights: rollups.domain_weights || DEFAULT_DOMAIN_WEIGHTS,
+    });
+
+    // Persist the latest effective weights (for observability + dashboard reads).
+    rollups.domain_weights = { ...domainWeights };
+
+    const composite = calculateComposite(rollups.domains, domainWeights);
     rollups.composite = {
       ...rollups.composite,
       ...composite,

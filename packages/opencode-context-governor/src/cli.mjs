@@ -34,8 +34,8 @@ Commands:
   health                                      Quick health check (exits 0=ok, 1=critical)
 
 Examples:
-  opencode-context-governor-cli get-status ses_abc123 anthropic/claude-sonnet-4-5
-  opencode-context-governor-cli record-usage ses_abc123 anthropic/claude-opus-4-6 5000
+  opencode-context-governor-cli get-status ses_abc123 google/gemini-2.5-flash
+  opencode-context-governor-cli record-usage ses_abc123 google/gemini-2.5-pro 5000
   opencode-context-governor-cli list-sessions
 `.trim());
 }

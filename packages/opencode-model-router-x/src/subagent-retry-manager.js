@@ -14,49 +14,49 @@ const { resolveModelAlias } = require('./model-alias-resolver');
 const CATEGORY_FALLBACKS = {
   'visual-engineering': [
     'antigravity/antigravity-gemini-3-pro',
-    'anthropic/claude-sonnet-4-5',
+    'google/gemini-2.5-pro',
     'openai/gpt-5.2',
   ],
   'ultrabrain': [
-    'anthropic/claude-opus-4-6',
+    'google/gemini-2.5-pro',
     'openai/gpt-5.3-codex',
-    'antigravity/antigravity-claude-opus-4-6-thinking',
+    'antigravity/antigravity-gemini-3-flash',
   ],
   'deep': [
-    'anthropic/claude-opus-4-6',
+    'google/gemini-2.5-pro',
     'openai/gpt-5.3-codex',
-    'antigravity/antigravity-claude-sonnet-4-5-thinking',
+    'antigravity/antigravity-gemini-3-flash',
   ],
   'artistry': [
     'antigravity/antigravity-gemini-3-pro',
-    'anthropic/claude-sonnet-4-5',
+    'google/gemini-2.5-pro',
     'openai/gpt-5.2',
   ],
   'quick': [
-    'anthropic/claude-haiku-4-5',
+    'google/gemini-2.5-flash',
     'antigravity/antigravity-gemini-3-flash',
     'openai/gpt-5',
   ],
   'writing': [
     'antigravity/antigravity-gemini-3-flash',
-    'anthropic/claude-sonnet-4-5',
+    'google/gemini-2.5-flash',
     'openai/gpt-5.2',
   ],
   'unspecified-low': [
-    'anthropic/claude-sonnet-4-5',
-    'antigravity/antigravity-claude-sonnet-4-5',
+    'google/gemini-2.5-flash',
+    'antigravity/antigravity-gemini-3-flash',
     'openai/gpt-5.2',
   ],
   'unspecified-high': [
-    'anthropic/claude-opus-4-6',
+    'google/gemini-2.5-pro',
     'openai/gpt-5.3-codex',
-    'antigravity/antigravity-claude-opus-4-6-thinking',
+    'antigravity/antigravity-gemini-3-pro',
   ],
 };
 
 // Default fallback chain for unknown categories
 const DEFAULT_FALLBACKS = [
-  'anthropic/claude-sonnet-4-5',
+  'google/gemini-2.5-flash',
   'openai/gpt-5.2',
   'antigravity/antigravity-gemini-3-pro',
 ];

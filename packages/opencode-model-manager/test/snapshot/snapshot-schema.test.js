@@ -10,7 +10,7 @@ describe('validateSnapshot', () => {
       timestamp: Date.now(),
       models: [
         { id: 'gpt-5', provider: 'openai' },
-        { name: 'claude-4', provider: 'anthropic' },
+        { name: 'gemini-2.5-pro', provider: 'google' },
       ],
     });
     expect(result).toEqual({ valid: true, errors: [] });

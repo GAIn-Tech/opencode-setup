@@ -1,7 +1,7 @@
 {
   "id": "hyper-param-delegation-stability-20260414",
-  "timestamp": "2026-04-14T00:45:00.000Z",
-  "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, and align integration-layer fail-open test contracts.",
+  "timestamp": "2026-04-14T00:55:00.000Z",
+  "summary": "Wire hyper-parameter learning across integration + routing packages, stabilize delegated model behavior, and align integration-layer fail-open and memory-graph test contracts.",
   "affected_paths": [
     "packages/opencode-hyper-param-learner/",
     "packages/opencode-learning-engine/src/",

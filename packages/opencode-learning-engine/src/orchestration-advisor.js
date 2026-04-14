@@ -7,10 +7,138 @@
  * Feeds into oh-my-opencode agent selection.
  */
 
+// === ORCHESTRATION ADVISOR CONSTANTS ===
+
+// Agent capability definitions
+const AGENT_CAPABILITIES = Object.freeze({
+  explore: {
+    strengths: ['code_navigation', 'codebase_understanding', 'search'],
+    task_types: ['explore', 'understand', 'search', 'find'],
+  },
+  librarian: {
+    strengths: ['documentation', 'knowledge_retrieval', 'context'],
+    task_types: ['document', 'explain', 'lookup'],
+  },
+  oracle: {
+    strengths: ['analysis', 'architecture', 'design_review'],
+    task_types: ['review', 'analyze', 'design', 'plan'],
+  },
+  hephaestus: {
+    strengths: ['building', 'implementation', 'coding'],
+    task_types: ['build', 'implement', 'create', 'feature'],
+  },
+  metis: {
+    strengths: ['planning', 'strategy', 'decomposition'],
+    task_types: ['plan', 'decompose', 'strategy', 'complex'],
+  },
+  momus: {
+    strengths: ['testing', 'validation', 'quality'],
+    task_types: ['test', 'validate', 'verify', 'quality'],
+  },
+});
+
+// Fallback skill affinity map (used if registry load fails)
+// Maps task type keywords to recommended skills
+const SKILL_AFFINITY_FALLBACK = Object.freeze({
+  debug: ['systematic-debugging', 'test-driven-development'],
+  refactor: ['using-git-worktrees', 'verification-before-completion'],
+  feature: ['brainstorming', 'writing-plans', 'executing-plans'],
+  fix: ['systematic-debugging'],
+  test: ['test-driven-development', 'verification-before-completion'],
+  git: ['git-master'],
+  browser: ['agent-browser', 'dev-browser'],
+  ui: ['frontend-ui-ux', 'dev-browser'],
+  deploy: ['verification-before-completion'],
+  plan: ['writing-plans', 'brainstorming'],
+  complex: ['dispatching-parallel-agents', 'subagent-driven-development'],
+});
+
 const fs = require('fs');
 const path = require('path');
 const { AntiPatternCatalog } = require('./anti-patterns');
 const { PositivePatternTracker } = require('./positive-patterns');
+
+// Hyper-parameter registry (optional) for adaptive thresholds
+let HyperParameterRegistry;
+try {
+  ({ HyperParameterRegistry } = require('../../opencode-hyper-param-learner/src/index.js'));
+} catch {
+  // Optional dependency — advisor remains fully functional without it.
+  HyperParameterRegistry = null;
+}
+
+const RISK_THRESHOLD_DEFAULT = 15;
+const RISK_THRESHOLD_COMPLEXITIES = Object.freeze([
+  'trivial',
+  'simple',
+  'moderate',
+  'complex',
+  'extreme',
+]);
+
+const RISK_THRESHOLD_BOUNDS = Object.freeze({
+  soft: { min: 10, max: 25 },
+  hard: { min: 5, max: 50 },
+});
+
+function clampFiniteNumber(value, min, max, fallback) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return fallback;
+  }
+
+  if (value < min) return min;
+  if (value > max) return max;
+  return value;
+}
+
+function buildRiskThresholdHyperParameters(currentValue = RISK_THRESHOLD_DEFAULT) {
+  const base = {
+    current_value: currentValue,
+    learning_config: {
+      adaptation_strategy: 'threshold',
+      triggers: {
+        outcome_type: 'feedback',
+        min_samples: 20,
+        confidence_threshold: 0.85,
+      },
+      bounds: RISK_THRESHOLD_BOUNDS,
+      exploration_policy: {
+        enabled: true,
+        epsilon: 0.1,
+        annealing_rate: 0.95,
+      },
+    },
+    grouping: {
+      group_by_task_type: true,
+      group_by_complexity: false,
+      aggregate_function: 'mean',
+    },
+    individual_tracking: {
+      per_session: true,
+      per_task: false,
+    },
+  };
+
+  const parameters = [
+    {
+      ...base,
+      name: 'risk_threshold_default',
+      grouping: {
+        ...base.grouping,
+        group_by_complexity: true,
+      },
+    },
+  ];
+
+  for (const complexity of RISK_THRESHOLD_COMPLEXITIES) {
+    parameters.push({
+      ...base,
+      name: `risk_threshold_${complexity}`,
+    });
+  }
+
+  return parameters;
+}
 
 // Wire in tool-usage tracker for tool appropriateness insights
 let ToolUsageTracker;
@@ -48,49 +176,6 @@ try {
   };
 }
 const { createOrchestrationId, getQuotaSignal } = contextUtils;
-
-// Agent routing knowledge
-const AGENT_CAPABILITIES = {
-  explore: {
-    strengths: ['code_navigation', 'codebase_understanding', 'search'],
-    task_types: ['explore', 'understand', 'search', 'find'],
-  },
-  librarian: {
-    strengths: ['documentation', 'knowledge_retrieval', 'context'],
-    task_types: ['document', 'explain', 'lookup'],
-  },
-  oracle: {
-    strengths: ['analysis', 'architecture', 'design_review'],
-    task_types: ['review', 'analyze', 'design', 'plan'],
-  },
-  hephaestus: {
-    strengths: ['building', 'implementation', 'coding'],
-    task_types: ['build', 'implement', 'create', 'feature'],
-  },
-  metis: {
-    strengths: ['planning', 'strategy', 'decomposition'],
-    task_types: ['plan', 'decompose', 'strategy', 'complex'],
-  },
-  momus: {
-    strengths: ['testing', 'validation', 'quality'],
-    task_types: ['test', 'validate', 'verify', 'quality'],
-  },
-};
-
-// Fallback skill affinity map (used if registry load fails)
-const SKILL_AFFINITY_FALLBACK = {
-  debug: ['systematic-debugging', 'test-driven-development'],
-  refactor: ['using-git-worktrees', 'verification-before-completion'],
-  feature: ['brainstorming', 'writing-plans', 'executing-plans'],
-  fix: ['systematic-debugging'],
-  test: ['test-driven-development', 'verification-before-completion'],
-  git: ['git-master'],
-  browser: ['agent-browser', 'dev-browser'],
-  ui: ['frontend-ui-ux', 'dev-browser'],
-  deploy: ['verification-before-completion'],
-  plan: ['writing-plans', 'brainstorming'],
-  complex: ['dispatching-parallel-agents', 'subagent-driven-development'],
-};
 
 // Skill affinity map — built from registry at construction time
 let SKILL_AFFINITY = SKILL_AFFINITY_FALLBACK;
@@ -161,6 +246,36 @@ class OrchestrationAdvisor {
     // Resolve registry path: from src/ → packages/opencode-learning-engine/ → packages/ → root
     const registryPath = path.resolve(__dirname, '../../../opencode-config/skills/registry.json');
     this.skillAffinity = _buildSkillAffinity(registryPath);
+
+    // Hyper-parameters: risk thresholds (fail-open to hardcoded default)
+    this.hyperParameterRegistry = null;
+    if (HyperParameterRegistry) {
+      try {
+        const persistPath = path.resolve(
+          __dirname,
+          '../../../opencode-config/hyper-parameter-registry.json'
+        );
+        const defaults = buildRiskThresholdHyperParameters(RISK_THRESHOLD_DEFAULT);
+
+        const registry = new HyperParameterRegistry({
+          persistPath,
+          defaults,
+          autoLoad: true,
+        });
+
+        // Ensure new parameters exist even if persisted registry predates them.
+        for (const parameter of defaults) {
+          if (!registry.has(parameter.name)) {
+            registry.create(parameter);
+          }
+        }
+
+        this.hyperParameterRegistry = registry;
+      } catch {
+        // Fail-open: keep null registry.
+        this.hyperParameterRegistry = null;
+      }
+    }
   }
 
   /**
@@ -199,6 +314,9 @@ class OrchestrationAdvisor {
 
     // === Quota awareness: Economic risk ===
     const quotaRisk = this._computeQuotaRisk(taskContext);
+
+    // === Risk governance: pause threshold (hyper-parameter driven) ===
+    const riskPauseThreshold = this._getRiskPauseThreshold(taskContext);
     if (quotaRisk > 0.5) {
       warnings.push({
         type: 'quota_exhaustion_risk',
@@ -248,7 +366,7 @@ class OrchestrationAdvisor {
       risk_score: Math.max(antiCheck.risk_score, quotaRisk * 100),
       riskScore: Math.max(antiCheck.risk_score, quotaRisk * 100), // camelCase for router compatibility
       quota_risk: quotaRisk,
-      should_pause: antiCheck.risk_score > 15 || quotaRisk > 0.85, // High risk → agent should pause
+      should_pause: antiCheck.risk_score > riskPauseThreshold || quotaRisk > 0.85, // High risk → agent should pause
     };
 
     // Allow hooks to augment advice before returning
@@ -501,6 +619,33 @@ class OrchestrationAdvisor {
   }
 
   // ===== PRIVATE =====
+
+  _getRiskPauseThreshold(taskContext) {
+    const normalizedComplexity = this._normalizeTextValue(taskContext.complexity);
+    const complexityKey = RISK_THRESHOLD_COMPLEXITIES.includes(normalizedComplexity)
+      ? normalizedComplexity
+      : null;
+
+    const registry = this.hyperParameterRegistry;
+
+    let threshold = RISK_THRESHOLD_DEFAULT;
+    if (registry && typeof registry.get === 'function') {
+      const byComplexity = complexityKey
+        ? registry.get(`risk_threshold_${complexityKey}`)
+        : null;
+      const fallback = registry.get('risk_threshold_default');
+
+      threshold = byComplexity?.current_value ?? fallback?.current_value ?? threshold;
+    }
+
+    // Hard safety rails (MUST NOT: below 5 or above 50).
+    return clampFiniteNumber(
+      threshold,
+      RISK_THRESHOLD_BOUNDS.hard.min,
+      RISK_THRESHOLD_BOUNDS.hard.max,
+      RISK_THRESHOLD_DEFAULT
+    );
+  }
 
   _computeQuotaRisk(taskContext) {
     const signal = getQuotaSignal(taskContext);
