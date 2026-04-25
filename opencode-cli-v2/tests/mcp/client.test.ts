@@ -20,7 +20,7 @@ describe('MCPClient', () => {
   });
 
   test('discovers tools and executes tool calls', async () => {
-    const config = createStdioServer('tavily');
+    const config = createStdioServer('websearch');
     const client = new MCPClient(config, {
       transportFactory: async () => new FakeTransport(config)
     });

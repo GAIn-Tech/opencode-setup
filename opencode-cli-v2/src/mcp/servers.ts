@@ -201,7 +201,6 @@ function monorepoPath(...segments: string[]): string {
  * Canonical MCP server catalog for v2 bridge.
  */
 export const DEFAULT_MCP_SERVER_CATALOG: Record<string, MCPServerConfig> = {
-  tavily: stdioServer('tavily', 'npx', ['-y', '@tavily/mcp']),
   supermemory: httpServer('supermemory', 'https://mcp.supermemory.ai/mcp'),
   context7: httpServer('context7', 'https://mcp.context7.com/mcp'),
   playwright: stdioServer('playwright', 'bunx', ['@playwright/mcp@0.0.64']),

@@ -7,7 +7,7 @@ import { createStdioServer, FakeTransport } from './helpers';
 describe('MCPServerManager', () => {
   test('includes 15+ default servers in catalog', () => {
     expect(Object.keys(DEFAULT_MCP_SERVER_CATALOG).length).toBeGreaterThanOrEqual(15);
-    expect(DEFAULT_MCP_SERVER_CATALOG.tavily?.id).toBe('tavily');
+    expect(DEFAULT_MCP_SERVER_CATALOG.websearch?.id).toBe('websearch');
     expect(DEFAULT_MCP_SERVER_CATALOG.supermemory?.id).toBe('supermemory');
     expect(DEFAULT_MCP_SERVER_CATALOG.context7?.id).toBe('context7');
   });

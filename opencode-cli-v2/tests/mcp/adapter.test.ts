@@ -64,25 +64,25 @@ describe('MCPBridgeAdapter', () => {
     await adapter.runInitialize();
 
     await adapter.connectServer({
-      id: 'tavily',
-      name: 'tavily',
+      id: 'websearch',
+      name: 'websearch',
       transport: 'stdio',
-      command: 'npx',
-      args: ['-y', '@tavily/mcp']
+      command: 'bunx',
+      args: ['-y', '@ignidor/web-search-mcp']
     });
 
-    const tools = await adapter.discoverTools('tavily');
+    const tools = await adapter.discoverTools('websearch');
     expect(tools).toBeArray();
 
-    const executed = await adapter.executeTool('tavily', 'search', {
+    const executed = await adapter.executeTool('websearch', 'search', {
       query: 'opencode'
     });
-    expect(executed.serverId).toBe('tavily');
+    expect(executed.serverId).toBe('websearch');
 
-    const health = await adapter.healthCheckServer('tavily');
-    expect(health.serverId).toBe('tavily');
+    const health = await adapter.healthCheckServer('websearch');
+    expect(health.serverId).toBe('websearch');
 
-    await adapter.disconnectServer('tavily');
+    await adapter.disconnectServer('websearch');
     await adapter.runShutdown();
   });
 });
