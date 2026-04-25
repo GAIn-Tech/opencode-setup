@@ -75,16 +75,17 @@ afterEach(() => {
 });
 
 describe('SkillRL API regression', () => {
-  test('/api/rl returns 503 fallback when file is missing', async () => {
+  test('/api/rl returns seeded state when file is missing', async () => {
     removeSkill();
     const res = await getRL();
     const body = await res.json();
 
-    expect(res.status).toBe(503);
-    expect(body.fallback).toBe(true);
-    expect(body.skill_bank.total).toBe(0);
-    expect(body.evolution.total_adaptations).toBe(0);
-    expect(typeof body.warning).toBe('string');
+    expect(res.status).toBe(200);
+    expect(body.fallback).toBe(false);
+    expect(body.data_fidelity).toBe('seeded');
+    expect(body.skill_bank.total).toBeGreaterThan(0);
+    expect(body.metadata.seeded_at).toBeDefined();
+    expect(body.metadata.seed_source).toBe('opencode-config/skill-rl-seed.json');
   });
 
   test('/api/rl returns structured contract for valid state', async () => {
@@ -103,16 +104,19 @@ describe('SkillRL API regression', () => {
     expect(Array.isArray(body.evolution.failure_history)).toBe(true);
     expect(Array.isArray(body.evolution.recent_adaptations)).toBe(true);
     expect(typeof body.policy.learning_rate).toBe('number');
+    expect(body.data_fidelity).toBe('live');
   });
 
-  test('/api/skills returns demo data when file is missing', async () => {
+  test('/api/skills returns seeded data when file is missing', async () => {
     removeSkill();
     const res = await getSkills();
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body.demo).toBe(true);
+    expect(body.demo).toBe(false);
+    expect(body.data_fidelity).toBe('seeded');
     expect(body.skills.total).toBeGreaterThan(0);
+    expect(body.metadata.seeded_at).toBeDefined();
   });
 
   test('/api/skills returns parsed real data when file exists', async () => {
@@ -127,16 +131,18 @@ describe('SkillRL API regression', () => {
     expect(Array.isArray(body.skills.top_general)).toBe(true);
     expect(Array.isArray(body.skills.top_task_specific)).toBe(true);
     expect(body.learning.total_failures_learned).toBeGreaterThanOrEqual(1);
+    expect(body.data_fidelity).toBe('live');
   });
 
-  test('/api/skills returns 503 fallback on malformed state', async () => {
+  test('/api/skills reseeds and returns seeded data on malformed state', async () => {
     ensureDir();
     fs.writeFileSync(skillPath, '{invalid json');
     const res = await getSkills();
     const body = await res.json();
 
-    expect(res.status).toBe(503);
-    expect(body.warning).toContain('fallback');
-    expect(body.demo).toBe(true);
+    expect(res.status).toBe(200);
+    expect(body.data_fidelity).toBe('seeded');
+    expect(body.demo).toBe(false);
+    expect(body.skills.total).toBeGreaterThan(0);
   });
 });

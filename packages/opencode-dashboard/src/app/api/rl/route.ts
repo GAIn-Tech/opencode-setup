@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import path from 'path';
-import os from 'os';
 import fsPromises from 'fs/promises';
+import { ensureSkillRLState, getSkillRLFidelity } from '../_lib/skill-rl-state';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,10 +47,14 @@ type RLContract = {
     tier_adjustment_window: number;
   };
   fallback: boolean;
-  data_fidelity?: 'live' | 'degraded' | 'unavailable';
+  data_fidelity?: 'seeded' | 'live' | 'degraded' | 'unavailable';
   status_reason?: string;
   warning?: string;
   error?: string;
+  metadata?: {
+    seeded_at: string | null;
+    seed_source: string | null;
+  };
 };
 
 function toIso(value: unknown): string {
@@ -215,22 +219,11 @@ async function buildUnavailableResponse(
 }
 
 export async function GET() {
-  const skillRLPath = path.join(os.homedir(), '.opencode', 'skill-rl.json');
-
   try {
-    if (!await fsPromises.access(skillRLPath).then(() => true).catch(() => false)) {
+    const rlData = await ensureSkillRLState();
+    if (!rlData) {
       return NextResponse.json(
-        await buildUnavailableResponse('RL state unavailable: ~/.opencode/skill-rl.json not found'),
-        { status: 503 }
-      );
-    }
-
-    let rlData: Record<string, unknown>;
-    try {
-      rlData = JSON.parse(await fsPromises.readFile(skillRLPath, 'utf-8'));
-    } catch (parseError) {
-      return NextResponse.json(
-        await buildUnavailableResponse('RL state unavailable: could not parse skill-rl.json', parseError),
+        await buildUnavailableResponse('RL state unavailable: could not initialize or parse skill-rl.json'),
         { status: 503 }
       );
     }
@@ -300,6 +293,8 @@ export async function GET() {
       0
     );
 
+    const dataFidelity = getSkillRLFidelity(rlData);
+
     return NextResponse.json({
       version: '1.0.0',
       skill_bank: {
@@ -317,8 +312,12 @@ export async function GET() {
       },
       policy: await readPolicy(),
       fallback: false,
-      data_fidelity: 'live',
-      status_reason: 'ok'
+      data_fidelity: dataFidelity,
+      status_reason: dataFidelity === 'seeded' ? 'seeded_state' : 'ok',
+      metadata: {
+        seeded_at: typeof rlData.seeded_at === 'string' ? rlData.seeded_at : null,
+        seed_source: typeof rlData.seed_source === 'string' ? rlData.seed_source : null,
+      }
     } satisfies RLContract);
   } catch (error) {
     return NextResponse.json(

@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server';
-import path from 'path';
-import os from 'os';
-import fs from 'fs';
-import fsPromises from 'fs/promises';
+import { ensureSkillRLState, getSkillRLFidelity } from '../_lib/skill-rl-state';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,15 +9,6 @@ interface SkillEntry {
   usage_count: number;
   last_updated: string;
   task_type?: string;
-}
-
-const OPENCODE_DIRNAME = '.opencode';
-
-function resolveDataHome(): string {
-  if (process.env.OPENCODE_DATA_HOME) return process.env.OPENCODE_DATA_HOME;
-  if (process.env.XDG_DATA_HOME) return path.join(process.env.XDG_DATA_HOME, 'opencode');
-  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
-  return path.join(homeDir, OPENCODE_DIRNAME);
 }
 
 function toNumber(value: unknown, fallback = 0): number {
@@ -162,30 +150,20 @@ const demoData = {
 
 export async function GET() {
   try {
-    const opencodePath = resolveDataHome();
-    const skillsPath = path.join(opencodePath, 'skill-rl.json');
-    
-    // Check if skills file exists
-    if (!fs.existsSync(skillsPath)) {
-      return NextResponse.json(demoData);
+    const skillData = await ensureSkillRLState();
+    if (!skillData) {
+      return NextResponse.json(
+        {
+          ...demoData,
+          data_fidelity: 'unavailable',
+          status_reason: 'engine_unavailable',
+          warning: 'SkillRL state unavailable'
+        },
+        { status: 503 }
+      );
     }
-    
-    // Try to load real skill data
+
     try {
-      const raw = await fsPromises.readFile(skillsPath, 'utf-8');
-      const skillData = safeParseJson(raw);
-      if (!skillData) {
-        console.error('[Skills API] Parse error: invalid JSON');
-        return NextResponse.json(
-          {
-            ...demoData,
-            data_fidelity: 'degraded',
-            status_reason: 'malformed_state',
-            warning: 'Using fallback data - engine unavailable'
-          },
-          { status: 503 }
-        );
-      }
       const skillBank = (skillData.skillBank || {}) as Record<string, unknown>;
       const generalSkills = decodeGeneralSkills(skillBank.general);
       const taskSpecificSkills = decodeTaskSpecificSkills(skillBank.taskSpecific);
@@ -196,6 +174,8 @@ export async function GET() {
           ? evolutionEngine.failureHistory
           : [];
       
+      const dataFidelity = getSkillRLFidelity(skillData);
+
       return NextResponse.json({
         version: '1.0.0',
         skills: {
@@ -224,9 +204,13 @@ export async function GET() {
             : 'No task-specific skills yet'
         ],
         fallback: false,
-        data_fidelity: 'live',
-        status_reason: 'ok',
-        demo: false
+        data_fidelity: dataFidelity,
+        status_reason: dataFidelity === 'seeded' ? 'seeded_state' : 'ok',
+        demo: false,
+        metadata: {
+          seeded_at: skillData.seeded_at ?? null,
+          seed_source: skillData.seed_source ?? null,
+        }
       });
     } catch (parseError) {
       console.error('[Skills API] Parse error:', parseError);

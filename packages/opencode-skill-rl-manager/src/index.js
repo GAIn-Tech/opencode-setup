@@ -23,7 +23,7 @@ const os = require('os');
 let HyperParameterRegistry = null;
 try {
   // Workspace package name
-  ({ HyperParameterRegistry } = require('opencode-hyper-param-learner'));
+  ({ HyperParameterRegistry } = require('../../opencode-hyper-param-learner/src/index.js'));
 } catch (_) {
   HyperParameterRegistry = null;
 }
@@ -221,6 +221,8 @@ const LearningValidator = {
 class SkillRLManager {
   constructor(options = {}) {
     const _defaultRLPath = path.join(resolveDataHome(), 'skill-rl.json');
+    const hasExplicitPersistencePath = Object.prototype.hasOwnProperty.call(options, 'persistencePath')
+      || Object.prototype.hasOwnProperty.call(options, 'stateFile');
     if (Object.prototype.hasOwnProperty.call(options, 'persistencePath')) {
       this.persistencePath = options.persistencePath;
     } else if (Object.prototype.hasOwnProperty.call(options, 'stateFile')) {
@@ -230,10 +232,14 @@ class SkillRLManager {
     }
     this.skillBank = new SkillBank(options.skillBank);
     this.evolutionEngine = new EvolutionEngine(this.skillBank, options.evolution);
+    this.dataFidelity = 'live';
+    this.seededAt = null;
+    this.seedSource = null;
+    this.metadata = {};
 
     // One-time migration: old ./skill-rl-state.json → canonical ~/.opencode/skill-rl.json
     const _legacyPath = path.join(process.cwd(), 'skill-rl-state.json');
-    if (this.persistencePath && fs.existsSync(_legacyPath) && !fs.existsSync(this.persistencePath)) {
+    if (!hasExplicitPersistencePath && this.persistencePath && fs.existsSync(_legacyPath) && !fs.existsSync(this.persistencePath)) {
       try {
         fs.mkdirSync(path.dirname(this.persistencePath), { recursive: true });
         fs.copyFileSync(_legacyPath, this.persistencePath);
@@ -245,12 +251,12 @@ class SkillRLManager {
 
     // Load persisted state BEFORE syncWithRegistry so existing usage_count/success_rate are preserved.
     // syncWithRegistry is additive (skips skills already in the Map), so it won't overwrite loaded data.
-    if (this.persistencePath && fs.existsSync(this.persistencePath)) {
-      try {
-        const _persisted = SafeJSON.parse(fs.readFileSync(this.persistencePath, 'utf-8'));
-        if (_persisted.skillBank) this.skillBank.import(_persisted.skillBank);
-        if (_persisted.evolutionEngine) this.evolutionEngine.import(_persisted.evolutionEngine);
-      } catch (_err) { /* non-fatal — fresh state on corruption */ }
+    // If no persisted state exists, initialize from seed file for cold-start experience.
+    if (this.persistencePath) {
+      const loaded = this._loadPersistedState();
+      if (!loaded) {
+        this._initializeFromSeed();
+      }
     }
 
     // Sync with skill registry on startup — additive, never overwrites existing data
@@ -295,6 +301,10 @@ class SkillRLManager {
       outcome.skills_used = outcome.skills;
     }
 
+    if (this.dataFidelity === 'seeded') {
+      this.dataFidelity = 'live';
+    }
+
     // Process through skill bank - update multi-dimensional metrics for all used skills
     const skillNames = Array.isArray(outcome.skills_used) && outcome.skills_used.length > 0
       ? outcome.skills_used
@@ -305,6 +315,8 @@ class SkillRLManager {
 
     for (const skillName of skillNames) {
       if (!skillName) continue;
+
+      this.skillBank.recordUsage(skillName, outcome.task_type || outcome.taskType || null);
 
       // Pass full outcome so SkillBank can update complexity/task_type buckets,
       // efficiency metrics (tokens_used, latency_ms), and evidence counts.
@@ -718,9 +730,14 @@ selectSkills(taskContext) {
 
     try {
       const state = {
+        version: '1.0.0',
         skillBank: this.skillBank.export(),
         evolutionEngine: this.evolutionEngine.export(),
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        data_fidelity: this.dataFidelity,
+        seeded_at: this.seededAt,
+        seed_source: this.seedSource,
+        metadata: this.metadata,
       };
 
       const parentDir = path.dirname(this.persistencePath);
@@ -898,9 +915,14 @@ selectSkills(taskContext) {
     
     try {
       const state = {
+        version: '1.0.0',
         skillBank: this.skillBank.export(),
         evolutionEngine: this.evolutionEngine.export(),
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        data_fidelity: this.dataFidelity,
+        seeded_at: this.seededAt,
+        seed_source: this.seedSource,
+        metadata: this.metadata,
       };
 
       const parentDir = path.dirname(this.persistencePath);
@@ -930,13 +952,7 @@ selectSkills(taskContext) {
     
     try {
       const data = SafeJSON.parse(fs.readFileSync(this.persistencePath, 'utf-8'));
-      
-      if (data.skillBank) {
-        this.skillBank.import(data.skillBank);
-      }
-      if (data.evolutionEngine) {
-        this.evolutionEngine.import(data.evolutionEngine);
-      }
+      this._importState(data);
     } catch (error) {
       console.warn('Failed to load SkillRL state:', error.message);
     } finally {
@@ -950,7 +966,11 @@ selectSkills(taskContext) {
   export() {
     return {
       skillBank: this.skillBank.export(),
-      evolutionEngine: this.evolutionEngine.export()
+      evolutionEngine: this.evolutionEngine.export(),
+      data_fidelity: this.dataFidelity,
+      seeded_at: this.seededAt,
+      seed_source: this.seedSource,
+      metadata: this.metadata,
     };
   }
 
@@ -958,11 +978,69 @@ selectSkills(taskContext) {
    * Import full state (for debugging)
    */
   import(data) {
+    this._importState(data);
+  }
+
+  getSkillBank() {
+    return this.skillBank;
+  }
+
+  getEvolutionState() {
+    return this.evolutionEngine;
+  }
+
+  _importState(data) {
+    if (!data || typeof data !== 'object') return false;
     if (data.skillBank) {
       this.skillBank.import(data.skillBank);
     }
     if (data.evolutionEngine) {
       this.evolutionEngine.import(data.evolutionEngine);
+    }
+    this.dataFidelity = typeof data.data_fidelity === 'string' ? data.data_fidelity : 'live';
+    this.seededAt = data.seeded_at || null;
+    this.seedSource = data.seed_source || null;
+    this.metadata = data.metadata && typeof data.metadata === 'object' ? data.metadata : {};
+    return true;
+  }
+
+  _loadPersistedState() {
+    if (!this.persistencePath || !fs.existsSync(this.persistencePath)) return false;
+    try {
+      const persisted = SafeJSON.parse(fs.readFileSync(this.persistencePath, 'utf-8'), null);
+      if (!persisted || !persisted.skillBank) {
+        return false;
+      }
+      this._importState(persisted);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  _initializeFromSeed() {
+    const seedPath = path.resolve(__dirname, '../../../opencode-config/skill-rl-seed.json');
+    try {
+      if (!fs.existsSync(seedPath)) return false;
+      const seed = SafeJSON.parse(fs.readFileSync(seedPath, 'utf-8'), null);
+      if (!seed || !seed.skillBank) return false;
+      const seededState = {
+        ...seed,
+        seeded_at: new Date().toISOString(),
+        seed_source: seed.seed_source || 'opencode-config/skill-rl-seed.json',
+        data_fidelity: 'seeded',
+      };
+      this._importState(seededState);
+
+      try {
+        fs.mkdirSync(path.dirname(this.persistencePath), { recursive: true });
+        fs.writeFileSync(this.persistencePath, SafeJSON.stringify(seededState), 'utf-8');
+      } catch (_) {
+        // non-fatal — seeded state remains in memory
+      }
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 
