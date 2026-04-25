@@ -129,7 +129,7 @@ describe('AntigravityQuotaPluginAdapter', () => {
     expect(result?.handled).toBe(true);
     const output = result?.output as
       | {
-          events?: Array<{ accountId: string; deltaQuota: number; source?: string }>;
+          events?: { accountId: string; deltaQuota: number; source?: string }[];
           totalEvents?: number;
         }
       | undefined;
@@ -167,19 +167,17 @@ describe('AntigravityQuotaPluginAdapter', () => {
           hasAlerts?: boolean;
           criticalCount?: number;
           warningCount?: number;
-          alerts?: Array<{ accountId: string; level: string }>;
+          alerts?: { accountId: string; level: string }[];
         }
       | undefined;
 
     expect(output?.hasAlerts).toBe(true);
     expect(output?.criticalCount).toBe(1);
     expect(output?.warningCount).toBe(1);
-    expect(output?.alerts).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ accountId: 'acc-a', level: 'critical' }),
-        expect.objectContaining({ accountId: 'acc-b', level: 'warning' })
-      ])
-    );
+    const alerts = output?.alerts;
+    expect(alerts).toBeDefined();
+    expect(alerts?.some((alert) => alert.accountId === 'acc-a' && alert.level === 'critical')).toBe(true);
+    expect(alerts?.some((alert) => alert.accountId === 'acc-b' && alert.level === 'warning')).toBe(true);
   });
 });
 

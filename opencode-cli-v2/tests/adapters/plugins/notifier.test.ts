@@ -29,7 +29,7 @@ describe('NotifierPluginAdapter', () => {
   });
 
   test('dispatches OS notifications and tracks history', async () => {
-    const sent: Array<Record<string, unknown>> = [];
+    const sent: Record<string, unknown>[] = [];
     const adapter = createAdapter({
       dispatch: async (notification) => {
         sent.push(notification as Record<string, unknown>);
@@ -74,7 +74,7 @@ describe('NotifierPluginAdapter', () => {
 
     expect(historyResult?.handled).toBe(true);
     expect(historyResult?.output).toMatchObject({ count: 1 });
-    const output = historyResult?.output as { history?: Array<Record<string, unknown>> } | undefined;
+    const output = historyResult?.output as { history?: Record<string, unknown>[] } | undefined;
     expect(output?.history?.[0]).toMatchObject({
       event: 'agent.completed',
       dispatched: true,
@@ -83,7 +83,7 @@ describe('NotifierPluginAdapter', () => {
   });
 
   test('applies notification rules configured at runtime', async () => {
-    const sent: Array<Record<string, unknown>> = [];
+    const sent: Record<string, unknown>[] = [];
     const adapter = createAdapter({
       dispatch: async (notification) => {
         sent.push(notification as Record<string, unknown>);

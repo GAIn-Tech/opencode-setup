@@ -147,7 +147,7 @@ describe('OpencodeDcpPluginAdapter', () => {
       (message) =>
         typeof message.metadata === 'object' &&
         message.metadata !== null &&
-        typeof (message.metadata as Record<string, unknown>).dcp === 'object'
+        typeof (message.metadata).dcp === 'object'
     );
 
     expect(hasSyntheticContextMessage).toBe(false);
@@ -178,7 +178,7 @@ describe('OpencodeDcpPluginAdapter', () => {
       (message) =>
         typeof message.metadata === 'object' &&
         message.metadata !== null &&
-        typeof (message.metadata as Record<string, unknown>).dcp === 'object'
+        typeof (message.metadata).dcp === 'object'
     );
 
     expect(result?.handled).toBe(true);
@@ -214,7 +214,7 @@ describe('OpencodeDcpPluginAdapter', () => {
       (message) =>
         typeof message.metadata === 'object' &&
         message.metadata !== null &&
-        typeof (message.metadata as Record<string, unknown>).dcp === 'object'
+        typeof (message.metadata).dcp === 'object'
     );
 
     expect(result?.handled).toBe(true);

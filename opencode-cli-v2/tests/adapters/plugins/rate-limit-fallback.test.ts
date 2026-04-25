@@ -172,10 +172,49 @@ describe('RateLimitFallbackPluginAdapter', () => {
 
     expect(capped?.output).toMatchObject({ retryCount: 4, backoffSeconds: 10 });
   });
+
+  test('does not switch models for sessions classified as main', async () => {
+    const adapter = createAdapter({ isMainSession: (sessionId) => sessionId === 'main-session' });
+    await adapter.runLoad();
+    await adapter.runInitialize();
+
+    const port = adapter.getPort();
+    const [result] = await port.runHook({
+      name: HOOK_ON_RATE_LIMIT,
+      payload: {
+        sessionId: 'main-session',
+        model: 'gpt-primary',
+        statusCode: 429
+      }
+    });
+
+    expect(result?.output).toMatchObject({
+      sessionId: 'main-session',
+      switched: false,
+      nextModel: 'gpt-fallback-1'
+    });
+
+    const [next] = await port.runHook({
+      name: HOOK_GET_NEXT_MODEL,
+      payload: {
+        sessionId: 'main-session',
+        model: 'gpt-primary'
+      }
+    });
+
+    expect(next?.output).toMatchObject({
+      model: 'gpt-primary',
+      nextModel: 'gpt-fallback-1'
+    });
+  });
 });
 
-function createAdapter(options?: { now?: () => number }): RateLimitFallbackPluginAdapter {
+function createAdapter(options?: {
+  isMainSession?: (sessionId: string | undefined) => boolean;
+  now?: () => number;
+}): RateLimitFallbackPluginAdapter {
   return new RateLimitFallbackPluginAdapter({
+    isMainSession: options?.isMainSession,
     now: options?.now,
     loadConfig: () =>
       Promise.resolve({

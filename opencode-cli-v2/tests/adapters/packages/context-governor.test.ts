@@ -7,7 +7,7 @@ type FakeUsageStatus = 'ok' | 'warn' | 'error' | 'exceeded';
 
 class FakeGovernor {
   private readonly usage = new Map<string, number>();
-  private readonly callbacks: Array<(payload: Record<string, unknown>) => void> = [];
+  private readonly callbacks: ((payload: Record<string, unknown>) => void)[] = [];
 
   public constructor(private readonly options: Record<string, unknown> = {}) {
     if (typeof options.onErrorThreshold === 'function') {
@@ -105,9 +105,7 @@ class FakeGovernor {
         continue;
       }
 
-      if (!result[sessionId]) {
-        result[sessionId] = {};
-      }
+      result[sessionId] ??= {};
 
       result[sessionId][model] = this.getRemainingBudget(sessionId, model);
     }

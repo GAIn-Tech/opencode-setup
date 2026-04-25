@@ -39,10 +39,12 @@ class FakeLearningEngine {
     }
 
     if (input.type === 'anti-pattern') {
+      const payloadType = input.payload.type;
+      const payloadDescription = input.payload.description;
       this.antiPatterns.patterns.push({
         id: `ap-${this.antiPatterns.patterns.length + 1}`,
-        type: String(input.payload.type ?? 'failed_debug'),
-        description: String(input.payload.description ?? 'anti-pattern'),
+        type: typeof payloadType === 'string' ? payloadType : 'failed_debug',
+        description: typeof payloadDescription === 'string' ? payloadDescription : 'anti-pattern',
         weight: 8,
         timestamp: new Date().toISOString(),
         occurrences: 1,
@@ -52,10 +54,12 @@ class FakeLearningEngine {
     }
 
     if (input.type === 'positive-pattern') {
+      const payloadType = input.payload.type;
+      const payloadDescription = input.payload.description;
       this.positivePatterns.patterns.push({
         id: `pp-${this.positivePatterns.patterns.length + 1}`,
-        type: String(input.payload.type ?? 'efficient_debug'),
-        description: String(input.payload.description ?? 'positive-pattern'),
+        type: typeof payloadType === 'string' ? payloadType : 'efficient_debug',
+        description: typeof payloadDescription === 'string' ? payloadDescription : 'positive-pattern',
         success_rate: 0.92,
         timestamp: new Date().toISOString(),
         occurrences: 1,

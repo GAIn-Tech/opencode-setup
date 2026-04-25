@@ -1,10 +1,11 @@
 import { describe, expect, test } from 'bun:test';
 
 import { MCPBridgeAdapter } from '../../src/mcp/adapter';
+import { createManagedClient } from './managed-client-factory';
 
 describe('MCPBridgeAdapter', () => {
   test('implements MCPPort lifecycle and tool operations', async () => {
-    const adapter = new MCPBridgeAdapter();
+    const adapter = new MCPBridgeAdapter({ clientFactory: createManagedClient, preloadServers: [] });
 
     await adapter.runLoad();
     await adapter.runInitialize();
@@ -57,7 +58,7 @@ describe('MCPBridgeAdapter', () => {
   });
 
   test('exposes convenience connect/discover/execute/health methods', async () => {
-    const adapter = new MCPBridgeAdapter();
+    const adapter = new MCPBridgeAdapter({ clientFactory: createManagedClient, preloadServers: [] });
 
     await adapter.runLoad();
     await adapter.runInitialize();

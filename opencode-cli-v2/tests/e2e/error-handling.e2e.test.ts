@@ -13,7 +13,6 @@ import {
   createE2EFixture,
   createPrompts,
   runCliCommand,
-  writeJson,
   writeYaml
 } from './helpers';
 

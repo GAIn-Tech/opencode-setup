@@ -52,7 +52,7 @@ describe('SecurityPluginAdapter', () => {
       | {
           decision?: string;
           safe?: boolean;
-          violations?: Array<{ category?: string }>;
+          violations?: { category?: string }[];
         }
       | undefined;
 
@@ -81,7 +81,7 @@ describe('SecurityPluginAdapter', () => {
       | {
           decision?: string;
           safe?: boolean;
-          violations?: Array<{ category?: string }>;
+          violations?: { category?: string }[];
         }
       | undefined;
 
