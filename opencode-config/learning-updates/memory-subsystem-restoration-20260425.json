@@ -1,0 +1,39 @@
+{
+  "id": "memory-subsystem-restoration-20260425",
+  "timestamp": "2026-04-25T01:20:00Z",
+  "category": "memory",
+  "summary": "Restore the memory subsystem modules and tests in the integration layer as a coherent feature slice.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/memory-adaptive-weights.js",
+    "packages/opencode-integration-layer/src/memory-bridge.js",
+    "packages/opencode-integration-layer/src/memory-context-provider.js",
+    "packages/opencode-integration-layer/src/memory-degraded.js",
+    "packages/opencode-integration-layer/src/memory-meta.js",
+    "packages/opencode-integration-layer/src/memory-paths.js",
+    "packages/opencode-integration-layer/src/memory-schema.js",
+    "packages/opencode-integration-layer/src/memory-scoring.js",
+    "packages/opencode-integration-layer/src/memory-temporal.js",
+    "packages/opencode-integration-layer/tests/memory-adaptive-weights.test.js",
+    "packages/opencode-integration-layer/tests/memory-bridge.test.js",
+    "packages/opencode-integration-layer/tests/memory-context-provider.test.js",
+    "packages/opencode-integration-layer/tests/memory-degraded.test.js",
+    "packages/opencode-integration-layer/tests/memory-e2e.test.js",
+    "packages/opencode-integration-layer/tests/memory-meta.test.js",
+    "packages/opencode-integration-layer/tests/memory-paths.test.js",
+    "packages/opencode-integration-layer/tests/memory-schema.test.js",
+    "packages/opencode-integration-layer/tests/memory-scoring.test.js",
+    "packages/opencode-integration-layer/tests/memory-temporal.test.js"
+  ],
+  "root_cause": "The unresolved stash contained a self-consistent memory subsystem implementation that had never been integrated into a dedicated branch.",
+  "fix_approach": "Restored the complete memory module set and its corresponding tests into an isolated worktree, then verified the suite as a coherent feature batch before commit.",
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "bun test ./packages/opencode-integration-layer/tests/memory-adaptive-weights.test.js ./packages/opencode-integration-layer/tests/memory-bridge.test.js ./packages/opencode-integration-layer/tests/memory-context-provider.test.js ./packages/opencode-integration-layer/tests/memory-degraded.test.js ./packages/opencode-integration-layer/tests/memory-e2e.test.js ./packages/opencode-integration-layer/tests/memory-meta.test.js ./packages/opencode-integration-layer/tests/memory-paths.test.js ./packages/opencode-integration-layer/tests/memory-schema.test.js ./packages/opencode-integration-layer/tests/memory-scoring.test.js ./packages/opencode-integration-layer/tests/memory-temporal.test.js"
+    ],
+    "notes": "All restored memory tests passed immediately, which strongly indicates the batch is coherent product work rather than obsolete drift."
+  }
+}
