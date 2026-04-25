@@ -1,0 +1,25 @@
+{
+  "id": "governance-test-realism-remediation-20260424",
+  "timestamp": "2026-04-24T23:50:00Z",
+  "category": "tooling",
+  "summary": "Upgrade governance regression coverage to execute real learning-gate and deployment-state behaviors instead of relying on fabricated output fixtures.",
+  "affected_paths": [
+    "scripts/tests/learning-gate.test.mjs",
+    "scripts/tests/deployment-state.test.mjs",
+    "integration-tests/integrity-guard-environment.test.js"
+  ],
+  "root_cause": "Governance tests validated mock outputs and static structures, which could miss real script drift and misleading pass conditions.",
+  "fix_approach": "Replaced simulated checks with executions of the real scripts under controlled conditions and updated integrity-guard coverage to satisfy environment prerequisites explicitly.",
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "bun test scripts/tests/learning-gate.test.mjs",
+      "bun test scripts/tests/deployment-state.test.mjs",
+      "bun test integration-tests/integrity-guard-environment.test.js"
+    ],
+    "notes": "Real script execution is now covered for the main governance failure and recovery paths."
+  }
+}
