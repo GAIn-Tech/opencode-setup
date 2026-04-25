@@ -124,6 +124,20 @@ function parseRawLoopSlashCommand(promptText: string): RawLoopCommand | null {
   return null
 }
 
+function isModelPersistentAgent(agent: string): boolean {
+  const normalized = agent.trim().toLowerCase()
+  if (!normalized) {
+    return false
+  }
+
+  return ![
+    "compaction",
+    "dcp",
+    "distill",
+    "context-injector",
+  ].includes(normalized)
+}
+
 export function createChatMessageHandler(args: {
   ctx: PluginContext
   pluginConfig: OhMyOpenCodeConfig
@@ -159,7 +173,7 @@ export function createChatMessageHandler(args: {
     input: ChatMessageInput,
     output: ChatMessageHandlerOutput
   ): Promise<void> => {
-    if (input.agent) {
+    if (input.agent && isModelPersistentAgent(input.agent)) {
       setSessionAgent(input.sessionID, input.agent)
     }
 
@@ -181,19 +195,9 @@ export function createChatMessageHandler(args: {
     if (!isRuntimeFallbackEnabled) {
       await hooks.modelFallback?.["chat.message"]?.(input, output)
     }
-    const modelOverride = output.message["model"]
-    if (
-      modelOverride &&
-      typeof modelOverride === "object" &&
-      "providerID" in modelOverride &&
-      "modelID" in modelOverride
-    ) {
-      const providerID = (modelOverride as { providerID?: string }).providerID
-      const modelID = (modelOverride as { modelID?: string }).modelID
-      if (typeof providerID === "string" && typeof modelID === "string") {
-        setSessionModel(input.sessionID, { providerID, modelID })
-      }
-    } else if (input.model) {
+    if (input.model && input.agent && isModelPersistentAgent(input.agent)) {
+      // Persist session model only for explicit user/agent messages.
+      // Tool/continuation/DCP messages without agent must never initialize session model.
       setSessionModel(input.sessionID, input.model)
     }
     await hooks.stopContinuationGuard?.["chat.message"]?.(input)

@@ -5,6 +5,7 @@ import { createEventHandler } from "./event"
 import { createChatMessageHandler } from "./chat-message"
 import { _resetForTesting, setMainSession } from "../features/claude-code-session-state"
 import { createModelFallbackHook, clearPendingModelFallback } from "../hooks/model-fallback/hook"
+import { clearSessionModel, getSessionModel } from "../shared/session-model-state"
 import * as connectedProvidersCache from "../shared/connected-providers-cache"
 
 let readConnectedProvidersCacheSpy: { mockRestore: () => void } | undefined
@@ -105,6 +106,58 @@ describe("createEventHandler - model fallback", () => {
     //#then
     expect(abortCalls).toEqual([sessionID])
     expect(promptCalls).toEqual([sessionID])
+  })
+
+  test("does not persist session model from message.updated user payload when agent is missing", async () => {
+    //#given
+    const sessionID = "ses_message_updated_no_agent_model_persist"
+    clearSessionModel(sessionID)
+    const { handler } = createHandler({ hooks: {} })
+
+    //#when
+    await handler({
+      event: {
+        type: "message.updated",
+        properties: {
+          info: {
+            sessionID,
+            role: "user",
+            providerID: "openai",
+            modelID: "gpt-4o-mini",
+            // deliberately no agent
+          },
+        },
+      },
+    })
+
+    //#then
+    expect(getSessionModel(sessionID)).toBeUndefined()
+  })
+
+  test("does not persist session model from message.updated compaction payloads", async () => {
+    //#given
+    const sessionID = "ses_message_updated_compaction_model_persist"
+    clearSessionModel(sessionID)
+    const { handler } = createHandler({ hooks: {} })
+
+    //#when
+    await handler({
+      event: {
+        type: "message.updated",
+        properties: {
+          info: {
+            sessionID,
+            role: "user",
+            agent: "compaction",
+            providerID: "openai",
+            modelID: "gpt-5.2",
+          },
+        },
+      },
+    })
+
+    //#then
+    expect(getSessionModel(sessionID)).toBeUndefined()
   })
 
   test("triggers retry prompt for nested model error payloads", async () => {
@@ -222,10 +275,10 @@ describe("createEventHandler - model fallback", () => {
     expect(abortCalls).toEqual([sessionID])
     expect(promptCalls).toEqual([sessionID])
     expect(output.message["model"]).toMatchObject({
-      providerID: "opencode-go",
-      modelID: "kimi-k2.5",
+      providerID: "openai",
+      modelID: "gpt-5.5",
     })
-    expect(output.message["variant"]).toBeUndefined()
+    expect(output.message["variant"]).toBe("high")
   })
 
   test("does not spam abort/prompt when session.status retry countdown updates", async () => {
@@ -549,20 +602,20 @@ describe("createEventHandler - model fallback", () => {
     //#when - first retry cycle
     const first = await triggerRetryCycle()
 
-    //#then - first fallback entry applied (no-op skip: claude-opus-4-6 matches current model after normalization)
+    //#then - first fallback entry applied according to the updated sisyphus chain
     expect(first.message["model"]).toMatchObject({
-      providerID: "opencode-go",
-      modelID: "kimi-k2.5",
+      providerID: "openai",
+      modelID: "gpt-5.5",
     })
-    expect(first.message["variant"]).toBeUndefined()
+    expect(first.message["variant"]).toBe("high")
 
     //#when - second retry cycle
     const second = await triggerRetryCycle()
 
-    //#then - second fallback entry applied (chain advanced past opencode-go/kimi-k2.5)
+    //#then - second fallback entry applied after advancing past the first gpt-5.5 entry
     expect(second.message["model"]).toMatchObject({
-      providerID: "kimi-for-coding",
-      modelID: "k2p5",
+      providerID: "opencode-go",
+      modelID: "kimi-k2.5",
     })
     expect(second.message["variant"]).toBeUndefined()
     expect(abortCalls).toEqual([sessionID, sessionID])

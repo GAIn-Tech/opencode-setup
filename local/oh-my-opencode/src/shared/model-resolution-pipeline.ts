@@ -4,6 +4,7 @@ import { fuzzyMatchModel } from "./model-availability"
 import type { FallbackEntry } from "./model-requirements"
 import { transformModelForProvider } from "./provider-model-id-transform"
 import { normalizeModel } from "./model-normalization"
+import { UserPreference } from "./user-preference"
 
 export type ModelResolutionRequest = {
   intent?: {
@@ -36,6 +37,31 @@ export type ModelResolutionResult = {
   reason?: string
 }
 
+const userPreference = new UserPreference()
+let cachedPreferredModel: string | null = normalizeModel((await userPreference.load()) ?? undefined) ?? null
+
+export function resetModelPreferenceCacheForTest(): void {
+  cachedPreferredModel = null
+}
+
+function saveResolvedPreference(model: string): void {
+  const normalized = normalizeModel(model)
+  if (!normalized) return
+  cachedPreferredModel = normalized
+  void userPreference.save(normalized)
+}
+
+function finalizeResolution(
+  result: ModelResolutionResult,
+  options?: { persistPreference?: boolean }
+): ModelResolutionResult {
+  if (options?.persistPreference) {
+    saveResolvedPreference(result.model)
+  }
+
+  return result
+}
+
 
 export function resolveModelPipeline(
   request: ModelResolutionRequest,
@@ -49,16 +75,58 @@ export function resolveModelPipeline(
   const normalizedUiModel = normalizeModel(intent?.uiSelectedModel)
   if (normalizedUiModel) {
     log("Model resolved via UI selection", { model: normalizedUiModel })
-    return { model: normalizedUiModel, provenance: "override" }
+    return finalizeResolution({ model: normalizedUiModel, provenance: "override" }, { persistPreference: true })
   }
 
   const normalizedUserModel = normalizeModel(intent?.userModel)
-  if (normalizedUserModel) {
-    log("Model resolved via config override", { model: normalizedUserModel })
-    return { model: normalizedUserModel, provenance: "override" }
+  const normalizedCategoryDefault = normalizeModel(intent?.categoryDefaultModel)
+
+  const normalizedPreferredModel = normalizeModel(cachedPreferredModel ?? undefined)
+  if (normalizedPreferredModel && !normalizedUserModel && !normalizedCategoryDefault) {
+    attempted.push(normalizedPreferredModel)
+    if (availableModels.size > 0) {
+      const parts = normalizedPreferredModel.split("/")
+      const providerHint = parts.length >= 2 ? [parts[0]] : undefined
+      const match = fuzzyMatchModel(normalizedPreferredModel, availableModels, providerHint)
+      if (match) {
+        log("Model resolved via persisted user preference (fuzzy matched)", {
+          original: normalizedPreferredModel,
+          matched: match,
+        })
+        return finalizeResolution({ model: match, provenance: "override", attempted })
+      }
+    } else {
+      const connectedProviders = constraints.connectedProviders ?? connectedProvidersCache.readConnectedProvidersCache()
+      if (connectedProviders === null) {
+        log("Model resolved via persisted user preference (no cache, first run)", {
+          model: normalizedPreferredModel,
+        })
+        return finalizeResolution({ model: normalizedPreferredModel, provenance: "override", attempted })
+      }
+      const parts = normalizedPreferredModel.split("/")
+      if (parts.length >= 2) {
+        const provider = parts[0]
+        if (connectedProviders.includes(provider)) {
+          const modelName = parts.slice(1).join("/")
+          const transformedModel = `${provider}/${transformModelForProvider(provider, modelName)}`
+          log("Model resolved via persisted user preference (connected provider)", {
+            model: transformedModel,
+            original: normalizedPreferredModel,
+          })
+          return finalizeResolution({ model: transformedModel, provenance: "override", attempted })
+        }
+      }
+    }
+    log("Persisted user preference model not available, falling through to config override", {
+      model: normalizedPreferredModel,
+    })
   }
 
-  const normalizedCategoryDefault = normalizeModel(intent?.categoryDefaultModel)
+  if (normalizedUserModel) {
+    log("Model resolved via config override", { model: normalizedUserModel })
+    return finalizeResolution({ model: normalizedUserModel, provenance: "override" }, { persistPreference: true })
+  }
+
   if (normalizedCategoryDefault) {
     attempted.push(normalizedCategoryDefault)
     if (availableModels.size > 0) {
@@ -70,7 +138,7 @@ export function resolveModelPipeline(
           original: normalizedCategoryDefault,
           matched: match,
         })
-        return { model: match, provenance: "category-default", attempted }
+        return finalizeResolution({ model: match, provenance: "category-default", attempted })
       }
     } else {
       const connectedProviders = constraints.connectedProviders ?? connectedProvidersCache.readConnectedProvidersCache()
@@ -78,7 +146,7 @@ export function resolveModelPipeline(
         log("Model resolved via category default (no cache, first run)", {
           model: normalizedCategoryDefault,
         })
-        return { model: normalizedCategoryDefault, provenance: "category-default", attempted }
+        return finalizeResolution({ model: normalizedCategoryDefault, provenance: "category-default", attempted })
       }
       const parts = normalizedCategoryDefault.split("/")
       if (parts.length >= 2) {
@@ -90,7 +158,7 @@ export function resolveModelPipeline(
             model: transformedModel,
             original: normalizedCategoryDefault,
           })
-          return { model: transformedModel, provenance: "category-default", attempted }
+          return finalizeResolution({ model: transformedModel, provenance: "category-default", attempted })
         }
       }
     }
@@ -116,7 +184,7 @@ export function resolveModelPipeline(
               const modelName = parts.slice(1).join("/")
               const transformedModel = `${provider}/${transformModelForProvider(provider, modelName)}`
               log("Model resolved via user fallback_models (connected provider)", { model: transformedModel, original: model })
-              return { model: transformedModel, provenance: "provider-fallback", attempted }
+              return finalizeResolution({ model: transformedModel, provenance: "provider-fallback", attempted })
             }
           }
         }
@@ -130,7 +198,7 @@ export function resolveModelPipeline(
         const match = fuzzyMatchModel(model, availableModels, providerHint)
         if (match) {
           log("Model resolved via user fallback_models (availability confirmed)", { model: model, match })
-          return { model: match, provenance: "provider-fallback", attempted }
+          return finalizeResolution({ model: match, provenance: "provider-fallback", attempted })
         }
       }
       log("No available model found in user fallback_models, falling through to hardcoded chain")
@@ -155,12 +223,12 @@ export function resolveModelPipeline(
                 model: transformedModelId,
                 variant: entry.variant,
               })
-              return {
+              return finalizeResolution({
                 model,
                 provenance: "provider-fallback",
                 variant: entry.variant,
                 attempted,
-              }
+              })
             }
           }
         }
@@ -178,12 +246,12 @@ export function resolveModelPipeline(
               match,
               variant: entry.variant,
             })
-            return {
+            return finalizeResolution({
               model: match,
               provenance: "provider-fallback",
               variant: entry.variant,
               attempted,
-            }
+            })
           }
         }
 
@@ -194,12 +262,12 @@ export function resolveModelPipeline(
             match: crossProviderMatch,
             variant: entry.variant,
           })
-          return {
+          return finalizeResolution({
             model: crossProviderMatch,
             provenance: "provider-fallback",
             variant: entry.variant,
             attempted,
-          }
+          })
         }
       }
       log("No available model found in fallback chain, falling through to system default")
@@ -212,5 +280,5 @@ export function resolveModelPipeline(
   }
 
   log("Model resolved via system default", { model: systemDefaultModel })
-  return { model: systemDefaultModel, provenance: "system-default", attempted }
+  return finalizeResolution({ model: systemDefaultModel, provenance: "system-default", attempted })
 }

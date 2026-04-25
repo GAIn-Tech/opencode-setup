@@ -2,6 +2,7 @@ import type { CallOmoAgentArgs } from "./types"
 import type { PluginInput } from "@opencode-ai/plugin"
 import { subagentSessions, syncSubagentSessions } from "../../features/claude-code-session-state"
 import { log } from "../../shared"
+import { resolveSessionDirectory } from "../../shared/session-directory-resolver"
 
 export async function createOrGetSession(
   args: CallOmoAgentArgs,
@@ -33,7 +34,11 @@ export async function createOrGetSession(
       return null
     })
     log(`[call_omo_agent] Parent session dir: ${parentSession?.data?.directory}, fallback: ${ctx.directory}`)
-    const parentDirectory = parentSession?.data?.directory ?? ctx.directory
+    const rawParentDirectory = parentSession?.data?.directory ?? ctx.directory
+    const parentDirectory = resolveSessionDirectory({
+      parentDirectory: rawParentDirectory,
+      fallbackDirectory: ctx.directory,
+    })
 
     const createResult = await ctx.client.session.create({
       body: {

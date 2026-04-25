@@ -445,4 +445,52 @@ describe("createChatMessageHandler - TUI variant passthrough", () => {
     expect(output.message["model"]).toBeUndefined()
     expect(getSessionModel("test-session")).toEqual(nextModel)
   })
+
+  test("does not persist fallback-mutated output model as the new session model", async () => {
+    //#given
+    const args = createMockHandlerArgs({ shouldOverride: false })
+    args.hooks.modelFallback = {
+      "chat.message": async (_input: unknown, output: ChatMessageHandlerOutput) => {
+        output.message["model"] = { providerID: "openai", modelID: "gpt-5.2" }
+      },
+    }
+    const handler = createChatMessageHandler(args)
+    const input = createMockInput("sisyphus", { providerID: "nvidia", modelID: "z-ai/glm-5.1" })
+    const output = createMockOutput()
+
+    //#when
+    await handler(input, output)
+
+    //#then
+    expect(output.message["model"]).toEqual({ providerID: "openai", modelID: "gpt-5.2" })
+    expect(getSessionModel("test-session")).toEqual({ providerID: "nvidia", modelID: "z-ai/glm-5.1" })
+  })
+
+  test("does not initialize session model from tool/DCP message without agent", async () => {
+    //#given
+    const args = createMockHandlerArgs({ shouldOverride: false })
+    const handler = createChatMessageHandler(args)
+    const input = createMockInput(undefined, { providerID: "openai", modelID: "gpt-4o-mini" })
+    const output = createMockOutput()
+
+    //#when
+    await handler(input, output)
+
+    //#then
+    expect(getSessionModel("test-session")).toBeUndefined()
+  })
+
+  test("does not persist session model from compaction-like agent labels", async () => {
+    //#given
+    const args = createMockHandlerArgs({ shouldOverride: false })
+    const handler = createChatMessageHandler(args)
+    const input = createMockInput("compaction", { providerID: "openai", modelID: "gpt-5.2" })
+    const output = createMockOutput()
+
+    //#when
+    await handler(input, output)
+
+    //#then
+    expect(getSessionModel("test-session")).toBeUndefined()
+  })
 })

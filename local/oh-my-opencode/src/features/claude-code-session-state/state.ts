@@ -2,6 +2,7 @@ import { getAgentConfigKey } from "../../shared/agent-display-names"
 
 export const subagentSessions = new Set<string>()
 export const syncSubagentSessions = new Set<string>()
+export const backgroundSessions = new Set<string>()
 
 let _mainSessionID: string | undefined
 
@@ -11,6 +12,27 @@ export function setMainSession(id: string | undefined) {
 
 export function getMainSessionID(): string | undefined {
   return _mainSessionID
+}
+
+/**
+ * Check if a session is the main session (not a subagent or background task).
+ * Main session model should not be affected by rate limit fallbacks.
+ */
+export function isMainSession(sessionID: string): boolean {
+  // If it's in subagentSessions or backgroundSessions, it's not the main session
+  if (subagentSessions.has(sessionID) || backgroundSessions.has(sessionID)) {
+    return false
+  }
+  
+  // If we have a tracked main session ID, check against it
+  const mainSessionID = getMainSessionID()
+  if (mainSessionID) {
+    return sessionID === mainSessionID
+  }
+  
+  // If no main session is tracked yet, assume this is the main session
+  // (first session to be created)
+  return true
 }
 
 const registeredAgentNames = new Set<string>()

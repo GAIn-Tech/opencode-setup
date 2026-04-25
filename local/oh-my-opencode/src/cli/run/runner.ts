@@ -12,6 +12,7 @@ import { pollForCompletion } from "./poll-for-completion"
 import { loadAgentProfileColors } from "./agent-profile-colors"
 import { suppressRunInput } from "./stdin-suppression"
 import { createTimestampedStdoutController } from "./timestamp-output"
+import { UserPreference } from "../../shared/user-preference"
 
 export { resolveRunAgent }
 
@@ -84,6 +85,13 @@ export async function run(options: RunOptions): Promise<number> {
 
       if (resolvedModel) {
         console.log(pc.dim(`Model: ${resolvedModel.providerID}/${resolvedModel.modelID}`))
+        
+        // Save the selected model to user preference for persistence across sessions
+        const userPreference = new UserPreference()
+        const fullModelId = `${resolvedModel.providerID}/${resolvedModel.modelID}`
+        await userPreference.save(fullModelId).catch((err) => {
+          console.error(pc.yellow(`[runner] Failed to save model preference: ${err.message}`))
+        })
       }
 
       const ctx: RunContext = {

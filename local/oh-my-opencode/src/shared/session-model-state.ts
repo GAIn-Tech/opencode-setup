@@ -1,4 +1,4 @@
-export type SessionModel = { providerID: string; modelID: string }
+export type SessionModel = { providerID: string; modelID: string; variant?: string }
 
 const sessionModels = new Map<string, SessionModel>()
 
@@ -12,4 +12,8 @@ export function getSessionModel(sessionID: string): SessionModel | undefined {
 
 export function clearSessionModel(sessionID: string): void {
   sessionModels.delete(sessionID)
+}
+
+export function updateSessionModel(sessionID: string, model: SessionModel): void {
+  sessionModels.set(sessionID, model)
 }

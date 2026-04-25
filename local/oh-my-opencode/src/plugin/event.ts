@@ -129,7 +129,24 @@ function applyUserConfiguredFallbackChain(
 }
 
 function isCompactionAgent(agent: string): boolean {
-  return agent.toLowerCase() === "compaction";
+  return [
+    "compaction",
+    "dcp",
+    "distill",
+    "context-injector",
+  ].includes(agent.trim().toLowerCase());
+}
+
+function isModelPersistentAgent(agent: string): boolean {
+  const normalized = agent.trim().toLowerCase();
+  if (!normalized) return false;
+
+  return ![
+    "compaction",
+    "dcp",
+    "distill",
+    "context-injector",
+  ].includes(normalized);
 }
 
 type EventInput = Parameters<NonNullable<NonNullable<CreatedHooks["writeExistingFileGuard"]>["event"]>>[0];
@@ -468,15 +485,14 @@ export function createEventHandler(args: {
       const agent = info?.agent as string | undefined;
       const role = info?.role as string | undefined;
       if (sessionID && role === "user") {
-        const isCompactionMessage = agent ? isCompactionAgent(agent) : false;
-        if (agent && !isCompactionMessage) {
+        const isPersistentAgent = agent ? isModelPersistentAgent(agent) : false;
+        if (agent && isPersistentAgent) {
           updateSessionAgent(sessionID, agent);
         }
         const providerID = info?.providerID as string | undefined;
         const modelID = info?.modelID as string | undefined;
-        if (providerID && modelID && !isCompactionMessage) {
+        if (providerID && modelID && agent && isPersistentAgent) {
           lastKnownModelBySession.set(sessionID, { providerID, modelID });
-          setSessionModel(sessionID, { providerID, modelID });
         }
       }
 

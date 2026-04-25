@@ -47,4 +47,48 @@ describe("call-omo-agent createOrGetSession", () => {
     expect(createBody?.permission).toBeUndefined()
     expect(subagentSessions.has("ses_child")).toBe(true)
   })
+
+  test("uses Windows-safe directory when parent session directory is under AppData", async () => {
+    // given
+    _resetForTesting()
+
+    const createCalls: Array<unknown> = []
+    const appDataDirectory = "C:/Users/test/AppData/Local/ai.opencode.desktop"
+    const expectedDirectory = process.platform === "win32" ? process.cwd() : appDataDirectory
+
+    const ctx = {
+      directory: appDataDirectory,
+      client: {
+        session: {
+          get: async () => ({ data: { directory: appDataDirectory } }),
+          create: async (args: unknown) => {
+            createCalls.push(args)
+            return { data: { id: "ses_child" } }
+          },
+        },
+      },
+    }
+
+    const toolContext = {
+      sessionID: "ses_parent",
+      messageID: "msg_parent",
+      agent: "sisyphus",
+      abort: new AbortController().signal,
+    }
+
+    const args = {
+      description: "test",
+      prompt: "hello",
+      subagent_type: "explore",
+      run_in_background: true,
+    }
+
+    // when
+    await createOrGetSession(args as any, toolContext as any, ctx as any)
+
+    // then
+    expect(createCalls).toHaveLength(1)
+    const createQuery = (createCalls[0] as any)?.query
+    expect(createQuery).toEqual({ directory: expectedDirectory })
+  })
 })
