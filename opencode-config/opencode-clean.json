@@ -3,12 +3,16 @@
   "plugin": [
     "oh-my-openagent@3.16.0",
     "opencode-antigravity-auth@1.4.6",
+    "@guard22/opencode-multi-auth-codex@1.4.2",
     "opencode-antigravity-quota@0.1.6",
-    "opencode-supermemory@2.0.1",
-    "@tarquinen/opencode-dcp@latest",
+    "@tarquinen/opencode-dcp@1.0.0",
     "opencode-plugin-preload-skills@1.8.0",
     "opencode-plugin-langfuse@0.1.8",
-    "opencode-pty@0.2.1"
+    "opencode-pty@0.2.1",
+    "opencode-rate-limit-fallback@1.2.0",
+    "@mohak34/opencode-notifier@1.0.0",
+    "envsitter-guard@1.0.0",
+    "cc-safety-net@1.0.0"
   ],
   "provider": {
     "google": {
@@ -311,7 +315,24 @@
           "priority": "secondary",
           "specialty": "codex"
         }
-      }
+      },
+      "whitelist": [
+        "gpt-5.5",
+        "gpt-5.5-fast",
+        "gpt-5.4",
+        "gpt-5.4-fast",
+        "gpt-5.4-mini",
+        "gpt-5.3-codex",
+        "gpt-5.3-codex-low",
+        "gpt-5.3-codex-medium",
+        "gpt-5.3-codex-high",
+        "gpt-5.3-codex-xhigh",
+        "gpt-5.2-codex",
+        "gpt-5.2-codex-low",
+        "gpt-5.2-codex-medium",
+        "gpt-5.2-codex-high",
+        "gpt-5.2-codex-xhigh"
+      ]
     },
     "zen": {
       "npm": "@ai-sdk/openai-compatible",

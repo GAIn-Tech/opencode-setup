@@ -266,7 +266,24 @@
           "priority": "secondary",
           "specialty": "codex"
         }
-      }
+      },
+      "whitelist": [
+        "gpt-5.5",
+        "gpt-5.5-fast",
+        "gpt-5.4",
+        "gpt-5.4-fast",
+        "gpt-5.4-mini",
+        "gpt-5.3-codex",
+        "gpt-5.3-codex-low",
+        "gpt-5.3-codex-medium",
+        "gpt-5.3-codex-high",
+        "gpt-5.3-codex-xhigh",
+        "gpt-5.2-codex",
+        "gpt-5.2-codex-low",
+        "gpt-5.2-codex-medium",
+        "gpt-5.2-codex-high",
+        "gpt-5.2-codex-xhigh"
+      ]
     },
     "zen": {
       "npm": "@ai-sdk/openai-compatible",

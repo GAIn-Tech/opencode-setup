@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { resolvePath, userConfigDir } from './resolve-root.mjs';
 import * as copyConfig from './copy-config.mjs';
 
-const FALLBACK_CONFIG_FILES = ['opencode.json', 'antigravity.json', 'oh-my-opencode.json', 'compound-engineering.json', 'config.yaml', 'rate-limit-fallback.json', 'deployment-state.json', 'learning-update-policy.json', 'supermemory.json', 'tool-tiers.json'];
+const FALLBACK_CONFIG_FILES = ['opencode.json', 'plugin-pins.json', 'antigravity.json', 'oh-my-opencode.json', 'compound-engineering.json', 'config.yaml', 'rate-limit-fallback.json', 'deployment-state.json', 'learning-update-policy.json', 'supermemory.json', 'tool-tiers.json'];
 const FALLBACK_CONFIG_DIRS = ['commands', 'docs', 'models', 'supermemory'];
 const FALLBACK_MERGE_DIRS = ['skills'];
 

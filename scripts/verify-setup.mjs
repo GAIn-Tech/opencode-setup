@@ -243,11 +243,36 @@ function validateSchema(schema, value, pathStack = []) {
   return issues;
 }
 
+function getExpectedBunVersion() {
+  const envOverride = String(process.env.OPENCODE_REQUIRED_BUN_VERSION || '').trim();
+  if (envOverride) {
+    return envOverride;
+  }
+
+  const bunVersionPath = path.join(root, '.bun-version');
+  if (existsSync(bunVersionPath)) {
+    const value = readFileSync(bunVersionPath, 'utf8').trim();
+    if (value) return value;
+  }
+
+  try {
+    const pkg = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
+    const packageManager = typeof pkg.packageManager === 'string' ? pkg.packageManager.trim() : '';
+    if (packageManager.startsWith('bun@')) {
+      return packageManager.slice('bun@'.length);
+    }
+  } catch {
+    // fall through
+  }
+
+  return '1.3.10';
+}
+
 function main() {
   console.log('== OpenCode Setup Verification ==');
 
   let failed = 0;
-  const expectedBunVersion = String(process.env.OPENCODE_REQUIRED_BUN_VERSION || '1.3.11').trim();
+  const expectedBunVersion = getExpectedBunVersion();
 
   const { path: preferredBunPath, all: allBunPaths } = resolvePreferredBunPath();
 
@@ -411,6 +436,7 @@ function main() {
   );
 
   const configPath = path.join(userConfigDir(), 'opencode.json');
+  const pluginPinsPath = path.join(userConfigDir(), 'plugin-pins.json');
 
   const configExists = existsSync(configPath);
   if (!configExists) {
@@ -454,6 +480,69 @@ function main() {
       exists ? `Fix JSON syntax in ${filePath}` : `Missing file: ${filePath}`
     );
   }
+
+  const criticalPluginRefs = [
+    'oh-my-openagent@3.16.0',
+    '@guard22/opencode-multi-auth-codex@1.4.2',
+  ];
+  const forbiddenLegacyPluginRefs = ['oh-my-opencode@'];
+
+  const criticalPluginTargets = [
+    { label: 'Repo critical plugin refs', filePath: repoConfigPath },
+    { label: 'User critical plugin refs', filePath: configPath },
+  ];
+
+  for (const target of criticalPluginTargets) {
+    let passed = false;
+    let details = null;
+    if (existsSync(target.filePath)) {
+      try {
+        const parsed = JSON.parse(readFileSync(target.filePath, 'utf8'));
+        const plugins = Array.isArray(parsed.plugin) ? parsed.plugin : [];
+        const missing = criticalPluginRefs.filter((ref) => !plugins.includes(ref));
+        const hasLegacy = plugins.some((ref) => typeof ref === 'string' && forbiddenLegacyPluginRefs.some((prefix) => ref.includes(prefix)));
+        passed = missing.length === 0 && !hasLegacy;
+        details = passed
+          ? criticalPluginRefs.join(', ')
+          : [missing.length > 0 ? `Missing: ${missing.join(', ')}` : null, hasLegacy ? 'Legacy oh-my-opencode ref present' : null]
+              .filter(Boolean)
+              .join(' | ');
+      } catch (error) {
+        details = error instanceof Error ? error.message : String(error);
+      }
+    }
+
+    if (!passed) {
+      failed += 1;
+    }
+    printCheck(target.label, passed, details, `Align plugin refs in ${target.filePath}`);
+  }
+
+  let pluginPinsPassed = false;
+  let pluginPinsDetails = null;
+  if (existsSync(pluginPinsPath)) {
+    try {
+      const parsed = JSON.parse(readFileSync(pluginPinsPath, 'utf8'));
+      pluginPinsPassed =
+        parsed['oh-my-openagent'] === 'oh-my-openagent@3.16.0' &&
+        parsed['@guard22/opencode-multi-auth-codex'] === '@guard22/opencode-multi-auth-codex@1.4.2' &&
+        !Object.prototype.hasOwnProperty.call(parsed, 'oh-my-opencode');
+      pluginPinsDetails = pluginPinsPassed
+        ? JSON.stringify(parsed)
+        : `Unexpected pins: ${JSON.stringify(parsed)}`;
+    } catch (error) {
+      pluginPinsDetails = error instanceof Error ? error.message : String(error);
+    }
+  }
+  if (!pluginPinsPassed) {
+    failed += 1;
+  }
+  printCheck(
+    'Runtime plugin pins match critical versions',
+    pluginPinsPassed,
+    pluginPinsDetails,
+    'Run: bun run copy-config'
+  );
 
   // Central config verification
   const centralConfigPath = path.join(root, 'opencode-config', 'central-config.json');
