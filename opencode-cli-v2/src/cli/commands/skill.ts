@@ -87,7 +87,7 @@ export class SkillCommand extends BaseCommand {
       };
     }
 
-    const scriptName = SKILLS_SCRIPT_MAP[subcommand as Exclude<SkillsSubcommand, 'list' | 'info'>];
+    const scriptName = SKILLS_SCRIPT_MAP[subcommand];
     if (scriptName === undefined) {
       return {
         exitCode: 1,

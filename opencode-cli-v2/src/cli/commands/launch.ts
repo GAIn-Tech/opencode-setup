@@ -45,7 +45,7 @@ export class LaunchCommand extends BaseCommand {
     if (subcommand !== 'with-dashboard') {
       return {
         exitCode: 1,
-        errorMessage: `Unknown launch subcommand: ${subcommand}`
+        errorMessage: `Unknown launch subcommand: ${String(rawSubcommand)}`
       };
     }
 

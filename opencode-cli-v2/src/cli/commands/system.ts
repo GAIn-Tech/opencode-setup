@@ -46,7 +46,7 @@ export class SystemCommand extends BaseCommand {
     if (subcommand !== 'health') {
       return {
         exitCode: 1,
-        errorMessage: `Unknown system subcommand: ${subcommand}`
+        errorMessage: `Unknown system subcommand: ${String(rawSubcommand)}`
       };
     }
 

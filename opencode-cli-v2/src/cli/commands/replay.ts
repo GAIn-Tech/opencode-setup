@@ -28,10 +28,10 @@ export class ReplayCommand extends BaseCommand {
     context: CommandContext
   ): Promise<CommandExecutionResult> {
     const options = this.parseOptions(args);
-    let trajectory = options.positionals[0] ?? this.getStringOption(options, 'trajectory');
-    if (trajectory === undefined) {
-      trajectory = await promptForTaskInput(context.prompts, 'Trajectory path is required. Enter path:');
-    }
+    const trajectory =
+      options.positionals[0]
+      ?? this.getStringOption(options, 'trajectory')
+      ?? await promptForTaskInput(context.prompts, 'Trajectory path is required. Enter path:');
 
     const step = this.getStringOption(options, 'step') ?? 'all';
 

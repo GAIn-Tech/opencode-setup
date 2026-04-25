@@ -67,7 +67,7 @@ export class StateCommand extends BaseCommand {
     ) {
       return {
         exitCode: 1,
-        errorMessage: `Unknown state subcommand: ${subcommand}`
+        errorMessage: `Unknown state subcommand: ${String(rawSubcommand)}`
       };
     }
 

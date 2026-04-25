@@ -48,7 +48,7 @@ export class CommitCommand extends BaseCommand {
     if (subcommand !== 'governance') {
       return {
         exitCode: 1,
-        errorMessage: `Unknown commit subcommand: ${subcommand}`
+        errorMessage: `Unknown commit subcommand: ${String(rawSubcommand)}`
       };
     }
 

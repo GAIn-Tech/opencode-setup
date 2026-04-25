@@ -45,10 +45,10 @@ export class TaskCommand extends BaseCommand {
       };
     }
 
-    let task = options.positionals[0] ?? this.getStringOption(options, 'task', 't');
-    if (task === undefined) {
-      task = await promptForTaskInput(context.prompts, 'Task is required. Enter task to queue:');
-    }
+    const task =
+      options.positionals[0]
+      ?? this.getStringOption(options, 'task', 't')
+      ?? await promptForTaskInput(context.prompts, 'Task is required. Enter task to queue:');
 
     return {
       exitCode: 0,

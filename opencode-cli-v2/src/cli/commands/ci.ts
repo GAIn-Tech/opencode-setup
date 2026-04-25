@@ -45,7 +45,7 @@ export class CiCommand extends BaseCommand {
     if (subcommand !== 'warning-budget') {
       return {
         exitCode: 1,
-        errorMessage: `Unknown ci subcommand: ${subcommand}`
+        errorMessage: `Unknown ci subcommand: ${String(rawSubcommand)}`
       };
     }
 

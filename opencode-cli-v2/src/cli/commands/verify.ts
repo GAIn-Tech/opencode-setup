@@ -74,7 +74,7 @@ export class VerifyCommand extends BaseCommand {
     ) {
       return {
         exitCode: 1,
-        errorMessage: `Unknown verify subcommand: ${subcommand}`
+        errorMessage: `Unknown verify subcommand: ${String(rawSubcommand)}`
       };
     }
 

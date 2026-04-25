@@ -42,7 +42,7 @@ export class LinkCommand extends BaseCommand {
     if (subcommand !== 'packages') {
       return {
         exitCode: 1,
-        errorMessage: `Unknown link subcommand: ${subcommand}`
+        errorMessage: `Unknown link subcommand: ${String(rawSubcommand)}`
       };
     }
 

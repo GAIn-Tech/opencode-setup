@@ -4,8 +4,7 @@ export interface ColorSupportOptions {
 
 const ESC = '\u001b[';
 
-const ANSI_PATTERN =
-  /\u001b\[[0-?]*[ -/]*[@-~]/g; // broad CSI matcher (covers SGR + cursor movement, etc)
+const ANSI_PATTERN = new RegExp(`${ESC}[0-?]*[ -/]*[@-~]`, 'g');
 
 export function stripAnsi(input: string): string {
   return input.replace(ANSI_PATTERN, '');

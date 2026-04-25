@@ -41,10 +41,9 @@ export class TrajectoryCommand extends BaseCommand {
       };
     }
 
-    let path = options.positionals[0];
-    if (path === undefined) {
-      path = await promptForTaskInput(context.prompts, 'Trajectory path is required. Enter path:');
-    }
+    const path =
+      options.positionals[0]
+      ?? await promptForTaskInput(context.prompts, 'Trajectory path is required. Enter path:');
 
     const configPath =
       this.getStringOption(options, 'config', 'c') ?? context.globalOptions.configPath ?? 'default';

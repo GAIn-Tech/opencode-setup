@@ -56,10 +56,10 @@ export class AgentCommand extends BaseCommand {
     const type = this.getStringOption(options, 'type') ?? 'default';
     const configPath =
       this.getStringOption(options, 'config', 'c') ?? context.globalOptions.configPath ?? 'default';
-    let task = this.getStringOption(options, 'task') ?? options.positionals[0];
-    if (task === undefined) {
-      task = await promptForTaskInput(context.prompts, 'Agent task is required. Enter task:');
-    }
+    const task =
+      this.getStringOption(options, 'task')
+      ?? options.positionals[0]
+      ?? await promptForTaskInput(context.prompts, 'Agent task is required. Enter task:');
 
     return {
       exitCode: 0,

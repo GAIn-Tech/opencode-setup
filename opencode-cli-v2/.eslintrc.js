@@ -17,8 +17,31 @@ module.exports = {
     "prettier"
   ],
   ignorePatterns: ["node_modules/", "dist/", "build/"],
+  overrides: [
+    {
+      files: ["tests/**/*.ts"],
+      rules: {
+        "@typescript-eslint/await-thenable": "off",
+        "@typescript-eslint/no-empty-function": "off"
+      }
+    }
+  ],
   rules: {
     "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-empty-function": [
+      "error",
+      {
+        "allow": ["methods", "asyncMethods", "functions", "asyncFunctions", "arrowFunctions"]
+      }
+    ],
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }
+    ],
+    "@typescript-eslint/require-await": "off",
     "@typescript-eslint/consistent-type-imports": [
       "error",
       {

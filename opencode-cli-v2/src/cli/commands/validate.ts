@@ -122,7 +122,7 @@ export class ValidateCommand extends BaseCommand {
     const scriptArgs: string[] = [];
     const options = this.parseOptions(rest);
 
-    let scriptName = VALIDATE_SCRIPT_BY_SUBCOMMAND[subcommand];
+    const scriptName = VALIDATE_SCRIPT_BY_SUBCOMMAND[subcommand];
     if (subcommand === 'config') {
       const file = this.getStringOption(options, 'file', 'f');
       if (file !== undefined) {

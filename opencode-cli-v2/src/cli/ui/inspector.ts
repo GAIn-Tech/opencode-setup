@@ -4,7 +4,7 @@ import type { BorderStyle } from './layout';
 import type { TerminalStream } from './terminal';
 import { getTerminalWidth, InPlaceRenderer, supportsUnicode } from './terminal';
 
-export type InspectorStepType = 'thought' | 'tool' | 'observation' | 'error' | 'info' | string;
+export type InspectorStepType = string;
 
 export interface InspectorStep {
   readonly number: number;

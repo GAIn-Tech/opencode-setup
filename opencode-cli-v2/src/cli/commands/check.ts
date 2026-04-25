@@ -66,7 +66,7 @@ export class CheckCommand extends BaseCommand {
     ) {
       return {
         exitCode: 1,
-        errorMessage: `Unknown check subcommand: ${subcommand}`
+        errorMessage: `Unknown check subcommand: ${String(rawSubcommand)}`
       };
     }
 
