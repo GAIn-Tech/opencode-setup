@@ -132,3 +132,13 @@ export type {
 } from "./config"
 
 export type { ConfigLoadError } from "./shared/config-errors"
+
+// Session state exports for model persistence
+export {
+  subagentSessions,
+  syncSubagentSessions,
+  backgroundSessions,
+  setMainSession,
+  getMainSessionID,
+  isMainSession,
+} from "./features/claude-code-session-state"

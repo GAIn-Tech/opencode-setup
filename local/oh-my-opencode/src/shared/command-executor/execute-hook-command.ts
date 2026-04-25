@@ -11,6 +11,9 @@ export interface CommandResult {
 const DEFAULT_HOOK_TIMEOUT_MS = 30_000;
 const SIGKILL_GRACE_MS = 5_000;
 
+// Windows command line limit (32,767 characters for CreateProcess)
+const WINDOWS_MAX_COMMAND_LENGTH = 32767;
+
 export interface ExecuteHookOptions {
   forceZsh?: boolean;
   zshPath?: string;
@@ -48,11 +51,21 @@ export async function executeHookCommand(
     }
   }
 
+  // Validate command length on Windows before spawning
+  const isWin32 = process.platform === "win32";
+  if (isWin32 && finalCommand.length > WINDOWS_MAX_COMMAND_LENGTH) {
+    const truncatedCommand = finalCommand.substring(0, 100) + "... [truncated]";
+    throw new Error(
+      `Command exceeds Windows maximum length (${finalCommand.length} > ${WINDOWS_MAX_COMMAND_LENGTH}). ` +
+      `Command starts with: ${truncatedCommand}. ` +
+      `Consider using a shorter project path or enabling Windows Long Path support.`
+    );
+  }
+
   return new Promise(resolve => {
     let settled = false;
     let killTimer: ReturnType<typeof setTimeout> | null = null;
 
-    const isWin32 = process.platform === "win32";
     const proc = spawn(finalCommand, {
       cwd,
       shell: true,

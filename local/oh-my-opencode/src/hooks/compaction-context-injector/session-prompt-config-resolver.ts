@@ -35,8 +35,11 @@ export async function resolveSessionPromptConfig(
   sessionID: string,
 ): Promise<CompactionAgentConfigCheckpoint> {
   const storedModel = getSessionModel(sessionID)
+  const hasStoredModel = !!storedModel
+  let foundTrustedMessageModel = false
   const promptConfig: CompactionAgentConfigCheckpoint = {
     agent: getSessionAgent(sessionID),
+    ...(storedModel ? { model: storedModel } : {}),
     tools: getSessionTools(sessionID),
   }
 
@@ -53,10 +56,12 @@ export async function resolveSessionPromptConfig(
         promptConfig.agent = info.agent
       }
 
-      if (!promptConfig.model) {
+      if (!foundTrustedMessageModel) {
         const model = resolveValidatedModel(info)
-        if (model) {
+        const hasTrustedAgent = !!info?.agent && !isCompactionAgent(info.agent)
+        if (model && (hasTrustedAgent || (!hasStoredModel && !promptConfig.model))) {
           promptConfig.model = model
+          foundTrustedMessageModel = hasTrustedAgent
         }
       }
 
@@ -77,10 +82,6 @@ export async function resolveSessionPromptConfig(
       directory: ctx.directory,
       error: String(error),
     })
-  }
-
-  if (!promptConfig.model && storedModel) {
-    promptConfig.model = storedModel
   }
 
   return promptConfig

@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test"
 
 import type { BackgroundManager } from "../../features/background-agent"
 import { setMainSession, subagentSessions, _resetForTesting } from "../../features/claude-code-session-state"
+import { clearSessionModel, getSessionModel, setSessionModel } from "../../shared/session-model-state"
 import { createTodoContinuationEnforcer } from "."
 import {
   CONTINUATION_COOLDOWN_MS,
@@ -552,6 +553,61 @@ describe("todo-continuation-enforcer", () => {
 
     // then
     expect(messagesCallCount).toBe(1)
+  })
+
+  test("should not overwrite stored model from latest model-only tool message", async () => {
+    // given
+    const sessionID = "main-model-only-tool-message"
+    const userModel = { providerID: "openrouter", modelID: "glm5" }
+    setMainSession(sessionID)
+    setSessionModel(sessionID, userModel)
+    mockMessages = [
+      {
+        info: {
+          id: "msg-tool-model-only",
+          role: "user",
+          model: { providerID: "openai", modelID: "gpt-4o-mini" },
+        },
+      },
+    ]
+    const hook = createTodoContinuationEnforcer(createMockPluginInput(), {})
+
+    // when
+    await hook.handler({
+      event: { type: "session.idle", properties: { sessionID } },
+    })
+
+    // then
+    expect(getSessionModel(sessionID)).toEqual(userModel)
+    clearSessionModel(sessionID)
+  })
+
+  test("should not overwrite stored model from DCP agent message", async () => {
+    // given
+    const sessionID = "main-dcp-agent-model-message"
+    const userModel = { providerID: "openrouter", modelID: "glm5" }
+    setMainSession(sessionID)
+    setSessionModel(sessionID, userModel)
+    mockMessages = [
+      {
+        info: {
+          id: "msg-dcp-model",
+          role: "user",
+          agent: "dcp",
+          model: { providerID: "openai", modelID: "gpt-4o-mini" },
+        },
+      },
+    ]
+    const hook = createTodoContinuationEnforcer(createMockPluginInput(), {})
+
+    // when
+    await hook.handler({
+      event: { type: "session.idle", properties: { sessionID } },
+    })
+
+    // then
+    expect(getSessionModel(sessionID)).toEqual(userModel)
+    clearSessionModel(sessionID)
   })
 
   test("should cancel countdown on tool execution", async () => {

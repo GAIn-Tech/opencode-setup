@@ -7,6 +7,7 @@ import { subagentSessions } from "../claude-code-session-state"
 import { getTaskToastManager } from "../task-toast-manager"
 import { isInsideTmux } from "../../shared/tmux"
 import { stripAgentListSortPrefix } from "../../shared/agent-display-names"
+import { resolveSessionDirectory } from "../../shared/session-directory-resolver"
 import type { ConcurrencyManager } from "./concurrency"
 
 export const FALLBACK_AGENT = "general"
@@ -90,7 +91,11 @@ export async function startTask(
     log(`[background-agent] Failed to get parent session: ${err}`)
     return null
   })
-  const parentDirectory = parentSession?.data?.directory ?? directory
+  const rawParentDirectory = parentSession?.data?.directory ?? directory
+  const parentDirectory = resolveSessionDirectory({
+    parentDirectory: rawParentDirectory,
+    fallbackDirectory: directory,
+  })
   log(`[background-agent] Parent dir: ${parentSession?.data?.directory}, using: ${parentDirectory}`)
 
   const createResult = await client.session.create({

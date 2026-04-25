@@ -72,6 +72,30 @@ describe("session prompt config resolver", () => {
     })
   })
 
+  it("does not trust DCP agent model over stored session model", async () => {
+    // given
+    setSessionModel(sessionID, {
+      providerID: "openrouter",
+      modelID: "glm5",
+    })
+    const ctx = createMockContext([
+      {
+        info: {
+          agent: "dcp",
+          model: { providerID: "openai", modelID: "gpt-4o-mini" },
+        },
+      },
+    ])
+
+    // when
+    const promptConfig = await resolveSessionPromptConfig(ctx, sessionID)
+
+    // then
+    expect(promptConfig).toEqual({
+      model: { providerID: "openrouter", modelID: "glm5" },
+    })
+  })
+
   it("omits a compaction model from the latest prompt config", async () => {
     // given
     const ctx = createMockContext([

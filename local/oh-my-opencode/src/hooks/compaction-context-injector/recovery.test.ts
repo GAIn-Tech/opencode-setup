@@ -1,7 +1,12 @@
 /// <reference path="../../../bun-test.d.ts" />
 
 import { describe, expect, it } from "bun:test"
-import { setCompactionAgentConfigCheckpoint } from "../../shared/compaction-agent-config-checkpoint"
+import {
+  clearCompactionAgentConfigCheckpoint,
+  getCompactionAgentConfigCheckpoint,
+  setCompactionAgentConfigCheckpoint,
+} from "../../shared/compaction-agent-config-checkpoint"
+import { clearSessionModel, setSessionModel } from "../../shared/session-model-state"
 import { createCompactionContextInjector } from "./index"
 
 type SessionMessageResponse = Array<{
@@ -93,6 +98,39 @@ function createMeaningfulPartUpdatedEvent(
 }
 
 describe("createCompactionContextInjector recovery", () => {
+  it("captures stored session model instead of latest tool model", async () => {
+    //#given
+    const sessionID = "ses_capture_stored_model_after_distill"
+    const promptAsyncRecorder = createPromptAsyncRecorder()
+    setSessionModel(sessionID, { providerID: "openrouter", modelID: "glm5" })
+    const ctx = createMockContext(
+      [
+        [
+          {
+            info: {
+              role: "user",
+              model: { providerID: "openai", modelID: "gpt-4o-mini" },
+            },
+          },
+        ],
+      ],
+      promptAsyncRecorder.promptAsync,
+    )
+    const injector = createCompactionContextInjector({ ctx })
+
+    //#when
+    await injector.capture(sessionID)
+
+    //#then
+    expect(getCompactionAgentConfigCheckpoint(sessionID)?.model).toEqual({
+      providerID: "openrouter",
+      modelID: "glm5",
+    })
+
+    clearSessionModel(sessionID)
+    clearCompactionAgentConfigCheckpoint(sessionID)
+  })
+
   it("re-injects after compaction when agent and model match but tools are missing", async () => {
     //#given
     const promptAsyncRecorder = createPromptAsyncRecorder()
@@ -355,6 +393,56 @@ describe("createCompactionContextInjector recovery", () => {
     expect(promptAsyncRecorder.calls[0]?.body.model).toEqual({
       providerID: "openai",
       modelID: "gpt-5",
+    })
+  })
+
+  it("preserves checkpoint model when latest prompt config only has a tool model", async () => {
+    //#given
+    const sessionID = "ses_tool_model_after_distill"
+    const promptAsyncRecorder = createPromptAsyncRecorder()
+    setCompactionAgentConfigCheckpoint(sessionID, {
+      agent: "hephaestus",
+      model: { providerID: "openrouter", modelID: "glm5" },
+      tools: { bash: true },
+    })
+    const toolModelOnlyPromptConfig = [
+      {
+        info: {
+          role: "user",
+          model: { providerID: "openai", modelID: "gpt-4o-mini" },
+        },
+      },
+    ]
+    const ctx = createMockContext(
+      [
+        toolModelOnlyPromptConfig,
+        toolModelOnlyPromptConfig,
+        [
+          {
+            info: {
+              role: "user",
+              agent: "hephaestus",
+              model: { providerID: "openrouter", modelID: "glm5" },
+              tools: { bash: true },
+            },
+          },
+        ],
+      ],
+      promptAsyncRecorder.promptAsync,
+    )
+    const injector = createCompactionContextInjector({ ctx })
+
+    //#when
+    await injector.event({
+      event: { type: "session.compacted", properties: { sessionID } },
+    })
+
+    //#then
+    expect(promptAsyncRecorder.calls.length).toBe(1)
+    expect(promptAsyncRecorder.calls[0]?.body.agent).toBe("hephaestus")
+    expect(promptAsyncRecorder.calls[0]?.body.model).toEqual({
+      providerID: "openrouter",
+      modelID: "glm5",
     })
   })
 })

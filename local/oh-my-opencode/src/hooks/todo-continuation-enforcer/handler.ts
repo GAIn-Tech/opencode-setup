@@ -4,6 +4,7 @@ import type { BackgroundManager } from "../../features/background-agent"
 import {
   clearContinuationMarker,
 } from "../../features/run-continuation-state"
+import { clearSessionModel } from "../../shared/session-model-state"
 import { log } from "../../shared/logger"
 
 import { DEFAULT_SKIP_AGENTS, HOOK_NAME } from "./constants"
@@ -83,12 +84,13 @@ export function createTodoContinuationHandler(args: {
       return
     }
 
-    if (event.type === "session.deleted") {
-      const sessionInfo = props?.info as { id?: string } | undefined
-      if (sessionInfo?.id) {
-        clearContinuationMarker(ctx.directory, sessionInfo.id)
-      }
+  if (event.type === "session.deleted") {
+    const sessionInfo = props?.info as { id?: string } | undefined
+    if (sessionInfo?.id) {
+      clearContinuationMarker(ctx.directory, sessionInfo.id)
+      clearSessionModel(sessionInfo.id)
     }
+  }
 
     handleNonIdleEvent({
       eventType: event.type,

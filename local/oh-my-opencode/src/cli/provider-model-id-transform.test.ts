@@ -114,16 +114,16 @@ describe("transformModelForProvider", () => {
 			expect(result).toBe("gemini-3.1-pro-preview")
 		})
 
-		test("passes through other gemini models unchanged", () => {
-			// #given google provider and gemini-2.5-flash model
+		test("passes through current preview gemini models unchanged", () => {
+			// #given google provider and gemini-3-pro-preview model
 			const provider = "google"
-			const model = "gemini-2.5-flash"
+			const model = "gemini-3-pro-preview"
 
 			// #when transformModelForProvider is called
 			const result = transformModelForProvider(provider, model)
 
 			// #then should pass through unchanged
-			expect(result).toBe("gemini-2.5-flash")
+			expect(result).toBe("gemini-3-pro-preview")
 		})
 
 		test("prevents double transformation of gemini-3-flash-preview", () => {

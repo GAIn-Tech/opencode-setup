@@ -143,6 +143,10 @@ describe("OpenClaw Dispatcher", () => {
   })
 
   test("terminateCommandProcess kills process group on unix when pid exists", () => {
+    if (process.platform === "win32") {
+      return
+    }
+
     const killSpy = spyOn(process, "kill").mockImplementation(() => true)
     const proc = {
       pid: 4321,
@@ -160,6 +164,10 @@ describe("OpenClaw Dispatcher", () => {
   })
 
   test("terminateCommandProcess falls back to direct kill when process group kill fails", () => {
+    if (process.platform === "win32") {
+      return
+    }
+
     const killSpy = spyOn(process, "kill").mockImplementation(() => {
       throw new Error("group kill failed")
     })
@@ -179,6 +187,10 @@ describe("OpenClaw Dispatcher", () => {
   })
 
   test("wakeCommandGateway returns correlation metadata from stdout JSON", async () => {
+    if (process.platform === "win32") {
+      return
+    }
+
     const result = await wakeCommandGateway(
       "command",
       {
@@ -199,6 +211,10 @@ describe("OpenClaw Dispatcher", () => {
   })
 
   test("wakeCommandGateway returns correlation metadata from OpenClaw CLI stdout", async () => {
+    if (process.platform === "win32") {
+      return
+    }
+
     const result = await wakeCommandGateway(
       "command",
       {
@@ -215,5 +231,28 @@ describe("OpenClaw Dispatcher", () => {
       messageId: "55",
       platform: "discord",
     })
+  })
+
+  test("wakeCommandGateway returns clear error when command exceeds Windows max length", async () => {
+    if (process.platform !== "win32") {
+      return
+    }
+
+    const oversizedCommand = "a".repeat(32768)
+    const result = await wakeCommandGateway(
+      "gateway-long",
+      {
+        type: "command",
+        method: "POST",
+        command: oversizedCommand,
+        timeout: 1000,
+      },
+      {},
+    )
+
+    expect(result.success).toBe(false)
+    expect(result.error).toContain("Gateway command exceeds Windows maximum length")
+    expect(result.error).toContain("32768 > 32767")
+    expect(result.error).toContain("Gateway: gateway-long")
   })
 })

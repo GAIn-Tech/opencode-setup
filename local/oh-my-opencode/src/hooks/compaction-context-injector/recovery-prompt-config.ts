@@ -5,7 +5,17 @@ export type RecoveryPromptConfig = CompactionAgentConfigCheckpoint & {
 }
 
 function isCompactionAgent(agent: string | undefined): boolean {
-  return agent?.trim().toLowerCase() === "compaction"
+  const normalized = agent?.trim().toLowerCase()
+  if (!normalized) {
+    return false
+  }
+
+  return [
+    "compaction",
+    "dcp",
+    "distill",
+    "context-injector",
+  ].includes(normalized)
 }
 
 function matchesExpectedModel(

@@ -19,7 +19,16 @@ function isCompactionPart(part: unknown): boolean {
 }
 
 export function isCompactionAgent(agent: unknown): boolean {
-  return typeof agent === "string" && agent.trim().toLowerCase() === "compaction"
+  if (typeof agent !== "string") {
+    return false
+  }
+
+  return [
+    "compaction",
+    "dcp",
+    "distill",
+    "context-injector",
+  ].includes(agent.trim().toLowerCase())
 }
 
 export function hasCompactionPart(parts: unknown): boolean {

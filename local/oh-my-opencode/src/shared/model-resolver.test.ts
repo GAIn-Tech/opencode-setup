@@ -2,10 +2,20 @@ import { describe, expect, test, spyOn, beforeEach, afterEach, mock } from "bun:
 
 // Isolate from other tests that mock.module the logger (CI cross-contamination fix)
 mock.module("./logger", () => ({ log: (..._args: unknown[]) => {} }))
+mock.module("./user-preference", () => ({
+  UserPreference: class {
+    async load(): Promise<string | null> {
+      return null
+    }
+
+    async save(_modelId: string): Promise<void> {}
+  },
+}))
 
 import { resolveModel, resolveModelWithFallback, type ModelResolutionInput, type ExtendedModelResolutionInput, type ModelResolutionResult, type ModelSource } from "./model-resolver"
 import * as logger from "./logger"
 import * as connectedProvidersCache from "./connected-providers-cache"
+import { resetModelPreferenceCacheForTest } from "./model-resolution-pipeline"
 
 describe("resolveModel", () => {
   describe("priority chain", () => {
@@ -111,6 +121,7 @@ describe("resolveModelWithFallback", () => {
 
   beforeEach(() => {
     logSpy = spyOn(logger, "log")
+    resetModelPreferenceCacheForTest()
   })
 
   afterEach(() => {
@@ -862,11 +873,11 @@ describe("resolveModelWithFallback", () => {
       cacheSpy.mockRestore()
     })
 
-    test("passes through non-gemini-3 models for google connected provider", () => {
-      // given - google connected, category default uses gemini-2.5-flash (no transform needed)
+    test("passes through preview gemini models for google connected provider", () => {
+      // given - google connected, category default uses a valid preview Gemini model
       const cacheSpy = spyOn(connectedProvidersCache, "readConnectedProvidersCache").mockReturnValue(["google"])
       const input: ExtendedModelResolutionInput = {
-        categoryDefaultModel: "google/gemini-2.5-flash",
+        categoryDefaultModel: "google/gemini-3-flash-preview",
         availableModels: new Set(),
         systemDefaultModel: "anthropic/claude-sonnet-4-5",
       }
@@ -875,7 +886,7 @@ describe("resolveModelWithFallback", () => {
       const result = resolveModelWithFallback(input)
 
       // then - should pass through unchanged
-      expect(result!.model).toBe("google/gemini-2.5-flash")
+      expect(result!.model).toBe("google/gemini-3-flash-preview")
       expect(result!.source).toBe("category-default")
       cacheSpy.mockRestore()
     })

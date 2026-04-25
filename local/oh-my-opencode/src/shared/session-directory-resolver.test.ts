@@ -97,5 +97,21 @@ describe("session-directory-resolver", () => {
       //#then
       expect(result).toBe("/tmp/opencode")
     })
+
+    test("keeps non-AppData directories unchanged on Windows", () => {
+      //#given
+      const options = {
+        parentDirectory: "D:\\projects\\oh-my-opencode",
+        fallbackDirectory: "C:\\Users\\test\\AppData\\Roaming\\opencode",
+        platform: "win32" as const,
+        currentWorkingDirectory: "D:\\projects\\oh-my-opencode",
+      }
+
+      //#when
+      const result = resolveSessionDirectory(options)
+
+      //#then
+      expect(result).toBe("D:\\projects\\oh-my-opencode")
+    })
   })
 })

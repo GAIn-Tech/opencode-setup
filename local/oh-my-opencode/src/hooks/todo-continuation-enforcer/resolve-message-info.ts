@@ -2,6 +2,7 @@ import type { PluginInput } from "@opencode-ai/plugin"
 
 import { normalizeSDKResponse } from "../../shared"
 import { isCompactionMessage } from "../../shared/compaction-marker"
+import { getSessionModel } from "../../shared/session-model-state"
 
 import type { MessageInfo, MessageWithInfo, ResolveLatestMessageInfoResult } from "./types"
 
@@ -41,6 +42,16 @@ export async function resolveLatestMessageInfo(
         encounteredCompaction,
         latestMessageWasCompaction,
       }
+    }
+  }
+
+  // If no model found in messages, check session state
+  const savedModel = getSessionModel(sessionID)
+  if (savedModel) {
+    return { 
+      resolvedInfo: { model: savedModel }, 
+      encounteredCompaction, 
+      latestMessageWasCompaction 
     }
   }
 

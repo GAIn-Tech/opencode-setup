@@ -22,6 +22,20 @@ import { AGENT_RECOVERY_PROMPT, NO_TEXT_TAIL_THRESHOLD, RECOVERY_COOLDOWN_MS, RE
 import type { CompactionContextClient } from "./types"
 import type { TailMonitorState } from "./tail-monitor"
 
+function resolveCheckpointModelForRecovery(
+  checkpoint: NonNullable<ReturnType<typeof getCompactionAgentConfigCheckpoint>>,
+  currentPromptConfig: Awaited<ReturnType<typeof resolveSessionPromptConfig>>,
+) {
+  if (!currentPromptConfig.agent) {
+    return checkpoint.model
+  }
+
+  return validateCheckpointModel(
+    checkpoint.model,
+    currentPromptConfig.model,
+  )
+}
+
 export function createRecoveryLogic(
   ctx: CompactionContextClient | undefined,
   getTailState: (sessionID: string) => TailMonitorState,
@@ -46,9 +60,9 @@ export function createRecoveryLogic(
     }
 
     const currentPromptConfig = await resolveSessionPromptConfig(ctx, sessionID)
-    const validatedCheckpointModel = validateCheckpointModel(
-      checkpoint.model,
-      currentPromptConfig.model,
+    const validatedCheckpointModel = resolveCheckpointModelForRecovery(
+      checkpoint,
+      currentPromptConfig,
     )
     const { model: checkpointModel, ...checkpointWithoutModel } = checkpoint
     const checkpointWithAgent = {

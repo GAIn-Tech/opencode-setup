@@ -5,6 +5,7 @@ const DEFAULT_HTTP_TIMEOUT_MS = 10_000
 const DEFAULT_COMMAND_TIMEOUT_MS = 5_000
 const MIN_COMMAND_TIMEOUT_MS = 100
 const MAX_COMMAND_TIMEOUT_MS = 300_000
+const WINDOWS_MAX_COMMAND_LENGTH = 32767
 const SHELL_METACHAR_RE = /[|&;><`$()]/
 
 export function validateGatewayUrl(url: string): boolean {
@@ -200,6 +201,12 @@ export async function wakeCommandGateway(
       if (value === undefined) return _match
       return shellEscapeArg(value)
     })
+
+    if (process.platform === "win32" && interpolated.length > WINDOWS_MAX_COMMAND_LENGTH) {
+      throw new Error(
+        `Gateway command exceeds Windows maximum length (${interpolated.length} > ${WINDOWS_MAX_COMMAND_LENGTH}). Gateway: ${gatewayName}`,
+      )
+    }
 
     const proc = spawn(["sh", "-c", interpolated], {
       env: { ...process.env },

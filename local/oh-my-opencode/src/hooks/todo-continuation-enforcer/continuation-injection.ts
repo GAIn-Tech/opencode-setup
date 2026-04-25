@@ -5,6 +5,7 @@ import {
   getSessionAgent,
   resolveRegisteredAgentName,
 } from "../../features/claude-code-session-state"
+import { getSessionModel } from "../../shared/session-model-state"
 import {
   createInternalAgentTextPart,
   normalizeSDKResponse,
@@ -126,6 +127,13 @@ export async function injectContinuation(args: {
               : {}),
           }
         : undefined)
+    // Fallback to session state if model still not found
+    if (!model) {
+      const savedModel = getSessionModel(sessionID)
+      if (savedModel) {
+        model = savedModel
+      }
+    }
     tools = tools ?? previousMessage?.tools
   }
 

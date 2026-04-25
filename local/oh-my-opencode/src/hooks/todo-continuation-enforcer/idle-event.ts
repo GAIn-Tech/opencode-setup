@@ -1,6 +1,7 @@
 import type { PluginInput } from "@opencode-ai/plugin"
 import type { BackgroundManager } from "../../features/background-agent"
 import { getSessionAgent } from "../../features/claude-code-session-state"
+import { getSessionModel, setSessionModel } from "../../shared/session-model-state"
 import { normalizeSDKResponse } from "../../shared"
 import { log } from "../../shared/logger"
 import { getAgentConfigKey } from "../../shared/agent-display-names"
@@ -22,6 +23,20 @@ function shouldAllowActivityProgress(modelID: string | undefined): boolean {
   }
 
   return !modelID.toLowerCase().includes("codex")
+}
+
+function isModelPersistentContinuationAgent(agent: string | undefined): boolean {
+  const normalized = agent?.trim().toLowerCase()
+  if (!normalized) {
+    return false
+  }
+
+  return ![
+    "compaction",
+    "dcp",
+    "distill",
+    "context-injector",
+  ].includes(normalized)
 }
 
 export async function handleSessionIdle(args: {
@@ -168,6 +183,16 @@ export async function handleSessionIdle(args: {
   const sessionAgent = getSessionAgent(sessionID)
   if (!resolvedInfo?.agent && sessionAgent) {
     resolvedInfo = { ...resolvedInfo, agent: sessionAgent }
+  }
+
+  const savedModel = getSessionModel(sessionID)
+  const canPersistResolvedModel = isModelPersistentContinuationAgent(resolvedInfo?.agent)
+
+  // Persist model for auto-continuation only from trusted agent messages.
+  if (resolvedInfo?.model && canPersistResolvedModel) {
+    setSessionModel(sessionID, resolvedInfo.model)
+  } else if (savedModel) {
+    resolvedInfo = { ...resolvedInfo, model: savedModel }
   }
 
   const acknowledgedCompaction = resolvedInfo?.agent ? acknowledgeCompactionGuard(state, observedCompactionEpoch) : false

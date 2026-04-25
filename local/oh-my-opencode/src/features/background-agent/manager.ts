@@ -59,6 +59,7 @@ import { pruneStaleTasksAndNotifications } from "./task-poller"
 import { checkAndInterruptStaleTasks } from "./task-poller"
 import { removeTaskToastTracking } from "./remove-task-toast-tracking"
 import { abortWithTimeout } from "./abort-with-timeout"
+import { resolveSessionDirectory } from "../../shared/session-directory-resolver"
 import {
   MIN_SESSION_GONE_POLLS,
   verifySessionExists as verifySessionStillExists,
@@ -457,7 +458,11 @@ export class BackgroundManager {
       log(`[background-agent] Failed to get parent session: ${err}`)
       return null
     })
-    const parentDirectory = parentSession?.data?.directory ?? this.directory
+    const rawParentDirectory = parentSession?.data?.directory ?? this.directory
+    const parentDirectory = resolveSessionDirectory({
+      parentDirectory: rawParentDirectory,
+      fallbackDirectory: this.directory,
+    })
     log(`[background-agent] Parent dir: ${parentSession?.data?.directory}, using: ${parentDirectory}`)
 
     const createResult = await this.client.session.create({

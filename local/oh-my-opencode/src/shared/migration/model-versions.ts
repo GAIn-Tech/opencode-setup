@@ -3,11 +3,9 @@
  * Used to auto-upgrade hardcoded model versions in user configs when the plugin
  * bumps to newer model versions.
  *
- * Keys are full "provider/model" strings. Only openai and anthropic entries needed.
+ * Keys are full "provider/model" strings.
  */
 export const MODEL_VERSION_MAP: Record<string, string> = {
-  "anthropic/claude-opus-4-5": "anthropic/claude-opus-4-6",
-  "anthropic/claude-sonnet-4-5": "anthropic/claude-sonnet-4-6",
   "openai/gpt-5.3-codex": "openai/gpt-5.4",
 }
 

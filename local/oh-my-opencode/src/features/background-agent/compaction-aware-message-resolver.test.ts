@@ -39,6 +39,12 @@ describe("isCompactionAgent", () => {
       expect(result).toBe(true)
     })
 
+    test("returns true for DCP and distill agent labels", () => {
+      expect(isCompactionAgent("dcp")).toBe(true)
+      expect(isCompactionAgent("distill")).toBe(true)
+      expect(isCompactionAgent("context-injector")).toBe(true)
+    })
+
     test("returns false for undefined", () => {
       // when
       const result = isCompactionAgent(undefined)
