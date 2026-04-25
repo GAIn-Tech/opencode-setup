@@ -2,6 +2,7 @@ declare const require: (name: string) => any
 const { afterEach, beforeEach, describe, expect, mock, spyOn, test } = require("bun:test")
 import { resolveModelForDelegateTask } from "./model-selection"
 import * as connectedProvidersCache from "../../shared/connected-providers-cache"
+import { buildRoutingPolicyContext } from "./routing-context"
 
 describe("resolveModelForDelegateTask", () => {
 	let hasConnectedProvidersSpy: ReturnType<typeof spyOn> | undefined
@@ -139,16 +140,37 @@ describe("resolveModelForDelegateTask", () => {
 				expect(result).toEqual({ model: "anthropic/claude-sonnet-4-6" })
 			})
 
-			test("#then trusts user-configured category model without fuzzy validation", () => {
-				const result = resolveModelForDelegateTask({
-					categoryDefaultModel: "new-api-openai/gpt-5.4-high",
-					isUserConfiguredCategoryModel: true,
-					availableModels: new Set(["openai/gpt-5.4"]),
-				})
-
-				expect(result).toEqual({ model: "new-api-openai/gpt-5.4-high" })
+		test("#then trusts user-configured category model without fuzzy validation", () => {
+			const result = resolveModelForDelegateTask({
+				categoryDefaultModel: "new-api-openai/gpt-5.4-high",
+				isUserConfiguredCategoryModel: true,
+				availableModels: new Set(["openai/gpt-5.4"]),
 			})
+
+			expect(result).toEqual({ model: "new-api-openai/gpt-5.4-high" })
 		})
+
+		test("#then skips premium category defaults when the routing policy is not critical", () => {
+			const result = resolveModelForDelegateTask({
+				categoryDefaultModel: "openai/gpt-5.5",
+				fallbackChain: [{ providers: ["openai"], model: "gpt-5.4-mini" }],
+				availableModels: new Set(["openai/gpt-5.5", "openai/gpt-5.4-mini"]),
+				routingPolicy: buildRoutingPolicyContext({ category: "deep" }),
+			})
+
+			expect(result).toEqual({ model: "openai/gpt-5.4-mini", fallbackEntry: { providers: ["openai"], model: "gpt-5.4-mini" }, matchedFallback: true })
+		})
+
+		test("#then allows premium category defaults for critical agents", () => {
+			const result = resolveModelForDelegateTask({
+				categoryDefaultModel: "openai/gpt-5.5",
+				availableModels: new Set(["openai/gpt-5.5"]),
+				routingPolicy: buildRoutingPolicyContext({ agent: "oracle" }),
+			})
+
+			expect(result).toEqual({ model: "openai/gpt-5.5" })
+		})
+	})
 
 		describe("#when user fallback models include variant syntax", () => {
 			test("#then resolves a parenthesized variant against the base available model", () => {
