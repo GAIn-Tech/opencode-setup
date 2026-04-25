@@ -472,7 +472,11 @@ function summarizeContent(content: unknown): string {
     return truncateForSummary(JSON.stringify(content));
   }
 
-  return truncateForSummary(String(content ?? ''));
+  if (typeof content === 'string' || typeof content === 'number' || typeof content === 'boolean' || content == null) {
+    return truncateForSummary(String(content ?? ''));
+  }
+
+  return truncateForSummary('');
 }
 
 function truncateForSummary(value: string): string {

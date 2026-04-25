@@ -265,7 +265,7 @@ class LoopbackTransport implements MCPClientTransport {
 
 async function createSdkTransport(config: MCPServerConfig): Promise<MCPClientTransport | null> {
   const sdkClientModule = await loadOptionalModule('@modelcontextprotocol/sdk/client/index.js');
-  if (!sdkClientModule || typeof (sdkClientModule as Record<string, unknown>).Client !== 'function') {
+  if (!sdkClientModule || typeof sdkClientModule.Client !== 'function') {
     return null;
   }
 
@@ -274,7 +274,7 @@ async function createSdkTransport(config: MCPServerConfig): Promise<MCPClientTra
     '@modelcontextprotocol/sdk/client/streamableHttp.js'
   );
 
-  const ClientCtor = (sdkClientModule as Record<string, unknown>).Client as new (
+  const ClientCtor = sdkClientModule.Client as new (
     metadata: Record<string, unknown>
   ) => {
     connect(transport: unknown): Promise<void>;
@@ -291,9 +291,7 @@ async function createSdkTransport(config: MCPServerConfig): Promise<MCPClientTra
   });
 
   if (config.transport === 'stdio') {
-    const StdioCtor = (stdioTransportModule as Record<string, unknown> | null)?.[
-      'StdioClientTransport'
-    ] as
+    const StdioCtor = stdioTransportModule?.StdioClientTransport as
       | (new (options: { command: string; args?: string[]; env?: Record<string, string> }) => unknown)
       | undefined;
 
@@ -309,9 +307,9 @@ async function createSdkTransport(config: MCPServerConfig): Promise<MCPClientTra
   }
 
   if (config.transport === 'http') {
-    const HttpCtor = (streamableHttpTransportModule as Record<string, unknown> | null)?.[
-      'StreamableHTTPClientTransport'
-    ] as (new (url: URL, options?: Record<string, unknown>) => unknown) | undefined;
+    const HttpCtor = streamableHttpTransportModule?.StreamableHTTPClientTransport as
+      | (new (url: URL, options?: Record<string, unknown>) => unknown)
+      | undefined;
 
     if (!HttpCtor || !config.url) {
       return null;
@@ -323,9 +321,10 @@ async function createSdkTransport(config: MCPServerConfig): Promise<MCPClientTra
   return null;
 }
 
-async function loadOptionalModule(specifier: string): Promise<unknown | null> {
-  const dynamicImport = new Function('s', 'return import(s)') as (s: string) => Promise<unknown>;
-  return dynamicImport(specifier).catch(() => null);
+async function loadOptionalModule(specifier: string): Promise<Record<string, unknown> | null> {
+  return import(specifier)
+    .then((module) => module as Record<string, unknown>)
+    .catch(() => null);
 }
 
 class SdkBackedTransport implements MCPClientTransport {

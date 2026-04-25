@@ -103,7 +103,7 @@ export function buildOrchestrationPatterns(agentIds: readonly string[]): Orchest
       id: 'single-agent-fallback',
       name: 'Single agent fallback',
       description: 'Fallback orchestration pattern when specialist trio is unavailable.',
-      steps: [{ agentId: agentIds[0] as string, objective: 'Handle workflow end-to-end' }]
+      steps: [{ agentId: agentIds[0]!, objective: 'Handle workflow end-to-end' }]
     });
   }
 

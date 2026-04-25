@@ -1,7 +1,6 @@
 import { readFile } from 'node:fs/promises';
 
 import { z } from 'zod';
-import { isMainSession } from 'oh-my-opencode';
 
 import { PackageAdapter } from '../base';
 import type { AdapterHealthInput } from '../health';
@@ -41,6 +40,7 @@ const HOOK_RESET_CIRCUIT = 'fallback.reset-circuit';
 interface RateLimitFallbackPluginAdapterOptions {
   readonly configPath?: string;
   readonly loadConfig?: () => Promise<unknown>;
+  readonly isMainSession?: (sessionId: string | undefined) => boolean;
   readonly now?: () => number;
 }
 
@@ -219,7 +219,7 @@ export class RateLimitFallbackPluginAdapter extends PackageAdapter<PluginsPort> 
 
     // Only assign fallback model to subagent/background sessions
     // Main session model should not be affected by rate limit fallbacks
-    if (payload.sessionId && nextModel && !isMainSession(payload.sessionId)) {
+    if (payload.sessionId && nextModel && !this.isMainSession(payload.sessionId)) {
       this.sessionAssignments.set(payload.sessionId, nextModel);
     }
 
@@ -235,7 +235,7 @@ export class RateLimitFallbackPluginAdapter extends PackageAdapter<PluginsPort> 
         backoffSeconds,
         rateLimitedUntil: nextState.rateLimitedUntil,
         circuitState: isCircuitOpen(nextState, now) ? 'open' : 'closed',
-        switched: Boolean(nextModel) && !isMainSession(payload.sessionId),
+        switched: Boolean(nextModel) && !this.isMainSession(payload.sessionId),
         nextModel
       }
     };
@@ -256,7 +256,7 @@ export class RateLimitFallbackPluginAdapter extends PackageAdapter<PluginsPort> 
 
     // Only assign fallback model to subagent/background sessions
     // Main session model should not be affected by rate limit fallbacks
-    if (payload.sessionId && nextModel && !isMainSession(payload.sessionId)) {
+    if (payload.sessionId && nextModel && !this.isMainSession(payload.sessionId)) {
       this.sessionAssignments.set(payload.sessionId, nextModel);
     }
 
@@ -341,6 +341,10 @@ export class RateLimitFallbackPluginAdapter extends PackageAdapter<PluginsPort> 
 
   private now(): number {
     return this.options.now ? this.options.now() : Date.now();
+  }
+
+  private isMainSession(sessionId: string | undefined): boolean {
+    return this.options.isMainSession ? this.options.isMainSession(sessionId) : false;
   }
 
   private toErrorMessage(error: unknown): string {

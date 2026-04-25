@@ -9,7 +9,8 @@ function isRecord(value: MergeableValue): value is MutableRecord {
 
 function cloneValue<T>(value: T): T {
   if (Array.isArray(value)) {
-    return value.map((entry) => cloneValue(entry)) as unknown as T;
+    const cloned: unknown[] = value.map((entry: unknown) => cloneValue(entry));
+    return cloned as T;
   }
 
   if (isRecord(value)) {

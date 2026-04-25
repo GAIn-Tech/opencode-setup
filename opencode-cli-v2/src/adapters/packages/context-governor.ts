@@ -137,7 +137,7 @@ export class ContextGovernorAdapter extends PackageAdapter<BudgetPort> {
   }
 
   public async shouldCompress(sessionId: string, model: string): Promise<boolean> {
-    const status = await this.getBudgetStatus(sessionId, model);
+    const status = this.getBudgetStatus(sessionId, model);
     return getCompressionRecommendation(status).level !== 'none';
   }
 
@@ -145,7 +145,7 @@ export class ContextGovernorAdapter extends PackageAdapter<BudgetPort> {
     sessionId: string,
     model: string
   ): Promise<CompressionRecommendation | undefined> {
-    const status = await this.getBudgetStatus(sessionId, model);
+    const status = this.getBudgetStatus(sessionId, model);
     const recommendation = getCompressionRecommendation(status);
     return recommendation.level === 'none' ? undefined : recommendation;
   }

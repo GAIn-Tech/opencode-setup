@@ -166,9 +166,7 @@ export class MCPServerManager {
   }
 
   private getOrCreateClient(entry: ServerEntry): MCPManagedClient {
-    if (!entry.client) {
-      entry.client = this.options.clientFactory?.(entry.config) ?? new MCPClient(entry.config);
-    }
+    entry.client ??= this.options.clientFactory?.(entry.config) ?? new MCPClient(entry.config);
 
     return entry.client;
   }

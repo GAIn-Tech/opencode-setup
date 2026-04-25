@@ -33,8 +33,6 @@ import {
 const DEFAULT_LEGACY_MODULE_PATH = '../../../../packages/opencode-model-router-x/src/index.js';
 const ModelIdSchema = z.string().min(1);
 
-type LegacyModelRecord = Record<string, unknown>;
-
 interface LegacyModelRouterInstance {
   selectModel(context?: LegacyRouteContext): unknown;
   route?(context?: LegacyRouteContext): unknown;

@@ -8,9 +8,7 @@ export type ConfigValue =
       readonly [key: string]: ConfigValue;
     };
 
-export type ConfigRecord = {
-  readonly [key: string]: ConfigValue;
-};
+export type ConfigRecord = Readonly<Record<string, ConfigValue>>;
 
 export interface ConfigLoadSources {
   readonly defaults: boolean;

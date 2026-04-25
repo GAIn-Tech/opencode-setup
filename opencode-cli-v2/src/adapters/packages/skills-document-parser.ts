@@ -30,7 +30,7 @@ function splitFrontmatter(content: string): { frontmatter: Record<string, unknow
 
   const frontmatterText = normalized.slice(4, closingIndex);
   const body = normalized.slice(closingIndex + 5);
-  const parsed = YAML.parse(frontmatterText);
+  const parsed: unknown = YAML.parse(frontmatterText);
   return { frontmatter: asRecord(parsed), body };
 }
 

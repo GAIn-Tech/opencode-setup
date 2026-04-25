@@ -117,7 +117,7 @@ const XSS_PATTERNS = [/<script\b[^>]*>[\s\S]*<\/script>/i, /javascript\s*:/i, /o
 const COMMAND_INJECTION_PATTERNS = [/(?:&&|\|\||`|\$\(|;\s*\w+)/i];
 
 const SECRET_PATTERNS = [
-  /(?:api[_-]?key|secret|password|token)\s*[:=]\s*["']?[a-z0-9_\-]{8,}/i,
+  /(?:api[_-]?key|secret|password|token)\s*[:=]\s*["']?[a-z0-9_-]{8,}/i,
   /\bAKIA[0-9A-Z]{16}\b/
 ];
 
@@ -148,7 +148,7 @@ export function normalizeSecurityInput(input: unknown): string {
   try {
     return JSON.stringify(input);
   } catch {
-    return String(input);
+    return '[unserializable-input]';
   }
 }
 
@@ -270,7 +270,7 @@ export function sanitizeContent(content: unknown, aggressive: boolean): Security
   }
 
   const maskSecrets = sanitized.replace(
-    /\b(api[_-]?key|secret|password|token)\s*[:=]\s*(["'])?([A-Za-z0-9_\-]{8,})\2?/gi,
+    /\b(api[_-]?key|secret|password|token)\s*[:=]\s*(["'])?([A-Za-z0-9_-]{8,})\2?/gi,
     '$1=[REDACTED]'
   );
   if (maskSecrets !== sanitized) {

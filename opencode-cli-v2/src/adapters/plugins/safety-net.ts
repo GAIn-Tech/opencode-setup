@@ -99,8 +99,8 @@ export class SafetyNetPluginAdapter extends PackageAdapter<PluginsPort> {
       uninstallPlugin: async () => {
         this.pluginRecord = undefined;
       },
-      loadPlugin: async () => {},
-      unloadPlugin: async () => {},
+      loadPlugin: () => Promise.resolve(),
+      unloadPlugin: () => Promise.resolve(),
       enablePlugin: async () => {
         this.requirePlugin().state = 'enabled';
       },
