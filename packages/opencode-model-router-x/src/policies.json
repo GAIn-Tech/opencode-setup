@@ -4,16 +4,16 @@
   "intentRouting": {
     "simple_read": {
       "layer_1": [
-        "anthropic/claude-haiku-4-5"
+        "openai/gpt-5.4-mini"
       ],
       "layer_2": [
         "google/antigravity-gemini-3-flash"
       ],
       "layer_3": [
-        "openai/gpt-5.2"
+        "openai/gpt-5.4-mini"
       ],
       "layer_4": [
-        "google/gemini-3-flash"
+        "google/gemini-3-flash-preview"
       ],
       "layer_5": [
         "zen/glm5"
@@ -42,16 +42,16 @@
     },
     "format_transformation": {
       "layer_1": [
-        "anthropic/claude-haiku-4-5"
+        "openai/gpt-5.4-mini"
       ],
       "layer_2": [
         "google/antigravity-gemini-3-flash"
       ],
       "layer_3": [
-        "openai/gpt-5.2"
+        "openai/gpt-5.4-mini"
       ],
       "layer_4": [
-        "google/gemini-3-flash"
+        "google/gemini-3-flash-preview"
       ],
       "layer_5": [
         "zen/glm5"
@@ -83,13 +83,13 @@
         "google/antigravity-gemini-3-flash"
       ],
       "layer_2": [
-        "anthropic/claude-sonnet-4-5"
+        "openai/gpt-5.4"
       ],
       "layer_3": [
-        "openai/gpt-5.2"
+        "openai/gpt-5.4-mini"
       ],
       "layer_4": [
-        "google/gemini-3-flash"
+        "google/gemini-3-flash-preview"
       ],
       "layer_5": [
         "zen/kimi-k2.5-pro"
@@ -121,10 +121,10 @@
         "openai/gpt-5.3-codex"
       ],
       "layer_2": [
-        "google/antigravity-claude-sonnet-4-5-thinking"
+        "openai/gpt-5.4"
       ],
       "layer_3": [
-        "anthropic/claude-sonnet-4-5"
+        "openai/gpt-5.4"
       ],
       "layer_4": [
         "google/gemini-3-pro"
@@ -159,10 +159,10 @@
         "openai/gpt-5.3-codex"
       ],
       "layer_2": [
-        "google/antigravity-claude-sonnet-4-5-thinking"
+        "openai/gpt-5.4"
       ],
       "layer_3": [
-        "anthropic/claude-sonnet-4-5"
+        "openai/gpt-5.4"
       ],
       "layer_4": [
         "google/gemini-3-pro"
@@ -194,10 +194,10 @@
     },
     "debugging": {
       "layer_1": [
-        "google/antigravity-claude-opus-4-6-thinking"
+        "openai/gpt-5.5"
       ],
       "layer_2": [
-        "anthropic/claude-opus-4-6"
+        "openai/gpt-5.5"
       ],
       "layer_3": [
         "openai/gpt-5.3-codex"
@@ -232,13 +232,13 @@
     },
     "architecture": {
       "layer_1": [
-        "google/antigravity-claude-opus-4-6-thinking"
+        "openai/gpt-5.5"
       ],
       "layer_2": [
-        "anthropic/claude-opus-4-6"
+        "openai/gpt-5.5"
       ],
       "layer_3": [
-        "openai/gpt-5.2"
+        "openai/gpt-5.4-mini"
       ],
       "layer_4": [
         "google/gemini-3-pro"
@@ -276,10 +276,10 @@
         "google/gemini-3-pro"
       ],
       "layer_3": [
-        "openai/gpt-5.2"
+        "openai/gpt-5.4-mini"
       ],
       "layer_4": [
-        "anthropic/claude-opus-4-6"
+        "openai/gpt-5.5"
       ],
       "layer_5": [
         "zen/kimi-k2.5-pro"
@@ -314,10 +314,10 @@
         "google/gemini-3-pro"
       ],
       "layer_3": [
-        "openai/gpt-5"
+        "openai/gpt-5.4"
       ],
       "layer_4": [
-        "anthropic/claude-sonnet-4-5"
+        "openai/gpt-5.4"
       ],
       "layer_5": [],
       "layer_6": [
@@ -344,13 +344,13 @@
     },
     "orchestration": {
       "layer_1": [
-        "anthropic/claude-opus-4-6"
+        "openai/gpt-5.5"
       ],
       "layer_2": [
-        "google/antigravity-claude-opus-4-6-thinking"
+        "openai/gpt-5.5"
       ],
       "layer_3": [
-        "openai/gpt-5.2"
+        "openai/gpt-5.4-mini"
       ],
       "layer_4": [
         "google/gemini-3-pro"
@@ -382,86 +382,49 @@
     }
   },
   "models": {
-    "anthropic/claude-opus-4-6": {
-      "provider": "anthropic",
-      "tier": "flagship",
-      "base_weight": 0.6,
-      "cost_per_1k_tokens": 0.075,
-      "max_context": 200000,
+    "openai/gpt-5.5": {
+      "provider": "openai",
+      "cost_tier": "flagship",
       "strengths": [
-        "deep-reasoning",
-        "complex-code",
+        "reasoning",
         "architecture",
         "debugging"
       ],
-      "default_success_rate": 0.92
+      "base_success_rate": 0.9,
+      "avg_latency_ms": 2400
     },
-    "anthropic/claude-sonnet-4-5": {
-      "provider": "anthropic",
-      "tier": "balanced",
-      "base_weight": 0.6,
-      "cost_per_1k_tokens": 0.015,
-      "max_context": 200000,
+    "openai/gpt-5.4": {
+      "provider": "openai",
+      "cost_tier": "flagship",
       "strengths": [
-        "general-code",
-        "refactoring",
-        "review",
-        "fast-iteration"
+        "coding",
+        "debugging",
+        "reasoning"
       ],
-      "default_success_rate": 0.88
+      "base_success_rate": 0.9,
+      "avg_latency_ms": 1800
     },
-    "anthropic/claude-haiku-4-5": {
-      "provider": "anthropic",
-      "tier": "speed",
-      "base_weight": 0.6,
-      "cost_per_1k_tokens": 0.005,
-      "max_context": 200000,
+    "openai/gpt-5.4-mini": {
+      "provider": "openai",
+      "cost_tier": "speed",
       "strengths": [
-        "simple-tasks",
-        "formatting",
-        "linting",
-        "quick-answers"
+        "simple_read",
+        "format_transformation",
+        "documentation"
       ],
-      "default_success_rate": 0.82
+      "base_success_rate": 0.86,
+      "avg_latency_ms": 900
     },
     "openai/gpt-5.3-codex": {
       "provider": "openai",
-      "tier": "flagship",
-      "base_weight": 0.5,
-      "cost_per_1k_tokens": 0.06,
-      "max_context": 400000,
+      "cost_tier": "flagship",
       "strengths": [
-        "code-generation",
-        "tool-use",
-        "debugging"
+        "coding",
+        "code_generation",
+        "code_transformation"
       ],
-      "default_success_rate": 0.9
-    },
-    "openai/gpt-5.2": {
-      "provider": "openai",
-      "tier": "flagship",
-      "base_weight": 0.45,
-      "cost_per_1k_tokens": 0.052,
-      "max_context": 400000,
-      "strengths": [
-        "reasoning",
-        "planning",
-        "analysis"
-      ],
-      "default_success_rate": 0.89
-    },
-    "openai/gpt-5": {
-      "provider": "openai",
-      "tier": "balanced",
-      "base_weight": 0.4,
-      "cost_per_1k_tokens": 0.04,
-      "max_context": 400000,
-      "strengths": [
-        "general",
-        "multimodal",
-        "fast-iteration"
-      ],
-      "default_success_rate": 0.86
+      "base_success_rate": 0.89,
+      "avg_latency_ms": 1700
     },
     "google/antigravity-gemini-3-pro": {
       "provider": "google",
@@ -489,32 +452,6 @@
       ],
       "default_success_rate": 0.87
     },
-    "google/antigravity-claude-sonnet-4-5-thinking": {
-      "provider": "google",
-      "tier": "flagship",
-      "base_weight": 0.45,
-      "cost_per_1k_tokens": 0.03,
-      "max_context": 200000,
-      "strengths": [
-        "coding",
-        "reasoning",
-        "debugging"
-      ],
-      "default_success_rate": 0.9
-    },
-    "google/antigravity-claude-opus-4-6-thinking": {
-      "provider": "google",
-      "tier": "flagship",
-      "base_weight": 0.5,
-      "cost_per_1k_tokens": 0.05,
-      "max_context": 200000,
-      "strengths": [
-        "deep-reasoning",
-        "architecture",
-        "hard-debugging"
-      ],
-      "default_success_rate": 0.92
-    },
     "google/gemini-3-pro": {
       "provider": "google",
       "tier": "flagship",
@@ -528,7 +465,7 @@
       ],
       "default_success_rate": 0.88
     },
-    "google/gemini-3-flash": {
+    "google/gemini-3-flash-preview": {
       "provider": "google",
       "tier": "speed",
       "base_weight": 0.38,
@@ -727,36 +664,36 @@
       "description": "Mechanical tasks, formatting, linting",
       "cost_tier": "mechanical",
       "model_preference": [
-        "anthropic/claude-haiku-4-5",
+        "openai/gpt-5.4-mini",
         "google/antigravity-gemini-3-flash",
-        "openai/gpt-5.2"
+        "openai/gpt-5.4-mini"
       ]
     },
     "moderate": {
       "description": "Standard code tasks, tests, small features",
       "cost_tier": "low",
       "model_preference": [
-        "anthropic/claude-sonnet-4-5",
+        "openai/gpt-5.4",
         "openai/gpt-5.3-codex",
-        "google/gemini-3-flash"
+        "google/gemini-3-flash-preview"
       ]
     },
     "high": {
       "description": "Complex features, multi-file refactors",
       "cost_tier": "high",
       "model_preference": [
-        "google/antigravity-claude-opus-4-6-thinking",
-        "anthropic/claude-opus-4-6",
-        "openai/gpt-5.2"
+        "openai/gpt-5.5",
+        "openai/gpt-5.5",
+        "openai/gpt-5.4-mini"
       ]
     },
     "critical": {
       "description": "Architecture decisions, security, production issues",
       "cost_tier": "critical",
       "model_preference": [
-        "google/antigravity-claude-opus-4-6-thinking",
-        "anthropic/claude-opus-4-6",
-        "openai/gpt-5.2"
+        "openai/gpt-5.5",
+        "openai/gpt-5.5",
+        "openai/gpt-5.4-mini"
       ]
     }
   },
