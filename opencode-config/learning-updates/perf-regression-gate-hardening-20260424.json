@@ -1,0 +1,28 @@
+{
+  "id": "perf-regression-gate-hardening-20260424",
+  "timestamp": "2026-04-24T23:55:00Z",
+  "category": "performance",
+  "summary": "Harden performance regression gating by rejecting invalid baselines, stabilizing fg03/fg08 benchmark behavior, and wiring a dedicated perf workflow with explicit reporting.",
+  "affected_paths": [
+    "scripts/perf-baseline.mjs",
+    "scripts/perf/fg03-feedback-lag.mjs",
+    "scripts/perf/fg08-poll-coordination.mjs",
+    "scripts/perf/baselines/current.json",
+    ".github/workflows/perf-regression.yml"
+  ],
+  "root_cause": "The new perf gate still trusted stale or failing baselines and compared volatile benchmark metrics too strictly, making the regression signal unreliable.",
+  "fix_approach": "Fail invalid baselines explicitly, filter benchmark-owned noisy metrics, stabilize fg03/fg08 script behavior, refresh the canonical baseline, and add workflow summary/coverage improvements.",
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "pass",
+    "commands": [
+      "bun run scripts/perf/fg03-feedback-lag.mjs",
+      "bun run scripts/perf/fg08-poll-coordination.mjs",
+      "bun run scripts/perf-baseline.mjs --capture --force",
+      "bun run scripts/perf-baseline.mjs --check --verbose"
+    ],
+    "notes": "Perf baseline check now passes against a freshly captured baseline and avoids treating invalid baseline failures as acceptable state."
+  }
+}

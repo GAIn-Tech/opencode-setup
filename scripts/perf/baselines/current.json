@@ -1,0 +1,81 @@
+{
+  "version": "1.0.0",
+  "capturedAt": "2026-04-24T23:21:46.027Z",
+  "captureHostname": "GLORY",
+  "nodeVersion": "v24.3.0",
+  "platform": "win32",
+  "metrics": {
+    "fg01-stats-durability": {
+      "status": "success",
+      "data": {
+        "status": "pass",
+        "raw": "[INFO] [IntegrationLayer] All 7 integrations loaded. \n\u001b[32m[2026-04-24T23:21:41.978Z] INFO\u001b[0m: [Startup] ModelRouter {\n  startupMs: 14.8,\n}\n{\n  \"status\": \"pass\",\n  \"test\": \"fg01-stats-durability\",\n  \"modelId\": \"openai/gpt-5.5\",\n  \"synthetic\": true,\n  \"iterations\": 100,\n  \"calls\": 100,\n  \"successes\": 100,\n  \"statsPath\": \"C:\\\\Users\\\\jack\\\\AppData\\\\Local\\\\Temp\\\\fg01-stats-pW7Wpk\\\\stats.json\",\n  \"verification\": \"_flushStatsNow correctly persists synthetic stats\"\n}\n",
+        "parsed": false
+      },
+      "capturedAt": "2026-04-24T23:21:41.833Z"
+    },
+    "fg02-hotpath-io": {
+      "status": "success",
+      "data": {
+        "status": "pass",
+        "test": "fg02-hotpath-io",
+        "synthetic": false,
+        "iterations": 200,
+        "baseline_elapsed_ms": 7.99,
+        "autosave_elapsed_ms": 5.69,
+        "overhead_ratio": 0.712,
+        "absolute_overhead_ms": -2.31,
+        "flush_time_ms": 105.42,
+        "threshold_ratio": 1.25,
+        "threshold_absolute_ms": 100,
+        "variance_baseline": 11.15,
+        "variance_autosave": 1.97,
+        "verification": "Autosave overhead within acceptable thresholds using real I/O measurement"
+      },
+      "capturedAt": "2026-04-24T23:21:41.833Z"
+    },
+    "fg03-feedback-lag": {
+      "status": "success",
+      "data": {
+        "status": "pass",
+        "raw": "[INFO] [IntegrationLayer] All 7 integrations loaded. \n\u001b[32m[2026-04-24T23:21:43.043Z] INFO\u001b[0m: [Startup] ModelRouter {\n  startupMs: 13.5,\n}\n{\n  \"status\": \"pass\",\n  \"test\": \"fg03-feedback-lag\",\n  \"modelId\": \"synthetic-test-model-fg03\",\n  \"synthetic\": true,\n  \"penalty_lag_baseline_ms\": 0,\n  \"before\": {\n    \"score\": 0.8,\n    \"hasPenalty\": false\n  },\n  \"after\": {\n    \"score\": 0.5,\n    \"hasPenalty\": true\n  },\n  \"syntheticOutcome\": {\n    \"success\": false,\n    \"failureReason\": \"timeout\",\n    \"tokensUsed\": 300,\n    \"timeTakenMs\": 1500\n  },\n  \"verification\": \"Learning penalty applied immediately (0ms lag) with synthetic outcome\"\n}\n",
+        "parsed": false
+      },
+      "capturedAt": "2026-04-24T23:21:41.833Z"
+    },
+    "fg06-tail-latency-slo": {
+      "status": "success",
+      "data": {
+        "status": "pass",
+        "raw": "[INFO] [IntegrationLayer] All 7 integrations loaded. \n\u001b[32m[2026-04-24T23:21:43.197Z] INFO\u001b[0m: [Startup] ModelRouter {\n  startupMs: 11.4,\n}\n{\n  \"status\": \"pass\",\n  \"test\": \"fg06-tail-latency-slo\",\n  \"modelId\": \"openai/gpt-5.5\",\n  \"synthetic\": true,\n  \"score\": null,\n  \"reason\": \"success_rate(NaN); latency(266ms,-0.000)\",\n  \"p50_ms\": 200,\n  \"p95_ms\": 500,\n  \"p99_ms\": 800,\n  \"synthetic_baselines\": {\n    \"p50\": 200,\n    \"p95\": 500,\n    \"p99\": 800\n  },\n  \"variance_tolerance_ms\": 50,\n  \"verification\": \"Latency percentiles calculated correctly from synthetic data\"\n}\n",
+        "parsed": false
+      },
+      "capturedAt": "2026-04-24T23:21:41.833Z"
+    },
+    "fg08-poll-coordination": {
+      "status": "success",
+      "data": {
+        "status": "pass",
+        "test": "fg08-poll-coordination",
+        "synthetic": false,
+        "tickCount": 59,
+        "overlapRate": 0.05,
+        "maxConcurrentChecks": 2,
+        "thresholds": {
+          "minTicks": 12,
+          "maxOverlap": 0.05
+        },
+        "verification": "Scheduler telemetry validation passed with real data"
+      },
+      "capturedAt": "2026-04-24T23:21:41.833Z"
+    },
+    "_system": {
+      "nodeVersion": "v24.3.0",
+      "platform": "win32",
+      "arch": "x64",
+      "cwd": "C:\\Users\\jack\\work\\opencode-setup",
+      "pid": 60424,
+      "capturedAt": "2026-04-24T23:21:41.833Z"
+    }
+  }
+}
