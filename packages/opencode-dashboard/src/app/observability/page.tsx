@@ -53,9 +53,19 @@ interface ContextBudget {
   sessionId: string;
   model: string;
   used: number;
+  remaining: number;
   max: number;
   pct: number;
   status: 'ok' | 'warn' | 'error' | 'exceeded';
+  remediation?: {
+    action: string;
+    description: string;
+    steps: string[];
+    must_compress: boolean;
+    must_block: boolean;
+    grace_period_ms: number;
+    next_step: string;
+  };
 }
 
 interface CompressionStats {
@@ -321,8 +331,13 @@ export default function ObservabilityPage() {
                   const pctDisplay = Math.round(b.pct * 100);
                   const barColor = b.pct >= 0.80 ? 'bg-red-500' : b.pct >= 0.75 ? 'bg-amber-500' : 'bg-emerald-500';
                   const textColor = b.pct >= 0.80 ? 'text-red-400' : b.pct >= 0.75 ? 'text-amber-400' : 'text-emerald-400';
+                  const remediationTone = b.remediation?.must_block
+                    ? 'border-red-500/40 bg-red-500/5'
+                    : b.remediation?.must_compress
+                      ? 'border-amber-500/30 bg-amber-500/5'
+                      : 'border-zinc-800';
                   return (
-                    <div key={`${b.sessionId}-${b.model}`} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+                    <div key={`${b.sessionId}-${b.model}`} className={`bg-zinc-900 border rounded-lg p-4 ${remediationTone}`}>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium text-zinc-300 truncate max-w-[60%]" title={b.model}>{b.model}</span>
                         <span className={`text-sm font-bold ${textColor}`}>{pctDisplay}%</span>
@@ -332,8 +347,23 @@ export default function ObservabilityPage() {
                       </div>
                       <div className="flex justify-between text-xs text-zinc-500">
                         <span>{b.used.toLocaleString()} used</span>
+                        <span>{b.remaining.toLocaleString()} left</span>
                         <span>{b.max.toLocaleString()} max</span>
                       </div>
+                      {b.remediation && b.remediation.action !== 'NONE' && (
+                        <div className="mt-3 rounded-md border border-zinc-800 bg-zinc-950/50 p-3">
+                          <div className="text-xs font-semibold uppercase tracking-wide text-zinc-400">{b.remediation.action.replace(/_/g, ' ')}</div>
+                          <div className="mt-1 text-sm text-zinc-300">{b.remediation.description}</div>
+                          <div className="mt-2 text-xs text-zinc-500">Next: {b.remediation.next_step}</div>
+                          {b.remediation.steps.length > 0 && (
+                            <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-zinc-400">
+                              {b.remediation.steps.slice(0, 3).map((step) => (
+                                <li key={step}>{step}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
