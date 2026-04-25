@@ -1,8 +1,9 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "plugin": [
-    "oh-my-opencode@3.5.2",
+    "oh-my-openagent@3.16.0",
     "opencode-antigravity-auth@1.4.6",
+    "@guard22/opencode-multi-auth-codex@1.4.2",
     "opencode-antigravity-quota@0.1.6",
     "@tarquinen/opencode-dcp@1.0.0",
     "opencode-plugin-preload-skills@1.8.0",
@@ -20,38 +21,6 @@
         "apiKey": "{env:GOOGLE_API_KEY}"
       },
       "models": {
-        "gemini-2.5-flash": {
-          "name": "Gemini 2.5 Flash",
-          "limit": {
-            "context": 1000000,
-            "output": 65535
-          },
-          "modalities": {
-            "input": [
-              "text",
-              "image",
-              "video",
-              "audio"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "providerId": "google-ai-gemini-2.5-flash",
-          "cost": {
-            "input": 0.000075,
-            "output": 0.0003
-          },
-          "capabilities": [
-            "multimodal",
-            "vision",
-            "function_calling",
-            "json_mode"
-          ],
-          "description": "Gemini 2.5 Flash - stable fast model",
-          "released": "2025-06-01",
-          "status": "beta"
-        },
         "gemini-3-flash-preview": {
           "name": "Gemini 3 Flash (Gemini CLI)",
           "limit": {
@@ -184,15 +153,49 @@
         }
       }
     },
-    
     "openai": {
       "npm": "@ai-sdk/openai",
       "options": {
         "apiKey": "{env:OPENAI_API_KEYS}"
       },
+      "whitelist": [
+        "gpt-5.5",
+        "gpt-5.5-fast",
+        "gpt-5.4",
+        "gpt-5.4-fast",
+        "gpt-5.4-mini",
+        "gpt-5.3-codex",
+        "gpt-5.3-codex-low",
+        "gpt-5.3-codex-medium",
+        "gpt-5.3-codex-high",
+        "gpt-5.3-codex-xhigh",
+        "gpt-5.2-codex",
+        "gpt-5.2-codex-low",
+        "gpt-5.2-codex-medium",
+        "gpt-5.2-codex-high",
+        "gpt-5.2-codex-xhigh"
+      ],
       "models": {
-        "gpt-5.3-codex": {
-          "name": "GPT-5.3 Codex (OpenAI) - CODING SPECIALIST",
+        "gpt-5.5": {
+          "name": "GPT-5.5 (OpenAI) - FRONTIER REASONING",
+          "limit": {
+            "context": 400000,
+            "output": 100000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "priority": "primary",
+          "specialty": "frontier-reasoning"
+        },
+        "gpt-5.4": {
+          "name": "GPT-5.4 (OpenAI) - CODING SPECIALIST",
           "limit": {
             "context": 400000,
             "output": 100000
@@ -209,8 +212,8 @@
           "priority": "primary",
           "specialty": "coding"
         },
-        "gpt-5.2": {
-          "name": "GPT-5.2 (OpenAI)",
+        "gpt-5.4-mini": {
+          "name": "GPT-5.4 Mini (OpenAI) - FAST DEFAULT",
           "limit": {
             "context": 400000,
             "output": 100000
@@ -224,10 +227,11 @@
               "text"
             ]
           },
-          "priority": "primary"
+          "priority": "primary",
+          "specialty": "fast-general"
         },
-        "gpt-5": {
-          "name": "GPT-5 (OpenAI)",
+        "gpt-5.3-codex": {
+          "name": "GPT-5.3 Codex (OpenAI) - CODEX COMPATIBILITY",
           "limit": {
             "context": 400000,
             "output": 100000
@@ -241,7 +245,26 @@
               "text"
             ]
           },
-          "priority": "secondary"
+          "priority": "secondary",
+          "specialty": "codex"
+        },
+        "gpt-5.2-codex": {
+          "name": "GPT-5.2 Codex (OpenAI) - LEGACY CODEX COMPATIBILITY",
+          "limit": {
+            "context": 400000,
+            "output": 100000
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "priority": "secondary",
+          "specialty": "codex"
         }
       }
     },
@@ -388,8 +411,9 @@
         "apiKey": "{env:NVIDIA_API_KEY}"
       },
       "models": {
-        "moonshotai/kimi-k2.5": {
+        "moonshotai/kimi-k2-5": {
           "name": "Kimi K2.5 (NVIDIA)",
+          "providerId": "nvidia",
           "limit": {
             "context": 256000,
             "output": 16384
@@ -404,8 +428,26 @@
           },
           "priority": "secondary"
         },
-        "z-ai/glm-5": {
+        "z-ai/glm-5.1": {
+          "name": "GLM-5.1 (NVIDIA)",
+          "providerId": "nvidia",
+          "limit": {
+            "context": 256000,
+            "output": 16384
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "priority": "secondary"
+        },
+        "z-ai/glm5": {
           "name": "GLM-5 (NVIDIA)",
+          "providerId": "nvidia",
           "limit": {
             "context": 256000,
             "output": 16384
@@ -422,9 +464,27 @@
         },
         "z-ai/glm4.7": {
           "name": "GLM-4.7 (NVIDIA)",
+          "providerId": "nvidia",
           "limit": {
             "context": 128000,
             "output": 8192
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "priority": "secondary"
+        },
+        "minimaxai/minimax-m2.7": {
+          "name": "MiniMax M2.7 (NVIDIA)",
+          "providerId": "nvidia",
+          "limit": {
+            "context": 1000000,
+            "output": 16384
           },
           "modalities": {
             "input": [
@@ -442,7 +502,7 @@
   "command": {
     "agent": {
       "description": "Display available agent personalities and their models",
-      "template": "# Agent Mode Selector\n\nDisplay available agent personalities and their associated models.\n\n## Available Agents\n\n| Agent | Model | Best For |\n|-------|-------|----------|\n| **atlas** | deepseek-ai/deepseek-v3.2 | Architecture decisions, multi-system design |\n| **hephaestus** | openai/gpt-5.3-codex | Implementation, code generation (PRIORITY) |\n| **librarian** | deepseek-ai/deepseek-v3.2 | Research, documentation lookup |\n| **metis** | openai/gpt-5.2 | Planning, pre-execution analysis |\n| **momus** | openai/gpt-5.2 | Review, quality assurance |\n| **oracle** | openai/gpt-5.2 | Complex debugging, hard problems |\n| **prometheus** | openai/gpt-5.3-codex | Forward-thinking, innovation |\n| **sisyphus** | openai/gpt-5.3-codex | Deep work, complex refactoring |\n\n## Available Models\n\n| Provider | Model | Specialty |\n|----------|-------|-----------|\n| DeepSeek (NVIDIA) | deepseek-v3.2 | Coding specialist (PRIMARY) |\n| OpenAI | gpt-5.2 | General development |\n| OpenAI | gpt-5.3-codex | Advanced reasoning |\n| Google | gemini-3-flash | Fast research, general |\n| Google (Antigravity) | antigravity-gemini-3-flash-8b | Free-tier fallback |\n\n## Usage\n\n**To invoke an agent, type @agentname at the start of your message:**\n\n```\n@oracle help me debug this complex error\n@hephaestus implement this feature\n@librarian find examples of this pattern\n@metis plan this implementation\n@momus review this code\n```\n\n**Note:** Agent selection is informational only. The model router dynamically selects the appropriate model based on task requirements."
+      "template": "# Agent Mode Selector\n\nDisplay available agent personalities and their associated models.\n\n## Available Agents\n\n| Agent | Model | Best For |\n|-------|-------|----------|\n| **atlas** | deepseek-ai/deepseek-v3.2 | Architecture decisions, multi-system design |\n| **hephaestus** | openai/gpt-5.4 | Implementation, code generation (PRIORITY) |\n| **librarian** | deepseek-ai/deepseek-v3.2 | Research, documentation lookup |\n| **metis** | openai/gpt-5.4 | Planning, pre-execution analysis |\n| **momus** | openai/gpt-5.4 | Review, quality assurance |\n| **oracle** | openai/gpt-5.4 | Complex debugging, hard problems |\n| **prometheus** | openai/gpt-5.4 | Forward-thinking, innovation |\n| **sisyphus** | openai/gpt-5.4 | Deep work, complex refactoring |\n\n## Available Models\n\n| Provider | Model | Specialty |\n|----------|-------|-----------|\n| DeepSeek (NVIDIA) | deepseek-v3.2 | Coding specialist (PRIMARY) |\n| OpenAI | gpt-5.2 | General development |\n| OpenAI | gpt-5.4 | Advanced reasoning |\n| DeepSeek | deepseek-v3 | Fast research, general |\n| NVIDIA | z-ai/glm-5.1 | Free-tier fallback |\n\n## Usage\n\n**To invoke an agent, type @agentname at the start of your message:**\n\n```\n@oracle help me debug this complex error\n@hephaestus implement this feature\n@librarian find examples of this pattern\n@metis plan this implementation\n@momus review this code\n```\n\n**Note:** Agent selection is informational only. The model router dynamically selects the appropriate model based on task requirements."
     },
     "workflows:deepen-plan": {
       "description": "Enhance a plan with parallel research agents for each section to add depth, best practices, and implementation details",

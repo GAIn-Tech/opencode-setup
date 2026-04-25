@@ -19,6 +19,8 @@ const MODEL_ALIASES = {
   // Legacy aliases
   'gemini-2.5-pro': 'antigravity/antigravity-gemini-3-pro',
   'gemini-2.5-flash': 'antigravity/antigravity-gemini-3-flash',
+  'google/gemini-3-flash-preview': 'antigravity/antigravity-gemini-3-flash',
+  'gemini-3-flash-preview': 'antigravity/antigravity-gemini-3-flash',
 };
 
 /**

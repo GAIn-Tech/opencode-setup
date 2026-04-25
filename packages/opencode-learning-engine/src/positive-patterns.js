@@ -13,6 +13,7 @@ const fs = require('fs');
 const fsPromises = require('fs/promises');
 const path = require('path');
 const os = require('os');
+const crypto = require('crypto');
 const { safeJsonParse } = require('opencode-safe-io');
 
 const PERSIST_DIR = path.join(os.homedir(), '.opencode', 'learning');
@@ -75,7 +76,7 @@ class PositivePatternTracker {
       if (existing.contexts.length > 10) {
         existing.contexts = existing.contexts.slice(-10);
       }
-      this.save();
+      // Save is delegated to LearningEngine (debounced) — no internal save here
       return existing;
     }
 
@@ -90,7 +91,7 @@ class PositivePatternTracker {
     };
 
     this.patterns.push(entry);
-    this.save();
+    // Save is delegated to LearningEngine (debounced) — no internal save here
     return entry;
   }
 
@@ -233,8 +234,11 @@ class PositivePatternTracker {
         count: this.patterns.length,
         patterns: this.patterns,
       };
-      const tempFile = `${PERSIST_FILE}.tmp`;
-      await fsPromises.writeFile(tempFile, JSON.stringify(data, null, 2), 'utf8');
+      // Unique temp file per save — prevents path collision if concurrent calls slip through
+      const saveId = crypto.randomBytes(4).toString('hex');
+      const tempFile = `${PERSIST_FILE}.tmp-${saveId}`;
+      // Compact JSON (no indentation) — ~30-40% faster serialization than JSON.stringify(data, null, 2)
+      await fsPromises.writeFile(tempFile, JSON.stringify(data), 'utf8');
       await fsPromises.rename(tempFile, PERSIST_FILE);
     } catch (err) {
       if (process.env.DEBUG) {

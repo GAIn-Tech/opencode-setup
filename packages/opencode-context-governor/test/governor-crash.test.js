@@ -11,7 +11,14 @@ test('loadFromFile does not throw on corrupt JSON', () => {
   fs.writeFileSync(tmpPath, '{ broken json <<<', 'utf-8');
   const gov = new Governor({ persistPath: tmpPath, autoLoad: false });
   assert.doesNotThrow(() => gov.loadFromFile(tmpPath));
-  fs.unlinkSync(tmpPath);
+  // loadFromFile renames corrupt files to .corrupt.{timestamp} instead of deleting them
+  // Clean up the corrupt rename target (original file no longer exists at tmpPath)
+  const dir = path.dirname(tmpPath);
+  const base = path.basename(tmpPath);
+  const files = fs.readdirSync(dir).filter(f => f.startsWith(base + '.corrupt.'));
+  for (const f of files) {
+    try { fs.unlinkSync(path.join(dir, f)); } catch {}
+  }
 });
 
 test('loadFromFile does not throw on empty file', () => {
@@ -25,32 +32,32 @@ test('loadFromFile does not throw on empty file', () => {
 test('checkBudget returns urgency field with correct numeric values', () => {
   const gov = new Governor({ autoLoad: false });
   const session = 'ses_urgency_test';
-  const model = 'anthropic/claude-opus-4-6';
-  // Max tokens: 180000, warn: 75%, error: 90%
+  const model = 'openai/gpt-5.4';
+  // Max tokens: 400000, warn: 75%, error: 80%
 
   // Test ok status (urgency 0)
   let result = gov.checkBudget(session, model, 1000);
   assert.strictEqual(result.urgency, 0, 'ok status should have urgency 0');
   assert.strictEqual(result.status, 'ok');
 
-  // Consume tokens to reach warn threshold (75% = 135000 tokens)
-  gov.consumeTokens(session, model, 135000);
+  // Consume tokens to reach warn threshold (75% = 300000 tokens)
+  gov.consumeTokens(session, model, 300000);
 
   // Test warn status (urgency 1)
   result = gov.checkBudget(session, model, 1000);
   assert.strictEqual(result.urgency, 1, 'warn status should have urgency 1');
   assert.strictEqual(result.status, 'warn');
 
-  // Consume more to reach error threshold (90% = 162000 tokens total)
-  gov.consumeTokens(session, model, 27000);
+  // Consume more to reach error threshold (80% = 320000 tokens total)
+  gov.consumeTokens(session, model, 19000);
 
   // Test error status (urgency 2)
   result = gov.checkBudget(session, model, 1000);
   assert.strictEqual(result.urgency, 2, 'error status should have urgency 2');
   assert.strictEqual(result.status, 'error');
 
-  // Consume more to exceed budget (180000 tokens)
-  gov.consumeTokens(session, model, 18000);
+  // Consume more to exceed budget (400000 tokens)
+  gov.consumeTokens(session, model, 81000);
 
   // Test exceeded status (urgency 3)
   result = gov.checkBudget(session, model, 1000);

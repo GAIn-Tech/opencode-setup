@@ -30,14 +30,14 @@ const SOURCES = {
 const DEFAULT_AGENT_MODELS = {
   atlas: { modelId: 'kimi-k2.5', provider: 'moonshotai' },
   hephaestus: { modelId: 'gpt-5.3-codex', provider: 'openai' },
-  librarian: { modelId: 'gemini-2.5-flash', provider: 'google' },
+  librarian: { modelId: 'gemini-3-flash-preview', provider: 'google' },
   metis: { modelId: 'gpt-5.2', provider: 'openai' },
   momus: { modelId: 'glm-5', provider: 'z-ai' },
   oracle: { modelId: 'gpt-5.3-codex', provider: 'openai' },
   prometheus: { modelId: 'kimi-k2.5', provider: 'moonshotai' },
   sisyphus: { modelId: 'gpt-5.3-codex', provider: 'openai' },
-  explore: { modelId: 'gemini-2.5-flash', provider: 'google' },
-  'multimodal-looker': { modelId: 'gemini-2.5-flash', provider: 'google' }
+  explore: { modelId: 'gemini-3-flash-preview', provider: 'google' },
+  'multimodal-looker': { modelId: 'gemini-3-flash-preview', provider: 'google' }
 };
 
 const DEFAULT_CATEGORY_MODELS = {
@@ -45,10 +45,10 @@ const DEFAULT_CATEGORY_MODELS = {
   'ultrabrain': { modelId: 'gpt-5.3-codex', provider: 'openai' },
   'deep': { modelId: 'glm-5', provider: 'z-ai' },
   'artistry': { modelId: 'gpt-5.2', provider: 'openai' },
-  'quick': { modelId: 'gemini-2.5-flash', provider: 'google' },
+  'quick': { modelId: 'gemini-3-flash-preview', provider: 'google' },
   'unspecified-low': { modelId: 'kimi-k2.5', provider: 'moonshotai' },
   'unspecified-high': { modelId: 'gpt-5.3-codex', provider: 'openai' },
-  'writing': { modelId: 'gemini-2.5-flash', provider: 'google' }
+  'writing': { modelId: 'gemini-3-flash-preview', provider: 'google' }
 };
 
 /**
@@ -290,7 +290,11 @@ function resolveCategoryModel(category, options = {}) {
       error: 'Category must be a non-empty string'
     };
   }
-  
+
+  if (options.modelRouter) {
+    return resolveCategoryModelAsync(category, options);
+  }
+
   const normalizedCategory = category.toLowerCase().trim();
   
   // 1. Check environment variable override
@@ -389,7 +393,8 @@ async function resolveCategoryModelAsync(category, options = {}) {
   }
   
   // Fall back to synchronous config-based resolution
-  return resolveCategoryModel(category, options);
+  const { modelRouter, ...configOptions } = options;
+  return resolveCategoryModel(category, configOptions);
 }
 
 /**

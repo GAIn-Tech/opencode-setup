@@ -15,6 +15,8 @@ const DynamicExplorationController = require('./dynamic-exploration-controller')
 const TokenBudgetManager = require('./token-budget-manager');
 const TokenCostCalculator = require('./strategies/token-cost-calculator');
 const { createRandomSource } = require('./deterministic-rng');
+const { SessionModelRegistry } = require('./session-model-registry');
+const { UserPreference } = require('./user-preference');
 let ThompsonSamplingRouter;
 try {
   ThompsonSamplingRouter = require('./thompson-sampling-router');
@@ -48,6 +50,9 @@ function _safeMathMax(values, fallback = 1) {
   const numericValues = _asArray(values).filter((value) => Number.isFinite(value));
   return numericValues.length > 0 ? Math.max(...numericValues) : fallback;
 }
+
+const DEFAULT_STICKY_SESSION_TTL_HOURS = 24;
+const STICKY_SESSION_CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
 
 // P4: INTEGRATION LAYER - Use IntegrationLayer instead of individual imports (fixes option creep)
 // This single import replaces all the individual try/catch blocks below
@@ -459,6 +464,25 @@ class ModelRouter {
     // T4 (Wave 11): Context Governor for budget-aware routing
     this.contextGovernor = options.contextGovernor || null;
 
+    // Sticky session-model persistence (Task 2): dependency-injected database adapter.
+    this.sessionModelRegistry = options.sessionModelRegistry
+      || new SessionModelRegistry(
+        options.sessionModelDb
+          || options.db
+          || options.database
+          || options.workflowStore,
+        { logger: options.logger || null }
+      );
+
+    this.userPreference = options.userPreference
+      || new UserPreference({
+        preferencePath: options.userPreferencePath,
+        logger: options.logger || null,
+      });
+    this._userPreferredModelId = null;
+    this._userPreferenceLoaded = false;
+    this._userPreferenceLoadPromise = this._loadUserPreference();
+
 // Category-based routing via Thompson Sampling
 // Explicit null = disable Thompson, undefined = auto-create, instance = use provided
 this.thompsonRouter = options.thompsonRouter !== undefined 
@@ -530,6 +554,8 @@ this.thompsonRouter = options.thompsonRouter !== undefined
     } else {
       this.config = {};
     }
+
+    this._stickySessionCleanupInterval = null;
     
     // P2: Logger Integration - use structured logging
     const LoggerCtor = options.loggerClass || Logger;
@@ -540,6 +566,8 @@ this.thompsonRouter = options.thompsonRouter !== undefined
     } else {
       this.logger = null;
     }
+
+    this._scheduleStickySessionCleanup();
 
     // P2: Validator Integration - Initialize input validator
     const validatorModule = options.validator || ValidatorLib;
@@ -591,8 +619,8 @@ this.thompsonRouter = options.thompsonRouter !== undefined
         new FallbackLayerStrategy()
       ];
       
-       this.globalContext = globalContext;
-       this.orchestrator = new Orchestrator(strategies);
+    this.globalContext = globalContext;
+    this.orchestrator = new Orchestrator(strategies, this.sessionModelRegistry, this.userPreference);
       } catch (error) {
        this._logError('[ModelRouter] Failed to initialize Orchestrator', { error: error?.message || error });
        this._logError('[ModelRouter] Falling back to legacy scoring system');
@@ -678,6 +706,94 @@ this.thompsonRouter = options.thompsonRouter !== undefined
       return;
     }
     console.error(message);
+  }
+
+  async _loadUserPreference() {
+    if (!this.userPreference || typeof this.userPreference.load !== 'function') {
+      this._userPreferenceLoaded = true;
+      this._userPreferredModelId = null;
+      return null;
+    }
+
+    try {
+      const preferredModelId = await this.userPreference.load();
+      if (typeof preferredModelId === 'string' && preferredModelId.trim().length > 0 && this.models[preferredModelId]) {
+        this._userPreferredModelId = preferredModelId;
+      } else {
+        this._userPreferredModelId = null;
+      }
+      return this._userPreferredModelId;
+    } catch (_) {
+      this._userPreferredModelId = null;
+      return null;
+    } finally {
+      this._userPreferenceLoaded = true;
+    }
+  }
+
+  _persistUserModelPreference(selectedModelId) {
+    const normalizedModelId = typeof selectedModelId === 'string' ? selectedModelId.trim() : '';
+    if (!normalizedModelId || !this.models[normalizedModelId]) {
+      return;
+    }
+
+    if (this._userPreferredModelId === normalizedModelId) {
+      return;
+    }
+
+    this._userPreferredModelId = normalizedModelId;
+    this._userPreferenceLoaded = true;
+
+    if (!this.userPreference || typeof this.userPreference.save !== 'function') {
+      return;
+    }
+
+    Promise.resolve(this.userPreference.save(normalizedModelId)).catch((error) => {
+      this._logWarn('[ModelRouter] Failed to persist user model preference', {
+        modelId: normalizedModelId,
+        error: error?.message || String(error),
+      });
+    });
+  }
+
+  _resolveUserPreferredModelId(ctx = {}) {
+    if (!this._userPreferenceLoaded) {
+      return null;
+    }
+
+    const preferredModelId = typeof this._userPreferredModelId === 'string'
+      ? this._userPreferredModelId.trim()
+      : '';
+    if (!preferredModelId || !this.models[preferredModelId]) {
+      return null;
+    }
+
+    const healthyPreferredModels = this._filterByHealth([preferredModelId], ctx || {});
+    if (!Array.isArray(healthyPreferredModels) || !healthyPreferredModels.includes(preferredModelId)) {
+      return null;
+    }
+
+    if (this.contextGovernor && typeof this.contextGovernor.checkBudget === 'function') {
+      const proposedTokensRaw = Number(ctx?.availableTokens);
+      const proposedTokens = Number.isFinite(proposedTokensRaw) && proposedTokensRaw > 0
+        ? Math.ceil(proposedTokensRaw)
+        : 1;
+      const budgetResult = this.contextGovernor.checkBudget(
+        ctx?.sessionId || 'global-user-preference',
+        preferredModelId,
+        proposedTokens
+      );
+
+      if (typeof budgetResult === 'boolean' && !budgetResult) {
+        return null;
+      }
+
+      if (budgetResult && typeof budgetResult === 'object' && 'allowed' in budgetResult && budgetResult.allowed === false) {
+        return null;
+      }
+    }
+
+    return preferredModelId;
   }
 
   /**
@@ -782,36 +898,25 @@ this.thompsonRouter = options.thompsonRouter !== undefined
    */
   route(ctx = {}) {
     try {
-    if (!ctx.category) {
-      const explorationSelection = this.explorationController?.selectModelForTaskSync({
-        taskId: ctx.taskId || ctx.sessionId || 'unknown',
-        intentCategory: ctx.taskType || ctx.task || 'general',
-        complexity: ctx.complexity || 'moderate',
-        availableTokens: ctx.availableTokens,
-        sessionId: ctx.sessionId,
-        modelId: ctx.modelId,
-        language: ctx.language,
-        fileSize: ctx.fileSize,
-      });
+    const stickyEnabled = this._isStickySessionsEnabled();
+    const persistModelSelection = (selectedModelId) => {
+      if (!stickyEnabled) {
+        this._persistUserModelPreference(selectedModelId);
+        return;
+      }
 
-      if (explorationSelection?.model) {
-        const resolved = this.resolveModelId ? this.resolveModelId(explorationSelection.model) : explorationSelection.model;
-        const model = this.models[resolved];
-        if (model && !this._isAnthropicModel(model.provider) && !this._isAnthropicModel(model.id)) {
-          const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
-          const key = rotator ? rotator.getNextKey() : null;
-          return {
-            model,
-            keyId: key ? key.id : null,
-            modelId: resolved,
-            score: 1,
-            reason: explorationSelection.isExploration ? 'exploration:thompson' : 'exploration:best-known',
-            rotator,
-            key,
-          };
+      if (this.sessionModelRegistry && typeof ctx?.sessionId === 'string' && ctx.sessionId.trim().length > 0) {
+        if (typeof selectedModelId === 'string' && selectedModelId.trim().length > 0) {
+          try {
+            this.sessionModelRegistry.set(ctx.sessionId, selectedModelId);
+          } catch (_) {
+            // Fail-open: persistence errors must not block routing.
+          }
         }
       }
-    }
+
+      this._persistUserModelPreference(selectedModelId);
+    };
 
     if (ctx && typeof ctx.overrideModelId === 'string') {
       const forcedModel = this.models[ctx.overrideModelId];
@@ -830,9 +935,119 @@ this.thompsonRouter = options.thompsonRouter !== undefined
       }
     }
 
+    // Sticky session-model persistence: check registry after explicit override,
+    // but before exploration/category selection.
+    let stickyModelId = null;
+    if (stickyEnabled && this.sessionModelRegistry && typeof ctx?.sessionId === 'string' && ctx.sessionId.trim().length > 0) {
+      try {
+        const registryModelId = this.sessionModelRegistry.get(ctx.sessionId);
+        if (typeof registryModelId === 'string' && registryModelId.trim().length > 0 && this.models[registryModelId]) {
+          const healthyStickyModels = this._filterByHealth([registryModelId], ctx || {});
+          const isHealthySticky = Array.isArray(healthyStickyModels) && healthyStickyModels.includes(registryModelId);
+          if (isHealthySticky) {
+            let budgetAllowed = true;
+            if (this.contextGovernor && typeof this.contextGovernor.checkBudget === 'function') {
+              const proposedTokensRaw = Number(ctx?.availableTokens);
+              const proposedTokens = Number.isFinite(proposedTokensRaw) && proposedTokensRaw > 0
+                ? Math.ceil(proposedTokensRaw)
+                : 1;
+              const budgetResult = this.contextGovernor.checkBudget(ctx.sessionId, registryModelId, proposedTokens);
+              if (typeof budgetResult === 'boolean') {
+                budgetAllowed = budgetResult;
+              } else if (budgetResult && typeof budgetResult === 'object' && 'allowed' in budgetResult) {
+                budgetAllowed = budgetResult.allowed !== false;
+              }
+            }
+
+            if (budgetAllowed) {
+              stickyModelId = registryModelId;
+            }
+          }
+        }
+      } catch (_) {
+        // Fail-open to normal routing flow when sticky lookup/checks fail.
+      }
+    }
+
+    if (stickyModelId) {
+      const stickyModel = this.models[stickyModelId];
+      if (stickyModel && !this._isAnthropicModel(stickyModel.provider) && !this._isAnthropicModel(stickyModel.id)) {
+        try {
+          this.sessionModelRegistry?.updateLastUsed?.(ctx.sessionId);
+        } catch (_) {
+          // Fail-open: timestamp refresh should not block routing.
+        }
+
+        const stickyRotator = KeyRotatorFactory.getRotator(this.rotators, stickyModel.provider);
+        const stickyKey = stickyRotator ? stickyRotator.getNextKey() : null;
+        return {
+          model: stickyModel,
+          keyId: stickyKey ? stickyKey.id : null,
+          modelId: stickyModelId,
+          score: 1,
+          reason: 'sticky:session',
+          rotator: stickyRotator,
+          key: stickyKey,
+        };
+      }
+    }
+
+    const preferredModelId = this._resolveUserPreferredModelId(ctx || {});
+    if (preferredModelId) {
+      const preferredModel = this.models[preferredModelId];
+      if (preferredModel && !this._isAnthropicModel(preferredModel.provider) && !this._isAnthropicModel(preferredModel.id)) {
+        const preferredRotator = KeyRotatorFactory.getRotator(this.rotators, preferredModel.provider);
+        const preferredKey = preferredRotator ? preferredRotator.getNextKey() : null;
+        persistModelSelection(preferredModelId);
+        return {
+          model: preferredModel,
+          keyId: preferredKey ? preferredKey.id : null,
+          modelId: preferredModelId,
+          score: 1,
+          reason: 'sticky:user-preference',
+          rotator: preferredRotator,
+          key: preferredKey,
+        };
+      }
+    }
+
+    if (!ctx.category) {
+      const explorationSelection = this.explorationController?.selectModelForTaskSync({
+        taskId: ctx.taskId || ctx.sessionId || 'unknown',
+        intentCategory: ctx.taskType || ctx.task || 'general',
+        complexity: ctx.complexity || 'moderate',
+        availableTokens: ctx.availableTokens,
+        sessionId: ctx.sessionId,
+        modelId: ctx.modelId,
+        language: ctx.language,
+        fileSize: ctx.fileSize,
+      });
+
+      if (explorationSelection?.model) {
+        const resolved = this.resolveModelId ? this.resolveModelId(explorationSelection.model) : explorationSelection.model;
+        const model = this.models[resolved];
+        if (model && !this._isAnthropicModel(model.provider) && !this._isAnthropicModel(model.id)) {
+          const rotator = KeyRotatorFactory.getRotator(this.rotators, model.provider);
+          const key = rotator ? rotator.getNextKey() : null;
+          persistModelSelection(resolved);
+          return {
+            model,
+            keyId: key ? key.id : null,
+            modelId: resolved,
+            score: 1,
+            reason: explorationSelection.isExploration ? 'exploration:thompson' : 'exploration:best-known',
+            rotator,
+            key,
+          };
+        }
+      }
+    }
+
     if (ctx.category) {
       const categorySelection = this.selectModelForCategory(ctx.category);
       if (categorySelection) {
+        const selectedCategoryModelId = categorySelection.modelId || categorySelection.model?.id || null;
+        persistModelSelection(selectedCategoryModelId);
         return categorySelection;
       }
     }
@@ -923,6 +1138,7 @@ this.thompsonRouter = options.thompsonRouter !== undefined
         const fallback = emergencyModels[0];
         const rotator = KeyRotatorFactory.getRotator(this.rotators, fallback.provider);
         const key = rotator ? rotator.getNextKey() : null;
+        persistModelSelection(fallback.id);
         return {
           model: fallback,
           keyId: key ? key.id : null,
@@ -976,6 +1192,7 @@ const winner = scored[0];
         },
       });
     }
+    persistModelSelection(winner.modelId);
     return {
       model,
       keyId: key ? key.id : null,
@@ -988,6 +1205,55 @@ const winner = scored[0];
     } catch (error) {
       throw this._handleRoutingError(error, ctx, 'route');
     }
+  }
+
+  _isStickySessionsEnabled() {
+    return this.config?.routing?.stickySessions !== false;
+  }
+
+  _getStickySessionTTLHours(ttlHours) {
+    const candidate = ttlHours ?? this.config?.routing?.stickySessionTTL;
+    const parsedTtlHours = Number(candidate);
+    if (Number.isFinite(parsedTtlHours) && parsedTtlHours > 0) {
+      return Math.floor(parsedTtlHours);
+    }
+
+    return DEFAULT_STICKY_SESSION_TTL_HOURS;
+  }
+
+  _scheduleStickySessionCleanup() {
+    if (!this.sessionModelRegistry || typeof this.sessionModelRegistry.cleanup !== 'function') {
+      return;
+    }
+
+    this._stickySessionCleanupInterval = setInterval(() => {
+      if (!this._isStickySessionsEnabled()) {
+        return;
+      }
+
+      const ttlHours = this._getStickySessionTTLHours();
+      try {
+        this.sessionModelRegistry.cleanup(ttlHours);
+      } catch (error) {
+        this._logWarn('[ModelRouter] Sticky session cleanup failed', {
+          error: error?.message || String(error),
+          ttlHours,
+        });
+      }
+    }, STICKY_SESSION_CLEANUP_INTERVAL_MS);
+
+    if (this._stickySessionCleanupInterval?.unref) {
+      this._stickySessionCleanupInterval.unref();
+    }
+  }
+
+  _stopStickySessionCleanup() {
+    if (!this._stickySessionCleanupInterval) {
+      return;
+    }
+
+    clearInterval(this._stickySessionCleanupInterval);
+    this._stickySessionCleanupInterval = null;
   }
 
   /**
@@ -3085,23 +3351,109 @@ const winner = scored[0];
       }
     }
     
-    return { success, modelId, context: ctx }
-  }
+return { success, modelId, context: ctx }
+}
 
-  // ─── Backward Compatibility Aliases ─────────────────────────────────────
+/**
+ * Immediately flush stats to disk (for testing/validation).
+ * Called by perf tests to verify stats persistence works.
+ * @returns {Object} The flushed stats state
+ */
+_flushStatsNow() {
+  const fs = require('fs');
+  const result = { stats: { ...this.stats }, savedAt: new Date().toISOString() };
+  try {
+    const json = JSON.stringify(result, null, 2);
+    const tmp = this.statsPersistPath + '.tmp';
+    fs.writeFileSync(tmp, json, 'utf8');
+    fs.renameSync(tmp, this.statsPersistPath);
+  } catch (e) {
+    console.warn('[ModelRouter] _flushStatsNow failed:', e.message);
+  }
+return result;
+  }
 
   /**
-   * Alias for route() - backward compatibility
+   * Get latency percentile for a model.
+   * Used by fg06-tail-latency-slo.perf test.
+   * @param {string} modelId
+   * @param {number} percentile - 0-100 (e.g., 50 for p50, 95 for p95)
+   * @returns {number} latency in ms, or 0 if no data
    */
-  selectModel(ctx = {}) {
-    return this.route(ctx);
+  _getLatencyPercentile(modelId, percentile = 50) {
+    const modelStats = this.stats?.[modelId];
+    if (!modelStats || !modelStats.latencyHistogram) {
+      return 0;
+    }
+    const hist = modelStats.latencyHistogram;
+    // Simple percentile from sorted array
+    const sorted = Array.isArray(hist) ? [...hist].sort((a, b) => a - b) : null;
+    if (!sorted || sorted.length === 0) return 0;
+    const idx = Math.ceil((percentile / 100) * sorted.length) - 1;
+return sorted[Math.max(0, idx)] || 0;
   }
+
+  /**
+   * Immediately flush stats to disk.
+   * Saves in format: { [modelId]: { calls, successes, ... }, savedAt }
+   * Used by perf tests to verify stats persistence.
+   */
+  _flushStatsNow() {
+    const fs = require('fs');
+    const result = {};
+    // Flatten stats by modelId for fg01 compatibility
+    for (const [modelId, modelStats] of Object.entries(this.stats || {})) {
+      result[modelId] = { ...modelStats };
+    }
+    const data = { ...result, savedAt: new Date().toISOString() };
+    try {
+      const json = JSON.stringify(data, null, 2);
+      const tmp = this.statsPersistPath + '.tmp';
+      fs.writeFileSync(tmp, json, 'utf8');
+      fs.renameSync(tmp, this.statsPersistPath);
+    } catch (e) {
+      this._logWarn('[ModelRouter] _flushStatsNow failed', { error: e.message });
+    }
+    return { stats: data };
+  }
+
+/**
+ * Alias for route() - backward compatibility
+ */
+selectModel(ctx = {}) {
+  return this.route(ctx);
+}
 
   /**
    * Alias for recordResult() - forward compatibility
    */
   recordOutcome(modelId, success, latencyOrError = 0, ctx = {}) {
     return this.recordResult(modelId, success, latencyOrError, ctx);
+  }
+
+  cleanupStickySessions(ttlHours) {
+    if (!this._isStickySessionsEnabled()) {
+      return 0;
+    }
+
+    if (!this.sessionModelRegistry || typeof this.sessionModelRegistry.cleanup !== 'function') {
+      return 0;
+    }
+
+    const safeTtlHours = this._getStickySessionTTLHours(ttlHours);
+    try {
+      return this.sessionModelRegistry.cleanup(safeTtlHours);
+    } catch (error) {
+      this._logWarn('[ModelRouter] Manual sticky session cleanup failed', {
+        error: error?.message || String(error),
+        ttlHours: safeTtlHours,
+      });
+      return 0;
+    }
+  }
+
+  shutdown() {
+    this._stopStickySessionCleanup();
   }
 
   /**
@@ -3117,6 +3469,7 @@ const winner = scored[0];
 module.exports = { 
   ModelRouter, 
   policies,
+  SessionModelRegistry,
   
   // Response validation (early failure detection)
   validateResponse,

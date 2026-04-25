@@ -3,6 +3,7 @@
 const fs = require('fs');
 const fsPromises = require('fs/promises');
 const path = require('path');
+const crypto = require('crypto');
 const { SessionTracker } = require('./session-tracker');
 const budgets = require('./budgets.json');
 
@@ -11,6 +12,15 @@ const DEFAULT_PERSIST_PATH = path.join(
   '.opencode',
   'session-budgets.json'
 );
+
+// Debug instrumentation: trace all file I/O on session-budgets.json
+const _DEBUG_IO = process.env.OPENCODE_GOVERNOR_DEBUG_IO === '1';
+function _traceIO(op, detail) {
+  if (!_DEBUG_IO) return;
+  const ts = Date.now().toString(36);
+  const pid = process.pid;
+  console.log(`[Governor:IO] ${ts} pid=${pid} op=${op} ${detail}`);
+}
 
 /**
  * Governor — active token budget controller for OpenCode sessions.
@@ -42,23 +52,27 @@ class Governor {
     this._saveDebounceMs = opts.saveDebounceMs ?? 200;
     this._saveTimer = null;
     this._mode = opts.mode || process.env.OPENCODE_BUDGET_MODE || 'enforce-critical';
-    
+
+    // Write serialization: prevents concurrent saveToFile() calls from racing
+    this._saveInProgress = false;
+    this._saveDirty = false; // set true when a save is requested while one is in progress
+
     // Callback for error threshold (80%) - enables automatic context compression
     this._onErrorThresholdCallbacks = [];
     if (typeof opts.onErrorThreshold === 'function') {
       this._onErrorThresholdCallbacks.push(opts.onErrorThreshold);
     }
 
-     if (opts.autoLoad !== false) {
-       try {
-         this.loadFromFile(this._persistPath);
-       } catch (err) {
-         // No persisted state yet, or unreadable — that's fine.
-         if (err.code !== 'ENOENT') {
-           console.warn(`[Governor] Could not load persisted budget state: ${err.message}`);
-         }
-       }
-     }
+    if (opts.autoLoad !== false) {
+      try {
+        this.loadFromFile(this._persistPath);
+      } catch (err) {
+        // No persisted state yet, or unreadable — that's fine.
+        if (err.code !== 'ENOENT') {
+          console.warn(`[Governor] Could not load persisted budget state: ${err.message}`);
+        }
+      }
+    }
 
     // T13: Periodic stale session cleanup (every 1 hour, unref'd so it won't keep process alive)
     this._cleanupInterval = setInterval(() => {
@@ -193,21 +207,30 @@ class Governor {
       return result;
     }
 
-   /**
-    * Schedule a debounced save. Multiple calls within the debounce window
-    * are coalesced into a single disk write.
-    * @private
-    */
-   _scheduleSave() {
-     if (this._saveTimer) return; // already scheduled
-     this._saveTimer = setTimeout(() => {
-       this._saveTimer = null;
-       this.saveToFile(this._persistPath).catch(err => {
-         console.warn(`[Governor] Budget state save failed (non-fatal): ${err.message}`);
-       });
-     }, this._saveDebounceMs);
-     if (this._saveTimer.unref) this._saveTimer.unref();
-   }
+  /**
+   * Schedule a debounced save. Multiple calls within the debounce window
+   * are coalesced into a single disk write.
+   *
+   * If a save is already in progress, marks _saveDirty so the current
+   * save will trigger another round after it completes.
+   * @private
+   */
+  _scheduleSave() {
+    if (this._saveInProgress) {
+      // A save is already running — mark dirty so it re-saves after completion
+      this._saveDirty = true;
+      _traceIO('scheduleSave', 'saveInProgress=true → marked dirty');
+      return;
+    }
+    if (this._saveTimer) return; // already scheduled
+    this._saveTimer = setTimeout(() => {
+      this._saveTimer = null;
+      this.saveToFile(this._persistPath).catch(err => {
+        console.warn(`[Governor] Budget state save failed (non-fatal): ${err.message}`);
+      });
+    }, this._saveDebounceMs);
+    if (this._saveTimer.unref) this._saveTimer.unref();
+  }
 
    /**
     * Get remaining budget for a session+model.
@@ -233,31 +256,31 @@ class Governor {
    * @param {string} sessionId
    * @param {string} [model]
    */
-   resetSession(sessionId, model) {
-     this._tracker.resetSession(sessionId, model);
-     try {
-       this.saveToFile(this._persistPath);
-     } catch (err) {
-       console.warn(`[Governor] Budget state save after reset failed (non-fatal): ${err.message}`);
-     }
-   }
+  resetSession(sessionId, model) {
+    this._tracker.resetSession(sessionId, model);
+    // Use debounced save instead of direct saveToFile to prevent
+    // concurrent write race (was: sync call to async saveToFile with no await)
+    this._scheduleSave();
+  }
 
-   /**
-    * Graceful shutdown - clears intervals and saves state.
-    * Call this when shutting down the Governor to prevent memory leaks.
-    */
-   shutdown() {
-     if (this._cleanupInterval) {
-       clearInterval(this._cleanupInterval);
-       this._cleanupInterval = null;
-     }
-     if (this._saveTimer) {
-       clearTimeout(this._saveTimer);
-       this._saveTimer = null;
-     }
-     // Force save before shutdown
-     this.saveToFile(this._persistPath).catch(() => {});
-   }
+  /**
+   * Graceful shutdown - clears intervals and saves state.
+   * Call this when shutting down the Governor to prevent memory leaks.
+   */
+  async shutdown() {
+    if (this._cleanupInterval) {
+      clearInterval(this._cleanupInterval);
+      this._cleanupInterval = null;
+    }
+    if (this._saveTimer) {
+      clearTimeout(this._saveTimer);
+      this._saveTimer = null;
+    }
+    // Force save before shutdown — await it to ensure state is persisted
+    try {
+      await this.saveToFile(this._persistPath);
+    } catch {}
+  }
 
   // ---------------------------------------------------------------------------
   // Persistence
@@ -269,19 +292,34 @@ class Governor {
    */
   loadFromFile(filePath) {
     const p = filePath || this._persistPath;
+    _traceIO('loadFromFile:start', `path=${p}`);
     let raw;
     try {
       raw = fs.readFileSync(p, 'utf-8');
     } catch {
       // File missing or unreadable — no persisted state to load.
+      _traceIO('loadFromFile:missing', `path=${p}`);
       return;
     }
-    if (!raw || !raw.trim()) return;
+    if (!raw || !raw.trim()) {
+      _traceIO('loadFromFile:empty', `path=${p} size=${raw.length}`);
+      return;
+    }
     let data;
     try {
       data = JSON.parse(raw);
+      _traceIO('loadFromFile:ok', `path=${p} size=${raw.length} sessions=${Object.keys(data.sessions || {}).length}`);
     } catch (err) {
-      console.warn(`[Governor] Corrupt budget file at ${p} — resetting (${err.message})`);
+      // Corrupt file — rename it to preserve for debugging, then start fresh
+      _traceIO('loadFromFile:corrupt', `path=${p} size=${raw.length} error=${err.message} rawStart=${JSON.stringify(raw.slice(0, 80))}`);
+      const corruptPath = `${p}.corrupt.${Date.now()}`;
+      try {
+        fs.renameSync(p, corruptPath);
+        console.warn(`[Governor] Corrupt budget file renamed to ${corruptPath}`);
+      } catch {
+        try { fs.unlinkSync(p); } catch {}
+        console.warn(`[Governor] Could not rename corrupt file, deleted it`);
+      }
       return;
     }
     this._tracker.loadState(data);
@@ -290,19 +328,101 @@ class Governor {
   /**
    * Save tracker state to a JSON file.
    * Creates parent directories if needed.
+   * Implements atomic write with integrity verification (AGENTS.md anti-pattern fix).
+   *
+   * WRITE SERIALIZATION: Only one saveToFile() may run at a time.
+   * If called while a save is in progress, marks _saveDirty and returns.
+   * The in-progress save will trigger another save after it completes.
+   *
    * @param {string} [filePath] – defaults to this._persistPath
    */
   async saveToFile(filePath) {
     const p = filePath || this._persistPath;
-    const dir = path.dirname(p);
-    if (!fs.existsSync(dir)) {
-      await fsPromises.mkdir(dir, { recursive: true });
+    const saveId = crypto.randomBytes(4).toString('hex');
+
+    // Write serialization: if a save is already running, mark dirty and return
+    if (this._saveInProgress) {
+      this._saveDirty = true;
+      _traceIO('saveToFile:deferred', `saveId=${saveId} path=${p} (another save in progress, marked dirty)`);
+      return;
     }
-    const data = this._tracker.toState();
-    data.savedAt = new Date().toISOString();
-    const tmpPath = `${p}.tmp`;
-    await fsPromises.writeFile(tmpPath, JSON.stringify(data, null, 2), 'utf-8');
-    await fsPromises.rename(tmpPath, p);
+    this._saveInProgress = true;
+
+    try {
+      const dir = path.dirname(p);
+      if (!fs.existsSync(dir)) {
+        await fsPromises.mkdir(dir, { recursive: true });
+      }
+      const data = this._tracker.toState();
+      data.savedAt = new Date().toISOString();
+
+      // Unique temp file per save — prevents path collision if concurrent calls slip through
+      const tmpPath = `${p}.tmp-${saveId}`;
+      const bakPath = `${p}.bak`;
+      const jsonStr = JSON.stringify(data, null, 2);
+
+      _traceIO('saveToFile:write:start', `saveId=${saveId} path=${p} tmpPath=${tmpPath} jsonLen=${jsonStr.length}`);
+
+      // Atomic write: write to temp, rename over target
+      await fsPromises.writeFile(tmpPath, jsonStr, 'utf-8');
+
+      // AGENTS.md: "Atomic Write Verification" - verify integrity after write
+      let verified = false;
+      try {
+        const verifiedData = JSON.parse(await fsPromises.readFile(tmpPath, 'utf-8'));
+        if (verifiedData && verifiedData.savedAt === data.savedAt) {
+          verified = true;
+          _traceIO('saveToFile:verify:ok', `saveId=${saveId} tmpPath=${tmpPath}`);
+        } else {
+          _traceIO('saveToFile:verify:mismatch', `saveId=${saveId} savedAt=${data.savedAt} found=${verifiedData?.savedAt}`);
+        }
+      } catch (verifyErr) {
+        _traceIO('saveToFile:verify:fail', `saveId=${saveId} error=${verifyErr.message}`);
+        verified = false;
+      }
+
+      if (!verified) {
+        // Temp file corrupt, try backup
+        try {
+          const bakData = JSON.parse(await fsPromises.readFile(bakPath, 'utf-8'));
+          await fsPromises.writeFile(tmpPath, JSON.stringify(bakData, null, 2), 'utf-8');
+          console.warn('[Governor] Temp file failed verification, restored from backup');
+        } catch {
+          // No valid backup either - write fresh minimal state
+          const minimal = { sessions: {}, savedAt: new Date().toISOString(), _recovery: true };
+          await fsPromises.writeFile(tmpPath, JSON.stringify(minimal, null, 2), 'utf-8');
+          console.warn('[Governor] No valid backup, wrote recovery state');
+        }
+      }
+
+      // Backup current file before overwriting
+      try {
+        const currentContent = await fsPromises.readFile(p, 'utf-8');
+        await fsPromises.writeFile(bakPath, currentContent, 'utf-8');
+      } catch {
+        // No existing file or can't read - that's ok
+      }
+
+      await fsPromises.rename(tmpPath, p);
+      _traceIO('saveToFile:rename:ok', `saveId=${saveId} path=${p}`);
+    } catch (err) {
+      _traceIO('saveToFile:error', `saveId=${saveId} path=${p} error=${err.message}`);
+      // Clean up temp file if it exists
+      try {
+        const tmpGlob = `${p}.tmp-${saveId}`;
+        await fsPromises.unlink(tmpGlob).catch(() => {});
+      } catch {}
+      throw err;
+    } finally {
+      this._saveInProgress = false;
+
+      // If state changed during our save, schedule another one
+      if (this._saveDirty) {
+        this._saveDirty = false;
+        _traceIO('saveToFile:dirty-resave', `saveId=${saveId} path=${p} (state changed during save, re-scheduling)`);
+        this._scheduleSave();
+      }
+    }
   }
 
   // ---------------------------------------------------------------------------

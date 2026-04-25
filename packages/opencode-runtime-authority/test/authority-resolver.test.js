@@ -43,7 +43,7 @@ describe('Runtime Authority Resolver', () => {
         repoConfigPath: '/nonexistent/repo-config.json'
       });
       
-      expect(result.modelId).toBe('gemini-2.5-flash');
+      expect(result.modelId).toBe('gemini-3-flash-preview');
       expect(result.provider).toBe('google');
       expect(result.source).toBe(SOURCES.DEFAULT);
     });

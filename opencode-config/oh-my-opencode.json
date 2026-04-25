@@ -13,37 +13,37 @@
       "sisyphus",
       "explore"
     ],
-"atlas": {
-    "model": "nvidia/moonshotai/kimi-k2.5"
-  },
-  "hephaestus": {
-    "model": "openai/gpt-5.3-codex"
-  },
-  "librarian": {
-    "model": "google/gemini-2.5-flash"
-  },
-  "metis": {
-    "model": "openai/gpt-5.2"
-  },
-  "momus": {
-    "model": "nvidia/z-ai/glm-5"
-  },
-  "oracle": {
-    "model": "openai/gpt-5.3-codex",
-    "variant": "high"
-  },
-  "prometheus": {
-    "model": "openai/gpt-5.3-codex"
-  },
-  "sisyphus": {
-    "model": "openai/gpt-5.3-codex"
-  },
-  "explore": {
-    "model": "google/gemini-2.5-flash"
-  },
-  "multimodal-looker": {
-    "model": "google/gemini-2.5-flash"
-  }
+    "atlas": {
+      "model": "nvidia/moonshotai/kimi-k2.5"
+    },
+    "hephaestus": {
+      "model": "openai/gpt-5.3-codex"
+    },
+    "librarian": {
+      "model": "google/gemini-3-flash-preview"
+    },
+    "metis": {
+      "model": "openai/gpt-5.4"
+    },
+    "momus": {
+      "model": "nvidia/z-ai/glm-5.1"
+    },
+    "oracle": {
+      "model": "openai/gpt-5.5",
+      "variant": "high"
+    },
+    "prometheus": {
+      "model": "nvidia/z-ai/glm-5.1"
+    },
+    "sisyphus": {
+      "model": "openai/gpt-5.4"
+    },
+    "explore": {
+      "model": "google/gemini-3-flash-preview"
+    },
+    "multimodal-looker": {
+      "model": "google/gemini-3-flash-preview"
+    }
   },
   "mcp": {
     "context7": {
@@ -66,44 +66,68 @@
   },
   "categories": {
     "visual-engineering": {
-      "model": "openai/gpt-5.2",
+      "model": "openai/gpt-5.4",
       "routing": "scoring",
-      "fallbacks": ["google/gemini-3.1-pro-preview", "google/gemini-3-flash-preview"]
+      "fallbacks": [
+        "openai/gpt-5.4-mini",
+        "google/gemini-3.1-pro-preview"
+      ]
     },
     "ultrabrain": {
-      "model": "openai/gpt-5.3-codex",
+      "model": "openai/gpt-5.5",
       "routing": "thompson-sampling",
-      "fallbacks": ["google/gemini-3.1-pro-preview", "zen/zen/minimax-m2.5"]
+      "fallbacks": [
+        "openai/gpt-5.4",
+        "google/gemini-3.1-pro-preview"
+      ]
     },
     "deep": {
-      "model": "nvidia/z-ai/glm-5",
+      "model": "openai/gpt-5.4",
       "routing": "thompson-sampling",
-      "fallbacks": ["openai/gpt-5.3-codex", "google/gemini-3.1-pro-preview"]
+      "fallbacks": [
+        "openai/gpt-5.3-codex",
+        "google/gemini-3.1-pro-preview"
+      ]
     },
     "artistry": {
-      "model": "openai/gpt-5.2",
+      "model": "openai/gpt-5.4",
       "routing": "scoring",
-      "fallbacks": ["google/gemini-3.1-pro-preview", "zen/zen/minimax-m2.5"]
+      "fallbacks": [
+        "openai/gpt-5.4-mini",
+        "google/gemini-3.1-pro-preview"
+      ]
     },
     "quick": {
-      "model": "google/gemini-3-flash-preview",
+      "model": "openai/gpt-5.4-mini",
       "routing": "scoring",
-      "fallbacks": ["nvidia/moonshotai/kimi-k2.5", "zen/zen/glm-5"]
+      "fallbacks": [
+        "nvidia/moonshotai/kimi-k2.5",
+        "google/gemini-3-flash-preview"
+      ]
     },
     "unspecified-low": {
-      "model": "nvidia/moonshotai/kimi-k2.5",
+      "model": "openai/gpt-5.4-mini",
       "routing": "scoring",
-      "fallbacks": ["google/gemini-3-flash-preview", "zen/zen/glm-5"]
+      "fallbacks": [
+        "nvidia/moonshotai/kimi-k2.5",
+        "google/gemini-3-flash-preview"
+      ]
     },
     "unspecified-high": {
-      "model": "openai/gpt-5.3-codex",
+      "model": "openai/gpt-5.4",
       "routing": "thompson-sampling",
-      "fallbacks": ["google/gemini-3.1-pro-preview", "nvidia/z-ai/glm-5"]
+      "fallbacks": [
+        "openai/gpt-5.3-codex",
+        "nvidia/z-ai/glm-5.1"
+      ]
     },
     "writing": {
-      "model": "google/gemini-3-flash-preview",
+      "model": "openai/gpt-5.4-mini",
       "routing": "scoring",
-      "fallbacks": ["openai/gpt-5.2", "zen/zen/kimi-k2.5"]
+      "fallbacks": [
+        "deepseek-ai/deepseek-v3",
+        "openai/gpt-5.3-codex"
+      ]
     }
   }
 }

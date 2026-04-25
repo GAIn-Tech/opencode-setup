@@ -6,7 +6,7 @@ test('checkContextBudget handler delegates to governor', async () => {
   const governor = {
     checkBudget(sessionId, model, proposedTokens) {
       assert.equal(sessionId, 'ses_test');
-      assert.equal(model, 'google/gemini-2.5-flash');
+      assert.equal(model, 'google/gemini-3-flash-preview');
       assert.equal(proposedTokens, 1000);
       return { allowed: true, status: 'ok', urgency: 0, remaining: 199000, message: 'OK' };
     },
@@ -15,7 +15,7 @@ test('checkContextBudget handler delegates to governor', async () => {
   const handlers = createContextGovernorHandlers(governor);
   const result = await handlers.checkContextBudget({
     sessionId: 'ses_test',
-    model: 'google/gemini-2.5-flash',
+    model: 'google/gemini-3-flash-preview',
     proposedTokens: 1000,
   });
 
@@ -28,7 +28,7 @@ test('recordTokenUsage handler delegates to governor', async () => {
   const governor = {
     consumeTokens(sessionId, model, tokens) {
       assert.equal(sessionId, 'ses_consume');
-      assert.equal(model, 'google/gemini-2.5-flash');
+      assert.equal(model, 'google/gemini-3-flash-preview');
       assert.equal(tokens, 2500);
       return { used: 2500, remaining: 197500, pct: 0.0125, status: 'ok' };
     },
@@ -37,7 +37,7 @@ test('recordTokenUsage handler delegates to governor', async () => {
   const handlers = createContextGovernorHandlers(governor);
   const result = await handlers.recordTokenUsage({
     sessionId: 'ses_consume',
-    model: 'google/gemini-2.5-flash',
+    model: 'google/gemini-3-flash-preview',
     tokens: 2500,
   });
 
@@ -50,7 +50,7 @@ test('listBudgetSessions and getModelBudgets handlers return structured content'
     getAllSessions() {
       return {
         ses_a: {
-          'google/gemini-2.5-flash': { used: 1000, remaining: 199000, max: 200000, pct: 0.005, status: 'ok' },
+          'google/gemini-3-flash-preview': { used: 1000, remaining: 199000, max: 200000, pct: 0.005, status: 'ok' },
         },
       };
     },
@@ -61,7 +61,7 @@ test('listBudgetSessions and getModelBudgets handlers return structured content'
   assert.ok(sessions.structuredContent.sessions.ses_a);
 
   const budgets = await handlers.getModelBudgets({});
-  assert.ok(budgets.structuredContent.budgets['google/gemini-2.5-flash']);
+  assert.ok(budgets.structuredContent.budgets['google/gemini-3-flash-preview']);
 });
 
 test('handlers return MCP error payloads on exceptions', async () => {
@@ -75,7 +75,7 @@ test('handlers return MCP error payloads on exceptions', async () => {
   };
 
   const handlers = createContextGovernorHandlers(governor);
-  const budgetResult = await handlers.getContextBudgetStatus({ sessionId: 'ses_err', model: 'google/gemini-2.5-flash' });
+  const budgetResult = await handlers.getContextBudgetStatus({ sessionId: 'ses_err', model: 'google/gemini-3-flash-preview' });
   const resetResult = await handlers.resetBudgetSession({ sessionId: 'ses_err' });
 
   assert.equal(budgetResult.isError, true);

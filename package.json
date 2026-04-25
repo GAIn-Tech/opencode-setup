@@ -5,7 +5,8 @@
   "private": true,
   "packageManager": "bun@1.3.10",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "local/*"
   ],
   "scripts": {
     "setup": "node scripts/setup-resilient.mjs",
@@ -17,6 +18,7 @@
     "hooks:install": "node scripts/install-git-hooks.mjs",
     "generate": "node scripts/generate-mcp-config.mjs",
     "verify": "node scripts/verify-setup.mjs",
+    "config:drift": "node scripts/drift-detect.mjs",
     "verify:strict": "node scripts/copy-config.mjs && node scripts/generate-mcp-config.mjs && node scripts/mcp-mirror-coherence.mjs && node scripts/supply-chain-guard.mjs && node scripts/validate-config.mjs && node scripts/verify-setup.mjs && node scripts/check-skill-consistency.mjs && node scripts/validate-plugin-compatibility.mjs && node scripts/verify-portability.mjs --strict --probe-mcp && node scripts/fault-injection-tests.mjs",
     "doctor": "node scripts/doctor.mjs",
     "repair": "node scripts/repair.mjs",

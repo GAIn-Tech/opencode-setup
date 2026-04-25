@@ -14,7 +14,7 @@ opencode-config/
 ├── docs/                # Configuration documentation
 ├── supermemory/         # SuperMemory integration
 ├── opencode.json        # Main config (116KB)
-├── central-config.json  # Schema-validated config (12KB)
+├── central-config.json # RL-governed config: soft/hard bounds + rl_allowed flags per field (749 lines)
 ├── oh-my-opencode.json  # Agent model overrides
 └── compound-engineering.json  # Skills, commands, categories
 ```
@@ -30,9 +30,9 @@ opencode-config/
 | Agent overrides | oh-my-opencode.json |
 
 ## CONVENTIONS
-- **Config Fragmentation**: 6+ config files with different purposes
-- **Large Main Config**: opencode.json is 116KB (comprehensive)
-- **Schema Validation**: central-config.json has schema enforcement
+- **Config Fragmentation**: 6+ config files with different purposes (see Config Loading Map below)
+- **Large Main Config**: opencode.json is 632 lines (plugins, models, providers, MCPs)
+- **Schema Validation**: central-config.json has soft/hard bounds + RL governance per field
 - **Skill Hierarchy**: skills/superpowers/* for advanced patterns
 - **Learning Governance**: learning-updates/ tracks all governed changes
 
@@ -40,10 +40,38 @@ opencode-config/
 None specific to config
 
 ## UNIQUE STYLES
-- **Multi-File Config**: opencode.json (main), central-config.json (schema), oh-my-opencode.json (overrides), compound-engineering.json (skills/commands)
+- **Multi-File Config**: opencode.json (main), central-config.json (RL governance), oh-my-opencode.json (agent overrides), compound-engineering.json (skills/commands)
 - **77 Skill Dirs**: broad on-disk skill catalog including superpowers/ namespace and domain skills
 - **1 Agent prompt on disk**: `agents/librarian.md` is retained as canonical governed deliverable
 - **Learning Updates**: Governed file changes tracked in learning-updates/
+
+## CONFIG LOADING MAP
+Each config is loaded by a specific system. They are NOT redundant — they serve different layers.
+
+| Config File | Loaded By | Purpose |
+|-------------|-----------|---------|
+| `opencode.json` | OpenCode CLI (runtime, `~/.config/opencode/`) | Plugins, models, providers, agent prompts, MCPs, permissions |
+| `oh-my-opencode.json` | oh-my-opencode plugin (external) | Named-agent model overrides, MCP toggles, category routing |
+| `compound-engineering.json` | superpowers plugin (external) | Skills registry, command definitions, category groupings |
+| `config.yaml` | OpenCode user-level (`~/.opencode/config.yaml`) | Global rules, delegation standards, coordination protocols, dev standards |
+| `central-config.json` | `opencode-config-loader` package (packages/) | RL-governed params: retry, fallback, batching, exploration (soft/hard bounds) |
+| `.opencode.config.json` | `ConfigLoader` class in `opencode-config-loader` | Package-level tunables: bun heap, concurrency, batchSize, LRU, WAL, logging |
+| `opencode-config-schema.json` | IDE (JSON Schema auto-discovery) | IDE autocomplete for `.opencode.config.json` fields |
+
+**Config precedence** (highest → lowest):
+1. Environment variables (`OPENCODE_*` prefix)
+2. `.opencode.config.json` (project root, found by walking up directory tree)
+3. `~/.opencode/config.json` (user-level)
+4. Defaults (built into `ConfigLoader`)
+
+**What is NOT loaded by packages/ code:**
+- `opencode.json`, `oh-my-opencode.json`, `compound-engineering.json` are loaded by OpenCode CLI or external plugins at runtime — not by packages in this repo
+- `opencode-config-loader` is a plugin library, not the canonical config system for the whole setup
+
+**Schema URIs:**
+- `opencode.json` → `https://opencode.ai/config.json`
+- `oh-my-opencode.json` → `https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json`
+- `.opencode.config.json` → no `$schema` (relative path breaks outside repo root; IDEs auto-discover via adjacent file)
 
 ## CONTEXT MANAGEMENT (Wave 11)
 Skills and configuration for context-aware token management:

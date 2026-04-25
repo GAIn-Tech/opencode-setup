@@ -1,0 +1,44 @@
+{
+  "id": "runtime-routing-persistence-batch-20260425",
+  "timestamp": "2026-04-25T00:45:00Z",
+  "category": "runtime",
+  "summary": "Integrate the restored runtime routing and persistence batch across governor, learning-engine, model-router, runtime authority, and governed model/config surfaces.",
+  "affected_paths": [
+    "packages/opencode-context-governor/src/budgets.json",
+    "packages/opencode-context-governor/src/index.js",
+    "packages/opencode-context-governor/test/governor-crash.test.js",
+    "packages/opencode-context-governor/test/mcp-server.test.mjs",
+    "packages/opencode-learning-engine/src/anti-patterns.js",
+    "packages/opencode-learning-engine/src/index.js",
+    "packages/opencode-learning-engine/src/positive-patterns.js",
+    "packages/opencode-model-router-x/src/index.js",
+    "packages/opencode-model-router-x/src/model-alias-resolver.js",
+    "packages/opencode-model-router-x/src/strategies/orchestrator.js",
+    "packages/opencode-model-router-x/src/subagent-retry-manager.js",
+    "packages/opencode-model-router-x/src/tier-router.js",
+    "packages/opencode-model-router-x/test/category-fallbacks.test.js",
+    "packages/opencode-runtime-authority/src/index.js",
+    "packages/opencode-runtime-authority/test/authority-resolver.test.js",
+    "opencode-config/models/schema.json",
+    "opencode-config/oh-my-opencode.json",
+    "opencode-config/opencode-clean.json",
+    "opencode-config/opencode.json",
+    "opencode-config/rate-limit-fallback.json",
+    "opencode-config/AGENTS.md",
+    "package.json"
+  ],
+  "root_cause": "The restored branch contained a coherent but unintegrated shift in runtime routing precedence, token budget enforcement, and model defaults. Tests and config surfaces lagged behind the new policy in several places.",
+  "fix_approach": "Validated governor, router, runtime-authority, and learning-engine behavior against the restored policy, corrected stale test expectations for the new routing defaults, and carried the aligned config surfaces forward as one runtime batch.",
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "bun test packages/opencode-context-governor/test/governor-crash.test.js packages/opencode-context-governor/test/mcp-server.test.mjs packages/opencode-model-router-x/test/category-fallbacks.test.js packages/opencode-model-router-x/test/model-alias-resolver.test.js packages/opencode-model-router-x/test/wave11-phase1-optimizations.test.js packages/opencode-runtime-authority/test/authority-resolver.test.js",
+      "bun test packages/opencode-learning-engine/test",
+      "bun run governance:check"
+    ],
+    "notes": "Router/governor/runtime tests pass with the restored defaults. Governance still requires the staged learning update and regenerated hashes for this governed batch."
+  }
+}

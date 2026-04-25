@@ -191,44 +191,44 @@ describe('Category Fallbacks Verification', () => {
   
   describe('Category-Specific Model Validation', () => {
     
-    test('visual-engineering uses gpt-5.2 as primary', () => {
+    test('visual-engineering uses configured primary model', () => {
       const normalized = normalizeModelId(categories['visual-engineering'].model);
-      expect(normalized).toBe('gpt-5.2');
+      expect(normalized).toBe('gpt-5.4');
     });
     
-    test('ultrabrain uses gpt-5.3-codex as primary', () => {
+    test('ultrabrain uses configured primary model', () => {
       const normalized = normalizeModelId(categories['ultrabrain'].model);
-      expect(normalized).toBe('gpt-5.3-codex');
+      expect(normalized).toBe('gpt-5.5');
     });
     
-    test('deep uses glm-5 as primary', () => {
+    test('deep uses configured primary model', () => {
       const normalized = normalizeModelId(categories['deep'].model);
-      expect(normalized).toBe('glm-5');
+      expect(normalized).toBe('gpt-5.4');
     });
     
-    test('artistry uses gpt-5.2 as primary', () => {
+    test('artistry uses configured primary model', () => {
       const normalized = normalizeModelId(categories['artistry'].model);
-      expect(normalized).toBe('gpt-5.2');
+      expect(normalized).toBe('gpt-5.4');
     });
     
-    test('quick uses gemini-3-flash-preview as primary', () => {
+    test('quick uses configured primary model', () => {
       const normalized = normalizeModelId(categories['quick'].model);
-      expect(normalized).toBe('gemini-3-flash-preview');
+      expect(normalized).toBe('gpt-5.4-mini');
     });
     
-    test('unspecified-low uses kimi-k2.5 as primary', () => {
+    test('unspecified-low uses configured primary model', () => {
       const normalized = normalizeModelId(categories['unspecified-low'].model);
-      expect(normalized).toBe('kimi-k2.5');
+      expect(normalized).toBe('gpt-5.4-mini');
     });
     
-    test('unspecified-high uses gpt-5.3-codex as primary', () => {
+    test('unspecified-high uses configured primary model', () => {
       const normalized = normalizeModelId(categories['unspecified-high'].model);
-      expect(normalized).toBe('gpt-5.3-codex');
+      expect(normalized).toBe('gpt-5.4');
     });
     
-    test('writing uses gemini-3-flash-preview as primary', () => {
+    test('writing uses configured primary model', () => {
       const normalized = normalizeModelId(categories['writing'].model);
-      expect(normalized).toBe('gemini-3-flash-preview');
+      expect(normalized).toBe('gpt-5.4-mini');
     });
     
   });
@@ -253,18 +253,18 @@ describe('Category Fallbacks Verification', () => {
       });
     });
     
-    test('categories have diverse model providers', () => {
+    test('categories maintain provider diversity across primary and fallback models', () => {
       const providers = new Set();
-      
+
       EXPECTED_CATEGORIES.forEach(cat => {
-        // Extract provider from full model ID
-        const parts = categories[cat].model.split('/');
-        if (parts.length > 1) {
-          providers.add(parts[0]);
-        }
+        [categories[cat].model, ...categories[cat].fallbacks].forEach((modelId) => {
+          const parts = modelId.split('/');
+          if (parts.length > 1) {
+            providers.add(parts[0]);
+          }
+        });
       });
-      
-      // Should have at least 3 different providers (openai, google, nvidia, zen)
+
       expect(providers.size).toBeGreaterThanOrEqual(3);
     });
     

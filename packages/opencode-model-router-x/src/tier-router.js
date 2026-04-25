@@ -91,8 +91,10 @@ const MODEL_CAPABILITIES = {
   'gpt-5': { vision: true, tools: true, reasoning: true, large_context: true },
   'gpt-5.2': { vision: true, tools: true, reasoning: true, large_context: true },
   'gpt-5.3-codex': { vision: true, tools: true, reasoning: true, large_context: true },
+  'gpt-5.4': { vision: true, tools: true, reasoning: true, large_context: true },
+  'gpt-5.4-mini': { vision: true, tools: true, reasoning: true, large_context: true },
+  'gpt-5.5': { vision: true, tools: true, reasoning: true, large_context: true },
   // Google Gemini
-  'gemini-2.5-flash': { vision: true, tools: true, reasoning: true, large_context: true },
   'gemini-3-flash-preview': { vision: true, tools: true, reasoning: true, large_context: true },
   'gemini-3-pro-preview': { vision: true, tools: true, reasoning: true, large_context: true },
   'gemini-3.1-flash-lite-preview': { vision: true, tools: true, reasoning: true, large_context: true },
@@ -100,10 +102,12 @@ const MODEL_CAPABILITIES = {
   // NVIDIA/Zen models
   'kimi-k2.5': { vision: false, tools: true, reasoning: true, large_context: true },
   'glm-5': { vision: false, tools: true, reasoning: true, large_context: true },
+  'glm-5.1': { vision: false, tools: true, reasoning: true, large_context: true },
   'glm4.7': { vision: false, tools: true, reasoning: false, large_context: false },
   'minimax-m2.5': { vision: false, tools: true, reasoning: true, large_context: true },
   // Legacy aliases
   'deepseek-v3.2': { vision: false, tools: true, reasoning: true, large_context: true },
+  'deepseek-v3': { vision: false, tools: true, reasoning: true, large_context: true },
 };
 
 // Helper: Normalize model IDs from provider-prefixed to short form

@@ -21,8 +21,13 @@ const { MetaKBReader } = require('./meta-kb-reader');
 const { DOMAIN_SLUGS, buildDomainWeightHyperParameters } = require('./meta-awareness-rules');
 const EventEmitter = require('events');
 const fs = require('fs');
+const fsPromises = require('fs/promises');
 const path = require('path');
 const os = require('os');
+
+// Autosave debounce: coalesce rapid mutations into a single save.
+// Prevents cascading saves when multiple patterns are added in quick succession.
+const SAVE_DEBOUNCE_MS_DEFAULT = 100;
 
 let PluginLifecycleSupervisor;
 try {
@@ -103,7 +108,7 @@ class LearningEngine extends EventEmitter {
     // T19 (Wave 11): Startup time instrumentation
     const _startupT0 = typeof performance !== 'undefined' ? performance.now() : Date.now();
 
-    const { autoLoad = true, autoSave = true } = options;
+    const { autoLoad = true, autoSave = true, saveDebounceMs } = options;
 
     this.antiPatterns = new AntiPatternCatalog();
     this.positivePatterns = new PositivePatternTracker();
@@ -140,6 +145,20 @@ class LearningEngine extends EventEmitter {
     this.autoSave = autoSave;
     this.sessionLog = []; // Track which sessions have been ingested
     this.hooks = {};
+
+    // Debounced save: coalesce rapid mutations into a single I/O operation.
+    // Without this, every addAntiPattern/addPositivePattern/learnFromOutcome
+    // triggers an immediate synchronous write, causing cascading saves.
+    this._saveTimer = null;
+    this._saveDirty = false;
+    this._saveDebounceMs = typeof saveDebounceMs === 'number' && Number.isFinite(saveDebounceMs) && saveDebounceMs >= 0
+      ? saveDebounceMs
+      : SAVE_DEBOUNCE_MS_DEFAULT;
+    // Write serialization: prevents concurrent _flushSave() calls from racing.
+    // Ported from Governor's proven _saveInProgress + _saveDirty pattern.
+    this._saveInProgress = false;
+    this._antiDirty = false;   // track which catalog(s) changed
+    this._positiveDirty = false;
     this.pluginSupervisor = new PluginLifecycleSupervisor();
     this._initAntiGamingClassifier();
 
@@ -863,7 +882,7 @@ class LearningEngine extends EventEmitter {
       entry.persistence = 'core';
       entry.isCore = true;
       console.log(`[LearningEngine] Marked learning ${learningId} as CORE - will never decay`);
-      this.save();
+      this.save({ _catalog: 'anti' });
       return true;
     }
     return false;
@@ -883,7 +902,7 @@ class LearningEngine extends EventEmitter {
         updatedAt: Date.now()
       });
       console.log(`[LearningEngine] Updated core learning ${learningId}`);
-      this.save();
+      this.save({ _catalog: 'anti' });
       return true;
     }
     return false;
@@ -1528,7 +1547,7 @@ class LearningEngine extends EventEmitter {
   addAntiPattern(pattern) {
     const result = this.antiPatterns.addAntiPattern(pattern);
     this._emitHook('patternStored', { type: 'anti', pattern: result });
-    if (this.autoSave) this.save();
+    if (this.autoSave) this.save({ _catalog: 'anti' });
     return result;
   }
 
@@ -1539,7 +1558,7 @@ class LearningEngine extends EventEmitter {
   addPositivePattern(pattern) {
     const result = this.positivePatterns.addPositivePattern(pattern);
     this._emitHook('patternStored', { type: 'positive', pattern: result });
-    if (this.autoSave) this.save();
+    if (this.autoSave) this.save({ _catalog: 'positive' });
     return result;
   }
 
@@ -1598,32 +1617,105 @@ class LearningEngine extends EventEmitter {
 
   /**
    * Save all state to disk.
+   * Debounced: rapid calls are coalesced into a single I/O operation.
+   * Call with { immediate: true } to flush without debouncing (e.g., on shutdown).
+   *
+   * Optimization: timer is set ONCE on the first dirty call; subsequent calls
+   * only mark dirty. This eliminates N-1 clearTimeout+setTimeout operations
+   * during rapid mutations (e.g., 200 addAntiPattern calls → 1 timer instead of 200).
    */
-  save() {
-    this.antiPatterns.save();
-    this.positivePatterns.save();
-    }
- 
-    /**
-     * Load persisted state from disk.
-     */
-    load() {
-      // AntiPatternCatalog and PositivePatternTracker auto-load in constructor
-      // This method is for explicit reload
-      this.antiPatterns._load();
-      this.positivePatterns._load();
-      // Audit trail is persisted as part of the main learning engine state
+  save({ immediate = false, _catalog } = {}) {
+    if (!this.autoSave) return;
+
+    // Track which catalog(s) are dirty for selective save
+    if (_catalog === 'anti' || _catalog === undefined) this._antiDirty = true;
+    if (_catalog === 'positive' || _catalog === undefined) this._positiveDirty = true;
+
+    if (immediate) {
+      this._flushSave();
+      return;
     }
 
-    /**
-     * Save all state to disk.
-     */
-    save() {
-      this.antiPatterns.save();
-      this.positivePatterns.save();
-      // Audit trail is saved as part of anti-patterns/positive-patterns
-      // In a full implementation, this would have its own persistence
+    // Mark dirty — but do NOT reset the timer if one is already scheduled.
+    // This is the key optimization: N rapid save() calls result in exactly
+    // 1 setTimeout, not N clearTimeout+setTimeout pairs.
+    this._saveDirty = true;
+    if (!this._saveTimer) {
+      this._saveTimer = setTimeout(() => {
+        this._saveTimer = null;
+        this._flushSave();
+      }, this._saveDebounceMs);
+      if (this._saveTimer.unref) this._saveTimer.unref();
     }
+  }
+
+  /**
+   * Immediately flush dirty state to disk.
+   * Write-serialized: only one flush may run at a time. If a flush is in
+   * progress, marks dirty so the current flush will trigger another round.
+   * @private
+   */
+  _flushSave() {
+    this._saveDirty = false;
+
+    // Write serialization: if a flush is already running, mark dirty and return.
+    // The in-progress flush will trigger another round after it completes.
+    if (this._saveInProgress) {
+      this._saveDirty = true;
+      return;
+    }
+    this._saveInProgress = true;
+
+    // Selective save: only write the catalog(s) that actually changed.
+    const saveAnti = this._antiDirty;
+    const savePositive = this._positiveDirty;
+    this._antiDirty = false;
+    this._positiveDirty = false;
+
+    // Fire-and-forget async saves — avoids blocking the event loop.
+    const saves = [];
+    if (saveAnti) saves.push(this.antiPatterns.save());
+    if (savePositive) saves.push(this.positivePatterns.save());
+
+    if (saves.length === 0) {
+      this._saveInProgress = false;
+      return;
+    }
+
+    Promise.all(saves).catch(() => {
+      // Silently fail on write errors — don't break the agent
+    }).finally(() => {
+      this._saveInProgress = false;
+      // If state changed during our save, schedule another one
+      if (this._saveDirty) {
+        this._scheduleResave();
+      }
+    });
+  }
+
+  /**
+   * Schedule a resave after write serialization completes.
+   * @private
+   */
+  _scheduleResave() {
+    if (this._saveTimer) return; // already scheduled
+    this._saveTimer = setTimeout(() => {
+      this._saveTimer = null;
+      this._flushSave();
+    }, this._saveDebounceMs);
+    if (this._saveTimer.unref) this._saveTimer.unref();
+  }
+
+  /**
+   * Load persisted state from disk.
+   */
+  load() {
+    // AntiPatternCatalog and PositivePatternTracker auto-load in constructor
+    // This method is for explicit reload
+    this.antiPatterns._load();
+    this.positivePatterns._load();
+    // Audit trail is persisted as part of the main learning engine state
+  }
 
     /**
      * Anti-gaming classifier with audit trail.
@@ -1635,23 +1727,22 @@ class LearningEngine extends EventEmitter {
         _events: [],
         _maxSize: 1000,
         
-        addEvent: function(event) {
-          this._events.push({
-            ...event,
-            timestamp: new Date().toISOString(),
-            id: `audit_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
-          });
-          
-          // Keep audit trail size bounded
-          if (this._events.length > this._maxSize) {
-            this._events = this._events.slice(-this._maxSize);
-          }
-          
-          // Persist if auto-save is enabled
-          if (this._learningEngineInstance && this._learningEngineInstance.autoSave) {
-            this._learningEngineInstance.save();
-          }
-        },
+    addEvent: function(event) {
+      this._events.push({
+        ...event,
+        timestamp: new Date().toISOString(),
+        id: `audit_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+      });
+
+      // Keep audit trail size bounded
+      if (this._events.length > this._maxSize) {
+        this._events = this._events.slice(-this._maxSize);
+      }
+
+      // Save is delegated to LearningEngine's debounced save — no direct trigger here.
+      // Previously, this called this._learningEngineInstance.save() on every audit event,
+      // causing cascading synchronous writes that blocked the event loop.
+    },
         
         getEvents: function(filter = {}) {
           let results = [...this._events];

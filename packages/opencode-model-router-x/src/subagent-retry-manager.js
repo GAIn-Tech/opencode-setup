@@ -33,17 +33,17 @@ const CATEGORY_FALLBACKS = {
     'openai/gpt-5.2',
   ],
   'quick': [
-    'google/gemini-2.5-flash',
+    'google/gemini-3-flash-preview',
     'antigravity/antigravity-gemini-3-flash',
     'openai/gpt-5',
   ],
   'writing': [
     'antigravity/antigravity-gemini-3-flash',
-    'google/gemini-2.5-flash',
+    'google/gemini-3-flash-preview',
     'openai/gpt-5.2',
   ],
   'unspecified-low': [
-    'google/gemini-2.5-flash',
+    'google/gemini-3-flash-preview',
     'antigravity/antigravity-gemini-3-flash',
     'openai/gpt-5.2',
   ],
@@ -56,7 +56,7 @@ const CATEGORY_FALLBACKS = {
 
 // Default fallback chain for unknown categories
 const DEFAULT_FALLBACKS = [
-  'google/gemini-2.5-flash',
+  'google/gemini-3-flash-preview',
   'openai/gpt-5.2',
   'antigravity/antigravity-gemini-3-pro',
 ];
