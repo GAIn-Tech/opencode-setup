@@ -1,7 +1,7 @@
 {
   "version": 1,
   "algorithm": "SHA-256",
-  "generated_at": "2026-04-25T02:34:47.601Z",
+  "generated_at": "2026-04-25T05:35:11.585Z",
   "files": {
     "opencode-config/antigravity.json": "02e5da152f9b3220d1ddb3abcc97e412bdde433dd8320954e6a2353565b08790",
     "opencode-config/central-config.json": "18ed701b7979223ee30c6b712932667a7e77b68e7d4f18fb04ffa55b5334592d",
@@ -9,8 +9,8 @@
     "opencode-config/compound-engineering.json": "aaceae72d0f6a71748e92091f0790eab180409c9b743dc4429365ce8d34f85a6",
     "opencode-config/config.yaml": "8dc70dcea8fe047d84a7e125ed2e6f8f6361268b27028547cdf5c6c7b58bec2b",
     "opencode-config/deployment-state.json": "2b85fba50a02cbda9322cb996e1626a1f599b46ff9c47bb72db0b667eba2af4e",
-    "opencode-config/docs-governance.json": "e642dc67a28d120c654c01413fb46ca711c29e1029bcf50561e62ea0e95af965",
-    "opencode-config/integrity-baseline.json": "7dd25114201518e180c4df8d5d0c67a29f242330424f9a4caf64ca064793e4f0",
+    "opencode-config/docs-governance.json": "0502eafb383cda3a3593626534f665f8c8585487a1dcdc6d0c9436874647ef7e",
+    "opencode-config/integrity-baseline.json": "5c8c1bff07fbd928d08546a0d7fe57390a20efefb434d1d733ac67c637789fa5",
     "opencode-config/learning-update-policy.json": "8551c9c3bed8d990179622bb0d38f9e1fa0b8e517f3c3a0398d1566b9cb14116",
     "opencode-config/mcp-cache/distill-mcp/0.8.1/package.json": "ee7be743f91daa45687def36b4d2ffd863821b6c9e8ed718fb12e4320373dd0b",
     "opencode-config/mcp-dormant-policy.json": "fe1d75e5125af9fce54b440e89618f5506b6553908cb883cacbe839dc4e17a1a",
@@ -19,12 +19,13 @@
     "opencode-config/models/schema-v2.json": "89fc44a7f09a6b041ab140ef5e9ed4bca2f2c0418d527cdb1ad8fa7ba567e737",
     "opencode-config/models/schema.json": "289ce5097fe78b1a4ccb6c1812169c83c88e6ef2402c8966e28fe86a3f90f071",
     "opencode-config/oh-my-opencode.json": "3da5a022f264c99a11e68b8540e9949bb661e221c6a4e8f2ad9d02a46b627d20",
-    "opencode-config/opencode-clean.json": "0c51a8ae7be7a5662897596a8e7d4e572898e176bacf46962e25ca73aa5fee5f",
-    "opencode-config/opencode.json": "5357415701a3a8fbc7f03ece7d04d9991acea314abb06f68bf7c1926e9a0ba0f",
+    "opencode-config/opencode-clean.json": "9e6a1d25a76d7da52f813a5e4b33a57b3cf26f0635ab364eaa7f795cfbea7b1a",
+    "opencode-config/opencode.json": "03d7770e5f8bb407ee125b97afae37c30548046788a452140fbc959c97015d83",
+    "opencode-config/plugin-pins.json": "e8f7cb6dcc7932226acfaba60bcbf7f86936033f014f60c1b5c2529e2e4bbea3",
     "opencode-config/rate-limit-fallback.json": "58a15d1d7dc8f85ba8e683fa5ff423600ba76be999455c812a52f29f30280fca",
     "opencode-config/skill-rl-seed.json": "f69a7d831f482350d5350b2922fedcba7d7e691cb51c36e485f803ae88f4514c",
     "opencode-config/skills/generated/generated-skills.json": "2e716dd6a93c3391e74d429488aa1104dffaba3577f67aee03983f31e108b773",
-    "opencode-config/skills/registry.backup.json": "2f8491d38713466cc4f57367bf2b0e1d6aeffa3dae62d1c3313d96b217a88611",
+    "opencode-config/skills/registry.backup.json": "6407698c01a16bff4113225374d0daecda322b318af9d09fb9b7992d2815bd74",
     "opencode-config/skills/registry.json": "33fa1def3e33ad6d5b2f678c9de512ea94dc588bab09656009dbadc82852c149",
     "opencode-config/skills/registry.schema.json": "263d04723f114846e24ce45a082e7499084cc2b4137f5ae942d7c5ab39c1d3b2",
     "opencode-config/skills/semantic-matching/domain-signals.json": "203ecd3633f611c5536c0c2ceeeaa90f4867fe22fdc895ef29f065437a90e8ac",
@@ -33,7 +34,7 @@
     "opencode-config/supermemory/codebase-pattern-analysis.json": "78ed263b510080d39cdeea60a010d63aee76f0ecf854f128f9f0868bbc10841c",
     "opencode-config/tool-namespacing.json": "d9b58b79d5bc8d801e472b71c368d94c2a227a3c00ad28ef336d72495d4846e3",
     "opencode-config/tool-tiers.json": "9537baf6c333085aeba4916b295333fb29c6ac725c8cdf84a9f911f0b6f60d04",
-    "opencode-config/warning-baseline.json": "ce79c5ea4c1cd488fb370eb82fa6407d0498bd09b5761f664c206d020ede8cb8",
+    "opencode-config/warning-baseline.json": "0d47fb9696e58ee51fb33addef7880742e10644b10b2a0573f562a45ad1754d4",
     "package.json": "e8dd433b4e9e6b9c7a732942d5e3721562456268733354777a8e323cdb9daae9"
   }
 }

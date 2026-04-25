@@ -1,0 +1,23 @@
+{
+  "id": "runtime-parity-hardening-20260425",
+  "timestamp": "2026-04-25T05:30:00.000Z",
+  "summary": "Harden clone/pull parity for OpenCode runtime config by aligning canonical plugin refs and OpenAI whitelist state, adding canonical plugin pins, restoring pin-aware config sync, enforcing critical plugin parity in verification, and extending drift/parity regression coverage.",
+  "affected_paths": [
+    ".bun-version",
+    "opencode-config/opencode.json",
+    "opencode-config/opencode-clean.json",
+    "opencode-config/plugin-pins.json",
+    "opencode-config/learning-updates/runtime-parity-hardening-20260425.json",
+    "scripts/copy-config.mjs",
+    "scripts/validate-config-coherence.mjs",
+    "scripts/verify-setup.mjs",
+    "scripts/tests/runtime-parity-critical.test.js",
+    "opencode-config/.governance-hashes.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

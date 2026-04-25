@@ -8,12 +8,17 @@ import { fileURLToPath } from 'node:url';
 import { resolvePath, userConfigDir, userDataDir } from './resolve-root.mjs';
 import { mergeMcpIntoUserConfig } from './generate-mcp-config.mjs';
 
-const SOURCE_CONFIG_DIR = resolvePath('opencode-config');
-const TARGET_CONFIG_DIR = userConfigDir();
-const TARGET_DATA_DIR = userDataDir();
+const SOURCE_CONFIG_DIR = process.env.OPENCODE_TEST_REPO_CONFIG_DIR || resolvePath('opencode-config');
+const TARGET_CONFIG_DIR = process.env.OPENCODE_TEST_RUNTIME_CONFIG_DIR || userConfigDir();
+const TARGET_DATA_DIR = process.env.OPENCODE_TEST_RUNTIME_DATA_DIR || userDataDir();
+const RUNTIME_PLUGIN_PINS_FILE = 'plugin-pins.json';
+const ALLOW_FILE_PLUGIN_PINS = process.env.OPENCODE_ALLOW_FILE_PLUGIN_PIN === '1';
+const LEGACY_OH_MY_PLUGIN = 'oh-my-opencode';
+const CURRENT_OH_MY_PLUGIN = 'oh-my-openagent';
 
 export const CONFIG_FILES = [
   'opencode.json',
+  'plugin-pins.json',
   'antigravity.json',
   'oh-my-opencode.json',
   'compound-engineering.json',
@@ -72,6 +77,124 @@ export function buildRuntimeSafeUserConfig(canonicalConfig, userConfig, dormantM
   return mergeMcpIntoUserConfig(userConfig, canonicalConfig, { dormantMcpNames });
 }
 
+export function readRuntimePluginPins(configDir = TARGET_CONFIG_DIR) {
+  const pinsPath = path.join(configDir, RUNTIME_PLUGIN_PINS_FILE);
+  if (!existsSync(pinsPath)) {
+    return {};
+  }
+
+  try {
+    const parsed = JSON.parse(readFileSync(pinsPath, 'utf8'));
+    if (!parsed || typeof parsed !== 'object') {
+      return {};
+    }
+
+    let changed = false;
+    if (typeof parsed[LEGACY_OH_MY_PLUGIN] === 'string' && !parsed[CURRENT_OH_MY_PLUGIN]) {
+      parsed[CURRENT_OH_MY_PLUGIN] = parsed[LEGACY_OH_MY_PLUGIN].replace(`${LEGACY_OH_MY_PLUGIN}@`, `${CURRENT_OH_MY_PLUGIN}@`);
+      delete parsed[LEGACY_OH_MY_PLUGIN];
+      changed = true;
+    }
+
+    if (changed) {
+      writeFileSync(pinsPath, `${JSON.stringify(parsed, null, 2)}\n`, 'utf8');
+    }
+
+    return parsed;
+  } catch {
+    return {};
+  }
+}
+
+export function writeRuntimePluginPins(pins, configDir = TARGET_CONFIG_DIR) {
+  const pinsPath = path.join(configDir, RUNTIME_PLUGIN_PINS_FILE);
+  writeFileSync(pinsPath, `${JSON.stringify(pins, null, 2)}\n`, 'utf8');
+}
+
+export function getPackageNameFromPluginRef(ref) {
+  if (typeof ref !== 'string' || !ref.includes('@')) {
+    return null;
+  }
+
+  if (ref.startsWith('@')) {
+    const at = ref.indexOf('@', 1);
+    return at === -1 ? null : ref.slice(0, at);
+  }
+
+  return ref.slice(0, ref.indexOf('@'));
+}
+
+export function applyPluginPins(pluginEntries, pins) {
+  const result = [...pluginEntries];
+  if (!pins || typeof pins !== 'object') {
+    return result;
+  }
+
+  for (const [pkg, pinnedRef] of Object.entries(pins)) {
+    if (typeof pinnedRef !== 'string' || !pinnedRef.trim()) {
+      continue;
+    }
+
+    if (!ALLOW_FILE_PLUGIN_PINS && pinnedRef.includes('@file:')) {
+      console.warn(`[copy-config] Skipping file plugin pin for ${pkg}; set OPENCODE_ALLOW_FILE_PLUGIN_PIN=1 to allow it.`);
+      continue;
+    }
+
+    const effectivePkg = pkg === LEGACY_OH_MY_PLUGIN ? CURRENT_OH_MY_PLUGIN : pkg;
+    const normalizedPinnedRef = pinnedRef.replace(`${LEGACY_OH_MY_PLUGIN}@`, `${CURRENT_OH_MY_PLUGIN}@`);
+    const existingIndex = result.findIndex((entry) => {
+      const packageName = getPackageNameFromPluginRef(entry);
+      return packageName === effectivePkg || (effectivePkg === CURRENT_OH_MY_PLUGIN && packageName === LEGACY_OH_MY_PLUGIN);
+    });
+
+    if (existingIndex === -1) {
+      result.push(normalizedPinnedRef);
+    } else {
+      result[existingIndex] = normalizedPinnedRef;
+    }
+  }
+
+  return result;
+}
+
+export function findRuntimeLocalOhMyPlugin(runtimeConfig) {
+  const plugins = runtimeConfig?.plugin;
+  if (!Array.isArray(plugins)) {
+    return null;
+  }
+
+  return (
+    plugins.find(
+      (entry) =>
+        typeof entry === 'string' &&
+        (entry.startsWith(`${LEGACY_OH_MY_PLUGIN}@file:`) || entry.startsWith(`${CURRENT_OH_MY_PLUGIN}@file:`))
+    ) ?? null
+  );
+}
+
+export function bootstrapLocalOhMyPin(previousRuntimeConfig, configDir = TARGET_CONFIG_DIR) {
+  if (!ALLOW_FILE_PLUGIN_PINS) {
+    return null;
+  }
+
+  const localRef = findRuntimeLocalOhMyPlugin(previousRuntimeConfig);
+  if (!localRef) {
+    return null;
+  }
+
+  const pins = readRuntimePluginPins(configDir);
+  if (typeof pins[CURRENT_OH_MY_PLUGIN] === 'string' && pins[CURRENT_OH_MY_PLUGIN].trim()) {
+    return pins[CURRENT_OH_MY_PLUGIN];
+  }
+
+  const normalizedLocalRef = localRef.replace(`${LEGACY_OH_MY_PLUGIN}@file:`, `${CURRENT_OH_MY_PLUGIN}@file:`);
+  const nextPins = { ...pins, [CURRENT_OH_MY_PLUGIN]: normalizedLocalRef };
+  delete nextPins[LEGACY_OH_MY_PLUGIN];
+  writeRuntimePluginPins(nextPins, configDir);
+  console.log(`[copy-config] Persisted local plugin pin: ${normalizedLocalRef}`);
+  return normalizedLocalRef;
+}
+
 export function pruneDeprecatedRuntimeAgentPrompts(targetConfigDir = TARGET_CONFIG_DIR, deprecatedFiles = DEPRECATED_REPO_AGENT_FILES) {
   const agentsDir = path.join(targetConfigDir, 'agents');
   if (!existsSync(agentsDir)) {
@@ -102,6 +225,8 @@ function syncRuntimeSafeUserConfig() {
   const canonicalConfig = JSON.parse(readFileSync(canonicalPath, 'utf8'));
   const userConfig = JSON.parse(readFileSync(targetPath, 'utf8'));
   const mergedConfig = buildRuntimeSafeUserConfig(canonicalConfig, userConfig, dormantMcpNames);
+  const pluginPins = readRuntimePluginPins(TARGET_CONFIG_DIR);
+  mergedConfig.plugin = applyPluginPins(Array.isArray(mergedConfig.plugin) ? mergedConfig.plugin : [], pluginPins);
   writeFileSync(targetPath, `${JSON.stringify(mergedConfig, null, 2)}\n`, 'utf8');
 }
 
@@ -283,6 +408,16 @@ function main() {
   ensureDir(TARGET_CONFIG_DIR);
   ensureDir(TARGET_DATA_DIR);
 
+  let previousRuntimeOpencodeConfig = null;
+  const runtimeOpencodePath = path.join(TARGET_CONFIG_DIR, 'opencode.json');
+  if (existsSync(runtimeOpencodePath)) {
+    try {
+      previousRuntimeOpencodeConfig = JSON.parse(readFileSync(runtimeOpencodePath, 'utf8'));
+    } catch {
+      previousRuntimeOpencodeConfig = null;
+    }
+  }
+
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const stagingRoot = mkdtempSync(path.join(tmpdir(), 'opencode-copy-config-'));
 
@@ -328,6 +463,7 @@ function main() {
     console.log(`[copy-config] Removed deprecated agent prompts: ${removedAgentPrompts.join(', ')}`);
   }
 
+  bootstrapLocalOhMyPin(previousRuntimeOpencodeConfig);
   syncRuntimeSafeUserConfig();
   const migration = migrateOhMyModelDefaults();
   if (migration.changed) {

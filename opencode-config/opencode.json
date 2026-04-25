@@ -1,8 +1,9 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "plugin": [
-    "oh-my-opencode@3.5.2",
+    "oh-my-openagent@3.16.0",
     "opencode-antigravity-auth@1.4.6",
+    "@guard22/opencode-multi-auth-codex@1.4.2",
     "opencode-antigravity-quota@0.1.6",
     "@tarquinen/opencode-dcp@1.0.0",
     "opencode-plugin-preload-skills@1.8.0",
@@ -20,38 +21,6 @@
         "apiKey": "{env:GOOGLE_API_KEY}"
       },
       "models": {
-        "gemini-2.5-flash": {
-          "name": "Gemini 2.5 Flash",
-          "limit": {
-            "context": 1000000,
-            "output": 65535
-          },
-          "modalities": {
-            "input": [
-              "text",
-              "image",
-              "video",
-              "audio"
-            ],
-            "output": [
-              "text"
-            ]
-          },
-          "providerId": "google-ai-gemini-2.5-flash",
-          "cost": {
-            "input": 0.000075,
-            "output": 0.0003
-          },
-          "capabilities": [
-            "multimodal",
-            "vision",
-            "function_calling",
-            "json_mode"
-          ],
-          "description": "Gemini 2.5 Flash - stable fast model",
-          "released": "2025-06-01",
-          "status": "beta"
-        },
         "gemini-3-flash-preview": {
           "name": "Gemini 3 Flash (Gemini CLI)",
           "limit": {
@@ -184,7 +153,6 @@
         }
       }
     },
-    
     "openai": {
       "npm": "@ai-sdk/openai",
       "options": {
@@ -243,7 +211,24 @@
           },
           "priority": "secondary"
         }
-      }
+      },
+      "whitelist": [
+        "gpt-5.5",
+        "gpt-5.5-fast",
+        "gpt-5.4",
+        "gpt-5.4-fast",
+        "gpt-5.4-mini",
+        "gpt-5.3-codex",
+        "gpt-5.3-codex-low",
+        "gpt-5.3-codex-medium",
+        "gpt-5.3-codex-high",
+        "gpt-5.3-codex-xhigh",
+        "gpt-5.2-codex",
+        "gpt-5.2-codex-low",
+        "gpt-5.2-codex-medium",
+        "gpt-5.2-codex-high",
+        "gpt-5.2-codex-xhigh"
+      ]
     },
     "zen": {
       "npm": "@ai-sdk/openai-compatible",
