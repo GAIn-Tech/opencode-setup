@@ -1,18 +1,36 @@
-import { describe, it, expect } from 'bun:test';
+import { beforeAll, afterAll, describe, it, expect } from 'bun:test';
 import { GET, POST } from '../src/app/api/providers/route';
 import { NextResponse } from 'next/server';
 
+const WRITE_TOKEN = 'test-write-token';
+let previousWriteToken: string | undefined;
+
 // Mock NextRequest
 function createMockNextRequest(url: string, options?: RequestInit) {
-  const req = new Request(url, options);
+  const headers = new Headers(options?.headers || {});
+  if ((options?.method || 'GET').toUpperCase() === 'POST') {
+    headers.set('x-opencode-write-token', WRITE_TOKEN);
+  }
+
+  const req = new Request(url, { ...options, headers });
   const urlObj = new URL(url);
-  return {
-    ...req,
-    nextUrl: urlObj,
-  };
+  Object.defineProperty(req, 'nextUrl', {
+    value: urlObj,
+    configurable: true,
+  });
+  return req;
 }
 
 describe('providers route', () => {
+  beforeAll(() => {
+    previousWriteToken = process.env.OPENCODE_DASHBOARD_WRITE_TOKEN;
+    process.env.OPENCODE_DASHBOARD_WRITE_TOKEN = WRITE_TOKEN;
+  });
+
+  afterAll(() => {
+    process.env.OPENCODE_DASHBOARD_WRITE_TOKEN = previousWriteToken;
+  });
+
   describe('GET /api/providers', () => {
     it('returns provider health status', async () => {
       const request = createMockNextRequest('http://localhost:3000/api/providers');

@@ -1,0 +1,186 @@
+{
+  "version": "1.0.0",
+  "seeded_at": null,
+  "seed_source": "opencode-config/skill-rl-seed.json",
+  "data_fidelity": "seeded",
+  "skillBank": {
+    "general": [
+      [
+        "explore",
+        {
+          "name": "explore",
+          "tier": "general",
+          "success_rate": 0.85,
+          "usage_count": 100,
+          "last_updated": "1970-01-01T00:00:00.000Z",
+          "description": "Contextual grep for codebases - answers 'Where is X?', 'Which file has Y?'"
+        }
+      ],
+      [
+        "librarian",
+        {
+          "name": "librarian",
+          "tier": "general",
+          "success_rate": 0.88,
+          "usage_count": 95,
+          "last_updated": "1970-01-01T00:00:00.000Z",
+          "description": "Multi-repository analysis and documentation retrieval"
+        }
+      ],
+      [
+        "read",
+        {
+          "name": "read",
+          "tier": "general",
+          "success_rate": 0.92,
+          "usage_count": 500,
+          "last_updated": "1970-01-01T00:00:00.000Z",
+          "description": "Read files with offset/limit support"
+        }
+      ],
+      [
+        "write",
+        {
+          "name": "write",
+          "tier": "general",
+          "success_rate": 0.9,
+          "usage_count": 400,
+          "last_updated": "1970-01-01T00:00:00.000Z",
+          "description": "Write or edit files"
+        }
+      ],
+      [
+        "bash",
+        {
+          "name": "bash",
+          "tier": "general",
+          "success_rate": 0.87,
+          "usage_count": 300,
+          "last_updated": "1970-01-01T00:00:00.000Z",
+          "description": "Execute bash commands"
+        }
+      ],
+      [
+        "grep",
+        {
+          "name": "grep",
+          "tier": "general",
+          "success_rate": 0.89,
+          "usage_count": 250,
+          "last_updated": "1970-01-01T00:00:00.000Z",
+          "description": "Search file contents with regex"
+        }
+      ]
+    ],
+    "taskSpecific": [
+      [
+        "debug",
+        [
+          [
+            "systematic-debugging",
+            {
+              "name": "systematic-debugging",
+              "tier": "task_specific",
+              "task_type": "debug",
+              "success_rate": 0.82,
+              "usage_count": 75,
+              "last_updated": "1970-01-01T00:00:00.000Z",
+              "description": "Systematic debugging approach"
+            }
+          ],
+          [
+            "test-driven-development",
+            {
+              "name": "test-driven-development",
+              "tier": "task_specific",
+              "task_type": "debug",
+              "success_rate": 0.8,
+              "usage_count": 60,
+              "last_updated": "1970-01-01T00:00:00.000Z",
+              "description": "TDD approach for debugging"
+            }
+          ]
+        ]
+      ],
+      [
+        "refactor",
+        [
+          [
+            "clean-architecture",
+            {
+              "name": "clean-architecture",
+              "tier": "task_specific",
+              "task_type": "refactor",
+              "success_rate": 0.85,
+              "usage_count": 50,
+              "last_updated": "1970-01-01T00:00:00.000Z",
+              "description": "Clean architecture principles"
+            }
+          ],
+          [
+            "code-doctor",
+            {
+              "name": "code-doctor",
+              "tier": "task_specific",
+              "task_type": "refactor",
+              "success_rate": 0.83,
+              "usage_count": 45,
+              "last_updated": "1970-01-01T00:00:00.000Z",
+              "description": "Agentic diagnostic and self-healing"
+            }
+          ]
+        ]
+      ],
+      [
+        "feature",
+        [
+          [
+            "executing-plans",
+            {
+              "name": "executing-plans",
+              "tier": "task_specific",
+              "task_type": "feature",
+              "success_rate": 0.81,
+              "usage_count": 40,
+              "last_updated": "1970-01-01T00:00:00.000Z",
+              "description": "Execute implementation plans"
+            }
+          ],
+          [
+            "subagent-driven-development",
+            {
+              "name": "subagent-driven-development",
+              "tier": "task_specific",
+              "task_type": "feature",
+              "success_rate": 0.79,
+              "usage_count": 35,
+              "last_updated": "1970-01-01T00:00:00.000Z",
+              "description": "Multi-agent development patterns"
+            }
+          ]
+        ]
+      ]
+    ]
+  },
+  "evolutionEngine": {
+    "rules": [
+      {
+        "trigger": "repeated_failure",
+        "action": "demote_skill",
+        "threshold": 3
+      },
+      {
+        "trigger": "repeated_success",
+        "action": "promote_skill",
+        "threshold": 5
+      }
+    ],
+    "history": []
+  },
+  "metadata": {
+    "seed_version": "1.0.0",
+    "seed_description": "Curated starter seed with realistic initial success rates",
+    "is_seeded": true,
+    "upgrade_path": "Live learning will gradually replace seeded values"
+  }
+}

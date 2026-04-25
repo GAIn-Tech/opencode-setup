@@ -755,6 +755,38 @@ class SkillBank {
     return { general, taskSpecific, total: general.length + taskSpecific.length };
   }
 
+  getGeneralSkills() {
+    return Array.from(this.generalSkills.values());
+  }
+
+  getTaskSpecificSkills(taskType) {
+    if (!taskType || !this.taskSpecificSkills.has(taskType)) {
+      return [];
+    }
+    return Array.from(this.taskSpecificSkills.get(taskType).values());
+  }
+
+  getSkill(skillName, taskType = null) {
+    if (this.generalSkills.has(skillName)) {
+      return this.generalSkills.get(skillName);
+    }
+
+    if (taskType && this.taskSpecificSkills.has(taskType)) {
+      const taskSkills = this.taskSpecificSkills.get(taskType);
+      if (taskSkills.has(skillName)) {
+        return taskSkills.get(skillName);
+      }
+    }
+
+    for (const taskSkills of this.taskSpecificSkills.values()) {
+      if (taskSkills.has(skillName)) {
+        return taskSkills.get(skillName);
+      }
+    }
+
+    return null;
+  }
+
   /**
    * Export skill bank state (for persistence)
    */

@@ -73,19 +73,11 @@ class AlertManager extends EventEmitter {
     }
 
     const snapshot = metricsCollector.getSnapshot();
-    const newAlerts = [];
-
-    // Check provider failures
-    newAlerts.push(...this._checkProviderFailures(snapshot.discovery));
-
-    // Check predictive provider-failure advisories (shadow-mode signal consumption)
-    newAlerts.push(...this._checkPredictedProviderFailures(snapshot.predictions?.discoveryAlerts, snapshot.discovery));
-
-    // Check stale catalog
-    newAlerts.push(...this._checkStaleCatalog(snapshot.catalogFreshness));
-
-    // Check PR failures
-    newAlerts.push(...this._checkPRFailures(snapshot.prCreation));
+    const newAlerts = []
+      .concat(this._checkProviderFailures(snapshot.discovery))
+      .concat(this._checkPredictedProviderFailures(snapshot.predictions?.discoveryAlerts, snapshot.discovery))
+      .concat(this._checkStaleCatalog(snapshot.catalogFreshness))
+      .concat(this._checkPRFailures(snapshot.prCreation));
 
     return newAlerts;
   }
@@ -119,6 +111,50 @@ class AlertManager extends EventEmitter {
           pct,
           used: budgetStatus.used,
           remaining: budgetStatus.remaining,
+          remediation: {
+            action: 'EMERGENCY_RECOVERY',
+            description: 'Budget nearly exhausted. Immediate action required.',
+            steps: [
+              '1. Enable emergency context compression: /distill compress_urgent',
+              '2. Switch to cheaper model tier if possible',
+              '3. Complete current task immediately or save state',
+              '4. Consider starting new session for remaining work'
+            ],
+            must_compress: true,
+            must_block: true,
+            grace_period_ms: 0,
+            next_step: 'Execute emergency compression or complete task'
+          }
+        });
+        if (alert) newAlerts.push(alert);
+      }
+    } else if (pct >= 0.85) {
+      if (!this._activeAlerts.has(alertId) || this._activeAlerts.get(alertId).severity !== ALERT_SEVERITY.CRITICAL) {
+        if (this._activeAlerts.has(alertId)) this._activeAlerts.delete(alertId);
+        const alert = this._fireAlert({
+          id: alertId,
+          type: ALERT_TYPE.BUDGET_THRESHOLD,
+          severity: ALERT_SEVERITY.CRITICAL,
+          message: `Token budget BLOCKED: ${(pct * 100).toFixed(1)}% used — operations should be blocked for session ${sessionId} on ${model}`,
+          sessionId,
+          model,
+          pct,
+          used: budgetStatus.used,
+          remaining: budgetStatus.remaining,
+          remediation: {
+            action: 'BLOCK',
+            description: 'Budget is beyond the safe operating window. New operations should be blocked until compression occurs.',
+            steps: [
+              '1. Run urgent context compression immediately',
+              '2. Stop starting new heavy operations',
+              '3. Save or finish the current task',
+              '4. Resume in a fresh session if needed'
+            ],
+            must_compress: true,
+            must_block: true,
+            grace_period_ms: 0,
+            next_step: 'Compress immediately before continuing'
+          }
         });
         if (alert) newAlerts.push(alert);
       }
@@ -136,6 +172,20 @@ class AlertManager extends EventEmitter {
           pct,
           used: budgetStatus.used,
           remaining: budgetStatus.remaining,
+          remediation: {
+            action: 'MANDATORY_COMPRESSION',
+            description: 'Budget at critical threshold. Compression is now mandatory.',
+            steps: [
+              '1. Enable context compression: /distill compress',
+              '2. Review and prune non-essential context',
+              '3. Consider using Context7 for library lookups instead of full docs',
+              '4. Switch to more efficient model if available'
+            ],
+            must_compress: true,
+            must_block: false,
+            grace_period_ms: 30000,
+            next_step: 'Compress context within 30 seconds or risk emergency state'
+          }
         });
         if (alert) newAlerts.push(alert);
       }
@@ -151,6 +201,20 @@ class AlertManager extends EventEmitter {
           pct,
           used: budgetStatus.used,
           remaining: budgetStatus.remaining,
+          remediation: {
+            action: 'PROACTIVE_COMPRESSION',
+            description: 'Budget approaching critical threshold. Proactive compression recommended.',
+            steps: [
+              '1. Consider enabling context compression: /distill compress',
+              '2. Review large file reads and prune if not needed',
+              '3. Use grep/ast-grep instead of reading full files when possible',
+              '4. Monitor budget dashboard for trends'
+            ],
+            must_compress: false,
+            must_block: false,
+            grace_period_ms: 60000,
+            next_step: 'Enable compression if budget continues to rise'
+          }
         });
         if (alert) newAlerts.push(alert);
       }
@@ -271,7 +335,7 @@ class AlertManager extends EventEmitter {
   }
 
   _checkPredictedProviderFailures(predictionSummary, discoveryRates) {
-    const newAlerts = [];
+    let newAlerts = [];
     const byProvider = predictionSummary && typeof predictionSummary === 'object'
       ? predictionSummary.byProvider
       : null;
@@ -307,7 +371,7 @@ class AlertManager extends EventEmitter {
             provider,
             prediction
           });
-          if (alert) newAlerts.push(alert);
+          if (alert) newAlerts = [...newAlerts, alert];
         }
       } else if (this._activeAlerts.has(alertId)) {
         this.resolveAlert(alertId);
