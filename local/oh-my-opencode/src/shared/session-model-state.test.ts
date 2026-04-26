@@ -16,6 +16,25 @@ describe("session-model-state", () => {
     })
   })
 
+  test("stores and retrieves an optional variant", () => {
+    //#given
+    const sessionID = "ses_variant"
+
+    //#when
+    setSessionModel(sessionID, {
+      providerID: "openai",
+      modelID: "gpt-5.4",
+      variant: "high",
+    })
+
+    //#then
+    expect(getSessionModel(sessionID)).toEqual({
+      providerID: "openai",
+      modelID: "gpt-5.4",
+      variant: "high",
+    })
+  })
+
   test("clears a session model", () => {
     //#given
     const sessionID = "ses_clear"
