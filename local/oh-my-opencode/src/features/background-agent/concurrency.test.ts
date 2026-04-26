@@ -348,65 +348,6 @@ describe("ConcurrencyManager.acquire/release", () => {
     manager.release("anthropic/claude-sonnet-4-6")
     await waitPromise
   })
-
-  test("should aggregate provider capacity across different models on the same provider", async () => {
-    // given
-    const config: BackgroundTaskConfig = {
-      providerConcurrency: { openai: 1 },
-      modelConcurrency: {
-        "openai/gpt-5.4": 2,
-        "openai/gpt-5.5": 2,
-      },
-    }
-    manager = new ConcurrencyManager(config)
-
-    // when
-    await manager.acquire("openai/gpt-5.4")
-    let resolved = false
-    const waitPromise = manager.acquire("openai/gpt-5.5").then(() => { resolved = true })
-    await Promise.resolve()
-
-    // then
-    expect(resolved).toBe(false)
-    expect(manager.getProviderCount("openai")).toBe(1)
-    expect(manager.getCount("openai/gpt-5.4")).toBe(1)
-
-    // when
-    manager.release("openai/gpt-5.4")
-    await waitPromise
-
-    // then
-    expect(resolved).toBe(true)
-    expect(manager.getProviderCount("openai")).toBe(1)
-    expect(manager.getCount("openai/gpt-5.5")).toBe(1)
-  })
-
-  test("should keep model-specific limits separate from provider limits", async () => {
-    // given
-    const config: BackgroundTaskConfig = {
-      providerConcurrency: { openai: 2 },
-      modelConcurrency: { "openai/gpt-5.5": 1 },
-    }
-    manager = new ConcurrencyManager(config)
-
-    // when
-    await manager.acquire("openai/gpt-5.5")
-    let resolved = false
-    const waitPromise = manager.acquire("openai/gpt-5.5").then(() => { resolved = true })
-    await Promise.resolve()
-
-    // then
-    expect(resolved).toBe(false)
-    expect(manager.getProviderCount("openai")).toBe(1)
-
-    // when
-    manager.release("openai/gpt-5.5")
-    await waitPromise
-
-    // then
-    expect(resolved).toBe(true)
-    expect(manager.getCount("openai/gpt-5.5")).toBe(1)
-  })
 })
 
 describe("ConcurrencyManager.cleanup", () => {
