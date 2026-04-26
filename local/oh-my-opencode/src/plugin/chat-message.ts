@@ -24,7 +24,7 @@ export type ChatMessageInput = {
 }
 type StartWorkHookOutput = { parts: Array<{ type: string; text?: string }> }
 
-type SessionModelOverride = { providerID: string; modelID: string }
+type SessionModelOverride = { providerID: string; modelID: string; variant?: string }
 
 type RawLoopCommand =
   | { command: "ralph-loop" | "ulw-loop"; args: string }
@@ -83,9 +83,9 @@ function getStoredMainSessionModel(
     return undefined
   }
 
-  if (hasExplicitAgentModelOverride(input.agent, pluginConfig)) {
-    return undefined
-  }
+    if (hasExplicitAgentModelOverride(input.agent, pluginConfig)) {
+      return undefined
+    }
 
   return getSessionModel(input.sessionID)
 }
@@ -175,13 +175,25 @@ export function createChatMessageHandler(args: {
       output,
     )
     if (storedMainSessionModel) {
-      output.message["model"] = storedMainSessionModel
+      output.message["model"] = {
+        providerID: storedMainSessionModel.providerID,
+        modelID: storedMainSessionModel.modelID,
+      }
+      if (
+        storedMainSessionModel.variant !== undefined &&
+        output.message["variant"] === undefined
+      ) {
+        output.message["variant"] = storedMainSessionModel.variant
+      }
     }
 
     if (!isRuntimeFallbackEnabled) {
       await hooks.modelFallback?.["chat.message"]?.(input, output)
     }
     const modelOverride = output.message["model"]
+    const variantOverride = typeof output.message["variant"] === "string"
+      ? output.message["variant"]
+      : undefined
     if (
       modelOverride &&
       typeof modelOverride === "object" &&
@@ -191,10 +203,17 @@ export function createChatMessageHandler(args: {
       const providerID = (modelOverride as { providerID?: string }).providerID
       const modelID = (modelOverride as { modelID?: string }).modelID
       if (typeof providerID === "string" && typeof modelID === "string") {
-        setSessionModel(input.sessionID, { providerID, modelID })
+        setSessionModel(input.sessionID, {
+          providerID,
+          modelID,
+          ...(variantOverride ? { variant: variantOverride } : {}),
+        })
       }
     } else if (input.model) {
-      setSessionModel(input.sessionID, input.model)
+      setSessionModel(input.sessionID, {
+        ...input.model,
+        ...(variantOverride ? { variant: variantOverride } : {}),
+      })
     }
     await hooks.stopContinuationGuard?.["chat.message"]?.(input)
     await hooks.backgroundNotificationHook?.["chat.message"]?.(input, output)

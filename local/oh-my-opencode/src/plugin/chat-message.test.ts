@@ -342,6 +342,27 @@ describe("createChatMessageHandler - TUI variant passthrough", () => {
     expect(getSessionModel("test-session")).toEqual({ providerID: "openai", modelID: "gpt-5.4" })
   })
 
+  test("reuses the stored variant for subsequent messages in the main session when the UI sends none", async () => {
+    //#given
+    setMainSession("test-session")
+    setSessionModel("test-session", {
+      providerID: "openai",
+      modelID: "gpt-5.4",
+      variant: "high",
+    })
+    const args = createMockHandlerArgs({ shouldOverride: false })
+    const handler = createChatMessageHandler(args)
+    const input = createMockInput("sisyphus")
+    const output = createMockOutput()
+
+    //#when
+    await handler(input, output)
+
+    //#then
+    expect(output.message["model"]).toEqual({ providerID: "openai", modelID: "gpt-5.4" })
+    expect(output.message["variant"]).toBe("high")
+  })
+
   test("does not reuse a stored model for the first message of a session", async () => {
     //#given
     setMainSession("test-session")

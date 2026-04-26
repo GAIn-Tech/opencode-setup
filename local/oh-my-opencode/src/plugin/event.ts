@@ -474,9 +474,18 @@ export function createEventHandler(args: {
         }
         const providerID = info?.providerID as string | undefined;
         const modelID = info?.modelID as string | undefined;
+        const variant = info?.variant as string | undefined;
         if (providerID && modelID && !isCompactionMessage) {
-          lastKnownModelBySession.set(sessionID, { providerID, modelID });
-          setSessionModel(sessionID, { providerID, modelID });
+          lastKnownModelBySession.set(sessionID, {
+            providerID,
+            modelID,
+            ...(variant ? { variant } : {}),
+          });
+          setSessionModel(sessionID, {
+            providerID,
+            modelID,
+            ...(variant ? { variant } : {}),
+          });
         }
       }
 
