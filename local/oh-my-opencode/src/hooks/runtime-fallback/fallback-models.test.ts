@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test"
 
-import { getFallbackModelsForSession } from "./fallback-models"
+import { getFallbackModelsForSession, getSelectedFallbackEntry } from "./fallback-models"
 import { SessionCategoryRegistry } from "../../shared/session-category-registry"
 
 describe("runtime-fallback fallback-models", () => {
@@ -62,5 +62,48 @@ describe("runtime-fallback fallback-models", () => {
 
     //#then
     expect(result).toEqual([])
+  })
+
+  test("returns the rich fallback entry for the selected runtime fallback model", () => {
+    //#given
+    const sessionID = "ses_runtime_fallback_rich"
+    const pluginConfig = {
+      agents: {
+        oracle: {
+          fallback_models: [
+            {
+              model: "openai/gpt-5.4",
+              variant: "high",
+              reasoningEffort: "xhigh",
+              temperature: 0.4,
+              top_p: 0.7,
+              maxTokens: 4096,
+              thinking: { type: "disabled" },
+            },
+          ],
+        },
+      },
+    } as any
+
+    //#when
+    const result = getSelectedFallbackEntry(
+      sessionID,
+      "oracle",
+      pluginConfig,
+      "openai/gpt-5.4(high)",
+      "anthropic/claude-opus-4-6",
+    )
+
+    //#then
+    expect(result).toEqual({
+      providers: ["openai"],
+      model: "gpt-5.4",
+      variant: "high",
+      reasoningEffort: "xhigh",
+      temperature: 0.4,
+      top_p: 0.7,
+      maxTokens: 4096,
+      thinking: { type: "disabled" },
+    })
   })
 })

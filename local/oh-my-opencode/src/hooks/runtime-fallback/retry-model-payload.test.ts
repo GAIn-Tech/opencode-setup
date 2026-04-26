@@ -97,6 +97,22 @@ describe("buildRetryModelPayload", () => {
     })
   })
 
+  test("should prefer fallback entry reasoningEffort over agent settings", () => {
+    // given
+    const model = "openai/gpt-5.4"
+    const settings = { variant: "high", reasoningEffort: "medium" }
+
+    // when
+    const result = buildRetryModelPayload(model, settings)
+
+    // then
+    expect(result).toEqual({
+      model: { providerID: "openai", modelID: "gpt-5.4" },
+      variant: "high",
+      reasoningEffort: "medium",
+    })
+  })
+
   test("should not include reasoningEffort when agent settings has none", () => {
     // given
     const model = "chutes/kimi-k2.5"

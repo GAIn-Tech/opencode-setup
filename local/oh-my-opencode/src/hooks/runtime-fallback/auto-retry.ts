@@ -3,13 +3,14 @@ import { HOOK_NAME } from "./constants"
 import { log } from "../../shared/logger"
 import { normalizeAgentName, resolveAgentForSession } from "./agent-resolver"
 import { getSessionAgent } from "../../features/claude-code-session-state"
-import { getFallbackModelsForSession } from "./fallback-models"
+import { getFallbackModelsForSession, getSelectedFallbackEntry } from "./fallback-models"
 import { prepareFallback } from "./fallback-state"
 import { SessionCategoryRegistry } from "../../shared/session-category-registry"
 import { buildRetryModelPayload } from "./retry-model-payload"
 import { getLastUserRetryParts } from "./last-user-retry-parts"
 import { extractSessionMessages } from "./session-messages"
 import { resolveRegisteredAgentName } from "../../features/claude-code-session-state"
+import { applySessionPromptParams } from "../../shared/session-prompt-params-helpers"
 
 const SESSION_TTL_MS = 30 * 60 * 1000
 
@@ -105,13 +106,27 @@ export function createAutoRetryHelpers(deps: HookDeps) {
     const agentSettings = resolvedAgent
       ? pluginConfig?.agents?.[resolvedAgent as keyof typeof pluginConfig.agents]
       : undefined
-    const retryModelPayload = buildRetryModelPayload(newModel, agentSettings ? {
-      variant: agentSettings.variant,
-      reasoningEffort: agentSettings.reasoningEffort,
-    } : undefined)
+    const state = sessionStates.get(sessionID)
+    const fallbackEntry = getSelectedFallbackEntry(
+      sessionID,
+      resolvedAgent,
+      pluginConfig,
+      newModel,
+      state?.originalModel,
+    )
+    applySessionPromptParams(sessionID, {
+      reasoningEffort: fallbackEntry?.reasoningEffort,
+      temperature: fallbackEntry?.temperature,
+      top_p: fallbackEntry?.top_p,
+      maxTokens: fallbackEntry?.maxTokens,
+      thinking: fallbackEntry?.thinking,
+    })
+    const retryModelPayload = buildRetryModelPayload(newModel, {
+      variant: fallbackEntry?.variant ?? agentSettings?.variant,
+      reasoningEffort: fallbackEntry?.reasoningEffort ?? agentSettings?.reasoningEffort,
+    })
     if (!retryModelPayload) {
       log(`[${HOOK_NAME}] Invalid model format (missing provider prefix): ${newModel}`)
-      const state = sessionStates.get(sessionID)
       if (state?.pendingFallbackModel) {
         state.pendingFallbackModel = undefined
       }
