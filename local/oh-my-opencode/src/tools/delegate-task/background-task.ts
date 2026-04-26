@@ -1,7 +1,6 @@
 import type { DelegateTaskArgs, ToolContextWithMetadata, DelegatedModelConfig } from "./types"
 import type { ExecutorContext, ParentContext } from "./executor-types"
 import type { FallbackEntry } from "../../shared/model-requirements"
-import type { ModelFallbackInfo } from "../../features/task-toast-manager/types"
 import { getTimingConfig } from "./timing"
 import { buildTaskPrompt } from "./prompt-builder"
 import { storeToolMetadata } from "../../features/tool-metadata-store"
@@ -12,8 +11,6 @@ import { SessionCategoryRegistry } from "../../shared/session-category-registry"
 import { QUESTION_DENIED_SESSION_PERMISSION } from "../../shared/question-denied-session-permission"
 import { setSessionFallbackChain } from "../../hooks/model-fallback/hook"
 import { stripAgentListSortPrefix } from "../../shared/agent-display-names"
-import { buildSiblingProviderUsage } from "../../features/background-agent/sibling-provider-tracker"
-import { buildProviderCandidates, choosePreferredProviderCandidate } from "./provider-staggering"
 
 function continueSessionSetup(args: {
   taskID: string
@@ -61,7 +58,6 @@ export async function executeBackgroundTask(
   categoryModel: DelegatedModelConfig | undefined,
   systemContent: string | undefined,
   fallbackChain?: FallbackEntry[],
-  modelInfo?: ModelFallbackInfo,
 ): Promise<string> {
   const { manager } = executorCtx
 
@@ -69,28 +65,6 @@ export async function executeBackgroundTask(
     const tddEnabled = executorCtx.sisyphusAgentConfig?.tdd
     const normalizedAgent = stripAgentListSortPrefix(agentToUse)
     const effectivePrompt = buildTaskPrompt(args.prompt, normalizedAgent, tddEnabled)
-
-    const siblingTasks = manager.getTasksByParentSession?.(parentContext.sessionID) ?? []
-    const siblingProviderUsage = buildSiblingProviderUsage(siblingTasks)
-    if (categoryModel && fallbackChain && modelInfo?.type !== "user-defined") {
-      const preferred = choosePreferredProviderCandidate(
-        buildProviderCandidates(`${categoryModel.providerID}/${categoryModel.modelID}`, fallbackChain),
-        siblingProviderUsage,
-      )
-
-      if (
-        preferred &&
-        (preferred.providerID !== categoryModel.providerID || preferred.modelID !== categoryModel.modelID)
-      ) {
-        const selectedModel = {
-          providerID: preferred.providerID,
-          modelID: preferred.modelID,
-          ...(preferred.variant ? { variant: preferred.variant } : {}),
-        }
-        categoryModel = selectedModel
-      }
-    }
-
     const task = await manager.launch({
       description: args.description,
       prompt: effectivePrompt,

@@ -15,8 +15,6 @@ import type { FallbackEntry } from "../../shared/model-requirements"
 import { resolveModelForDelegateTask } from "./model-selection"
 import { fuzzyMatchModel } from "../../shared/model-availability"
 import type { CategoryConfig } from "../../config/schema"
-import { buildRoutingPolicyContext } from "./routing-context"
-import { canUsePremiumDelegationModel } from "./premium-model-policy"
 
 type AgentMode = "subagent" | "primary" | "all" | undefined
 
@@ -125,10 +123,6 @@ Create the work plan directly - that's your job as the planning agent.`,
     )
 
     const availableModels = await getAvailableModelsForDelegateTask(client)
-    const routingPolicy = buildRoutingPolicyContext({
-      agent: agentConfigKey,
-      userOverride: Boolean(agentOverride?.model || agentCategoryModel),
-    })
 
     if (agentOverride?.model || agentCategoryModel || agentRequirement || matchedAgent.model) {
 
@@ -146,7 +140,6 @@ Create the work plan directly - that's your job as the planning agent.`,
         fallbackChain: agentRequirement?.fallbackChain,
         availableModels,
         systemDefaultModel: undefined,
-        routingPolicy,
       })
 
       const resolutionSkipped = resolution && 'skipped' in resolution
@@ -209,10 +202,7 @@ Create the work plan directly - that's your job as the planning agent.`,
       const normalizedMatchedModel = normalizeModelFormat(matchedAgent.model)
       if (normalizedMatchedModel) {
         const fullModel = `${normalizedMatchedModel.providerID}/${normalizedMatchedModel.modelID}`
-        if (
-          canUsePremiumDelegationModel(fullModel, routingPolicy)
-          && (availableModels.size === 0 || fuzzyMatchModel(fullModel, availableModels, [normalizedMatchedModel.providerID]))
-        ) {
+        if (availableModels.size === 0 || fuzzyMatchModel(fullModel, availableModels, [normalizedMatchedModel.providerID])) {
           categoryModel = normalizedMatchedModel
         } else {
           log("[delegate-task] Skipping unavailable agent default model", {

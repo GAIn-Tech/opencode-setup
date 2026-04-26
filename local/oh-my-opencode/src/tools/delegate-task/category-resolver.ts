@@ -11,7 +11,6 @@ import { normalizeFallbackModels, flattenToFallbackModelStrings } from "../../sh
 import { buildFallbackChainFromModels, findMostSpecificFallbackEntry } from "../../shared/fallback-chain-from-models"
 import { getAvailableModelsForDelegateTask } from "./available-models"
 import { resolveModelForDelegateTask } from "./model-selection"
-import { buildRoutingPolicyContext } from "./routing-context"
 
 import type { CategoryConfig } from "../../config/schema"
 import type { DelegatedModelConfig } from "./types"
@@ -156,10 +155,6 @@ Available categories: ${allCategoryNames}`,
 
   const overrideModel = sisyphusJuniorModel
   const explicitCategoryModel = userCategories?.[args.category!]?.model
-  const routingPolicy = buildRoutingPolicyContext({
-    category: args.category,
-    userOverride: Boolean(explicitCategoryModel || overrideModel),
-  })
 
   if (!requirement) {
     // Precedence: explicit category model > sisyphus-junior default > category resolved model
@@ -206,7 +201,6 @@ Available categories: ${allCategoryNames}`,
       fallbackChain: requirement.fallbackChain,
       availableModels,
       systemDefaultModel,
-      routingPolicy,
     })
 
     if (resolution && "skipped" in resolution) {

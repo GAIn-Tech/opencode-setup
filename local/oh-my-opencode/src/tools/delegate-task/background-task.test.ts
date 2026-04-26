@@ -9,12 +9,6 @@ const { executeBackgroundTask } = require("./background-task")
 const { __setTimingConfig, __resetTimingConfig } = require("./timing")
 const { SessionCategoryRegistry } = require("../../shared/session-category-registry")
 
-const CATEGORY_MODEL = { providerID: "openai", modelID: "gpt-5.5" }
-const FALLBACK_CHAIN = [
-  { providers: ["openai"], model: "gpt-5.5" },
-  { providers: ["google"], model: "gemini-3.1-pro" },
-]
-
 describeFn("executeBackgroundTask output/session metadata compatibility", () => {
   beforeEachFn(() => {
     //#given - reduce waiting to keep tests fast
@@ -252,56 +246,6 @@ describeFn("executeBackgroundTask output/session metadata compatibility", () => 
     //#then
     expectFn(launchCalls).toHaveLength(1)
     expectFn((launchCalls[0] as { agent: string }).agent).toBe("sisyphus-junior")
-  })
-
-  testFn("stagers provider choice away from overloaded siblings", async () => {
-    //#given - sibling tasks already occupy the current provider
-    const launchCalls: any[] = []
-    const manager = {
-      getTasksByParentSession: () => ([
-        { id: "sib_1", status: "running", queuedAt: new Date(), description: "a", prompt: "", agent: "x", model: { providerID: "openai", modelID: "gpt-5.4" } },
-        { id: "sib_2", status: "pending", queuedAt: new Date(), description: "b", prompt: "", agent: "y", model: { providerID: "openai", modelID: "gpt-5.5" } },
-      ]),
-      launch: async (input: any) => {
-        launchCalls.push(input)
-        return {
-          id: "bg_staggered",
-          sessionID: "ses_staggered",
-          description: "Staggered session",
-          agent: "explore",
-          status: "running",
-        }
-      },
-      getTask: () => ({ sessionID: "ses_staggered" }),
-    }
-
-    //#when
-    await executeBackgroundTask(
-      {
-        description: "Staggered session",
-        prompt: "check",
-        run_in_background: true,
-        load_skills: [],
-      },
-      {
-        sessionID: "ses_parent",
-        callID: "call_stagger",
-        metadata: async () => {},
-        abort: new AbortController().signal,
-      },
-      { manager },
-      { sessionID: "ses_parent", messageID: "msg_stagger" },
-      "explore",
-      CATEGORY_MODEL,
-      undefined,
-      FALLBACK_CHAIN,
-      { model: "openai/gpt-5.5", type: "category-default", source: "category-default" },
-    )
-
-    //#then
-    expectFn(launchCalls).toHaveLength(1)
-    expectFn(launchCalls[0].model.providerID).toBe("google")
-    expectFn(launchCalls[0].model.modelID).toBe("gemini-3.1-pro")
   })
 
   testFn("keeps launched background task alive when parent aborts before session id resolves", async () => {
