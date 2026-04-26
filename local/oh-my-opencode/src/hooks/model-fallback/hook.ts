@@ -120,7 +120,16 @@ export function setPendingModelFallback(
  */
 export function getNextFallback(
   sessionID: string,
-): { providerID: string; modelID: string; variant?: string } | null {
+): {
+  providerID: string
+  modelID: string
+  variant?: string
+  reasoningEffort?: string
+  temperature?: number
+  top_p?: number
+  maxTokens?: number
+  thinking?: { type: "enabled" | "disabled"; budgetTokens?: number }
+} | null {
   const state = pendingModelFallbacks.get(sessionID)
   if (!state) return null
 

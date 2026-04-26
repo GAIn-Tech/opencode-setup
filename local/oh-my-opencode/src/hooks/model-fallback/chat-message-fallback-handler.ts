@@ -1,11 +1,22 @@
 import { log } from "../../shared/logger"
 import { getTaskToastManager } from "../../features/task-toast-manager"
 import type { ChatMessageHandlerOutput, ChatMessageInput } from "../../plugin/chat-message"
+import { setSessionModel } from "../../shared/session-model-state"
+import { applySessionPromptParams } from "../../shared/session-prompt-params-helpers"
 
 export async function applyFallbackToChatMessage(params: {
   input: ChatMessageInput
   output: ChatMessageHandlerOutput
-  fallback: { providerID: string; modelID: string; variant?: string }
+  fallback: {
+    providerID: string
+    modelID: string
+    variant?: string
+    reasoningEffort?: string
+    temperature?: number
+    top_p?: number
+    maxTokens?: number
+    thinking?: { type: "enabled" | "disabled"; budgetTokens?: number }
+  }
   toast?: (input: {
     title: string
     message: string
@@ -33,6 +44,18 @@ export async function applyFallbackToChatMessage(params: {
   } else {
     delete output.message["variant"]
   }
+  setSessionModel(sessionID, {
+    providerID: fallback.providerID,
+    modelID: fallback.modelID,
+    ...(fallback.variant !== undefined ? { variant: fallback.variant } : {}),
+  })
+  applySessionPromptParams(sessionID, {
+    reasoningEffort: fallback.reasoningEffort,
+    temperature: fallback.temperature,
+    top_p: fallback.top_p,
+    maxTokens: fallback.maxTokens,
+    thinking: fallback.thinking,
+  })
 
   if (toast) {
     const key = `${sessionID}:${fallback.providerID}/${fallback.modelID}:${fallback.variant ?? ""}`
