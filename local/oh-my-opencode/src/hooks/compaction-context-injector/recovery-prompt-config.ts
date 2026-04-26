@@ -18,8 +18,20 @@ function matchesExpectedModel(
 
   return (
     actualModel?.providerID === expectedModel.providerID &&
-    actualModel.modelID === expectedModel.modelID
+    actualModel.modelID === expectedModel.modelID &&
+    (expectedModel.variant === undefined || actualModel.variant === expectedModel.variant)
   )
+}
+
+function matchesExpectedPromptParams(
+  actualPromptParams: CompactionAgentConfigCheckpoint["promptParams"],
+  expectedPromptParams: CompactionAgentConfigCheckpoint["promptParams"],
+): boolean {
+  if (!expectedPromptParams) {
+    return true
+  }
+
+  return JSON.stringify(actualPromptParams ?? {}) === JSON.stringify(expectedPromptParams)
 }
 
 function matchesExpectedTools(
@@ -50,11 +62,13 @@ export function createExpectedRecoveryPromptConfig(
 ): RecoveryPromptConfig {
   const model = checkpoint.model ?? currentPromptConfig.model
   const tools = checkpoint.tools ?? currentPromptConfig.tools
+  const promptParams = checkpoint.promptParams ?? currentPromptConfig.promptParams
 
   return {
     agent: checkpoint.agent,
     ...(model ? { model } : {}),
     ...(tools ? { tools } : {}),
+    ...(promptParams ? { promptParams } : {}),
   }
 }
 
@@ -71,6 +85,7 @@ export function isPromptConfigRecovered(
   return (
     agentMatches &&
     matchesExpectedModel(actualPromptConfig.model, expectedPromptConfig.model) &&
-    matchesExpectedTools(actualPromptConfig.tools, expectedPromptConfig.tools)
+    matchesExpectedTools(actualPromptConfig.tools, expectedPromptConfig.tools) &&
+    matchesExpectedPromptParams(actualPromptConfig.promptParams, expectedPromptConfig.promptParams)
   )
 }

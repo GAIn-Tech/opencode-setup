@@ -6,9 +6,11 @@ type PromptConfigInfo = {
   model?: {
     providerID?: string
     modelID?: string
+    variant?: string
   }
   providerID?: string
   modelID?: string
+  variant?: string
 }
 
 export function resolveValidatedModel(
@@ -25,7 +27,13 @@ export function resolveValidatedModel(
     return undefined
   }
 
-  return { providerID, modelID }
+  const variant = info?.model?.variant ?? info?.variant
+
+  return {
+    providerID,
+    modelID,
+    ...(variant ? { variant } : {}),
+  }
 }
 
 export function validateCheckpointModel(

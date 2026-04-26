@@ -14,6 +14,7 @@ export type CompactionContextClient = {
           noReply?: boolean
           agent?: string
           model?: { providerID: string; modelID: string }
+          variant?: string
           tools?: Record<string, boolean>
           parts: Array<{ type: "text"; text: string }>
         }

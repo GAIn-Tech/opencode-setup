@@ -1,7 +1,8 @@
 /// <reference path="../../../bun-test.d.ts" />
 
-import { describe, expect, it } from "bun:test"
+import { afterEach, describe, expect, it } from "bun:test"
 import { setCompactionAgentConfigCheckpoint } from "../../shared/compaction-agent-config-checkpoint"
+import { clearAllSessionPromptParams, getSessionPromptParams } from "../../shared/session-prompt-params-state"
 import { createCompactionContextInjector } from "./index"
 
 type SessionMessageResponse = Array<{
@@ -14,6 +15,7 @@ type PromptAsyncInput = {
     noReply?: boolean
     agent?: string
     model?: { providerID: string; modelID: string }
+    variant?: string
     tools?: Record<string, boolean>
     parts: Array<{ type: "text"; text: string }>
   }
@@ -93,6 +95,10 @@ function createMeaningfulPartUpdatedEvent(
 }
 
 describe("createCompactionContextInjector recovery", () => {
+  afterEach(() => {
+    clearAllSessionPromptParams()
+  })
+
   it("re-injects after compaction when agent and model match but tools are missing", async () => {
     //#given
     const promptAsyncRecorder = createPromptAsyncRecorder()
@@ -155,6 +161,80 @@ describe("createCompactionContextInjector recovery", () => {
       modelID: "gpt-5",
     })
     expect(promptAsyncRecorder.calls[0]?.body.tools).toEqual({ bash: true })
+  })
+
+  it("restores prompt params and variant after compaction recovery", async () => {
+    //#given
+    const sessionID = "ses_restore_prompt_params"
+    const promptAsyncRecorder = createPromptAsyncRecorder()
+    const ctx = createMockContext(
+      [
+        [
+          {
+            info: {
+              role: "user",
+              agent: "atlas",
+              model: { providerID: "openai", modelID: "gpt-5", variant: "high" },
+              tools: { bash: true },
+            },
+          },
+        ],
+        [
+          {
+            info: {
+              role: "user",
+              agent: "atlas",
+              model: { providerID: "openai", modelID: "gpt-5" },
+              tools: { bash: true },
+            },
+          },
+        ],
+        [
+          {
+            info: {
+              role: "user",
+              agent: "atlas",
+              model: { providerID: "openai", modelID: "gpt-5", variant: "high" },
+              tools: { bash: true },
+            },
+          },
+        ],
+      ],
+      promptAsyncRecorder.promptAsync,
+    )
+    const injector = createCompactionContextInjector({ ctx })
+    setCompactionAgentConfigCheckpoint(sessionID, {
+      agent: "atlas",
+      model: { providerID: "openai", modelID: "gpt-5", variant: "high" },
+      tools: { bash: true },
+      promptParams: {
+        temperature: 0.4,
+        topP: 0.7,
+        maxOutputTokens: 4096,
+        options: {
+          reasoningEffort: "high",
+          thinking: { type: "disabled" },
+        },
+      },
+    })
+
+    //#when
+    await injector.event({
+      event: { type: "session.compacted", properties: { sessionID } },
+    })
+
+    //#then
+    expect(promptAsyncRecorder.calls.length).toBe(1)
+    expect(promptAsyncRecorder.calls[0]?.body.variant).toBe("high")
+    expect(getSessionPromptParams(sessionID)).toEqual({
+      temperature: 0.4,
+      topP: 0.7,
+      maxOutputTokens: 4096,
+      options: {
+        reasoningEffort: "high",
+        thinking: { type: "disabled" },
+      },
+    })
   })
 
   it("retries recovery when the recovered prompt config still mismatches expected model or tools", async () => {

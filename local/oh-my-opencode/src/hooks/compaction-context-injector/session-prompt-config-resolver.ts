@@ -4,6 +4,7 @@ import { log } from "../../shared/logger"
 import { normalizeSDKResponse } from "../../shared/normalize-sdk-response"
 import { normalizePromptTools } from "../../shared/prompt-tools"
 import { getSessionModel } from "../../shared/session-model-state"
+import { getSessionPromptParams } from "../../shared/session-prompt-params-state"
 import { getSessionTools } from "../../shared/session-tools-store"
 import { isCompactionAgent } from "./session-id"
 import { resolveValidatedModel } from "./validated-model"
@@ -14,9 +15,11 @@ type SessionMessage = {
     model?: {
       providerID?: string
       modelID?: string
+      variant?: string
     }
     providerID?: string
     modelID?: string
+    variant?: string
     tools?: Record<string, boolean | "allow" | "deny" | "ask">
   }
 }
@@ -35,9 +38,11 @@ export async function resolveSessionPromptConfig(
   sessionID: string,
 ): Promise<CompactionAgentConfigCheckpoint> {
   const storedModel = getSessionModel(sessionID)
+  const storedPromptParams = getSessionPromptParams(sessionID)
   const promptConfig: CompactionAgentConfigCheckpoint = {
     agent: getSessionAgent(sessionID),
     tools: getSessionTools(sessionID),
+    ...(storedPromptParams ? { promptParams: storedPromptParams } : {}),
   }
 
   try {
@@ -96,9 +101,10 @@ export async function resolveLatestSessionPromptConfig(
       preferResponseOnMissingData: true,
     })
     const latestInfo = messages.at(-1)?.info
+    const storedPromptParams = getSessionPromptParams(sessionID)
 
     if (!latestInfo) {
-      return {}
+      return storedPromptParams ? { promptParams: storedPromptParams } : {}
     }
 
     const model = resolveValidatedModel(latestInfo)
@@ -108,6 +114,7 @@ export async function resolveLatestSessionPromptConfig(
       ...(latestInfo.agent ? { agent: latestInfo.agent } : {}),
       ...(model ? { model } : {}),
       ...(tools ? { tools } : {}),
+      ...(storedPromptParams ? { promptParams: storedPromptParams } : {}),
     }
   } catch (error) {
     log("[compaction-context-injector] Failed to resolve latest prompt config", {

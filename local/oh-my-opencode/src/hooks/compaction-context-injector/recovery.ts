@@ -8,6 +8,7 @@ import {
 import { createInternalAgentTextPart } from "../../shared/internal-initiator-marker"
 import { log } from "../../shared/logger"
 import { setSessionModel } from "../../shared/session-model-state"
+import { setSessionPromptParams } from "../../shared/session-prompt-params-state"
 import { setSessionTools } from "../../shared/session-tools-store"
 import {
   createExpectedRecoveryPromptConfig,
@@ -71,7 +72,9 @@ export function createRecoveryLogic(
     )
     const launchAgent = resolveRegisteredAgentName(expectedPromptConfig.agent)
     const model = expectedPromptConfig.model
+    const variant = expectedPromptConfig.model?.variant
     const tools = expectedPromptConfig.tools
+    const promptParams = expectedPromptConfig.promptParams
 
     if (reason === "session.compacted") {
       const latestPromptConfig = await resolveLatestSessionPromptConfig(ctx, sessionID)
@@ -87,11 +90,16 @@ export function createRecoveryLogic(
           noReply: true,
           agent: launchAgent ?? expectedPromptConfig.agent,
           ...(model ? { model } : {}),
+          ...(variant ? { variant } : {}),
           ...(tools ? { tools } : {}),
           parts: [createInternalAgentTextPart(AGENT_RECOVERY_PROMPT)],
         },
         query: { directory: ctx.directory },
       })
+
+      if (promptParams) {
+        setSessionPromptParams(sessionID, promptParams)
+      }
 
       const recoveredPromptConfig = await resolveLatestSessionPromptConfig(ctx, sessionID)
       if (!isPromptConfigRecovered(recoveredPromptConfig, expectedPromptConfig)) {

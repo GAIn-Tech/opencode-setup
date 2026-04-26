@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "bun:test"
 
 import { _resetForTesting } from "../../features/claude-code-session-state"
 import { clearSessionModel, setSessionModel } from "../../shared/session-model-state"
+import { clearAllSessionPromptParams, setSessionPromptParams } from "../../shared/session-prompt-params-state"
 import { clearSessionTools } from "../../shared/session-tools-store"
 import {
   resolveLatestSessionPromptConfig,
@@ -14,6 +15,7 @@ type SessionMessage = {
     model?: {
       providerID?: string
       modelID?: string
+      variant?: string
     }
     tools?: Record<string, boolean | "allow" | "deny" | "ask">
   }
@@ -36,6 +38,7 @@ describe("session prompt config resolver", () => {
   afterEach(() => {
     _resetForTesting()
     clearSessionModel(sessionID)
+    clearAllSessionPromptParams()
     clearSessionTools()
   })
 
@@ -94,5 +97,50 @@ describe("session prompt config resolver", () => {
 
     // then
     expect(promptConfig).toEqual({ agent: "compaction" })
+  })
+
+  it("includes stored prompt params and variant in the resolved prompt config", async () => {
+    // given
+    setSessionModel(sessionID, {
+      providerID: "openai",
+      modelID: "gpt-5",
+      variant: "high",
+    })
+    setSessionPromptParams(sessionID, {
+      temperature: 0.4,
+      topP: 0.7,
+      maxOutputTokens: 4096,
+      options: {
+        reasoningEffort: "high",
+        thinking: { type: "disabled" },
+      },
+    })
+    const ctx = createMockContext([
+      {
+        info: {
+          agent: "atlas",
+          tools: { bash: "allow" },
+        },
+      },
+    ])
+
+    // when
+    const promptConfig = await resolveSessionPromptConfig(ctx, sessionID)
+
+    // then
+    expect(promptConfig).toEqual({
+      agent: "atlas",
+      model: { providerID: "openai", modelID: "gpt-5", variant: "high" },
+      tools: { bash: true },
+      promptParams: {
+        temperature: 0.4,
+        topP: 0.7,
+        maxOutputTokens: 4096,
+        options: {
+          reasoningEffort: "high",
+          thinking: { type: "disabled" },
+        },
+      },
+    })
   })
 })
