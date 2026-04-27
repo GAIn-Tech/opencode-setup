@@ -1,0 +1,31 @@
+{
+  "id": "plugin-metadata-version-normalization-20260427",
+  "timestamp": "2026-04-27T03:22:00Z",
+  "category": "governance",
+  "summary": "Pin plugin metadata docs to deterministic package versions and register opencode-multi-auth-codex plugin metadata.",
+  "affected_paths": [
+    "plugins/README.md",
+    "plugins/antigravity-auth/info.md",
+    "plugins/envsitter-guard/info.md",
+    "plugins/langfuse/info.md",
+    "plugins/notifier/info.md",
+    "plugins/oh-my-opencode/info.md",
+    "plugins/preload-skills/info.md",
+    "plugins/rate-limit-fallback/info.md",
+    "plugins/safety-net/info.md",
+    "plugins/opencode-multi-auth-codex/info.md",
+    "opencode-config/meta-knowledge-index.json"
+  ],
+  "root_cause": "Plugin docs and catalog metadata mixed latest aliases and legacy package names, creating parity drift and unclear provenance.",
+  "fix_approach": "Normalized metadata to pinned versions that match runtime plugin specs and added the missing multi-auth metadata entry.",
+  "risk_level": "low",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "bun scripts/verify-plugin-parity.mjs"
+    ],
+    "notes": "Parity script reports manifest/config set alignment and pinned package specs."
+  }
+}

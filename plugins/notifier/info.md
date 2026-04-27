@@ -2,6 +2,6 @@
 
 OS-level notifications for task completion, errors, and important events.
 
-- **Package**: `@mohak34/opencode-notifier@latest`
+- **Package**: `@mohak34/opencode-notifier@1.0.0`
 - **Source**: npm registry
 - **Purpose**: Desktop notifications when long-running tasks complete or errors occur

@@ -2,7 +2,7 @@
 
 Multi-account Google OAuth rotation for Gemini API access.
 
-- **Package**: `opencode-antigravity-auth@latest`
+- **Package**: `opencode-antigravity-auth@1.4.6`
 - **Source**: https://github.com/NoeFabris/opencode-antigravity-auth
 - **Version**: 1.4.6+
 
