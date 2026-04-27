@@ -1,0 +1,22 @@
+{
+  "id": "meta-knowledge-resync-20260427",
+  "timestamp": "2026-04-27T03:16:00Z",
+  "category": "governance",
+  "summary": "Refresh synthesized meta-knowledge index and governance hashes after plugin parity update records.",
+  "affected_paths": [
+    "opencode-config/meta-knowledge-index.json",
+    "opencode-config/.governance-hashes.json"
+  ],
+  "root_cause": "Learning-update synthesis and hash validation run updated generated governance artifacts after the parity baseline commit.",
+  "fix_approach": "Regenerated governance hashes and committed the updated synthesized index with an explicit learning update record.",
+  "risk_level": "low",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "node scripts/learning-gate.mjs --generate-hashes"
+    ],
+    "notes": "Governance hash mismatch resolved before commit."
+  }
+}
