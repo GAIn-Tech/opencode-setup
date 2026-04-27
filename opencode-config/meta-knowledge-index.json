@@ -1,13 +1,32 @@
 {
-  "generated_at": "2026-04-27T16:17:00.876Z",
+  "generated_at": "2026-04-27T16:18:06.372Z",
   "schema_version": 1,
-  "total_records": 440,
+  "total_records": 441,
   "source_files": {
-    "learning_updates": 440,
+    "learning_updates": 441,
     "agents_md": 7
   },
   "by_category": {
     "governance": [
+      {
+        "id": "plugin-metadata-version-normalization-20260427",
+        "summary": "Pin plugin metadata docs to deterministic package versions and register opencode-multi-auth-codex plugin metadata.",
+        "risk_level": "low",
+        "affected_paths": [
+          "plugins/README.md",
+          "plugins/antigravity-auth/info.md",
+          "plugins/envsitter-guard/info.md",
+          "plugins/langfuse/info.md",
+          "plugins/notifier/info.md",
+          "plugins/oh-my-opencode/info.md",
+          "plugins/preload-skills/info.md",
+          "plugins/rate-limit-fallback/info.md",
+          "plugins/safety-net/info.md",
+          "plugins/opencode-multi-auth-codex/info.md",
+          "opencode-config/meta-knowledge-index.json"
+        ],
+        "timestamp": "2026-04-27T03:22:00Z"
+      },
       {
         "id": "meta-knowledge-resync-20260427",
         "summary": "Refresh synthesized meta-knowledge index and governance hashes after plugin parity update records.",
@@ -5306,6 +5325,25 @@
   "by_risk_level": {
     "low": [
       {
+        "id": "plugin-metadata-version-normalization-20260427",
+        "summary": "Pin plugin metadata docs to deterministic package versions and register opencode-multi-auth-codex plugin metadata.",
+        "risk_level": "low",
+        "affected_paths": [
+          "plugins/README.md",
+          "plugins/antigravity-auth/info.md",
+          "plugins/envsitter-guard/info.md",
+          "plugins/langfuse/info.md",
+          "plugins/notifier/info.md",
+          "plugins/oh-my-opencode/info.md",
+          "plugins/preload-skills/info.md",
+          "plugins/rate-limit-fallback/info.md",
+          "plugins/safety-net/info.md",
+          "plugins/opencode-multi-auth-codex/info.md",
+          "opencode-config/meta-knowledge-index.json"
+        ],
+        "timestamp": "2026-04-27T03:22:00Z"
+      },
+      {
         "id": "meta-knowledge-resync-20260427",
         "summary": "Refresh synthesized meta-knowledge index and governance hashes after plugin parity update records.",
         "risk_level": "low",
@@ -10510,7 +10548,159 @@
     "high": []
   },
   "by_affected_path": {
+    "plugins/README.md": [
+      {
+        "id": "plugin-metadata-version-normalization-20260427",
+        "summary": "Pin plugin metadata docs to deterministic package versions and register opencode-multi-auth-codex plugin metadata.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:22:00Z"
+      },
+      {
+        "id": "plugin-parity-pinned-baseline-20260427",
+        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:05:00Z"
+      },
+      {
+        "id": "portability-fixes-canonical-paths-2026-03-14",
+        "summary": "Fixed cross-machine portability: replaced relative DB paths with canonical ~/.opencode/ paths in audit-logger and state-machine, added dir creation before audit writes, replaced hardcoded Windows path with os.homedir(), added learning-updates to CONFIG_DIRS, documented plugins architecture",
+        "risk_level": "low",
+        "timestamp": "2026-03-14T19:30:00Z"
+      }
+    ],
+    "plugins/antigravity-auth": [
+      {
+        "id": "plugin-metadata-version-normalization-20260427",
+        "summary": "Pin plugin metadata docs to deterministic package versions and register opencode-multi-auth-codex plugin metadata.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:22:00Z"
+      },
+      {
+        "id": "plugin-parity-pinned-baseline-20260427",
+        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:05:00Z"
+      }
+    ],
+    "plugins/envsitter-guard": [
+      {
+        "id": "plugin-metadata-version-normalization-20260427",
+        "summary": "Pin plugin metadata docs to deterministic package versions and register opencode-multi-auth-codex plugin metadata.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:22:00Z"
+      },
+      {
+        "id": "plugin-parity-pinned-baseline-20260427",
+        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:05:00Z"
+      }
+    ],
+    "plugins/langfuse": [
+      {
+        "id": "plugin-metadata-version-normalization-20260427",
+        "summary": "Pin plugin metadata docs to deterministic package versions and register opencode-multi-auth-codex plugin metadata.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:22:00Z"
+      },
+      {
+        "id": "plugin-parity-pinned-baseline-20260427",
+        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:05:00Z"
+      }
+    ],
+    "plugins/notifier": [
+      {
+        "id": "plugin-metadata-version-normalization-20260427",
+        "summary": "Pin plugin metadata docs to deterministic package versions and register opencode-multi-auth-codex plugin metadata.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:22:00Z"
+      },
+      {
+        "id": "plugin-parity-pinned-baseline-20260427",
+        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:05:00Z"
+      }
+    ],
+    "plugins/oh-my-opencode": [
+      {
+        "id": "plugin-metadata-version-normalization-20260427",
+        "summary": "Pin plugin metadata docs to deterministic package versions and register opencode-multi-auth-codex plugin metadata.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:22:00Z"
+      },
+      {
+        "id": "plugin-parity-pinned-baseline-20260427",
+        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:05:00Z"
+      }
+    ],
+    "plugins/preload-skills": [
+      {
+        "id": "plugin-metadata-version-normalization-20260427",
+        "summary": "Pin plugin metadata docs to deterministic package versions and register opencode-multi-auth-codex plugin metadata.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:22:00Z"
+      },
+      {
+        "id": "plugin-parity-pinned-baseline-20260427",
+        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:05:00Z"
+      }
+    ],
+    "plugins/rate-limit-fallback": [
+      {
+        "id": "plugin-metadata-version-normalization-20260427",
+        "summary": "Pin plugin metadata docs to deterministic package versions and register opencode-multi-auth-codex plugin metadata.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:22:00Z"
+      },
+      {
+        "id": "plugin-parity-pinned-baseline-20260427",
+        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:05:00Z"
+      }
+    ],
+    "plugins/safety-net": [
+      {
+        "id": "plugin-metadata-version-normalization-20260427",
+        "summary": "Pin plugin metadata docs to deterministic package versions and register opencode-multi-auth-codex plugin metadata.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:22:00Z"
+      },
+      {
+        "id": "plugin-parity-pinned-baseline-20260427",
+        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:05:00Z"
+      }
+    ],
+    "plugins/opencode-multi-auth-codex": [
+      {
+        "id": "plugin-metadata-version-normalization-20260427",
+        "summary": "Pin plugin metadata docs to deterministic package versions and register opencode-multi-auth-codex plugin metadata.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:22:00Z"
+      },
+      {
+        "id": "plugin-parity-pinned-baseline-20260427",
+        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:05:00Z"
+      }
+    ],
     "opencode-config/meta-knowledge-index.json": [
+      {
+        "id": "plugin-metadata-version-normalization-20260427",
+        "summary": "Pin plugin metadata docs to deterministic package versions and register opencode-multi-auth-codex plugin metadata.",
+        "risk_level": "low",
+        "timestamp": "2026-04-27T03:22:00Z"
+      },
       {
         "id": "meta-knowledge-resync-20260427",
         "summary": "Refresh synthesized meta-knowledge index and governance hashes after plugin parity update records.",
@@ -10933,92 +11123,6 @@
       }
     ],
     "scripts/bootstrap-manifest.json": [
-      {
-        "id": "plugin-parity-pinned-baseline-20260427",
-        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
-        "risk_level": "low",
-        "timestamp": "2026-04-27T03:05:00Z"
-      }
-    ],
-    "plugins/README.md": [
-      {
-        "id": "plugin-parity-pinned-baseline-20260427",
-        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
-        "risk_level": "low",
-        "timestamp": "2026-04-27T03:05:00Z"
-      },
-      {
-        "id": "portability-fixes-canonical-paths-2026-03-14",
-        "summary": "Fixed cross-machine portability: replaced relative DB paths with canonical ~/.opencode/ paths in audit-logger and state-machine, added dir creation before audit writes, replaced hardcoded Windows path with os.homedir(), added learning-updates to CONFIG_DIRS, documented plugins architecture",
-        "risk_level": "low",
-        "timestamp": "2026-03-14T19:30:00Z"
-      }
-    ],
-    "plugins/antigravity-auth": [
-      {
-        "id": "plugin-parity-pinned-baseline-20260427",
-        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
-        "risk_level": "low",
-        "timestamp": "2026-04-27T03:05:00Z"
-      }
-    ],
-    "plugins/envsitter-guard": [
-      {
-        "id": "plugin-parity-pinned-baseline-20260427",
-        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
-        "risk_level": "low",
-        "timestamp": "2026-04-27T03:05:00Z"
-      }
-    ],
-    "plugins/langfuse": [
-      {
-        "id": "plugin-parity-pinned-baseline-20260427",
-        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
-        "risk_level": "low",
-        "timestamp": "2026-04-27T03:05:00Z"
-      }
-    ],
-    "plugins/notifier": [
-      {
-        "id": "plugin-parity-pinned-baseline-20260427",
-        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
-        "risk_level": "low",
-        "timestamp": "2026-04-27T03:05:00Z"
-      }
-    ],
-    "plugins/oh-my-opencode": [
-      {
-        "id": "plugin-parity-pinned-baseline-20260427",
-        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
-        "risk_level": "low",
-        "timestamp": "2026-04-27T03:05:00Z"
-      }
-    ],
-    "plugins/preload-skills": [
-      {
-        "id": "plugin-parity-pinned-baseline-20260427",
-        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
-        "risk_level": "low",
-        "timestamp": "2026-04-27T03:05:00Z"
-      }
-    ],
-    "plugins/rate-limit-fallback": [
-      {
-        "id": "plugin-parity-pinned-baseline-20260427",
-        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
-        "risk_level": "low",
-        "timestamp": "2026-04-27T03:05:00Z"
-      }
-    ],
-    "plugins/safety-net": [
-      {
-        "id": "plugin-parity-pinned-baseline-20260427",
-        "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
-        "risk_level": "low",
-        "timestamp": "2026-04-27T03:05:00Z"
-      }
-    ],
-    "plugins/opencode-multi-auth-codex": [
       {
         "id": "plugin-parity-pinned-baseline-20260427",
         "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",

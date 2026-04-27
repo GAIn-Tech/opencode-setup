@@ -1,0 +1,22 @@
+{
+  "id": "governance-post-commit-resync-20260427",
+  "timestamp": "2026-04-27T03:29:00Z",
+  "category": "governance",
+  "summary": "Capture post-commit regenerated governance artifacts to keep the stability branch clean and deterministic.",
+  "affected_paths": [
+    "opencode-config/.governance-hashes.json",
+    "opencode-config/meta-knowledge-index.json"
+  ],
+  "root_cause": "Commit hooks regenerate governance artifacts after learning update ingestion, leaving deterministic but modified files in the working tree.",
+  "fix_approach": "Committed regenerated governance files with explicit learning update metadata and low-risk classification.",
+  "risk_level": "low",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "node scripts/learning-gate.mjs --generate-hashes"
+    ],
+    "notes": "Ensures branch returns to clean state after hook-driven regeneration."
+  }
+}
