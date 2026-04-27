@@ -1,0 +1,35 @@
+{
+  "id": "plugin-parity-pinned-baseline-20260427",
+  "timestamp": "2026-04-27T03:05:00Z",
+  "category": "governance",
+  "summary": "Normalize plugin governance to a pinned baseline and align manifest/config plugin specs to the custom oh-my-opencode source of truth.",
+  "affected_paths": [
+    "opencode-config/opencode.json",
+    "opencode-config/opencode-clean.json",
+    "scripts/bootstrap-manifest.json",
+    "opencode-config/.governance-hashes.json",
+    "plugins/README.md",
+    "plugins/antigravity-auth/info.md",
+    "plugins/envsitter-guard/info.md",
+    "plugins/langfuse/info.md",
+    "plugins/notifier/info.md",
+    "plugins/oh-my-opencode/info.md",
+    "plugins/preload-skills/info.md",
+    "plugins/rate-limit-fallback/info.md",
+    "plugins/safety-net/info.md",
+    "plugins/opencode-multi-auth-codex/info.md"
+  ],
+  "root_cause": "Plugin package references drifted between runtime config, bootstrap manifest, and plugin metadata, with mixed alias usage and latest-vs-pinned version policy.",
+  "fix_approach": "Pinned package specs across manifest and plugin metadata, made custom oh-my-opencode authoritative in config surfaces, added missing multi-auth plugin metadata, and regenerated governance hashes.",
+  "risk_level": "low",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "bun scripts/verify-plugin-parity.mjs",
+      "node scripts/learning-gate.mjs --generate-hashes"
+    ],
+    "notes": "Parity checker passed with matching manifest/config plugin sets and pinned specs."
+  }
+}

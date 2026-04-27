@@ -103,7 +103,7 @@
   "officialPlugins": [
     {
       "id": "oh-my-opencode",
-      "package": "oh-my-opencode@3.5.2",
+      "package": "oh-my-opencode@3.16.0",
       "ownership": {
         "owner": "agent-platform",
         "contact": "#opencode-agents",
@@ -116,7 +116,7 @@
         "entryPoints": [
           "plugins/oh-my-opencode/info.md"
         ],
-        "opencodePluginSpec": "oh-my-opencode@3.5.2"
+        "opencodePluginSpec": "oh-my-opencode@3.16.0"
       }
     },
     {
@@ -157,7 +157,7 @@
     },
     {
       "id": "opencode-dcp",
-      "package": "@tarquinen/opencode-dcp@latest",
+      "package": "@tarquinen/opencode-dcp@1.0.0",
       "ownership": {
         "owner": "context-platform",
         "contact": "#opencode-context",
@@ -170,7 +170,25 @@
         "entryPoints": [
           "plugins/opencode-dcp/info.md"
         ],
-        "opencodePluginSpec": "@tarquinen/opencode-dcp@latest"
+        "opencodePluginSpec": "@tarquinen/opencode-dcp@1.0.0"
+      }
+    },
+    {
+      "id": "opencode-multi-auth-codex",
+      "package": "@guard22/opencode-multi-auth-codex@1.4.2",
+      "ownership": {
+        "owner": "auth-platform",
+        "contact": "#opencode-auth",
+        "failureAction": "warn-and-block-ci"
+      },
+      "loadChecks": {
+        "requiredFiles": [
+          "plugins/opencode-multi-auth-codex/info.md"
+        ],
+        "entryPoints": [
+          "plugins/opencode-multi-auth-codex/info.md"
+        ],
+        "opencodePluginSpec": "@guard22/opencode-multi-auth-codex@1.4.2"
       }
     },
     {
@@ -229,7 +247,7 @@
     },
     {
       "id": "rate-limit-fallback",
-      "package": "opencode-rate-limit-fallback@latest",
+      "package": "opencode-rate-limit-fallback@1.2.0",
       "ownership": {
         "owner": "runtime-platform",
         "contact": "#opencode-runtime",
@@ -242,12 +260,12 @@
         "entryPoints": [
           "plugins/rate-limit-fallback/info.md"
         ],
-        "opencodePluginSpec": "opencode-rate-limit-fallback@latest"
+        "opencodePluginSpec": "opencode-rate-limit-fallback@1.2.0"
       }
     },
     {
       "id": "notifier",
-      "package": "@mohak34/opencode-notifier@latest",
+      "package": "@mohak34/opencode-notifier@1.0.0",
       "ownership": {
         "owner": "runtime-platform",
         "contact": "#opencode-runtime",
@@ -260,12 +278,12 @@
         "entryPoints": [
           "plugins/notifier/info.md"
         ],
-        "opencodePluginSpec": "@mohak34/opencode-notifier@latest"
+        "opencodePluginSpec": "@mohak34/opencode-notifier@1.0.0"
       }
     },
     {
       "id": "envsitter-guard",
-      "package": "envsitter-guard@latest",
+      "package": "envsitter-guard@1.0.0",
       "ownership": {
         "owner": "security-platform",
         "contact": "#opencode-security",
@@ -278,12 +296,12 @@
         "entryPoints": [
           "plugins/envsitter-guard/info.md"
         ],
-        "opencodePluginSpec": "envsitter-guard@latest"
+        "opencodePluginSpec": "envsitter-guard@1.0.0"
       }
     },
     {
       "id": "safety-net",
-      "package": "cc-safety-net@latest",
+      "package": "cc-safety-net@1.0.0",
       "ownership": {
         "owner": "security-platform",
         "contact": "#opencode-security",
@@ -296,7 +314,7 @@
         "entryPoints": [
           "plugins/safety-net/info.md"
         ],
-        "opencodePluginSpec": "cc-safety-net@latest"
+        "opencodePluginSpec": "cc-safety-net@1.0.0"
       }
     }
   ]
