@@ -149,12 +149,22 @@ export function createEventHandler(args: {
         abort: (input: { path: { id: string } }) => Promise<unknown>;
         promptAsync?: (input: {
           path: { id: string };
-          body: { parts: Array<{ type: "text"; text: string }> };
+          body: {
+            parts: Array<{ type: "text"; text: string }>;
+            agent?: string;
+            model?: { providerID: string; modelID: string };
+            variant?: string;
+          };
           query: { directory: string };
         }) => Promise<unknown>;
         prompt: (input: {
           path: { id: string };
-          body: { parts: Array<{ type: "text"; text: string }> };
+          body: {
+            parts: Array<{ type: "text"; text: string }>;
+            agent?: string;
+            model?: { providerID: string; modelID: string };
+            variant?: string;
+          };
           query: { directory: string };
         }) => Promise<unknown>;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -290,9 +300,24 @@ export function createEventHandler(args: {
       log("[event] model-fallback abort failed", { sessionID, source, error });
     });
 
+    const sessionModel = getSessionModel(sessionID);
+    const sessionAgent = getSessionAgent(sessionID);
+
     const promptBody = {
       path: { id: sessionID },
-      body: { parts: [{ type: "text" as const, text: "continue" }] },
+      body: {
+        parts: [{ type: "text" as const, text: "continue" }],
+        ...(sessionAgent && !isCompactionAgent(sessionAgent) ? { agent: sessionAgent } : {}),
+        ...(sessionModel
+          ? {
+              model: {
+                providerID: sessionModel.providerID,
+                modelID: sessionModel.modelID,
+              },
+            }
+          : {}),
+        ...(sessionModel?.variant ? { variant: sessionModel.variant } : {}),
+      },
       query: { directory: pluginContext.directory },
     };
 
@@ -643,13 +668,31 @@ export function createEventHandler(args: {
                 log("[event] compaction before recovery continue failed:", { sessionID, error: err });
               });
 
-            await pluginContext.client.session
-              .prompt({
-                path: { id: sessionID },
-                body: { parts: [{ type: "text", text: "continue" }] },
-                query: { directory: pluginContext.directory },
-              })
-              .catch(() => {});
+            const sessionModel = getSessionModel(sessionID);
+            const sessionAgent = getSessionAgent(sessionID);
+            const continuePromptBody = {
+              path: { id: sessionID },
+              body: {
+                parts: [{ type: "text" as const, text: "continue" }],
+                ...(sessionAgent && !isCompactionAgent(sessionAgent) ? { agent: sessionAgent } : {}),
+                ...(sessionModel
+                  ? {
+                      model: {
+                        providerID: sessionModel.providerID,
+                        modelID: sessionModel.modelID,
+                      },
+                    }
+                  : {}),
+                ...(sessionModel?.variant ? { variant: sessionModel.variant } : {}),
+              },
+              query: { directory: pluginContext.directory },
+            };
+
+            if (typeof pluginContext.client.session.promptAsync === "function") {
+              await pluginContext.client.session.promptAsync(continuePromptBody).catch(() => {});
+            } else {
+              await pluginContext.client.session.prompt(continuePromptBody).catch(() => {});
+            }
           }
         }
         // Second, try model fallback for model errors (rate limit, quota, provider issues, etc.)

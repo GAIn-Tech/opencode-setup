@@ -1,0 +1,23 @@
+{
+  "id": "dcp-model-context-preservation-20260427",
+  "timestamp": "2026-04-27T04:05:00Z",
+  "category": "runtime-stability",
+  "summary": "Preserve active session model/agent across post-compaction and fallback auto-continue flows; update default Sisyphus and Hephaestus models to 5.4.",
+  "affected_paths": [
+    "local/oh-my-opencode/src/plugin/event.ts",
+    "local/oh-my-opencode/src/hooks/runtime-fallback/fallback-bootstrap-model.ts",
+    "opencode-config/oh-my-opencode.json"
+  ],
+  "root_cause": "Model-less synthetic continue prompts after compaction/fallback allowed resolver defaults to override active session model, producing default-model regressions after DCP summaries.",
+  "fix_approach": "Attach stored session agent/model/variant to synthetic continue prompts and prefer session model state when deriving fallback bootstrap model before agent/category defaults.",
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "bun test local/oh-my-opencode/src/hooks/runtime-fallback/event-handler.test.ts local/oh-my-opencode/src/hooks/runtime-fallback/session-status-handler.test.ts local/oh-my-opencode/src/hooks/runtime-fallback/message-update-handler.test.ts local/oh-my-opencode/src/plugin/event.model-fallback.test.ts local/oh-my-opencode/src/plugin/event-compaction-agent.test.ts local/oh-my-opencode/src/plugin/chat-message.test.ts"
+    ],
+    "notes": "Focused fallback/compaction tests passed (35/35)."
+  }
+}
