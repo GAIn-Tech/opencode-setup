@@ -1,0 +1,17 @@
+{
+  "id": "model-management-runner-surface-20260430",
+  "timestamp": "2026-04-30T00:00:00Z",
+  "category": "infrastructure",
+  "summary": "Added a reusable model-management runner surface and locked its package-level contract with integration coverage.",
+  "affected_paths": [
+    "integration-tests/model-management-automation.test.js",
+    "packages/opencode-model-manager/src/automation/model-management-runner.js",
+    "packages/opencode-model-manager/src/index.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "pass"
+  },
+  "risk_level": "medium"
+}
