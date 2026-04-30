@@ -2,40 +2,31 @@ name: Model Catalog Sync
 
 on:
   schedule:
-    # Run every Monday at 9am UTC
     - cron: '0 9 * * 1'
   workflow_dispatch:
-    inputs:
-      force:
-        description: 'Force PR creation even if no changes'
-        required: false
-        default: 'false'
 
 jobs:
   sync-models:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
-    
+      contents: read
+      pull-requests: read
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: '1.3.10'
-      
+
       - name: Install dependencies
-        run: |
-          cd packages/opencode-model-manager
-          bun install
-      
-      - name: Run model discovery
-        id: discovery
+        run: bun install
+
+      - name: Run shared model sync entrypoint
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -43,135 +34,5 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
-        run: |
-          cd packages/opencode-model-manager
-          node -e "
-          const { DiscoveryEngine } = require('./src/discovery/discovery-engine');
-          const { SnapshotStore } = require('./src/snapshot/snapshot-store');
-          const { DiffEngine } = require('./src/diff/diff-engine');
-          
-          async function run() {
-            const engine = new DiscoveryEngine();
-            const snapshotStore = new SnapshotStore();
-            const diffEngine = new DiffEngine();
-            
-            // Run discovery
-            const result = await engine.discover();
-            console.log('Discovery complete:', result.models.length, 'models');
-            
-            // Save snapshot
-            for (const provider of ['openai', 'anthropic', 'google', 'groq', 'cerebras', 'nvidia']) {
-              const providerModels = result.models.filter(m => m.provider === provider);
-              if (providerModels.length > 0) {
-                await snapshotStore.save(provider, providerModels, {});
-              }
-            }
-            
-            // Get previous snapshot and generate diff
-            const latestSnapshot = await snapshotStore.getLatest('openai');
-            if (latestSnapshot) {
-              const currentSnapshot = { models: result.models };
-              const diff = diffEngine.compare(latestSnapshot, currentSnapshot);
-              
-              const hasChanges = diff.added.length > 0 || diff.modified.length > 0 || diff.removed.length > 0;
-              console.log('Changes detected:', hasChanges);
-              console.log('Added:', diff.added.length);
-              console.log('Modified:', diff.modified.length);
-              console.log('Removed:', diff.removed.length);
-              
-              // Write diff to file for next step
-              require('fs').writeFileSync('diff.json', JSON.stringify(diff, null, 2));
-              
-              // Set output
-              process.exit(hasChanges ? 0 : 1);
-            } else {
-              console.log('No previous snapshot, skipping diff');
-              process.exit(1);
-            }
-          }
-          
-          run().catch(err => {
-            console.error('Discovery failed:', err);
-            process.exit(1);
-          });
-          "
-        continue-on-error: true
-      
-      - name: Check for changes
-        id: check_changes
-        run: |
-          if [ -f diff.json ]; then
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-          fi
-      
-      - name: Validate catalog
-        if: steps.check_changes.outputs.has_changes == 'true' || github.event.inputs.force == 'true'
-        run: |
-          cd packages/opencode-model-manager
-          node -e "
-          const { CatalogValidator } = require('./src/validation/catalog-validator');
-          
-          async function run() {
-            const validator = new CatalogValidator({
-              catalogPath: '../../opencode-config/models/catalog-2026.json',
-              schemaPath: '../../opencode-config/models/schema.json'
-            });
-            
-            const result = await validator.validate();
-            console.log(validator.formatResults(result));
-            
-            if (!result.valid) {
-              console.error('Catalog validation failed');
-              process.exit(1);
-            }
-          }
-          
-          run().catch(err => {
-            console.error('Validation error:', err);
-            process.exit(1);
-          });
-          "
-      
-      - name: Generate PR
-        if: steps.check_changes.outputs.has_changes == 'true' || github.event.inputs.force == 'true'
-        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          cd packages/opencode-model-manager
-          node -e "
-          const { PRGenerator } = require('./src/automation/pr-generator');
-          const fs = require('fs');
-          
-          async function run() {
-            const diff = JSON.parse(fs.readFileSync('../../diff.json', 'utf-8'));
-            const prGenerator = new PRGenerator({
-              catalogPath: '../../opencode-config/models/catalog-2026.json',
-              repoPath: '../..'
-            });
-            
-            const prDetails = await prGenerator.generatePR(diff);
-            
-            console.log('PR Details:');
-            console.log('Branch:', prDetails.branch);
-            console.log('Title:', prDetails.title);
-            
-            // Create PR using GitHub CLI
-            const { execSync } = require('child_process');
-            execSync(\`gh pr create --title '\${prDetails.title}' --body '\${prDetails.body}' --base main --head \${prDetails.branch}\`, {
-              cwd: '../..',
-              stdio: 'inherit'
-            });
-          }
-          
-          run().catch(err => {
-            console.error('PR generation failed:', err);
-            process.exit(1);
-          });
-          "
-      
-      - name: No changes detected
-        if: steps.check_changes.outputs.has_changes == 'false' && github.event.inputs.force != 'true'
-        run: |
-          echo "No model changes detected. Skipping PR creation."
+        run: bun run models:sync -- --dry-run

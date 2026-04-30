@@ -37,7 +37,7 @@
     "models:validate": "node scripts/validate-models.mjs",
     "ci:boundary": "node scripts/ci-boundary-enforce.mjs",
     "policies:validate": "node scripts/validate-policies-structure.mjs",
-    "models:sync": "node scripts/weekly-model-sync.mjs",
+    "models:sync": "bun scripts/weekly-model-sync.mjs",
     "opencode:with-dashboard": "node scripts/opencode-with-dashboard.mjs",
     "test:skillrl-api": "bun test integration-tests/skillrl-api-regression.test.js",
     "smoke": "node scripts/smoke-pipeline.mjs",

@@ -1,0 +1,17 @@
+{
+  "id": "weekly-sync-bun-first-orchestration-20260430",
+  "timestamp": "2026-04-30T00:15:00Z",
+  "category": "infrastructure",
+  "summary": "Rewired the weekly model sync stack to a Bun-first shared automation path for local execution and GitHub Actions.",
+  "affected_paths": [
+    "package.json",
+    "scripts/weekly-model-sync.mjs",
+    ".github/workflows/model-catalog-sync.yml"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "pass"
+  },
+  "risk_level": "medium"
+}
