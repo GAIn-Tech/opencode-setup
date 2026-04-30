@@ -1,0 +1,19 @@
+{
+  "id": "routing-model-reference-alignment-20260430",
+  "timestamp": "2026-04-30T00:10:00Z",
+  "category": "configuration",
+  "summary": "Aligned delegation, agent, and fallback model references with the active catalog and hardened critical routing away from Anthropic-sensitive defaults.",
+  "affected_paths": [
+    "opencode-config/config.yaml",
+    "opencode-config/oh-my-opencode.json",
+    "opencode-config/rate-limit-fallback.json",
+    "rate-limit-fallback.json",
+    "packages/opencode-model-router-x/test/category-fallbacks.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "pass"
+  },
+  "risk_level": "medium"
+}

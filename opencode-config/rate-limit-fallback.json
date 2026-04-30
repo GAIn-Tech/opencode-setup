@@ -17,27 +17,27 @@
     },
     {
       "providerID": "google",
-      "modelID": "antigravity-gemini-3-pro"
+      "modelID": "gemini-3-pro-preview"
     },
     {
       "providerID": "google",
-      "modelID": "antigravity-gemini-3-flash"
+      "modelID": "gemini-3-flash-preview"
     },
     {
       "providerID": "google",
-      "modelID": "antigravity-gemini-3-flash-8b"
+      "modelID": "gemini-3.1-flash-lite-preview"
     },
     {
-      "providerID": "moonshotai",
-      "modelID": "kimi-k2.5"
+      "providerID": "nvidia",
+      "modelID": "moonshotai/kimi-k2.5"
     },
     {
-      "providerID": "z-ai",
-      "modelID": "glm-5"
+      "providerID": "nvidia",
+      "modelID": "z-ai/glm-5"
     },
     {
       "providerID": "google",
-      "modelID": "gemini-2.5-flash"
+      "modelID": "gemini-3-flash-preview"
     },
     {
       "providerID": "google",

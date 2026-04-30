@@ -4,16 +4,16 @@
   "cooldownMs": 45000,
   "fallbackModels": [
     {
-      "providerID": "anthropic",
-      "modelID": "claude-opus-4-6"
+      "providerID": "openai",
+      "modelID": "gpt-5.3-codex"
     },
     {
-      "providerID": "anthropic",
-      "modelID": "claude-sonnet-4-5"
+      "providerID": "openai",
+      "modelID": "gpt-5.3-codex"
     },
     {
-      "providerID": "anthropic",
-      "modelID": "claude-haiku-4-5"
+      "providerID": "openai",
+      "modelID": "gpt-5.2"
     },
     {
       "providerID": "openai",
@@ -29,31 +29,31 @@
     },
     {
       "providerID": "google",
-      "modelID": "antigravity-claude-opus-4-6-thinking"
+      "modelID": "gemini-3.1-pro-preview"
     },
     {
       "providerID": "google",
-      "modelID": "antigravity-claude-sonnet-4-5-thinking"
+      "modelID": "gemini-3-pro-preview"
     },
     {
       "providerID": "google",
-      "modelID": "antigravity-claude-sonnet-4-5"
+      "modelID": "gemini-3-flash-preview"
     },
     {
       "providerID": "google",
-      "modelID": "antigravity-gemini-3-pro"
+      "modelID": "gemini-3-pro-preview"
     },
     {
       "providerID": "google",
-      "modelID": "antigravity-gemini-3-flash"
+      "modelID": "gemini-3-flash-preview"
     },
     {
       "providerID": "google",
-      "modelID": "antigravity-gemini-3-flash-8b"
+      "modelID": "gemini-3.1-flash-lite-preview"
     },
     {
       "providerID": "google",
-      "modelID": "gemini-2.5-flash"
+      "modelID": "gemini-3-flash-preview"
     },
     {
       "providerID": "google",

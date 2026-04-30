@@ -230,7 +230,15 @@ describe('Category Fallbacks Verification', () => {
       const normalized = normalizeModelId(categories['writing'].model);
       expect(normalized).toBe('gemini-3-flash-preview');
     });
-    
+
+    test('critical routing avoids anthropic and antigravity-sensitive models in global delegation config', () => {
+      const configYaml = fs.readFileSync(path.join(__dirname, '../../../opencode-config/config.yaml'), 'utf8');
+
+      expect(configYaml).not.toContain('antigravity-claude-opus-4-6-thinking');
+      expect(configYaml).not.toContain('claude-opus-4-6');
+      expect(configYaml).not.toContain('antigravity-claude-sonnet-4-5-thinking');
+    });
+     
   });
   
   describe('Fallback Chain Diversity', () => {

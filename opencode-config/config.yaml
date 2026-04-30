@@ -49,37 +49,37 @@ delegation:
   complexity_mapping:
     mechanical:      # Simple, repetitive tasks (typos, renames, single-line fixes)
       category: quick
-      models: [claude-haiku-4-5]
+      models: [gemini-3-flash-preview]
       max_cost_per_task: 0.02
 
     trivial:         # Lightweight tasks (file lookups, grep, simple edits)
       category: quick
-      models: [claude-haiku-4-5]
+      models: [gemini-3-flash-preview]
       max_cost_per_task: 0.05
 
     routine:         # Standard development work (feature impl, bug fixes)
       category: unspecified-low
-      models: [claude-sonnet-4-5]
+      models: [gpt-5.2]
       max_cost_per_task: 0.20
 
     complex:         # Multi-step reasoning (refactors, multi-file changes)
       category: unspecified-high
-      models: [claude-sonnet-4-5]
+      models: [gpt-5.3-codex]
       max_cost_per_task: 0.20
 
     advanced:        # Deep analysis (debugging, performance optimization)
       category: deep
-      models: [antigravity-claude-sonnet-4-5-thinking]
+      models: [gemini-3.1-pro-preview]
       max_cost_per_task: 0.50
 
     architectural:   # Design decisions, novel problems, system design
       category: deep
-      models: [claude-opus-4-6]
+      models: [gpt-5]
       max_cost_per_task: 1.00
 
     critical:        # High-stakes, security audits, complex architecture
       category: ultrabrain
-      models: [antigravity-claude-opus-4-6-thinking]
+      models: [gpt-5.3-codex]
       max_cost_per_task: 2.00
 
   batching:
