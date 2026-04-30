@@ -1,0 +1,20 @@
+{
+  "id": "automation-governance-artifact-refresh-20260430",
+  "timestamp": "2026-04-30T00:20:00Z",
+  "category": "governance",
+  "summary": "Refreshed governance hashes, schema freshness, MCP mirror outputs, and coverage artifacts required by the automation/config updates.",
+  "affected_paths": [
+    "opencode-config/models/schema.json",
+    "opencode-config/.governance-hashes.json",
+    "mcp-servers/opencode-mcp-config.json",
+    "mcp-servers/opencode-mcp-config.template.json",
+    "mcp-servers/tool-manifest.json",
+    ".sisyphus/reports/skill-coverage-gap-report.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "pass"
+  },
+  "risk_level": "low"
+}

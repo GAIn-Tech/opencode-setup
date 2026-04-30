@@ -1,18 +1,18 @@
 {
   "summary": {
-    "totalSkillsOnDisk": 89,
+    "totalSkillsOnDisk": 90,
     "totalSkills": 8,
     "checkedTier": "default",
     "passed": 8,
     "failed": 0,
     "untiered": 0,
     "nonDefaultSkills": {
-      "manual": 80,
+      "manual": 81,
       "dormant": 1,
       "candidate-prune": 0
     },
-    "testFilesScanned": 454,
-    "generatedAt": "2026-04-03T15:51:06.642Z"
+    "testFilesScanned": 855,
+    "generatedAt": "2026-04-30T04:38:14.684Z"
   },
   "untieredSkills": [],
   "defaultSkills": [
@@ -45,43 +45,33 @@
     "context7": {
       "pass": true,
       "impliedFiles": [
-        ".sisyphus/evidence/autoopencode-temp/apps/desktop/src/main/ai/config/__tests__/agent-configs.test.ts",
-        ".sisyphus/evidence/autoopencode-temp/apps/desktop/src/main/ai/mcp/__tests__/client.test.ts",
-        ".sisyphus/evidence/autoopencode-temp/apps/desktop/src/main/ai/mcp/__tests__/registry.test.ts",
-        ".sisyphus/evidence/autoopencode-temp/apps/desktop/src/main/ai/tools/builtin/__tests__/grep.test.ts",
-        ".sisyphus/evidence/autoopencode-temp/apps/desktop/src/main/ai/tools/builtin/__tests__/web-search.test.ts",
-        ".sisyphus/evidence/autoopencode-temp/apps/desktop/src/main/ai/tools/__tests__/registry.test.ts",
         "integration-tests/critical-plugin-contracts.test.js",
+        "local/oh-my-opencode/src/cli/doctor/formatter.test.ts",
+        "local/oh-my-opencode/src/mcp/zauc-mocks-mcp-index/index.test.ts",
+        "opencode-cli-v2/tests/mcp/client.test.ts",
+        "opencode-cli-v2/tests/mcp/servers.test.ts",
         "scripts/tests/runtime-tool-telemetry.test.js"
       ],
       "explicitOnlyFiles": [],
       "impliedEvidence": [
         {
-          "file": ".sisyphus/evidence/autoopencode-temp/apps/desktop/src/main/ai/config/__tests__/agent-configs.test.ts",
-          "reason": "implied by routing/profile assertion"
-        },
-        {
-          "file": ".sisyphus/evidence/autoopencode-temp/apps/desktop/src/main/ai/mcp/__tests__/client.test.ts",
-          "reason": "implied by routing/profile assertion"
-        },
-        {
-          "file": ".sisyphus/evidence/autoopencode-temp/apps/desktop/src/main/ai/mcp/__tests__/registry.test.ts",
-          "reason": "implied by routing/profile assertion"
-        },
-        {
-          "file": ".sisyphus/evidence/autoopencode-temp/apps/desktop/src/main/ai/tools/builtin/__tests__/grep.test.ts",
-          "reason": "implied by trigger phrase: grep tool"
-        },
-        {
-          "file": ".sisyphus/evidence/autoopencode-temp/apps/desktop/src/main/ai/tools/builtin/__tests__/web-search.test.ts",
-          "reason": "implied by trigger phrase: websearch tool"
-        },
-        {
-          "file": ".sisyphus/evidence/autoopencode-temp/apps/desktop/src/main/ai/tools/__tests__/registry.test.ts",
-          "reason": "implied by routing/profile assertion"
-        },
-        {
           "file": "integration-tests/critical-plugin-contracts.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "local/oh-my-opencode/src/cli/doctor/formatter.test.ts",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "local/oh-my-opencode/src/mcp/zauc-mocks-mcp-index/index.test.ts",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "opencode-cli-v2/tests/mcp/client.test.ts",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "opencode-cli-v2/tests/mcp/servers.test.ts",
           "reason": "implied by routing/profile assertion"
         },
         {
@@ -99,11 +89,15 @@
     "superpowers/systematic-debugging": {
       "pass": true,
       "impliedFiles": [
-        ".sisyphus/evidence/autoopencode-temp/apps/desktop/src/main/ipc-handlers/github/__tests__/runner-env-handlers.test.ts",
+        "local/oh-my-opencode/src/hooks/atlas/index.test.ts",
+        "local/oh-my-opencode/src/tools/skill/zauc-mocks-skill-tools/tools.test.ts",
+        "opencode-cli-v2/tests/adapters/plugins/preload-skills.test.ts",
         "packages/opencode-integration-layer/tests/mcp-skillrl-bridge.test.js",
         "packages/opencode-integration-layer/tests/meta-kb-skillrl.test.js",
         "packages/opencode-learning-engine/test/advise-edge-cases.test.js",
+        "packages/opencode-learning-engine/test/governance.test.js",
         "packages/opencode-learning-engine/test/orchestration-advisor.test.js",
+        "packages/opencode-pev-contract/test/pev-contract.test.js",
         "packages/opencode-skill-rl-manager/test/selection.test.js",
         "packages/opencode-skill-rl-manager/tests/selection.test.js",
         "packages/opencode-skill-rl-manager/tests/sync-registry.test.js",
@@ -115,8 +109,16 @@
       "explicitOnlyFiles": [],
       "impliedEvidence": [
         {
-          "file": ".sisyphus/evidence/autoopencode-temp/apps/desktop/src/main/ipc-handlers/github/__tests__/runner-env-handlers.test.ts",
+          "file": "local/oh-my-opencode/src/hooks/atlas/index.test.ts",
           "reason": "implied by trigger phrase: debug"
+        },
+        {
+          "file": "local/oh-my-opencode/src/tools/skill/zauc-mocks-skill-tools/tools.test.ts",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "opencode-cli-v2/tests/adapters/plugins/preload-skills.test.ts",
+          "reason": "implied by routing/profile assertion"
         },
         {
           "file": "packages/opencode-integration-layer/tests/mcp-skillrl-bridge.test.js",
@@ -131,8 +133,16 @@
           "reason": "implied by trigger phrase: debug"
         },
         {
+          "file": "packages/opencode-learning-engine/test/governance.test.js",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
           "file": "packages/opencode-learning-engine/test/orchestration-advisor.test.js",
           "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "packages/opencode-pev-contract/test/pev-contract.test.js",
+          "reason": "implied by trigger phrase: debug"
         },
         {
           "file": "packages/opencode-skill-rl-manager/test/selection.test.js",
@@ -165,6 +175,14 @@
       ],
       "explicitEvidence": [
         {
+          "file": "opencode-cli-v2/tests/adapters/plugins/preload-skills.test.ts",
+          "reason": "explicit skill load/call"
+        },
+        {
+          "file": "packages/opencode-learning-engine/test/governance.test.js",
+          "reason": "explicit skill load/call"
+        },
+        {
           "file": "packages/opencode-learning-engine/test/meta-kb-routing.test.js",
           "reason": "explicit skill load/call"
         },
@@ -177,6 +195,7 @@
     "superpowers/test-driven-development": {
       "pass": true,
       "impliedFiles": [
+        "opencode-cli-v2/tests/e2e/command-chain.e2e.test.ts",
         "packages/opencode-integration-layer/tests/meta-kb-skillrl.test.js",
         "packages/opencode-integration-layer/tests/rotator-synergy.test.js",
         "packages/opencode-skill-rl-manager/tests/sync-registry.test.js",
@@ -186,6 +205,10 @@
       ],
       "explicitOnlyFiles": [],
       "impliedEvidence": [
+        {
+          "file": "opencode-cli-v2/tests/e2e/command-chain.e2e.test.ts",
+          "reason": "implied by routing/profile assertion"
+        },
         {
           "file": "packages/opencode-integration-layer/tests/meta-kb-skillrl.test.js",
           "reason": "implied by routing/profile assertion"
@@ -213,6 +236,14 @@
       ],
       "explicitEvidence": [
         {
+          "file": "opencode-cli-v2/tests/integration/plugin-integration.test.ts",
+          "reason": "explicit skill load/call"
+        },
+        {
+          "file": "opencode-cli-v2/tests/integration/workflow-e2e.integration.test.ts",
+          "reason": "explicit skill load/call"
+        },
+        {
           "file": "packages/opencode-learning-engine/test/orchestration-advisor.test.js",
           "reason": "explicit skill load/call"
         }
@@ -235,34 +266,44 @@
     "superpowers/verification-before-completion": {
       "pass": true,
       "impliedFiles": [
-        "scripts/tests/skill-implied-full-coverage.test.mjs"
+        "local/oh-my-opencode/src/features/background-agent/manager.test.ts",
+        "local/oh-my-opencode/src/plugin/event.test.ts",
+        "opencode-cli-v2/tests/adapters/plugins/preload-skills.test.ts",
+        "packages/opencode-learning-engine/test/governance.test.js"
       ],
       "explicitOnlyFiles": [],
       "impliedEvidence": [
         {
-          "file": "scripts/tests/skill-implied-full-coverage.test.mjs",
-          "reason": "implied by dynamic matrix routing assertion"
+          "file": "local/oh-my-opencode/src/features/background-agent/manager.test.ts",
+          "reason": "implied by trigger phrase: before pr"
+        },
+        {
+          "file": "local/oh-my-opencode/src/plugin/event.test.ts",
+          "reason": "implied by trigger phrase: before pr"
+        },
+        {
+          "file": "opencode-cli-v2/tests/adapters/plugins/preload-skills.test.ts",
+          "reason": "implied by routing/profile assertion"
+        },
+        {
+          "file": "packages/opencode-learning-engine/test/governance.test.js",
+          "reason": "implied by routing/profile assertion"
         }
       ],
-      "explicitEvidence": []
+      "explicitEvidence": [
+        {
+          "file": "packages/opencode-learning-engine/test/governance.test.js",
+          "reason": "explicit skill load/call"
+        }
+      ]
     },
     "superpowers/writing-plans": {
       "pass": true,
       "impliedFiles": [
-        ".sisyphus/evidence/autoopencode-temp/apps/desktop/src/main/ai/tools/builtin/__tests__/grep.test.ts",
-        ".sisyphus/evidence/autoopencode-temp/apps/desktop/src/main/ai/tools/builtin/__tests__/web-search.test.ts",
         "scripts/tests/runtime-tool-telemetry.test.js"
       ],
       "explicitOnlyFiles": [],
       "impliedEvidence": [
-        {
-          "file": ".sisyphus/evidence/autoopencode-temp/apps/desktop/src/main/ai/tools/builtin/__tests__/grep.test.ts",
-          "reason": "implied by trigger phrase: grep tool"
-        },
-        {
-          "file": ".sisyphus/evidence/autoopencode-temp/apps/desktop/src/main/ai/tools/builtin/__tests__/web-search.test.ts",
-          "reason": "implied by trigger phrase: websearch tool"
-        },
         {
           "file": "scripts/tests/runtime-tool-telemetry.test.js",
           "reason": "implied by trigger phrase: grep tool"
@@ -286,7 +327,7 @@
     }
   },
   "governance": {
-    "tierEvidencePath": "C:\\Users\\jack\\work\\opencode-setup\\.sisyphus\\evidence\\skill-classification-recommendations.json",
+    "tierEvidencePath": "C:\\Users\\jack\\work\\opencode-setup\\.worktrees\\model-management-automation-remediation\\.sisyphus\\evidence\\skill-classification-recommendations.json",
     "duplicateTierAssignments": []
   }
 }
