@@ -1,0 +1,17 @@
+{
+  "id": "pr-generator-automation-seam-20260430",
+  "timestamp": "2026-04-30T00:05:00Z",
+  "category": "infrastructure",
+  "summary": "Aligned PR generator behavior with the reusable automation flow by adding preview/live seams, canonical catalog handling, and repo-path hardening.",
+  "affected_paths": [
+    "packages/opencode-model-manager/src/automation/pr-generator.js",
+    "packages/opencode-model-manager/test/automation/pr-generator.test.ts",
+    "packages/opencode-model-manager/test/pr-generator-timeout.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "pass"
+  },
+  "risk_level": "medium"
+}

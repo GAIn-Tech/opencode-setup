@@ -18,8 +18,8 @@ describe('PRGenerator', () => {
     await fs.writeFile(catalogPath, JSON.stringify({
       version: '1.0.0',
       lastUpdated: '2026-02-01T00:00:00Z',
-      models: [
-        {
+      models: {
+        'openai/gpt-4': {
           id: 'gpt-4',
           provider: 'openai',
           displayName: 'GPT-4',
@@ -27,7 +27,7 @@ describe('PRGenerator', () => {
           outputTokens: 4096,
           deprecated: false
         }
-      ]
+      }
     }, null, 2));
     
     prGenerator = new PRGenerator({
@@ -146,9 +146,10 @@ describe('PRGenerator', () => {
       const catalogContent = await fs.readFile(catalogPath, 'utf-8');
       const catalog = JSON.parse(catalogContent);
       
-      expect(catalog.models.length).toBe(2);
-      expect(catalog.models[1].id).toBe('gpt-4-turbo');
-      expect(catalog.models[1].contextTokens).toBe(128000);
+      expect(Array.isArray(catalog.models)).toBe(false);
+      expect(catalog.models['openai/gpt-4-turbo']).toBeDefined();
+      expect(catalog.models['openai/gpt-4-turbo'].id).toBe('gpt-4-turbo');
+      expect(catalog.models['openai/gpt-4-turbo'].contextTokens).toBe(128000);
       expect(catalog.lastUpdated).toBeDefined();
     });
 
@@ -173,8 +174,8 @@ describe('PRGenerator', () => {
       const catalogContent = await fs.readFile(catalogPath, 'utf-8');
       const catalog = JSON.parse(catalogContent);
       
-      expect(catalog.models[0].contextTokens).toBe(8193);
-      expect(catalog.models[0].updatedAt).toBeDefined();
+      expect(catalog.models['openai/gpt-4'].contextTokens).toBe(8193);
+      expect(catalog.models['openai/gpt-4'].updatedAt).toBeDefined();
     });
 
     test('should mark removed models as deprecated', async () => {
@@ -195,10 +196,14 @@ describe('PRGenerator', () => {
       const catalogContent = await fs.readFile(catalogPath, 'utf-8');
       const catalog = JSON.parse(catalogContent);
       
-     expect(catalog.models[0].deprecated).toBe(true);
-       expect(catalog.models[0].deprecatedAt).toBeDefined();
-     });
-   });
+      expect(catalog.models['openai/gpt-4'].deprecated).toBe(true);
+      expect(catalog.models['openai/gpt-4'].deprecatedAt).toBeDefined();
+    });
+
+    test('exposes a dedicated live PR creation seam', () => {
+      expect(typeof prGenerator.createPullRequest).toBe('function');
+    });
+  });
 
    describe('Security: Command Injection Prevention', () => {
      test('should safely handle shell metacharacters in branch names', async () => {

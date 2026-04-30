@@ -1,5 +1,6 @@
 'use strict';
 
+const fsSync = require('fs');
 const fs = require('fs').promises;
 const path = require('path');
 const { execFile } = require('child_process');
@@ -9,6 +10,7 @@ const execFileAsync = promisify(execFile);
 
 /** Timeout for git commands (30s) */
 const GIT_TIMEOUT_MS = 30000;
+const NULL_HOOKS_PATH = process.platform === 'win32' ? 'NUL' : '/dev/null';
 
 /**
  * PR Generator for automated model catalog updates.
@@ -53,11 +55,22 @@ class PRGenerator {
     
     // Push branch
     await this.pushBranch(branchName);
+
+    const title = this.generatePRTitle(diff);
+    const prUrl = options.createPullRequest === true
+      ? await this.createPullRequest({
+          branchName,
+          title,
+          body: prBody,
+          draft: options.draft === true
+        })
+      : null;
     
     return {
       branch: branchName,
-      title: this.generatePRTitle(diff),
+      title,
       body: prBody,
+      prUrl,
       timestamp
     };
   }
@@ -67,9 +80,10 @@ class PRGenerator {
    */
   async createBranch(branchName) {
     try {
-      await execFileAsync('git', ['checkout', '-b', branchName], {
+      const repoPath = resolveTrustedRepoPath(this.repoPath);
+      await execFileAsync('git', ['-c', `core.hooksPath=${NULL_HOOKS_PATH}`, 'checkout', '-b', branchName], {
         timeout: GIT_TIMEOUT_MS,
-        cwd: this.repoPath
+        cwd: repoPath
       });
     } catch (error) {
       throw new Error(`Failed to create branch: ${error.message}`);
@@ -81,55 +95,38 @@ class PRGenerator {
    */
   async updateCatalog(diff) {
     try {
-      // Read current catalog
-      const catalogContent = await fs.readFile(this.catalogPath, 'utf-8');
-      const catalog = JSON.parse(catalogContent);
-      
-      // Apply changes
-      for (const change of diff.added) {
-        if (!catalog.models) catalog.models = [];
-        catalog.models.push({
-          id: change.model.id,
-          provider: change.provider,
-          displayName: change.model.displayName || change.model.id,
-          contextTokens: change.model.contextTokens,
-          outputTokens: change.model.outputTokens,
-          deprecated: change.model.deprecated || false,
-          capabilities: change.model.capabilities || {},
-          addedAt: Date.now()
-        });
-      }
-      
-      for (const change of diff.modified) {
-        const existingIndex = catalog.models.findIndex(m => m.id === change.model.id);
-        if (existingIndex >= 0) {
-          catalog.models[existingIndex] = {
-            ...catalog.models[existingIndex],
-            ...change.model,
-            updatedAt: Date.now()
-          };
-        }
-      }
-      
-      for (const change of diff.removed) {
-        const existingIndex = catalog.models.findIndex(m => m.id === change.model.id);
-        if (existingIndex >= 0) {
-          catalog.models[existingIndex].deprecated = true;
-          catalog.models[existingIndex].deprecatedAt = Date.now();
-        }
-      }
-      
-      // Update lastUpdated
-      catalog.lastUpdated = new Date().toISOString();
-      
-      // Write back
+      const catalog = await this.previewCatalogUpdate(diff);
       await fs.writeFile(
         this.catalogPath,
         JSON.stringify(catalog, null, 2) + '\n',
         'utf-8'
       );
+
+      return catalog;
     } catch (error) {
       throw new Error(`Failed to update catalog: ${error.message}`);
+    }
+  }
+
+  async previewCatalogUpdate(diff) {
+    try {
+      const catalogContent = await fs.readFile(this.catalogPath, 'utf-8');
+      const catalog = JSON.parse(catalogContent);
+      const shape = Array.isArray(catalog.models) ? 'array' : 'object';
+      const timestamp = Date.now();
+
+      if (shape === 'array') {
+        catalog.models = Array.isArray(catalog.models) ? catalog.models.slice() : [];
+        applyArrayCatalogChanges(catalog.models, diff, timestamp);
+      } else {
+        catalog.models = isObject(catalog.models) ? { ...catalog.models } : {};
+        applyObjectCatalogChanges(catalog.models, diff, timestamp);
+      }
+
+      catalog.lastUpdated = new Date(timestamp).toISOString();
+      return catalog;
+    } catch (error) {
+      throw new Error(`Failed to preview catalog update: ${error.message}`);
     }
   }
 
@@ -138,15 +135,16 @@ class PRGenerator {
    */
   async commitChanges(diff, branchName) {
     try {
-      await execFileAsync('git', ['add', 'opencode-config/models/catalog-2026.json'], {
+      const repoPath = resolveTrustedRepoPath(this.repoPath);
+      await execFileAsync('git', ['-c', `core.hooksPath=${NULL_HOOKS_PATH}`, 'add', this.catalogPath], {
         timeout: GIT_TIMEOUT_MS,
-        cwd: this.repoPath
+        cwd: repoPath
       });
       
       const commitMessage = this.generateCommitMessage(diff);
-      await execFileAsync('git', ['commit', '-m', commitMessage], {
+      await execFileAsync('git', ['-c', `core.hooksPath=${NULL_HOOKS_PATH}`, 'commit', '-m', commitMessage], {
         timeout: GIT_TIMEOUT_MS,
-        cwd: this.repoPath
+        cwd: repoPath
       });
     } catch (error) {
       throw new Error(`Failed to commit changes: ${error.message}`);
@@ -158,12 +156,42 @@ class PRGenerator {
    */
   async pushBranch(branchName) {
     try {
-      await execFileAsync('git', ['push', '-u', 'origin', branchName], {
+      const repoPath = resolveTrustedRepoPath(this.repoPath);
+      await execFileAsync('git', ['-c', `core.hooksPath=${NULL_HOOKS_PATH}`, 'push', '-u', 'origin', branchName], {
         timeout: GIT_TIMEOUT_MS,
-        cwd: this.repoPath
+        cwd: repoPath
       });
     } catch (error) {
       throw new Error(`Failed to push branch: ${error.message}`);
+    }
+  }
+
+  async createPullRequest({ branchName, title, body, draft = false }) {
+    try {
+      const repoPath = resolveTrustedRepoPath(this.repoPath);
+      assertCommandAvailable('gh');
+
+      const args = [
+        'pr',
+        'create',
+        '--base', this.baseBranch,
+        '--head', branchName,
+        '--title', title,
+        '--body', body
+      ];
+
+      if (draft) {
+        args.push('--draft');
+      }
+
+      const { stdout } = await execFileAsync('gh', args, {
+        timeout: GIT_TIMEOUT_MS,
+        cwd: repoPath
+      });
+
+      return String(stdout || '').trim();
+    } catch (error) {
+      throw new Error(`Failed to create pull request: ${error.message}`);
     }
   }
 
@@ -276,6 +304,168 @@ class PRGenerator {
     
     return sections.join('\n');
   }
+}
+
+function applyArrayCatalogChanges(models, diff, timestamp) {
+  for (const change of diff.added) {
+    models.push(buildCatalogEntry(change, timestamp));
+  }
+
+  for (const change of diff.modified) {
+    const existingIndex = models.findIndex((model) => matchesCatalogEntry(model, change));
+    if (existingIndex >= 0) {
+      models[existingIndex] = {
+        ...models[existingIndex],
+        ...buildCatalogEntry(change, timestamp),
+        updatedAt: timestamp
+      };
+    }
+  }
+
+  for (const change of diff.removed) {
+    const existingIndex = models.findIndex((model) => matchesCatalogEntry(model, change));
+    if (existingIndex >= 0) {
+      models[existingIndex] = {
+        ...models[existingIndex],
+        deprecated: true,
+        deprecatedAt: timestamp
+      };
+    }
+  }
+}
+
+function applyObjectCatalogChanges(models, diff, timestamp) {
+  for (const change of diff.added) {
+    const key = resolveCatalogKey(change);
+    models[key] = buildCatalogEntry(change, timestamp, models[key]);
+  }
+
+  for (const change of diff.modified) {
+    const key = resolveCatalogKey(change);
+    if (models[key]) {
+      models[key] = {
+        ...models[key],
+        ...buildCatalogEntry(change, timestamp, models[key]),
+        updatedAt: timestamp
+      };
+    }
+  }
+
+  for (const change of diff.removed) {
+    const key = resolveCatalogKey(change);
+    if (models[key]) {
+      models[key] = {
+        ...models[key],
+        deprecated: true,
+        deprecatedAt: timestamp
+      };
+    }
+  }
+}
+
+function buildCatalogEntry(change, timestamp, existing = {}) {
+  const model = change && change.model ? change.model : {};
+  const provider = change.provider || model.provider || existing.provider || '';
+  const catalogKey = resolveCatalogKey(change);
+
+  return {
+    ...existing,
+    id: normalizeCatalogId(model.id, provider),
+    provider,
+    displayName: model.displayName || existing.displayName || catalogKey,
+    contextTokens: model.contextTokens ?? existing.contextTokens,
+    outputTokens: model.outputTokens ?? existing.outputTokens,
+    deprecated: model.deprecated ?? existing.deprecated ?? false,
+    capabilities: model.capabilities || existing.capabilities || {},
+    addedAt: existing.addedAt || timestamp
+  };
+}
+
+function resolveCatalogKey(change) {
+  const model = change && change.model ? change.model : {};
+  const provider = change.provider || model.provider || '';
+  const modelId = typeof model.id === 'string' ? model.id : '';
+
+  if (modelId.includes('/')) {
+    return modelId;
+  }
+
+  return provider ? `${provider}/${modelId}` : modelId;
+}
+
+function normalizeCatalogId(modelId, provider) {
+  const rawId = typeof modelId === 'string' ? modelId : '';
+  const prefix = provider ? `${provider}/` : '';
+  return prefix && rawId.startsWith(prefix) ? rawId.slice(prefix.length) : rawId;
+}
+
+function matchesCatalogEntry(model, change) {
+  if (!model || typeof model !== 'object') {
+    return false;
+  }
+
+  const catalogKey = resolveCatalogKey(change);
+  const modelKey = model.id && model.provider
+    ? `${model.provider}/${normalizeCatalogId(model.id, model.provider)}`
+    : model.id;
+
+  return modelKey === catalogKey || model.id === change.model.id;
+}
+
+function isObject(value) {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function assertCommandAvailable(command) {
+  const pathValue = String(process.env.PATH || '');
+  const segments = pathValue.split(path.delimiter).filter(Boolean);
+  const extensions = process.platform === 'win32'
+    ? String(process.env.PATHEXT || '.EXE;.CMD;.BAT;.COM').split(';').filter(Boolean)
+    : [''];
+
+  for (const directory of segments) {
+    for (const extension of extensions) {
+      const candidate = path.join(directory, process.platform === 'win32' ? `${command}${extension}` : command);
+      try {
+        require('fs').accessSync(candidate);
+        return;
+      } catch {
+        // continue searching PATH
+      }
+    }
+  }
+
+  throw new Error(`Required command not found in PATH: ${command}`);
+}
+
+function resolveTrustedRepoPath(repoPath) {
+  const candidatePath = path.resolve(String(repoPath || process.cwd()));
+  const workspaceRoot = path.resolve(process.cwd());
+
+  let realCandidatePath;
+  try {
+    realCandidatePath = fsSync.realpathSync(candidatePath);
+  } catch {
+    throw new Error(`invalid repo path: ${candidatePath}`);
+  }
+
+  let realWorkspaceRoot;
+  try {
+    realWorkspaceRoot = fsSync.realpathSync(workspaceRoot);
+  } catch {
+    realWorkspaceRoot = workspaceRoot;
+  }
+
+  if (realCandidatePath !== realWorkspaceRoot && !realCandidatePath.startsWith(`${realWorkspaceRoot}${path.sep}`)) {
+    throw new Error(`invalid repo path outside workspace: ${candidatePath}`);
+  }
+
+  const gitDirectory = path.join(realCandidatePath, '.git');
+  if (!fsSync.existsSync(gitDirectory)) {
+    throw new Error(`invalid repo path is not a git repository: ${candidatePath}`);
+  }
+
+  return realCandidatePath;
 }
 
 module.exports = { PRGenerator, GIT_TIMEOUT_MS };
