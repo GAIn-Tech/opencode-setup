@@ -1,8 +1,76 @@
 name: Validate System
-on: [push]
+on:
+  push:
+    paths:
+      - "packages/**"
+      - "opencode-config/**"
+      - "scripts/**"
+      - "integration-tests/**"
+  pull_request:
+    paths:
+      - "packages/**"
+      - "opencode-config/**"
+      - "scripts/**"
+      - "integration-tests/**"
+
 jobs:
+  # ─── Per-package test matrix ─────────────────────────────────
+  test-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          # Core
+          - opencode-config-loader
+          - opencode-context-governor
+          - opencode-errors
+          - opencode-logger
+          - opencode-safe-io
+          - opencode-shared-orchestration
+          - opencode-validator
+          # Plugins
+          - opencode-plugin-healthd
+          - opencode-plugin-lifecycle
+          - opencode-plugin-preload-skills
+          - opencode-feature-flags
+          # Model / Router
+          - opencode-model-benchmark
+          - opencode-model-manager
+          - opencode-model-router-x
+          - opencode-model-sync
+          # Memory / Graph
+          - opencode-memory-bus
+          - opencode-memory-graph
+          - opencode-goraphdb-bridge
+          - opencode-graphdb-bridge
+          # Observability
+          - opencode-health-check
+          - opencode-fallback-doctor
+          - opencode-backup-manager
+          # Eval / Learning
+          - opencode-eval-harness
+          - opencode-learning-engine
+          - opencode-proofcheck
+          # Dashboard / Infra
+          - opencode-dashboard
+          - opencode-dashboard-launcher
+          - opencode-runbooks
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
+      - name: Install
+        run: bun install --frozen-lockfile
+      - name: Test ${{ matrix.package }}
+        run: bun test packages/${{ matrix.package }}/
+
+  # ─── Full validation suite ──────────────────────────────────
   validate:
     runs-on: ubuntu-latest
+    needs: test-matrix
     steps:
       - uses: actions/checkout@v4
       
@@ -11,14 +79,40 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
+
+      - name: Runtime preflight
+        run: node scripts/preflight-versions.mjs
+
       - name: Install Dependencies
-        run: npm install
+        run: bun install --frozen-lockfile
+
+      - name: Run full test suite
+        run: bun test
+
+      - name: Validate Model Policies Structure
+        run: bun run policies:validate
+
+      - name: Enforce docs governance patterns
+        run: node scripts/docs-governance-check.mjs
 
       - name: Run Sisyphus State Tests
         run: |
           cd packages/opencode-sisyphus-state
-          npm install
-          npm test
+          bun install --frozen-lockfile
+          bun test
+
+      - name: Bootstrap parity check (setup + verify)
+        run: |
+          OPENCODE_VERIFY_ENV_PROFILE=none bun run setup
+          OPENCODE_BUN_PATH=$(which bun) OPENCODE_VERIFY_ENV_PROFILE=none bun run verify
+
+      - name: Core env profile parity check
+        run: |
+          OPENCODE_BUN_PATH=$(which bun) OPENAI_API_KEYS=dummy OPENCODE_VERIFY_ENV_PROFILE=core bun run verify
 
       - name: Test SkillRL Evolution Logic
         run: |
@@ -40,3 +134,25 @@ jobs:
             node -e "require('./packages/opencode-fallback-doctor/src/index.js')"
             echo "Fallback Doctor loadable"
           fi
+
+      - name: Dependency audit (security)
+        run: |
+          echo "=== Bun dependency audit ==="
+          bun pm ls --all 2>/dev/null || true
+          # Check for known vulnerable patterns in lockfile
+          node -e "
+            const fs = require('fs');
+            const lock = fs.readFileSync('bun.lock', 'utf8');
+            const vulnPatterns = ['event-stream', 'flatmap-stream', 'colors@1.4.1'];
+            let found = false;
+            for (const p of vulnPatterns) {
+              if (lock.includes(p)) {
+                console.error('VULN: Known vulnerable package found:', p);
+                found = true;
+              }
+            }
+            if (!found) console.log('No known vulnerable packages detected');
+          "
+
+      - name: Integrity guard
+        run: node scripts/integrity-guard.mjs

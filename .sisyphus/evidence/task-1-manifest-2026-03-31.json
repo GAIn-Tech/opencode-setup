@@ -1,0 +1,33 @@
+{
+  "task": "task-1-authoritative-bootstrap-manifest",
+  "timestamp": "2026-03-31T00:00:00Z",
+  "artifacts": [
+    "scripts/bootstrap-manifest.json",
+    "scripts/verify-bootstrap-manifest.mjs",
+    "scripts/tests/verify-bootstrap-manifest.test.js"
+  ],
+  "verification": {
+    "validator": {
+      "command": "bun scripts/verify-bootstrap-manifest.mjs",
+      "result": {
+        "valid": true,
+        "missing": [],
+        "failed": [],
+        "reasons": []
+      }
+    },
+    "tests": {
+      "command": "bun test scripts/tests/verify-bootstrap-manifest.test.js",
+      "summary": {
+        "pass": 4,
+        "fail": 0,
+        "expects": 13
+      }
+    }
+  },
+  "notes": [
+    "Manifest is the authoritative static list of core and official bootstrap scope.",
+    "Validator enforces ownership/load-check shape and complete plugin coverage against opencode-config/opencode.json plugin[] list.",
+    "Validator output contract is deterministic: { valid, missing, failed, reasons } with sorted arrays."
+  ]
+}

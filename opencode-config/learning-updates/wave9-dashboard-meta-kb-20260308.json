@@ -1,0 +1,17 @@
+{
+  "id": "wave9-dashboard-meta-kb-20260308",
+  "timestamp": "2026-03-08T00:00:00Z",
+  "category": "tooling",
+  "summary": "Add /api/meta-kb dashboard endpoint — returns index age, record counts, category/risk breakdown, anti-pattern/convention/command counts, and inline drift status",
+  "affected_paths": ["packages/opencode-dashboard/src/app/api/meta-kb/route.ts"],
+  "root_cause": "No visibility into meta-KB health from the dashboard",
+  "fix_approach": "Created GET route following health/route.ts pattern; reads meta-knowledge-index.json, computes staleness, runs inline drift check via execSync; 4 tests",
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["bun test packages/opencode-dashboard/tests/meta-kb-route.test.js"],
+    "notes": "Route is read-only, fail-open on drift check"
+  }
+}

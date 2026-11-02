@@ -1,0 +1,73 @@
+# Task 1: Remote Baseline Evidence
+**Collected**: 2026-04-03T05:54:00Z
+**Repository**: https://github.com/GAIn-Tech/autoopencode.git
+
+## Default Branch Confirmation
+```
+$ git ls-remote --symref https://github.com/GAIn-Tech/autoopencode.git HEAD
+ref: refs/heads/develop HEAD
+a0b5e5d9f643eef0267d055da9a02d1b979d94dc HEAD
+```
+
+**Result**: Default branch is `develop`
+**HEAD Commit**: `a0b5e5d9f643eef0267d055da9a02d1b979d94dc`
+
+## Branch List
+```
+$ git ls-remote --heads https://github.com/GAIn-Tech/autoopencode.git
+```
+
+| Branch | SHA |
+|--------|-----|
+| dependabot/github_actions/actions/checkout-6 | 3bb4ce192c7f32281da1c5fa2805d6765b786af2 |
+| dependabot/github_actions/actions/first-interaction-3 | 7e3da66518caadc9a93627261704790dc2b7cc1a |
+| dependabot/github_actions/actions/stale-10 | 1dac333d376b1dfaf7a7736433bc32a36cd9d69a |
+| dependabot/github_actions/azure/login-3 | bca5a2a565d19f5429bc657d7bb0276a06d55e36 |
+| dependabot/github_actions/github/codeql-action-4 | 17083d88f64aec96c9921d5b63b86cb652ea4fdc |
+| dependabot/npm_and_yarn/apps/desktop/anthropic-ai/sdk-0.81.0 | 8cbe85308995a91b4c4e498e2488a9eb48d2442f |
+| dependabot/npm_and_yarn/apps/desktop/biomejs/biome-2.4.10 | c395ade10876187b6976fdb649a04caec595e5ed |
+| dependabot/npm_and_yarn/apps/desktop/i18next-26.0.3 | c600caabddaf6bf4e3415f09516ad578c1259913 |
+| dependabot/npm_and_yarn/apps/desktop/typescript-6.0.2 | 81e85aca7c9cb91d7ee232c8024540ea2e4d479d |
+| dependabot/npm_and_yarn/apps/desktop/vite-8.0.3 | 99eb330262ebbb2496c2cdfc99ef461b2c22dd40 |
+| **develop** | **a0b5e5d9f643eef0267d055da9a02d1b979d94dc** |
+| main | 2a79ba183dc60c82177fff18ab2cfb9d47edc645 |
+| refactor/replace-claude-code-with-opencode | c6ca60d293033984439ab19608b54915336a9279 |
+
+**Total Branches**: 13
+**Active Development Branches**: 3 (develop, main, refactor/replace-claude-code-with-opencode)
+**Dependabot Branches**: 10
+
+## Tag List
+```
+$ git ls-remote --tags https://github.com/GAIn-Tech/autoopencode.git
+```
+
+| Tag | SHA | Dereferenced SHA |
+|-----|-----|------------------|
+| v2.8.0-beta.6 | aee442f397e1d5868b1c01cb09aa548a199e998a | 856b66c998d9c0472585737af1bafacbeae15ffa |
+
+**Total Tags**: 1
+**Most Recent Tag**: v2.8.0-beta.6 (beta release)
+
+## Maintenance Signals
+
+### Positive Signals
+- Default branch `develop` exists and is active
+- Active dependabot automation (10 branches for dependency updates)
+- Tagged beta release exists (v2.8.0-beta.6)
+- Refactor branch `refactor/replace-claude-code-with-opencode` suggests active migration work
+
+### Concerns
+- **Single tag only**: Only one beta tag visible, may indicate early-stage release process
+- **No stable release tags**: No v1.x.x or v2.x.x stable releases
+- **Beta status**: Repository appears to be in beta/pre-release state
+
+### Observations
+- `main` branch exists but is not default (common for development-focused repos)
+- Refactor branch name suggests the project is being actively adapted for opencode integration
+- Dependabot activity indicates ongoing dependency maintenance
+
+## Evidence Integrity
+- All data collected via authenticated git ls-remote commands
+- No web scraping or API calls used
+- Raw command output preserved above

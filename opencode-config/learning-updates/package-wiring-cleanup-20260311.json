@@ -1,0 +1,24 @@
+{
+  "id": "package-wiring-cleanup-20260311",
+  "timestamp": "2026-03-11T20:20:00Z",
+  "summary": "Complete package wiring cleanup: pruned 4 dead packages (memory-bus, goraphdb-bridge, shared-orchestration, model-sync) with pattern extraction; fixed buildManifestFromConfig args leak; added DCP/Distill wiring test; created bootstrap.js singleton + bootstrap-runtime.mjs entry point; cleaned model-router-x phantom deps; wired errors, logger, runbooks, plugin-preload-skills into integration-layer; added E2E bootstrap smoke test. 66 tests pass, 0 fail.",
+  "affected_paths": [
+    "packages/opencode-memory-bus/",
+    "packages/opencode-goraphdb-bridge/",
+    "packages/opencode-shared-orchestration/",
+    "packages/opencode-model-sync/",
+    "packages/opencode-integration-layer/",
+    "packages/opencode-config-loader/",
+    "packages/opencode-model-router-x/",
+    "packages/opencode-test-utils/",
+    "scripts/generate-mcp-config.mjs",
+    "scripts/bootstrap-runtime.mjs",
+    "integration-tests/"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

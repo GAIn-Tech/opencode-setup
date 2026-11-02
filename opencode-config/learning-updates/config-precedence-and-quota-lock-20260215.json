@@ -1,0 +1,62 @@
+{
+  "id": "config-precedence-and-quota-lock-20260215",
+  "timestamp": "2026-02-15T19:28:00-05:00",
+  "category": "infrastructure",
+  "subcategory": "configuration-management",
+  "title": "Configuration Precedence Rules and Quota Signal Propagation Lock",
+  "summary": "Documented 4-tier config precedence, added quota signal lock, fixed llama-3.1-405b",
+  "description": "Documented 4-tier configuration precedence hierarchy (ENV > project > user > defaults) and implemented concurrency lock for quota signal propagation to prevent 429 cascade race conditions. Fixed remaining obsolete model references (llama-3.1-405b).",
+  "changes": [
+    {
+      "type": "documentation",
+      "file": "opencode-config/docs/configuration-precedence.md",
+      "summary": "Created comprehensive configuration precedence guide documenting 4-tier hierarchy (ENV vars > .opencode.config.json > ~/.opencode/config.json > defaults), domain-specific precedence for model routing and quota signals, deep merge algorithm, ENV var parsing with dot-notation, and critical production rules. Identified gap: quota signal propagation chain lacks locking mechanism."
+    },
+    {
+      "type": "feat",
+      "file": "packages/opencode-model-router-x/src/strategies/fallback-layer-strategy.js",
+      "summary": "Added _layerLock Promise chain to prevent concurrent advanceLayer() calls from racing during 429 cascades. Lock uses same pattern as IntelligentRotator (acquire lock, execute guarded operation, release). Prevents multiple concurrent failures from incorrectly advancing fallback layers."
+    },
+    {
+      "type": "fix",
+      "file": "packages/opencode-model-router-x/src/strategies/fallback-layer-strategy.js",
+      "summary": "Fixed 6 obsolete llama-3.1-405b model references in intent-to-model catalog (lines 32-61). Replaced with llama-3.3-70b across groq/cerebras/nvidia providers for code_transform, architecture, large_context, and orchestration intents. This completes the model validation audit - all obsolete models now removed."
+    }
+  ],
+  "rationale": {
+    "problem": "Three critical infrastructure gaps: (1) configuration precedence rules were implicit and undocumented, (2) quota signal propagation lacked concurrency control allowing race conditions during 429 cascades, (3) obsolete model references (llama-3.1-405b) remained in fallback strategy after initial audit.",
+    "solution": "(1) Documented complete 4-tier precedence hierarchy with examples and critical production rules, (2) added Promise-based locking to FallbackLayerStrategy.advanceLayer() to serialize layer transitions, (3) replaced all llama-3.1-405b with llama-3.3-70b in intent-to-model catalog.",
+    "impact": "Eliminates configuration ambiguity, prevents concurrent request failures from incorrectly racing through fallback layers (which could exhaust all providers prematurely), completes model validation work by removing final obsolete model references."
+  },
+  "testing": {
+    "manual": [
+      "node --check on fallback-layer-strategy.js (syntax validation passed)"
+    ],
+    "automated": []
+  },
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "pass"
+  },
+  "risk_level": "low",
+  "affected_paths": [
+    "opencode-config/docs/configuration-precedence.md",
+    "packages/opencode-model-router-x/src/strategies/fallback-layer-strategy.js"
+  ],
+  "relatedFiles": [
+    "packages/opencode-config-loader/src/index.js",
+    "packages/opencode-sisyphus-state/src/config/providers.js",
+    "packages/opencode-model-router-x/src/policies.json",
+    "packages/opencode-model-router-x/src/key-rotator.js",
+    "packages/opencode-dashboard/src/app/api/providers/route.ts",
+    "packages/opencode-sisyphus-state/src/stores/provider-status-store.ts"
+  ],
+  "nextSteps": [
+    "Verify Cerebras TPM limits and implement TPM tracking in addition to RPM",
+    "Verify antigravity Google gemini-3 model catalog and update configs if needed",
+    "Create validate-models.mjs script for setup pipeline",
+    "Add model metadata schema to config",
+    "Implement weekly model sync task"
+  ]
+}

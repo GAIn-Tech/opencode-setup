@@ -1,0 +1,16 @@
+{
+  "id": "tool-usage-tracker-async-conversion-20260224",
+  "timestamp": "2026-02-24T00:00:00Z",
+  "summary": "Full async conversion of tool-usage-tracker.js hot-path functions. Added writeJsonAsync with atomic tmp+rename and serialized write queue (_writePromise chain). Added initAsync with _initPromise singleton. All 7 hot-path functions converted to async. trackEvent calls now fire-and-forget with .catch(). Sync helpers renamed to *Sync with @deprecated.",
+  "affected_paths": [
+    "packages/opencode-learning-engine/src/tool-usage-tracker.js",
+    "packages/opencode-learning-engine/test/tool-usage-tracker.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium",
+  "notes": "writeJsonAsync uses atomic tmp+rename with Windows EPERM fallback (direct write). Write queue serializes file writes via _writePromise chain (audit-logger.js pattern). initAsync uses _initPromise singleton (prevents concurrent init races). 20 regression tests added. 28/28 learning-engine tests pass, 331 model-manager tests pass, 5 health-check tests pass. Zero sync fs calls on hot paths (only deprecated wrappers). module.exports shape unchanged."
+}

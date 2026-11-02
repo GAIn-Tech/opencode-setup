@@ -1,0 +1,13 @@
+{
+  "name": "opencode-pev-contract",
+  "version": "1.0.0",
+  "description": "Planner/Executor/Verifier contract interfaces for OpenCode orchestration",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "bun test"
+  },
+  "keywords": ["pev", "planner", "executor", "verifier", "orchestration", "contract"],
+  "dependencies": {},
+  "devDependencies": {}
+}

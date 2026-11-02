@@ -1,0 +1,22 @@
+{
+  "id": "provider-config-and-cerebras-tpm-20260215",
+  "timestamp": "2026-02-15T22:20:00Z",
+  "category": "configuration",
+  "summary": "Expanded provider config coverage and hardened Cerebras TPM handling",
+  "details": "Added missing Anthropic/OpenAI/DeepSeek providers to opencode-config, aligned Gemini IDs to 2.0 naming, removed NVIDIA llama-3.1 reference, updated root fallback list with deepseek/nvidia/groq/cerebras, and improved key-rotator concurrency and TPM-aware cooldown behavior for Cerebras.",
+  "affected_paths": [
+    "opencode-config/opencode.json",
+    "opencode-config/oh-my-opencode.json",
+    "rate-limit-fallback.json",
+    "packages/opencode-model-router-x/src/key-rotator.js",
+    "packages/opencode-sisyphus-state/src/config/providers.js"
+  ],
+  "impact": "High - Improves routing completeness and reduces intermittent TPM-related key exhaustion behavior",
+  "validation": {
+    "tests": "not-run",
+    "lint": "pass",
+    "typecheck": "pass",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}

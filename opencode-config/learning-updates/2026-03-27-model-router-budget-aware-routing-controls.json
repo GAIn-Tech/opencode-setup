@@ -1,0 +1,16 @@
+{
+  "id": "learning-model-router-budget-aware-routing-controls-2026-03-27",
+  "timestamp": "2026-03-27T03:30:00.000Z",
+  "summary": "Added central routing and exploration budget-control knobs (cost-efficiency gates, bounded score jitter, budget-aware exploration caps/disable thresholds) and aligned config-loader defaults plus governance hashes for model-router-x behavior control.",
+  "affected_paths": [
+    "opencode-config/central-config.json",
+    "packages/opencode-config-loader/src/index.js",
+    "opencode-config/.governance-hashes.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "governance-hash-regen-20260328",
+  "timestamp": "2026-03-28T16:05:00.000Z",
+  "summary": "Regenerate governance hashes after model diversification push",
+  "affected_paths": [
+    "opencode-config/.governance-hashes.json"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

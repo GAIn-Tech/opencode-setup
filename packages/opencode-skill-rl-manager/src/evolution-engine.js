@@ -37,15 +37,16 @@ class EvolutionEngine {
     } = failureContext;
     const quotaSignal = this._extractQuotaSignal(failureContext);
 
-    // Step 1: Record failure in history
+    // Step 1: Record failure in history (max 1000 entries to prevent memory leak)
     this.failureHistory.push({
       task_id,
       task_type,
       skills_used,
-      timestamp: Date.now(),
-      anti_pattern,
-      quota_signal: quotaSignal
+      timestamp: Date.now()
     });
+    if (this.failureHistory.length > 1000) {
+      this.failureHistory = this.failureHistory.slice(-1000);
+    }
 
     // Step 2: Distill root cause
     const rootCause = this._distillRootCause(failureContext);
@@ -81,7 +82,10 @@ class EvolutionEngine {
     // Reinforce all skills that were used
     if (skills_used && Array.isArray(skills_used)) {
       skills_used.forEach(skillName => {
-        const updated = this.skillBank.updateSuccessRate(skillName, true, task_type);
+        const updated = this.skillBank.updateSuccessRate(skillName, true, {
+          task_type,
+          record_sample: false,
+        });
         if (updated) {
           reinforcements.push(skillName);
         }
@@ -121,7 +125,8 @@ class EvolutionEngine {
       percent_used: Number.isFinite(percentUsed) ? percentUsed : 0,
       warning_threshold: Number.isFinite(warningThreshold) ? warningThreshold : 0.75,
       critical_threshold: Number.isFinite(criticalThreshold) ? criticalThreshold : 0.9,
-      fallback_applied: Boolean(signal.fallback_applied ?? signal.fallbackApplied)
+      fallback_applied: Boolean(signal.fallback_applied ?? signal.fallbackApplied),
+      fallback_reason: signal.fallback_reason ?? signal.fallbackReason ?? null
     };
   }
 
@@ -130,7 +135,16 @@ class EvolutionEngine {
       return false;
     }
 
-    return signal.fallback_applied || signal.percent_used >= signal.warning_threshold;
+    if (signal.percent_used >= signal.warning_threshold) {
+      return true;
+    }
+
+    if (!signal.fallback_applied) {
+      return false;
+    }
+
+    const reason = String(signal.fallback_reason || '').toLowerCase();
+    return reason.startsWith('quota');
   }
 
   _upsertQuotaAwareSkill(taskType) {
@@ -159,12 +173,6 @@ class EvolutionEngine {
   }
 
   _applyQuotaSecondarySignal({ task_type, skills_used, quota_signal, success, result }) {
-    console.log('[EvolutionEngine] _applyQuotaSecondarySignal', { task_type, success, hasSignal: !!quota_signal });
-    if (quota_signal) {
-      console.log('[EvolutionEngine] quota_signal:', JSON.stringify(quota_signal, null, 2));
-      console.log('[EvolutionEngine] _isQuotaPressure:', this._isQuotaPressure(quota_signal));
-    }
-    
     if (!this._isQuotaPressure(quota_signal)) {
       return;
     }
@@ -190,7 +198,10 @@ class EvolutionEngine {
 
     if (success && Array.isArray(skills_used)) {
       skills_used.forEach((skillName) => {
-        this.skillBank.updateSuccessRate(skillName, true, task_type);
+        this.skillBank.updateSuccessRate(skillName, true, {
+          task_type,
+          record_sample: false,
+        });
       });
     }
   }
@@ -270,7 +281,10 @@ class EvolutionEngine {
     // Step 1: Penalize skills that were used in failure
     if (skills_used && Array.isArray(skills_used)) {
       skills_used.forEach(skillName => {
-        const updated = this.skillBank.updateSuccessRate(skillName, false, task_type);
+        const updated = this.skillBank.updateSuccessRate(skillName, false, {
+          task_type,
+          record_sample: false,
+        });
         if (updated) {
           result.updated_skills.push({
             name: skillName,
@@ -363,6 +377,58 @@ class EvolutionEngine {
       by_anti_pattern: byAntiPattern,
       recent_failures: this.failureHistory.slice(-10)
     };
+  }
+
+  /**
+   * Generate tier feedback based on failure/success patterns
+   * Used by PreloadSkillsPlugin to adjust tool tiers over time
+   * 
+   * @param {Object} usageStats - { skillName: { loads: N, taskTypes: Set, onDemand: N } }
+   * @returns {Object} { promotions: [{skill, taskType, reason}], demotions: [{skill, reason}] }
+   */
+  generateTierFeedback(usageStats = {}) {
+    const promotions = [];
+    const demotions = [];
+
+    for (const [skillName, stats] of Object.entries(usageStats)) {
+      // Promote: on-demand loaded 5+ times for a specific task type
+      if (stats.onDemandLoads >= 5 && stats.taskTypes) {
+        for (const taskType of (stats.taskTypes instanceof Set ? [...stats.taskTypes] : stats.taskTypes)) {
+          promotions.push({
+            skill: skillName,
+            taskType,
+            reason: `Loaded on-demand ${stats.onDemandLoads} times for ${taskType} tasks`
+          });
+        }
+      }
+
+      // Demote: loaded but rarely used (<5% usage rate over 50+ sessions)
+      if (stats.totalSessions >= 50 && stats.usageRate < 0.05) {
+        demotions.push({
+          skill: skillName,
+          reason: `Usage rate ${(stats.usageRate * 100).toFixed(1)}% over ${stats.totalSessions} sessions`
+        });
+      }
+    }
+
+    // Cross-reference with failure history: skills involved in repeated failures get demotion signal
+    const failureCounts = {};
+    for (const failure of this.failureHistory.slice(-100)) {
+      for (const skill of (failure.skills_used || [])) {
+        failureCounts[skill] = (failureCounts[skill] || 0) + 1;
+      }
+    }
+
+    for (const [skill, count] of Object.entries(failureCounts)) {
+      if (count >= 10 && !demotions.find(d => d.skill === skill)) {
+        demotions.push({
+          skill,
+          reason: `Involved in ${count} failures in last 100 tasks`
+        });
+      }
+    }
+
+    return { promotions, demotions };
   }
 
   /**

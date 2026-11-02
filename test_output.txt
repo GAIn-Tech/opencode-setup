@@ -1,0 +1,206 @@
+bun test v1.3.10 (30e609e0)
+[preload-skills] Initialized with undefined skills across 3 tiers
+[WorkflowStore] Applied migration 002: API Usage Tracking
+[Startup] LearningEngine: 39.5ms
+[33m[2026-03-19T02:45:00.218Z] WARN[0m: [ModelRouter] Fallback chain issues detected {
+  issues: [
+    "Unknown model \"google/antigravity-gemini-3-pro\". Did you mean \"google/gemini-3-pro\"? Known google models: google/gemini-3-pro, google/gemini-3-flash, google/gemini-3-flash-8b, google/gemini-2.0-pro, google/gemini-2.0-flash",
+    "Unknown model \"google/antigravity-gemini-3-flash\". Did you mean \"google/gemini-3-flash\"? Known google models: google/gemini-3-pro, google/gemini-3-flash, google/gemini-3-flash-8b, google/gemini-2.0-pro, google/gemini-2.0-flash",
+    "Unknown model \"google/antigravity-claude-sonnet-4-5-thinking\". Did you mean \"google/gemini-3-flash\"? Known google models: google/gemini-3-pro, google/gemini-3-flash, google/gemini-3-flash-8b, google/gemini-2.0-pro, google/gemini-2.0-flash",
+    "Unknown model \"google/antigravity-claude-opus-4-6-thinking\". Did you mean \"google/gemini-3-flash\"? Known google models: google/gemini-3-pro, google/gemini-3-flash, google/gemini-3-flash-8b, google/gemini-2.0-pro, google/gemini-2.0-flash",
+    "Unknown provider \"zen\". Known providers: anthropic, openai, google, kimi, groq, cerebras, sambanova, mistral, meta, deepseek, xai",
+    "Unknown provider \"zen\". Known providers: anthropic, openai, google, kimi, groq, cerebras, sambanova, mistral, meta, deepseek, xai",
+    "Unknown provider \"zen\". Known providers: anthropic, openai, google, kimi, groq, cerebras, sambanova, mistral, meta, deepseek, xai",
+    "Unknown provider \"zen\". Known providers: anthropic, openai, google, kimi, groq, cerebras, sambanova, mistral, meta, deepseek, xai",
+    "Unknown provider \"zen\". Known providers: anthropic, openai, google, kimi, groq, cerebras, sambanova, mistral, meta, deepseek, xai",
+    "Unknown provider \"nvidia\". Known providers: anthropic, openai, google, kimi, groq, cerebras, sambanova, mistral, meta, deepseek, xai",
+    "Unknown provider \"nvidia\". Known providers: anthropic, openai, google, kimi, groq, cerebras, sambanova, mistral, meta, deepseek, xai",
+    "Unknown provider \"nvidia\". Known providers: anthropic, openai, google, kimi, groq, cerebras, sambanova, mistral, meta, deepseek, xai",
+    "Unknown provider \"zen\". Known providers: anthropic, openai, google, kimi, groq, cerebras, sambanova, mistral, meta, deepseek, xai",
+    "Unknown provider \"zen\". Known providers: anthropic, openai, google, kimi, groq, cerebras, sambanova, mistral, meta, deepseek, xai",
+    "Unknown provider \"nvidia\". Known providers: anthropic, openai, google, kimi, groq, cerebras, sambanova, mistral, meta, deepseek, xai",
+    "Fallback chain has 23 models. Consider trimming to reduce latency from cascading failures."
+  ],
+}
+[32m[2026-03-19T02:45:00.227Z] INFO[0m: [Startup] ModelRouter {
+  startupMs: 19.2,
+}
+[INFO] IntegrationLayer initialized {
+  startupMs: 0.2,
+  hasSkillRL: true,
+  hasShowboat: true,
+  hasQuotaManager: false,
+  hasAdvisor: true,
+  hasModelRouter: true,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.2ms 
+[ThompsonSampling] Loaded posteriors for 1 categories
+[DynamicExploration] Components initialized
+[DynamicExploration] Mode activated: balanced, Budget: 20%
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+🚀 E2E Test: SkillRL + Showboat Full Workflow
+
+════════════════════════════════════════════════════════════
+
+📦 Setting up components...
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: true,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+✅ SkillRLManager initialized
+✅ ShowboatWrapper initialized
+✅ IntegrationLayer initialized
+
+════════════════════════════════════════════════════════════
+📋 SCENARIO 1: High-Impact Authentication Feature
+════════════════════════════════════════════════════════════
+
+1️⃣  OrchestrationAdvisor provides guidance...
+   - Base routing: explore
+   - Base skills: grep, read
+   - SkillRL augmentation: systematic-debugging, supermemory, sequentialthinking
+✅ SkillRL augmented advice with hierarchical skills
+
+2️⃣  Task executed... Running verification...
+[ShowboatWrapper] Capturing evidence for high-impact task: Implement OAuth 2.0 authentication system
+[ShowboatWrapper] Evidence captured: e2e-evidence\evidence-1773888304406.md
+[INFO] Evidence captured {
+  path: "e2e-evidence\\evidence-1773888304406.md",
+}
+   - Verification status: PASS ✅
+
+3️⃣  Checking evidence capture...
+   - Evidence file: evidence-1773888304406.md
+   - Contains Playwright assertions: YES ✅
+   - Contains verification status: YES ✅
+✅ High-impact task generated showboat evidence document
+
+════════════════════════════════════════════════════════════
+📋 SCENARIO 2: Low-Impact Documentation Fix
+════════════════════════════════════════════════════════════
+
+1️⃣  Task context set (low impact)...
+✅ Low-impact task correctly skipped evidence capture
+
+════════════════════════════════════════════════════════════
+📋 SCENARIO 3: Failed Task → SkillRL Evolution
+════════════════════════════════════════════════════════════
+
+1️⃣  Task attempted and failed...
+[INFO] Failure distilled into SkillRL {
+  antiPatternType: "inefficient_solution",
+  task: "Implement WebSocket real-time sync",
+}
+   - Failures before: 84
+   - Failures after: 85
+✅ Failure distilled and recorded in SkillRL evolution engine
+
+════════════════════════════════════════════════════════════
+📋 SCENARIO 4: Full Workflow End-to-End
+════════════════════════════════════════════════════════════
+
+1️⃣  Executing full workflow...
+[INFO] SkillRL selected skills {
+  skills: [ "systematic-debugging", "supermemory",
+    "sequentialthinking"
+  ],
+  task: "Deploy production database migration",
+}
+   - Task: Deploy production database migration
+   - Skills selected: systematic-debugging, supermemory, sequentialthinking
+[ShowboatWrapper] Capturing evidence for high-impact task: Deploy production database migration
+[ShowboatWrapper] Evidence captured: e2e-evidence\evidence-1773888304426.md
+✅ Full workflow executed: skill selection → execution → evidence capture
+
+════════════════════════════════════════════════════════════
+📊 E2E TEST SUMMARY
+════════════════════════════════════════════════════════════
+✅ Scenario 1: High-impact task generated evidence
+✅ Scenario 2: Low-impact task skipped evidence
+✅ Scenario 3: Failure distilled into SkillRL
+✅ Scenario 4: Full workflow end-to-end
+
+🎉 ALL E2E TESTS PASSED!
+

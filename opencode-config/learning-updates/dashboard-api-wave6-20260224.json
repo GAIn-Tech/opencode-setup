@@ -1,0 +1,17 @@
+{
+  "id": "dashboard-api-wave6-20260224",
+  "timestamp": "2026-02-24T07:30:00Z",
+  "summary": "Added lifecycle management API endpoints to dashboard for model state management",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/models/lifecycle/route.ts",
+    "packages/opencode-dashboard/src/app/api/models/transition/route.ts",
+    "packages/opencode-dashboard/src/app/api/models/audit/route.ts"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Wave 6.1 of model management protocol. API endpoints integrate with model-manager lifecycle components."
+}

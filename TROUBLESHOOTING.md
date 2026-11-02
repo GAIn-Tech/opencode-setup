@@ -4,6 +4,41 @@
 
 ---
 
+## 🔴 Config file not valid JSON (JSONC)
+
+**Symptoms:**  
+`Error: Config file at .../opencode.json is not valid JSON(C)` with errors like `InvalidSymbol` or `UnexpectedEndOfString` around a line with `#` or `//`.
+
+**Cause:** `opencode.json` is parsed as strict JSON. Comments (`#` or `//`) and trailing text after a value (e.g. commenting out a second API key with `#`) are invalid and break the parser.
+
+**Fix:**
+
+1. Open `~/.config/opencode/opencode.json` (on Windows: `%USERPROFILE%\.config\opencode\opencode.json`).
+2. Find the line with the error (e.g. in the Cerebras block, an `apiKey` line ending with `#,..."`).
+3. Remove the comment and everything after the closing quote of the value. The line must end with a valid string and then `,` or `}`.
+
+**Example — wrong (invalid):**
+```json
+"apiKey": "csk-xxx" #,csk-second-key..."
+```
+
+**Example — correct:**
+```json
+"apiKey": "{env:CEREBRAS_API_KEYS}"
+```
+or a single literal key:
+```json
+"apiKey": "csk-your-key-here"
+```
+
+**PowerShell one-liner** to strip `#`-style trailing comments from the Cerebras apiKey line (run from any dir):
+```powershell
+(Get-Content $env:USERPROFILE\.config\opencode\opencode.json -Raw) -replace '"apiKey": "([^"]+)"\s*#.*', '"apiKey": "$1"' | Set-Content $env:USERPROFILE\.config\opencode\opencode.json -NoNewline
+```
+Then validate: `Get-Content $env:USERPROFILE\.config\opencode\opencode.json | ConvertFrom-Json | Out-Null; echo "JSON OK"`
+
+---
+
 ## 🔴 Plugin Issues
 
 ### Plugin Not Loading

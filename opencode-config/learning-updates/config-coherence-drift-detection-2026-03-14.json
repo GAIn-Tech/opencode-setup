@@ -1,0 +1,15 @@
+{
+  "id": "config-coherence-drift-detection-2026-03-14",
+  "timestamp": "2026-03-14T00:00:00.000Z",
+  "summary": "Rewrote validate-config-coherence.mjs from model-reference validation into SHA256-based config drift detection. Compares repo opencode-config/ against runtime ~/.config/opencode/ for CONFIG_FILES, CONFIG_DIRS, and MERGE_DIRS. Exports validateConfigCoherence() for programmatic use. Supports --json and --quiet CLI flags. MERGE_DIRS only check repo entries exist in runtime (user-custom entries preserved). Unblocks protocol-compliance-pass.mjs line 69 which calls bun run config:coherence.",
+  "affected_paths": [
+    "scripts/validate-config-coherence.mjs",
+    "scripts/tests/validate-config-coherence.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

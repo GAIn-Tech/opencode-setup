@@ -1,0 +1,19 @@
+{
+  "id": "wave10-t17-benchmark-cost-tests",
+  "timestamp": "2026-03-08T19:25:00Z",
+  "summary": "Add 17 tests for benchmark bonus (T12) and cost-efficiency scoring (T13) in isolation pattern. Tests cover: bonus range, unknown models, cap enforcement, monotonicity, provider coverage, cost ordering, and integration bounds.",
+  "affected_paths": [
+    "packages/opencode-model-router-x/test/benchmark-cost-scoring.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "wave": "10",
+  "phase": 3,
+  "tasks": [
+    "T17"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "id": "meta-awareness-test-harness-20260224",
+  "timestamp": "2026-02-24T22:35:00Z",
+  "summary": "Add dedicated unit coverage for meta-awareness rules/stability/rollups/tracker and wire unit tests into the learning-engine test script.",
+  "affected_paths": [
+    "packages/opencode-learning-engine/package.json",
+    "packages/opencode-learning-engine/test/meta-awareness.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "scripts": "npm test (packages/opencode-learning-engine)"
+  },
+  "risk_level": "low",
+  "notes": "Ensures deterministic regression coverage for bounded updates, anomaly detection, weighted composite scoring, and tracker persistence behavior."
+}

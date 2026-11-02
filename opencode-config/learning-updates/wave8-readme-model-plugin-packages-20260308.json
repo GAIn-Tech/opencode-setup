@@ -1,0 +1,17 @@
+{
+  "id": "wave8-readme-model-plugin-packages-20260308",
+  "timestamp": "2026-03-08T00:20:00Z",
+  "summary": "Add README.md to four model and plugin packages that had none: opencode-model-benchmark, opencode-model-sync, opencode-plugin-lifecycle, opencode-plugin-preload-skills. Completes Wave 8C task 8 for the model/plugin tier.",
+  "affected_paths": [
+    "packages/opencode-model-benchmark",
+    "packages/opencode-model-sync",
+    "packages/opencode-plugin-lifecycle",
+    "packages/opencode-plugin-preload-skills"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

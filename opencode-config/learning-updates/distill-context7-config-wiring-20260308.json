@@ -1,0 +1,26 @@
+{
+  "id": "distill-context7-config-wiring-20260308",
+  "timestamp": "2026-03-08T00:00:00Z",
+  "category": "configuration",
+  "summary": "Wire distill and context7 skills into the active system: enable both (plus budget-aware-router) in compound-engineering.json enabled list; add distill to oh-my-opencode.json MCP toggles; add @tarquinen/opencode-dcp@latest plugin to opencode.json plugin array (was documented in README and plugins/opencode-dcp/info.md but missing from active config).",
+  "affected_paths": [
+    "opencode-config/compound-engineering.json",
+    "opencode-config/oh-my-opencode.json",
+    "opencode-config/opencode.json"
+  ],
+  "changes": {
+    "compound-engineering.json": "Added 'budget-aware-router', 'context7', 'distill' to skills.enabled array (15 → 18 enabled skills)",
+    "oh-my-opencode.json": "Added distill MCP toggle { enabled: true } to mcp section (2 → 3 MCP toggles)",
+    "opencode.json": "Added '@tarquinen/opencode-dcp@latest' to plugin array (7 → 8 plugins); DCP was referenced in README and plugins/opencode-dcp/info.md but absent from active plugin config"
+  },
+  "risk_level": "low",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "node scripts/learning-gate.mjs --generate-hashes"
+    ],
+    "notes": "All changes are config additions only. New skills are additive (no conflicts). DCP plugin was already documented as installed. No breaking changes."
+  }
+}

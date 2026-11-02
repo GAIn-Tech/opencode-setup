@@ -1,0 +1,45 @@
+{
+  "id": "namespace-drift-remaining-fixes-20260225",
+  "timestamp": "2026-02-25T22:50:00.000Z",
+  "category": "namespace-drift",
+  "summary": "Fixed remaining @jackoatmon scoped imports in crash-guard, integration-layer, and learning-engine",
+  "details": "Replaced 3 remaining @jackoatmon/opencode-* references with unscoped opencode-* imports. crash-guard had a JSDoc comment reference, integration-layer and learning-engine had runtime require() calls with fallback chains.",
+  "scope": "multi-package",
+  "packages": ["opencode-crash-guard", "opencode-integration-layer", "opencode-learning-engine"],
+  "affected_paths": [
+    "packages/opencode-crash-guard/src/shutdown-manager.js",
+    "packages/opencode-integration-layer/src/index.js",
+    "packages/opencode-learning-engine/src/orchestration-advisor.js"
+  ],
+  "changes": [
+    {
+      "package": "opencode-crash-guard",
+      "type": "namespace-fix",
+      "description": "Fixed @jackoatmon scoped import in JSDoc comment",
+      "impact": "Documentation correctness"
+    },
+    {
+      "package": "opencode-integration-layer",
+      "type": "namespace-fix",
+      "description": "Fixed @jackoatmon scoped require() to unscoped opencode-shared-orchestration",
+      "impact": "Runtime import resolution"
+    },
+    {
+      "package": "opencode-learning-engine",
+      "type": "namespace-fix",
+      "description": "Fixed @jackoatmon scoped require() to unscoped opencode-shared-orchestration",
+      "impact": "Runtime import resolution"
+    }
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "pass"
+  },
+  "risk_level": "low",
+  "governance": {
+    "wave": "wave-8",
+    "plan": "namespace-drift-fix",
+    "total_risk_reduction": 3
+  }
+}

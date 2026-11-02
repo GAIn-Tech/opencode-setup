@@ -1,0 +1,16 @@
+{
+  "id": "mcp-runtime-safe-copy-sync-20260313",
+  "timestamp": "2026-03-13T04:23:00Z",
+  "summary": "Apply dormant MCP filtering during copy-config sync so the actual user config only exposes host-safe MCP entries while preserving user-installed skills and custom MCPs.",
+  "affected_paths": [
+    "scripts/copy-config.mjs",
+    "scripts/tests/copy-config.test.js",
+    "opencode-config/learning-updates/mcp-runtime-safe-copy-sync-20260313.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

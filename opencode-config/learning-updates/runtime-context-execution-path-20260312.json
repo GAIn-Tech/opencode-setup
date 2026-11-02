@@ -1,0 +1,15 @@
+{
+  "id": "runtime-context-execution-path-20260312",
+  "timestamp": "2026-03-12T15:35:00Z",
+  "summary": "Wire resolveRuntimeContext into executeTaskWithEvidence so DCP/context-governor/distill recommendations participate in real runtime execution and replace remaining runtime-path console logging with structured logger usage.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/index.js",
+    "packages/opencode-integration-layer/tests/execute-task-runtime-context.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

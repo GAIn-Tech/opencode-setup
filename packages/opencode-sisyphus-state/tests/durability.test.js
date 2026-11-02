@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { spawnSync } from 'child_process';
 import { WorkflowStore, WorkflowExecutor } from '../src/index.js';
 
@@ -23,8 +24,8 @@ describe('Durability / crash-resume', () => {
 
   beforeEach(() => {
     const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-    dbPath = path.join(__dirname, `durability-${uniqueId}.db`);
-    markerPath = path.join(__dirname, `durability-${uniqueId}.log`);
+    dbPath = path.join(os.tmpdir(), `durability-${uniqueId}.db`);
+    markerPath = path.join(os.tmpdir(), `durability-${uniqueId}.log`);
     removeArtifacts(dbPath);
     if (fs.existsSync(markerPath)) {
       fs.unlinkSync(markerPath);

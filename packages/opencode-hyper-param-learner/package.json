@@ -1,0 +1,17 @@
+{
+  "name": "opencode-hyper-param-learner",
+  "version": "1.0.0",
+  "description": "Hyper-parameter registry and persistence infrastructure for adaptive learning",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "bun test test/"
+  },
+  "keywords": [
+    "opencode",
+    "hyper-parameters",
+    "learning",
+    "registry"
+  ],
+  "license": "MIT"
+}

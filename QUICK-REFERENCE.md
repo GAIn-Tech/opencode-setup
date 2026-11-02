@@ -5,8 +5,9 @@
 ```bash
 npm install -g opencode
 git clone https://github.com/GAIn-Tech/opencode-setup.git
-cp opencode-setup/opencode-config/* ~/.config/opencode/
-cp opencode-setup/opencode-config/config.yaml ~/.opencode/config.yaml
+cd opencode-setup
+bun run setup
+bun run verify
 opencode  # Plugins auto-install, MCP servers auto-connect
 ```
 
@@ -112,7 +113,6 @@ task(category="deep", load_skills=["systematic-debugging", "test-driven-developm
 | @mohak34/opencode-notifier | OS notifications |
 | opencode-plugin-langfuse | LLM tracing & cost tracking |
 | opencode-plugin-preload-skills | Contextual skill loading |
-| @symbioticsec/opencode-security-plugin | Security guardrails and scanning |
 | envsitter-guard | Blocks reading env/secret files |
 | opencode-antigravity-quota | Antigravity quota visibility |
 | opencode-pty | Interactive/background process control |

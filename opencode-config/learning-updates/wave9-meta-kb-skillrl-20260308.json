@@ -1,0 +1,20 @@
+{
+  "id": "wave9-meta-kb-skillrl-20260308",
+  "timestamp": "2026-03-08T13:00:00Z",
+  "category": "tooling",
+  "summary": "Wire meta-KB signals into IntegrationLayer SkillRL hooks — anti-pattern penalties and positive evidence boosts adjust skill promotion/demotion scores",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/index.js",
+    "packages/opencode-integration-layer/tests/meta-kb-skillrl.test.js"
+  ],
+  "root_cause": "SkillRL promotion/demotion was based purely on usage frequency without considering meta-KB anti-pattern evidence or positive outcome history",
+  "fix_approach": "Load meta-KB index in IntegrationLayer constructor (fail-open), compute skill adjustments in onBeforeAdviceReturn hook via _computeMetaKBSkillAdjustments() that penalizes skills matching anti-patterns and boosts skills matching positive path evidence",
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["node --test packages/opencode-integration-layer/tests/meta-kb-skillrl.test.js", "bun test"],
+    "notes": "4 new tests: anti-pattern penalty, positive boost, fail-open without meta-KB, fail-open without SkillRL. bun test exit 0."
+  }
+}

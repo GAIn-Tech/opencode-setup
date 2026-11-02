@@ -1,0 +1,16 @@
+{
+  "id": "wave11-t14-dcp-skill-20260308",
+  "timestamp": "2026-03-08T23:10:00Z",
+  "summary": "T14: Create DCP skill file and expand plugin documentation. Add DCP entry to registry.json and compound-engineering.json enabled/optimization lists. Document DCP integration with ContextBridge and distill compression stack.",
+  "affected_paths": [
+    "opencode-config/skills/dcp/SKILL.md",
+    "opencode-config/skills/registry.json",
+    "opencode-config/compound-engineering.json"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "profile-based-loading-20260308",
+  "timestamp": "2026-03-08T00:00:00Z",
+  "category": "skill-activation",
+  "summary": "Wire 7 profile definitions from registry.json into skill-orchestrator-runtime and using-superpowers SKILL.md files. Profiles enable curated skill subset loading for common task patterns (deep-refactoring, planning-cycle, review-cycle, parallel-implementation, browser-testing, diagnostic-healing, research-to-code) instead of scoring all 29 skills.",
+  "affected_paths": [
+    "opencode-config/skills/skill-orchestrator-runtime/SKILL.md",
+    "opencode-config/skills/superpowers/using-superpowers/SKILL.md"
+  ],
+  "root_cause": "Profiles existed in registry.json but were not referenced by any skill file. Agents had no guidance to use profile-based loading.",
+  "fix_approach": "Added Profile-Based Loading section to skill-orchestrator-runtime with resolution algorithm and profile table. Added profile quick-reference table and updated Skill Priority section in using-superpowers.",
+  "risk_level": "low",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["node scripts/learning-gate.mjs --generate-hashes"],
+    "notes": "Documentation-only changes to SKILL.md files. No runtime code changed."
+  }
+}

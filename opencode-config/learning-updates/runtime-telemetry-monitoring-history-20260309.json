@@ -1,0 +1,15 @@
+{
+  "id": "runtime-telemetry-monitoring-history-20260309",
+  "timestamp": "2026-03-09T22:45:00-04:00",
+  "summary": "Extend the PostToolUse runtime hook to persist distill and Context7 monitoring events into shared observability history alongside existing tool-usage telemetry.",
+  "affected_paths": [
+    "scripts/runtime-tool-telemetry.mjs",
+    "scripts/tests/runtime-tool-telemetry.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

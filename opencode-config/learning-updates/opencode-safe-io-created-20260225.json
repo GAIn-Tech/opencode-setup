@@ -1,0 +1,17 @@
+{
+  "id": "learning-opencode-safe-io-created-20260225",
+  "timestamp": "2026-02-25T01:30:00-05:00",
+  "summary": "Created opencode-safe-io shared utility package with safeJsonParse, safeJsonRead, SafeJSON, managedInterval, managedListener. Leaf-only, zero external deps, dual CJS/ESM.",
+  "affected_paths": [
+    "packages/opencode-safe-io/package.json",
+    "packages/opencode-safe-io/src/index.js",
+    "packages/opencode-safe-io/src/index.mjs",
+    "packages/opencode-safe-io/test/index.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

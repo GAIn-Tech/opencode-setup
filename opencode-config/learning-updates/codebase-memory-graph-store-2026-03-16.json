@@ -1,0 +1,15 @@
+{
+  "id": "codebase-memory-graph-store-2026-03-16",
+  "timestamp": "2026-03-16T14:30:00Z",
+  "summary": "Implemented GraphStore class for opencode-codebase-memory: SQLite-backed symbol/edge/file storage with FTS5 full-text search, recursive CTE blast radius analysis, WAL mode, and prepared statements. 6 tests covering schema init, CRUD, FTS search, transitive caller traversal, and file metadata.",
+  "affected_paths": [
+    "packages/opencode-codebase-memory/src/graph-store.js",
+    "packages/opencode-codebase-memory/test/graph-store.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

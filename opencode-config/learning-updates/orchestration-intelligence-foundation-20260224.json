@@ -1,0 +1,33 @@
+{
+  "id": "orchestration-intelligence-foundation-20260224",
+  "timestamp": "2026-02-24T22:10:00Z",
+  "summary": "Add orchestration intelligence foundation with meta-awareness telemetry, scoring, stability guardrails, dashboard APIs/UI, and central-config controls.",
+  "affected_paths": [
+    "docs/central-config.md",
+    "docs/plans/2026-02-23-orchestration-intelligence-design.md",
+    "opencode-config/central-config.json",
+    "packages/opencode-dashboard/src/app/api/orchestration/correlation/route.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/forensics/route.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/meta-awareness/route.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/meta-awareness/timeline/route.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/stability/route.ts",
+    "packages/opencode-dashboard/src/app/orchestration/intelligence/page.tsx",
+    "packages/opencode-dashboard/src/components/Sidebar.tsx",
+    "packages/opencode-dashboard/src/lib/meta-awareness.ts",
+    "packages/opencode-learning-engine/src/index.js",
+    "packages/opencode-learning-engine/src/meta-awareness-rollups.js",
+    "packages/opencode-learning-engine/src/meta-awareness-rules.js",
+    "packages/opencode-learning-engine/src/meta-awareness-stability.js",
+    "packages/opencode-learning-engine/src/meta-awareness-tracker.js",
+    "packages/opencode-learning-engine/src/tool-usage-tracker.js",
+    "packages/opencode-model-router-x/src/index.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "scripts": "npm test (opencode-learning-engine), npm run build (opencode-dashboard), bun test packages/opencode-model-router-x/test/"
+  },
+  "risk_level": "medium",
+  "notes": "Implements bounded-update and anomaly-aware orchestration learning signals with confidence-gated RL integration and a first-pass intelligence dashboard surface."
+}

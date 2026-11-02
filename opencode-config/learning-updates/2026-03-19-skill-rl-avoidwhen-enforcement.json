@@ -1,0 +1,30 @@
+{
+  "id": "skill-rl-avoidwhen-enforcement-2026-03-19",
+  "timestamp": "2026-03-19T06:50:00.000Z",
+  "summary": "Fix _matchesContext() blocker #1: remove success_rate>0.7 fallback and enforce avoidWhen selection hints. Eliminates toxic combination where default 0.75 success_rate caused all imported skills to match all contexts.",
+  "affected_paths": [
+    "packages/opencode-skill-rl-manager/src/skill-bank.js",
+    "packages/opencode-skill-rl-manager/test/selection.test.js"
+  ],
+  "changes": {
+    "removed": [
+      "Line 277: fallback return skill.success_rate > 0.7"
+    ],
+    "added": [
+      "Private method _isAvoidContext(skill, taskContext) at lines 244-273",
+      "avoidWhen check in _matchesContext() before tag matching at line 288",
+      "New test file selection.test.js with 3 test cases"
+    ],
+    "modified": [
+      "_matchesContext() now returns false instead of success_rate fallback"
+    ]
+  },
+  "validation": {
+    "tests": "pass",
+    "build": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "TDD cycle: RED (failing tests) → GREEN (implementation) → REFACTOR (extracted _isAvoidContext). All skill-rl-manager tests pass (19/19). No regressions."
+}

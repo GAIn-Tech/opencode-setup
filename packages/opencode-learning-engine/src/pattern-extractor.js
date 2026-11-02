@@ -9,6 +9,29 @@
  *                      clean_refactor, fast_resolution
  */
 
+// === CONFIDENCE CALCULATION CONSTANTS ===
+// Base confidence values by severity level (0-1 scale)
+const CONFIDENCE_SEVERITY_BASE = Object.freeze({
+  critical: 0.95,
+  high: 0.8,
+  medium: 0.65,
+  low: 0.5,
+});
+
+// Boost caps and divisors for signal-based confidence adjustment
+const CONFIDENCE_SIGNAL_BOOST = Object.freeze({
+  maxBoost: 0.15,       // Maximum boost from strongest signal
+  divisor: 100,         // Divisor for normalizing signal magnitude
+});
+const CONFIDENCE_CONTEXT_BOOST = Object.freeze({
+  maxBoost: 0.05,       // Maximum boost from message count
+  divisor: 500,         // Divisor for normalizing message count
+});
+const CONFIDENCE_CLAMP = Object.freeze({
+  min: 0,
+  max: 0.99,           // Cap at 99% confidence
+});
+
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -62,11 +85,18 @@ class PatternExtractor {
     positivePatterns.push(...this._detectGoodDelegation(messages, sessionId));
     positivePatterns.push(...this._detectFastResolution(messages, sessionId));
 
+    const antiPatternsWithConfidence = antiPatterns.map((pattern) =>
+      this._applyConfidence(pattern, messages.length)
+    );
+    const positivePatternsWithConfidence = positivePatterns.map((pattern) =>
+      this._applyConfidence(pattern, messages.length)
+    );
+
     return {
       session_id: sessionId,
       message_count: messages.length,
-      anti_patterns: antiPatterns,
-      positive_patterns: positivePatterns,
+      anti_patterns: antiPatternsWithConfidence,
+      positive_patterns: positivePatternsWithConfidence,
       extracted_at: new Date().toISOString(),
     };
   }
@@ -88,7 +118,9 @@ class PatternExtractor {
     }
 
     // Cross-session: repeated_mistake detection
-    const crossSession = this._detectRepeatedMistakes(allResults);
+    const crossSession = this._detectRepeatedMistakes(allResults).map((pattern) =>
+      this._applyConfidence(pattern, 0)
+    );
 
     return {
       sessions_analyzed: sessionDirs.length,
@@ -101,6 +133,48 @@ class PatternExtractor {
         0
       ),
       extracted_at: new Date().toISOString(),
+    };
+  }
+
+  _applyConfidence(pattern, messageCount) {
+    if (!pattern || typeof pattern !== 'object') {
+      return pattern;
+    }
+
+    // Use severity-based base confidence
+    const severity = String(pattern.severity || 'medium').toLowerCase();
+    const base = CONFIDENCE_SEVERITY_BASE[severity] || CONFIDENCE_SEVERITY_BASE.medium;
+
+    const context = pattern.context && typeof pattern.context === 'object' ? pattern.context : {};
+    const numericSignals = [
+      Number(context.occurrences),
+      Number(context.consecutive_failures),
+      Number(context.total_edits),
+      Number(context.failed_edits),
+      Number(context.ratio),
+      Number(context.affected_sessions),
+    ].filter((value) => Number.isFinite(value) && value > 0);
+
+    // Calculate signal boost with configurable cap and divisor
+    const strongestSignal = numericSignals.length > 0 ? Math.max(...numericSignals) : 0;
+    const signalBoost = strongestSignal > 0 
+      ? Math.min(CONFIDENCE_SIGNAL_BOOST.maxBoost, strongestSignal / CONFIDENCE_SIGNAL_BOOST.divisor) 
+      : 0;
+    
+    // Calculate context boost (message count) with configurable cap and divisor
+    const contextBoost = messageCount > 0 
+      ? Math.min(CONFIDENCE_CONTEXT_BOOST.maxBoost, messageCount / CONFIDENCE_CONTEXT_BOOST.divisor) 
+      : 0;
+
+    // Apply clamps to final confidence
+    const confidence = Math.max(
+      CONFIDENCE_CLAMP.min, 
+      Math.min(CONFIDENCE_CLAMP.max, base + signalBoost + contextBoost)
+    );
+
+    return {
+      ...pattern,
+      confidence: Math.round(confidence * 100) / 100,
     };
   }
 
@@ -567,18 +641,37 @@ class PatternExtractor {
 
   // ===== HELPERS =====
 
-  _loadSessionMessages(sessionDir) {
+  /**
+   * Load session messages with batching to prevent memory exhaustion.
+   * 
+   * MEMORY OPTIMIZATION: Processes JSON files in batches instead of loading
+   * all simultaneously. For very large sessions (500+ messages), this prevents OOM.
+   *
+   * @param {string} sessionDir  Directory containing session JSON files.
+   * @param {object} [opts]  Options for batched loading.
+   * @param {number} [opts.batchSize=100]  Max files to load at once.
+   * @returns {object[]} Sorted array of message objects.
+   */
+  _loadSessionMessages(sessionDir, opts = {}) {
+    const { batchSize = 100 } = opts;
+    
     try {
       const files = fs.readdirSync(sessionDir).filter((f) => f.endsWith('.json'));
       const messages = [];
 
-      for (const file of files) {
-        try {
-          const raw = fs.readFileSync(path.join(sessionDir, file), 'utf8');
-          const msg = JSON.parse(raw);
-          messages.push(msg);
-        } catch {
-          // Skip malformed files
+      // Process files in batches to prevent memory exhaustion
+      for (let i = 0; i < files.length; i += batchSize) {
+        const batch = files.slice(i, i + batchSize);
+        
+        for (const file of batch) {
+          try {
+            const raw = fs.readFileSync(path.join(sessionDir, file), 'utf8');
+            const msg = JSON.parse(raw);
+            messages.push(msg);
+          } catch (err) {
+            // pattern extraction is best-effort; log but don't propagate
+            if (process.env.DEBUG) console.warn('[PatternExtractor] parse error (skipped):', err.message);
+          }
         }
       }
 
@@ -590,7 +683,9 @@ class PatternExtractor {
       });
 
       return messages;
-    } catch {
+    } catch (err) {
+      // pattern extraction is best-effort; log but don't propagate
+      if (process.env.DEBUG) console.warn('[PatternExtractor] parse error (skipped):', err.message);
       return [];
     }
   }
@@ -602,7 +697,9 @@ class PatternExtractor {
         .readdirSync(MESSAGES_DIR, { withFileTypes: true })
         .filter((d) => d.isDirectory())
         .map((d) => d.name);
-    } catch {
+    } catch (err) {
+      // pattern extraction is best-effort; log but don't propagate
+      if (process.env.DEBUG) console.warn('[PatternExtractor] parse error (skipped):', err.message);
       return [];
     }
   }

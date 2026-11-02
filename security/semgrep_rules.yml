@@ -1,0 +1,24 @@
+rules:
+  - id: js-no-eval
+    languages:
+      - javascript
+      - typescript
+    message: Avoid eval in production code.
+    severity: ERROR
+    pattern: eval(...)
+
+  - id: js-no-function-constructor
+    languages:
+      - javascript
+      - typescript
+    message: Avoid Function constructor in production code.
+    severity: ERROR
+    pattern: new Function(...)
+
+  - id: js-no-child-process-exec-unsanitized
+    languages:
+      - javascript
+      - typescript
+    message: Review child_process exec usage for command injection risk.
+    severity: WARNING
+    pattern: exec($CMD)

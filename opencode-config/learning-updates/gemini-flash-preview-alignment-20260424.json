@@ -1,0 +1,25 @@
+{
+  "id": "gemini-flash-preview-alignment-20260424",
+  "timestamp": "2026-04-24T23:58:00Z",
+  "category": "models",
+  "summary": "Align the remaining Gemini Flash references in the runtime policy and model catalog to the preview identifier used by dashboard provider probes and bootstrap coverage.",
+  "affected_paths": [
+    "opencode-config/models/catalog-2026.json",
+    "packages/opencode-model-router-x/src/policies.json",
+    "packages/opencode-dashboard/test/providers-route.test.ts"
+  ],
+  "root_cause": "The repo mixed `google/gemini-3-flash` and `google/gemini-3-flash-preview` across catalog, routing policy, and provider-facing checks.",
+  "fix_approach": "Standardized the remaining changed surfaces on the preview identifier already used by runtime authority and provider health checks, and kept dashboard provider tests passing with explicit write-token setup.",
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "pass",
+    "commands": [
+      "bun test integration-tests/bootstrap-e2e.test.js",
+      "bun test packages/opencode-model-router-x/test/category-fallbacks.test.js packages/opencode-model-router-x/test/model-alias-resolver.test.js",
+      "bun test packages/opencode-dashboard/test/providers-route.test.ts"
+    ],
+    "notes": "Model policy and catalog now match the preview ID used by provider checks in the changed runtime path."
+  }
+}

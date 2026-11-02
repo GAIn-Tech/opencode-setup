@@ -1,0 +1,14 @@
+{
+  "id": "runtime-telemetry-docs-20260309",
+  "timestamp": "2026-03-10T02:04:14.897Z",
+  "summary": "Document runtime telemetry hook architecture in AGENTS.md: hook config path, data flow, PascalCase reverse mapping, and silent-exit contract",
+  "affected_paths": [
+    "opencode-config/AGENTS.md"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

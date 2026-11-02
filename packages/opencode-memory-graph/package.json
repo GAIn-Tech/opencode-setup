@@ -4,10 +4,12 @@
   "description": "Session-to-error graph builder from OpenCode runtime logs with goraphdb persistence",
   "main": "src/index.js",
   "bin": {
-    "opencode-memory-graph": "src/cli.js"
+    "opencode-memory-graph": "src/cli.js",
+    "opencode-memory-graph-mcp": "src/mcp-server.mjs"
   },
   "scripts": {
-    "test": "node -e \"const { MemoryGraph } = require('./src/index'); console.log('OK');\""
+    "test": "node -e \"const { MemoryGraph } = require('./src/index'); console.log('OK');\"",
+    "test:mcp": "node --test test/mcp-server.test.mjs"
   },
   "keywords": [
     "opencode",
@@ -25,7 +27,9 @@
     "node": ">=14.0.0"
   },
   "dependencies": {
-    "opencode-goraphdb-bridge": "workspace:*"
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "opencode-mcp-utils": "workspace:*",
+    "zod": "^4.3.6"
   },
   "files": [
     "src/",

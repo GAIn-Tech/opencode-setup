@@ -1,0 +1,481 @@
+// Provider health check API
+
+import { NextRequest, NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
+import { requireWriteAccess } from '../_lib/write-access';
+
+const RATE_LIMIT_FILE = path.join(process.cwd(), '.opencode', 'rate-limits.json');
+
+interface ProviderHealth {
+  provider: string;
+  status: 'healthy' | 'rate_limited' | 'auth_error' | 'network_error' | 'unknown';
+  latency?: number;
+  error?: string;
+  lastChecked: string;
+}
+
+interface ProviderEndpointConfig {
+  url: string;
+  auth: string;
+  authPrefix: string;
+  model: string;
+  body?: object;
+  headers?: Record<string, string>;
+  apiKeyInQuery?: boolean;
+}
+
+interface RateLimitEntry {
+  provider: string;
+  model?: string;
+  requests: number;
+  tokensUsed: number;
+  lastReset: string;
+}
+
+interface RateLimitsState {
+  providers: Record<string, RateLimitEntry>;
+  models: Record<string, RateLimitEntry>;
+}
+
+interface CachedHealth {
+  health: ProviderHealth;
+  expiresAt: number;
+}
+
+interface HealthCacheStats {
+  hits: number;
+  misses: number;
+  expired: number;
+}
+
+const HEALTH_CACHE = new Map<string, CachedHealth>();
+const HEALTH_CACHE_TTL_MS = 30_000;
+const HEALTH_CACHE_STATS: HealthCacheStats = { hits: 0, misses: 0, expired: 0 };
+const DOTENV_CACHE = new Map<string, string>();
+
+function loadDotEnvCache(): void {
+  if (DOTENV_CACHE.size > 0) return;
+
+  const candidates = [
+    path.resolve(process.cwd(), '.env'),
+    path.resolve(process.cwd(), '..', '.env'),
+    path.resolve(process.cwd(), '..', '..', '.env'),
+  ];
+
+  for (const envPath of candidates) {
+    if (!fs.existsSync(envPath)) continue;
+    const content = fs.readFileSync(envPath, 'utf-8');
+    for (const rawLine of content.split(/\r?\n/)) {
+      const line = rawLine.trim();
+      if (!line || line.startsWith('#')) continue;
+      const eq = line.indexOf('=');
+      if (eq <= 0) continue;
+      const key = line.slice(0, eq).trim();
+      const value = line.slice(eq + 1).trim().replace(/^['\"]|['\"]$/g, '');
+      if (!DOTENV_CACHE.has(key) && value) DOTENV_CACHE.set(key, value);
+    }
+  }
+}
+
+function readEnvValue(key: string): string | null {
+  const direct = process.env[key];
+  if (direct) return direct;
+  loadDotEnvCache();
+  return DOTENV_CACHE.get(key) ?? null;
+}
+
+function cacheTtlForStatus(status: ProviderHealth['status']): number {
+  switch (status) {
+    case 'rate_limited':
+      return 60_000;
+    case 'auth_error':
+      return 120_000;
+    case 'network_error':
+      return 20_000;
+    default:
+      return HEALTH_CACHE_TTL_MS;
+  }
+}
+
+function getCachedHealth(provider: string): ProviderHealth | null {
+  const cached = HEALTH_CACHE.get(provider);
+  if (!cached) {
+    HEALTH_CACHE_STATS.misses += 1;
+    return null;
+  }
+  if (Date.now() > cached.expiresAt) {
+    HEALTH_CACHE.delete(provider);
+    HEALTH_CACHE_STATS.expired += 1;
+    return null;
+  }
+  HEALTH_CACHE_STATS.hits += 1;
+  return cached.health;
+}
+
+function setCachedHealth(provider: string, health: ProviderHealth): void {
+  HEALTH_CACHE.set(provider, {
+    health,
+    expiresAt: Date.now() + cacheTtlForStatus(health.status),
+  });
+}
+
+function getCacheStats() {
+  return {
+    size: HEALTH_CACHE.size,
+    hits: HEALTH_CACHE_STATS.hits,
+    misses: HEALTH_CACHE_STATS.misses,
+    expired: HEALTH_CACHE_STATS.expired,
+    hitRate: HEALTH_CACHE_STATS.hits + HEALTH_CACHE_STATS.misses > 0
+      ? HEALTH_CACHE_STATS.hits / (HEALTH_CACHE_STATS.hits + HEALTH_CACHE_STATS.misses)
+      : 0,
+  };
+}
+
+// Read rate limits from file
+function readRateLimits(): RateLimitsState {
+  try {
+    if (fs.existsSync(RATE_LIMIT_FILE)) {
+      return JSON.parse(fs.readFileSync(RATE_LIMIT_FILE, 'utf-8'));
+    }
+  } catch (e) {
+    // Ignore errors, return default
+  }
+  return { providers: {}, models: {} };
+}
+
+// Save rate limits to file
+function saveRateLimits(state: RateLimitsState): void {
+  const dir = path.dirname(RATE_LIMIT_FILE);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  const tmpPath = RATE_LIMIT_FILE + '.tmp';
+  fs.writeFileSync(tmpPath, JSON.stringify(state, null, 2));
+  fs.renameSync(tmpPath, RATE_LIMIT_FILE);
+}
+
+// Provider API endpoints for health checking
+const PROVIDER_ENDPOINTS: Record<string, ProviderEndpointConfig> = {
+  anthropic: {
+    url: 'https://api.anthropic.com/v1/messages',
+    auth: 'x-api-key',
+    authPrefix: 'Bearer ',
+    model: 'claude-haiku-4-5',
+    body: { model: 'claude-haiku-4-5', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] },
+    headers: { 'anthropic-version': '2023-06-01' }
+  },
+  openai: {
+    url: 'https://api.openai.com/v1/chat/completions',
+    auth: 'authorization',
+    authPrefix: 'Bearer ',
+    model: 'gpt-5.2',
+    body: { model: 'gpt-5.2', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] }
+  },
+  google: {
+    url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+    auth: 'authorization',
+    authPrefix: 'Bearer ',
+    model: 'gemini-2.5-flash',
+    body: { contents: [{ parts: [{ text: 'hi' }] }] },
+    apiKeyInQuery: true
+  },
+  groq: {
+    url: 'https://api.groq.com/openai/v1/chat/completions',
+    auth: 'authorization',
+    authPrefix: 'Bearer ',
+    model: 'llama-3.3-70b-versatile',
+    body: { model: 'llama-3.3-70b-versatile', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] }
+  },
+  cerebras: {
+    url: 'https://api.cerebras.ai/v1/chat/completions',
+    auth: 'authorization',
+    authPrefix: 'Bearer ',
+    model: 'llama-3.3-70b',
+    body: { model: 'llama-3.3-70b', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] }
+  },
+  nvidia: {
+    url: 'https://integrate.api.nvidia.com/v1/chat/completions',
+    auth: 'authorization',
+    authPrefix: 'Bearer ',
+    model: 'meta/llama-3.3-70b-instruct',
+    body: { model: 'meta/llama-3.3-70b-instruct', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] }
+  },
+  antigravity: {
+    url: 'https://api.anthropic.com/v1/messages',
+    auth: 'x-api-key',
+    authPrefix: 'Bearer ',
+    model: 'claude-haiku-4-5',
+    body: { model: 'claude-haiku-4-5', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] },
+    headers: { 'anthropic-version': '2023-06-01' }
+  }
+};
+
+// Get API key from environment
+function getApiKey(provider: string): string | null {
+  const candidates: Record<string, string[]> = {
+    google: ['GOOGLE_API_KEY', 'GEMINI_API_KEY', 'GOOGLE_API_KEY_BACKUP', 'GOOGLE_API_KEY_BACKUP2'],
+    antigravity: ['ANTIGRAVITY_API_KEY', 'ANTIGRAVITY_AUTH_TOKEN'],
+  };
+
+  const keys = candidates[provider] ?? [`${provider.toUpperCase()}_API_KEY`];
+  for (const key of keys) {
+    const value = readEnvValue(key);
+    if (value) return value;
+  }
+  return null;
+}
+
+// Test provider health by making a minimal API call
+async function testProviderHealth(provider: string, options: { force?: boolean } = {}): Promise<ProviderHealth> {
+  if (!options.force) {
+    const cached = getCachedHealth(provider);
+    if (cached) {
+      return cached;
+    }
+  }
+
+  const config = PROVIDER_ENDPOINTS[provider];
+  if (!config) {
+    const health: ProviderHealth = {
+      provider,
+      status: 'unknown',
+      error: 'Provider not configured',
+      lastChecked: new Date().toISOString()
+    };
+    setCachedHealth(provider, health);
+    return health;
+  }
+
+  const apiKey = getApiKey(provider);
+  if (!apiKey) {
+    const health: ProviderHealth = {
+      provider,
+      status: 'auth_error',
+      error: `No API key found (expected ${provider.toUpperCase()}_API_KEY)`,
+      lastChecked: new Date().toISOString()
+    };
+    setCachedHealth(provider, health);
+    return health;
+  }
+
+  const startTime = Date.now();
+
+  try {
+    // Make actual API call to test provider connectivity
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    
+    // Set auth header based on provider type
+    if (config.auth === 'x-api-key') {
+      headers['x-api-key'] = apiKey;
+    } else {
+      headers['Authorization'] = config.authPrefix + apiKey;
+    }
+    
+    // Add provider-specific headers
+    if (config.headers) {
+      Object.assign(headers, config.headers);
+    }
+
+    const signal = typeof AbortSignal.timeout === 'function'
+      ? AbortSignal.timeout(5000)
+      : undefined;
+
+    const requestUrl = config.apiKeyInQuery
+      ? `${config.url}${config.url.includes('?') ? '&' : '?'}key=${encodeURIComponent(apiKey)}`
+      : config.url;
+
+    const response = await fetch(requestUrl, {
+      method: 'POST',
+      headers: config.apiKeyInQuery
+        ? Object.fromEntries(Object.entries(headers).filter(([key]) => key.toLowerCase() !== 'authorization'))
+        : headers,
+      body: JSON.stringify(config.body),
+      signal
+    });
+
+    const latency = Date.now() - startTime;
+
+    if (response.ok) {
+      const health: ProviderHealth = {
+        provider,
+        status: 'healthy',
+        latency,
+        lastChecked: new Date().toISOString()
+      };
+      setCachedHealth(provider, health);
+      return health;
+    } else if (response.status === 429) {
+      const health: ProviderHealth = {
+        provider,
+        status: 'rate_limited',
+        latency,
+        error: `Rate limited (${response.status})`,
+        lastChecked: new Date().toISOString()
+      };
+      setCachedHealth(provider, health);
+      return health;
+    } else if (response.status === 401 || response.status === 403) {
+      const health: ProviderHealth = {
+        provider,
+        status: 'auth_error',
+        latency,
+        error: `Authentication failed (${response.status})`,
+        lastChecked: new Date().toISOString()
+      };
+      setCachedHealth(provider, health);
+      return health;
+    } else {
+      const errorText = await response.text().catch(() => 'Unknown error');
+      const health: ProviderHealth = {
+        provider,
+        status: 'network_error',
+        latency,
+        error: `HTTP ${response.status}: ${errorText.substring(0, 100)}`,
+        lastChecked: new Date().toISOString()
+      };
+      setCachedHealth(provider, health);
+      return health;
+    }
+  } catch (error) {
+    const health: ProviderHealth = {
+      provider,
+      status: 'network_error',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      latency: Date.now() - startTime,
+      lastChecked: new Date().toISOString()
+    };
+    setCachedHealth(provider, health);
+    return health;
+  }
+}
+
+// GET: Return health status of all providers
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const provider = searchParams.get('provider');
+  
+  // Get rate limits
+  const rateLimits = readRateLimits();
+
+  if (provider) {
+    // Return specific provider status
+    const health = await testProviderHealth(provider);
+    const providerRate = rateLimits.providers[provider];
+    const modelRates = Object.entries(rateLimits.models)
+      .filter(([key]) => key.startsWith(provider + '/'))
+      .reduce((acc, [key, value]) => {
+        acc[key.replace(provider + '/', '')] = value;
+        return acc;
+      }, {} as Record<string, RateLimitEntry>);
+
+    return NextResponse.json({
+      health,
+      rateLimits: {
+        provider: providerRate || null,
+        models: modelRates
+      },
+      cache: getCacheStats(),
+    });
+  }
+
+  // Return all providers
+  const providers = Object.keys(PROVIDER_ENDPOINTS);
+  const results = await Promise.all(
+    providers.map(async (p) => {
+      const health = await testProviderHealth(p);
+      const rate = rateLimits.providers[p];
+      return { ...health, rateLimit: rate || null };
+    })
+  );
+
+  return NextResponse.json({
+    providers: results,
+    rateLimits,
+    cache: getCacheStats(),
+    timestamp: new Date().toISOString()
+  });
+}
+
+// POST: Run health test for a specific provider
+export async function POST(request: NextRequest) {
+  const authError = requireWriteAccess(request, 'providers:manage');
+  if (authError) return authError;
+
+  try {
+    const body = await request.json();
+    const { action, provider, data } = body;
+
+    if (action === 'test') {
+      // Run health test
+      const health = await testProviderHealth(provider, { force: true });
+      return NextResponse.json(health);
+    }
+
+    if (action === 'recordUsage') {
+      // Record usage for rate limiting
+      const { provider: prov, model, requests = 1, tokens = 0 } = data;
+      const rateLimits = readRateLimits();
+      
+      // Update provider-level
+      if (!rateLimits.providers[prov]) {
+        rateLimits.providers[prov] = {
+          provider: prov,
+          requests: 0,
+          tokensUsed: 0,
+          lastReset: new Date().toISOString()
+        };
+      }
+      rateLimits.providers[prov].requests += requests;
+      rateLimits.providers[prov].tokensUsed += tokens;
+
+      // Update model-level if provided
+      if (model) {
+        const modelKey = `${prov}/${model}`;
+        if (!rateLimits.models[modelKey]) {
+          rateLimits.models[modelKey] = {
+            provider: prov,
+            model,
+            requests: 0,
+            tokensUsed: 0,
+            lastReset: new Date().toISOString()
+          };
+        }
+        rateLimits.models[modelKey].requests += requests;
+        rateLimits.models[modelKey].tokensUsed += tokens;
+      }
+
+      saveRateLimits(rateLimits);
+      return NextResponse.json({ success: true, rateLimits: rateLimits.providers[prov] });
+    }
+
+    if (action === 'resetUsage') {
+      // Reset usage counters
+      const { provider: prov, model } = data;
+      const rateLimits = readRateLimits();
+
+      if (model) {
+        const modelKey = `${prov}/${model}`;
+        delete rateLimits.models[modelKey];
+      } else if (prov) {
+        delete rateLimits.providers[prov];
+      } else {
+        // Reset all
+        rateLimits.providers = {};
+        rateLimits.models = {};
+      }
+
+      saveRateLimits(rateLimits);
+      return NextResponse.json({ success: true });
+    }
+
+    return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
+  }
+}

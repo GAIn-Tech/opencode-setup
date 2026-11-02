@@ -1,0 +1,18 @@
+{
+  "id": "wave10-capability-routing-tracing",
+  "timestamp": "2026-03-08T22:51:00Z",
+  "summary": "Add MODEL_CAPABILITIES registry and filterByCapabilities() pre-filter to tier-router for capability-based model selection (vision, tools, reasoning, large_context). Add AgentTracer class to opencode-logger for high-level execution tracing (task dispatch, model selection, skill loading) with Langfuse and structured log output.",
+  "affected_paths": [
+    "packages/opencode-model-router-x/src/tier-router.js",
+    "packages/opencode-logger/src/index.js"
+  ],
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "wave": "10",
+  "phase": 3,
+  "tasks": ["T18", "T20"]
+}

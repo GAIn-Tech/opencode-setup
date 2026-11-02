@@ -1,0 +1,20 @@
+{
+  "name": "opencode-codebase-memory",
+  "version": "1.0.0",
+  "description": "Codebase structure memory: indexes JS/TS symbols and call graphs into SQLite for agent query",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "bin": {
+    "opencode-codebase": "./src/cli.mjs"
+  },
+  "scripts": {
+    "test": "bun test test/"
+  },
+  "license": "MIT",
+  "engines": { "bun": ">=1.3.0" },
+  "dependencies": {
+    "@typescript-eslint/typescript-estree": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "devDependencies": {}
+}

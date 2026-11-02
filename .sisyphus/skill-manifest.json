@@ -1,0 +1,331 @@
+{
+  "version": "1.0.0",
+  "description": "Selected antigravity skills for import — 54 must-have skills across 10 domains",
+  "generatedAt": "2026-03-19T00:00:00Z",
+  "skills": [
+    {
+      "source_dir": "c4-architecture-c4-architecture",
+      "target_name": "c4-architecture",
+      "our_category": "architecture",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "architecture",
+      "target_name": "architecture-design",
+      "our_category": "architecture",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "ddd-strategic-design",
+      "target_name": "ddd-strategic-design",
+      "our_category": "architecture",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "event-sourcing-architect",
+      "target_name": "event-sourcing",
+      "our_category": "architecture",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "microservices-patterns",
+      "target_name": "microservices-patterns",
+      "our_category": "architecture",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "api-design-principles",
+      "target_name": "api-design-principles",
+      "our_category": "architecture",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "clean-code",
+      "target_name": "clean-architecture",
+      "our_category": "architecture",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "security-auditor",
+      "target_name": "security-auditing",
+      "our_category": "security",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "pentest-checklist",
+      "target_name": "pentesting",
+      "our_category": "security",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "vulnerability-scanner",
+      "target_name": "vulnerability-scanning",
+      "our_category": "security",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "threat-modeling-expert",
+      "target_name": "threat-modeling",
+      "our_category": "security",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "security-scanning-security-hardening",
+      "target_name": "secure-coding",
+      "our_category": "security",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "api-security-best-practices",
+      "target_name": "api-security",
+      "our_category": "security",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "docker-expert",
+      "target_name": "docker-containerization",
+      "our_category": "devops",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "kubernetes-architect",
+      "target_name": "kubernetes-orchestration",
+      "our_category": "devops",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "terraform-aws-modules",
+      "target_name": "terraform-iac",
+      "our_category": "devops",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "aws-serverless",
+      "target_name": "aws-cloud",
+      "our_category": "devops",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "cicd-automation-workflow-automate",
+      "target_name": "ci-cd-automation",
+      "our_category": "devops",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "observability-engineer",
+      "target_name": "monitoring-observability",
+      "our_category": "devops",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "rag-implementation",
+      "target_name": "rag-implementation",
+      "our_category": "data-ai",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "llm-ops",
+      "target_name": "llm-ops",
+      "our_category": "data-ai",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "ml-engineer",
+      "target_name": "ml-engineering",
+      "our_category": "data-ai",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "prompt-engineer",
+      "target_name": "prompt-engineering",
+      "our_category": "data-ai",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "data-engineering-data-pipeline",
+      "target_name": "data-pipelines",
+      "our_category": "data-ai",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "vector-database-engineer",
+      "target_name": "vector-databases",
+      "our_category": "data-ai",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "react-patterns",
+      "target_name": "react-patterns",
+      "our_category": "frontend",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "angular",
+      "target_name": "angular-development",
+      "our_category": "frontend",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "accessibility-compliance-accessibility-audit",
+      "target_name": "accessibility-audit",
+      "our_category": "frontend",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "tailwind-design-system",
+      "target_name": "tailwind-css",
+      "our_category": "frontend",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "frontend-design",
+      "target_name": "responsive-design",
+      "our_category": "frontend",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "fastapi-pro",
+      "target_name": "fastapi-development",
+      "our_category": "backend",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "django-pro",
+      "target_name": "django-development",
+      "our_category": "backend",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "laravel-expert",
+      "target_name": "laravel-development",
+      "our_category": "backend",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "golang-pro",
+      "target_name": "go-development",
+      "our_category": "backend",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "rust-pro",
+      "target_name": "rust-development",
+      "our_category": "backend",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "database-migration",
+      "target_name": "database-migration",
+      "our_category": "database",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "ddd-tactical-patterns",
+      "target_name": "ddd-database-patterns",
+      "our_category": "database",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "postgresql-optimization",
+      "target_name": "postgresql-optimization",
+      "our_category": "database",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "database-design",
+      "target_name": "database-design",
+      "our_category": "database",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "pricing-strategy",
+      "target_name": "pricing-strategy",
+      "our_category": "business",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "launch-strategy",
+      "target_name": "gtm-strategy",
+      "our_category": "business",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "competitive-landscape",
+      "target_name": "competitive-analysis",
+      "our_category": "business",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "product-manager",
+      "target_name": "product-management",
+      "our_category": "business",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "data-storytelling",
+      "target_name": "stakeholder-communication",
+      "our_category": "business",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "e2e-testing",
+      "target_name": "e2e-testing",
+      "our_category": "testing",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "fixing-accessibility",
+      "target_name": "accessibility-testing",
+      "our_category": "testing",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "performance-profiling",
+      "target_name": "performance-testing",
+      "our_category": "testing",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "lint-and-validate",
+      "target_name": "linting-standards",
+      "our_category": "code-quality",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "code-refactoring-tech-debt",
+      "target_name": "tech-debt-assessment",
+      "our_category": "code-quality",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "senior-architect",
+      "target_name": "system-design",
+      "our_category": "architecture",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "ddd-context-mapping",
+      "target_name": "ddd-context-mapping",
+      "our_category": "architecture",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "k6-load-testing",
+      "target_name": "load-testing",
+      "our_category": "testing",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "github-actions-templates",
+      "target_name": "github-actions",
+      "our_category": "devops",
+      "priority": "must-have"
+    },
+    {
+      "source_dir": "screen-reader-testing",
+      "target_name": "screen-reader-testing",
+      "our_category": "testing",
+      "priority": "must-have"
+    }
+  ]
+}

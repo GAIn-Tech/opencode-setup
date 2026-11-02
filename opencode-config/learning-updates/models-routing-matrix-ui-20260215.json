@@ -1,0 +1,18 @@
+{
+  "id": "models-routing-matrix-ui-20260215",
+  "timestamp": "2026-02-15T23:05:00Z",
+  "category": "dashboard",
+  "summary": "Enhanced models routing matrix UI with filtering, sorting, and coverage analytics",
+  "details": "Updated dashboard models matrix page to support provider filtering, layer-focused view, model sorting, and inline matrix analytics. Added per-layer coverage badges and filtered-cell visibility indicators. Extended matrix edit modal with provider filter to make large catalogs easier to manage.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/models/page.tsx"
+  ],
+  "impact": "Medium - Improves routing matrix usability and operator visibility for policy maintenance",
+  "validation": {
+    "tests": "not-run",
+    "lint": "pass",
+    "typecheck": "pass",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "learning-system-health-telemetry-rollout-visibility-2026-03-27",
+  "timestamp": "2026-03-27T23:58:00.000Z",
+  "summary": "Extended system-health telemetry checks to report rollout-flag presence and schema validity for quality mode, live meta-awareness enablement, threshold profile, and required correlation fields.",
+  "affected_paths": [
+    "scripts/system-health.mjs"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

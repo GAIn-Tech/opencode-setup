@@ -1,0 +1,15 @@
+{
+  "id": "wave11-t18-t15-budget-alerts-dashboard",
+  "timestamp": "2026-03-08T19:20:00Z",
+  "summary": "Add BUDGET_THRESHOLD alert type with evaluateBudget() to AlertManager (75/80/95% thresholds). Add Context Budget dashboard widget with compression stats, Context7 stats, and color-coded budget bars to observability page.",
+  "affected_paths": [
+    "packages/opencode-model-manager/src/monitoring/alert-manager.js",
+    "packages/opencode-dashboard/src/app/observability/page.tsx"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

@@ -1,0 +1,125 @@
+name: Deployment Pipeline
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - "packages/**"
+      - "scripts/**"
+      - "opencode-config/**"
+  workflow_dispatch:
+    inputs:
+      target_stage:
+        description: "Deployment target stage"
+        required: true
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+        default: dev
+
+permissions:
+  contents: read
+
+jobs:
+  # ─── Dev: Auto on push ──────────────────────────────────────
+  dev:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.target_stage == 'dev')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Run tests
+        run: bun test
+
+      - name: Governance checks
+        run: node scripts/learning-gate.mjs --generate-hashes
+
+      - name: Deployment state (dev)
+        run: node scripts/deployment-state.mjs --stage dev --status deploying
+
+      - name: Integrity guard
+        run: node scripts/integrity-guard.mjs
+
+      - name: Health check
+        run: node scripts/health-check.mjs || true
+
+      - name: Mark dev deployed
+        run: node scripts/deployment-state.mjs --stage dev --status deployed
+
+  # ─── Staging: Manual trigger ────────────────────────────────
+  staging:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.target_stage == 'staging'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Full test suite
+        run: bun test
+
+      - name: Governance checks
+        run: |
+          node scripts/learning-gate.mjs --generate-hashes
+          node scripts/docs-governance-check.mjs
+
+      - name: Integrity guard
+        run: node scripts/integrity-guard.mjs
+
+      - name: Model validation
+        run: node scripts/validate-models.mjs || true
+
+      - name: Deployment state (staging)
+        run: node scripts/deployment-state.mjs --stage staging --status deployed
+
+  # ─── Prod: Requires environment approval ────────────────────
+  prod:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.target_stage == 'prod'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Full test suite
+        run: bun test
+
+      - name: All governance checks
+        run: |
+          node scripts/learning-gate.mjs --generate-hashes
+          node scripts/docs-governance-check.mjs
+          node scripts/integrity-guard.mjs
+
+      - name: Model validation
+        run: node scripts/validate-models.mjs
+
+      - name: Health check (strict)
+        run: node scripts/health-check.mjs
+
+      - name: Deployment state (prod)
+        run: node scripts/deployment-state.mjs --stage prod --status deployed

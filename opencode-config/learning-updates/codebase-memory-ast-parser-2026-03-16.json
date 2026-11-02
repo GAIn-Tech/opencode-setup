@@ -1,0 +1,15 @@
+{
+  "id": "codebase-memory-ast-parser-2026-03-16",
+  "timestamp": "2026-03-16T16:00:00Z",
+  "summary": "Implemented JS/TS AST parser for opencode-codebase-memory using @typescript-eslint/typescript-estree. Extracts function declarations, class/method declarations, call expressions as edges, and import edges. Gracefully handles unparseable files. 5 tests covering all extraction types and error handling.",
+  "affected_paths": [
+    "packages/opencode-codebase-memory/src/parser.js",
+    "packages/opencode-codebase-memory/test/parser.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

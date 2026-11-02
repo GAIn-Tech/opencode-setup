@@ -1,0 +1,16 @@
+{
+  "id": "memory-graph-host-policy-20260313",
+  "timestamp": "2026-03-13T16:42:00Z",
+  "summary": "Re-enable memory-graph in host-facing MCP policy and update generator regressions now that a real stdio wrapper exists.",
+  "affected_paths": [
+    "opencode-config/mcp-dormant-policy.json",
+    "scripts/tests/generate-mcp-config.test.js",
+    "opencode-config/learning-updates/memory-graph-host-policy-20260313.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

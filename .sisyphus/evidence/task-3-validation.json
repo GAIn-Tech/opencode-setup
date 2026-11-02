@@ -1,0 +1,58 @@
+{
+  "task": 3,
+  "phase": "verification",
+  "timestamp": "2026-03-31T05:16:00.000Z",
+  "checks": [
+    {
+      "name": "strict json includes supplyChainReport",
+      "command": "node scripts/verify-portability.mjs --strict --json",
+      "status": "passed",
+      "exitCode": 0,
+      "observed": {
+        "supplyChainReport": {
+          "status": "passed",
+          "reason": "trusted release inputs verified"
+        }
+      }
+    },
+    {
+      "name": "negative gate - provenance mismatch",
+      "command": "node scripts/verify-portability.mjs --strict --json (with OPENCODE_PORTABILITY_SUPPLY_PROVENANCE=mismatch)",
+      "status": "passed",
+      "exitCode": 1,
+      "observed": {
+        "failure": "Supply chain gate failed: provenance mismatch",
+        "supplyChainReport": {
+          "status": "failed",
+          "reason": "provenance mismatch"
+        }
+      }
+    },
+    {
+      "name": "negative gate - untrusted source",
+      "command": "node scripts/verify-portability.mjs --strict --json (with OPENCODE_PORTABILITY_SUPPLY_TRUST_SOURCE=untrusted)",
+      "status": "passed",
+      "exitCode": 1,
+      "observed": {
+        "failure": "Supply chain gate failed: untrusted source",
+        "supplyChainReport": {
+          "status": "failed",
+          "reason": "untrusted source"
+        }
+      }
+    },
+    {
+      "name": "approved exception path",
+      "command": "node scripts/verify-portability.mjs --strict --json (with OPENCODE_PORTABILITY_SUPPLY_EXCEPTION JSON)",
+      "status": "passed",
+      "exitCode": 0,
+      "observed": {
+        "supplyChainReport": {
+          "status": "exception-approved",
+          "reason": "approved exception for untrusted source",
+          "auditRecordPresent": true
+        }
+      }
+    }
+  ]
+}

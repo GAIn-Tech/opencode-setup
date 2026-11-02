@@ -1,0 +1,72 @@
+{
+  "task": "Wave 1 Task 1 - Establish baseline ecosystem inventory and measurement model",
+  "status": "completed",
+  "generatedAt": "2026-03-24T23:36:07.237Z",
+  "requiredCounts": {
+    "registeredSkills": 107,
+    "enabledDefaultSkills": 39,
+    "skillCategories": {
+      "registered": 29,
+      "enabled": 15,
+      "compoundConfigured": 12
+    },
+    "workspacePackages": 36,
+    "packagesWithCliEntrypoints": 10,
+    "packagesWithMcpWrappers": 3,
+    "dormantPackageSurfaces": 2,
+    "governanceGates": 6
+  },
+  "mustHaveAssumptions": {
+    "manifestSkills": 54,
+    "mustHaveCount": 54,
+    "mustHaveRatio": 1,
+    "userFlaggedSkillsStillMustHave": [
+      "rust-development",
+      "go-development",
+      "laravel-development",
+      "c4-architecture",
+      "django-development",
+      "gtm-strategy"
+    ]
+  },
+  "baselineMetricsDefined": {
+    "defaultSurfaceReduction": [
+      "default_surface.enabled_default_skill_count",
+      "default_surface.externally_exposed_package_count"
+    ],
+    "docsDrift": [
+      "docs_drift.packages_readme_coverage_gap_count",
+      "docs_drift.packages_readme_coverage_gap_ratio"
+    ],
+    "falseActivationControl": [
+      "false_activation.overlap_cluster_noncanonical_enabled_count",
+      "false_activation.routing_ambiguity_rate"
+    ],
+    "governanceAssumptions": [
+      "governance_assumptions.manifest_must_have_density",
+      "governance_assumptions.deferred_gate_metric_count"
+    ]
+  },
+  "inventoryCoverage": {
+    "skillSurfaceIncluded": true,
+    "packageSurfaceIncluded": true,
+    "governanceSurfaceIncluded": true,
+    "manifestAssumptionsIncluded": true
+  },
+  "verification": {
+    "gateRunnerCommand": "node scripts/run-skill-routing-gates.mjs --full-report --evidence .sisyphus/evidence/ecosystem-baseline-routing-gates",
+    "gateRunAllPassed": true,
+    "routingEvaluatorAmbiguityRate": 0.077,
+    "routingEvaluatorSwitchRate": 0,
+    "routingEvaluatorOnePassCorrectness": 0.923
+  },
+  "artifacts": [
+    ".sisyphus/evidence/ecosystem-baseline-skills.json",
+    ".sisyphus/evidence/ecosystem-baseline-packages.json",
+    ".sisyphus/evidence/ecosystem-baseline-governance.json",
+    ".sisyphus/evidence/ecosystem-baseline-manifest-assumptions.json",
+    ".sisyphus/evidence/ecosystem-baseline-metrics.json",
+    ".sisyphus/evidence/ecosystem-baseline-routing-gates/_summary.json",
+    ".sisyphus/evidence/ecosystem-baseline-routing-gates/routing-evaluator.json"
+  ]
+}

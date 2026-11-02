@@ -1,0 +1,17 @@
+{
+  "id": "skill-rl-registry-seed-and-mcp-telemetry-20260227",
+  "timestamp": "2026-02-27T00:02:00Z",
+  "summary": "Two parallel Wave 3 tasks: (1) Add syncWithRegistry() to SkillRLManager that additively seeds all 29 skills from opencode-config/skills/registry.json on startup — preserving existing usage_count/success_rate for the 5 hardcoded seeds, adding 24 new entries with neutral defaults. (2) Wire logInvocation fire-and-forget into tool-execute-after hook for all MCP-prefixed tool calls (context7, distill, supermemory, websearch, grep, github, playwright). 4 new tests for syncWithRegistry covering idempotency, preservation, prefix normalization, and count.",
+  "affected_paths": [
+    "packages/opencode-skill-rl-manager/src/index.js",
+    "packages/opencode-skill-rl-manager/tests/sync-registry.test.js",
+    "local/oh-my-opencode/src/plugin/tool-execute-after.ts"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "All 4 sync-registry tests pass. generalSkills.size = 29. Original 5 seeds preserve success_rate (0.85, 0.90, 0.95, 0.80, 0.88). Idempotent: calling syncWithRegistry twice keeps count at 29. local/oh-my-opencode/src is gitignored — tool-execute-after.ts change is tracked in external dev repo only."
+}

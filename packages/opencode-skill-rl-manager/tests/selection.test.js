@@ -166,6 +166,70 @@ describe('SkillRL Manager - Hierarchical Selection', () => {
     assert(quotaSkill !== undefined, 'Should create quota-aware-routing skill for task type');
   });
 
+  test('does not learn quota-aware-routing for non-quota fallback reasons', () => {
+    const manager = new SkillRLManager();
+
+    manager.learnFromOutcome({
+      success: false,
+      task_id: 'task-non-quota-fallback',
+      task_type: 'feature',
+      skills_used: ['systematic-debugging'],
+      error_message: 'Provider temporarily unavailable',
+      anti_pattern: {
+        type: 'task_failure',
+        context: 'Fallback triggered by provider outage'
+      },
+      outcome_description: 'Task failed due to non-quota fallback',
+      quota_signal: {
+        provider_id: 'openai',
+        percent_used: 0.42,
+        warning_threshold: 0.75,
+        critical_threshold: 0.9,
+        fallback_applied: true,
+        fallback_reason: 'non_quota_fallback'
+      }
+    });
+
+    const allSkills = manager.skillBank.getAllSkills();
+    const quotaSkill = allSkills.taskSpecific.find(
+      (s) => s.name === 'quota-aware-routing' && s.task_type === 'feature'
+    );
+
+    assert(quotaSkill === undefined, 'Should not create quota-aware-routing skill for non-quota fallback reason');
+  });
+
+  test('learns quota-aware-routing when fallback reason is quota-related', () => {
+    const manager = new SkillRLManager();
+
+    manager.learnFromOutcome({
+      success: false,
+      task_id: 'task-quota-fallback-reason',
+      task_type: 'feature',
+      skills_used: ['systematic-debugging'],
+      error_message: 'Fallback because quota risk exceeded',
+      anti_pattern: {
+        type: 'task_failure',
+        context: 'Fallback triggered by quota policy'
+      },
+      outcome_description: 'Task failed due to quota fallback',
+      quota_signal: {
+        provider_id: 'openai',
+        percent_used: 0.42,
+        warning_threshold: 0.75,
+        critical_threshold: 0.9,
+        fallback_applied: true,
+        fallback_reason: 'quota_fallback'
+      }
+    });
+
+    const allSkills = manager.skillBank.getAllSkills();
+    const quotaSkill = allSkills.taskSpecific.find(
+      (s) => s.name === 'quota-aware-routing' && s.task_type === 'feature'
+    );
+
+    assert(quotaSkill !== undefined, 'Should create quota-aware-routing skill when fallback reason is quota-related');
+  });
+
   test('reinforces quota-aware-routing on successful task under quota pressure', () => {
     const manager = new SkillRLManager();
 

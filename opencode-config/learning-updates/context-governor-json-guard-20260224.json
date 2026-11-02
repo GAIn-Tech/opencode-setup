@@ -1,0 +1,16 @@
+{
+  "id": "context-governor-json-guard-20260224",
+  "timestamp": "2026-02-24T00:00:00Z",
+  "summary": "Fixed unguarded JSON.parse in loadFromFile() to handle corrupt/empty state files gracefully",
+  "affected_paths": [
+    "packages/opencode-context-governor/src/index.js",
+    "packages/opencode-context-governor/test/governor-crash.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "TDD fix: added try/catch guards to loadFromFile() for graceful degradation on corrupt/empty JSON files. File missing (ENOENT) returns silently. Empty file returns silently. Corrupt JSON logs warning and returns. 2 new tests verify both cases."
+}

@@ -1,0 +1,20 @@
+{
+  "id": "mcp-health-evaluation-20260307",
+  "timestamp": "2026-03-07T02:55:00Z",
+  "category": "health-check-hardening",
+  "summary": "Evaluate MCP servers by enabled/type semantics so disabled servers are skipped, remote servers validate URL shape, and local servers verify executable availability; include distill in setup command reference.",
+  "affected_paths": [
+    "scripts/health-check.mjs",
+    "mcp-servers/mcp-setup-commands.sh"
+  ],
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "node scripts/health-check.mjs"
+    ],
+    "notes": "Health check reported one pre-existing model connectivity warning unrelated to MCP evaluation logic."
+  }
+}

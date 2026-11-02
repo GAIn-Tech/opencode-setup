@@ -1,0 +1,20 @@
+{
+  "id": "quota-signal-lock-20260307",
+  "timestamp": "2026-03-07T02:52:00Z",
+  "category": "router-reliability",
+  "summary": "Serialize quota-header and failure signal updates through a shared rotator mutex to prevent race-driven 429 propagation drift, and record the completion in config precedence docs.",
+  "affected_paths": [
+    "packages/opencode-model-router-x/src/key-rotator.js",
+    "packages/opencode-model-router-x/test/quota-signal-lock.test.js",
+    "opencode-config/docs/configuration-precedence.md"
+  ],
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "node packages/opencode-model-router-x/test/quota-signal-lock.test.js"
+    ]
+  }
+}

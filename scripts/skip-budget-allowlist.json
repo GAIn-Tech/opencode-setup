@@ -1,0 +1,72 @@
+{
+  "version": "1.0.0",
+  "description": "Allowlist for portability check skips and fallbacks",
+  "lastUpdated": "2026-03-30",
+  "defaultBudget": {
+    "skip_count": 0,
+    "fallback_count": 0,
+    "description": "Default budget: zero skips and fallbacks allowed unless explicitly allowlisted"
+  },
+  "allowlist": {
+    "skips": [
+      {
+        "id": "integration-test-temp-dir",
+        "pattern": "integration-tests using temp directories",
+        "rationale": "Integration tests create temp directories for isolation, not actual data home paths",
+        "expiry": "2026-06-30",
+        "approvedBy": "portability-hardening-wave-f-j"
+      },
+      {
+        "id": "plugin-symlink-unscoped",
+        "pattern": "Plugin symlink check skipped for unscoped packages",
+        "rationale": "Unscoped workspace packages don't need symlink verification in development",
+        "expiry": "2026-06-30",
+        "approvedBy": "portability-hardening-wave-f-j"
+      },
+      {
+        "id": "mcp-probe-uvx",
+        "pattern": "launcher 'uvx' is not probe-safe",
+        "rationale": "uvx is not a JS/TS launcher and cannot be probed with --help",
+        "expiry": null,
+        "approvedBy": "portability-hardening-wave-f-j"
+      },
+      {
+        "id": "mcp-probe-bunx",
+        "pattern": "launcher 'bunx' is not probe-safe",
+        "rationale": "bunx is a package runner, not a direct script launcher; probing not safe",
+        "expiry": null,
+        "approvedBy": "portability-hardening-wave-f-j"
+      },
+      {
+        "id": "mcp-probe-npx",
+        "pattern": "launcher 'npx' is not probe-safe",
+        "rationale": "npx is a package runner, not a direct script launcher; probing not safe",
+        "expiry": null,
+        "approvedBy": "portability-hardening-wave-f-j"
+      }
+    ],
+    "fallbacks": [
+      {
+        "id": "homedir-fallback",
+        "pattern": "Fallback to os.homedir() when OPENCODE_DATA_HOME and XDG_DATA_HOME not set",
+        "rationale": "Standard fallback for non-XDG systems (Windows, macOS default)",
+        "expiry": null,
+        "approvedBy": "portability-hardening-wave-f-j"
+      },
+      {
+        "id": "userprofile-fallback",
+        "pattern": "Fallback to USERPROFILE on Windows when HOME not set",
+        "rationale": "Windows-specific environment variable fallback",
+        "expiry": null,
+        "approvedBy": "portability-hardening-wave-f-j"
+      }
+    ]
+  },
+  "validationRules": {
+    "rule-1": "Every skip/fallback MUST have a rationale",
+    "rule-2": "Every skip/fallback MUST have an expiry date (null = permanent)",
+    "rule-3": "Expired entries MUST be removed or renewed",
+    "rule-4": "CI MUST fail if skip/fallback count exceeds budget",
+    "rule-5": "Budget violations MUST be reported in machine-readable format"
+  }
+}

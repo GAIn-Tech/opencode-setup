@@ -1,0 +1,15 @@
+{
+  "id": "runtime-tool-telemetry-hook-20260309",
+  "timestamp": "2026-03-10T02:04:06.915Z",
+  "summary": "Add PostToolUse runtime hook script that bridges oh-my-opencode tool.execute.after events into the learning-engine invocations.json, enabling MCP tool_affinities to accumulate from real runtime usage",
+  "affected_paths": [
+    "scripts/runtime-tool-telemetry.mjs",
+    "scripts/tests/runtime-tool-telemetry.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

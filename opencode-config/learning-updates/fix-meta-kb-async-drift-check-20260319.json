@@ -1,0 +1,14 @@
+{
+  "id": "fix-meta-kb-async-drift-check-20260319",
+  "timestamp": "2026-03-19T03:00:00.000Z",
+  "summary": "Replace synchronous execSync drift check in /api/meta-kb with async exec callback and 5-min in-memory stale-while-revalidate cache. Previously every GET blocked for up to 10 seconds.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/meta-kb/route.ts"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "pass"
+  },
+  "risk_level": "low"
+}

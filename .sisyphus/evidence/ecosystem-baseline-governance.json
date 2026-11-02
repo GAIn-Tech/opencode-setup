@@ -1,0 +1,49 @@
+{
+  "generatedAt": "2026-03-24T23:36:07.237Z",
+  "sources": {
+    "gateRunner": "scripts/run-skill-routing-gates.mjs",
+    "gateEvidenceDir": ".sisyphus/evidence/ecosystem-baseline-routing-gates"
+  },
+  "gateStack": {
+    "count": 6,
+    "names": [
+      "governance-hash-verify",
+      "registry-validate",
+      "skill-consistency",
+      "overlap-governance",
+      "routing-evaluator",
+      "skill-implied-coverage"
+    ]
+  },
+  "latestRun": {
+    "mode": "full-report",
+    "allPassed": true,
+    "gatesRun": 6,
+    "gatesTotal": 6,
+    "passed": 6,
+    "failed": 0,
+    "timestamp": "2026-03-24T23:36:07.237Z"
+  },
+  "routingEvaluatorBaseline": {
+    "taskCount": 13,
+    "pass": true,
+    "metrics": {
+      "ambiguityRate": 0.077,
+      "switchRate": 0,
+      "onePassCorrectness": 0.923,
+      "medianRoutingMs": 0.44
+    },
+    "deferredWarnings": [
+      {
+        "metric": "maxContextBudgetOverhead",
+        "threshold": 0.05,
+        "status": "deferred",
+        "message": "Metric not yet computed by evaluator. Tracked for future implementation. Will warn, not enforce."
+      }
+    ]
+  },
+  "notes": [
+    "Governance gate stack has six enforced steps at baseline.",
+    "Routing evaluator currently includes one deferred metric warning (context budget overhead not yet enforced)."
+  ]
+}

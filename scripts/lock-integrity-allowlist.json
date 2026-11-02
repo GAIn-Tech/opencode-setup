@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "description": "Allowlist for lock file patterns that are exempt from staleness checks",
+  "lastUpdated": "2026-03-30",
+  "maxStaleAgeMs": 3600000,
+  "allowedLockPatterns": [
+    "bun.lock",
+    "package-lock.json",
+    "yarn.lock",
+    "pnpm-lock.yaml",
+    "invocations.json.lock"
+  ],
+  "validationRules": {
+    "rule-1": "Lock files matching allowedLockPatterns are exempt from staleness checks",
+    "rule-2": "Max staleness threshold is configurable via maxStaleAgeMs (default: 1 hour)",
+    "rule-3": "Stale locks in strict mode cause verification failure",
+    "rule-4": "bun.lock must exist for bootstrap reproducibility"
+  }
+}

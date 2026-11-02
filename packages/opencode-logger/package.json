@@ -1,0 +1,12 @@
+{
+  "name": "opencode-logger",
+  "version": "1.0.0",
+  "description": "Structured logging for OpenCode with correlation IDs",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

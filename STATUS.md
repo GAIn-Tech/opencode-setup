@@ -30,10 +30,9 @@ These are the plugins currently loaded by OpenCode:
 7. `@mohak34/opencode-notifier@0.1.18`
 8. `opencode-plugin-langfuse@0.1.8`
 9. `opencode-plugin-preload-skills@1.8.0`
-10. `@symbioticsec/opencode-security-plugin@0.0.1-beta.9`
-11. `envsitter-guard@0.0.4`
-12. `opencode-antigravity-quota@0.1.6`
-13. `opencode-pty@0.2.1`
+10. `envsitter-guard@0.0.4`
+11. `opencode-antigravity-quota@0.1.6`
+12. `opencode-pty@0.2.1`
 
 ### Custom Plugins (Available but Not Loaded)
 These plugins are packaged and symlinked but NOT enabled:
@@ -122,7 +121,7 @@ For **maximum portability** and **production use**, the best path forward is:
 1. **Publish to npm** - Worth the one-time setup hassle
 2. Get automation token to avoid 2FA on each publish
 3. All custom plugins become first-class OpenCode plugins
-4. Works on any machine with just `npm install -g opencode-ai`
+4. Works on any machine with just `npm install -g opencode`
 
 For **development/testing**, the current setup works fine - plugins are available but not auto-loaded.
 

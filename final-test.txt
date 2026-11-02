@@ -1,0 +1,113 @@
+bun test v1.3.10 (30e609e0)
+[INFO] IntegrationLayer initialized {
+  startupMs: 0.1,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.1ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 

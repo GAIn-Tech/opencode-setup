@@ -2,12 +2,66 @@
 
 This setup is designed for **maximum portability and robustness** across machines.
 
+## Quick Commands
+
+```bash
+# Sync config from repo to ~/.config/opencode
+node scripts/sync-user-config.mjs --write
+
+# Verify environment portability
+node scripts/verify-portability.mjs
+
+# Check Bun version
+node scripts/preflight-versions.mjs
+
+# Full health check
+node scripts/health-check.mjs
+```
+
+## Config Sync System
+
+The OpenCode ecosystem uses a sync system to keep `~/.config/opencode/` in sync with the repo.
+
+### What's Synced (Git-Tracked)
+
+| Path | Purpose |
+|------|---------|
+| `opencode-config/*.json` | All config files (except secrets) |
+| `opencode-config/agents/` | Agent prompts |
+| `opencode-config/skills/` | Skill definitions (77+) |
+| `opencode-config/docs/` | Documentation |
+| `opencode-config/learning-updates/` | Governance records |
+| `opencode-config/models/` | Model catalogs |
+
+### Machine-Specific (Never Sync)
+
+| Path | Reason |
+|------|--------|
+| `antigravity-accounts.json` | OAuth tokens unique per machine |
+| `tool-usage/` | Runtime telemetry accumulates locally |
+| `~/.opencode/` | Runtime state, sessions |
+| `local/` | Dev checkout diverges |
+| `.worktrees/` | Git worktrees |
+
+### Environment Variables Pattern
+
+Use `{env:VAR}` placeholders for portable configs:
+
+```json
+{
+  "apiKey": "{env:GOOGLE_API_KEY}",
+  "token": "{env:SUPERMEMORY_API_KEY}"
+}
+```
+
+This keeps secrets out of git while allowing machine-specific values via env vars.
+
 ## Why This Approach?
 
 Instead of publishing to npm (which requires authentication, 2FA, and ongoing maintenance), we use a **workspace + global linking** strategy that provides:
 
 ✅ **Zero npm dependencies** - No npm publishing required
-✅ **One-command setup** - Clone repo and run `./setup.sh`
+✅ **One-command setup** - Clone repo and run `bun run setup`
 ✅ **No authentication needed** - Works offline
 ✅ **Version controlled** - All code in git
 ✅ **Easy updates** - Changes are immediately available (no republishing)
@@ -61,17 +115,18 @@ OpenCode resolves these through Bun's global link registry, finding the local pa
 
 ```bash
 # 1. Install prerequisites
-npm install -g bun opencode-ai
+# Install Bun 1.3.9, then install OpenCode CLI
+npm install -g opencode
 
 # 2. Clone repo
 git clone <your-repo-url> opencode-setup
 cd opencode-setup
 
 # 3. Run setup script
-./setup.sh
+bun run setup
 
 # 4. Verify
-./verify-setup.sh
+bun run verify
 
 # 5. Start OpenCode
 opencode

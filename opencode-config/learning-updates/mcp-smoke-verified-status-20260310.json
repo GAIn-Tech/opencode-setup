@@ -1,0 +1,15 @@
+{
+  "id": "mcp-smoke-verified-status-20260310",
+  "timestamp": "2026-03-10T13:36:00-04:00",
+  "summary": "Extend the MCP smoke report to surface smoke-verified status separately from recent runtime telemetry so cold-but-live MCPs can be proven exerciseable without faking usage.",
+  "affected_paths": [
+    "scripts/mcp-smoke-harness.mjs",
+    "scripts/tests/mcp-smoke-harness.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

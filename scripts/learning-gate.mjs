@@ -3,13 +3,18 @@
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import { resolveRoot } from './resolve-root.mjs';
 
-const ROOT = process.cwd();
+const ROOT = resolveRoot();
 const POLICY_PATH = path.join(ROOT, 'opencode-config', 'learning-update-policy.json');
 const UPDATES_DIR = path.join(ROOT, 'opencode-config', 'learning-updates');
+const HASHES_PATH = path.join(ROOT, 'opencode-config', '.governance-hashes.json');
+const HASH_ALGORITHM = 'SHA-256';
+const HASH_HEX_LENGTH = 64;
+const CONFIG_EXTENSIONS = new Set(['.json', '.yaml', '.yml']);
 
 function parseArgs(argv) {
-  const args = { staged: false, base: null };
+  const args = { staged: false, base: null, verifyHashes: false, generateHashes: false };
   for (let i = 2; i < argv.length; i += 1) {
     const token = argv[i];
     if (token === '--staged') {
@@ -17,6 +22,10 @@ function parseArgs(argv) {
     } else if (token === '--base') {
       args.base = argv[i + 1] ?? null;
       i += 1;
+    } else if (token === '--verify-hashes') {
+      args.verifyHashes = true;
+    } else if (token === '--generate-hashes') {
+      args.generateHashes = true;
     }
   }
   return args;
@@ -31,7 +40,7 @@ function normalizePath(input) {
 }
 
 function getChangedFiles({ staged, base }) {
-  if (!staged && !base) {
+  if (!staged && base == null) {
     const trackedOut = execSync('git diff --name-only', { cwd: ROOT, encoding: 'utf8' }).trim();
     const untrackedOut = execSync('git ls-files --others --exclude-standard', {
       cwd: ROOT,
@@ -44,11 +53,26 @@ function getChangedFiles({ staged, base }) {
     return combined.split('\n').map((line) => line.trim()).filter(Boolean);
   }
 
+  // Sanitize base parameter to prevent command injection
+  const sanitizedBase = base?.replace(/[^a-zA-Z0-9/_.\-]/g, '');
+  if (base && base !== sanitizedBase) {
+    console.error('[learning-gate] WARNING: base parameter contained invalid characters, sanitized');
+  }
+  const safeBase = sanitizedBase || 'HEAD';
+
   const cmd = staged
     ? 'git diff --cached --name-only'
-    : `git diff --name-only ${base}...HEAD`;
+    : `git diff --name-only ${safeBase}...HEAD`;
 
   const output = execSync(cmd, { cwd: ROOT, encoding: 'utf8' }).trim();
+  if (!output) {
+    return [];
+  }
+  return output.split('\n').map((line) => line.trim()).filter(Boolean);
+}
+
+function getTrackedFiles() {
+  const output = execSync('git ls-files', { cwd: ROOT, encoding: 'utf8' }).trim();
   if (!output) {
     return [];
   }
@@ -63,6 +87,184 @@ function matchPath(file, patterns) {
 function isLearningUpdateFile(file) {
   const normalizedFile = normalizePath(file);
   return normalizedFile.startsWith('opencode-config/learning-updates/') && normalizedFile.endsWith('.json');
+}
+
+function isGovernedConfigFile(file, policy) {
+  const normalizedFile = normalizePath(file);
+
+  if (!matchPath(normalizedFile, policy.governed_paths)) {
+    return false;
+  }
+
+  if (normalizedFile === 'opencode-config/.governance-hashes.json') {
+    return false;
+  }
+
+  if (normalizedFile.startsWith('opencode-config/learning-updates/')) {
+    return false;
+  }
+
+  if (normalizedFile === 'package.json') {
+    return true;
+  }
+
+  if (!normalizedFile.startsWith('opencode-config/')) {
+    return false;
+  }
+
+  return CONFIG_EXTENSIONS.has(path.extname(normalizedFile));
+}
+
+async function hashFile(filePath) {
+  const data = fs.readFileSync(filePath);
+  const digest = await crypto.subtle.digest(HASH_ALGORITHM, data);
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+function sortedObject(input) {
+  const entries = Object.entries(input).sort(([a], [b]) => a.localeCompare(b));
+  return Object.fromEntries(entries);
+}
+
+async function computeGovernanceHashes(policy) {
+  const files = getTrackedFiles().filter((file) => isGovernedConfigFile(file, policy));
+  files.sort((a, b) => a.localeCompare(b));
+
+  const hashes = {};
+  for (const relFile of files) {
+    hashes[normalizePath(relFile)] = await hashFile(path.join(ROOT, relFile));
+  }
+
+  return {
+    version: 1,
+    algorithm: HASH_ALGORITHM,
+    generated_at: new Date().toISOString(),
+    files: sortedObject(hashes)
+  };
+}
+
+function readKnownHashes() {
+  if (!fs.existsSync(HASHES_PATH)) {
+    return null;
+  }
+  return readJson(HASHES_PATH);
+}
+
+function writeKnownHashes(payload) {
+  fs.writeFileSync(HASHES_PATH, `${JSON.stringify(payload, null, 2)}\n`);
+}
+
+function normalizeHashesPayload(payload) {
+  const clone = JSON.parse(JSON.stringify(payload));
+  delete clone.generated_at;
+  return clone;
+}
+
+function prepareHashesOutput(nextHashes, existingHashes) {
+  if (!existingHashes) {
+    return { payload: nextHashes, changed: true };
+  }
+
+  const normalizedNext = normalizeHashesPayload(nextHashes);
+  const normalizedExisting = normalizeHashesPayload(existingHashes);
+  const changed = JSON.stringify(normalizedNext) !== JSON.stringify(normalizedExisting);
+
+  if (!changed) {
+    return {
+      payload: {
+        ...nextHashes,
+        generated_at: existingHashes.generated_at || nextHashes.generated_at
+      },
+      changed: false
+    };
+  }
+
+  return { payload: nextHashes, changed: true };
+}
+
+function isValidHash(value) {
+  return typeof value === 'string' && /^[a-f0-9]+$/i.test(value) && value.length === HASH_HEX_LENGTH;
+}
+
+function compareHashes(knownHashes, currentHashes) {
+  const knownEntries = knownHashes?.files && typeof knownHashes.files === 'object' ? knownHashes.files : {};
+  const currentEntries = currentHashes.files;
+
+  const missingFiles = [];
+  const mismatchedFiles = [];
+  const unmanagedFiles = [];
+
+  for (const [file, expectedHash] of Object.entries(knownEntries)) {
+    const actualHash = currentEntries[file];
+    if (!actualHash) {
+      missingFiles.push(file);
+      continue;
+    }
+    if (!isValidHash(expectedHash) || expectedHash.toLowerCase() !== actualHash.toLowerCase()) {
+      mismatchedFiles.push(file);
+    }
+  }
+
+  for (const file of Object.keys(currentEntries)) {
+    if (!(file in knownEntries)) {
+      unmanagedFiles.push(file);
+    }
+  }
+
+  return {
+    missingFiles,
+    mismatchedFiles,
+    unmanagedFiles
+  };
+}
+
+function formatHashDiff(diff) {
+  const lines = [];
+  if (diff.missingFiles.length > 0) {
+    lines.push(`- missing files: ${diff.missingFiles.join(', ')}`);
+  }
+  if (diff.mismatchedFiles.length > 0) {
+    lines.push(`- mismatched files: ${diff.mismatchedFiles.join(', ')}`);
+  }
+  if (diff.unmanagedFiles.length > 0) {
+    lines.push(`- unmanaged files: ${diff.unmanagedFiles.join(', ')}`);
+  }
+  return lines.join('\n');
+}
+
+function hasHashDiff(diff) {
+  return diff.missingFiles.length > 0 || diff.mismatchedFiles.length > 0 || diff.unmanagedFiles.length > 0;
+}
+
+function enforceGovernanceHashes(knownHashes, currentHashes, verifyHashes) {
+  if (!knownHashes) {
+    const message =
+      'learning-gate: governance hash baseline missing at opencode-config/.governance-hashes.json. Run --generate-hashes after legitimate config updates.';
+    if (verifyHashes) {
+      throw new Error(message);
+    }
+    console.warn(`learning-gate: WARNING ${message}`);
+    return;
+  }
+
+  const diff = compareHashes(knownHashes, currentHashes);
+  if (!hasHashDiff(diff)) {
+    return;
+  }
+
+  const details = formatHashDiff(diff);
+  const message = [
+    'learning-gate: governance hash mismatch detected.',
+    details,
+    '- this blocks runtime/manual config drift that bypasses git-diff-only governance checks.',
+    "- run 'node scripts/learning-gate.mjs --generate-hashes' after approved config changes."
+  ].join('\n');
+
+  if (verifyHashes) {
+    throw new Error(message);
+  }
+
+  console.warn(`learning-gate: WARNING\n${message}`);
 }
 
 function validateLearningUpdate(update, file, policy, governedChanges) {
@@ -115,9 +317,24 @@ function validateLearningUpdate(update, file, policy, governedChanges) {
   }
 }
 
-function main() {
+async function main() {
   const args = parseArgs(process.argv);
   const policy = readJson(POLICY_PATH);
+  const knownHashes = readKnownHashes();
+
+  const currentHashes = await computeGovernanceHashes(policy);
+
+  if (args.generateHashes) {
+    const prepared = prepareHashesOutput(currentHashes, knownHashes);
+    writeKnownHashes(prepared.payload);
+    console.log(`learning-gate: generated governance hashes at ${normalizePath(path.relative(ROOT, HASHES_PATH))}`);
+    console.log(`- governed config files: ${Object.keys(currentHashes.files).length}`);
+    return;
+  }
+
+  // Hash checks run on every invocation so runtime/manual edits cannot evade governance by avoiding git-diff contexts.
+  enforceGovernanceHashes(knownHashes, currentHashes, args.verifyHashes);
+
   const changedFiles = getChangedFiles(args);
 
   if (changedFiles.length === 0) {
@@ -154,12 +371,29 @@ function main() {
   console.log('learning-gate: PASS');
   console.log(`- governed changes: ${governedChanges.length}`);
   console.log(`- learning updates: ${learningUpdateFiles.length}`);
+
+  const refreshedHashes = await computeGovernanceHashes(policy);
+  const preparedHashes = prepareHashesOutput(refreshedHashes, knownHashes);
+  if (preparedHashes.changed) {
+    writeKnownHashes(preparedHashes.payload);
+    console.log('learning-gate: governance hashes refreshed');
+  }
 }
 
-try {
-  main();
-} catch (error) {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(message);
-  process.exit(1);
+// `import.meta.main` is Bun-specific; fall back to argv[1] check for Node.js compatibility
+import { fileURLToPath } from 'node:url';
+const _isEntryPoint = (typeof import.meta.main === 'boolean')
+  ? import.meta.main
+  : process.argv[1] === fileURLToPath(import.meta.url);
+
+if (_isEntryPoint) {
+  try {
+    await main();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(message);
+    process.exit(1);
+  }
 }
+
+export { normalizeHashesPayload, prepareHashesOutput, main };

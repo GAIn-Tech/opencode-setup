@@ -1,0 +1,26 @@
+{
+  "id": "unused-exports-removal-20260225",
+  "timestamp": "2026-02-25T00:00:00Z",
+  "category": "dead-code-elimination",
+  "summary": "Remove 56 unused exports from 10 package public APIs to reduce API surface area",
+  "details": "Removed exports from index.js files that had zero external consumers. Internal module exports preserved for test compatibility. Packages: config-loader (13), validator (9), model-router-x (10), learning-engine (9), memory-graph (6), fallback-doctor (5), sisyphus-state (1), integration-layer (1), plugin-preload-skills (1), skill-rl-manager (1).",
+  "affected_paths": [
+    "packages/opencode-config-loader/src/index.js",
+    "packages/opencode-validator/src/index.js",
+    "packages/opencode-model-router-x/src/index.js",
+    "packages/opencode-memory-graph/src/index.js",
+    "packages/opencode-learning-engine/src/index.js",
+    "packages/opencode-fallback-doctor/src/index.js",
+    "packages/opencode-sisyphus-state/src/index.js",
+    "packages/opencode-integration-layer/src/index.js",
+    "packages/opencode-plugin-preload-skills/src/index.js",
+    "packages/opencode-skill-rl-manager/src/index.js"
+  ],
+  "impact": "Low - removes unused public API exports with no external callers",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

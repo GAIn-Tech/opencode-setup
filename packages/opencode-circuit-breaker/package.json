@@ -1,0 +1,11 @@
+{
+  "name": "opencode-circuit-breaker",
+  "version": "1.0.0",
+  "description": "Circuit breaker pattern for provider failure prevention",
+  "main": "src/index.js",
+  "type": "module",
+  "dependencies": {},
+  "keywords": ["circuit-breaker", "resilience", "fault-tolerance"],
+  "author": "",
+  "license": "MIT"
+}

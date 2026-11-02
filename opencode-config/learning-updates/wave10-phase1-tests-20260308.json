@@ -1,0 +1,24 @@
+{
+  "id": "wave10-phase1-tests-20260308",
+  "timestamp": "2026-03-08T19:20:00Z",
+  "summary": "Wave 10 Phase 1 test coverage expansion: opencode-validator (65 tests), opencode-memory-bus SQLite/FTS5 spike (12 tests), opencode-learning-engine advise() edge cases (10 tests)",
+  "affected_paths": [
+    "packages/opencode-validator/test/validator.test.js",
+    "packages/opencode-memory-bus/test/spike.test.js",
+    "packages/opencode-learning-engine/test/advise-edge-cases.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "wave": "10",
+  "phase": "1",
+  "tasks": ["W10-T1", "W10-T2", "W10-T3"],
+  "details": {
+    "validator_tests": "65 tests, 92 expect() — ValidationResult, Validator chaining, required/type/min/max/pattern/schema, validate(), isObject, isArray",
+    "memory_bus_tests": "12 tests, 26 expect() — SQLite Database, table ops, prepared statements, transactions, FTS5, bm25(), error handling, data types",
+    "learning_engine_tests": "10 tests — advise() edge cases: empty context, undefined input, unknown task_type, shotgun_debug warning, result structure, core decay invariant, empty files, routing confidence"
+  }
+}

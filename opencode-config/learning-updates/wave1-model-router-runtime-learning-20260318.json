@@ -1,0 +1,15 @@
+{
+  "id": "wave1-model-router-runtime-learning-20260318",
+  "timestamp": "2026-03-18T23:25:00.000Z",
+  "summary": "Improve model-router runtime learning integration and add exploration outcome recording path.",
+  "affected_paths": [
+    "packages/opencode-model-router-x/src/index.js",
+    "packages/opencode-model-router-x/src/dynamic-exploration-controller.js"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

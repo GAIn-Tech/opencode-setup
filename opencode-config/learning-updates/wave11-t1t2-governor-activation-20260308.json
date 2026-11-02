@@ -1,0 +1,17 @@
+{
+  "id": "wave11-t1t2-governor-activation-20260308",
+  "timestamp": "2026-03-08T23:30:00Z",
+  "summary": "Enable context-governor MCP and create skill file with registry entries for budget-aware context management",
+  "affected_paths": [
+    "opencode-config/opencode.json",
+    "opencode-config/skills/context-governor/SKILL.md",
+    "opencode-config/skills/registry.json",
+    "opencode-config/compound-engineering.json"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

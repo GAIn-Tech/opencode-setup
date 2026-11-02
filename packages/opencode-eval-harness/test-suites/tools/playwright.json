@@ -1,0 +1,102 @@
+/**
+ * Test suite for playwright MCP tool
+ * Tests: browser navigation, click, type, screenshot
+ */
+[
+  {
+    "id": "playwright-navigate",
+    "prompt": "Navigate to https://example.com and verify the page loaded",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "example.com",
+      "match": "contains"
+    },
+    "complexity_tier": 1,
+    "category": "navigation",
+    "max_tokens": 256
+  },
+  {
+    "id": "playwright-click-button",
+    "prompt": "Click a button with text 'Submit' on the page",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "click",
+      "match": "contains"
+    },
+    "complexity_tier": 1,
+    "category": "interaction",
+    "max_tokens": 256
+  },
+  {
+    "id": "playwright-fill-form",
+    "prompt": "Fill a text input field with name 'username' and value 'testuser'",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "fill",
+      "match": "contains"
+    },
+    "complexity_tier": 1,
+    "category": "form-interaction",
+    "max_tokens": 256
+  },
+  {
+    "id": "playwright-screenshot",
+    "prompt": "Take a screenshot of the current page",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "screenshot",
+      "match": "contains"
+    },
+    "complexity_tier": 1,
+    "category": "visual",
+    "max_tokens": 256
+  },
+  {
+    "id": "playwright-wait-for-element",
+    "prompt": "Wait for element with text 'Loading...' to disappear",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "wait",
+      "match": "contains"
+    },
+    "complexity_tier": 2,
+    "category": "synchronization",
+    "max_tokens": 256
+  },
+  {
+    "id": "playwright-accessibility-snapshot",
+    "prompt": "Capture accessibility snapshot of the current page",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "accessibility",
+      "match": "contains"
+    },
+    "complexity_tier": 2,
+    "category": "accessibility",
+    "max_tokens": 4096
+  },
+  {
+    "id": "playwright-error-handling-invalid-selector",
+    "prompt": "Attempt to click element with invalid selector '#nonexistent' and handle error gracefully",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "error",
+      "match": "any_present"
+    },
+    "complexity_tier": 1,
+    "category": "error-handling",
+    "max_tokens": 256
+  },
+  {
+    "id": "playwright-performance-metrics",
+    "prompt": "Capture performance metrics from the current page",
+    "expected_result_shape": {
+      "type": "text",
+      "value": "metric",
+      "match": "contains"
+    },
+    "complexity_tier": 3,
+    "category": "performance",
+    "max_tokens": 1024
+  }
+]

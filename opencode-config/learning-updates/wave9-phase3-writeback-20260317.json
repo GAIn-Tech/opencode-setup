@@ -1,0 +1,20 @@
+{
+  "id": "wave9-phase3-writeback-20260317",
+  "timestamp": "2026-03-17T00:00:00Z",
+  "category": "integration",
+  "summary": "Add post-commit synthesis trigger to learning-gate.mjs. After validation passes, automatically re-runs synthesize-meta-kb.mjs to keep the index fresh. Guards against circular amplification by skipping synthesis if source is meta-kb-auto.",
+  "affected_paths": [
+    "scripts/learning-gate.mjs",
+    "package.json"
+  ],
+  "root_cause": "Task 10: Post-commit synthesis hook not implemented",
+  "fix_approach": "Added triggerMetaKBSynthesis function that imports synthesize from synthesize-meta-kb.mjs and calls it after learning update validation passes. Guard checks for source: meta-kb-auto to prevent circular amplification.",
+  "risk_level": "low",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["bun run scripts/learning-gate.mjs"],
+    "notes": "Function added, script runs without syntax errors"
+  }
+}

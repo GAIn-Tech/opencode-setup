@@ -1,0 +1,17 @@
+{
+  "id": "mcp-direct-path-regressions-20260310",
+  "timestamp": "2026-03-10T11:38:00-04:00",
+  "summary": "Update MCP lifecycle and inventory regressions so Playwright and Distill direct paths are required and reflected in the generated lifecycle report.",
+  "affected_paths": [
+    "scripts/report-mcp-lifecycle.mjs",
+    "scripts/tests/mcp-audit-classification.test.js",
+    "scripts/tests/mcp-inventory-regression.test.js",
+    "scripts/tests/mcp-lifecycle-report.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

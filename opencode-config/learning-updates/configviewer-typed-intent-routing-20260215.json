@@ -1,0 +1,18 @@
+{
+  "id": "configviewer-typed-intent-routing-20260215",
+  "timestamp": "2026-02-16T00:05:00Z",
+  "category": "dashboard",
+  "summary": "Extended ConfigViewer with typed intent-routing editor controls",
+  "details": "Replaced model policy intentRouting raw JSON-only editing with typed controls per intent and layer. Added intent add/remove/rename actions and per-layer model list textareas (layer_1..layer_6) while preserving existing JSON editors for deeper policy structures.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/components/dashboard/ConfigViewer.tsx"
+  ],
+  "impact": "Medium - Reduces JSON editing errors and improves policy edit usability",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "pass",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}

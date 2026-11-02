@@ -1,0 +1,36 @@
+{
+  "schema": "audit-templates-v1",
+  "templates": [
+    {
+      "id": "default-code-quality",
+      "name": "Code Quality Audit",
+      "description": "Standard code quality checks",
+      "checks": [
+        "naming-conventions",
+        "function-length",
+        "complexity",
+        "duplicates"
+      ]
+    },
+    {
+      "id": "default-security",
+      "name": "Security Audit",
+      "description": "Basic security checks",
+      "checks": [
+        "hardcoded-secrets",
+        "sql-injection",
+        "xss-vulnerabilities"
+      ]
+    },
+    {
+      "id": "default-performance",
+      "name": "Performance Audit",
+      "description": "Performance optimization checks",
+      "checks": [
+        "n-plus-one",
+        "missing-indexes",
+        "memory-leaks"
+      ]
+    }
+  ]
+}

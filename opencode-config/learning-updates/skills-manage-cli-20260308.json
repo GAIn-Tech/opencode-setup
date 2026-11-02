@@ -1,0 +1,18 @@
+{
+  "id": "skills-manage-cli-20260308",
+  "timestamp": "2026-03-08T00:00:00Z",
+  "category": "tooling",
+  "summary": "Add skills-manage.mjs CLI for atomic skill management: list, add, enable, disable, audit, sync commands. Sync package.json with 7 new skills:* script entries.",
+  "affected_paths": [
+    "scripts/skills-manage.mjs",
+    "package.json"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["node scripts/skills-manage.mjs list --all", "node scripts/learning-gate.mjs --generate-hashes"],
+    "notes": "CLI is read-only for list/audit; write commands (add/enable/disable/sync) modify registry.json and compound-engineering.json atomically."
+  }
+}

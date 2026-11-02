@@ -1,0 +1,15 @@
+{
+  "id": "sequentialthinking-skill-activation-20260310",
+  "timestamp": "2026-03-10T00:06:00-04:00",
+  "summary": "Add the Sequential Thinking skill guide and thinker agent prompt so explicit reasoning work has a first-class MCP activation path.",
+  "affected_paths": [
+    "opencode-config/skills/sequentialthinking/SKILL.md",
+    "opencode-config/agents/thinker.md"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

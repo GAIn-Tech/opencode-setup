@@ -1,0 +1,15 @@
+{
+  "id": "config-coherence-enriched-json-2026-03-14",
+  "timestamp": "2026-03-14T18:45:00Z",
+  "summary": "Config coherence script now handles enriched JSON files (e.g., opencode.json with MCP path resolution) via structural comparison of non-enriched keys instead of SHA256 hash. Added ENRICHED_JSON_FILES map, deepEqual(), and compareEnrichedJson(). Unblocks protocol-compliance-pass.mjs.",
+  "affected_paths": [
+    "scripts/validate-config-coherence.mjs",
+    "scripts/tests/validate-config-coherence.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

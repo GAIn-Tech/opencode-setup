@@ -1,0 +1,27 @@
+{
+  "id": "budget-remediation-contract-propagation-20260424",
+  "timestamp": "2026-04-24T23:45:00Z",
+  "category": "observability",
+  "summary": "Propagate budget remediation guidance across AlertManager, dashboard budget API, and observability UI so runtime, API, and UI agree on next-step actions.",
+  "affected_paths": [
+    "packages/opencode-model-manager/src/monitoring/alert-manager.js",
+    "packages/opencode-model-manager/test/monitoring/alert-manager-budget-guidance.test.js",
+    "packages/opencode-dashboard/src/app/api/budget/route.ts",
+    "packages/opencode-dashboard/src/app/observability/page.tsx",
+    "packages/opencode-dashboard/test/budget-route.test.ts"
+  ],
+  "root_cause": "Remediation metadata was added in one layer, but the dashboard API and UI still consumed the legacy budget summary contract.",
+  "fix_approach": "Added structured remediation output to the budget API, extended UI rendering for actionable guidance, and aligned threshold coverage in alert-manager tests.",
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "pass",
+    "commands": [
+      "bun test packages/opencode-dashboard/test/budget-route.test.ts",
+      "bun test packages/opencode-model-manager/test/monitoring/alert-manager-budget-guidance.test.js",
+      "bun run build"
+    ],
+    "notes": "Budget summaries now include remediation metadata and the observability UI surfaces next-step guidance."
+  }
+}

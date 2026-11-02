@@ -1,0 +1,15 @@
+{
+  "id": "model-router-wiring-20260312",
+  "timestamp": "2026-03-12T03:30:00.000Z",
+  "summary": "Wire model-router-x into bootstrap for orchestrated model selection with injected skillRLManager and fallbackDoctor",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/bootstrap.js",
+    "packages/opencode-integration-layer/tests/model-router-wiring.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

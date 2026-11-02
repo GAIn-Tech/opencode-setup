@@ -1,0 +1,27 @@
+{
+  "id": "memory-graph-wiring-20260312",
+  "timestamp": "2026-03-12T00:00:00Z",
+  "summary": "Wire memory-graph delegation methods into IntegrationLayer to expose error tracking and session management capabilities",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/index.js",
+    "packages/opencode-integration-layer/tests/memory-graph-wiring.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "pass"
+  },
+  "risk_level": "low",
+  "changes": {
+    "added_methods": [
+      "recordSessionError(sessionId, error)",
+      "getSessionErrors(sessionId)",
+      "getErrorFrequency()",
+      "activateMemoryGraph(opts)",
+      "isMemoryGraphActive()"
+    ],
+    "pattern": "fail-open delegation with null returns on unavailability",
+    "constructor_update": "Added config.memoryGraph parameter support"
+  },
+  "notes": "All methods follow fail-open pattern: return null on unavailability or error. isMemoryGraphActive() is synchronous, others are async. Tests cover delegation, unavailability, and error handling."
+}

@@ -1,0 +1,11 @@
+[
+  {
+    "profile": "deep-refactoring",
+    "score": 3,
+    "description": "Comprehensive refactoring with TDD, debugging, and atomic commits",
+    "matched": [
+      "profile:refactor"
+    ]
+  }
+]
+--- EXIT CODE: 0

@@ -1,0 +1,18 @@
+{
+  "id": "dashboard-monitoring-routes-20260309",
+  "timestamp": "2026-03-09T22:47:00-04:00",
+  "summary": "Add dashboard endpoints and monitoring-route support for compression and Context7 observability, backed by the shared monitoring collector.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/monitoring/route.ts",
+    "packages/opencode-dashboard/src/app/api/compression/route.ts",
+    "packages/opencode-dashboard/src/app/api/context7-stats/route.ts",
+    "packages/opencode-dashboard/test/compression-route.test.ts",
+    "packages/opencode-dashboard/test/monitoring-observability-route.test.ts"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

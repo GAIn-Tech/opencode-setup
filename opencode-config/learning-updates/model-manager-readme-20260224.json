@@ -1,0 +1,15 @@
+{
+  "id": "model-manager-readme-20260224",
+  "timestamp": "2026-02-24T10:15:00Z",
+  "summary": "Added comprehensive README for opencode-model-manager package",
+  "affected_paths": [
+    "packages/opencode-model-manager/README.md"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Documentation-only change. README covers architecture, usage, API reference, and operational guides for the automated model management system. Includes provider adapter patterns, lifecycle state machine, caching strategy, and CI/CD integration."
+}

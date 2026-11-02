@@ -1,0 +1,36 @@
+{
+  "id": "gemini-model-correction-20260215-revised",
+  "timestamp": "2026-02-17T09:45:00-05:00",
+  "category": "critical-fix-reversal",
+  "summary": "REVERSED: gemini-3 models ARE VALID and CURRENT. gemini-2.0-* are now legacy. This corrects the previous incorrect fix.",
+  "changes": {
+    "revised_models_fixed": 2,
+    "files_updated": 1,
+    "model_replacements_reversed": {
+      "gemini-2.0-pro": "gemini-3-pro",
+      "gemini-2.0-flash": "gemini-3-flash"
+    }
+  },
+  "root_cause": "Gemini 3 models DO exist in Google AI API. The previous fix incorrectly marked gemini-3 as deprecated when gemini-3-pro and gemini-3-flash are the actual current frontier models.",
+  "fixes": [
+    "Updated schema.json to mark gemini-3-pro and gemini-3-flash as active",
+    "Marked gemini-2.0-pro and gemini-2.0-flash as legacy/deprecated",
+    "Updated README.md to reflect current model stack"
+  ],
+  "current_active_models": {
+    "google": ["gemini-3-pro", "gemini-3-flash"],
+    "google_legacy": ["gemini-2.0-pro", "gemini-2.0-flash"]
+  },
+  "verification": {
+    "tests": "not-run",
+    "lint": "pass",
+    "typecheck": "not-run",
+    "deploy": "not-run"
+  },
+  "impact": "All model routing now uses correct Gemini 3 model names.",
+  "risk_level": "low",
+  "affected_paths": [
+    "opencode-config/models/schema.json",
+    "README.md"
+  ]
+}

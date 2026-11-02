@@ -1,0 +1,17 @@
+{
+  "id": "wave9-model-router-meta-kb-20260308",
+  "timestamp": "2026-03-08T00:00:00Z",
+  "category": "tooling",
+  "summary": "Extend model-router _applyLearningPenalties to incorporate meta-KB signals — warnings reduce score (capped 0.25), positive evidence provides bonus (capped 0.1)",
+  "affected_paths": ["packages/opencode-model-router-x/src/index.js"],
+  "root_cause": "Model-router scoring did not factor in meta-KB anti-pattern signals from the learning engine",
+  "fix_approach": "Added meta-KB warning penalty and evidence bonus logic after existing risk score penalty in _applyLearningPenalties; 6 tests verifying penalty math and caps",
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["bun test packages/opencode-model-router-x/test/meta-kb-routing.test.js"],
+    "notes": "Penalties are additive to existing learning penalties; fail-open when no meta-KB signals present"
+  }
+}

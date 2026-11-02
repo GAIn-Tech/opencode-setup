@@ -1,5 +1,7 @@
 'use strict';
 
+const path = require('path');
+
 /**
  * IntelligentRotator — Multi-key rotation with rate-limit header awareness.
  * 
@@ -34,23 +36,107 @@ class IntelligentRotator {
             maxFailures: 3,
             ...options
         };
-
+ 
         this.currentIndex = 0;
+        this._lock = null;
+        this._lockQueue = [];  // Queue for proper mutex behavior
+        this._inFlightKeys = new Set();
+        
+        // P1: Budget-Aware Key Rotation - Integrate ContextGovernor
+        this._governor = options.governor || null;
+        this._sessionId = options.sessionId || 'default';
     }
 
     /**
      * Get the next available healthy key.
      * @returns {object|null} { id, value }
      */
-    getNextKey() {
+    async getNextKey() {
+        return this._acquireLock(() => this._getNextKeyImpl());
+    }
+
+    /**
+     * Acquire lock for concurrent access protection.
+     * Uses proper queue-based mutex to prevent race conditions.
+     * @param {Function} callback
+     * @returns {Promise<any>}
+     */
+    async _acquireLock(callback) {
+        // If no lock held, acquire immediately
+        if (!this._lock) {
+            this._lock = true;
+            try {
+                return await callback();
+            } finally {
+                this._lock = false;
+                this._processLockQueue();
+            }
+        }
+        
+        // Lock held - add to queue and wait
+        return new Promise((resolve, reject) => {
+            this._lockQueue.push({ resolve, reject, callback });
+        });
+    }
+    
+    /**
+     * Process waiting callers in queue.
+     * @private
+     */
+    _processLockQueue() {
+        if (this._lockQueue.length > 0 && !this._lock) {
+            const next = this._lockQueue.shift();
+            this._lock = true;
+            // Execute the next caller's callback
+            Promise.resolve().then(async () => {
+                try {
+                    const result = await next.callback();
+                    next.resolve(result);
+                } catch (err) {
+                    next.reject(err);
+                } finally {
+                    this._lock = false;
+                    this._processLockQueue();
+                }
+            });
+        }
+    }
+
+    /**
+     * Mark a key as in-flight (being used for a request).
+     * @param {string} keyId
+     */
+    markInFlight(keyId) {
+        this._inFlightKeys.add(keyId);
+    }
+
+    /**
+     * Release a key from in-flight status.
+     * @param {string} keyId
+     */
+    releaseInFlight(keyId) {
+        this._inFlightKeys.delete(keyId);
+    }
+
+    /**
+     * Internal implementation without locking.
+     * @returns {object|null} { id, value }
+     */
+    _getNextKeyImpl() {
         const now = Date.now();
+        // Filter out keys that are in-flight (currently being used)
         const healthyKeys = this.keys.filter(k => 
-            k.status === 'healthy' && now > k.resetAt
+            k.status === 'healthy' && 
+            now > k.resetAt &&
+            !this._inFlightKeys.has(k.id)
         );
 
         if (healthyKeys.length === 0) {
             // Check if any keys are in cooldown but might be ready soon
-            const candidate = this.keys.sort((a, b) => a.resetAt - b.resetAt)[0];
+            // Also check if they're not in-flight
+            const candidate = this.keys
+                .filter(k => !this._inFlightKeys.has(k.id))
+                .sort((a, b) => a.resetAt - b.resetAt)[0];
             if (candidate && now > candidate.resetAt) {
                 candidate.status = 'healthy';
                 return candidate;
@@ -72,8 +158,117 @@ class IntelligentRotator {
             this.currentIndex = (this.currentIndex + 1) % healthyKeys.length;
         }
 
+        // Mark as in-flight immediately
+        this._inFlightKeys.add(selected.id);
         selected.lastUsed = now;
+        
+        // P1: Budget-Aware Key Rotation - Check budget before returning key
+        if (this._governor) {
+            const budgetCheck = this._governor.checkBudget(this._sessionId, this.providerId, 1000);
+            if (!budgetCheck.allowed) {
+                // Budget exceeded - release key and return null
+                this._inFlightKeys.delete(selected.id);
+                console.warn(`[IntelligentRotator] Budget exceeded for ${this.providerId}: ${budgetCheck.message}`);
+                return null;
+            }
+            if (budgetCheck.status === 'error') {
+                console.warn(`[IntelligentRotator] Budget critical for ${this.providerId}: ${budgetCheck.message}`);
+            }
+        }
+        
         return selected;
+    }
+    
+    /**
+     * P1: Budget-Aware Key Rotation - Set governor instance
+     * @param {object} governor - Governor instance from opencode-context-governor
+     * @param {string} sessionId - Session ID for budget tracking
+     */
+    setGovernor(governor, sessionId = 'default') {
+        this._governor = governor;
+        this._sessionId = sessionId;
+    }
+
+    /**
+     * P1: KeyRotator → Learning - Set learning engine for pattern detection
+     * @param {object} learningEngine - Learning engine instance
+     */
+    setLearningEngine(learningEngine) {
+        this._learningEngine = learningEngine;
+    }
+
+    /**
+     * P1: KeyRotator → Learning - Record key rotation pattern for learning
+     * @param {string} patternType - Type of pattern (exhausted, degraded, rotated)
+     * @param {object} data - Pattern data
+     */
+    _recordLearningPattern(patternType, data) {
+        if (!this._learningEngine) return;
+        
+        const pattern = {
+            providerId: this.providerId,
+            patternType,
+            timestamp: Date.now(),
+            ...data
+        };
+        
+        // Use learning engine's pattern storage if available
+        if (this._learningEngine.recordKeyRotationPattern) {
+            this._learningEngine.recordKeyRotationPattern(pattern);
+        } else if (this._learningEngine.ingestWithValidation) {
+            // Fallback: use generic ingest
+            this._learningEngine.ingestWithValidation({
+                type: 'key_rotation',
+                category: patternType,
+                provider: this.providerId,
+                data
+            });
+        }
+    }
+    
+    /**
+     * P1: Budget-Aware Key Rotation - Get current budget status
+     * @returns {object|null} Budget status or null if no governor set
+     */
+    getBudgetStatus() {
+        if (!this._governor) return null;
+        return this._governor.getRemainingBudget(this._sessionId, this.providerId);
+    }
+
+    /**
+     * P3: KeyRotator → Learning - failure Report key to learning
+     * @param {string} keyId - The key that failed
+     * @param {string} reason - Failure reason
+     */
+    _reportKeyFailureToLearning(keyId, reason) {
+        if (this._learningEngine && typeof this._learningEngine.ingest === 'function') {
+            this._learningEngine.ingest({
+                type: 'key_rotation_failure',
+                provider: this.providerId,
+                keyId,
+                reason,
+                timestamp: Date.now()
+            });
+        }
+    }
+
+    /**
+     * Apply quota signals under the same mutex used by key selection.
+     * This prevents interleaving updates from concurrent 429/header events.
+     *
+     * @param {string} keyId
+     * @param {{ headers?: object, failure?: number|object }} signal
+     * @returns {Promise<void>}
+     */
+    async applyQuotaSignal(keyId, signal = {}) {
+        return this._acquireLock(() => {
+            if (signal.headers) {
+                this._updateFromHeadersImpl(keyId, signal.headers);
+            }
+            if (signal.failure !== undefined) {
+                this._recordFailureImpl(keyId, signal.failure);
+            }
+        });
     }
 
     /**
@@ -82,27 +277,58 @@ class IntelligentRotator {
      * @param {object} headers 
      */
     updateFromHeaders(keyId, headers) {
+        return this.applyQuotaSignal(keyId, { headers });
+    }
+
+    _updateFromHeadersImpl(keyId, headers) {
         const key = this.keys.find(k => k.id === keyId);
         if (!key) return;
 
-        // Standard x-ratelimit or x-nvapi headers
+        const getHeader = (...names) => {
+            for (const name of names) {
+                if (headers?.[name] !== undefined && headers?.[name] !== null) return headers[name];
+            }
+            return undefined;
+        };
+
+        // Standard x-ratelimit, x-nvapi, or Groq headers
         const remainingRequests = parseInt(
-            headers['x-ratelimit-remaining-requests'] || 
-            headers['x-ratelimit-remaining'] ||
-            headers['x-nvapi-remaining-requests']
+            getHeader(
+                'x-ratelimit-remaining-requests',
+                'x-ratelimit-remaining-requests-minute',
+                'x-ratelimit-remaining-rpm',
+                'x-ratelimit-remaining',
+                'x-nvapi-remaining-requests',
+                'x-groq-rate-limit-remaining'
+            )
         );
         const remainingTokens = parseInt(
-            headers['x-ratelimit-remaining-tokens'] ||
-            headers['x-nvapi-remaining-tokens']
+            getHeader(
+                'x-ratelimit-remaining-tokens',
+                'x-ratelimit-remaining-tokens-minute',
+                'x-ratelimit-remaining-tpm',
+                'x-nvapi-remaining-tokens',
+                'x-groq-rate-limit-tokens-remaining'
+            )
         );
         const resetRequests = parseInt(
-            headers['x-ratelimit-reset-requests'] || 
-            headers['x-ratelimit-reset'] ||
-            headers['x-nvapi-reset-requests']
+            getHeader(
+                'x-ratelimit-reset-requests',
+                'x-ratelimit-reset-requests-minute',
+                'x-ratelimit-reset-rpm',
+                'x-ratelimit-reset',
+                'x-nvapi-reset-requests',
+                'x-groq-rate-limit-reset'
+            )
         );
         const resetTokens = parseInt(
-            headers['x-ratelimit-reset-tokens'] ||
-            headers['x-nvapi-reset-tokens']
+            getHeader(
+                'x-ratelimit-reset-tokens',
+                'x-ratelimit-reset-tokens-minute',
+                'x-ratelimit-reset-tpm',
+                'x-nvapi-reset-tokens',
+                'x-groq-rate-limit-tokens-reset'
+            )
         );
 
         if (!isNaN(remainingRequests)) key.remainingRequests = remainingRequests;
@@ -116,8 +342,10 @@ class IntelligentRotator {
             key.resetAt = Math.max(key.resetAt, now + (resetTokens * 1000));
         }
 
-        // Proactive throttling
-        if (key.remainingRequests < 5 || key.remainingTokens < 1000) {
+        // Proactive throttling with stricter Cerebras TPM floor
+        const requestFloor = this.providerId === 'cerebras' ? 3 : 5;
+        const tokenFloor = this.providerId === 'cerebras' ? 10000 : 1000;
+        if (key.remainingRequests < requestFloor || key.remainingTokens < tokenFloor) {
             key.status = 'throttled';
         } else {
             key.status = 'healthy';
@@ -130,6 +358,10 @@ class IntelligentRotator {
      * @param {number|object} errorOrRetryAfterMs - Retry time in ms or error object
      */
     recordFailure(keyId, errorOrRetryAfterMs = 0) {
+        return this.applyQuotaSignal(keyId, { failure: errorOrRetryAfterMs });
+    }
+
+    _recordFailureImpl(keyId, errorOrRetryAfterMs = 0) {
         const key = this.keys.find(k => k.id === keyId);
         if (!key) return;
 
@@ -140,13 +372,28 @@ class IntelligentRotator {
         if (typeof errorOrRetryAfterMs === 'object' && errorOrRetryAfterMs !== null) {
             const errorMessage = errorOrRetryAfterMs.message || '';
             const errorDetail = errorOrRetryAfterMs.detail || '';
-            
+            const message = `${errorMessage} ${errorDetail}`.toLowerCase();
+
+            const retryAfterHeader =
+                errorOrRetryAfterMs.retryAfter ||
+                errorOrRetryAfterMs?.headers?.['retry-after'] ||
+                errorOrRetryAfterMs?.headers?.['x-ratelimit-reset'] ||
+                null;
+            if (retryAfterHeader) {
+                const retryAfterSec = Number.parseInt(String(retryAfterHeader), 10);
+                if (Number.isFinite(retryAfterSec)) retryAfterMs = Math.max(retryAfterMs, retryAfterSec * 1000);
+            }
+
             if (errorMessage.includes('DEGRADED') || errorDetail.includes('DEGRADED') || 
                 errorMessage.includes('cannot be invoked') || errorDetail.includes('cannot be invoked')) {
                 isPlatformDegraded = true;
                 // Force a longer cooldown for platform issues (5 minutes)
                 retryAfterMs = Math.max(retryAfterMs, 300000);
                 console.warn(`[IntelligentRotator] Detected platform degradation for ${this.providerId} (${keyId}). Entering extended cooldown.`);
+            }
+
+            if (this.providerId === 'cerebras' && (message.includes('tokens per minute') || message.includes('tpm'))) {
+                retryAfterMs = Math.max(retryAfterMs, 60000);
             }
         }
 

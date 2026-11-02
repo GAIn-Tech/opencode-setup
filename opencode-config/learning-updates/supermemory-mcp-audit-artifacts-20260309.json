@@ -1,0 +1,16 @@
+{
+  "id": "supermemory-mcp-audit-artifacts-20260309",
+  "timestamp": "2026-03-09T23:25:00-04:00",
+  "summary": "Add MCP audit, summary, and wiring-plan artifacts documenting passive and dead MCP gaps plus the downstream wiring pattern to follow.",
+  "affected_paths": [
+    "opencode-config/supermemory/mcp-audit-20260308.md",
+    "opencode-config/supermemory/mcp-audit-summary-20260308.md",
+    "opencode-config/supermemory/mcp-wiring-plan-20260308.md"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "task": 4,
+  "phase": "red",
+  "timestamp": "2026-03-31T05:31:00.000Z",
+  "command": "bun test scripts/tests/verify-portability.test.js",
+  "result": "failed-as-expected",
+  "failingAssertions": [
+    "Named export checkDeterminismFailures missing from scripts/verify-portability.mjs"
+  ],
+  "evidence": {
+    "passCount": 0,
+    "failCount": 1,
+    "error": "SyntaxError: Export named 'checkDeterminismFailures' not found"
+  }
+}

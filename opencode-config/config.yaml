@@ -69,7 +69,7 @@ delegation:
 
     advanced:        # Deep analysis (debugging, performance optimization)
       category: deep
-      models: [claude-sonnet-4-5-thinking]
+      models: [antigravity-claude-sonnet-4-5-thinking]
       max_cost_per_task: 0.50
 
     architectural:   # Design decisions, novel problems, system design
@@ -79,7 +79,7 @@ delegation:
 
     critical:        # High-stakes, security audits, complex architecture
       category: ultrabrain
-      models: [claude-opus-4-6-thinking]
+      models: [antigravity-claude-opus-4-6-thinking]
       max_cost_per_task: 2.00
 
   batching:

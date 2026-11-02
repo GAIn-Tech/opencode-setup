@@ -1,0 +1,16 @@
+{
+  "id": "preload-mcp-tool-expansion-20260310",
+  "timestamp": "2026-03-10T14:20:00-04:00",
+  "summary": "Expand abstract MCP selections in the preload-skills plugin into actual callable tool IDs so implicit routing can point at invocable runtime tools instead of server-name hints.",
+  "affected_paths": [
+    "packages/opencode-plugin-preload-skills/src/index.js",
+    "packages/opencode-plugin-preload-skills/test/mcp-selection.test.js",
+    "packages/opencode-plugin-preload-skills/test/routing-seeds.test.js"
+  ],
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "id": "portability-closure-hardening-20260222",
+  "timestamp": "2026-02-22T03:05:00Z",
+  "summary": "Completed closure hardening for clone portability by unifying setup/verify workflows, enforcing env/docs governance in CI, adding devcontainer baseline, and validating Bun path recovery behavior.",
+  "affected_paths": [
+    "README.md",
+    "SYSTEM_REQUIREMENTS.md",
+    "INSTALL.md",
+    "PORTABILITY.md",
+    "SETUP_COMPLETE.md",
+    "QUICK-REFERENCE.md",
+    "export-checklist.md",
+    "setup.sh",
+    "scripts/setup.sh",
+    "verify-setup.sh",
+    "scripts/health-check.sh",
+    "scripts/verify-setup.mjs",
+    "scripts/preflight-versions.mjs",
+    "scripts/fix-bun-path.ps1",
+    "scripts/install-git-hooks.mjs",
+    "scripts/docs-governance-check.mjs",
+    "scripts/env-contract-check.mjs",
+    ".githooks/pre-commit",
+    ".github/workflows/governance-gate.yml",
+    ".github/workflows/model-catalog-sync.yml",
+    ".github/workflows/opencode-ci.yml",
+    ".github/workflows/container-parity.yml",
+    ".devcontainer/devcontainer.json",
+    "Dockerfile",
+    ".env.example"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium",
+  "notes": "Verification now supports explicit OPENCODE_BUN_PATH override and optional env readiness profiles; container parity now runs in-container setup plus verify."
+}

@@ -1,0 +1,16 @@
+$ node scripts/validate-config.mjs && node scripts/mcp-mirror-coherence.mjs && node scripts/supply-chain-guard.mjs && bun run scripts/learning-gate.mjs --staged && node scripts/deployment-state.mjs check-flow && node scripts/integrity-guard.mjs && bun run skills:coverage && bun run warning:check
+validate-config: PASS (C:\Users\jack\work\opencode-setup\opencode-config\opencode.json)
+WARN: schema_version missing; accepted for backward compatibility
+WARN: learning_updates section missing; skipping learning update schema checks
+[mcp-mirror-coherence] ok mcp-servers\tool-manifest.json
+[mcp-mirror-coherence] ok mcp-servers\opencode-mcp-config.json
+[mcp-mirror-coherence] ok mcp-servers\opencode-mcp-config.template.json
+== Supply Chain Guard ==
+Mode: non-release
+Failures:
+  - [SCG_PLUGIN_LATEST_BLOCKED] Plugin '@tarquinen/opencode-dcp@latest' uses @latest. Pin explicit versions or allowlist via OPENCODE_ALLOW_LATEST_MCP.
+  - [SCG_PLUGIN_LATEST_BLOCKED] Plugin 'opencode-rate-limit-fallback@latest' uses @latest. Pin explicit versions or allowlist via OPENCODE_ALLOW_LATEST_MCP.
+  - [SCG_PLUGIN_LATEST_BLOCKED] Plugin '@mohak34/opencode-notifier@latest' uses @latest. Pin explicit versions or allowlist via OPENCODE_ALLOW_LATEST_MCP.
+  - [SCG_PLUGIN_LATEST_BLOCKED] Plugin 'envsitter-guard@latest' uses @latest. Pin explicit versions or allowlist via OPENCODE_ALLOW_LATEST_MCP.
+  - [SCG_PLUGIN_LATEST_BLOCKED] Plugin 'cc-safety-net@latest' uses @latest. Pin explicit versions or allowlist via OPENCODE_ALLOW_LATEST_MCP.
+error: script "governance:check" exited with code 1

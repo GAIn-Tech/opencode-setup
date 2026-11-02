@@ -1,0 +1,19 @@
+{
+  "name": "opencode-telemetry-explainability",
+  "version": "1.0.0",
+  "description": "Telemetry and metadata explainability for routing/delegation decisions",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "bun test"
+  },
+  "keywords": [
+    "telemetry",
+    "explainability",
+    "routing",
+    "delegation",
+    "provenance"
+  ],
+  "dependencies": {},
+  "devDependencies": {}
+}

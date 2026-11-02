@@ -64,7 +64,7 @@ class StuckBugDetector {
       this.#failureHistory.shift();
     }
 
-    console.log(`[StuckBugDetector] Failure recorded: ${failure.error.split('\n')[0].substring(0, 60)}...`);
+    console.log(`[StuckBugDetector] Failure recorded: ${(failure.error || 'Unknown error').split('\n')[0].substring(0, 60)}...`);
   }
 
   /**

@@ -1,0 +1,28 @@
+{
+  "id": "parallel-agent-limits-2026-04-02",
+  "timestamp": "2026-04-02T00:00:00.000Z",
+  "summary": "Increased category parallel concurrency limits for 96GB machine and added fallback chains for delegation variety. Updated CATEGORY_BASE_CAPS (deep=30, ultrabrain=25, default=15, quick=10), added missing categories (visual-engineering, artistry, writing, unspecified-low), added 2 fallback models per category, modernized MODEL_CAPABILITIES registry with current models (no Anthropic), added normalizeModelId helper.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/orchestration-policy.js",
+    "opencode-config/oh-my-opencode.json",
+    "packages/opencode-model-router-x/src/tier-router.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "changes": {
+    "CATEGORY_BASE_CAPS": {
+      "deep": { "fanout": 30, "concurrency": 25 },
+      "ultrabrain": { "fanout": 25, "concurrency": 20 },
+      "visual-engineering": { "fanout": 20, "concurrency": 15 },
+      "artistry": { "fanout": 20, "concurrency": 15 },
+      "quick": { "fanout": 10, "concurrency": 8 }
+    },
+    "fallback_chains_added": true,
+    "anthropic_models_removed": true,
+    "gemini_3_flash_used": true
+  }
+}

@@ -11,6 +11,14 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
+// Optional dependency — fail-open if hyper-param registry package is unavailable.
+let HyperParameterRegistry;
+try {
+  ({ HyperParameterRegistry } = require('opencode-hyper-param-learner'));
+} catch {
+  HyperParameterRegistry = null;
+}
+
 const PERSIST_DIR = path.join(os.homedir(), '.opencode', 'learning');
 const PERSIST_FILE = path.join(PERSIST_DIR, 'anti-patterns.json');
 
@@ -25,7 +33,8 @@ const VALID_TYPES = [
   'quota_exhaustion_risk',
 ];
 
-// Severity weights — anti-patterns are HEAVILY weighted
+// Severity weights — anti-patterns are HEAVILY weighted.
+// NOTE: Runtime may override these via HyperParameterRegistry (fail-open).
 const SEVERITY_WEIGHTS = {
   critical: 10,
   high: 7,
@@ -34,11 +43,121 @@ const SEVERITY_WEIGHTS = {
   info: 1,
 };
 
+const SEVERITY_WEIGHT_BOUNDS = {
+  soft: { min: 1, max: 15 },
+  hard: { min: 0.5, max: 20 },
+};
+
+function clampNumber(value, min, max, fallback = min) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return fallback;
+  if (value < min) return min;
+  if (value > max) return max;
+  return value;
+}
+
 class AntiPatternCatalog {
-  constructor() {
+  /**
+   * @param {Object} options - Constructor options
+   * @param {boolean} options.skipLoad - Skip loading from disk (for testing)
+   */
+  constructor(options = {}) {
     this.patterns = [];
     this.index = { byType: {}, bySession: {}, bySeverity: {} };
-    this._load();
+
+    // Hyper-parameter registry integration (Task 4: hyper-param-learning-system).
+    // Fail-open: if registry cannot be constructed/loaded, defaults are used.
+    this.hyperParams = null;
+    this._initSeverityWeightRegistry();
+
+    if (!options.skipLoad) {
+      this._load();
+    }
+  }
+
+  _initSeverityWeightRegistry() {
+    if (!HyperParameterRegistry) return;
+
+    try {
+      this.hyperParams = new HyperParameterRegistry();
+    } catch {
+      this.hyperParams = null;
+      return;
+    }
+
+    // Register learnable parameters (per task_type grouping) if missing.
+    // Name format: severity_weight_{severity}
+    for (const [severity, defaultWeight] of Object.entries(SEVERITY_WEIGHTS)) {
+      const name = `severity_weight_${severity}`;
+
+      try {
+        if (!this.hyperParams.has(name)) {
+          this.hyperParams.register({
+            name,
+            current_value: clampNumber(
+              defaultWeight,
+              SEVERITY_WEIGHT_BOUNDS.hard.min,
+              SEVERITY_WEIGHT_BOUNDS.hard.max
+            ),
+            learning_config: {
+              adaptation_strategy: 'ema',
+              triggers: {
+                outcome_type: 'failure',
+                min_samples: 10,
+                confidence_threshold: 0.8,
+              },
+              bounds: {
+                soft: { ...SEVERITY_WEIGHT_BOUNDS.soft },
+                hard: { ...SEVERITY_WEIGHT_BOUNDS.hard },
+              },
+              exploration_policy: {
+                enabled: false,
+                epsilon: 0,
+                annealing_rate: 0,
+              },
+            },
+            grouping: {
+              group_by_task_type: true,
+              group_by_complexity: false,
+              aggregate_function: 'mean',
+            },
+            individual_tracking: {
+              per_session: false,
+              per_task: true,
+            },
+          });
+        }
+      } catch {
+        // Fail-open: registry may be readonly or validate may fail; keep defaults.
+      }
+    }
+  }
+
+  _getSeverityWeight(severity) {
+    const defaultWeight = SEVERITY_WEIGHTS[severity];
+    if (!defaultWeight) return SEVERITY_WEIGHTS.medium;
+
+    if (!this.hyperParams) return defaultWeight;
+
+    try {
+      const param = this.hyperParams.get(`severity_weight_${severity}`);
+      const raw = param && typeof param.current_value === 'number' ? param.current_value : defaultWeight;
+      const clamped = clampNumber(
+        raw,
+        SEVERITY_WEIGHT_BOUNDS.hard.min,
+        SEVERITY_WEIGHT_BOUNDS.hard.max,
+        defaultWeight
+      );
+
+      if (clamped !== raw && process.env.DEBUG) {
+        console.warn(
+          `[AntiPatternCatalog] Clamped severity weight for ${severity}: ${raw} → ${clamped}`
+        );
+      }
+
+      return clamped;
+    } catch {
+      return defaultWeight;
+    }
   }
 
   /**
@@ -70,7 +189,7 @@ class AntiPatternCatalog {
       type,
       description,
       severity,
-      weight: SEVERITY_WEIGHTS[severity],
+      weight: this._getSeverityWeight(severity),
       context: { ...context },
       timestamp: new Date().toISOString(),
       occurrences: 1,
@@ -80,7 +199,7 @@ class AntiPatternCatalog {
     const existing = this._findSimilar(entry);
     if (existing) {
       existing.occurrences += 1;
-      existing.weight = Math.min(existing.weight + SEVERITY_WEIGHTS[severity] * 0.5, 50);
+      existing.weight = Math.min(existing.weight + this._getSeverityWeight(severity) * 0.5, 50);
       existing.last_seen = entry.timestamp;
       existing.contexts = existing.contexts || [existing.context];
       existing.contexts.push(context);
@@ -152,9 +271,9 @@ class AntiPatternCatalog {
    * @returns {Object[]}
    */
   getSevere(minSeverity = 'medium') {
-    const minWeight = SEVERITY_WEIGHTS[minSeverity] || 4;
+    const minWeight = this._getSeverityWeight(minSeverity) || 4;
     return this.patterns
-      .filter((p) => SEVERITY_WEIGHTS[p.severity] >= minWeight)
+      .filter((p) => this._getSeverityWeight(p.severity) >= minWeight)
       .sort((a, b) => b.weight - a.weight);
   }
 
@@ -253,6 +372,13 @@ class AntiPatternCatalog {
           severity: pattern.severity,
           match_score: Math.round(matchScore * 100) / 100,
           advice: this._generateAdvice(pattern, context),
+          // Attribution for discriminative routing penalties
+          context: {
+            modelId: context?.modelId || null,
+            provider: context?.provider || null,
+            tool: context?.tool || null,
+            sessionId: context?.sessionId || null,
+          },
         });
       }
     }
@@ -308,7 +434,9 @@ class AntiPatternCatalog {
         count: this.patterns.length,
         patterns: this.patterns,
       };
-      fs.writeFileSync(PERSIST_FILE, JSON.stringify(data, null, 2), 'utf8');
+      const tempFile = `${PERSIST_FILE}.tmp`;
+      fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf8');
+      fs.renameSync(tempFile, PERSIST_FILE);
     } catch (err) {
       // Silently fail on write errors — don't break the agent
       if (process.env.DEBUG) {
@@ -328,7 +456,19 @@ class AntiPatternCatalog {
         this._rebuildIndex();
       }
     } catch (err) {
+      // Backup corrupted file before resetting
+      if (fs.existsSync(PERSIST_FILE)) {
+        const backupPath = PERSIST_FILE + '.backup.' + Date.now();
+        try {
+          fs.copyFileSync(PERSIST_FILE, backupPath);
+          console.warn(`[AntiPatternCatalog] Corrupted file backed up to: ${backupPath}`);
+        } catch (backupErr) {
+          console.error('[AntiPatternCatalog] Failed to backup corrupted file:', backupErr.message);
+        }
+      }
       this.patterns = [];
+      // Note: this class doesn't extend EventEmitter, so emit is replaced with console.warn
+      console.warn('[AntiPatternCatalog] Failed to load patterns, reset to empty:', err.message);
       if (process.env.DEBUG) {
         console.error('[AntiPatternCatalog] load error:', err.message);
       }

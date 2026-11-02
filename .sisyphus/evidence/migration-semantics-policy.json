@@ -1,0 +1,372 @@
+{
+  "artifact": "migration-semantics-policy",
+  "version": "1.0.0",
+  "generatedAt": "2026-03-24",
+  "scope": "Operational semantics for default/manual/dormant/candidate-prune migration of skills and package surfaces.",
+  "inputsRead": [
+    "scripts/skills-manage.mjs",
+    "opencode-config/mcp-dormant-policy.json",
+    "opencode-config/learning-updates/skills-manage-cli-20260308.json",
+    "opencode-config/learning-updates/token-reporter-skill-20260219.json",
+    "opencode-config/learning-updates/wave9-agents-drift-20260308.json",
+    "opencode-config/learning-updates/wave11-t14-dcp-skill-20260308.json",
+    ".sisyphus/evidence/scenario-taxonomy-model.json",
+    ".sisyphus/evidence/skill-classification-recommendations.json",
+    ".sisyphus/evidence/package-surface-classification.json",
+    ".sisyphus/notepads/ecosystem-skill-package-audit/learnings.md",
+    ".sisyphus/notepads/ecosystem-skill-package-audit/decisions.md"
+  ],
+  "controlPlaneAlignment": {
+    "skills": {
+      "script": "scripts/skills-manage.mjs",
+      "allowedTierOperations": [
+        "enable",
+        "disable",
+        "list",
+        "audit",
+        "sync"
+      ],
+      "commandConventions": {
+        "enable": "node scripts/skills-manage.mjs enable <skill>",
+        "disable": "node scripts/skills-manage.mjs disable <skill>",
+        "list_all": "node scripts/skills-manage.mjs list --all",
+        "list_enabled": "node scripts/skills-manage.mjs list --enabled",
+        "list_disabled": "node scripts/skills-manage.mjs list --disabled",
+        "audit": "node scripts/skills-manage.mjs audit",
+        "sync_dry_run": "node scripts/skills-manage.mjs sync --dry-run"
+      },
+      "constraints": [
+        "Tier migration must reuse enable/disable/list/audit/sync; no new migration control-plane is introduced.",
+        "candidate-prune recommendation cannot call remove.",
+        "remove/add are reserved for separately approved prune/restore workflows after candidate-prune review closure."
+      ]
+    },
+    "packages": {
+      "dormancyPolicyFile": "opencode-config/mcp-dormant-policy.json",
+      "requiredDormancyFields": [
+        "reason",
+        "reactivation_criteria",
+        "owner"
+      ],
+      "constraints": [
+        "Dormant and candidate-prune package surfaces remain disabled/inactive and policy-documented.",
+        "Package tiering does not introduce a new package command surface."
+      ]
+    }
+  },
+  "tierSemantics": {
+    "default": {
+      "skills": {
+        "operationalDefinition": "Registered and baseline-enabled capability used by first-pass routing for the planning->audit->debug default spine.",
+        "discoverability": "Appears in list --all and list --enabled.",
+        "activation": "Automatic baseline availability.",
+        "requiredState": {
+          "registry": "present",
+          "enabled": true
+        }
+      },
+      "packages": {
+        "operationalDefinition": "Surface participates in baseline operational path without explicit specialist opt-in.",
+        "activation": "Baseline-on only when core-loop critical and low-noise."
+      }
+    },
+    "manual": {
+      "skills": {
+        "operationalDefinition": "Discoverable, explicitly requestable capability that is not default-ranked in baseline routing.",
+        "discoverability": "Appears in list --all while remaining outside baseline default selection.",
+        "activation": "Explicit user request, explicit task context, or explicit profile/session overlay only.",
+        "requiredState": {
+          "registry": "present",
+          "enabled": false,
+          "notes": "Baseline disabled via skills-manage; temporary explicit activation can use enable then disable after use."
+        }
+      },
+      "packages": {
+        "operationalDefinition": "Explicitly invoked package surface (CLI or MCP wrapper) that is not part of baseline default spine.",
+        "activation": "Operator/profile-driven invocation only."
+      }
+    },
+    "dormant": {
+      "skills": {
+        "operationalDefinition": "Retained but inactive capability for contingency/migration safety; not eligible for routine default or routine manual invocation.",
+        "discoverability": "Visible in inventory/history and list --disabled.",
+        "activation": "Requires reactivation decision with current evidence before enable.",
+        "requiredState": {
+          "registry": "present",
+          "enabled": false,
+          "dormancyRationale": "documented"
+        }
+      },
+      "packages": {
+        "operationalDefinition": "Retained surface intentionally inactive and tracked in dormant policy.",
+        "requiredState": {
+          "dormantPolicyEntry": "required",
+          "wrapperActive": false
+        }
+      }
+    },
+    "candidate-prune": {
+      "skills": {
+        "operationalDefinition": "Staged review state for low-value/redundant capability. Candidate-prune is recommendation posture, not deletion.",
+        "discoverability": "Kept in evidence inventory for review/rollback traceability.",
+        "activation": "Disabled unless rollback/reactivation is approved.",
+        "requiredState": {
+          "registry": "present until prune approval",
+          "enabled": false,
+          "pruneDecision": "pending"
+        }
+      },
+      "packages": {
+        "operationalDefinition": "Surface retained in inactive state while queued for explicit prune review.",
+        "requiredState": {
+          "wrapperActive": false,
+          "pruneDecision": "pending"
+        }
+      },
+      "hardRule": "candidate-prune must never imply immediate deletion."
+    }
+  },
+  "candidatePruneRecommendation": {
+    "minimumReviewCycles": 2,
+    "minimumDormantCyclesBeforeRecommendation": 1,
+    "skillsThresholds": {
+      "requiredSignals": {
+        "core_loop_necessity": "low",
+        "scenario_frequency": "low",
+        "redundancy_assessment": [
+          "overlap",
+          "redundant"
+        ],
+        "substitutability": [
+          "medium",
+          "high"
+        ],
+        "activation_noise_risk": [
+          "medium",
+          "high"
+        ]
+      },
+      "requiredEvidence": [
+        "Tier-scored evidence from .sisyphus/evidence/skill-classification-recommendations.json",
+        "No core-loop blocker identified by current scenario taxonomy",
+        "skills-manage list/audit output shows safe disabled state",
+        "Owner approval and rollback metadata prepared"
+      ],
+      "exceptionPath": "Direct manual->candidate-prune allowed only with explicit emergency rationale and signed rollback plan."
+    },
+    "packagesThresholds": {
+      "requiredSignals": [
+        "No default-tier dependency in cohesion map",
+        "Sustained inactive/dormant posture across review cycles",
+        "Weak or no scenario fit compared with existing alternatives"
+      ],
+      "requiredEvidence": [
+        ".sisyphus/evidence/package-surface-classification.json alignment",
+        "If MCP-related, dormant policy entry present and current",
+        "Owner confirmation that removal is optional and reversible until final prune approval"
+      ]
+    }
+  },
+  "evidenceRequirements": {
+    "demotion": {
+      "default_to_manual": [
+        "Evidence of reduced routine core-loop necessity or increased misroute/noise",
+        "At least one recent audit showing manual posture is viable",
+        "Rollback commands and pre-change snapshots captured"
+      ],
+      "manual_to_dormant": [
+        "Low-demand trend across review cycles",
+        "No active dependency chain requiring routine manual invocation",
+        "Dormancy rationale + reactivation criteria documented"
+      ],
+      "dormant_to_candidate_prune": [
+        "Candidate-prune thresholds satisfied",
+        "No successful reactivation evidence in review window",
+        "Deletion explicitly deferred pending separate approval workflow"
+      ]
+    },
+    "promotion": {
+      "candidate_prune_to_dormant": [
+        "Fresh scenario need detected",
+        "Non-redundant utility re-established",
+        "Rollback plan for returning to candidate-prune if evidence weakens"
+      ],
+      "dormant_to_manual": [
+        "Concrete request history proving active specialist value",
+        "Reactivation criteria satisfied",
+        "Post-reactivation validation evidence captured"
+      ],
+      "manual_to_default": [
+        "Repeated core-loop dependency (not one-off specialist demand)",
+        "Low false-activation risk versus current default set",
+        "Distinct value versus existing defaults",
+        "Audit and sync --dry-run checks clean after enable"
+      ]
+    }
+  },
+  "rollbackMetadataRequirements": {
+    "requiredFields": [
+      "change_id",
+      "changed_at_utc",
+      "changed_by",
+      "asset_type",
+      "asset_name",
+      "from_tier",
+      "to_tier",
+      "justification",
+      "evidence_refs",
+      "pre_change_snapshot",
+      "post_change_snapshot",
+      "control_plane_commands",
+      "rollback_commands",
+      "validation_commands",
+      "rollback_trigger",
+      "review_due_utc"
+    ],
+    "preChangeSnapshotMinimum": {
+      "skills": [
+        "in_registry",
+        "enabled_state",
+        "current_tier"
+      ],
+      "packages": [
+        "surface_role",
+        "wrapper_active_state",
+        "dormant_policy_entry_if_any",
+        "current_tier"
+      ]
+    },
+    "validationCommands": [
+      "node scripts/skills-manage.mjs list --all",
+      "node scripts/skills-manage.mjs audit",
+      "node scripts/skills-manage.mjs sync --dry-run"
+    ]
+  },
+  "stateTransitions": [
+    {
+      "transition": "default->manual",
+      "allowed": true,
+      "skillActions": [
+        "node scripts/skills-manage.mjs disable <skill>",
+        "node scripts/skills-manage.mjs audit"
+      ],
+      "packageActions": [
+        "Remove from baseline/default profile mapping while keeping surface available for explicit invocation"
+      ],
+      "rollback": [
+        "node scripts/skills-manage.mjs enable <skill>",
+        "node scripts/skills-manage.mjs audit"
+      ]
+    },
+    {
+      "transition": "manual->default",
+      "allowed": true,
+      "skillActions": [
+        "node scripts/skills-manage.mjs enable <skill>",
+        "node scripts/skills-manage.mjs audit",
+        "node scripts/skills-manage.mjs sync --dry-run"
+      ],
+      "packageActions": [
+        "Promote to baseline profile only after promotion evidence thresholds are met"
+      ],
+      "rollback": [
+        "node scripts/skills-manage.mjs disable <skill>",
+        "node scripts/skills-manage.mjs audit"
+      ]
+    },
+    {
+      "transition": "manual->dormant",
+      "allowed": true,
+      "skillActions": [
+        "node scripts/skills-manage.mjs disable <skill>",
+        "node scripts/skills-manage.mjs audit"
+      ],
+      "packageActions": [
+        "Add or update dormant entry in opencode-config/mcp-dormant-policy.json when MCP-related",
+        "Keep surface inactive"
+      ],
+      "rollback": [
+        "Restore manual metadata",
+        "Keep disabled baseline unless explicit manual activation is requested"
+      ]
+    },
+    {
+      "transition": "dormant->manual",
+      "allowed": true,
+      "skillActions": [
+        "Record reactivation evidence",
+        "Optionally node scripts/skills-manage.mjs enable <skill> only for explicit approved activation",
+        "node scripts/skills-manage.mjs audit"
+      ],
+      "packageActions": [
+        "Update dormant policy reactivation status or remove entry when no longer dormant"
+      ],
+      "rollback": [
+        "node scripts/skills-manage.mjs disable <skill>",
+        "Reinstate dormant policy metadata"
+      ]
+    },
+    {
+      "transition": "dormant->candidate-prune",
+      "allowed": true,
+      "skillActions": [
+        "Ensure disabled state remains unchanged",
+        "Record candidate-prune evidence and review deadline"
+      ],
+      "packageActions": [
+        "Keep surface inactive and retain dormant-policy trace",
+        "Record candidate-prune rationale"
+      ],
+      "rollback": [
+        "Restore tier to dormant",
+        "Retain disabled state",
+        "Preserve prior dormant metadata"
+      ]
+    },
+    {
+      "transition": "candidate-prune->dormant",
+      "allowed": true,
+      "skillActions": [
+        "Clear candidate-prune recommendation",
+        "Keep disabled until manual/default promotion evidence exists"
+      ],
+      "packageActions": [
+        "Maintain inactive wrapper with dormant posture"
+      ],
+      "rollback": [
+        "Reapply candidate-prune metadata",
+        "Retain disabled/inactive state"
+      ]
+    },
+    {
+      "transition": "manual->candidate-prune",
+      "allowed": "exception-only",
+      "conditions": [
+        "Must document why dormant staging is skipped",
+        "Must include explicit rollback commands and owner sign-off"
+      ],
+      "rollback": [
+        "Return to manual tier metadata",
+        "If changed, restore prior enable/disable state from snapshot"
+      ]
+    },
+    {
+      "transition": "candidate-prune->manual",
+      "allowed": "exception-only",
+      "conditions": [
+        "Strong fresh evidence of sustained specialist demand",
+        "Explicit non-redundancy proof"
+      ],
+      "rollback": [
+        "Return to candidate-prune metadata and disabled state"
+      ]
+    }
+  ],
+  "guardrails": [
+    "Preferred demotion path: default->manual->dormant->candidate-prune.",
+    "Preferred promotion path: candidate-prune->dormant->manual->default.",
+    "Direct jumps to/from default are discouraged and require exception evidence + rollback metadata.",
+    "Every transition record must include rollback instructions before execution.",
+    "candidate-prune recommendation is non-destructive until separate prune approval is granted."
+  ]
+}

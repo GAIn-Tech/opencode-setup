@@ -1,0 +1,19 @@
+{
+  "id": "quota-manager-request-based-math-20260216",
+  "timestamp": "2026-02-16T01:10:00Z",
+  "category": "quota",
+  "summary": "Corrected request-based quota math and added regression tests",
+  "details": "Updated QuotaManager to compute request-based usage from request_count instead of token totals, added request-aware remaining/usage fields, fixed hasCapacity for request-based providers, and stored request-based snapshot values correctly. Added regression tests validating request-based percent, warning thresholds, and capacity behavior.",
+  "affected_paths": [
+    "packages/opencode-sisyphus-state/src/quota-manager.js",
+    "packages/opencode-sisyphus-state/tests/quota.test.js"
+  ],
+  "impact": "High - Restores correct quota status and fallback behavior for request-based providers",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}

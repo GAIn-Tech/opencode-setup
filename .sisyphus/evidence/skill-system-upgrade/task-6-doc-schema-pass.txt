@@ -1,0 +1,22 @@
+Evidence: Task 6 — Contract Documentation Schema Alignment
+Date: 2026-03-08
+
+docs/skills/COMPOSITION.md defines structured handoff contract format:
+  - inputs/outputs: array of typed field descriptors (name, type, description, required)
+  - handoff: receives_from, hands_off_to, context_preserved
+  - compositionRules: canRunInParallel, canChain, executionPhase, maxRetries
+  - version: skill versioning
+
+Schema mapping verification:
+  COMPOSITION.md field        | registry.schema.json path
+  inputs                      | skills.*.inputs (array of objects) ✓
+  outputs                     | skills.*.outputs (array of objects) ✓
+  handoff.receives_from       | skills.*.handoff.receives_from (array) ✓
+  handoff.hands_off_to        | skills.*.handoff.hands_off_to (array) ✓
+  handoff.context_preserved   | skills.*.handoff.context_preserved (array) ✓
+  compositionRules.*          | skills.*.compositionRules.* ✓
+  version                     | skills.*.version (string) ✓
+
+No ambiguous free-form handoff requirements remain.
+All documented contract fields map to schema fields.
+VERDICT: PASS

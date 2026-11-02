@@ -1,0 +1,14 @@
+{
+  "id": "skill-upgrade-advisor-affinity-fix-20260308",
+  "timestamp": "2026-03-08T15:30:00Z",
+  "summary": "Fixed 3 dangling SKILL_AFFINITY references in orchestration-advisor.js: refactor->using-git-worktrees, playwright->agent-browser, frontend-design->dev-browser. All advisor skill references now resolve to canonical registry entries.",
+  "affected_paths": [
+    "packages/opencode-learning-engine/src/orchestration-advisor.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

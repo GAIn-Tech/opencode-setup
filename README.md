@@ -47,8 +47,8 @@ opencode-setup/
 git clone https://github.com/GAIn-Tech/opencode-setup.git
 cd opencode-setup
 
-# 2. Run the setup script (installs and links all custom plugins)
-./setup.sh
+# 2. Run setup (strict, resilient: installs, links, syncs config, verifies portability)
+bun run setup
 
 # 3. Start OpenCode
 opencode
@@ -56,17 +56,27 @@ opencode
 
 ### Manual Setup
 
-1. **Install OpenCode**: `npm install -g opencode-ai`
-2. **Install Bun**: `npm install -g bun`
+1. **Install OpenCode**: `npm install -g opencode`
+2. **Install Bun**: install Bun `1.3.9` (must match `.bun-version`)
 3. **Clone this repo**: `git clone https://github.com/GAIn-Tech/opencode-setup.git`
-4. **Run setup script**: `cd opencode-setup && ./setup.sh`
+4. **Run setup**: `cd opencode-setup && bun run setup`
 5. **Authenticate accounts**: `opencode` → antigravity plugin handles OAuth
 
 See [INSTALL.md](INSTALL.md) for detailed installation instructions.
 
+## Dev Container (Optional)
+
+If you use VS Code Dev Containers/Codespaces, a baseline config is available in `.devcontainer/devcontainer.json`.
+
+- `postCreateCommand` runs `bun run setup`.
+- `postStartCommand` runs `bun run verify` (non-strict env profile).
+- Runtime secrets are passed from host env via `remoteEnv` (`GITHUB_TOKEN`, `TAVILY_API_KEY`, `SUPERMEMORY_API_KEY`).
+- On Windows, keep dependencies on the named volume (`node_modules` mount) to avoid bind-mount performance issues.
+- The container enforces LF line endings for workspace files.
+
 ## Current Stack
 
-### Plugins (12)
+### Plugins
 | Plugin | Purpose |
 |--------|---------|
 | `oh-my-opencode@latest` | Multi-agent orchestration (8 named agents, 46 skills, 22 commands) |
@@ -78,12 +88,11 @@ See [INSTALL.md](INSTALL.md) for detailed installation instructions.
 | `@mohak34/opencode-notifier@latest` | OS notifications for task completion/errors |
 | `opencode-plugin-langfuse@latest` | LLM tracing, prompt versioning, cost tracking |
 | `opencode-plugin-preload-skills@latest` | Contextual skill loading — only loads relevant skills per task |
-| `@symbioticsec/opencode-security-plugin@latest` | Security guardrails & vulnerability scanning |
 | `envsitter-guard@latest` | Prevents reading .env files — secrets protection |
 | `opencode-antigravity-quota@latest` | Antigravity quota visibility |
 | `opencode-pty@latest` | Interactive/background process control |
 
-### MCP Servers (9)
+### MCP Servers
 | Server | Type | Purpose |
 |--------|------|---------|
 | `tavily` | local | Web search, extraction, crawling, research |
@@ -96,7 +105,7 @@ See [INSTALL.md](INSTALL.md) for detailed installation instructions.
 | `github` | local | GitHub API (issues, PRs, repos) |
 | `distill` | local | AST-based intelligent context compression (50-70% token savings) |
 
-### Models (7 defined + default)
+### Models
 | Model | Provider | Use Case |
 |-------|----------|----------|
 | `kimi-k2.5-free` | Moonshot | Default / free-tier mechanical tasks |
@@ -120,11 +129,11 @@ See [INSTALL.md](INSTALL.md) for detailed installation instructions.
 |------|----------|---------|
 | `opencode.json` | `~/.config/opencode/` | Main config (models, plugins, MCPs) |
 | `antigravity.json` | `~/.config/opencode/` | Account rotation settings |
-| `oh-my-opencode.json` | `~/.config/opencode/` | Agent model overrides |
+| `oh-my-opencode.json` | `~/.config/opencode/` | Canonical named-agent registry and model overrides |
 | `compound-engineering.json` | `~/.config/opencode/` | Skills, commands, categories |
 | `config.yaml` | `~/.opencode/` | Global rules & delegation standards |
+| `docs/architecture/cli-mcp-surface-policy.md` | `docs/architecture/` | Decision policy for CLI, MCP, hybrid, or library-only package surfaces |
 | `global-rules/*.mdc` | `~/.opencode/` | Model delegation, coordination, dev standards |
-| `agents/*.md` | `~/.config/opencode/` | 29 specialized agent definitions |
 | `skills/*/SKILL.md` | `~/.config/opencode/` | 46 skill definitions |
 
 ## Setup on New Machine

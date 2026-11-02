@@ -1,0 +1,130 @@
+name: Bootstrap Readiness
+
+on:
+  pull_request:
+    paths:
+      - "scripts/**"
+      - "opencode-config/**"
+      - "mcp-servers/**"
+      - "plugins/**"
+      - "local/**"
+      - "packages/opencode-*/**"
+      - "package.json"
+      - "bun.lock"
+      - ".github/workflows/**"
+  push:
+    branches: [master, main]
+    paths:
+      - "scripts/**"
+      - "opencode-config/**"
+      - "mcp-servers/**"
+      - "plugins/**"
+      - "local/**"
+      - "packages/opencode-*/**"
+      - "package.json"
+      - "bun.lock"
+      - ".github/workflows/**"
+
+jobs:
+  fresh-clone:
+    name: Fresh clone readiness (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    env:
+      OPENCODE_VERIFY_ENV_PROFILE: none
+      OPENAI_API_KEYS: ci-placeholder-key
+      LC_ALL: C
+      TZ: UTC
+      LANG: C.UTF-8
+      OPENCODE_CONFIG_HOME: ${{ runner.temp }}/opencode-config
+      OPENCODE_DATA_HOME: ${{ runner.temp }}/opencode-data
+      XDG_CACHE_HOME: ${{ runner.temp }}/opencode-cache
+      TMPDIR: ${{ runner.temp }}/opencode-tmp
+      TEMP: ${{ runner.temp }}/opencode-tmp
+      TMP: ${{ runner.temp }}/opencode-tmp
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: ".bun-version"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Link workspace packages
+        run: bun run link-all
+
+      - name: Run bootstrap setup
+        run: bun run setup -- --report-file setup-report.json
+
+      - name: Enforce setup SLO (<= 600s)
+        run: |
+          node -e "const fs=require('node:fs'); const report=JSON.parse(fs.readFileSync('setup-report.json','utf8')); if (typeof report.duration_seconds !== 'number') { console.error('setup report missing duration_seconds'); process.exit(1); } if (report.duration_seconds > 600) { console.error('setup exceeded 600 seconds: ' + report.duration_seconds); process.exit(1); }"
+
+      - name: Verify setup readiness
+        run: node scripts/verify-setup.mjs
+
+  pull-reconcile:
+    name: Pull reconcile readiness (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    env:
+      OPENCODE_VERIFY_ENV_PROFILE: none
+      OPENAI_API_KEYS: ci-placeholder-key
+      LC_ALL: C
+      TZ: UTC
+      LANG: C.UTF-8
+      OPENCODE_CONFIG_HOME: ${{ runner.temp }}/opencode-config
+      OPENCODE_DATA_HOME: ${{ runner.temp }}/opencode-data
+      XDG_CACHE_HOME: ${{ runner.temp }}/opencode-cache
+      TMPDIR: ${{ runner.temp }}/opencode-tmp
+      TEMP: ${{ runner.temp }}/opencode-tmp
+      TMP: ${{ runner.temp }}/opencode-tmp
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: ".bun-version"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Link workspace packages
+        run: bun run link-all
+
+      - name: Establish baseline setup
+        run: bun run setup -- --report-file setup-report.json
+
+      - name: Simulate runtime drift for pull reconcile
+        run: |
+          node --input-type=module -e "import { rmSync } from 'node:fs'; import path from 'node:path'; import { userConfigDir } from './scripts/resolve-root.mjs'; const runtime = userConfigDir(); rmSync(path.join(runtime, 'opencode.json'), { force: true }); rmSync(path.join(runtime, 'tool-manifest.json'), { force: true });"
+
+      - name: Reconcile drift with sync
+        run: bun run sync > sync-report.json
+
+      - name: Assert sync report is clean
+        run: |
+          node -e "const fs=require('node:fs'); const report=JSON.parse(fs.readFileSync('sync-report.json','utf8')); if (!report.ok) { console.error('sync report is not ok'); process.exit(1); } const reconciled=Array.isArray(report.reconciled) ? report.reconciled : []; if (!reconciled.includes('config-created:opencode.json')) { console.error('expected config-created:opencode.json in reconciled output'); process.exit(1); } if (!reconciled.includes('generated-artifacts:reconciled')) { console.error('expected generated-artifacts:reconciled in reconciled output'); process.exit(1); }"
+
+      - name: Verify setup readiness after sync
+        run: node scripts/verify-setup.mjs

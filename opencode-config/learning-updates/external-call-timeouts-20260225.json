@@ -1,0 +1,22 @@
+{
+  "id": "external-call-timeouts-20260225",
+  "timestamp": "2026-02-25T17:00:00Z",
+  "category": "reliability",
+  "summary": "Add explicit timeouts to 7 external call sites that could hang indefinitely",
+  "details": "pr-generator.js: converted 4 sync git calls (execFileSync/execSync) to async execFileAsync with 30s GIT_TIMEOUT_MS. dashboard-launcher/index.js: added 15s kill timer on browser-open spawn and 30s early crash detection on dashboard launch spawn. model-discovery.js: added AbortController with 30s COMMUNITY_FETCH_TIMEOUT_MS to _fetchFromCommunity, matching the existing _fetchModels timeout pattern.",
+  "affected_paths": [
+    "packages/opencode-model-manager/src/automation/pr-generator.js",
+    "packages/opencode-model-manager/test/pr-generator-timeout.test.js",
+    "packages/opencode-dashboard-launcher/src/index.js",
+    "packages/opencode-dashboard-launcher/test/launcher-timeout.test.js",
+    "packages/opencode-model-router-x/src/model-discovery.js",
+    "packages/opencode-model-router-x/test/community-fetch-timeout.test.js"
+  ],
+  "impact": "Medium - prevents indefinite hangs on git commands, browser open, dashboard launch, and community fetch",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

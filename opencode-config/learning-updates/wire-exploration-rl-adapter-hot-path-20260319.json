@@ -1,0 +1,15 @@
+{
+  "id": "wire-exploration-rl-adapter-hot-path-20260319",
+  "timestamp": "2026-03-19T02:30:00.000Z",
+  "summary": "Wire ExplorationRLAdapter.updateFromExploration() into production hot path so model performance data from SQLite feeds back into SkillRL weights. Previously only instantiated in tests.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/bootstrap.js",
+    "packages/opencode-integration-layer/src/index.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

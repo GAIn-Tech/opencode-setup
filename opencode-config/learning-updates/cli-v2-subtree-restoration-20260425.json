@@ -1,0 +1,23 @@
+{
+  "id": "cli-v2-subtree-restoration-20260425",
+  "timestamp": "2026-04-25T02:40:00Z",
+  "category": "tooling",
+  "summary": "Restore the opencode-cli-v2 migration subtree into an isolated branch for continued integration and package-boundary hardening.",
+  "affected_paths": [
+    ".github/workflows/opencode-cli-v2-ci.yml",
+    "opencode-cli-v2/"
+  ],
+  "root_cause": "The unresolved stash contained a coherent CLI v2 migration subtree that should be preserved independently from the main runtime/config restoration work.",
+  "fix_approach": "Restored the full CLI v2 subtree into a dedicated worktree, installed its local dependencies, and ran representative plus full test slices to determine current readiness.",
+  "risk_level": "low",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "bun test ./tests/cli/index.test.ts ./tests/kernel/index.test.ts ./tests/ports/contracts.test.ts",
+      "bun test"
+    ],
+    "notes": "Representative CLI tests passed after dependency install, but the full suite still has package-boundary issues around oh-my-opencode import resolution and opencode-sisyphus-state adapter loading. The subtree is preserved for follow-up, not merge-ready."
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "debugging": [
+    "fix", "troubleshoot", "diagnose", "investigate", "resolve", "repair",
+    "debug", "error", "bug", "exception", "crash", "stack trace", "breakpoint",
+    "repro", "root cause", "regression", "fault", "defect"
+  ],
+  "testing": [
+    "test", "spec", "assertion", "coverage", "TDD", "QA", "validate",
+    "unittest", "integration test", "e2e", "flaky", "mock", "stub",
+    "fixture", "snapshot", "regression test", "smoke test"
+  ],
+  "security": [
+    "vulnerability", "OWASP", "audit", "CVE", "pentest", "hardening",
+    "exploit", "authentication", "authorization", "XSS", "SQL injection",
+    "CSRF", "secrets", "encryption", "compliance", "threat model"
+  ],
+  "deployment": [
+    "deploy", "release", "ship", "CI/CD", "pipeline", "rollout",
+    "staging", "production", "kubernetes", "docker", "container",
+    "infrastructure", "terraform", "helm", "rollback", "canary"
+  ],
+  "refactoring": [
+    "refactor", "restructure", "clean up", "reorganize", "simplify",
+    "technical debt", "modernize", "extract", "decouple", "inline",
+    "rename", "dead code", "DRY", "SOLID", "code smell"
+  ],
+  "performance": [
+    "optimize", "speed", "latency", "throughput", "benchmark", "profiling",
+    "bottleneck", "caching", "memory leak", "CPU", "concurrency",
+    "lazy load", "bundle size", "response time", "scalability"
+  ],
+  "documentation": [
+    "docs", "README", "guide", "tutorial", "reference", "wiki",
+    "specification", "comment", "docstring", "changelog", "API docs",
+    "JSDoc", "typedoc", "swagger", "openapi"
+  ],
+  "architecture": [
+    "design", "structure", "patterns", "system design", "DDD",
+    "microservices", "monolith", "C4", "ADR", "event-driven",
+    "hexagonal", "clean architecture", "dependency injection",
+    "modular", "layered", "CQRS"
+  ],
+  "planning": [
+    "plan", "spec", "requirements", "scope", "estimate", "roadmap",
+    "milestone", "epic", "user story", "acceptance criteria", "RFC",
+    "proposal", "design doc", "breakdown"
+  ],
+  "review": [
+    "review", "PR", "pull request", "feedback", "approve", "comment",
+    "nit", "blocker", "suggestion", "LGTM", "code quality", "diff",
+    "changeset"
+  ],
+  "research": [
+    "research", "investigate", "explore", "prototype", "spike",
+    "proof of concept", "POC", "experiment", "benchmark", "compare",
+    "evaluate", "survey", "analysis"
+  ],
+  "git": [
+    "commit", "branch", "merge", "rebase", "squash", "cherry-pick",
+    "stash", "bisect", "blame", "tag", "worktree", "conflict",
+    "remote", "push", "pull"
+  ],
+  "monitoring": [
+    "monitor", "alert", "metric", "log", "trace", "dashboard",
+    "SLO", "SLI", "uptime", "health check", "observability",
+    "telemetry", "APM", "Grafana", "Prometheus"
+  ],
+  "api": [
+    "API", "endpoint", "REST", "GraphQL", "gRPC", "webhook",
+    "request", "response", "status code", "middleware", "rate limit",
+    "pagination", "versioning", "schema"
+  ]
+}

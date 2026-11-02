@@ -20,47 +20,11 @@ Core orchestration agents with model overrides via `oh-my-opencode.json`:
 - **Sonnet** (3 agents): atlas, metis, momus — complex reasoning, execution, review via Anthropic
 - **Flash** (3 agents): hephaestus, librarian, prometheus — high-throughput exploration/research via Antigravity Gemini
 
-## Specialized Agent Definitions (29)
+## Runtime Source of Truth
 
-Located in `~/.config/opencode/agents/*.md`, these are invoked by oh-my-opencode as subagents:
-
-### Code Review Agents (8)
-| Agent | Focus |
-|-------|-------|
-| `dhh-rails-reviewer` | Rails code in DHH/37signals style |
-| `kieran-python-reviewer` | Python code quality |
-| `kieran-rails-reviewer` | Rails conventions and patterns |
-| `kieran-typescript-reviewer` | TypeScript best practices |
-| `julik-frontend-races-reviewer` | Frontend race conditions and async bugs |
-| `code-simplicity-reviewer` | Complexity reduction, KISS principle |
-| `agent-native-reviewer` | Agent architecture patterns |
-| `design-implementation-reviewer` | Design pattern correctness |
-
-### Security & Performance (2)
-| Agent | Focus |
-|-------|-------|
-| `security-sentinel` | Vulnerability detection, OWASP compliance |
-| `performance-oracle` | Bottleneck identification, optimization strategies |
-
-### Research & Learning (5)
-| Agent | Focus |
-|-------|-------|
-| `best-practices-researcher` | Industry standards and patterns |
-| `framework-docs-researcher` | Framework-specific documentation |
-| `learnings-researcher` | Extract patterns from past sessions |
-| `repo-research-analyst` | Repository structure and pattern analysis |
-| `pattern-recognition-agent` | Cross-session pattern detection |
-
-### Data & Architecture (4)
-| Agent | Focus |
-|-------|-------|
-| `data-integrity-guardian` | Data validation and consistency |
-| `data-migration-expert` | Migration planning and execution |
-| `schema-drift-detector` | Schema change detection and alerting |
-| `architecture-strategist` | System design and tradeoff analysis |
-
-### Additional Specialized Agents (10)
-Various other agents for specific domains — see `~/.config/opencode/agents/` for the full set.
+- Named agents are plugin-managed through `~/.config/opencode/oh-my-opencode.json`, not `~/.config/opencode/agents/*.md`.
+- Host-facing MCPs are configured in `~/.config/opencode/opencode.json`.
+- `~/.config/opencode/agents/` should not be treated as the canonical runtime registry for the built-in named agents.
 
 ## Delegation Model
 

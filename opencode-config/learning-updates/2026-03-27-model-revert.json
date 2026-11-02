@@ -1,0 +1,15 @@
+{
+  "id": "model-revert-20260327",
+  "timestamp": "2026-03-28T02:00:00.000Z",
+  "summary": "Revert model changes - restore GPT and DeepSeek models",
+  "affected_paths": [
+    "opencode-config/oh-my-opencode.json",
+    "opencode-config/opencode.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

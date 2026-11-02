@@ -1,0 +1,18 @@
+{
+  "id": "rotator-sync-contract-fix-20260216",
+  "timestamp": "2026-02-16T00:40:00Z",
+  "category": "routing",
+  "summary": "Fixed key rotator/model router contract mismatch by restoring synchronous key selection",
+  "details": "ModelRouter callsites consume rotator.getNextKey() synchronously (key.id/key.value). Key rotator had been changed to Promise-returning behavior, creating risk of undefined key metadata. Restored getNextKey to return concrete key objects synchronously and removed unused Promise lock path.",
+  "affected_paths": [
+    "packages/opencode-model-router-x/src/key-rotator.js"
+  ],
+  "impact": "High - Prevents null/undefined key propagation in routing and fallback flows",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "pass",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}

@@ -55,7 +55,7 @@ Unknown models default to 100,000 tokens.
 ## Thresholds
 
 - **75%** usage: `warn` status
-- **90%** usage: `error` status
+- **80%** usage: `error` status
 - **100%** usage: `exceeded` — `checkBudget()` returns `allowed: false`
 
 ## Persistence

@@ -1,0 +1,19 @@
+{
+  "id": "agents-md-drift-fix2-20260308",
+  "timestamp": "2026-03-08T19:30:00Z",
+  "category": "documentation",
+  "summary": "Fix remaining AGENTS.md drift in opencode-config: align skill dir count and file total with drift script methodology",
+  "affected_paths": [
+    "opencode-config/AGENTS.md"
+  ],
+  "root_cause": "Initial drift fix used 25 (total skills including superpowers sub-dirs) but drift script counts 12 top-level dirs; file count shifted after learning-update additions",
+  "fix_approach": "Updated to 12 skill directories with note about superpowers sub-skills; updated total file count to 262",
+  "risk_level": "low",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "build": "not-run",
+    "notes": "Documentation-only change"
+  }
+}

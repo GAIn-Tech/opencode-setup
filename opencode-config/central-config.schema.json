@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OpenCode Central Configuration Schema",
+  "description": "Centralized configuration schema for OpenCode system with RL-aware bounds and governance controls",
+  "type": "object",
+  "required": ["schema_version", "config_version", "rl", "sections"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Semantic version of this schema",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "examples": ["1.0.0"]
+    },
+    "config_version": {
+      "type": "integer",
+      "description": "Optimistic concurrency counter - increment on each write",
+      "minimum": 1,
+      "examples": [1]
+    },
+    "rl": {
+      "type": "object",
+      "description": "Reinforcement Learning engine configuration",
+      "required": ["override_min_confidence"],
+      "properties": {
+        "override_min_confidence": {
+          "type": "number",
+          "description": "Minimum confidence threshold for RL to override soft bounds",
+          "minimum": 0.5,
+          "maximum": 0.99,
+          "examples": [0.85]
+        }
+      },
+      "additionalProperties": false
+    },
+    "sections": {
+      "type": "object",
+      "description": "Configuration sections, each containing parameters",
+      "additionalProperties": {
+        "type": "object",
+        "description": "A configuration section with parameters",
+        "additionalProperties": {
+          "type": "object",
+          "description": "A single configuration parameter",
+          "required": ["value", "locked", "rl_allowed"],
+          "properties": {
+            "value": {
+              "description": "The actual configuration value (any type allowed)"
+            },
+            "soft": {
+              "type": "object",
+              "description": "Soft bounds - RL can override when confident",
+              "properties": {
+                "min": {
+                  "description": "Minimum soft bound"
+                },
+                "max": {
+                  "description": "Maximum soft bound"
+                }
+              },
+              "additionalProperties": false
+            },
+            "hard": {
+              "type": "object",
+              "description": "Hard bounds - immutable, never overridden",
+              "properties": {
+                "min": {
+                  "description": "Minimum hard bound"
+                },
+                "max": {
+                  "description": "Maximum hard bound"
+                }
+              },
+              "additionalProperties": false
+            },
+            "locked": {
+              "type": "boolean",
+              "description": "When true, RL cannot modify this parameter",
+              "examples": [false, true]
+            },
+            "rl_allowed": {
+              "type": "boolean",
+              "description": "Whether RL can learn on this parameter",
+              "examples": [true, false]
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

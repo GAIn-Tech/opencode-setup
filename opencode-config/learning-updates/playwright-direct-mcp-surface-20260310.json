@@ -1,0 +1,15 @@
+{
+  "id": "playwright-direct-mcp-surface-20260310",
+  "timestamp": "2026-03-10T11:35:00-04:00",
+  "summary": "Add a direct Playwright MCP skill and paired browser agent so browser automation has a first-class MCP path instead of relying only on indirect alias wiring.",
+  "affected_paths": [
+    "opencode-config/skills/playwright/SKILL.md",
+    "opencode-config/agents/playwright-browser.md"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

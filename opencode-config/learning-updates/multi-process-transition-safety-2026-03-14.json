@@ -1,0 +1,15 @@
+{
+  "id": "multi-process-transition-safety-2026-03-14",
+  "timestamp": "2026-03-14T00:00:00.000Z",
+  "summary": "Fixed multi-process race condition in state-machine.js _persistTransition() by adding atomic compare-and-swap verification inside BEGIN IMMEDIATE transaction. Reads current DB state after acquiring write lock, throws STALE_STATE error on mismatch. Added regression test using dual StateMachine instances with deferred() gating.",
+  "affected_paths": [
+    "packages/opencode-model-manager/src/lifecycle/state-machine.js",
+    "packages/opencode-model-manager/test/lifecycle/state-machine.test.ts"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

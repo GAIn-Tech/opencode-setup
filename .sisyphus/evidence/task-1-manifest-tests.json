@@ -1,0 +1,9 @@
+{
+  "command": "bun test scripts/tests/verify-bootstrap-manifest.test.js",
+  "status": "pass",
+  "summary": {
+    "pass": 3,
+    "fail": 0,
+    "expectCalls": 9
+  }
+}

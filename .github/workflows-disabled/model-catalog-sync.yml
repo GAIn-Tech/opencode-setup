@@ -1,0 +1,44 @@
+name: Model Catalog Sync
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  model-catalog-sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: '.bun-version'
+
+      - name: Runtime preflight
+        run: node scripts/preflight-versions.mjs
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Validate model catalogs
+        run: bun run models:validate
+
+      - name: Weekly model sync checks
+        env:
+          ANTHROPIC_API_KEYS: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEYS: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_API_KEYS: ${{ secrets.GOOGLE_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: bun run models:sync

@@ -1,0 +1,17 @@
+{
+  "id": "wave4-batch-a-data-quality-2026-03-18",
+  "timestamp": "2026-03-18T22:00:00.000Z",
+  "summary": "Wave 4 Batch A data quality fixes: dual-write taskType/task_type in integration-layer, fix SkillRL success_rate field in model-router, replace hardcoded breadth denominator in dashboard tool-usage route",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/index.js",
+    "packages/opencode-model-router-x/src/index.js",
+    "packages/opencode-model-router-x/test/wave11-phase1-optimizations.test.js",
+    "packages/opencode-dashboard/src/app/api/tool-usage/route.ts"
+  ],
+  "validation": {
+    "tests": "pass",
+    "build": "pass",
+    "lint": "not-run"
+  },
+  "risk_level": "low"
+}

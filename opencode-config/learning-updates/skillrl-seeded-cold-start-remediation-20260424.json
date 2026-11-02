@@ -1,0 +1,30 @@
+{
+  "id": "skillrl-seeded-cold-start-remediation-20260424",
+  "timestamp": "2026-04-24T23:40:00Z",
+  "category": "learning",
+  "summary": "Normalize SkillRL seeded cold-start state to the runtime export shape, preserve seeded fidelity metadata, and align dashboard SkillRL APIs with seeded/live reporting semantics.",
+  "affected_paths": [
+    "opencode-config/skill-rl-seed.json",
+    "packages/opencode-skill-rl-manager/src/index.js",
+    "packages/opencode-skill-rl-manager/src/skill-bank.js",
+    "packages/opencode-dashboard/src/app/api/_lib/skill-rl-state.ts",
+    "packages/opencode-dashboard/src/app/api/skills/route.ts",
+    "packages/opencode-dashboard/src/app/api/rl/route.ts",
+    "packages/opencode-skill-rl-manager/test/fresh-state-seed.test.js",
+    "integration-tests/skillrl-api-regression.test.js"
+  ],
+  "root_cause": "The new seeded cold-start path wrote a shape and metadata contract that downstream dashboard routes did not decode or report honestly, causing seeded state to be misrepresented as live or unavailable.",
+  "fix_approach": "Converted the seed file to the SkillBank export format, preserved seeded metadata during load/save, added a shared dashboard SkillRL state loader, and updated route/test expectations to distinguish seeded from live state.",
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "pass",
+    "commands": [
+      "bun test packages/opencode-skill-rl-manager/test/fresh-state-seed.test.js",
+      "bun test integration-tests/skillrl-api-regression.test.js",
+      "bun run build"
+    ],
+    "notes": "SkillRL cold-start seeding and dashboard API reporting now agree on seeded vs live fidelity."
+  }
+}

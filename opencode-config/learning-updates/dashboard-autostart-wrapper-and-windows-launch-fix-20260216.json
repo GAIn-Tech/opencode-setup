@@ -1,0 +1,20 @@
+{
+  "id": "dashboard-autostart-wrapper-and-windows-launch-fix-20260216",
+  "timestamp": "2026-02-16T02:40:00Z",
+  "category": "dashboard",
+  "summary": "Fixed dashboard launcher reliability on Windows and added opencode wrapper for guaranteed dashboard startup",
+  "details": "Resolved launcher spawn EINVAL by switching detached process stdio from pipe to file descriptors and enabling shell mode on Windows. Added fallback to development mode when production build artifact is missing. Added scripts/opencode-with-dashboard.mjs and package script opencode:with-dashboard to ensure dashboard starts before launching opencode.",
+  "affected_paths": [
+    "packages/opencode-dashboard-launcher/src/index.js",
+    "scripts/opencode-with-dashboard.mjs",
+    "package.json"
+  ],
+  "impact": "High - restores reliable dashboard startup and provides a deterministic way to keep dashboard running with opencode sessions",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}

@@ -1,0 +1,161 @@
+{
+  "generated_at": "2026-02-21T11:14:15.203Z",
+  "total": 17,
+  "passed": 17,
+  "failed": 0,
+  "results": [
+    {
+      "id": "FG-01",
+      "command": "node scripts/perf/fg01-stats-durability.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 430,
+      "stdout": "{\n  \"status\": \"pass\",\n  \"modelId\": \"anthropic/claude-opus-4-6\",\n  \"iterations\": 100,\n  \"calls\": 100,\n  \"successes\": 100,\n  \"statsPath\": \"C:\\\\Users\\\\jack\\\\AppData\\\\Local\\\\Temp\\\\fg01-stats-ynBIYs\\\\stats.json\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "id": "FG-02",
+      "command": "node scripts/perf/fg02-hotpath-io.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 3749,
+      "stdout": "{\n  \"status\": \"pass\",\n  \"iterations\": 200,\n  \"baseline_elapsed_ms\": 1671,\n  \"autosave_elapsed_ms\": 1674,\n  \"overhead_ratio\": 1.002,\n  \"threshold_ratio\": 1.25\n}\n",
+      "stderr": ""
+    },
+    {
+      "id": "FG-03",
+      "command": "node scripts/perf/fg03-feedback-lag.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 179,
+      "stdout": "{\n  \"status\": \"pass\",\n  \"modelId\": \"anthropic/claude-opus-4-6\",\n  \"before\": {\n    \"score\": 0.776,\n    \"reason\": \"success=0.92; latency=1000ms\"\n  },\n  \"after\": {\n    \"score\": 0.47600000000000003,\n    \"reason\": \"success=0.92; latency=1000ms; learning:provider-instability(high)\"\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "id": "FG-04",
+      "command": "node scripts/security/fg04-ingestion-integrity.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 145,
+      "stdout": "{\n  \"status\": \"pass\",\n  \"session_id\": \"fg04_1771672441679\",\n  \"event_invalid_rejected\": true,\n  \"event_valid_accepted\": true,\n  \"session_result\": {\n    \"session_id\": \"fg04_1771672441679\",\n    \"anti_patterns_found\": 0,\n    \"positive_patterns_found\": 0,\n    \"message_count\": 1\n  },\n  \"rejected_delta\": 1,\n  \"total_provenance_rejected_counter\": 2\n}\n",
+      "stderr": ""
+    },
+    {
+      "id": "FG-05",
+      "command": "node scripts/fault/fg05-strategy-failure-isolation.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 709,
+      "stdout": "[Orchestrator] Selected model from StableStrategy: anthropic/claude-sonnet-4-5\n[Orchestrator] Selected model from StableStrategy: anthropic/claude-sonnet-4-5\n[Orchestrator] Selected model from StableStrategy: anthropic/claude-sonnet-4-5\n[Orchestrator] Selected model from StableStrategy: anthropic/claude-sonnet-4-5\n{\n  \"status\": \"pass\",\n  \"persistPath\": \"C:\\\\Users\\\\jack\\\\AppData\\\\Local\\\\Temp\\\\fg05-strategy-health-1771672441803.json\",\n  \"during_bypass_strategy\": \"StableStrategy\",\n  \"health_summary\": {\n    \"active_bypass\": 1,\n    \"unhealthy\": 1,\n    \"total\": 2,\n    \"failure_threshold\": 2,\n    \"cooldown_ms\": 1000\n  }\n}\n",
+      "stderr": "[Orchestrator] Strategy FailingStrategy selectModel() failed: forced-strategy-failure\n[Orchestrator] Strategy FailingStrategy selectModel() failed: forced-strategy-failure\n"
+    },
+    {
+      "id": "FG-06",
+      "command": "node scripts/perf/fg06-tail-latency-slo.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 167,
+      "stdout": "{\n  \"status\": \"pass\",\n  \"modelId\": \"anthropic/claude-opus-4-6\",\n  \"score\": 0.5428,\n  \"reason\": \"success=0.98; latency=1200ms; tail=p95:3000ms,p99:9000ms\",\n  \"p95_ms\": 3000,\n  \"p99_ms\": 9000\n}\n",
+      "stderr": ""
+    },
+    {
+      "id": "FG-07",
+      "command": "node scripts/evals/fg07-promotion-gate.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 90,
+      "stdout": "{\n  \"status\": \"pass\",\n  \"artifact\": \"C:\\\\Users\\\\jack\\\\AppData\\\\Local\\\\Temp\\\\fg07-eval-gate-1771672442669.json\",\n  \"results\": [\n    {\n      \"name\": \"missing gate\",\n      \"pass\": false,\n      \"reason\": \"missing_eval_gate\"\n    },\n    {\n      \"name\": \"failed eval\",\n      \"pass\": false,\n      \"reason\": \"eval_report_not_passed\"\n    },\n    {\n      \"name\": \"low delta\",\n      \"pass\": false,\n      \"reason\": \"eval_delta_below_threshold\"\n    },\n    {\n      \"name\": \"valid gate\",\n      \"pass\": true,\n      \"reason\": \"ok\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "id": "FG-08",
+      "command": "node scripts/perf/fg08-poll-coordination.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 2307,
+      "stdout": "[HealthCheck] Started automatic health checks\n{\n  \"status\": \"pass\",\n  \"tickCount\": 16,\n  \"overlapRate\": 0,\n  \"maxConcurrentChecks\": 1\n}\n",
+      "stderr": ""
+    },
+    {
+      "id": "FG-09",
+      "command": "node scripts/replay/fg09-replay-parity.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 511,
+      "stdout": "rsatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n[Orchestrator] Selected model from FallbackLayerStrategy: llama-3.3-70b-versatile\n{\n  \"status\": \"pass\",\n  \"path_hash\": \"e960b2db19c991c73a34d7b575438169f06b8efe28f735ab97029b2c8af826dc\",\n  \"parity\": 1,\n  \"samples\": 30\n}\n",
+      "stderr": ""
+    },
+    {
+      "id": "FG-10",
+      "command": "node scripts/ops/fg10-review-queue-slo.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 93,
+      "stdout": "{\n  \"status\": \"pass\",\n  \"queuePath\": \"C:\\\\Users\\\\jack\\\\AppData\\\\Local\\\\Temp\\\\fg10-policy-review-1771672445578.json\",\n  \"pending\": 84,\n  \"p95_age_hours\": 13,\n  \"target_hours\": 24\n}\n",
+      "stderr": ""
+    },
+    {
+      "id": "FG-11",
+      "command": "node scripts/evals/fg11-retrieval-quality.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 108,
+      "stdout": "{\n  \"status\": \"pass\",\n  \"outputPath\": \"C:\\\\Users\\\\jack\\\\.opencode\\\\retrieval-quality.json\",\n  \"report\": {\n    \"generated_at\": \"2026-02-21T11:14:05.686Z\",\n    \"map_at_k\": 0.4133,\n    \"grounded_recall\": 0.6,\n    \"hit_rate_at_k\": 0.8,\n    \"k\": 5,\n    \"sample_size\": 5,\n    \"benchmark_id\": \"fg11-synthetic-v1\"\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "id": "FG-12",
+      "command": "node scripts/governance/fg12-sim-gate.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 90,
+      "stdout": "{\n  \"status\": \"pass\",\n  \"results\": [\n    {\n      \"name\": \"missing\",\n      \"pass\": false,\n      \"reason\": \"missing_policy_sim_gate\"\n    },\n    {\n      \"name\": \"failed\",\n      \"pass\": false,\n      \"reason\": \"policy_sim_failed\"\n    },\n    {\n      \"name\": \"risky\",\n      \"pass\": false,\n      \"reason\": \"policy_sim_risk_high\"\n    },\n    {\n      \"name\": \"low-acceptance\",\n      \"pass\": false,\n      \"reason\": \"policy_sim_acceptance_ratio_below_threshold\"\n    },\n    {\n      \"name\": \"ok\",\n      \"pass\": true,\n      \"reason\": \"ok\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "id": "Schema-Migration",
+      "command": "node scripts/governance/fg-schema-migration.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 100,
+      "stdout": "{\n  \"status\": \"pass\",\n  \"schema_version\": \"1.1.0\",\n  \"provider_priority\": [\n    \"anthropic\",\n    \"openai\"\n  ],\n  \"plugin_health_interval\": 2500,\n  \"telemetry_default_mode\": \"degraded\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "id": "Gov-Schema",
+      "command": "node scripts/validate-control-plane-schema.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 156,
+      "stdout": "validate-control-plane-schema: PASS\n",
+      "stderr": ""
+    },
+    {
+      "id": "Gov-Fallback",
+      "command": "node scripts/validate-fallback-consistency.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 160,
+      "stdout": "validate-fallback-consistency: PASS\n",
+      "stderr": ""
+    },
+    {
+      "id": "Gov-Plugin",
+      "command": "node scripts/validate-plugin-compatibility.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 174,
+      "stdout": "validate-plugin-compatibility: PASS\n- configured plugins: 0\n- discovered plugins: 13\n- enabled mcp servers: 6\n",
+      "stderr": ""
+    },
+    {
+      "id": "Security-Free",
+      "command": "node scripts/security/security-audit-free.mjs --allow-missing-tools --advisory",
+      "status": "pass",
+      "exitCode": 0,
+      "durationMs": 8818,
+      "stdout": "{\n  \"status\": \"pass\",\n  \"outPath\": \"C:\\\\Users\\\\jack\\\\work\\\\opencode-setup\\\\reports\\\\security\\\\security-audit-free.json\",\n  \"strict\": false,\n  \"advisory\": true\n}\n",
+      "stderr": ""
+    }
+  ]
+}

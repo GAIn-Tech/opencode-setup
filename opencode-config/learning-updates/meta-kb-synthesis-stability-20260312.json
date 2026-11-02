@@ -1,0 +1,15 @@
+{
+  "id": "meta-kb-synthesis-stability-20260312",
+  "timestamp": "2026-03-12T15:05:00Z",
+  "summary": "Prevent synthesize-meta-kb from rewriting meta-knowledge-index.json when only generated_at would change, preserving a clean working tree after governance hooks.",
+  "affected_paths": [
+    "scripts/synthesize-meta-kb.mjs",
+    "scripts/tests/synthesize-meta-kb.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

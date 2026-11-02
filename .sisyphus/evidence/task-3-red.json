@@ -1,0 +1,17 @@
+{
+  "task": 3,
+  "phase": "red",
+  "timestamp": "2026-03-31T05:13:35.000Z",
+  "command": "bun test scripts/tests/verify-portability.test.js",
+  "result": "failed-as-expected",
+  "failingAssertions": [
+    "Missing JSON property supplyChainReport in strict output",
+    "Strict run did not fail for simulated provenance mismatch",
+    "Strict run did not fail for simulated untrusted source",
+    "No supplyChainReport.exception audit record contract"
+  ],
+  "evidence": {
+    "passCount": 9,
+    "failCount": 4
+  }
+}

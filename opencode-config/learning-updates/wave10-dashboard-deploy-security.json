@@ -1,0 +1,20 @@
+{
+  "id": "wave10-dashboard-deploy-security",
+  "timestamp": "2026-03-08T22:50:00Z",
+  "summary": "Add dashboard observability page (pipeline metrics, cache rates, meta-KB health), deployment automation workflow (dev/staging/prod stages), and CI security scanning (dependency audit + integrity-guard)",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/observability/page.tsx",
+    "packages/opencode-dashboard/src/components/Sidebar.tsx",
+    ".github/workflows/deployment.yml",
+    ".github/workflows/opencode-ci.yml"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "wave": "10",
+  "phase": 3,
+  "tasks": ["T15", "T16", "T19"]
+}

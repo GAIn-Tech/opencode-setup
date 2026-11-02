@@ -1,0 +1,14 @@
+{
+  "date": "2026-02-19",
+  "category": "infrastructure",
+  "description": "Fix provider API key detection and add env alignment check",
+  "changes": [
+    "Fix zen provider config (was using wrong DEEPSEEK_API_KEY)",
+    "Health check now sources .env to find API keys",
+    "Health check dynamically checks providers based on config (not hardcoded list)",
+    "Health check warns instead of failing on missing optional provider keys",
+    "Add env var alignment check to detect config/.env mismatches"
+  ],
+  "root_cause": "Health check wasn't sourcing .env and had hardcoded provider list. Config had zen using wrong env var name.",
+  "impact": "All 5 API providers now properly detected. Health check catches env var mismatches."
+}

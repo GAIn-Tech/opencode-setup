@@ -34,12 +34,21 @@ class MemoryGraph {
     /** @type {object[]} */
     this._entries = [];
 
-    // Activation system — OFF by default
+    // Activation system — ON by default to collect learning data
     this._backfillEngine = new BackfillEngine({ bridge: this._bridge });
     this._activator = new GraphActivator({
       backfillEngine: this._backfillEngine,
       bridge: this._bridge,
     });
+    this._activated = true;
+    
+    // Performance indexes for O(1) lookups instead of O(n) filters
+    this._indexes = {
+      byType: new Map(),        // node type → array of nodes
+      bySession: new Map(),     // session_id → session node
+      byError: new Map(),       // error_type → array of error nodes
+      byTimestamp: [],          // sorted array of nodes by timestamp
+    };
   }
 
   // ─── Core API ───────────────────────────────────────────────────────────
@@ -64,7 +73,62 @@ class MemoryGraph {
     // When inactive: in-memory only (bridge=null), existing behavior preserved
     const effectiveBridge = this._activator.isActive() ? this._bridge : null;
     this._graph = await buildGraphWithBridge(this._entries, effectiveBridge);
+    
+    // Rebuild indexes for O(1) queries (async to avoid blocking)
+    await this._rebuildIndexes();
+    
+    // P2: Learning Feedback Loop - Auto-ingest error patterns into LearningEngine
+    await this._ingestPatternsToLearningEngine();
+    
     return this._graph;
+  }
+
+  /**
+   * P2: Auto-ingest frequent error patterns into LearningEngine
+   * @private
+   */
+  async _ingestPatternsToLearningEngine() {
+    let LearningEngine;
+    try {
+      LearningEngine = require('opencode-learning-engine');
+    } catch (e) {
+      return; // Learning engine not available
+    }
+    
+    // FIX: Await async getErrorFrequency() call
+    const frequentErrors = await this.getErrorFrequency();
+    if (!frequentErrors || frequentErrors.length === 0) {
+      return;
+    }
+    
+    try {
+      const le = new LearningEngine();
+      for (const error of frequentErrors.slice(0, 10)) {
+        if (error.count >= 3) {
+          // FIX: Use correct API - addAntiPattern instead of non-existent record()
+          le.addAntiPattern({
+            type: 'repeated_mistake',
+            description: `Error ${error.error_type} occurred ${error.count} times across sessions`,
+            severity: error.count > 10 ? 'high' : error.count > 5 ? 'medium' : 'low',
+            context: {
+              source: 'memory-graph',
+              error_type: error.error_type,
+              count: error.count,
+              first_seen: error.first_seen,
+              last_seen: error.last_seen
+            }
+          });
+        }
+      }
+      // Persist after adding patterns
+      le.save();
+    } catch (e) {
+      console.warn('[MemoryGraph] Failed to ingest patterns to LearningEngine:', e.message);
+      // Emit error event for monitoring
+      if (this.emit) {
+        this.emit('learningIngestError', { error: e.message, errorCount: frequentErrors?.length || 0 });
+      }
+    }
   }
 
   /**
@@ -83,6 +147,11 @@ class MemoryGraph {
 
     const { buildGraph } = require('./graph-builder');
     this._graph = buildGraph(this._entries);
+    
+    // Rebuild indexes for O(1) queries (async, non-blocking)
+    this._rebuildIndexes().catch(err => 
+      console.warn('[MemoryGraph] Index rebuild failed:', err.message)
+    );
     return this._graph;
   }
 
@@ -93,6 +162,97 @@ class MemoryGraph {
   getGraph() {
     this._ensureBuilt();
     return this._graph;
+  }
+
+  /**
+   * Rebuild performance indexes for O(1) lookups.
+   * Uses async chunked processing to avoid blocking event loop.
+   * @returns {Promise<void>}
+   */
+  async _rebuildIndexes() {
+    if (!this._graph) return;
+    
+    // Reset indexes
+    this._indexes = {
+      byType: new Map(),
+      bySession: new Map(),
+      byError: new Map(),
+      byTimestamp: [],
+    };
+    
+    // Chunk size for non-blocking processing
+    const CHUNK_SIZE = 500;
+    const nodes = this._graph.nodes;
+    
+    // Process in chunks with setImmediate to avoid blocking
+    for (let i = 0; i < nodes.length; i += CHUNK_SIZE) {
+      const chunk = nodes.slice(i, i + CHUNK_SIZE);
+      
+      // Process chunk synchronously
+      for (const node of chunk) {
+        // Index by type
+        if (!this._indexes.byType.has(node.type)) {
+          this._indexes.byType.set(node.type, []);
+        }
+        this._indexes.byType.get(node.type).push(node);
+        
+        // Index by session
+        if (node.type === 'session' && node.id) {
+          this._indexes.bySession.set(node.id, node);
+        }
+        
+        // Index by error type
+        if (node.type === 'error' && node.error_type) {
+          if (!this._indexes.byError.has(node.error_type)) {
+            this._indexes.byError.set(node.error_type, []);
+          }
+          this._indexes.byError.get(node.error_type).push(node);
+        }
+        
+        // Index by timestamp
+        if (node.timestamp) {
+          this._indexes.byTimestamp.push({ node, ts: new Date(node.timestamp).getTime() });
+        }
+      }
+      
+      // Yield to event loop between chunks
+      if (i + CHUNK_SIZE < nodes.length) {
+        await new Promise(resolve => setImmediate(resolve));
+      }
+    }
+    
+    // Sort by timestamp
+    this._indexes.byTimestamp.sort((a, b) => b.ts - a.ts);
+  }
+
+  /**
+   * Get indexed nodes by type - O(1) instead of O(n) filter
+   * @param {string} type - node type (session, error, model, provider)
+   * @returns {object[]}
+   */
+  getNodesByType(type) {
+    this._ensureBuilt();
+    return this._indexes.byType.get(type) || [];
+  }
+
+  /**
+   * Get session node by ID - O(1) lookup
+   * @param {string} sessionId
+   * @returns {object|null}
+   */
+  getSessionById(sessionId) {
+    this._ensureBuilt();
+    return this._indexes.bySession.get(sessionId) || null;
+  }
+
+  /**
+   * Get errors by type - O(1) lookup
+   * @param {string} errorType
+   * @returns {object[]}
+   */
+  getErrorsByType(errorType) {
+    this._ensureBuilt();
+    return this._indexes.byError.get(errorType) || [];
   }
 
   // ─── Query API ──────────────────────────────────────────────────────────
@@ -319,12 +479,4 @@ class MemoryGraph {
 
 module.exports = {
   MemoryGraph,
-  GraphActivator,
-  BackfillEngine,
-  parseLog,
-  parseLogs,
-  buildGraphWithBridge,
-  toJSON,
-  toDOT,
-  toCSV,
 };

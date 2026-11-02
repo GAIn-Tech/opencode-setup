@@ -1,0 +1,64 @@
+{
+  "id": "model-metadata-schema-20260215",
+  "timestamp": "2026-02-15T20:02:00-05:00",
+  "category": "infrastructure",
+  "summary": "Created comprehensive model metadata schema as single source of truth for all inference providers and their models",
+  "context": {
+    "problem": "Model catalog scattered across 6+ config files with no central schema, making updates error-prone and deprecations difficult to track",
+    "solution": "Created opencode-config/models/schema.json with comprehensive metadata for 7 providers and 31 models",
+    "impact": "Provides single source of truth for model validation, dashboard UI, weekly sync tasks, and migration paths"
+  },
+  "changes": [
+    {
+      "type": "create",
+      "file": "opencode-config/models/schema.json",
+      "description": "Comprehensive model metadata schema with provider definitions and model catalog"
+    }
+  ],
+  "technical_details": {
+    "schema_structure": {
+      "providers": 7,
+      "total_models": 31,
+      "active_models": 23,
+      "deprecated_models": 8
+    },
+    "providers_documented": [
+      "anthropic (claude-opus-4-6, claude-sonnet-4-5, claude-haiku-4-5)",
+      "openai (gpt-4o, gpt-4o-mini, o1, plus 3 deprecated gpt-5* models)",
+      "google (gemini-2.5-pro, gemini-2.5-flash, plus 2 deprecated gemini-3* models)",
+      "nvidia (llama-3.3-70b, plus deprecated llama-3.1-405b)",
+      "groq (llama-3.3-70b-versatile, plus deprecated llama-3.1-70b-versatile)",
+      "cerebras (llama-3.3-70b, plus deprecated llama-3.1-70b)",
+      "deepseek (deepseek-chat, deepseek-coder)"
+    ],
+    "metadata_fields": [
+      "id, displayName, contextWindow, maxOutputTokens",
+      "capabilities (text, vision, audio, video, reasoning, thinking, code)",
+      "pricingTier (premium, standard, budget)",
+      "inputCostPer1M, outputCostPer1M (USD per 1M tokens)",
+      "status (active, deprecated, beta)",
+      "releasedAt, deprecatedAt, replacementModel, deprecationReason"
+    ],
+    "deprecated_models_with_migrations": {
+      "gpt-5": "gpt-4o",
+      "gpt-5-mini": "gpt-4o-mini",
+      "gpt-4.1": "gpt-4o",
+      "gemini-3-pro": "gemini-2.5-pro",
+      "gemini-3-flash": "gemini-2.5-flash",
+      "llama-3.1-405b": "llama-3.3-70b",
+      "llama-3.1-70b-versatile": "llama-3.3-70b-versatile",
+      "llama-3.1-70b": "llama-3.3-70b"
+    }
+  },
+  "validation": {
+    "tests": "not-run",
+    "lint": "pass",
+    "typecheck": "not-run",
+    "deploy": "not-run"
+  },
+  "affected_paths": [
+    "opencode-config/models/schema.json"
+  ],
+  "risk_level": "low",
+  "notes": "Schema serves as foundation for weekly model sync task, validate-models.mjs enhancements, and dashboard model catalog UI"
+}

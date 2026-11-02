@@ -1,0 +1,157 @@
+{
+  "timestamp": "2026-03-22T17:17:19.330Z",
+  "sessionId": "vision-test-1774199839328",
+  "patterns": {
+    "SecurityVeto": {
+      "thresholds": {
+        "warning": 75,
+        "critical": 80,
+        "block": 85
+      },
+      "finalBudget": 75
+    },
+    "EnhancedSandbox": {
+      "implementations": [
+        "MockEnhancedSandbox"
+      ],
+      "isolationLevels": [
+        "lenient",
+        "moderate",
+        "strict"
+      ]
+    },
+    "TelemetryQualityGate": {
+      "requiredFields": [
+        "event",
+        "timestamp",
+        "session_id",
+        "component"
+      ],
+      "totalEvents": 10,
+      "qualityStats": {
+        "avg": 1,
+        "min": 1,
+        "max": 1,
+        "distribution": {
+          "excellent": 10,
+          "good": 0,
+          "poor": 0,
+          "critical": 0
+        }
+      }
+    }
+  },
+  "events": [
+    {
+      "event": "document_processing_step",
+      "timestamp": 1774199839329,
+      "session_id": "vision-test-1774199839328",
+      "component": "vision_workflow",
+      "step": "tokenization",
+      "document": "document.txt",
+      "quality_score": 1,
+      "recordId": "record-1774199839329-eh1jn54xz",
+      "recordedAt": 1774199839329
+    },
+    {
+      "event": "document_processing_step",
+      "timestamp": 1774199839329,
+      "session_id": "vision-test-1774199839328",
+      "component": "vision_workflow",
+      "step": "entity_extraction",
+      "document": "document.txt",
+      "quality_score": 1,
+      "recordId": "record-1774199839329-pt3bscbta",
+      "recordedAt": 1774199839329
+    },
+    {
+      "event": "document_processing_step",
+      "timestamp": 1774199839329,
+      "session_id": "vision-test-1774199839328",
+      "component": "vision_workflow",
+      "step": "tokenization",
+      "document": "doc1.txt",
+      "quality_score": 1,
+      "recordId": "record-1774199839329-ejq6hq4fk",
+      "recordedAt": 1774199839329
+    },
+    {
+      "event": "document_processing_step",
+      "timestamp": 1774199839329,
+      "session_id": "vision-test-1774199839328",
+      "component": "vision_workflow",
+      "step": "entity_extraction",
+      "document": "doc1.txt",
+      "quality_score": 1,
+      "recordId": "record-1774199839329-0qvdullbl",
+      "recordedAt": 1774199839329
+    },
+    {
+      "event": "document_processing_step",
+      "timestamp": 1774199839329,
+      "session_id": "vision-test-1774199839328",
+      "component": "vision_workflow",
+      "step": "tokenization",
+      "document": "doc2.txt",
+      "quality_score": 1,
+      "recordId": "record-1774199839329-8sxxd2gmr",
+      "recordedAt": 1774199839329
+    },
+    {
+      "event": "document_processing_step",
+      "timestamp": 1774199839329,
+      "session_id": "vision-test-1774199839328",
+      "component": "vision_workflow",
+      "step": "entity_extraction",
+      "document": "doc2.txt",
+      "quality_score": 1,
+      "recordId": "record-1774199839329-n5upflaov",
+      "recordedAt": 1774199839329
+    },
+    {
+      "event": "document_processing_step",
+      "timestamp": 1774199839329,
+      "session_id": "vision-test-1774199839328",
+      "component": "vision_workflow",
+      "step": "tokenization",
+      "document": "doc3.txt",
+      "quality_score": 1,
+      "recordId": "record-1774199839329-yn10fsifd",
+      "recordedAt": 1774199839329
+    },
+    {
+      "event": "document_processing_step",
+      "timestamp": 1774199839329,
+      "session_id": "vision-test-1774199839328",
+      "component": "vision_workflow",
+      "step": "entity_extraction",
+      "document": "doc3.txt",
+      "quality_score": 1,
+      "recordId": "record-1774199839329-85xiip09j",
+      "recordedAt": 1774199839329
+    },
+    {
+      "event": "document_processing_step",
+      "timestamp": 1774199839329,
+      "session_id": "vision-test-1774199839328",
+      "component": "vision_workflow",
+      "step": "tokenization",
+      "document": "doc4.txt",
+      "quality_score": 1,
+      "recordId": "record-1774199839329-g4qga0pvg",
+      "recordedAt": 1774199839329
+    },
+    {
+      "event": "document_processing_step",
+      "timestamp": 1774199839329,
+      "session_id": "vision-test-1774199839328",
+      "component": "vision_workflow",
+      "step": "entity_extraction",
+      "document": "doc4.txt",
+      "quality_score": 1,
+      "recordId": "record-1774199839329-xxrajsk22",
+      "recordedAt": 1774199839329
+    }
+  ],
+  "recommendations": []
+}

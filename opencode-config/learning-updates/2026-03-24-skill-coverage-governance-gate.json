@@ -1,0 +1,53 @@
+{
+  "id": "2026-03-24-skill-coverage-governance-gate",
+  "date": "2026-03-24",
+  "timestamp": "2026-03-24T18:00:00Z",
+  "task": "Add implied skill coverage governance gate and stabilize routing validation",
+  "summary": "Introduced automated implied-skill coverage enforcement, fixed registry dependency integrity, and wired the new gate into governance checks.",
+  "description": "Implemented script-backed implied coverage verification for all on-disk skills, integrated it into routing governance gates and governance:check, and corrected registry metadata/dependency issues that were causing validation and routing threshold failures.",
+  "changes": [
+    {
+      "file": "scripts/check-skill-coverage.mjs",
+      "function": "analyzeCoverage",
+      "modification": "Added dynamic implied coverage analysis and report generation",
+      "details": "Scans skills/tests, evaluates implied evidence including routing/profile signals and dynamic matrix routing fallback, and exits non-zero on missing skills."
+    },
+    {
+      "file": "scripts/run-skill-routing-gates.mjs",
+      "function": "GATES",
+      "modification": "Added implied skill coverage governance gate",
+      "details": "Appended skill-implied-coverage gate so routing governance now enforces implied coverage checks."
+    },
+    {
+      "file": "opencode-config/skills/registry.json",
+      "function": "learning-engine, incident-commander, task-orchestrator",
+      "modification": "Fixed dependency mismatch and improved routing metadata",
+      "details": "Corrected learning-engine dependency key and added processPhase/domain/selectionHints metadata to improve evaluator stability and correctness."
+    },
+    {
+      "file": "package.json",
+      "function": "scripts",
+      "modification": "Added skills:coverage command and wired into governance:check",
+      "details": "Ensures implied coverage checker runs in standard governance workflow."
+    }
+  ],
+  "affected_paths": [
+    "package.json",
+    "opencode-config/skills/registry.json",
+    "opencode-config/.governance-hashes.json",
+    "scripts/",
+    "packages/",
+    "opencode-config/learning-updates/"
+  ],
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "links": [
+    "./scripts/check-skill-coverage.mjs",
+    "./scripts/run-skill-routing-gates.mjs",
+    "./opencode-config/skills/registry.json"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "learning-model-router-mcp-surface-retirement-2026-03-26",
+  "timestamp": "2026-03-26T04:50:00.000Z",
+  "summary": "Retired opencode-model-router-x from host-facing MCP registration while preserving internal runtime routing usage, and aligned dormant policy/docs/tests to the new surface contract.",
+  "affected_paths": [
+    "opencode-config/opencode.json",
+    "opencode-config/mcp-dormant-policy.json",
+    "opencode-config/AGENTS.md",
+    "mcp-servers/opencode-mcp-config.json",
+    "mcp-servers/server-list.md",
+    "setup-instructions.md",
+    "scripts/tests/mcp-inventory-regression.test.js",
+    ".sisyphus/plans/2026-03-26-mcp-lifecycle-decision-plan.md",
+    ".sisyphus/reports/mcp-lifecycle-decision-2026-03-26.md",
+    ".sisyphus/reports/mcp-lifecycle-2026-03-26.md"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

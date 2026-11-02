@@ -1,0 +1,86 @@
+{
+  "artifact": "documentation-drift-fix-summary",
+  "version": "1.0.0",
+  "generatedAt": "2026-03-25",
+  "taskContext": {
+    "task": "Wave 2 Task 8 - Repair documentation and taxonomy drift across packages, skills, and policy artifacts",
+    "objective": "Align package inventory docs and canonical tier-model documentation with current 36-package and tier-classification reality, while explicitly deferring CLI-vs-MCP expansion work.",
+    "inputsRead": [
+      "packages/README.md",
+      "packages/",
+      ".sisyphus/evidence/scenario-taxonomy-model.json",
+      ".sisyphus/evidence/skill-classification-recommendations.json",
+      ".sisyphus/evidence/package-surface-classification.json",
+      "docs/architecture/cli-mcp-surface-policy.md",
+      ".sisyphus/notepads/ecosystem-skill-package-audit/learnings.md",
+      ".sisyphus/notepads/ecosystem-skill-package-audit/decisions.md"
+    ],
+    "inputMissing": [
+      ".sisyphus/drafts/ecosystem-audit-cohesion.md (not present in repository at execution time)"
+    ]
+  },
+  "changes": {
+    "modified": [
+      "packages/README.md",
+      ".sisyphus/notepads/ecosystem-skill-package-audit/learnings.md"
+    ],
+    "created": [
+      "docs/architecture/ecosystem-tier-model.md",
+      ".sisyphus/evidence/documentation-drift-fix-summary.json"
+    ]
+  },
+  "documentationDriftResolution": {
+    "packagesReadme": {
+      "before": {
+        "documentedWorkspacePackages": 8,
+        "expectedWorkspacePackages": 36,
+        "coverageRatio": 0.222
+      },
+      "after": {
+        "documentedWorkspacePackages": 36,
+        "expectedWorkspacePackages": 36,
+        "coverageRatio": 1.0
+      },
+      "surfaceRoleSummaryDocumented": {
+        "cliFirst": 7,
+        "mcpFirst": 2,
+        "hybrid": 1,
+        "libraryOnly": 26
+      }
+    },
+    "canonicalTierModelDoc": {
+      "path": "docs/architecture/ecosystem-tier-model.md",
+      "contains": [
+        "core scenario taxonomy (planning-core, audit-core, debug-core)",
+        "secondary overlay taxonomy",
+        "tier semantics for default/manual/dormant/candidate-prune",
+        "transition policy",
+        "non-default tier interpretation guidance",
+        "explicit deferred section for CLI-vs-MCP expansion"
+      ]
+    }
+  },
+  "keyClarifications": [
+    "Manual-tier capabilities are intentionally available but not baseline first-pass default routing.",
+    "Dormant capabilities are intentionally retained inactive fallback paths, not missing features.",
+    "Candidate-prune is a review queue posture and does not imply immediate removal.",
+    "Transport expansion (new CLI/MCP wrappers) is explicitly deferred to future work outside this task scope."
+  ],
+  "sourceOfTruthPosture": {
+    "tierNarrativeCanonical": "docs/architecture/ecosystem-tier-model.md",
+    "tierAndSurfaceEvidence": [
+      ".sisyphus/evidence/scenario-taxonomy-model.json",
+      ".sisyphus/evidence/skill-classification-recommendations.json",
+      ".sisyphus/evidence/package-surface-classification.json"
+    ],
+    "packageInventoryCanonical": "packages/README.md"
+  },
+  "deferredFutureWork": {
+    "intentionalDeferrals": [
+      "Do not expand package CLI/MCP wrappers in this task.",
+      "Do not promote package-only command surfaces into new skill namespaces in this task.",
+      "Do not reopen broad CLI-vs-MCP strategy changes beyond existing policy and future-work hooks."
+    ],
+    "reason": "Task scope is documentation and taxonomy drift repair, not transport-surface migration."
+  }
+}

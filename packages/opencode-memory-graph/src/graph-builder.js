@@ -3,6 +3,24 @@
 const fs = require('fs');
 const path = require('path');
 
+// Size guard constant: 10MB max for JSON parsing
+const MAX_JSON_SIZE = 10 * 1024 * 1024;
+
+/**
+ * Safe JSON parse with size guard to prevent OOM.
+ * @param {string} content - JSON string to parse
+ * @param {number} [maxSize=MAX_JSON_SIZE] - Max allowed size in bytes
+ * @returns {object} Parsed JSON object
+ * @throws {Error} If content exceeds size limit
+ */
+function safeJsonParse(content, maxSize = MAX_JSON_SIZE) {
+  const sizeBytes = Buffer.byteLength(content, 'utf-8');
+  if (sizeBytes > maxSize) {
+    throw new Error(`JSON payload exceeds size limit: ${sizeBytes} > ${maxSize} bytes`);
+  }
+  return JSON.parse(content);
+}
+
 /**
  * Log entry format (expected from OpenCode runtime):
  *   { session_id, timestamp, error_type, message }
@@ -31,13 +49,13 @@ function parseLog(logFilePath) {
 
   // Try JSON array first
   if (raw.startsWith('[')) {
-    return normalizeEntries(JSON.parse(raw));
+    return normalizeEntries(safeJsonParse(raw));
   }
 
   // Try JSON-lines
   const lines = raw.split(/\r?\n/).filter(Boolean);
   if (lines[0].startsWith('{')) {
-    return normalizeEntries(lines.map((l) => JSON.parse(l)));
+    return normalizeEntries(lines.map((l) => safeJsonParse(l)));
   }
 
   // Fallback: TSV / CSV  (session_id  timestamp  error_type  message)
@@ -102,7 +120,23 @@ function parseLogs(sources) {
  * @param {GoraphdbBridge | null} bridge  Bridge instance for syncing to goraphdb (optional).
  * @returns {Promise<{ nodes: object[], edges: object[], meta: object }>}
  */
-async function buildGraphWithBridge(entries, bridge) {
+/**
+ * Build error knowledge graph from session entries with memory-safe Map limits.
+ * 
+ * MEMORY OPTIMIZATION: Limits Map growth with LRU eviction to prevent unbounded memory
+ * consumption when processing thousands of sessions. Old/inactive entries are evicted.
+ *
+ * @param {object[]} entries  Array of { session_id, timestamp, error_type, message }.
+ * @param {object | null} bridge  Bridge instance for syncing to goraphdb (optional).
+ * @param {object} [opts]  Options for graph building.
+ * @param {number} [opts.maxSessions=1000]  Max session nodes before LRU eviction.
+ * @param {number} [opts.maxErrors=500]  Max error type nodes before LRU eviction.
+ * @param {number} [opts.maxEdges=5000]  Max edges before LRU eviction.
+ * @returns {Promise<{ nodes: object[], edges: object[], meta: object }>}
+ */
+async function buildGraphWithBridge(entries, bridge, opts = {}) {
+  const { maxSessions = 1000, maxErrors = 500, maxEdges = 5000 } = opts;
+  
   if (!Array.isArray(entries) || entries.length === 0) {
     return { nodes: [], edges: [], meta: { sessions: 0, errors: 0, total_entries: 0 } };
   }
@@ -117,27 +151,46 @@ async function buildGraphWithBridge(entries, bridge) {
 
     const ts = timestamp || new Date().toISOString();
 
-    // Session node
+    // Session node (with LRU eviction)
     if (!sessionMap.has(session_id)) {
+      // Evict oldest session if at capacity (LRU = first entry in Map)
+      if (sessionMap.size >= maxSessions) {
+        const firstKey = sessionMap.keys().next().value;
+        sessionMap.delete(firstKey);
+      }
       sessionMap.set(session_id, { first_seen: ts, last_seen: ts, error_count: 0 });
     }
     const sess = sessionMap.get(session_id);
     sess.last_seen = ts > sess.last_seen ? ts : sess.last_seen;
     sess.first_seen = ts < sess.first_seen ? ts : sess.first_seen;
     sess.error_count += 1;
+    // Move to end for LRU (delete + re-set)
+    sessionMap.delete(session_id);
+    sessionMap.set(session_id, sess);
 
-    // Error node
+    // Error node (with LRU eviction)
     if (!errorMap.has(error_type)) {
+      if (errorMap.size >= maxErrors) {
+        const firstKey = errorMap.keys().next().value;
+        errorMap.delete(firstKey);
+      }
       errorMap.set(error_type, { count: 0, first_seen: ts, last_seen: ts });
     }
     const err = errorMap.get(error_type);
     err.count += 1;
     err.last_seen = ts > err.last_seen ? ts : err.last_seen;
     err.first_seen = ts < err.first_seen ? ts : err.first_seen;
+    // Move to end for LRU
+    errorMap.delete(error_type);
+    errorMap.set(error_type, err);
 
-    // Edge
+    // Edge (with LRU eviction)
     const edgeKey = `${session_id}::${error_type}`;
     if (!edgeMap.has(edgeKey)) {
+      if (edgeMap.size >= maxEdges) {
+        const firstKey = edgeMap.keys().next().value;
+        edgeMap.delete(firstKey);
+      }
       edgeMap.set(edgeKey, { weight: 0, first_seen: ts, last_seen: ts, messages: [] });
     }
     const edge = edgeMap.get(edgeKey);
@@ -147,6 +200,9 @@ async function buildGraphWithBridge(entries, bridge) {
     if (message && edge.messages.length < 5) {
       edge.messages.push(message);
     }
+    // Move to end for LRU
+    edgeMap.delete(edgeKey);
+    edgeMap.set(edgeKey, edge);
   }
 
   // Sync to goraphdb if bridge is available
@@ -161,7 +217,12 @@ async function buildGraphWithBridge(entries, bridge) {
 
     // Create/upsert all edges
     for (const [key, data] of edgeMap) {
-      const [from, to] = key.split('::');
+      const parts = key.split('::');
+      if (parts.length !== 2 || !parts[0] || !parts[1]) {
+        console.warn(`[GraphBuilder] Invalid edge key format: "${key}", skipping`);
+        continue;
+      }
+      const [from, to] = parts;
       await bridge.upsertEdge('ENCOUNTERED', from, to, data);
     }
   }
@@ -203,80 +264,6 @@ async function buildGraphWithBridge(entries, bridge) {
  * @param {object[]} entries
  * @returns {{ nodes: object[], edges: object[], meta: object }}
  */
-function buildGraph(entries) {
-  if (!Array.isArray(entries) || entries.length === 0) {
-    return { nodes: [], edges: [], meta: { sessions: 0, errors: 0, total_entries: 0 } };
-  }
-
-  const sessionMap = new Map();
-  const errorMap = new Map();
-  const edgeMap = new Map();
-
-  for (const entry of entries) {
-    const { session_id, timestamp, error_type, message } = entry;
-    if (!session_id || !error_type) continue;
-
-    const ts = timestamp || new Date().toISOString();
-
-    if (!sessionMap.has(session_id)) {
-      sessionMap.set(session_id, { first_seen: ts, last_seen: ts, error_count: 0 });
-    }
-    const sess = sessionMap.get(session_id);
-    sess.last_seen = ts > sess.last_seen ? ts : sess.last_seen;
-    sess.first_seen = ts < sess.first_seen ? ts : sess.first_seen;
-    sess.error_count += 1;
-
-    if (!errorMap.has(error_type)) {
-      errorMap.set(error_type, { count: 0, first_seen: ts, last_seen: ts });
-    }
-    const err = errorMap.get(error_type);
-    err.count += 1;
-    err.last_seen = ts > err.last_seen ? ts : err.last_seen;
-    err.first_seen = ts < err.first_seen ? ts : err.first_seen;
-
-    const edgeKey = `${session_id}::${error_type}`;
-    if (!edgeMap.has(edgeKey)) {
-      edgeMap.set(edgeKey, { weight: 0, first_seen: ts, last_seen: ts, messages: [] });
-    }
-    const edge = edgeMap.get(edgeKey);
-    edge.weight += 1;
-    edge.last_seen = ts > edge.last_seen ? ts : edge.last_seen;
-    edge.first_seen = ts < edge.first_seen ? ts : edge.first_seen;
-    if (message && edge.messages.length < 5) {
-      edge.messages.push(message);
-    }
-  }
-
-  const nodes = [];
-  for (const [id, data] of sessionMap) {
-    nodes.push({ id, type: 'session', ...data });
-  }
-  for (const [id, data] of errorMap) {
-    nodes.push({ id, type: 'error', ...data });
-  }
-
-  const edges = [];
-  for (const [key, data] of edgeMap) {
-    const [from, to] = key.split('::');
-    edges.push({ from, to, ...data });
-  }
-
-  edges.sort((a, b) => b.weight - a.weight);
-
-  return {
-    nodes,
-    edges,
-    meta: {
-      sessions: sessionMap.size,
-      errors: errorMap.size,
-      total_entries: entries.length,
-      built_at: new Date().toISOString(),
-    },
-  };
-}
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
 function normalizeEntries(arr) {
   return arr
     .map((e) => ({
@@ -288,4 +275,4 @@ function normalizeEntries(arr) {
     .filter((e) => e.session_id && e.error_type);
 }
 
-module.exports = { parseLog, parseLogs, buildGraph, buildGraphWithBridge, normalizeEntries };
+module.exports = { parseLog, parseLogs, buildGraphWithBridge };

@@ -1,0 +1,87 @@
+{
+  "generatedAt": "2026-03-24T23:36:07.237Z",
+  "purpose": "Baseline metrics later waves must improve",
+  "metrics": [
+    {
+      "id": "default_surface.enabled_default_skill_count",
+      "dimension": "default-surface reduction",
+      "baseline": 39,
+      "unit": "skills",
+      "targetDirection": "decrease",
+      "formula": "count(opencode-config/compound-engineering.json.skills.enabled)",
+      "whyItMatters": "Direct measure of default routing breadth."
+    },
+    {
+      "id": "default_surface.externally_exposed_package_count",
+      "dimension": "default-surface reduction",
+      "baseline": 10,
+      "unit": "packages",
+      "targetDirection": "decrease-or-tier",
+      "formula": "count(workspace packages with CLI entrypoint OR MCP wrapper)",
+      "whyItMatters": "Tracks breadth of package surfaces available for first-class activation paths."
+    },
+    {
+      "id": "docs_drift.packages_readme_coverage_gap_count",
+      "dimension": "docs drift",
+      "baseline": 28,
+      "unit": "packages",
+      "targetDirection": "decrease",
+      "formula": "workspacePackages - packageNamesListedIn(packages/README.md headings)",
+      "whyItMatters": "Quantifies package taxonomy drift against documented ecosystem shape."
+    },
+    {
+      "id": "docs_drift.packages_readme_coverage_gap_ratio",
+      "dimension": "docs drift",
+      "baseline": 0.778,
+      "unit": "ratio",
+      "targetDirection": "decrease",
+      "formula": "docs_drift.packages_readme_coverage_gap_count / workspacePackages",
+      "whyItMatters": "Normalizes drift severity independent of package count growth."
+    },
+    {
+      "id": "false_activation.overlap_cluster_noncanonical_enabled_count",
+      "dimension": "false-activation control",
+      "baseline": 3,
+      "unit": "skills",
+      "targetDirection": "decrease",
+      "formula": "count(enabled skills where overlapCluster exists and canonicalEntrypoint = false)",
+      "baselineMembers": [
+        "code-doctor",
+        "agent-browser",
+        "playwright"
+      ],
+      "whyItMatters": "Overlap-cluster non-canonical defaults increase accidental activation probability."
+    },
+    {
+      "id": "false_activation.routing_ambiguity_rate",
+      "dimension": "false-activation control",
+      "baseline": 0.077,
+      "unit": "rate",
+      "targetDirection": "decrease",
+      "formula": "skill-routing-evaluator.metrics.ambiguityRate",
+      "whyItMatters": "System-level ambiguity proxy from governance gate evaluator."
+    },
+    {
+      "id": "governance_assumptions.manifest_must_have_density",
+      "dimension": "governance assumptions",
+      "baseline": 1,
+      "unit": "ratio",
+      "targetDirection": "decrease",
+      "formula": "mustHaveCount / manifestSkillCount",
+      "whyItMatters": "Captures breadth-biased assumption that all imported skills are required by default."
+    },
+    {
+      "id": "governance_assumptions.deferred_gate_metric_count",
+      "dimension": "governance assumptions",
+      "baseline": 1,
+      "unit": "metrics",
+      "targetDirection": "decrease",
+      "formula": "count(routing evaluator deferredWarnings)",
+      "whyItMatters": "Shows currently non-enforced threshold areas in the governance stack."
+    }
+  ],
+  "verificationFlags": {
+    "defaultSurfaceReductionMetricDefined": true,
+    "falseActivationControlMetricDefined": true
+  }
+}

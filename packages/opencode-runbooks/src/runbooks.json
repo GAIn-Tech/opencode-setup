@@ -90,6 +90,24 @@
       "remedy": "resolvePortConflict",
       "description": "The requested network port is already bound by another process.",
       "instructions": "Kill the process using the port or switch to an alternative port."
+    },
+    "GEMINI_AUTH_ERROR": {
+      "id": "GEMINI_AUTH_ERROR",
+      "keywords": ["API_KEY_INVALID", "PERMISSION_DENIED", "invalid api key", "failed to process error response", "google api", "UNAUTHENTICATED"],
+      "message": "Gemini API authentication failed",
+      "severity": "high",
+      "remedy": "fixGeminiAuth",
+      "description": "The Gemini API key is missing, invalid, or not authorized for the requested model.",
+      "instructions": "1. Verify GOOGLE_API_KEY is set in .env (not GOOGLE_API_KEYS). 2. Confirm the key is valid at https://aistudio.google.com/app/apikey. 3. In opencode.json provider.google, ensure {env: 'GOOGLE_API_KEY'} (singular). 4. Restart opencode after .env changes."
+    },
+    "GEMINI_MODEL_NOT_FOUND": {
+      "id": "GEMINI_MODEL_NOT_FOUND",
+      "keywords": ["models/gemini", "NOT_FOUND", "not found", "invalid model", "model not found", "gemini-3-flash", "gemini-3-pro"],
+      "message": "Gemini model ID not recognized by the API",
+      "severity": "high",
+      "remedy": "fixGeminiModelId",
+      "description": "The model ID specified in opencode.json does not match any model available from the Google Generative Language API.",
+      "instructions": "1. Use exact API model IDs: gemini-2.5-flash, gemini-3-flash-preview, gemini-3-pro-preview, gemini-3.1-flash-lite-preview, gemini-3.1-pro-preview. 2. Avoid invented names like gemini-3-flash (missing -preview suffix) or gemini-2-5-flash (hyphens instead of dots). 3. Run: curl 'https://generativelanguage.googleapis.com/v1beta/models?key=YOUR_KEY' to list valid models."
     }
   }
 }

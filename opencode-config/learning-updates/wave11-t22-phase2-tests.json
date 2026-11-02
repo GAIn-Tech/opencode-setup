@@ -1,0 +1,14 @@
+{
+  "id": "wave11-t22-phase2-component-tests",
+  "timestamp": "2026-03-08T23:20:00Z",
+  "summary": "T22: Added 21 isolation-pattern tests (46 assertions) for Phase 2 components — ContextBridge threshold logic (9 tests: none/compress/compress_urgent at 50%/65%/72%/80%/95%, fail-open, null budget, custom thresholds), IntegrationLayer checkContextBudget (3 tests), recordTokenUsage (3 tests), task context eviction with 1-hour TTL (6 tests).",
+  "affected_paths": [
+    "packages/opencode-integration-layer/tests/wave11-phase2-components.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

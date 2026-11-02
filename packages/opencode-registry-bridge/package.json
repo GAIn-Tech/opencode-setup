@@ -1,0 +1,27 @@
+{
+  "name": "opencode-registry-bridge",
+  "version": "0.1.0",
+  "description": "Codegen tool that auto-generates registry.json skill entries from opencode infrastructure packages",
+  "main": "src/generate-entries.mjs",
+  "type": "module",
+  "scripts": {
+    "generate": "node src/generate-entries.mjs",
+    "generate:watch": "node --watch src/generate-entries.mjs",
+    "diff": "node src/generate-entries.mjs --diff",
+    "merge": "node src/merge-to-registry.mjs",
+    "validate": "node src/validate-output.mjs"
+  },
+  "keywords": [
+    "opencode",
+    "skill-registry",
+    "codegen",
+    "registry-bridge",
+    "skill-automation"
+  ],
+  "author": "OpenCode",
+  "license": "MIT",
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {}
+}

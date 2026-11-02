@@ -1,0 +1,84 @@
+{
+  "$schema": "./opencode-config-schema.json",
+  "version": "1.0.0",
+  "description": "Centralized configuration for OpenCode custom plugins and performance settings",
+  
+  "runtime": {
+    "bun": {
+      "heapLimit": "4096mb",
+      "description": "Bun heap memory limit (configured in bunfig.toml)"
+    }
+  },
+
+  "performance": {
+    "concurrency": {
+      "defaultLimit": 5,
+      "description": "Default max concurrent operations for Promise.all() patterns"
+    },
+    "batchSize": {
+      "sessionProcessing": 10,
+      "graphEntries": 10,
+      "description": "Batch size for processing large datasets to prevent memory exhaustion"
+    },
+    "lruCache": {
+      "maxEntries": 10000,
+      "description": "Maximum entries in LRU caches before eviction (graph-builder.js)"
+    }
+  },
+
+  "database": {
+    "wal": {
+      "checkpointInterval": 1000,
+      "cleanupIntervalMs": 300000,
+      "description": "SQLite WAL checkpoint every N writes, cleanup every 5 minutes"
+    }
+  },
+
+  "logging": {
+    "rotation": {
+      "maxFiles": 5,
+      "maxSizeMb": 10,
+      "description": "Log rotation settings - keeps last N files, max size per file"
+    },
+    "healthd": {
+      "checkIntervalMs": 300000,
+      "description": "Health daemon check interval (5 minutes)"
+    }
+  },
+
+  "sessions": {
+    "ttl": {
+      "defaultMs": 86400000,
+      "description": "Session time-to-live for cleanup (24 hours in milliseconds)"
+    }
+  },
+
+  "dashboard": {
+    "port": 3000,
+    "autoOpen": true,
+    "nodeEnv": "production",
+    "autoLaunch": true,
+    "description": "Dashboard auto-launch and configuration settings"
+  },
+
+  "features": {
+    "autoCleanup": {
+      "enabled": true,
+      "description": "Enable automatic cleanup mechanisms (WAL, logs, sessions)"
+    },
+    "memoryOptimizations": {
+      "enabled": true,
+      "streamingEnabled": true,
+      "batchingEnabled": true,
+      "lruEnabled": true,
+      "description": "Memory optimization features (streaming, batching, LRU caching)"
+    }
+  },
+
+  "paths": {
+    "opencodeDir": "~/.opencode",
+    "logsDir": "~/.opencode",
+    "databaseDir": "~/.opencode",
+    "description": "Default paths for OpenCode data storage"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "wave1-memory-graph-schema-normalization-20260318",
+  "timestamp": "2026-03-18T23:58:00.000Z",
+  "summary": "Normalize integration-layer session error payload field names to memory-graph schema before buildGraph submission.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/index.js"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "event-store-error-logging-20260225",
+  "timestamp": "2026-02-25T00:00:00Z",
+  "summary": "Added console.warn logging to 2 empty catch blocks in event-store.js that were swallowing cleanup errors after write/rename failures.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/orchestration/lib/event-store.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Lines 53 and 56: catch blocks now log cleanup errors with console.warn. Improves observability for atomic write failures without changing behavior. All tests pass."
+}

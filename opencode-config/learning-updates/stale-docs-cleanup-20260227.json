@@ -1,0 +1,17 @@
+{
+  "id": "stale-docs-cleanup-20260227",
+  "timestamp": "2026-02-27T00:04:00Z",
+  "summary": "Task 6: Final regression sweep and stale documentation cleanup after pipeline fixes. (1) mcp-setup-commands.sh: updated 'Current servers (8)' → '(9)' — distill was registered in opencode.json but not counted in this reference script. (2) tool-manifest.json: added opencode-dashboard-launcher entry to match opencode-mcp-config.json — 4 servers were listed, 5th was missing. (3) system-prompts.md: updated '8 MCP server definitions' → '9'. All integration tests pass: 5 pass, 0 fail for skillrl-api-regression. All plan acceptance criteria verified.",
+  "affected_paths": [
+    "mcp-servers/mcp-setup-commands.sh",
+    "mcp-servers/tool-manifest.json",
+    "system-prompts.md"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Pure documentation fixes. Zero stale skill-rl-state references in packages/ integration-tests/ source files. All 6 plan success criteria met."
+}

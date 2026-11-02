@@ -1,0 +1,15 @@
+{
+  "id": "mcp-report-input-warnings-20260310",
+  "timestamp": "2026-03-10T12:15:00-04:00",
+  "summary": "Warn when the MCP lifecycle report falls back from unreadable telemetry/config inputs so missing or corrupt data does not silently flatten usage visibility.",
+  "affected_paths": [
+    "scripts/report-mcp-lifecycle.mjs",
+    "scripts/tests/mcp-lifecycle-report.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

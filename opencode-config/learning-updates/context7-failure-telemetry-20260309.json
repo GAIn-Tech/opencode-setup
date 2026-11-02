@@ -1,0 +1,15 @@
+{
+  "id": "context7-failure-telemetry-20260309",
+  "timestamp": "2026-03-09T23:05:00-04:00",
+  "summary": "Refine runtime Context7 telemetry so explicit error and unresolved signals are recorded as failed lookups in shared monitoring history.",
+  "affected_paths": [
+    "scripts/runtime-tool-telemetry.mjs",
+    "scripts/tests/runtime-tool-telemetry.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "date": "2026-02-21",
+  "summary": "Resolved model conflict markers and aligned runtime model IDs to newest variants after pull.",
+  "changes": [
+    "Kept gpt-5.3-codex over gpt-4o in router policy routing layers",
+    "Kept gemini-3-flash and gemini-3-pro over gemini-2.0 variants in touched runtime configs",
+    "Removed unresolved merge conflict markers from policies.json and restored valid JSON"
+  ],
+  "affected_files": [
+    "packages/opencode-model-router-x/src/policies.json",
+    "packages/opencode-model-router-x/src/strategies/token-cost-calculator.js",
+    "packages/opencode-model-router-x/src/strategies/fallback-layer-strategy.js",
+    "packages/opencode-sisyphus-state/src/config/providers.js",
+    "packages/opencode-dashboard/src/app/api/providers/route.ts",
+    "rate-limit-fallback.json"
+  ]
+}

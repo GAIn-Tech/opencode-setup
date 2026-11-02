@@ -14,20 +14,589 @@
 
 const { SkillBank } = require('./skill-bank');
 const { EvolutionEngine } = require('./evolution-engine');
+const { ExplorationRLAdapter } = require('./exploration-adapter');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
+
+// Optional dependency: hyper-parameter registry (fail-open).
+let HyperParameterRegistry = null;
+try {
+  // Workspace package name
+  ({ HyperParameterRegistry } = require('../../opencode-hyper-param-learner/src/index.js'));
+} catch (_) {
+  HyperParameterRegistry = null;
+}
+
+const OPENCODE_DIRNAME = '.opencode';
+
+function resolveDataHome() {
+  if (process.env.OPENCODE_DATA_HOME) return process.env.OPENCODE_DATA_HOME;
+  if (process.env.XDG_DATA_HOME) return path.join(process.env.XDG_DATA_HOME, 'opencode');
+  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
+  return path.join(homeDir, OPENCODE_DIRNAME);
+}
+
+// Cross-process file lock to prevent concurrent write corruption.
+// Lock files live next to the target file (e.g. ~/.opencode/skill-rl.json.lock),
+// so all processes coordinate on the same path regardless of cwd.
+const LOCK_STALE_MS = 30_000;
+
+async function _ensureLockDir(lockPath) {
+  const lockDir = path.dirname(lockPath);
+  if (!fs.existsSync(lockDir)) {
+    fs.mkdirSync(lockDir, { recursive: true });
+  }
+}
+
+function _isProcessAlive(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    if (error.code === 'EPERM') return true;
+    if (error.code === 'ESRCH') return false;
+    return false;
+  }
+}
+
+function _readLockInfo(lockPath) {
+  try {
+    const raw = fs.readFileSync(lockPath, 'utf8').trim();
+    if (!raw) return { pid: null };
+
+    if (raw.startsWith('{')) {
+      const parsed = SafeJSON.parse(raw, {});
+      return {
+        pid: Number.isInteger(parsed.pid) ? parsed.pid : null,
+      };
+    }
+
+    const pid = Number.parseInt(raw, 10);
+    return { pid: Number.isInteger(pid) ? pid : null };
+  } catch {
+    return { pid: null };
+  }
+}
+
+function _shouldBreakStaleLock(lockPath) {
+  try {
+    if (!fs.existsSync(lockPath)) return false;
+
+    const { pid } = _readLockInfo(lockPath);
+    if (pid && !_isProcessAlive(pid)) {
+      return true;
+    }
+
+    const stats = fs.statSync(lockPath);
+    const ageMs = Date.now() - stats.mtimeMs;
+    if (ageMs > LOCK_STALE_MS && !pid) {
+      return true;
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+async function _acquireLock(lockPath, timeout = 5000) {
+  await _ensureLockDir(lockPath);
+  const start = Date.now();
+
+  // Use atomic lock acquisition with O_EXCL flag.
+  while (true) {
+    if (Date.now() - start > timeout) {
+      throw new Error(`Lock acquisition timeout for ${lockPath}`);
+    }
+    try {
+      // O_EXCL creates atomically - fails if file exists.
+      const fd = fs.openSync(lockPath, 'wx');
+      try {
+        fs.writeFileSync(fd, SafeJSON.stringify({
+          pid: process.pid,
+          createdAtMs: Date.now(),
+        }), 'utf8');
+      } finally {
+        fs.closeSync(fd);
+      }
+      return; // Lock acquired
+    } catch (err) {
+      if (err.code === 'EEXIST') {
+        if (_shouldBreakStaleLock(lockPath)) {
+          try {
+            fs.unlinkSync(lockPath);
+          } catch (unlinkErr) {
+            if (unlinkErr.code !== 'ENOENT') {
+              await new Promise(r => setTimeout(r, 50));
+            }
+          }
+          continue;
+        }
+
+        // Lock exists, wait and retry.
+        await new Promise(r => setTimeout(r, 50));
+        continue;
+      }
+      throw err; // Other error
+    }
+  }
+}
+
+function _releaseLock(lockPath) {
+  try {
+    if (fs.existsSync(lockPath)) {
+      fs.unlinkSync(lockPath);
+    }
+  } catch (_) {
+    // fail-open: lock release errors should not crash runtime.
+  }
+}
+
+// Safe JSON to prevent crashes from circular references
+const SafeJSON = {
+  stringify: (obj) => {
+    const seen = new WeakSet();
+    return JSON.stringify(obj, (key, value) => {
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) return '[Circular]';
+        seen.add(value);
+      }
+      return value;
+    });
+  },
+  parse: (str, fallback = {}) => {
+    try {
+      return JSON.parse(str);
+    } catch {
+      return fallback;
+    }
+  }
+};
+
+// Learning validation to prevent corrupted learnings from corrupting the system
+const LearningValidator = {
+  // Validate skill data before accepting it
+  validateSkill: (skill) => {
+    if (!skill || typeof skill !== 'object') return { valid: false, reason: 'Not an object' };
+    if (!skill.name || typeof skill.name !== 'string') return { valid: false, reason: 'Missing or invalid name' };
+    if (skill.success_rate !== undefined) {
+      if (typeof skill.success_rate !== 'number' || skill.success_rate < 0 || skill.success_rate > 1) {
+        return { valid: false, reason: 'success_rate must be 0-1' };
+      }
+    }
+    if (skill.usage_count !== undefined) {
+      if (typeof skill.usage_count !== 'number' || skill.usage_count < 0) {
+        return { valid: false, reason: 'usage_count must be >= 0' };
+      }
+    }
+    return { valid: true };
+  },
+  
+  // Validate evolution rule
+  validateRule: (rule) => {
+    if (!rule || typeof rule !== 'object') return { valid: false, reason: 'Not an object' };
+    if (!rule.trigger || typeof rule.trigger !== 'string') return { valid: false, reason: 'Missing trigger' };
+    if (!rule.action || typeof rule.action !== 'string') return { valid: false, reason: 'Missing action' };
+    return { valid: true };
+  },
+  
+  // Sanitize and clamp values to prevent drift
+  sanitize: (skill) => {
+    const sanitized = { ...skill };
+    if (sanitized.success_rate !== undefined) {
+      sanitized.success_rate = Math.max(0, Math.min(1, sanitized.success_rate));
+    }
+    if (sanitized.usage_count !== undefined) {
+      sanitized.usage_count = Math.max(0, Math.floor(sanitized.usage_count));
+    }
+    if (sanitized.adaptive_threshold !== undefined) {
+      sanitized.adaptive_threshold = Math.max(0, Math.min(1, sanitized.adaptive_threshold));
+    }
+    return sanitized;
+  }
+};
 
 class SkillRLManager {
   constructor(options = {}) {
-    this.skillBank = new SkillBank();
-    this.evolutionEngine = new EvolutionEngine(this.skillBank);
+    const _defaultRLPath = path.join(resolveDataHome(), 'skill-rl.json');
+    const hasExplicitPersistencePath = Object.prototype.hasOwnProperty.call(options, 'persistencePath')
+      || Object.prototype.hasOwnProperty.call(options, 'stateFile');
+    if (Object.prototype.hasOwnProperty.call(options, 'persistencePath')) {
+      this.persistencePath = options.persistencePath;
+    } else if (Object.prototype.hasOwnProperty.call(options, 'stateFile')) {
+      this.persistencePath = options.stateFile;
+    } else {
+      this.persistencePath = _defaultRLPath;
+    }
+    this.skillBank = new SkillBank(options.skillBank);
+    this.evolutionEngine = new EvolutionEngine(this.skillBank, options.evolution);
+    this.dataFidelity = 'live';
+    this.seededAt = null;
+    this.seedSource = null;
+    this.metadata = {};
+
+    // One-time migration: old ./skill-rl-state.json → canonical ~/.opencode/skill-rl.json
+    const _legacyPath = path.join(process.cwd(), 'skill-rl-state.json');
+    if (!hasExplicitPersistencePath && this.persistencePath && fs.existsSync(_legacyPath) && !fs.existsSync(this.persistencePath)) {
+      try {
+        fs.mkdirSync(path.dirname(this.persistencePath), { recursive: true });
+        fs.copyFileSync(_legacyPath, this.persistencePath);
+      } catch (_) { /* non-fatal */ }
+    }
+
+    // Learning validation enabled by default
+    this._validationEnabled = options.validationEnabled !== false;
+
+    // Load persisted state BEFORE syncWithRegistry so existing usage_count/success_rate are preserved.
+    // syncWithRegistry is additive (skips skills already in the Map), so it won't overwrite loaded data.
+    // If no persisted state exists, initialize from seed file for cold-start experience.
+    if (this.persistencePath) {
+      const loaded = this._loadPersistedState();
+      if (!loaded) {
+        this._initializeFromSeed();
+      }
+    }
+
+    // Sync with skill registry on startup — additive, never overwrites existing data
+    const _registryPath = path.resolve(__dirname, '../../../opencode-config/skills/registry.json');
+    this.syncWithRegistry(_registryPath);
+
+    // Hyper-parameter registry (for multi-dimensional skill metrics)
+    this._hyperParamRegistry = null;
+    if (HyperParameterRegistry) {
+      try {
+        const hpPath = path.resolve(__dirname, '../../../opencode-config/hyper-parameter-registry.json');
+        this._hyperParamRegistry = new HyperParameterRegistry({ persistPath: hpPath });
+      } catch (_) {
+        this._hyperParamRegistry = null;
+      }
+    }
+
+    // Exploration policy (env-driven, NOT persisted)
+    this.explorationMode = process.env.OPENCODE_EXPLORATION_MODE || 'greedy';
+    this.epsilon = Math.min(1, Math.max(0, parseFloat(process.env.OPENCODE_EPSILON || '0.1')));
+  }
+
+  /**
+   * Learn from an outcome - validate before accepting, then route to skill bank and evolution engine
+   * @param {object} outcome - { task_type, outcome, skill_used, success, ... }
+   */
+  learnFromOutcome(outcome) {
+    // Validate outcome before processing
+    if (this._validationEnabled) {
+      if (!outcome || typeof outcome !== 'object') {
+        console.warn('[SkillRL] Rejected invalid outcome: not an object');
+        return;
+      }
+      if (outcome.success === undefined) {
+        console.warn('[SkillRL] Rejected outcome: missing success field');
+        return;
+      }
+    }
     
-    // Persistence path (optional)
-    this.persistencePath = options.persistencePath || null;
+    // Normalize legacy shape: { skills: [...] } -> { skills_used: [...] }
+    if (!outcome.skills_used && Array.isArray(outcome.skills)) {
+      outcome.skills_used = outcome.skills;
+    }
+
+    if (this.dataFidelity === 'seeded') {
+      this.dataFidelity = 'live';
+    }
+
+    // Process through skill bank - update multi-dimensional metrics for all used skills
+    const skillNames = Array.isArray(outcome.skills_used) && outcome.skills_used.length > 0
+      ? outcome.skills_used
+      : (outcome.skill_used ? [outcome.skill_used] : []);
+
+    const primarySkillName = outcome.skill_used || skillNames[0] || null;
+    let updated = null;
+
+    for (const skillName of skillNames) {
+      if (!skillName) continue;
+
+      this.skillBank.recordUsage(skillName, outcome.task_type || outcome.taskType || null);
+
+      // Pass full outcome so SkillBank can update complexity/task_type buckets,
+      // efficiency metrics (tokens_used, latency_ms), and evidence counts.
+      const updatedSkill = this.skillBank.updateSuccessRate(skillName, outcome.success, {
+        ...outcome,
+        skill_used: skillName,
+        record_sample: true,
+      });
+
+      if (updatedSkill && skillName === primarySkillName) {
+        updated = updatedSkill;
+      }
+
+      // Register/update hyper-parameters for this skill's metric dimensions (fail-open).
+      this._registerSkillMetricHyperParams({ ...outcome, skill_used: skillName }, updatedSkill);
+    }
     
-    // Load from persistence if path provided
-    if (this.persistencePath && fs.existsSync(this.persistencePath)) {
-      this._load();
+    // Track MCP tool affinities for the used skill (before validation gate
+    // so affinities are recorded even when updateSuccessRate output is rejected)
+    if (outcome.mcpToolsUsed && Array.isArray(outcome.mcpToolsUsed) && outcome.mcpToolsUsed.length > 0 && outcome.skill_used) {
+      const skill = this.skillBank.generalSkills.get(outcome.skill_used);
+      if (skill) {
+        skill.tool_affinities = skill.tool_affinities || {};
+        for (const tool of outcome.mcpToolsUsed) {
+          if (tool && typeof tool === 'string') {
+            skill.tool_affinities[tool] = (skill.tool_affinities[tool] || 0) + 1;
+          }
+        }
+      }
+    }
+
+    // Validate updated skill data
+    if (this._validationEnabled && updated) {
+      const validation = LearningValidator.validateSkill(updated);
+      if (!validation.valid) {
+        console.warn(`[SkillRL] Rejected corrupted skill update: ${validation.reason}`);
+        return;
+      }
+      // Sanitize to prevent drift
+      Object.assign(updated, LearningValidator.sanitize(updated));
+    }
+
+    // (Hyper-parameters registered per-skill above)
+
+    // Task 3.4: Wire Tool Eval into Skill RL optimization loop
+    // Update tool quality metrics if provided in outcome
+    if (outcome.toolEvalResults && Array.isArray(outcome.toolEvalResults)) {
+      this._updateToolQualityMetrics(outcome.toolEvalResults);
+    }
+
+    // Also route to evolution engine for success/failure learning
+    let evolutionResult;
+    if (outcome.success) {
+      evolutionResult = this.evolutionEngine.learnFromSuccess(outcome);
+    } else {
+      evolutionResult = this.evolutionEngine.learnFromFailure(outcome);
+    }
+    
+    // Save state (fail-open)
+    this._save().catch(() => {});
+    
+    // Return combined result: both updates and evolution details
+    return {
+      ...(updated || {}),
+      ...evolutionResult,
+      skills_updated: evolutionResult.skills_updated || [],
+      skills_created: evolutionResult.skills_created || [],
+      reinforced_skills: evolutionResult.reinforced_skills || []
+    };
+  }
+
+  /**
+   * Backward-compatible alias for callers expecting recordOutcome().
+   * @param {object} outcome
+   */
+  recordOutcome(outcome) {
+    return this.learnFromOutcome(outcome);
+  }
+
+  _normalizeHyperParamPart(value) {
+    const raw = String(value ?? '').toLowerCase();
+    // Keep [a-z0-9_] only; translate '-' and whitespace into underscores.
+    const normalized = raw
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .replace(/_+/g, '_');
+
+    if (!normalized) return 'unknown';
+    if (!/^[a-z]/.test(normalized)) return `x_${normalized}`;
+    return normalized;
+  }
+
+  _buildHyperParam(name, currentValue, { adaptationStrategy, boundsHard, boundsSoft }) {
+    return {
+      name,
+      current_value: currentValue,
+      learning_config: {
+        adaptation_strategy: adaptationStrategy,
+        triggers: {
+          outcome_type: 'success/failure',
+          min_samples: 5,
+          confidence_threshold: 0.7,
+        },
+        bounds: {
+          soft: { ...boundsSoft },
+          hard: { ...boundsHard },
+        },
+        exploration_policy: {
+          enabled: false,
+          epsilon: 0,
+          annealing_rate: 0,
+        },
+      },
+      grouping: {
+        group_by_task_type: false,
+        group_by_complexity: false,
+        aggregate_function: 'mean',
+      },
+      individual_tracking: {
+        per_session: false,
+        per_task: false,
+      },
+    };
+  }
+
+  _upsertHyperParam(name, parameter) {
+    if (!this._hyperParamRegistry) return;
+
+    try {
+      if (this._hyperParamRegistry.has(name)) {
+        this._hyperParamRegistry.update(name, { current_value: parameter.current_value });
+      } else {
+        this._hyperParamRegistry.create(parameter);
+      }
+    } catch (_) {
+      // fail-open
+    }
+  }
+
+  _registerSkillMetricHyperParams(outcome, updatedSkill) {
+    if (!this._hyperParamRegistry) return;
+    if (!outcome || typeof outcome !== 'object') return;
+    if (!updatedSkill || typeof updatedSkill !== 'object') return;
+    if (!outcome.skill_used) return;
+
+    const skillPart = this._normalizeHyperParamPart(outcome.skill_used);
+    const taskType = outcome.task_type ? this._normalizeHyperParamPart(outcome.task_type) : null;
+    const complexity = outcome.complexity ? this._normalizeHyperParamPart(outcome.complexity) : null;
+
+    const rateHard = { min: 0, max: 1 };
+    const rateSoft = { min: 0, max: 1 };
+
+    const tokensHard = { min: 0, max: 10_000_000 };
+    const tokensSoft = { min: 0, max: 1_000_000 };
+
+    const latencyHard = { min: 0, max: 600_000 };
+    const latencySoft = { min: 0, max: 60_000 };
+
+    const countHard = { min: 0, max: 1_000_000_000 };
+    const countSoft = { min: 0, max: 1_000_000_000 };
+
+    // Overall success rate
+    if (typeof updatedSkill.success_rate_overall === 'number') {
+      const name = `skill_${skillPart}_success_rate_overall`;
+      this._upsertHyperParam(
+        name,
+        this._buildHyperParam(name, updatedSkill.success_rate_overall, {
+          adaptationStrategy: 'ema',
+          boundsHard: rateHard,
+          boundsSoft: rateSoft,
+        })
+      );
+    }
+
+    // Per complexity success rate
+    if (complexity && updatedSkill.success_rate_by_complexity && updatedSkill.success_rate_by_complexity[outcome.complexity]) {
+      const bucket = updatedSkill.success_rate_by_complexity[outcome.complexity];
+      const bucketRate = typeof bucket === 'number' ? bucket : bucket?.success_rate;
+      if (typeof bucketRate === 'number') {
+        const name = `skill_${skillPart}_success_rate_complexity_${complexity}`;
+        this._upsertHyperParam(
+          name,
+          this._buildHyperParam(name, bucketRate, {
+            adaptationStrategy: 'ema',
+            boundsHard: rateHard,
+            boundsSoft: rateSoft,
+          })
+        );
+      }
+    }
+
+    // Per task-type success rate
+    if (taskType && updatedSkill.success_rate_by_task_type && updatedSkill.success_rate_by_task_type[outcome.task_type]) {
+      const bucket = updatedSkill.success_rate_by_task_type[outcome.task_type];
+      const bucketRate = typeof bucket === 'number' ? bucket : bucket?.success_rate;
+      if (typeof bucketRate === 'number') {
+        const name = `skill_${skillPart}_success_rate_task_type_${taskType}`;
+        this._upsertHyperParam(
+          name,
+          this._buildHyperParam(name, bucketRate, {
+            adaptationStrategy: 'ema',
+            boundsHard: rateHard,
+            boundsSoft: rateSoft,
+          })
+        );
+      }
+    }
+
+    // Efficiency metrics
+    if (typeof updatedSkill.avg_tokens_used === 'number') {
+      const name = `skill_${skillPart}_avg_tokens_used`;
+      this._upsertHyperParam(
+        name,
+        this._buildHyperParam(name, updatedSkill.avg_tokens_used, {
+          adaptationStrategy: 'ema',
+          boundsHard: tokensHard,
+          boundsSoft: tokensSoft,
+        })
+      );
+    }
+
+    if (typeof updatedSkill.avg_latency_ms === 'number') {
+      const name = `skill_${skillPart}_avg_latency_ms`;
+      this._upsertHyperParam(
+        name,
+        this._buildHyperParam(name, updatedSkill.avg_latency_ms, {
+          adaptationStrategy: 'ema',
+          boundsHard: latencyHard,
+          boundsSoft: latencySoft,
+        })
+      );
+    }
+
+    // Evidence weight
+    if (Number.isInteger(updatedSkill.sample_count)) {
+      const name = `skill_${skillPart}_sample_count`;
+      this._upsertHyperParam(
+        name,
+        this._buildHyperParam(name, updatedSkill.sample_count, {
+          adaptationStrategy: 'none',
+          boundsHard: countHard,
+          boundsSoft: countSoft,
+        })
+      );
+    }
+
+    // Confidence interval bounds (derived; keep static)
+    if (updatedSkill.confidence_interval && typeof updatedSkill.confidence_interval === 'object') {
+      const lower = updatedSkill.confidence_interval.lower;
+      const upper = updatedSkill.confidence_interval.upper;
+
+      if (typeof lower === 'number') {
+        const name = `skill_${skillPart}_confidence_interval_lower`;
+        this._upsertHyperParam(
+          name,
+          this._buildHyperParam(name, lower, {
+            adaptationStrategy: 'none',
+            boundsHard: rateHard,
+            boundsSoft: rateSoft,
+          })
+        );
+      }
+
+      if (typeof upper === 'number') {
+        const name = `skill_${skillPart}_confidence_interval_upper`;
+        this._upsertHyperParam(
+          name,
+          this._buildHyperParam(name, upper, {
+            adaptationStrategy: 'none',
+            boundsHard: rateHard,
+            boundsSoft: rateSoft,
+          })
+        );
+      }
+    }
+
+    try {
+      this._hyperParamRegistry.save();
+    } catch (_) {
+      // fail-open
     }
   }
 
@@ -37,39 +606,103 @@ class SkillRLManager {
    * @param {Object} taskContext - Task context from OrchestrationAdvisor
    * @returns {Array} Ranked list of relevant skills
    */
-  selectSkills(taskContext) {
-    const skills = this.skillBank.querySkills(taskContext);
-    
+selectSkills(taskContext) {
+      const skills = this.skillBank.querySkills(taskContext);
+
+     let result;
+     if (this.explorationMode === 'ucb') {
+       result = this._applyUCB(skills);
+     } else if (this.explorationMode === 'epsilon-greedy') {
+       result = this._applyEpsilonGreedy(skills, taskContext);
+     } else {
+       result = skills; // greedy / default
+     }
+
     // Record usage for selected skills
-    skills.forEach(skill => {
+    result.forEach(skill => {
       this.skillBank.recordUsage(skill.name, taskContext.task_type);
     });
-    
-    return skills;
+
+    return result;
   }
 
   /**
-   * Learn from task outcome
-   * Routes to either learnFromFailure or learnFromSuccess
-   * 
-   * @param {Object} outcome - Task outcome from learning-engine
-   * @returns {Object} Learning result
+   * Get UCB dampening factor for cold-start registry skills
+   * Prevents new registry-imported skills from dominating selection
+   * @param {Object} skill - Skill object
+   * @returns {number} Dampening factor (0 to 1.0)
    */
-  learnFromOutcome(outcome) {
-    console.log('[SkillRLManager] learnFromOutcome', { success: outcome.success, hasQuota: !!outcome.quota_signal });
-    let result;
-    if (outcome.success) {
-      result = this.evolutionEngine.learnFromSuccess(outcome);
-    } else {
-      result = this.evolutionEngine.learnFromFailure(outcome);
-    }
-    
-    if (this.persistencePath) {
-      this._save();
-    }
-    
-    return result;
+  _getUCBDampeningFactor(skill) {
+    if (skill.source !== 'registry') return 1.0;
+    return Math.min(1.0, (skill.usage_count || 0) / 5);
   }
+
+  /**
+   * UCB exploration: rerank skills by Upper Confidence Bound score
+   * UCB = success_rate + sqrt(2 * ln(total_usage + 1) / (skill_usage + 1)) * dampening
+   * Dampening applies cold-start penalty to registry-sourced skills with low usage
+   * @param {Array} skills - Skills from querySkills
+   * @returns {Array} Skills reranked by UCB score
+   */
+  _applyUCB(skills) {
+    let totalUsage = 0;
+    for (const skill of this.skillBank.generalSkills.values()) {
+      totalUsage += (skill.usage_count || 0);
+    }
+
+    return [...skills].sort((a, b) => {
+      const dampeningA = this._getUCBDampeningFactor(a);
+      const dampeningB = this._getUCBDampeningFactor(b);
+      const ucbA = (a.success_rate || 0.5) + Math.sqrt(2 * Math.log(totalUsage + 1) / ((a.usage_count || 0) + 1)) * dampeningA;
+      const ucbB = (b.success_rate || 0.5) + Math.sqrt(2 * Math.log(totalUsage + 1) / ((b.usage_count || 0) + 1)) * dampeningB;
+      return ucbB - ucbA;
+    });
+  }
+
+  /**
+    * Select a random skill from a pool, preferring category-relevant skills
+    * If taskContext.task_type matches a skill's category, prefer those skills
+    * Otherwise, fall back to full pool
+    * @param {Array} skills - Pool of skills to select from
+    * @param {Object} taskContext - Task context with optional task_type
+    * @returns {Object} Randomly selected skill
+    */
+   _weightedRandomSkill(skills, taskContext) {
+     const category = taskContext?.task_type;
+     if (category) {
+       const categorySkills = skills.filter(s => s.category === category);
+       if (categorySkills.length > 0) {
+         return categorySkills[Math.floor(Math.random() * categorySkills.length)];
+       }
+     }
+     return skills[Math.floor(Math.random() * skills.length)];
+   }
+
+  /**
+    * Epsilon-greedy exploration: with probability epsilon, inject one random unexplored skill
+    * Prefers category-relevant skills when task_type is available
+    * @param {Array} skills - Skills from querySkills
+    * @param {Object} taskContext - Task context for category-weighted selection
+    * @returns {Array} Skills with possible random injection
+    */
+   _applyEpsilonGreedy(skills, taskContext) {
+     if (Math.random() < this.epsilon) {
+       const allSkills = [...this.skillBank.generalSkills.values()];
+       const resultNames = new Set(skills.map(s => s.name));
+       const candidates = allSkills.filter(s => !resultNames.has(s.name));
+       if (candidates.length > 0) {
+         const random = this._weightedRandomSkill(candidates, taskContext);
+         const result = [...skills];
+         if (result.length > 0) {
+           result[result.length - 1] = random;
+         } else {
+           result.push(random);
+         }
+         return result;
+       }
+     }
+     return skills;
+   }
 
   /**
    * Manually add a skill to the bank
@@ -85,7 +718,165 @@ class SkillRLManager {
     }
     
     if (this.persistencePath) {
-      this._save();
+      this._saveSync();
+    }
+  }
+
+  /**
+   * Save state synchronously for immediate-read flows (e.g. tests)
+   */
+  _saveSync() {
+    if (!this.persistencePath) return;
+
+    try {
+      const state = {
+        version: '1.0.0',
+        skillBank: this.skillBank.export(),
+        evolutionEngine: this.evolutionEngine.export(),
+        timestamp: Date.now(),
+        data_fidelity: this.dataFidelity,
+        seeded_at: this.seededAt,
+        seed_source: this.seedSource,
+        metadata: this.metadata,
+      };
+
+      const parentDir = path.dirname(this.persistencePath);
+      const tempPath = `${this.persistencePath}.tmp`;
+
+      if (!fs.existsSync(parentDir)) {
+        fs.mkdirSync(parentDir, { recursive: true });
+      }
+
+      fs.writeFileSync(tempPath, SafeJSON.stringify(state, null, 2));
+      fs.renameSync(tempPath, this.persistencePath);
+    } catch (error) {
+      console.warn('Failed to persist SkillRL state:', error.message);
+    }
+  }
+
+  /**
+   * Get default success_rate based on skill category (tiered defaults)
+   * @param {object} registryEntry - Registry entry with category field
+   * @returns {number} success_rate between 0 and 1
+   */
+  _getDefaultSuccessRate(registryEntry) {
+    const category = registryEntry.category || 'general';
+    
+    // Tier 1: debugging/testing/review → 0.70
+    if (['debugging', 'testing', 'review'].includes(category)) {
+      return 0.70;
+    }
+    
+    // Tier 2: general/meta/planning/reasoning/memory/observability → 0.65
+    if (['general', 'meta', 'planning', 'reasoning', 'memory', 'observability'].includes(category)) {
+      return 0.65;
+    }
+    
+    // Tier 3: everything else (niche/experimental) → 0.50
+    return 0.50;
+  }
+
+  /**
+   * Merge registry metadata into existing skill entry (for seed collisions)
+   * Preserves existing success_rate and usage_count, adds new triggers/tags
+   * @param {object} existing - Existing skill entry
+   * @param {object} registryEntry - Registry entry to merge
+   */
+  _mergeRegistryMetadata(existing, registryEntry) {
+    // Build merged object explicitly field-by-field to avoid any property descriptor issues
+    // Preserve the existing entry completely, only adding new metadata from registry
+    const merged = {
+      // Core fields from existing (seed) - NEVER overwrite these
+      name: existing.name,
+      principle: existing.principle || registryEntry.description || '',
+      success_rate: existing.success_rate, // CRITICAL: preserve seed's success_rate
+      usage_count: existing.usage_count, // CRITICAL: preserve seed's usage_count
+      last_updated: existing.last_updated,
+      source: existing.source,
+      tags: [],
+      application_context: ''
+    };
+    
+    // Merge triggers into application_context (avoid duplicates)
+    const existingContexts = new Set(
+      (existing.application_context || '')
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s)
+    );
+    
+    const newTriggers = registryEntry.triggers || [];
+    newTriggers.forEach(trigger => {
+      existingContexts.add(trigger);
+    });
+    
+    merged.application_context = Array.from(existingContexts).join(', ');
+    
+    // Merge tags (avoid duplicates)
+    const existingTags = new Set(existing.tags || []);
+    const newTags = registryEntry.tags || [];
+    newTags.forEach(tag => {
+      existingTags.add(tag);
+    });
+    
+    merged.tags = Array.from(existingTags);
+    
+    // Add any additional fields from existing that we might have missed
+    if (existing.category) merged.category = existing.category;
+    
+    return merged;
+  }
+
+  /**
+   * Additively seed skill bank from registry.json.
+   * Preserves existing usage_count and success_rate. Adds missing skills only.
+   * For seed collisions, merges registry metadata into existing entry.
+   * @param {string} registryPath - Absolute path to registry.json
+   */
+  syncWithRegistry(registryPath) {
+    if (!registryPath || !fs.existsSync(registryPath)) return;
+    let registry;
+    try {
+      registry = JSON.parse(fs.readFileSync(registryPath, 'utf-8'));
+    } catch (_) { return; }
+
+    const skills = registry.skills || {};
+    let mutated = false;
+
+    for (const [skillName, meta] of Object.entries(skills)) {
+      // Normalize: strip any path prefix (superpowers/, etc.), use base name only
+      const baseName = skillName.includes('/') ? skillName.split('/').pop() : skillName;
+
+      // Check if skill already exists
+      const existing = this.skillBank.generalSkills.get(baseName);
+      if (existing) {
+        // Merge registry metadata into existing entry (seed collision case)
+        const merged = this._mergeRegistryMetadata(existing, meta);
+        this.skillBank.generalSkills.set(baseName, merged);
+        mutated = true;
+        continue;
+      }
+
+      // New skill: use tiered default success_rate
+      const defaultSuccessRate = this._getDefaultSuccessRate(meta);
+
+      this.skillBank.generalSkills.set(baseName, {
+        name: baseName,
+        principle: meta.description || '',
+        application_context: (meta.triggers || []).join(', '),
+        success_rate: defaultSuccessRate,
+        usage_count: 0,
+        last_updated: Date.now(),
+        tags: meta.tags || [],
+        source: meta.source || 'registry',
+        category: meta.category || 'general',
+      });
+      mutated = true;
+    }
+
+    if (mutated) {
+      this.skillBank._invalidateCache();
+      this._save().catch(() => {}); // fire-and-forget
     }
   }
 
@@ -114,38 +905,58 @@ class SkillRLManager {
   }
 
   /**
-   * Save state to disk
+   * Save state to disk (with locking to prevent concurrent write corruption)
    */
-  _save() {
+  async _save() {
     if (!this.persistencePath) return;
+
+    const lockPath = `${this.persistencePath}.lock`;
+    await _acquireLock(lockPath);
     
-    const state = {
-      skillBank: this.skillBank.export(),
-      evolutionEngine: this.evolutionEngine.export(),
-      timestamp: Date.now()
-    };
-    
-    fs.writeFileSync(this.persistencePath, JSON.stringify(state, null, 2));
+    try {
+      const state = {
+        version: '1.0.0',
+        skillBank: this.skillBank.export(),
+        evolutionEngine: this.evolutionEngine.export(),
+        timestamp: Date.now(),
+        data_fidelity: this.dataFidelity,
+        seeded_at: this.seededAt,
+        seed_source: this.seedSource,
+        metadata: this.metadata,
+      };
+
+      const parentDir = path.dirname(this.persistencePath);
+      const tempPath = `${this.persistencePath}.tmp`;
+
+      if (!fs.existsSync(parentDir)) {
+        fs.mkdirSync(parentDir, { recursive: true });
+      }
+
+      fs.writeFileSync(tempPath, SafeJSON.stringify(state, null, 2));
+      fs.renameSync(tempPath, this.persistencePath);
+    } catch (error) {
+      console.warn('Failed to persist SkillRL state:', error.message);
+    } finally {
+      _releaseLock(lockPath);
+    }
   }
 
   /**
    * Load state from disk
    */
-  _load() {
+  async _load() {
     if (!this.persistencePath || !fs.existsSync(this.persistencePath)) return;
     
+    const lockPath = `${this.persistencePath}.lock`;
+    await _acquireLock(lockPath);
+    
     try {
-      const data = JSON.parse(fs.readFileSync(this.persistencePath, 'utf-8'));
-      
-      if (data.skillBank) {
-        this.skillBank.import(data.skillBank);
-      }
-      
-      if (data.evolutionEngine) {
-        this.evolutionEngine.import(data.evolutionEngine);
-      }
+      const data = SafeJSON.parse(fs.readFileSync(this.persistencePath, 'utf-8'));
+      this._importState(data);
     } catch (error) {
       console.warn('Failed to load SkillRL state:', error.message);
+    } finally {
+      _releaseLock(lockPath);
     }
   }
 
@@ -155,7 +966,11 @@ class SkillRLManager {
   export() {
     return {
       skillBank: this.skillBank.export(),
-      evolutionEngine: this.evolutionEngine.export()
+      evolutionEngine: this.evolutionEngine.export(),
+      data_fidelity: this.dataFidelity,
+      seeded_at: this.seededAt,
+      seed_source: this.seedSource,
+      metadata: this.metadata,
     };
   }
 
@@ -163,17 +978,136 @@ class SkillRLManager {
    * Import full state (for debugging)
    */
   import(data) {
+    this._importState(data);
+  }
+
+  getSkillBank() {
+    return this.skillBank;
+  }
+
+  getEvolutionState() {
+    return this.evolutionEngine;
+  }
+
+  _importState(data) {
+    if (!data || typeof data !== 'object') return false;
     if (data.skillBank) {
       this.skillBank.import(data.skillBank);
     }
     if (data.evolutionEngine) {
       this.evolutionEngine.import(data.evolutionEngine);
     }
+    this.dataFidelity = typeof data.data_fidelity === 'string' ? data.data_fidelity : 'live';
+    this.seededAt = data.seeded_at || null;
+    this.seedSource = data.seed_source || null;
+    this.metadata = data.metadata && typeof data.metadata === 'object' ? data.metadata : {};
+    return true;
+  }
+
+  _loadPersistedState() {
+    if (!this.persistencePath || !fs.existsSync(this.persistencePath)) return false;
+    try {
+      const persisted = SafeJSON.parse(fs.readFileSync(this.persistencePath, 'utf-8'), null);
+      if (!persisted || !persisted.skillBank) {
+        return false;
+      }
+      this._importState(persisted);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  _initializeFromSeed() {
+    const seedPath = path.resolve(__dirname, '../../../opencode-config/skill-rl-seed.json');
+    try {
+      if (!fs.existsSync(seedPath)) return false;
+      const seed = SafeJSON.parse(fs.readFileSync(seedPath, 'utf-8'), null);
+      if (!seed || !seed.skillBank) return false;
+      const seededState = {
+        ...seed,
+        seeded_at: new Date().toISOString(),
+        seed_source: seed.seed_source || 'opencode-config/skill-rl-seed.json',
+        data_fidelity: 'seeded',
+      };
+      this._importState(seededState);
+
+      try {
+        fs.mkdirSync(path.dirname(this.persistencePath), { recursive: true });
+        fs.writeFileSync(this.persistencePath, SafeJSON.stringify(seededState), 'utf-8');
+      } catch (_) {
+        // non-fatal — seeded state remains in memory
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /**
+   * Task 3.4: Update tool quality metrics from eval results
+   * Flags tools for review if they exceed quality thresholds
+   * @param {Array} toolEvalResults - Array of tool eval results from eval harness
+   */
+  _updateToolQualityMetrics(toolEvalResults) {
+    const TOOL_QUALITY_DIR = path.join(resolveDataHome(), 'tool-quality');
+    const CONFUSION_THRESHOLD = 0.2;  // Flag if confusion_rate > 20%
+    const TOKEN_THRESHOLD = 25000;   // Flag if avg_tokens > 25k
+
+    // Ensure tool-quality directory exists
+    if (!fs.existsSync(TOOL_QUALITY_DIR)) {
+      try {
+        fs.mkdirSync(TOOL_QUALITY_DIR, { recursive: true });
+      } catch (err) {
+        console.warn('[SkillRL] Failed to create tool-quality directory:', err.message);
+        return;
+      }
+    }
+
+    for (const evalResult of toolEvalResults) {
+      if (!evalResult.tool_name) continue;
+
+      // Write eval result to file for dashboard API to read
+      const filename = path.join(TOOL_QUALITY_DIR, `${evalResult.tool_name}.json`);
+      try {
+        fs.writeFileSync(filename, JSON.stringify(evalResult, null, 2));
+      } catch (err) {
+        console.warn(`[SkillRL] Failed to write tool eval for ${evalResult.tool_name}:`, err.message);
+      }
+
+      // Flag for review if thresholds exceeded
+      if (evalResult.confusion_rate > CONFUSION_THRESHOLD) {
+        console.warn(`[SkillRL] Tool quality flag: ${evalResult.tool_name} confusion_rate ${evalResult.confusion_rate} exceeds threshold ${CONFUSION_THRESHOLD}`);
+        // Update skill bank with low-confidence tool indicator
+        this._flagToolForReview(evalResult.tool_name, 'confusion_rate_high');
+      }
+
+      if (evalResult.avg_tokens > TOKEN_THRESHOLD) {
+        console.warn(`[SkillRL] Tool quality flag: ${evalResult.tool_name} avg_tokens ${evalResult.avg_tokens} exceeds threshold ${TOKEN_THRESHOLD}`);
+        this._flagToolForReview(evalResult.tool_name, 'token_usage_high');
+      }
+    }
+  }
+
+  /**
+   * Flag a tool for review in skill bank
+   * Links skill usage to tool quality issues
+   * @param {string} toolName - Name of the tool
+   * @param {string} flag - Quality flag reason
+   */
+  _flagToolForReview(toolName, flag) {
+    // Find skills that frequently use this tool and flag them
+    for (const skill of this.skillBank.generalSkills.values()) {
+      if (skill.tool_affinities && skill.tool_affinities[toolName]) {
+        skill.tool_quality_flags = skill.tool_quality_flags || {};
+        skill.tool_quality_flags[toolName] = flag;
+      }
+    }
   }
 }
 
 module.exports = {
   SkillRLManager,
-  SkillBank,
-  EvolutionEngine
+  EvolutionEngine,
+  ExplorationRLAdapter,
 };

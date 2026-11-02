@@ -1,0 +1,14 @@
+{
+  "id": "fix-learning-gate-duplicate-20260318",
+  "timestamp": "2026-03-18T16:40:00Z",
+  "summary": "Fix: Remove duplicate triggerMetaKBSynthesis function in learning-gate.mjs",
+  "affected_paths": [
+    "scripts/learning-gate.mjs"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "pass"
+  }
+}

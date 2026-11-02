@@ -1,0 +1,18 @@
+{
+  "id": "api-sanity-sse-and-rl-fallback-20260216",
+  "timestamp": "2026-02-16T00:32:00Z",
+  "category": "infrastructure",
+  "summary": "Hardened API sanity checks for RL fallback and SSE endpoints",
+  "details": "Updated scripts/api-sanity.mjs to treat /api/rl HTTP 503 fallback as acceptable during fresh-machine smoke checks and added explicit SSE validation for /api/events (content-type text/event-stream) instead of JSON parsing. This prevents false negatives and hangs in smoke runs.",
+  "affected_paths": [
+    "scripts/api-sanity.mjs"
+  ],
+  "impact": "Medium - Smoke pipeline now accurately validates expected API behavior on clean environments",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}

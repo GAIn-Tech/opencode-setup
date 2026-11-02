@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OpenCode Tool Namespacing Convention",
+  "description": "Defines the systematic namespacing convention for MCP tools and skills",
+  "convention": "{service}_{resource}_{action}",
+  "examples": [
+    "github_issue_create",
+    "github_pr_review",
+    "postgres_query_execute",
+    "filesystem_read",
+    "filesystem_write",
+    "lsp_goto_definition",
+    "grep_query",
+    "websearch_search"
+  ],
+  "rules": {
+    "service": "The service or system being interacted with (e.g., github, postgres, filesystem)",
+    "resource": "The specific resource within the service (e.g., issue, pr, query, file)",
+    "action": "The action being performed (e.g., create, review, execute, read, write)"
+  },
+  "validation": {
+    "pattern": "^[a-z][a-z0-9]*_[a-z][a-z0-9]*_[a-z][a-z0-9]*$",
+    "description": "Three lowercase snake_case segments separated by underscores"
+  },
+  "exceptions": [
+    "Tools that predate this convention should be migrated incrementally",
+    "Single-segment legacy tools may be allowed during transition period"
+  ]
+}

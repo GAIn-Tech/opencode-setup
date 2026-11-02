@@ -1,0 +1,17 @@
+{
+  "id": "research-mcp-skill-guides-20260310",
+  "timestamp": "2026-03-10T00:07:00-04:00",
+  "summary": "Add Websearch and Grep skill guides plus paired research agents so live web research and external code-example lookup follow the same discoverable MCP pattern as Context7.",
+  "affected_paths": [
+    "opencode-config/skills/websearch/SKILL.md",
+    "opencode-config/skills/grep/SKILL.md",
+    "opencode-config/agents/researcher.md",
+    "opencode-config/agents/code-searcher.md"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "fix-learning-gate-governed-filter-20260313",
+  "timestamp": "2026-03-13T23:00:00Z",
+  "summary": "Fix learning-gate.mjs to use isGovernedConfigFile() instead of matchPath() when filtering governed changes. matchPath() does not exclude .governance-hashes.json, learning-updates/, or meta-knowledge-index.json — causing hash-refresh-only commits to be falsely rejected as missing a learning update record.",
+  "affected_paths": [
+    "scripts/learning-gate.mjs"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "scripts": "node scripts/learning-gate.mjs --staged — passes with 'no governed changes detected' for hashes-only staged changes"
+  },
+  "risk_level": "low",
+  "notes": "One-line fix: line 378 changedFiles.filter(matchPath -> isGovernedConfigFile). The isGovernedConfigFile function was already defined and had all correct exclusion logic but was not being used in the main staged-changes flow."
+}

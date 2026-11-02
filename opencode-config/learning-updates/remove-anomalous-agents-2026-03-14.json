@@ -1,0 +1,22 @@
+{
+  "id": "remove-anomalous-agents-2026-03-14",
+  "timestamp": "2026-03-14T00:00:00.000Z",
+  "summary": "Remove 7 anomalous agent .md files from opencode-config/agents/ that were erroneously created during Wave 8-10 skill activation. These files caused phantom agent options (thinker, playwright-browser, memory-keeper, code-searcher, codebase-auditor, distill-compressor, researcher) to appear in the opencode interface. Agent definitions are managed by oh-my-opencode plugin, not on-disk markdown. Updated 2 test files that asserted agent file existence.",
+  "affected_paths": [
+    "opencode-config/agents/code-searcher.md",
+    "opencode-config/agents/codebase-auditor.md",
+    "opencode-config/agents/distill-compressor.md",
+    "opencode-config/agents/memory-keeper.md",
+    "opencode-config/agents/playwright-browser.md",
+    "opencode-config/agents/researcher.md",
+    "opencode-config/agents/thinker.md",
+    "scripts/tests/mcp-audit-classification.test.js",
+    "scripts/tests/skill-surface-regression.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

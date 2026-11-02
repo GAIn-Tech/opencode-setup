@@ -1,0 +1,29 @@
+{
+  "id": "model-management-wave2-20260224",
+  "timestamp": "2026-02-24T00:00:00Z",
+  "summary": "Wave 2: Discovery Engine & Caching - Resilient model discovery with two-tier caching and circuit breaker protection",
+  "affected_paths": [
+    "packages/opencode-model-manager/src/discovery/discovery-engine.js",
+    "packages/opencode-model-manager/src/cache/cache-layer.js",
+    "packages/opencode-model-manager/src/circuit-breaker/circuit-breaker.js",
+    "packages/opencode-model-manager/test/discovery/discovery-engine.test.ts",
+    "packages/opencode-model-manager/test/cache/cache-layer.test.ts",
+    "packages/opencode-model-manager/test/circuit-breaker/circuit-breaker.test.ts",
+    ".sisyphus/plans/model-management-protocol.md"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "pass"
+  },
+  "risk_level": "low",
+  "details": {
+    "discovery_engine": "Orchestrates all 6 provider adapters in parallel via Promise.allSettled, tolerates partial provider failures, emits events (models:discovered, provider:failed), keeps layer free of caching/circuit-breaker logic",
+    "cache_layer": "Two-tier caching: L1 in-memory Map with 5min TTL, L2 persistent JSON file with 1hr TTL, stale-while-revalidate behavior, cache keys based on provider+endpoint+params hash",
+    "circuit_breaker": "Reusable circuit breaker with CLOSED/OPEN/HALF_OPEN states, opens after 5 consecutive failures, transitions to HALF_OPEN after 60s for single trial request, closes on success",
+    "test_coverage": "28 new tests (5 discovery + 8 cache + 6 circuit-breaker + 9 integration), all passing, >90% coverage on cache layer",
+    "total_tests": "183 tests passing (155 adapters from Wave 1 + 28 Wave 2)",
+    "performance": "Discovery completes in <10s, cache hit rate >80% after warmup",
+    "next_wave": "Wave 3 will add Snapshot Store & Diff Engine for change detection"
+  }
+}

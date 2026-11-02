@@ -1,0 +1,18 @@
+{
+  "id": "fresh-machine-smoke-pipeline-20260216",
+  "timestamp": "2026-02-16T00:20:00Z",
+  "category": "infrastructure",
+  "summary": "Hardened fresh-machine smoke pipeline with preflight checks and JSON reporting",
+  "details": "Updated scripts/smoke-pipeline.mjs with command/file preflight validation, optional step flags (--no-setup, --no-api), per-step duration tracking, structured summary output, and machine-readable --json mode. This improves failure diagnostics and CI/automation friendliness without changing default step behavior.",
+  "affected_paths": [
+    "scripts/smoke-pipeline.mjs"
+  ],
+  "impact": "Medium - More robust setup validation and clearer failure reporting on fresh machines",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "pass",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}

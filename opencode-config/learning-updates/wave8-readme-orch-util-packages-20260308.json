@@ -1,0 +1,18 @@
+{
+  "id": "wave8-readme-orch-util-packages-20260308",
+  "timestamp": "2026-03-08T00:25:00Z",
+  "summary": "Add README.md to five orchestration and utility packages that had none: opencode-shared-orchestration, opencode-showboat-wrapper, opencode-skill-rl-manager, opencode-test-utils, opencode-validator. Completes Wave 8C task 8 — all 34 packages now have READMEs.",
+  "affected_paths": [
+    "packages/opencode-shared-orchestration",
+    "packages/opencode-showboat-wrapper",
+    "packages/opencode-skill-rl-manager",
+    "packages/opencode-test-utils",
+    "packages/opencode-validator"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

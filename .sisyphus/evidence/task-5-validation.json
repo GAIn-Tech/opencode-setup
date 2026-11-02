@@ -1,0 +1,45 @@
+{
+  "task": 5,
+  "phase": "verification",
+  "timestamp": "2026-03-31T06:20:00.000Z",
+  "checks": [
+    {
+      "name": "strict json includes restoreDrillReport",
+      "command": "node scripts/verify-portability.mjs --strict --json (with OPENCODE_PORTABILITY_RESTORE_DRILL_EVIDENCE=.sisyphus/evidence/task-5-restore-pass.json)",
+      "status": "passed",
+      "exitCode": 1,
+      "observed": {
+        "hasRestoreDrillReport": true,
+        "restoreDrillReport": {
+          "status": "passed",
+          "rto": {
+            "targetMinutes": 60,
+            "actualMinutes": 45,
+            "compliant": true
+          },
+          "rpo": {
+            "targetMinutes": 15,
+            "actualMinutes": 10,
+            "compliant": true
+          }
+        }
+      },
+      "notes": "Process remains non-zero due to unrelated strict gates in this environment; restore-drill gate itself passes."
+    },
+    {
+      "name": "negative gate - restore drill RTO/RPO breach",
+      "command": "node scripts/verify-portability.mjs --strict --json (with OPENCODE_PORTABILITY_RESTORE_DRILL_EVIDENCE=.sisyphus/evidence/task-5-restore-fail.json)",
+      "status": "passed",
+      "exitCode": 1,
+      "observed": {
+        "restoreDrillReport": {
+          "status": "failed"
+        },
+        "failures": [
+          "Restore drill gate failed: RTO breach (90m > 60m)",
+          "Restore drill gate failed: RPO breach (30m > 15m)"
+        ]
+      }
+    }
+  ]
+}

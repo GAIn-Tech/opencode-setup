@@ -1,0 +1,22 @@
+{
+  "id": "safe-io-dep-declarations-20260313",
+  "timestamp": "2026-03-13T21:30:00Z",
+  "summary": "Declare missing opencode-safe-io workspace dependency in 6 packages that use it at runtime: opencode-model-router-x, opencode-plugin-preload-skills, opencode-dashboard-launcher, opencode-feature-flags, opencode-plugin-healthd, opencode-proofcheck. Also remove duplicate dependencies key introduced by rebase in opencode-learning-engine.",
+  "affected_paths": [
+    "packages/opencode-model-router-x/package.json",
+    "packages/opencode-plugin-preload-skills/package.json",
+    "packages/opencode-dashboard-launcher/package.json",
+    "packages/opencode-feature-flags/package.json",
+    "packages/opencode-plugin-healthd/package.json",
+    "packages/opencode-proofcheck/package.json",
+    "packages/opencode-learning-engine/package.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "scripts": "node scripts/run-package-smokes.mjs — all 7 packages PASS"
+  },
+  "risk_level": "low",
+  "notes": "These packages required opencode-safe-io at runtime but didn't declare it, causing MODULE_NOT_FOUND failures in package smoke tests. Fixed by adding workspace:* dep and running bun install. opencode-learning-engine had a duplicate dependencies key from rebase — removed the redundant trailing block."
+}

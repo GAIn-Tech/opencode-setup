@@ -3,8 +3,9 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import { resolveRoot } from './resolve-root.mjs';
 
-const ROOT = process.cwd();
+const ROOT = resolveRoot();
 const POLICY_PATH = path.join(ROOT, 'opencode-config', 'learning-update-policy.json');
 
 function parseArgs(argv) {

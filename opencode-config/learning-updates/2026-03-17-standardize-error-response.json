@@ -1,0 +1,24 @@
+{
+  "id": "standardize-error-response-2026-03-17",
+  "timestamp": "2026-03-17T00:00:00.000Z",
+  "summary": "Standardized error response format across OpenCode dashboard API routes by creating centralized error-response.ts utility and updating all routes to use consistent errorResponse() and successResponse() functions",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/_lib/error-response.ts",
+    "packages/opencode-dashboard/src/app/api/config/route.ts",
+    "packages/opencode-dashboard/src/app/api/health/route.ts",
+    "packages/opencode-dashboard/src/app/api/memory-graph/route.ts",
+    "packages/opencode-dashboard/src/app/api/models/audit/route.ts",
+    "packages/opencode-dashboard/src/app/api/models/lifecycle/route.ts",
+    "packages/opencode-dashboard/src/app/api/models/route.ts",
+    "packages/opencode-dashboard/src/app/api/models/transition/route.ts",
+    "packages/opencode-dashboard/src/app/api/monitoring/route.ts",
+    "packages/opencode-model-manager/src/lifecycle/audit-logger.js",
+    "packages/opencode-model-manager/src/lifecycle/state-machine.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

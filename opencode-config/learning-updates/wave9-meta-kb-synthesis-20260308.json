@@ -1,0 +1,20 @@
+{
+  "id": "wave9-meta-kb-synthesis-20260308",
+  "timestamp": "2026-03-08T00:00:00Z",
+  "category": "tooling",
+  "summary": "Add synthesize-meta-kb.mjs script that aggregates 161 learning-update JSONs and 7 AGENTS.md files into a single queryable meta-knowledge index at opencode-config/meta-knowledge-index.json. Indexes by category, risk level, and affected path. Extracts anti-patterns, conventions, and commands from AGENTS.md sections.",
+  "affected_paths": [
+    "scripts/synthesize-meta-kb.mjs",
+    "opencode-config/meta-knowledge-index.json"
+  ],
+  "root_cause": "166 learning-update JSON files were write-only governance trail with zero downstream consumers. 7 AGENTS.md files had extractable anti-patterns and conventions with no machine-readable representation.",
+  "fix_approach": "Created ESM synthesis script following resolve-root.mjs pattern. Reads all learning-updates, validates required fields, indexes by category/risk/path. Parses AGENTS.md sections for anti-patterns, conventions, commands. Outputs flat JSON index. Supports --dry-run and --stats flags.",
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["node scripts/learning-gate.mjs --generate-hashes"],
+    "notes": "Script produces valid JSON index with 161 records, 37 categories, 154 path groups, 11 anti-patterns, 60 conventions, 28 commands."
+  }
+}

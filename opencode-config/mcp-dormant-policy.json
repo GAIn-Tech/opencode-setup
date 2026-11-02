@@ -1,0 +1,7 @@
+{
+  "opencode-dashboard-launcher": {
+    "reason": "Disabled until a dedicated MCP wrapper and startup path exist for launching the dashboard intentionally.",
+    "reactivation_criteria": "Enable only after a supported launcher wrapper and verification flow are implemented.",
+    "owner": "dashboard"
+  }
+}

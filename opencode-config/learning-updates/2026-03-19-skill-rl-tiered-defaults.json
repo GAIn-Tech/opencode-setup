@@ -1,0 +1,47 @@
+{
+  "id": "skill-rl-tiered-defaults-2026-03-19",
+  "timestamp": "2026-03-19T07:30:00.000Z",
+  "summary": "Fix syncWithRegistry() blocker: tiered success_rate defaults and seed collision metadata merge. Prevents imported skills from getting flat 0.75 default that triggers match-all fallback.",
+  "affected_paths": [
+    "packages/opencode-skill-rl-manager/src/index.js",
+    "packages/opencode-skill-rl-manager/src/skill-bank.js",
+    "packages/opencode-skill-rl-manager/tests/sync-registry.test.js"
+  ],
+  "version": "1.0",
+  "date": "2026-03-19",
+  "author": "atlas-orchestrator",
+  "changes": [
+    {
+      "type": "feature",
+      "component": "skill-rl-manager",
+      "description": "Replaced flat success_rate:0.75 default in syncWithRegistry() with tiered category-based defaults: debugging/testing/review=0.70, general/meta/planning/reasoning/memory/observability=0.65, experimental/niche=0.50",
+      "impact": "high",
+      "files": ["packages/opencode-skill-rl-manager/src/index.js"]
+    },
+    {
+      "type": "feature",
+      "component": "skill-rl-manager",
+      "description": "Fixed seed collision handling in syncWithRegistry(): when imported skill name matches seeded skill, now merges registry metadata (triggers, tags) into existing entry instead of skipping entirely",
+      "impact": "medium",
+      "files": ["packages/opencode-skill-rl-manager/src/index.js"]
+    },
+    {
+      "type": "fix",
+      "component": "skill-rl-manager",
+      "description": "Added source: 'seed' field to _seedGeneralSkills() definitions for tracking purposes",
+      "impact": "low",
+      "files": ["packages/opencode-skill-rl-manager/src/skill-bank.js"]
+    }
+  ],
+  "rationale": "Prevents the toxic combination where flat 0.75 default caused all imported skills to match all task contexts via the success_rate>0.7 fallback (now removed in companion fix). Tiered defaults ensure imported skills start conservatively.",
+  "tests_added": ["packages/opencode-skill-rl-manager/tests/sync-registry.test.js"],
+  "breaking_changes": false,
+  "validation": {
+    "tests": "pass",
+    "build": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "TDD cycle completed. 9/9 tests passing in sync-registry.test.js. CommonJS/ESM interop resolved by using require() in tests. No regressions."
+}

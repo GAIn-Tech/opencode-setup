@@ -1,0 +1,274 @@
+bun test v1.3.10 (30e609e0)
+
+integration-tests\bootstrap-e2e.test.js:
+[WARN] [IntegrationLayer] Degraded startup: 7/7 integrations unavailable: structuredLogger, inputValidator, healthChecker, backupManager, featureFlags, contextGovernor, memoryGraph 
+[OrchestrationAdvisor] opencode-shared-orchestration not found — using inline stubs.
+[preload-skills] Initialized with 62 skills across 3 tiers
+[WorkflowStore] Applied migration 002: API Usage Tracking
+[ModelComprehensionMemory] better-sqlite3 not available — running in-memory only
+[32m[2026-04-05T01:47:11.394Z] INFO[0m: [Startup] ModelRouter {
+  startupMs: 8.1,
+}
+[INFO] IntegrationLayer initialized {
+  startupMs: 0.2,
+  hasSkillRL: true,
+  hasShowboat: true,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: true,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.2ms 
+[ThompsonSampling] Loaded posteriors for 1 categories
+[DynamicExploration] Components initialized
+[DynamicExploration] Mode activated: balanced, Budget: 20%
+
+integration-tests\context-management.test.js:
+[DEBUG] beforeEach running for DB_PATH: /tmp/test-metrics-t20-1775353632709-p27q71udr4c.db
+[DEBUG] _createSqliteClient: Using bun:sqlite with path /tmp/test-metrics-t20-1775353632709-p27q71udr4c.db
+[PipelineMetricsCollector] Database initialized at /tmp/test-metrics-t20-1775353632709-p27q71udr4c.db
+[DEBUG] New collector created, compressionEvents length: 0
+[DEBUG] recordCompression calling _db.run(), _db exists: true
+[DEBUG] recordCompression insert completed
+[DEBUG] recordCompression calling _db.run(), _db exists: true
+[DEBUG] recordCompression insert completed
+[DEBUG] getCompressionStats querying DB with cutoff: 1775267232717
+[DEBUG] getCompressionStats got 2 rows from DB
+[DEBUG] beforeEach running for DB_PATH: /tmp/test-metrics-t20-1775353632717-nowfp85dmf.db
+[DEBUG] _createSqliteClient: Using bun:sqlite with path /tmp/test-metrics-t20-1775353632717-nowfp85dmf.db
+[PipelineMetricsCollector] Database initialized at /tmp/test-metrics-t20-1775353632717-nowfp85dmf.db
+[DEBUG] New collector created, compressionEvents length: 0
+[DEBUG] getCompressionStats querying DB with cutoff: 1775267232722
+[DEBUG] getCompressionStats got 0 rows from DB
+[DEBUG] _createSqliteClient: Using bun:sqlite with path /tmp/test-metrics-t20-c7-1775353632723-y4m6x4igyso.db
+[PipelineMetricsCollector] Database initialized at /tmp/test-metrics-t20-c7-1775353632723-y4m6x4igyso.db
+[DEBUG] _createSqliteClient: Using bun:sqlite with path /tmp/test-metrics-t20-c7-1775353632729-bawlz48urwq.db
+[PipelineMetricsCollector] Database initialized at /tmp/test-metrics-t20-c7-1775353632729-bawlz48urwq.db
+[DEBUG] _createSqliteClient: Using bun:sqlite with path /tmp/test-metrics-t20-cleanup-1775353632735-is68ct4tdle.db
+[PipelineMetricsCollector] Database initialized at /tmp/test-metrics-t20-cleanup-1775353632735-is68ct4tdle.db
+[DEBUG] recordCompression calling _db.run(), _db exists: true
+[DEBUG] recordCompression insert completed
+[DEBUG] getCompressionStats querying DB with cutoff: 995000
+[DEBUG] getCompressionStats got 1 rows from DB
+[DEBUG] getCompressionStats querying DB with cutoff: 1005000
+[DEBUG] getCompressionStats got 0 rows from DB
+[DEBUG] _createSqliteClient: Using bun:sqlite with path C:\Users\jack\AppData\Local\Temp\metrics-rotation-K4ptCC\metrics.db
+[PipelineMetricsCollector] Database initialized at C:\Users\jack\AppData\Local\Temp\metrics-rotation-K4ptCC\metrics.db
+[DEBUG] _createSqliteClient: Using bun:sqlite with path /tmp/test-metrics-t20-reset-1775353632756-9f0svhihiob.db
+[PipelineMetricsCollector] Database initialized at /tmp/test-metrics-t20-reset-1775353632756-9f0svhihiob.db
+[DEBUG] recordCompression calling _db.run(), _db exists: true
+[DEBUG] recordCompression insert completed
+[DEBUG] getCompressionStats querying DB with cutoff: 1775267232763
+[DEBUG] getCompressionStats got 0 rows from DB
+
+integration-tests\critical-plugin-contracts.test.js:
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: false,
+  hasShowboat: false,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+
+integration-tests\dashboard-write-guard.test.ts:
+[write-access] Write token env var is empty: OPENCODE_DASHBOARD_WRITE_TOKEN
+[write-access] Token missing role field; defaulting to 'operator' for backward compatibility
+[write-access] Token missing role field; defaulting to 'operator' for backward compatibility
+
+integration-tests\integrity-guard-environment.test.js:
+31 |       OPENCODE_DATA_DIR: tempDataDir
+32 |     });
+33 | 
+34 |     expect(result.exitCode).toBe(0);
+35 |     expect(result.stdout).toContain('=== Environment ===');
+36 |     expect(result.stdout).toContain(`OPENCODE_DATA_DIR: ${tempDataDir}`);
+                               ^
+error: expect(received).toContain(expected)
+
+Expected to contain: "OPENCODE_DATA_DIR: C:\\Users\\jack\\AppData\\Local\\Temp\\integrity-guard-data-U0ANCD"
+Received: "\n=== Environment ===\nResolved data directory: C:\\Users\\jack\\.opencode\nRuntime: Node 24.14.0\nWorking directory: C:\\Users\\jack\\work\\opencode-setup\n\n=== Repository Packages ===\nPackages found: 43\n\n=== Config Skill Registry ===\nRegistry skills: 108\n\n=== User Skill Inventory (Regression Guard) ===\nCurrent user skills: 75\n\n=== Warnings ===\n\n=== Integrity Guard ===\nPASS: No package/skill regression detected.\n"
+
+      at <anonymous> (C:\Users\jack\work\opencode-setup\integration-tests\integrity-guard-environment.test.js:36:27)
+(fail) integrity-guard environment validation > logs environment details at startup [235.00ms]
+43 | 
+44 |     const result = runIntegrityGuard({
+45 |       OPENCODE_DATA_DIR: missingDataDir
+46 |     });
+47 | 
+48 |     expect(result.exitCode).toBe(1);
+                                 ^
+error: expect(received).toBe(expected)
+
+Expected: 1
+Received: 0
+
+      at <anonymous> (C:\Users\jack\work\opencode-setup\integration-tests\integrity-guard-environment.test.js:48:29)
+(fail) integrity-guard environment validation > fails with clear error when OPENCODE_DATA_DIR points to a missing path [671.00ms]
+
+integration-tests\orchestration-atomic-write.test.js:
+[write-access] Token missing role field; defaulting to 'operator' for backward compatibility
+[write-access] Token missing role field; defaulting to 'operator' for backward compatibility
+
+integration-tests\skillrl-api-regression.test.js:
+[Skills API] Parse error: invalid JSON
+
+integration-tests\skillrl-showboat-e2e.test.js:
+🚀 E2E Test: SkillRL + Showboat Full Workflow
+
+════════════════════════════════════════════════════════════
+
+📦 Setting up components...
+[INFO] IntegrationLayer initialized {
+  startupMs: 0,
+  hasSkillRL: true,
+  hasShowboat: true,
+  hasQuotaManager: false,
+  hasAdvisor: false,
+  hasModelRouter: false,
+  hasLogger: false,
+  hasValidator: false,
+  hasHealthChecker: false,
+  hasBackupManager: false,
+  hasFeatureFlags: false,
+  hasContextGovernor: false,
+  hasMemoryGraph: false,
+}
+[INFO] [Startup] IntegrationLayer: 0.0ms 
+✅ SkillRLManager initialized
+✅ ShowboatWrapper initialized
+✅ IntegrationLayer initialized
+
+════════════════════════════════════════════════════════════
+📋 SCENARIO 1: High-Impact Authentication Feature
+════════════════════════════════════════════════════════════
+
+1️⃣  OrchestrationAdvisor provides guidance...
+   - Base routing: explore
+   - Base skills: grep, read
+   - SkillRL augmentation: solution-optimization, research-builder, executing-plans, subagent-driven-development
+✅ SkillRL augmented advice with hierarchical skills
+
+2️⃣  Task executed... Running verification...
+[ShowboatWrapper] Capturing evidence for high-impact task: Implement OAuth 2.0 authentication system
+[ShowboatWrapper] Evidence captured: e2e-evidence\evidence-1775353637629.md
+[INFO] Evidence captured {
+  path: "e2e-evidence\\evidence-1775353637629.md",
+}
+   - Verification status: PASS ✅
+
+3️⃣  Checking evidence capture...
+   - Evidence file: evidence-1775353637629.md
+   - Contains Playwright assertions: YES ✅
+   - Contains verification status: YES ✅
+✅ High-impact task generated showboat evidence document
+
+════════════════════════════════════════════════════════════
+📋 SCENARIO 2: Low-Impact Documentation Fix
+════════════════════════════════════════════════════════════
+
+1️⃣  Task context set (low impact)...
+✅ Low-impact task correctly skipped evidence capture
+
+════════════════════════════════════════════════════════════
+📋 SCENARIO 3: Failed Task → SkillRL Evolution
+════════════════════════════════════════════════════════════
+
+1️⃣  Task attempted and failed...
+[INFO] Failure distilled into SkillRL {
+  antiPatternType: "inefficient_solution",
+  task: "implementation",
+}
+   - Failures before: 59
+   - Failures after: 60
+✅ Failure distilled and recorded in SkillRL evolution engine
+
+════════════════════════════════════════════════════════════
+📋 SCENARIO 4: Full Workflow End-to-End
+════════════════════════════════════════════════════════════
+
+1️⃣  Executing full workflow...
+[INFO] SkillRL selected skills {
+  skills: [ "solution-optimization", "research-builder", "executing-plans",
+    "subagent-driven-development"
+  ],
+  task: "Deploy production database migration",
+}
+   - Task: Deploy production database migration
+   - Skills selected: solution-optimization, research-builder, executing-plans, subagent-driven-development
+[ShowboatWrapper] Capturing evidence for high-impact task: Deploy production database migration
+[ShowboatWrapper] Evidence captured: e2e-evidence\evidence-1775353637634.md
+✅ Full workflow executed: skill selection → execution → evidence capture
+
+════════════════════════════════════════════════════════════
+📊 E2E TEST SUMMARY
+════════════════════════════════════════════════════════════
+✅ Scenario 1: High-impact task generated evidence
+✅ Scenario 2: Low-impact task skipped evidence
+✅ Scenario 3: Failure distilled into SkillRL
+✅ Scenario 4: Full workflow end-to-end
+
+🎉 ALL E2E TESTS PASSED!
+

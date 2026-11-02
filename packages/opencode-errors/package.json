@@ -1,0 +1,13 @@
+{
+  "name": "opencode-errors",
+  "version": "1.0.0",
+  "description": "Standardized error types for OpenCode",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "keywords": ["error", "exception", "handling"],
+  "author": "OpenCode",
+  "license": "MIT"
+}

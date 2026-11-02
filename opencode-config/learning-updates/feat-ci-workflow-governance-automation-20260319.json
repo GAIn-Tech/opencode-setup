@@ -1,0 +1,15 @@
+{
+  "id": "feat-ci-workflow-governance-automation-2026-03-19",
+  "timestamp": "2026-03-19T02:52:00.000Z",
+  "summary": "Add unified CI workflow (.github/workflows/ci.yml) with 5 jobs: test, governance, health, validate-models, dashboard-build. Triggers on all pushes/PRs to main/master without path filtering.",
+  "affected_paths": [
+    ".github/workflows/ci.yml"
+  ],
+  "validation": {
+    "tests": "pass",
+    "build": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

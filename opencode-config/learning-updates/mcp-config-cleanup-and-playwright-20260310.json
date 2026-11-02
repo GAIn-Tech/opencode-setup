@@ -1,0 +1,16 @@
+{
+  "id": "mcp-config-cleanup-and-playwright-20260310",
+  "timestamp": "2026-03-10T00:33:00-04:00",
+  "summary": "Remove dead github and tavily MCP entries from the canonical config, enable playwright as a live MCP service again, and update installation documentation to match the new inventory.",
+  "affected_paths": [
+    "opencode-config/opencode.json",
+    "opencode-config/oh-my-opencode.json",
+    "setup-instructions.md"
+  ],
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

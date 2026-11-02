@@ -2,11 +2,32 @@
 
 ## Prerequisites
 
-1. **Windows** (with Git Bash) or **Linux/macOS**
-2. **Node.js** v18+ and npm
-3. **Git**
-4. **bun** (optional, used by some plugins)
-5. **uv/uvx** (needed for grep MCP server)
+### Required for All Platforms
+- **Operating System**: Windows (with Git Bash) or Linux/macOS
+- **Git**: Version control system
+- **bun**: Required, version 1.3.10+ (install via: https://bun.sh)
+
+### Required for MCP Servers (if using local MCPs)
+- **Node.js**: v18+ — Required for `npx`-based MCPs (sequentialthinking, websearch, distill)
+  - Windows: Install via [Node.js LTS](https://nodejs.org/) or `winget install OpenJS.NodeJS.LTS`
+  - After install, restart terminal to update PATH
+- **uv**: Required for `uvx`-based MCPs (grep)
+  - Install via: `pip install uv` (Windows: `irm https://astral.sh/uv/install.ps1 | iex`)
+  - Add to PATH: `C:\Users\<username>\.local\bin`
+
+### Required for Docker Desktop (Windows only)
+- **WSL2**: Required for Docker Desktop to run
+  - Run in PowerShell (as admin): `wsl --install`
+  - After install, restart Docker Desktop
+
+### Quick Install (Windows)
+```powershell
+# Install all prerequisites in one command
+winget install OpenJS.NodeJS.LTS
+irm https://astral.sh/uv/install.ps1 | iex
+wsl --install
+# Restart terminal after these
+```
 
 ## Step 1: Install OpenCode CLI
 
@@ -51,11 +72,8 @@ cp opencode-config/config.yaml ~/.opencode/config.yaml
 Add to your `~/.bashrc`, `~/.zshrc`, or Windows environment:
 
 ```bash
-# Required for GitHub MCP server
-export GITHUB_TOKEN="your-github-personal-access-token"
-
-# Required for Tavily search
-export TAVILY_API_KEY="your-tavily-api-key"
+# Required for Supermemory remote MCP
+export SUPERMEMORY_API_KEY="your-supermemory-bearer-token"
 ```
 
 **DO NOT** copy `antigravity-accounts.json` from another machine — each machine needs its own OAuth tokens.
@@ -67,7 +85,7 @@ Plugins are npm packages defined in `opencode.json` under `"plugin"`. They auto-
 ```json
 {
   "plugin": [
-    "oh-my-opencode@3.5.2",
+"oh-my-opencode@3.5.2",
     "opencode-antigravity-auth@1.4.6",
     "opencode-supermemory@2.0.1",
     "@tarquinen/opencode-dcp@2.1.1",
@@ -76,7 +94,6 @@ Plugins are npm packages defined in `opencode.json` under `"plugin"`. They auto-
     "@mohak34/opencode-notifier@0.1.18",
     "opencode-plugin-langfuse@0.1.8",
     "opencode-plugin-preload-skills@1.8.0",
-    "@symbioticsec/opencode-security-plugin@0.0.1-beta.9",
     "envsitter-guard@0.0.4",
     "opencode-antigravity-quota@0.1.6",
     "opencode-pty@0.2.1"
@@ -90,17 +107,21 @@ No manual installation needed — just have them listed in `opencode.json`.
 
 MCP servers are also defined in `opencode.json` under `"mcp"`. They connect automatically on startup:
 
-| Server | Type | Requires |
-|--------|------|----------|
-| tavily | local | `TAVILY_API_KEY` env var |
-| supermemory | remote | `SUPERMEMORY_API_KEY` env var |
-| context7 | remote | Nothing (public) |
-| playwright | local | Nothing |
-| sequentialthinking | local | Nothing |
-| websearch | local | Nothing |
-| grep | local | `uvx` (install via `pip install uv`) |
-| github | local | `GITHUB_TOKEN` env var |
-| distill | local | Nothing |
+| Server | Type | Requires | Prerequisite |
+|--------|------|----------|--------------|
+| supermemory | remote | `SUPERMEMORY_API_KEY` env var | None |
+| context7 | remote | None | None |
+| playwright | local | None | npx (Node.js) |
+| sequentialthinking | local | None | **npx (Node.js)** |
+| websearch | local | None | **npx (Node.js)** |
+| grep | local | None | **uvx (uv)** |
+| distill | local | None | **npx (Node.js)** |
+
+**Important**: If local MCPs fail to connect, ensure Node.js and uv are installed and in your PATH. Run `bun scripts/health-check.mjs` to diagnose.
+
+**Exercise live MCP coverage**: run `bun run mcp:smoke` to see which enabled MCPs have recent telemetry activity and which still need explicit exercise after restart.
+
+**Internal MCP policy**: `opencode-context-governor`, `opencode-memory-graph`, and `opencode-runbooks` are now valid host-facing MCP wrappers. `opencode-dashboard-launcher` remains intentionally dormant until it has the right public operator contract. `opencode-model-router-x` is retained as an internal runtime library and is no longer registered as a host-facing MCP entry. Do not enable dormant internal entries opportunistically; use `docs/architecture/cli-mcp-surface-policy.md` for surface decisions.
 
 ### Supermemory Setup
 
@@ -160,7 +181,7 @@ opencode
 opencode run "ping" --model=google/antigravity-gemini-3-pro
 
 # Check startup logs for:
-#   - "oh-my-opencode loaded with 8 agents and 3 MCP toggles + Antigravity account rotation"
+#   - "oh-my-opencode loaded with 8 agents and 4 MCP toggles + Antigravity account rotation"
 #   - MCP server connection confirmations
 #   - Plugin load confirmations
 ```
@@ -176,6 +197,15 @@ cp project-templates/project-config.yaml ~/your-project/.opencode.yaml
 
 ## Troubleshooting
 
+### Run Health Check
+```bash
+# Diagnose all issues at once
+bun scripts/health-check.mjs
+
+# Run governance checks
+bun run governance:check
+```
+
 ### Plugin Issues
 ```bash
 # Clear and reinstall
@@ -185,14 +215,25 @@ rm -rf ~/.config/opencode/node_modules
 
 ### MCP Server Issues
 ```bash
-# Test individual server
-npx -y tavily-mcp@0.2.16  # Should start without errors
+# Generate current MCP lifecycle report
+bun run mcp:report
+
+# Test individual Playwright MCP server
+npx @playwright/mcp@0.0.64  # Should start without errors
 
 # Check if uvx installed (needed for grep)
 pip install uv
+```
 
-# Verify GitHub token
-echo $GITHUB_TOKEN
+### Docker Desktop Issues (Windows)
+```powershell
+# Check WSL status
+wsl --list --verbose
+
+# Install WSL2 if missing
+wsl --install
+
+# Restart Docker Desktop after WSL setup
 ```
 
 ### Antigravity Auth Issues
@@ -213,6 +254,5 @@ Ensure model is defined in `opencode.json` → `provider.google.models` and refe
 - **antigravity-auth**: https://github.com/NoeFabris/opencode-antigravity-auth
 - **supermemory**: https://supermemory.ai
 - **compound-engineering**: https://github.com/EveryInc/compound-engineering-plugin
-- **Tavily**: https://tavily.com
 - **Context7**: https://context7.com
 - **Playwright MCP**: https://github.com/microsoft/playwright-mcp

@@ -1,0 +1,26 @@
+{
+  "task": 10,
+  "phase": "green",
+  "commands": [
+    "bun test scripts/tests/verify-portability.test.js",
+    "node scripts/verify-portability.mjs --strict --json"
+  ],
+  "testResult": {
+    "pass": 32,
+    "fail": 0
+  },
+  "strictRunHighlights": {
+    "adrGovernanceReport": {
+      "status": "passed",
+      "requiredDocuments": [
+        "control-ownership-governance.md",
+        "exception-governance-policy.md"
+      ],
+      "violations": []
+    },
+    "releaseVerdictGate": {
+      "adrGovernance": "passed"
+    }
+  },
+  "notes": "Strict command output includes adrGovernanceReport contract and gate verdict integration"
+}

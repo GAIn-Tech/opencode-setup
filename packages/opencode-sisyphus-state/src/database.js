@@ -12,6 +12,10 @@ if (isBun) {
 }
 
 class WorkflowStore {
+  // Connection pool for better performance
+  static #connectionPool = new Map();
+  static #poolSize = 5;
+  
   constructor(dbPath) {
     if (!dbPath) {
       const configDir = join(process.env.HOME || process.env.USERPROFILE, '.opencode');
@@ -21,15 +25,49 @@ class WorkflowStore {
       dbPath = join(configDir, 'sisyphus-state.db');
     }
 
+    // Use connection from pool or create new one
+    if (WorkflowStore.#connectionPool.has(dbPath)) {
+      const pool = WorkflowStore.#connectionPool.get(dbPath);
+      if (pool.available < pool.connections.length) {
+        this.db = pool.connections[pool.available++];
+        this.dbPath = dbPath;
+        this.isPooled = true;
+        return;
+      }
+    }
+
     this.db = new Database(dbPath);
     if (isBun) {
       this.db.exec('PRAGMA journal_mode = WAL');
       this.db.exec('PRAGMA busy_timeout = 5000');
+      this.db.exec('PRAGMA query_only = OFF');
     } else {
       this.db.pragma('journal_mode = WAL');
       this.db.pragma('busy_timeout = 5000');
     }
+    this.dbPath = dbPath;
+    this.isPooled = false;
+    
+    // Initialize connection pool for this path
+    if (!WorkflowStore.#connectionPool.has(dbPath)) {
+      WorkflowStore.#connectionPool.set(dbPath, {
+        connections: [this.db],
+        available: 1,
+        maxSize: WorkflowStore.#poolSize
+      });
+    }
+    
     this.init();
+  }
+
+  // Release connection back to pool
+  release() {
+    if (this.isPooled && this.dbPath) {
+      const pool = WorkflowStore.#connectionPool.get(this.dbPath);
+      if (pool && pool.available > 0) {
+        pool.available--;
+      }
+    }
   }
 
   init() {
@@ -74,6 +112,37 @@ class WorkflowStore {
 
     // Run migrations
     this.runMigrations();
+
+    // Setup periodic WAL checkpoint to prevent unbounded growth (every 10 minutes)
+    this._setupWALCheckpoint();
+  }
+
+  /**
+   * Setup periodic WAL checkpoint to prevent unbounded WAL file growth.
+   * 
+   * MEMORY/DISK OPTIMIZATION: SQLite WAL mode can grow WAL files to GB+ sizes
+   * without periodic checkpoints. This truncates the WAL after syncing to main DB.
+   */
+  _setupWALCheckpoint() {
+    // Immediate checkpoint on init
+    this._checkpointWAL();
+
+    // Periodic checkpoint every 10 minutes
+    this._walCheckpointInterval = setInterval(() => {
+      this._checkpointWAL();
+    }, 10 * 60 * 1000); // 10 minutes
+  }
+
+  _checkpointWAL() {
+    try {
+      if (isBun) {
+        this.db.exec('PRAGMA wal_checkpoint(TRUNCATE)');
+      } else {
+        this.db.pragma('wal_checkpoint(TRUNCATE)');
+      }
+    } catch (e) {
+      console.error('[WorkflowStore] WAL checkpoint failed:', e.message);
+    }
   }
 
   runMigrations() {
@@ -149,12 +218,102 @@ class WorkflowStore {
     };
   }
 
+  /**
+   * Execute multiple operations in a transaction.
+   * Ensures atomicity - all succeed or all fail.
+   * 
+   * @param {Function} callback - Function receiving db object to perform operations
+   * @returns {unknown} - Result from callback
+   * @throws {Error} - Re-throws error with transaction context
+   */
+  /**
+   * Sync audit events to knowledge graph.
+   * Creates nodes in MemoryGraph for each error/pattern.
+   */
+  async syncToGraph(memoryGraph) {
+    if (!memoryGraph || !memoryGraph.isActivated) {
+      console.warn('[WorkflowStore] MemoryGraph not available for sync');
+      return;
+    }
+
+    const events = this.db.prepare(`
+      SELECT * FROM audit_events 
+      WHERE created_at > datetime('now', '-7 days')
+      ORDER BY created_at DESC
+      LIMIT 100
+    `).all();
+
+    for (const event of events) {
+      try {
+        const payload = JSON.parse(event.payload || '{}');
+        
+        // Extract error patterns and add to graph
+        if (event.event_type.includes('error') || event.event_type.includes('fail')) {
+          await memoryGraph.addErrorNode({
+            sessionId: payload.session_id || event.run_id,
+            errorType: event.event_type,
+            model: payload.model,
+            provider: payload.provider,
+            metadata: payload
+          });
+        }
+      } catch (e) {
+        console.error('[WorkflowStore] Failed to sync event to graph:', e.message);
+      }
+    }
+    
+    console.log(`[WorkflowStore] Synced ${events.length} events to knowledge graph`);
+  }
+
+  transaction(callback) {
+    const isBunRuntime = typeof Bun !== 'undefined';
+    
+    if (isBunRuntime) {
+      // Bun:sqlite transaction
+      return this.db.transaction(callback)();
+    } else {
+      // better-sqlite3 transaction
+      return this.db.transaction(callback)();
+    }
+  }
+
+  /**
+   * Execute operations in a savepoint (nested transaction).
+   * Use for complex operations that can partially fail.
+   * 
+   * @param {string} savepointName - Name for the savepoint
+   * @param {Function} callback - Function to execute within savepoint
+   */
+  savepoint(savepointName, callback) {
+    const savepointSql = `SAVEPOINT ${savepointName}`;
+    const releaseSql = `RELEASE SAVEPOINT ${savepointName}`;
+    const rollbackSql = `ROLLBACK TO SAVEPOINT ${savepointName}`;
+    
+    try {
+      this.db.exec(savepointSql);
+      const result = callback();
+      this.db.exec(releaseSql);
+      return result;
+    } catch (error) {
+      this.db.exec(rollbackSql);
+      throw error;
+    }
+  }
+
   logEvent(runId, type, payload) {
     this.db.prepare('INSERT INTO audit_events (run_id, type, payload) VALUES (?, ?, ?)')
       .run(runId, type, JSON.stringify(payload));
   }
 
   close() {
+    // Clear WAL checkpoint interval before closing
+    if (this._walCheckpointInterval) {
+      clearInterval(this._walCheckpointInterval);
+    }
+    
+    // Final checkpoint before close
+    this._checkpointWAL();
+    
     this.db.close();
   }
 }

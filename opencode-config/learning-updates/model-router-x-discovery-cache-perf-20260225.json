@@ -1,0 +1,43 @@
+{
+  "id": "model-router-x-discovery-cache-perf-20260225",
+  "timestamp": "2026-02-25T03:15:00.000Z",
+  "category": "performance",
+  "summary": "Optimize model-discovery.js: bounded cache with TTL, parallel provider fetching, early exit on invalid JSON",
+  "details": "discoveryCache Map now has TTL (5min default) and maxSize (50) with FIFO eviction. Provider fetching parallelized via Promise.all (was sequential for-loop). JSON parse failures in _fetchModels trigger early exit with fallback. getCachedModels/getAllCachedModels respect TTL expiry. 1000 cache ops in <2ms. All 68 tests pass.",
+  "scope": "single-package",
+  "packages": ["opencode-model-router-x"],
+  "changes": [
+    {
+      "package": "opencode-model-router-x",
+      "type": "performance",
+      "description": "Add cache TTL/maxSize, parallel fetching, early exit on invalid JSON",
+      "files": [
+        "src/model-discovery.js"
+      ],
+      "impact": "Prevents unbounded cache growth, reduces discovery latency via parallel fetching (18 risk score reduction)"
+    }
+  ],
+  "affected_paths": [
+    "packages/opencode-model-router-x/src/model-discovery.js"
+  ],
+  "verification": {
+    "tests_passed": true,
+    "test_count": 68,
+    "test_files": 7,
+    "failures": 0
+  },
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "pass",
+    "test_count": 68,
+    "test_files": 7,
+    "assertion_count": 149,
+    "failures": 0
+  },
+  "risk_level": "low",
+  "governance": {
+    "wave": "wave-2",
+    "plan": "tech-debt-fix"
+  }
+}

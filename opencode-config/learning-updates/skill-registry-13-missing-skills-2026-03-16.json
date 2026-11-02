@@ -1,0 +1,47 @@
+{
+  "id": "skill-registry-13-missing-skills-2026-03-16",
+  "timestamp": "2026-03-16T22:00:00Z",
+  "phase": "skill-audit-remediation",
+  "title": "Add 13 missing skills to registry.json closing skill audit gaps",
+  "summary": "Added 13 skill entries to opencode-config/skills/registry.json that had SKILL.md files and were enabled in compound-engineering.json but were missing from the registry. This closes all skill audit gaps except the intentional tavily placeholder.",
+  "affected_paths": [
+    "opencode-config/skills/registry.json"
+  ],
+  "skills_added": [
+    "budget-aware-router",
+    "dispatching-parallel-agents",
+    "evaluation-harness-builder",
+    "finishing-a-development-branch",
+    "incident-commander",
+    "receiving-code-review",
+    "requesting-code-review",
+    "skill-orchestrator-runtime",
+    "subagent-driven-development",
+    "task-orchestrator",
+    "using-git-worktrees",
+    "using-superpowers",
+    "writing-skills"
+  ],
+  "categories_covered": {
+    "optimization": ["budget-aware-router"],
+    "implementation": ["dispatching-parallel-agents", "subagent-driven-development"],
+    "testing": ["evaluation-harness-builder"],
+    "git": ["finishing-a-development-branch", "using-git-worktrees"],
+    "debugging": ["incident-commander"],
+    "review": ["receiving-code-review", "requesting-code-review"],
+    "meta": ["skill-orchestrator-runtime", "task-orchestrator", "using-superpowers", "writing-skills"]
+  },
+  "verification": {
+    "json_valid": true,
+    "total_skills_after": 39,
+    "audit_result": "only tavily warnings remain (intentional)",
+    "command": "node scripts/skills-manage.mjs audit"
+  },
+  "risk_level": "low",
+  "governance": "reviewed-by-skills-manage-audit",
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "pass"
+  }
+}

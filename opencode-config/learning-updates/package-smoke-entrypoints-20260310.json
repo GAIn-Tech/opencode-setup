@@ -1,0 +1,18 @@
+{
+  "id": "package-smoke-entrypoints-20260310",
+  "timestamp": "2026-03-10T12:55:00-04:00",
+  "summary": "Add test:smoke entrypoints for critical packages so workspace-level smoke orchestration can verify package surfaces consistently.",
+  "affected_paths": [
+    "packages/opencode-model-manager/package.json",
+    "packages/opencode-integration-layer/package.json",
+    "packages/opencode-context-governor/package.json",
+    "packages/opencode-dashboard/package.json",
+    "packages/opencode-learning-engine/package.json"
+  ],
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "provider-cache-metrics-and-fallback-reason-tests-20260216",
+  "timestamp": "2026-02-16T02:20:00Z",
+  "category": "telemetry",
+  "summary": "Added provider probe cache metrics visibility and fallback-reason regression coverage",
+  "details": "Extended /api/providers responses with cache statistics (size/hits/misses/expired/hitRate) and surfaced them in ProviderHealth UI. Added SkillRL regression tests to ensure quota-aware routing learning is triggered only for quota-related fallback reasons and not non-quota fallback paths.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/providers/route.ts",
+    "packages/opencode-dashboard/src/components/dashboard/ProviderHealth.tsx",
+    "packages/opencode-skill-rl-manager/tests/selection.test.js"
+  ],
+  "impact": "Medium - Improves probe observability and prevents over-learning from non-quota fallback events",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "pass",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}

@@ -1,0 +1,29 @@
+{
+  "task": "task-7",
+  "phase": "validation",
+  "tests": [
+    {
+      "command": "bun test scripts/tests/verify-portability.test.js -t observability",
+      "status": "passed",
+      "summary": "2 pass, 0 fail"
+    }
+  ],
+  "verification": [
+    {
+      "command": "node scripts/verify-portability.mjs --strict --json",
+      "assertions": [
+        "JSON payload includes observabilityIntegrityReport",
+        "observabilityIntegrityReport.status is emitted",
+        "observabilityIntegrityReport.violations is emitted"
+      ]
+    },
+    {
+      "command": "node scripts/verify-portability.mjs --strict --json (with OPENCODE_PORTABILITY_OBSERVABILITY_LOG_CHAIN=tampered)",
+      "assertions": [
+        "exit code is non-zero",
+        "observabilityIntegrityReport.status == fail",
+        "expected observability integrity failure message is present"
+      ]
+    }
+  ]
+}

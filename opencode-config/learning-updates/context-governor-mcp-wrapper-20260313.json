@@ -1,0 +1,18 @@
+{
+  "id": "context-governor-mcp-wrapper-20260313",
+  "timestamp": "2026-03-13T16:15:00Z",
+  "summary": "Add a real stdio MCP wrapper for opencode-context-governor using the MCP SDK and cover its tool handlers with package-level tests.",
+  "affected_paths": [
+    "packages/opencode-context-governor/package.json",
+    "packages/opencode-context-governor/src/mcp-server.mjs",
+    "packages/opencode-context-governor/test/mcp-server.test.mjs",
+    "bun.lock",
+    "opencode-config/learning-updates/context-governor-mcp-wrapper-20260313.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

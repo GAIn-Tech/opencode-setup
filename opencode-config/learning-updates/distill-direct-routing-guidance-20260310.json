@@ -1,0 +1,15 @@
+{
+  "id": "distill-direct-routing-guidance-20260310",
+  "timestamp": "2026-03-10T11:36:00-04:00",
+  "summary": "Add a direct Distill compressor agent and explicit orchestrator routing guidance so context compression is treated as a first-class MCP path.",
+  "affected_paths": [
+    "opencode-config/agents/distill-compressor.md",
+    "opencode-config/skills/skill-orchestrator-runtime/SKILL.md"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

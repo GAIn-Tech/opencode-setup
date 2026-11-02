@@ -3,6 +3,7 @@
 *accounts*.json
 *.env
 .env.*
+!.env.example
 
 # OS files
 .DS_Store
@@ -46,4 +47,39 @@ state/
 
 # OpenCode runtime files
 .opencode/
+.worktrees/
+.claude/
+local/*
+!local/oh-my-opencode/
+!local/oh-my-opencode/**
 bun.lockb
+
+# Next.js build artifacts
+.next/
+out/
+next-env.d.ts
+
+# Build directories
+dist/
+build/
+
+# TypeScript incremental builds
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# npm lockfile (we use bun)
+package-lock.json
+nul
+
+# Test output directories
+**/test-output/
+evidence-*.md
+test-output*.txt
+test-regression*.txt
+
+# Test artifacts (generated during test runs)
+.fresh-state-*.json
+entourage-*.db
+entourage-*.db-wal
+entourage-*.db-shm
+**/e2e-evidence/

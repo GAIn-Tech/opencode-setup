@@ -1,5 +1,5 @@
 {
-  "name": "@jackoatmon/opencode-eval-harness",
+  "name": "opencode-eval-harness",
   "version": "0.1.0",
   "description": "Evaluation harness and benchmarker for OpenCode-compatible AI models. Measures success rate, latency, and cost across standardized test suites.",
   "main": "src/index.js",

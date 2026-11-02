@@ -1,0 +1,23 @@
+{
+  "id": "namespace-drift-part2-20260308",
+  "timestamp": "2026-03-08T00:00:00Z",
+  "category": "configuration",
+  "summary": "Fix namespace drift in 5 remaining package.json name fields and repair 2 broken cross-package dependency references. Packages fixed: integration-layer, model-router-x, plugin-lifecycle, proofcheck, shared-orchestration. Cross-deps fixed: model-router-x deps on context-governor and fallback-doctor; integration-layer peerDeps on skill-rl-manager, learning-engine, shared-orchestration.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/package.json",
+    "packages/opencode-model-router-x/package.json",
+    "packages/opencode-plugin-lifecycle/package.json",
+    "packages/opencode-proofcheck/package.json",
+    "packages/opencode-shared-orchestration/package.json"
+  ],
+  "root_cause": "Same @jackoatmon/* namespace drift as part1. Additionally, model-router-x had functional dependency breakage referencing @jackoatmon/ names that no longer match the workspace resolver after the wave 5-7 renames.",
+  "fix_approach": "Renamed name fields to flat opencode-* and updated all dependency/peerDependency entries to use the matching flat names. Resolves workspace:* resolution failures.",
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["node scripts/learning-gate.mjs --generate-hashes"],
+    "notes": "bun test suite passes. Cross-deps are workspace:* refs — they resolve at install time, no runtime code paths changed."
+  }
+}

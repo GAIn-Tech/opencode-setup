@@ -1,0 +1,14 @@
+{
+  "id": "wave11-t3-governor-wiring-20260308",
+  "timestamp": "2026-03-08T23:45:00Z",
+  "summary": "Wire context-governor into IntegrationLayer with checkContextBudget, recordTokenUsage, getContextBudgetStatus methods (fail-open)",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/index.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "atomic-write-verification-2026-03-17",
+  "timestamp": "2026-03-17T00:00:00.000Z",
+  "summary": "Add post-write integrity verification to atomicWriteFile() in opencode-config-loader to prevent silent corruption during atomic file writes.",
+  "affected_paths": [
+    "packages/opencode-config-loader/src/central-config-state.js",
+    "packages/opencode-config-loader/src/paths.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Validated with bun test packages/opencode-config-loader (12 pass, 0 fail). Aligns with AGENTS.md anti-pattern guidance on mandatory atomic-write verification."
+}

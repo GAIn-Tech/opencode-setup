@@ -1,0 +1,15 @@
+{
+  "id": "wave1-model-manager-sqlite-loader-20260318",
+  "timestamp": "2026-03-18T23:45:00.000Z",
+  "summary": "Adjust model-manager lifecycle sqlite loading to use non-webpack require fallback paths.",
+  "affected_paths": [
+    "packages/opencode-model-manager/src/lifecycle/audit-logger.js",
+    "packages/opencode-model-manager/src/lifecycle/state-machine.js"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

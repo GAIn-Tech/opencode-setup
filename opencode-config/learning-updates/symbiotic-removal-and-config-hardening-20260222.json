@@ -1,0 +1,28 @@
+{
+  "id": "symbiotic-removal-and-config-hardening-20260222",
+  "timestamp": "2026-02-22T16:45:00Z",
+  "summary": "Harden environment and Bun policy validation, add cross-config coherence checks, and remove Symbiotic security plugin references from the project stack.",
+  "affected_paths": [
+    "COMPLETE-INVENTORY.md",
+    "QUICK-REFERENCE.md",
+    "STATUS.md",
+    "export-checklist.md",
+    "opencode-config/config.yaml",
+    "opencode-config/learning-updates/symbiotic-removal-and-config-hardening-20260222.json",
+    "opencode-config/oh-my-opencode.json",
+    "package.json",
+    "packages/opencode-learning-engine/src/tool-usage-tracker.js",
+    "plugins/security-plugin/info.md",
+    "scripts/env-contract-check.mjs",
+    "scripts/preflight-versions.mjs",
+    "scripts/validate-config-coherence.mjs",
+    "scripts/verify-setup.mjs"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Introduces semantic env checks, PATH Bun policy enforcement, and config coherence validation. Aligns agent/delegation model IDs with catalog entries and removes Symbiotic plugin references/docs to keep scanning workflow internal/free."
+}

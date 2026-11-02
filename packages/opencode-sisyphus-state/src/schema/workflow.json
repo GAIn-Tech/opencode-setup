@@ -1,0 +1,140 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OpenCode Workflow Definition",
+  "description": "Data-driven workflow definition for OpenCode Sisyphus State",
+  "type": "object",
+  "required": ["name", "version", "steps"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Workflow name (unique identifier)",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version (e.g., 1.0.0)",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable workflow description"
+    },
+    "pe_roles": {
+      "type": "array",
+      "description": "PEV roles referenced in this workflow",
+      "items": {
+        "type": "string",
+        "enum": ["planner", "executor", "verifier", "critic"]
+      }
+    },
+    "policy": {
+      "type": "object",
+      "description": "Workflow-level policy configuration",
+      "properties": {
+        "max_retries": { "type": "integer", "minimum": 0, "default": 3 },
+        "backoff_ms": { "type": "integer", "minimum": 0, "default": 1000 },
+        "timeout_ms": { "type": "integer", "minimum": 0 },
+        "parallel_concurrency": { "type": "integer", "minimum": 1, "default": 4 },
+        "budget_enforcement": { "type": "boolean", "default": true },
+        "sandbox_enforcement": { "type": "boolean", "default": true }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "description": "Workflow steps (executed sequentially unless parallel-for)",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "type"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique step identifier",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "description": "Step type (read, edit, bash, parallel-for, verify, etc.)"
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable step description"
+          },
+          "pe_role": {
+            "type": "string",
+            "description": "PEV role responsible for this step",
+            "enum": ["planner", "executor", "verifier", "critic"]
+          },
+          "handler": {
+            "type": "string",
+            "description": "Handler function name or reference"
+          },
+          "input": {
+            "type": "object",
+            "description": "Step-specific input data"
+          },
+          "retries": {
+            "type": "integer",
+            "description": "Number of retries (overrides workflow policy)",
+            "minimum": 0
+          },
+          "backoff_ms": {
+            "type": "integer",
+            "description": "Backoff in ms (overrides workflow policy)",
+            "minimum": 0
+          },
+          "timeout_ms": {
+            "type": "integer",
+            "description": "Step timeout in ms (overrides workflow policy)",
+            "minimum": 0
+          },
+          "foreach": {
+            "type": "string",
+            "description": "For parallel-for: context path to array (e.g., '${files}')"
+          },
+          "parallel_controls": {
+            "type": "object",
+            "description": "Parallel execution controls",
+            "properties": {
+              "fanout_limit": { "type": "integer", "minimum": 1 },
+              "concurrency_limit": { "type": "integer", "minimum": 1 },
+              "min_items_for_parallel": { "type": "integer", "minimum": 1 }
+            }
+          },
+          "condition": {
+            "type": "string",
+            "description": "Condition expression for conditional execution"
+          },
+          "on_success": {
+            "type": "array",
+            "description": "Steps to execute on success (branching)",
+            "items": { "type": "string" }
+          },
+          "on_failure": {
+            "type": "array",
+            "description": "Steps to execute on failure (branching)",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "description": "Expected output fields from workflow execution",
+      "items": { "type": "string" }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional workflow metadata",
+      "properties": {
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" },
+        "author": { "type": "string" },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

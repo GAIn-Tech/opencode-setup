@@ -1,0 +1,15 @@
+{
+  "id": "metrics-compression-context7-wiring-2026-03-19",
+  "timestamp": "2026-03-19T02:10:00.000Z",
+  "summary": "Wire recordCompression() and recordContext7Lookup() into production hot path in integration-layer. recordCompression fires when evaluateAndCompress returns compress/compress_urgent. recordContext7Lookup fires when context7 MCP tools appear in session tool invocations.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/index.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "build": "not-applicable",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

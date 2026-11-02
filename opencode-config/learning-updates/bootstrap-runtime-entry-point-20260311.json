@@ -1,0 +1,17 @@
+{
+  "id": "bootstrap-runtime-entry-point-20260311",
+  "timestamp": "2026-03-12T01:15:00Z",
+  "summary": "Add bootstrap-runtime.mjs ESM entry point that wraps CJS bootstrap module for runtime package wiring.",
+  "affected_paths": [
+    "scripts/bootstrap-runtime.mjs",
+    "scripts/tests/bootstrap-runtime.test.mjs",
+    "opencode-config/.governance-hashes.json",
+    "opencode-config/meta-knowledge-index.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

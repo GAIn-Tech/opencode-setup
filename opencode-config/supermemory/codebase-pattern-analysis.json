@@ -1,0 +1,98 @@
+{
+  "type": "codebase-analysis",
+  "title": "Codebase Pattern Analysis - Consolidation Opportunities",
+  "timestamp": "2026-02-16",
+  "scope": "project",
+  "key_findings": {
+    "inconsistent_patterns": {
+      "logging": "16+ different console.log/error/warn approaches across packages - need unified logger",
+      "error_handling": "58 try-catch blocks with varying strategies - need standardized error handling",
+      "json_io": "42 fs.readFileSync + JSON.parse scattered across 8+ files - need file-utils package",
+      "directory_ops": "78 fs.mkdirSync/existsSync calls with inconsistent patterns - need ensureDir utility"
+    },
+    "duplicate_implementations": [
+      "Provider health check logic (2 implementations) - consolidate into single package",
+      "State persistence pattern (4 implementations) - create unified state-persistence package",
+      "Configuration loading (2 implementations) - merge config-loader and dashboard config API"
+    ],
+    "dry_violations": [
+      "Model name formatting repeated 3+ times - extract to utility",
+      "Rate limit calculations duplicated across files - extract to metrics utility",
+      "File path resolution repeated in multiple API routes - create path-utils package"
+    ]
+  },
+  "consolidation_roadmap": {
+    "priority_1": [
+      "Create opencode-file-utils package (JSON read/write) - saves ~40 lines across 8 files",
+      "Standardize logging with unified logger - saves ~20 lines, improves debugging",
+      "Extract path utilities - resolve project root consistently"
+    ],
+    "priority_2": [
+      "Consolidate health check logic - merge provider and subsystem health checks",
+      "Create state persistence package - unify SafeJSON + atomic write pattern",
+      "Extract validation utilities - centralize input validation"
+    ],
+    "priority_3": [
+      "Consolidate config loading - merge config-loader and dashboard config API",
+      "Create retry utilities - add missing retry pattern",
+      "Extract metric calculation - consolidate rate limit and success rate calculations"
+    ]
+  },
+  "well_implemented_patterns": [
+    "Atomic file write pattern (temp file + rename) - used consistently in crash-guard, context-governor, provider-status-store",
+    "Circuit breaker pattern - well-encapsulated, reusable in circuit-breaker package",
+    "Safe JSON handling - prevents circular reference crashes in crash-guard/safe-json.js"
+  ],
+  "specific_files_to_consolidate": {
+    "json_io_duplication": [
+      "./packages/opencode-dashboard-launcher/src/index.js",
+      "./packages/opencode-plugin-healthd/src/checks.js",
+      "./packages/opencode-proofcheck/src/checks.js",
+      "./packages/opencode-runbooks/src/remedies.js",
+      "./packages/opencode-skill-rl-manager/src/index.js",
+      "./packages/opencode-dashboard/src/app/api/learning/route.ts",
+      "./packages/opencode-dashboard/src/app/api/skills/route.ts",
+      "./packages/opencode-dashboard/src/app/api/health/route.ts"
+    ],
+    "logging_inconsistency": [
+      "./packages/opencode-backup-manager/src/index.js",
+      "./packages/opencode-crash-guard/src/index.js",
+      "./packages/opencode-dashboard/src/lib/data-sources/sqlite-reader.ts",
+      "./packages/opencode-dashboard/src/app/api/learning/route.ts"
+    ],
+    "error_handling_inconsistency": [
+      "./packages/opencode-dashboard/src/lib/provider-status-store.ts",
+      "./packages/opencode-dashboard/src/lib/data-sources/sqlite-reader.ts",
+      "./packages/opencode-dashboard/src/app/api/learning/route.ts"
+    ],
+    "state_persistence_duplication": [
+      "./packages/opencode-skill-rl-manager/src/index.js",
+      "./packages/opencode-learning-engine/src/anti-patterns.js",
+      "./packages/opencode-learning-engine/src/positive-patterns.js",
+      "./packages/opencode-memory-graph/src/activator.js"
+    ]
+  },
+  "metrics": {
+    "total_packages": 30,
+    "files_with_try_catch": 11,
+    "total_try_catch_blocks": 58,
+    "json_operations": 185,
+    "fs_readFileSync_calls": 42,
+    "fs_writeFileSync_calls": 20,
+    "fs_mkdirSync_existsSync_calls": 78,
+    "logging_statements": 16,
+    "duplicate_implementations": 3,
+    "dry_violations": 5,
+    "potential_lines_saved": 100
+  },
+  "next_steps": [
+    "Create opencode-file-utils package with readJSON/writeJSON utilities",
+    "Standardize logging with unified logger package",
+    "Extract path resolution utilities for consistent project root handling",
+    "Consolidate health check logic between provider and subsystem checks",
+    "Create state persistence abstraction to unify SafeJSON + atomic write pattern",
+    "Add input validation framework for API routes",
+    "Establish code review checklist to prevent new pattern inconsistencies",
+    "Create pattern guidelines document for team reference"
+  ]
+}

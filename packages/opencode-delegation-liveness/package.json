@@ -1,0 +1,14 @@
+{
+  "name": "opencode-delegation-liveness",
+  "version": "1.0.0",
+  "description": "Delegation liveness detection and progress tracking for OpenCode",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "bun test test/"
+  },
+  "keywords": ["opencode", "delegation", "liveness", "progress", "stall-detection"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}

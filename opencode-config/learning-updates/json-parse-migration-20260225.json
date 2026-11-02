@@ -1,0 +1,27 @@
+{
+  "id": "json-parse-migration-20260225",
+  "timestamp": "2026-02-25T12:00:00Z",
+  "summary": "Migrated 12 unguarded JSON.parse(fs.readFileSync()) calls to safeJsonParse/safeJsonReadSync from opencode-safe-io across 12 consumer packages. Removed local safeJsonParse in meta-awareness-tracker. Added 6 regression tests.",
+  "affected_paths": [
+    "packages/opencode-feature-flags/src/index.js",
+    "packages/opencode-plugin-lifecycle/src/index.js",
+    "packages/opencode-model-router-x/src/thompson-sampling-router.js",
+    "packages/opencode-model-router-x/src/dynamic-exploration-controller.js",
+    "packages/opencode-learning-engine/src/meta-awareness-tracker.js",
+    "packages/opencode-learning-engine/src/tool-usage-tracker.js",
+    "packages/opencode-learning-engine/src/positive-patterns.js",
+    "packages/opencode-plugin-healthd/src/checks.js",
+    "packages/opencode-proofcheck/src/checks.js",
+    "packages/opencode-runbooks/src/remedies.js",
+    "packages/opencode-plugin-preload-skills/src/tier-resolver.js",
+    "packages/opencode-dashboard-launcher/src/index.js",
+    "packages/opencode-safe-io/test/index.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium",
+  "persistence": "core"
+}

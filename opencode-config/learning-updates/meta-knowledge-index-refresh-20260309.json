@@ -1,0 +1,14 @@
+{
+  "id": "meta-knowledge-index-refresh-20260309",
+  "timestamp": "2026-03-09T23:15:00-04:00",
+  "summary": "Refresh the generated meta-knowledge index so it includes the latest governed learning updates for observability and runtime telemetry work.",
+  "affected_paths": [
+    "opencode-config/meta-knowledge-index.json"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

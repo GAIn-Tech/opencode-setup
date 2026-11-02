@@ -1,0 +1,59 @@
+name: Performance Regression
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'packages/**'
+      - 'scripts/perf/**'
+      - 'scripts/perf-baseline.mjs'
+      - 'scripts/perf/baselines/**'
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'packages/**'
+      - 'scripts/perf/**'
+      - 'scripts/perf-baseline.mjs'
+      - 'scripts/perf/baselines/**'
+
+permissions:
+  contents: read
+
+jobs:
+  # ─── Job: Performance regression check ────────────────────
+  perf-regression:
+    name: Performance Regression Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.10'
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run performance regression check
+        run: bun run scripts/perf-baseline.mjs --check --verbose
+        id: perf_check
+
+      - name: Write performance summary
+        if: always()
+        run: |
+          {
+            echo "## Performance Regression Check"
+            echo
+            echo "Outcome: ${{ steps.perf_check.outcome }}"
+            echo "Baseline file: scripts/perf/baselines/current.json"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload performance results on failure
+        if: failure() && steps.perf_check.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-regression-results
+          path: scripts/perf/baselines/
+          retention-days: 30

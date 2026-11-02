@@ -1,0 +1,18 @@
+{
+  "id": "fallback-layer-strategy-complete-20260215",
+  "timestamp": "2026-02-15T22:00:00Z",
+  "category": "architecture",
+  "summary": "Completed fallback-layer-strategy.js MODEL_CATALOG with all providers and models",
+  "details": "Fixed MODEL_CATALOG with comprehensive coverage: Added OpenAI (gpt-4o, gpt-4o-mini, o1), DeepSeek (chat, coder), complete Anthropic suite (opus/sonnet/haiku 4-6 and 4-5). Corrected NVIDIA llama-3.1→llama-3.3-70b. Fixed null values with actual models. Removed provider mismatches (claude/gemini in wrong layers). All 7 providers now properly represented.",
+  "affected_paths": [
+    "packages/opencode-model-router-x/src/strategies/fallback-layer-strategy.js"
+  ],
+  "impact": "High - MODEL_CATALOG now has complete cross-provider coverage enabling proper fallback routing",
+  "validation": {
+    "tests": "not-run",
+    "lint": "pass",
+    "typecheck": "pass",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "skillsrl-api-fixes-20260215",
+  "timestamp": "2026-02-15T19:30:00Z",
+  "summary": "Stabilized Skills RL backend APIs with contracts normalization and missing /api/rl endpoint creation.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/rl/route.ts",
+    "packages/opencode-dashboard/src/app/api/skills/route.ts",
+    "packages/opencode-dashboard/src/app/api/learning/route.ts"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "pass",
+    "typecheck": "pass"
+  },
+  "risk_level": "low",
+  "notes": "Created /api/rl endpoint for RL system state, fixed /api/skills contract (tuple decoding, evolution keys removed), hardened /api/learning with exists checks."
+}

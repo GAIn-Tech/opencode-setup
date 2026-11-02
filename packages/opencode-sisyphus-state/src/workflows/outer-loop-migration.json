@@ -1,0 +1,86 @@
+{
+  "name": "outer-loop-migration",
+  "version": "1.0.0",
+  "description": "Governed code migration workflow — analyzes codebase, converts code, runs tests, validates, creates PR",
+  "pe_roles": ["planner", "executor", "verifier"],
+  "policy": {
+    "max_retries": 3,
+    "backoff_ms": 5000,
+    "timeout_ms": 900000,
+    "budget_enforcement": true,
+    "sandbox_enforcement": true,
+    "parallel_concurrency": 4
+  },
+  "steps": [
+    {
+      "id": "analyze-codebase",
+      "type": "read",
+      "description": "Analyze codebase for migration targets and dependencies",
+      "pe_role": "planner",
+      "input": {
+        "source": "codebase_scan",
+        "include_dependencies": true,
+        "include_imports": true
+      }
+    },
+    {
+      "id": "plan-migration",
+      "type": "edit",
+      "description": "Create migration plan with file-by-file conversion strategy",
+      "pe_role": "planner",
+      "input": {
+        "output_format": "migration-plan.json",
+        "include_risk_assessment": true
+      }
+    },
+    {
+      "id": "convert-files",
+      "type": "parallel-for",
+      "description": "Convert files according to migration plan",
+      "pe_role": "executor",
+      "foreach": "${migration_plan.files}",
+      "parallel_controls": {
+        "fanout_limit": 20,
+        "concurrency_limit": 4,
+        "min_items_for_parallel": 5
+      },
+      "input": {
+        "conversion_strategy": "automated",
+        "preserve_comments": true
+      }
+    },
+    {
+      "id": "run-tests",
+      "type": "bash",
+      "description": "Run full test suite to verify migration",
+      "pe_role": "verifier",
+      "input": {
+        "command": "bun test"
+      }
+    },
+    {
+      "id": "validate-migration",
+      "type": "verify",
+      "description": "Validate migration completeness and correctness",
+      "pe_role": "verifier",
+      "input": {
+        "validation_methods": ["static_analysis", "llm_judge"],
+        "check_for_remaining_old_patterns": true
+      }
+    },
+    {
+      "id": "create-pr",
+      "type": "bash",
+      "description": "Create PR with migration changes",
+      "pe_role": "executor",
+      "input": {
+        "command": "gh pr create --title 'Migration: $MIGRATION_TYPE' --body-file migration-report.md"
+      }
+    }
+  ],
+  "outputs": ["migration_plan", "converted_files", "test_results", "validation_results", "pr_url"],
+  "metadata": {
+    "author": "opencode",
+    "tags": ["outer-loop", "migration", "automation", "governed"]
+  }
+}

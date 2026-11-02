@@ -3,6 +3,7 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const { safeJsonParse } = require('opencode-safe-io');
 
 /**
  * Execute a shell command and capture result.
@@ -42,7 +43,7 @@ function detectProject(cwd) {
 
   if (fs.existsSync(pkgPath)) {
     try {
-      packageJson = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+      packageJson = safeJsonParse(fs.readFileSync(pkgPath, 'utf-8'), null, 'proofcheck-package-json');
       hasNode = true;
     } catch { /* malformed package.json */ }
   }
@@ -237,7 +238,7 @@ function checkSecurity(opts = {}) {
 function checkBranchSync(opts = {}) {
   const { cwd = process.cwd() } = opts;
 
-  const fetchResult = exec('git fetch --dry-run 2>&1', { cwd });
+  exec('git fetch --dry-run 2>&1', { cwd });
   const statusResult = exec('git status -sb', { cwd });
 
   if (statusResult.exitCode !== 0) {

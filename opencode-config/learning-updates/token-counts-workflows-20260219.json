@@ -1,0 +1,29 @@
+{
+  "id": "token-counts-workflows-20260219",
+  "timestamp": "2026-02-19T02:30:00.000Z",
+  "date": "2026-02-19",
+  "type": "feature",
+  "component": "opencode-dashboard",
+  "summary": "Add token counts to workflow runs in dashboard",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/runs/route.ts",
+    "packages/opencode-dashboard/src/app/page.tsx",
+    "packages/opencode-dashboard/src/components/dashboard/WorkflowTree.tsx",
+    "packages/opencode-dashboard/src/lib/provider-status-store.ts"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "pass",
+    "typecheck": "pass",
+    "build": "pass"
+  },
+  "risk_level": "low",
+  "changes": [
+    "Add session token aggregation in provider-status-store",
+    "Add session_tokens field to WorkflowRun type",
+    "Join token data with runs in /api/runs endpoint",
+    "Display token counts in WorkflowTree UI (tokens badge)"
+  ],
+  "impact": "Enables token tracking per session in the workflows section",
+  "learning": "Learned that oh-my-opencode is a Claude Code plugin that doesn't expose token usage to plugins. Instead of modifying core, we added token tracking infrastructure to the dashboard that can be populated via API calls. This is a non-breaking approach that works with any token reporting."
+}

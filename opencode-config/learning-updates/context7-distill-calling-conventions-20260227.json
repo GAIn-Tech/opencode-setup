@@ -1,0 +1,17 @@
+{
+  "id": "context7-distill-calling-conventions-20260227",
+  "timestamp": "2026-02-27T00:03:00Z",
+  "summary": "Add explicit Context7 and Distill MCP tool calling conventions to the 3 most impactful skill files. research-builder/SKILL.md now has concrete mcp_context7_resolve-library-id and mcp_context7_query-docs steps (replaces vague 'Use Context7 for library docs'). budget-aware-router/SKILL.md now has Phase 3a with mcp_distill_browse_tools and mcp_distill_run_tool steps including cold-start warning. system-prompts.md has a new 'Context Management MCP Tools' section with global rules for when to trigger each tool.",
+  "affected_paths": [
+    "opencode-config/skills/research-builder/SKILL.md",
+    "opencode-config/skills/budget-aware-router/SKILL.md",
+    "system-prompts.md"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "All 3 acceptance criteria verified: resolve-library-id found in research-builder, mcp_distill found in budget-aware-router, both tool names in system-prompts.md. Pure documentation edits, zero code risk."
+}

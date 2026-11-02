@@ -1,0 +1,25 @@
+{
+  "name": "opencode-setup",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": ".."
+  },
+  "workspaceFolder": "/app",
+  "postCreateCommand": "bun run setup",
+  "postStartCommand": "OPENCODE_VERIFY_ENV_PROFILE=none bun run verify",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "files.eol": "\n"
+      }
+    }
+  },
+  "mounts": [
+    "source=opencode-node-modules,target=/app/node_modules,type=volume"
+  ],
+  "remoteEnv": {
+    "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}",
+    "TAVILY_API_KEY": "${localEnv:TAVILY_API_KEY}",
+    "SUPERMEMORY_API_KEY": "${localEnv:SUPERMEMORY_API_KEY}"
+  }
+}

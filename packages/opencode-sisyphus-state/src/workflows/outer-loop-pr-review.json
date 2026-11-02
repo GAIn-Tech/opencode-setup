@@ -1,0 +1,59 @@
+{
+  "name": "outer-loop-pr-review",
+  "version": "1.0.0",
+  "description": "Autonomous PR review workflow — analyzes PR, generates suggestions, posts comment",
+  "pe_roles": ["planner", "executor", "verifier"],
+  "policy": {
+    "max_retries": 2,
+    "backoff_ms": 2000,
+    "timeout_ms": 300000,
+    "budget_enforcement": true,
+    "sandbox_enforcement": true
+  },
+  "steps": [
+    {
+      "id": "analyze-pr",
+      "type": "read",
+      "description": "Read PR diff and context",
+      "pe_role": "planner",
+      "input": {
+        "source": "github_pr",
+        "include_diff": true,
+        "include_comments": true
+      }
+    },
+    {
+      "id": "generate-review",
+      "type": "edit",
+      "description": "Generate review suggestions",
+      "pe_role": "executor",
+      "input": {
+        "output_format": "markdown",
+        "categories": ["code_quality", "security", "performance", "architecture"]
+      }
+    },
+    {
+      "id": "validate-suggestions",
+      "type": "verify",
+      "description": "Validate review suggestions against codebase",
+      "pe_role": "verifier",
+      "input": {
+        "validation_methods": ["static_analysis", "llm_judge"]
+      }
+    },
+    {
+      "id": "post-comment",
+      "type": "bash",
+      "description": "Post review comment to PR",
+      "pe_role": "executor",
+      "input": {
+        "command": "gh pr comment $PR_NUMBER --body-file review.md"
+      }
+    }
+  ],
+  "outputs": ["review_comment", "validation_results"],
+  "metadata": {
+    "author": "opencode",
+    "tags": ["outer-loop", "pr-review", "automation"]
+  }
+}

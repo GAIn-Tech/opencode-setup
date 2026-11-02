@@ -1,0 +1,16 @@
+{
+  "id": "learning-gate-hash-refresh-ordering-20260312",
+  "timestamp": "2026-03-12T22:45:00Z",
+  "summary": "Refresh governance hashes after post-validation meta-KB synthesis so verify-hashes sees the current tracked baseline and the warning-free path stays stable.",
+  "affected_paths": [
+    "scripts/learning-gate.mjs",
+    "scripts/tests/learning-gate-hash-refresh.test.js",
+    "opencode-config/learning-updates/learning-gate-hash-refresh-ordering-20260312.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

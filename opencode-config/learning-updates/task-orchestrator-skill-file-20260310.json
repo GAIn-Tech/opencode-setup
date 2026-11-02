@@ -1,0 +1,14 @@
+{
+  "id": "task-orchestrator-skill-file-20260310",
+  "timestamp": "2026-03-10T00:18:00-04:00",
+  "summary": "Add the missing task-orchestrator skill file so the registered orchestration meta-skill has an on-disk definition and passes skill-system audit checks.",
+  "affected_paths": [
+    "opencode-config/skills/task-orchestrator/SKILL.md"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

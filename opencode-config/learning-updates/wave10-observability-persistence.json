@@ -1,0 +1,18 @@
+{
+  "id": "wave10-observability-persistence",
+  "timestamp": "2026-03-08T22:35:00Z",
+  "summary": "Add opt-in Langfuse tracing to opencode-logger (WARN+ levels) and SQLite daily-metrics persistence to pipeline metrics collector (bun:sqlite with better-sqlite3 fallback)",
+  "affected_paths": [
+    "packages/opencode-logger/src/index.js",
+    "packages/opencode-model-manager/src/monitoring/metrics-collector.js"
+  ],
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "wave": "10",
+  "phase": 2,
+  "tasks": ["T9", "T14"]
+}

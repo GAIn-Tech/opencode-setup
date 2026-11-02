@@ -1,0 +1,14 @@
+{
+  "task": "task-6-ci",
+  "phase": "red",
+  "description": "Bootstrap CI scenario tests fail before workflow implementation",
+  "command": "bun test scripts/tests/bootstrap-ci-scenarios.test.js",
+  "result": {
+    "status": "failed",
+    "evidence": [
+      "Expected: true Received: false",
+      "workflow file missing: .github/workflows/bootstrap-readiness.yml",
+      "0 pass, 5 fail"
+    ]
+  }
+}

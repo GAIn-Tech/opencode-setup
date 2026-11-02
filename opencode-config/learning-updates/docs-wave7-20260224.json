@@ -1,0 +1,16 @@
+{
+  "id": "docs-wave7-20260224",
+  "timestamp": "2026-02-24T09:00:00Z",
+  "summary": "Added comprehensive secrets and rollback documentation",
+  "affected_paths": [
+    "packages/opencode-model-manager/SECRETS.md",
+    "packages/opencode-model-manager/ROLLBACK.md"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Wave 7.4: Documentation for secrets configuration and rollback procedures."
+}

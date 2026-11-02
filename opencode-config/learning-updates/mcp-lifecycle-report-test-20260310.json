@@ -1,0 +1,14 @@
+{
+  "id": "mcp-lifecycle-report-test-20260310",
+  "timestamp": "2026-03-10T01:41:00-04:00",
+  "summary": "Add a regression test for the generated MCP lifecycle report so current live inventory expectations stay aligned with the reporting script.",
+  "affected_paths": [
+    "scripts/tests/mcp-lifecycle-report.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

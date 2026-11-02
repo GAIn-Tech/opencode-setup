@@ -1,0 +1,107 @@
+[
+  {
+    "id": "byz-debug-vs-plan",
+    "scenarioId": "cross-domain-ambiguity",
+    "taskText": "debug why our implementation plan keeps failing at step 3 — need root cause before we rewrite the plan",
+    "expectedDomain": "debugging",
+    "expectedTopSkill": "systematic-debugging",
+    "notes": "Mentions 'plan' but core action is debugging; should not route to planning domain"
+  },
+  {
+    "id": "byz-three-way-debug",
+    "scenarioId": "intra-domain-ambiguity",
+    "taskText": "diagnose a complex multi-file bug with self-healing and structured triage across three services",
+    "expectedDomain": "debugging",
+    "notes": "code-doctor, systematic-debugging, and incident-commander all match; any is acceptable within debugging domain"
+  },
+  {
+    "id": "byz-brainstorm-vs-plan",
+    "scenarioId": "intra-domain-ambiguity",
+    "taskText": "help me think through and spec out the new auth system before we code",
+    "expectedDomain": "planning",
+    "notes": "Both brainstorming ('think through') and writing-plans ('spec out', 'before we code') match; either acceptable"
+  },
+  {
+    "id": "byz-orchestrator-collision",
+    "scenarioId": "orchestration-ambiguity",
+    "taskText": "which skill should I use for this ambiguous cross-domain multi-step task",
+    "expectedDomain": "orchestration",
+    "notes": "task-orchestrator and skill-orchestrator-runtime triggers both fire; both live in orchestration domain"
+  },
+  {
+    "id": "byz-browser-conflict",
+    "scenarioId": "conflict-pair",
+    "taskText": "go to url and fill form to browse website and click button",
+    "notes": "dev-browser and agent-browser are known conflicts; both trigger sets match heavily. Routing should pick one consistently."
+  },
+  {
+    "id": "byz-impl-plus-verify",
+    "scenarioId": "cross-phase",
+    "taskText": "implement this feature with TDD then verify before done and check completion gates before PR",
+    "expectedDomain": "testing",
+    "expectedTopSkill": "test-driven-development",
+    "notes": "Spans implementation→verification phases; first action (TDD) should dominate routing"
+  },
+  {
+    "id": "byz-plan-then-execute",
+    "scenarioId": "cross-phase",
+    "taskText": "write a plan for the migration then start implementation following the plan",
+    "expectedDomain": "planning",
+    "expectedTopSkill": "writing-plans",
+    "notes": "Spans pre-analysis→implementation; first action (plan) should win over execution"
+  },
+  {
+    "id": "byz-no-match",
+    "scenarioId": "cold-start",
+    "taskText": "deploy the staging environment and rotate secrets in vault",
+    "notes": "No skill triggers match deployment/secrets management; should produce low confidence or no match"
+  },
+  {
+    "id": "byz-meta-skill-about-skills",
+    "scenarioId": "meta-recursion",
+    "taskText": "create a new skill for incident response and write skill tests",
+    "expectedTopSkill": "writing-skills",
+    "notes": "'new skill' / 'write skill' should route to writing-skills, not incident-commander despite 'incident response'"
+  },
+  {
+    "id": "byz-code-review-direction",
+    "scenarioId": "intra-domain-ambiguity",
+    "taskText": "ready for review — received feedback on PR, need to address review comments before merge",
+    "notes": "Both requesting-code-review ('ready for review') and receiving-code-review ('received feedback', 'review comments') trigger; routing must choose direction"
+  },
+  {
+    "id": "byz-debug-with-tdd",
+    "scenarioId": "cross-domain-ambiguity",
+    "taskText": "fix failing test by adding tests first using TDD to reproduce the bug and find root cause",
+    "expectedDomain": "debugging",
+    "expectedTopSkill": "systematic-debugging",
+    "notes": "TDD mentioned but primary intent is debugging a failure; should not route to testing/TDD"
+  },
+  {
+    "id": "byz-research-or-brainstorm",
+    "scenarioId": "cross-domain-ambiguity",
+    "taskText": "deep research into approaches before implementation — let's brainstorm and investigate",
+    "expectedDomain": "planning",
+    "expectedTopSkill": "brainstorming",
+    "notes": "research-builder and brainstorming both match; brainstorming has stronger trigger match ('let's brainstorm')"
+  },
+  {
+    "id": "byz-git-in-debug-context",
+    "scenarioId": "tool-vs-process",
+    "taskText": "commit the fix after debugging is done, then rebase and squash",
+    "expectedTopSkill": "git-master",
+    "notes": "'debugging' appears but core action is git operations (commit/rebase/squash)"
+  },
+  {
+    "id": "byz-parallel-subagent-overlap",
+    "scenarioId": "orchestration-ambiguity",
+    "taskText": "complex implementation needing parallel tasks with multiple agents to delegate work concurrently",
+    "notes": "dispatching-parallel-agents ('parallel tasks', 'multiple agents') and subagent-driven-development ('complex implementation', 'delegate work') both match heavily"
+  },
+  {
+    "id": "byz-ui-with-testing",
+    "scenarioId": "cross-domain-ambiguity",
+    "taskText": "build UI component with TDD — design component first then add tests and implement feature",
+    "notes": "frontend-ui-ux ('build UI', 'design component') vs test-driven-development ('TDD', 'add tests first', 'implement feature'); ambiguous primary intent"
+  }
+]

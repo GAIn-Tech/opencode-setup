@@ -1,0 +1,35 @@
+{
+  "id": "model-routing-and-environment-hardening-2-22-2026",
+  "timestamp": "2026-02-22T17:30:00Z",
+  "summary": "Further harden model routing and environment configuration with post-mid-2025 policy alignment, resiliency improvements, and Symbiotic reference cleanup.",
+  "affected_paths": [
+    "README.md",
+    "setup-instructions.md",
+    "opencode-config/models/catalog-2026.json",
+    "opencode-config/opencode.json",
+    "opencode-config/oh-my-opencode.json",
+    "opencode-config/rate-limit-fallback.json",
+    "packages/opencode-model-router-x/src/model-discovery.js",
+    "packages/opencode-model-router-x/src/policies.json",
+    "packages/opencode-model-router-x/src/strategies/fallback-layer-strategy.js",
+    "packages/opencode-model-router-x/src/thompson-sampling-router.js",
+    "rate-limit-fallback.json",
+    "scripts/copy-config.mjs",
+    "scripts/health-check.mjs",
+    "scripts/install-git-hooks.mjs",
+    "scripts/resolve-root.mjs",
+    "scripts/smoke-pipeline.mjs",
+    "scripts/sync-model-ids.js",
+    "scripts/validate-config-coherence.mjs",
+    "scripts/validate-fallback-consistency.mjs",
+    "scripts/validate-models.mjs"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "scripts": "validate-models.mjs, validate-config-coherence.mjs, validate-fallback-consistency.mjs, health-check.mjs"
+  },
+  "risk_level": "low",
+  "notes": "Updated model configurations to post-mid-2025 policy with expanded backup coverage. Remapped provider ownership (MiniMax M2.5 under Zen, DeepSeek V3.2 under NVIDIA). Implemented resiliency hardening in scripts with command resolution fallbacks, profile-based env checks, per-step timeouts, and executable verification. Added atomic staged config sync with rollback/swap semantics. Fixed Google provider env placeholder consistency. Removed remaining Symbiotic security plugin references from documentation. All validation scripts pass with 0 failures, 0 warnings."
+}

@@ -1,0 +1,30 @@
+{
+  "id": "prototype-pollution-fix-20260225",
+  "timestamp": "2026-02-25T00:00:00Z",
+  "summary": "Security hardening: prevent prototype pollution in plugin lifecycle supervisor",
+  "affected_paths": [
+    "packages/opencode-plugin-lifecycle/src/index.js",
+    "packages/opencode-plugin-lifecycle/test/prototype-pollution.test.js",
+    "packages/opencode-dashboard/src/app/api/plugin-supervisor/route.ts",
+    "packages/opencode-dashboard/src/app/api/_lib/write-access.ts"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium",
+  "details": {
+    "vulnerability": "Prototype pollution via user-controlled plugin names (__proto__, prototype, constructor)",
+    "fix": "Object.create(null) for state storage, setPluginState() with key sanitization, auth gate on POST route",
+    "changes": [
+      "State object uses null prototype (no prototype chain to pollute)",
+      "setPluginState() rejects __proto__, prototype, constructor keys",
+      "Plugin name validation: string, 1-100 chars, /^[a-zA-Z0-9_-]+$/ only",
+      "_load() filters dangerous keys from persisted state",
+      "POST /api/plugin-supervisor requires lifecycle:manage permission",
+      "lifecycle:manage added to admin and operator ROLE_MATRIX"
+    ],
+    "regression_test": "11 security tests covering injection attempts, validation, and null prototype verification"
+  }
+}

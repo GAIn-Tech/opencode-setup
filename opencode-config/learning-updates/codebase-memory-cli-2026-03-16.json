@@ -1,0 +1,16 @@
+{
+  "id": "codebase-memory-cli-2026-03-16",
+  "timestamp": "2026-03-16T21:00:00Z",
+  "summary": "Implemented CLI (cli.mjs) for opencode-codebase-memory with 8 commands: analyze, query, context, impact, detect-changes, list-repos, health, enrich-error. All output is JSON to stdout. Exits 0 on success, 1 on error with JSON error on stderr. Added CODEBASE_MEMORY_STATE_DIR env var support to index.js constructor for test isolation. 18 CLI subprocess tests via Bun.spawn covering all commands, flags, error paths, and unknown command handling.",
+  "affected_paths": [
+    "packages/opencode-codebase-memory/src/cli.mjs",
+    "packages/opencode-codebase-memory/src/index.js",
+    "packages/opencode-codebase-memory/test/cli.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

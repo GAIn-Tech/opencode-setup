@@ -1,0 +1,15 @@
+{
+  "id": "pre-commit-restaging-fix-20260312",
+  "timestamp": "2026-03-12T15:20:00Z",
+  "summary": "Re-stage meta knowledge index and governance hashes in the pre-commit hook after learning-gate mutates them, preventing dirty working trees after governed commits.",
+  "affected_paths": [
+    ".githooks/pre-commit",
+    "scripts/tests/pre-commit-learning-gate.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

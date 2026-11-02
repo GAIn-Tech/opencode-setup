@@ -1,0 +1,20 @@
+{
+  "id": "portable-setup-transfer-20260215",
+  "timestamp": "2026-02-15T18:55:00Z",
+  "summary": "Hardened setup transfer portability by adding cross-platform config sync, path-safe script root resolution, and portable MCP manifest generation.",
+  "affected_paths": [
+    "scripts/copy-config.mjs",
+    "scripts/generate-mcp-config.mjs",
+    "scripts/health-check.mjs",
+    "scripts/link-packages.mjs",
+    "scripts/verify-setup.mjs",
+    "mcp-servers/tool-manifest.json"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Kept behavior non-breaking while removing machine-specific assumptions in setup transfer flow."
+}

@@ -1,0 +1,16 @@
+{
+  "id": "opencode-beads-portability-20260312",
+  "timestamp": "2026-03-12T23:20:00Z",
+  "summary": "Require the bd CLI whenever opencode-beads is configured so strict portability/setup catches missing local beads dependencies.",
+  "affected_paths": [
+    "scripts/verify-portability.mjs",
+    "scripts/tests/verify-portability.test.js",
+    "opencode-config/learning-updates/opencode-beads-portability-20260312.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

@@ -1,0 +1,14 @@
+{
+  "name": "opencode-runtime-authority",
+  "version": "1.0.0",
+  "description": "Single source of truth for runtime agent/category/model resolution with provenance tracking",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "bun test test/"
+  },
+  "keywords": ["opencode", "runtime", "authority", "model-routing", "config"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}

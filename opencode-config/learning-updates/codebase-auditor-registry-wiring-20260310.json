@@ -1,0 +1,16 @@
+{
+  "id": "codebase-auditor-registry-wiring-20260310",
+  "timestamp": "2026-03-10T11:57:00-04:00",
+  "summary": "Register codebase-auditor in the skill registry, enable it in compound-engineering, and add orchestrator triggers for comprehensive system audit tasks.",
+  "affected_paths": [
+    "opencode-config/skills/registry.json",
+    "opencode-config/compound-engineering.json",
+    "opencode-config/skills/skill-orchestrator-runtime/SKILL.md"
+  ],
+  "risk_level": "medium",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

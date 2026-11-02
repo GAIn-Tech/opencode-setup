@@ -1,0 +1,23 @@
+Wave 4A Batch A — T23, T24, T25 — Complete
+============================================
+Date: 2026-03-18
+
+Git Log (Wave 4A commits):
+b12e5a7 fix(dashboard): replace hardcoded breadth denominator with dynamic tool count
+1c66fe1 fix(model-router): read skill success_rate (snake_case) to match SkillBank output
+307293a fix(integration-layer): dual-write taskType and task_type for backward compat
+
+Bonus (pre-existing, committed in prior session):
+a81d6a0 fix(metrics): rename recordDiscovery to recordSkillSelection to avoid shadowing provider discovery API
+
+bun test result:
+- Exit code: 0
+- Output: 229 lines (matches baseline)
+- E2E scenarios: 4/4 passed (high-impact evidence, low-impact skip, failure distill, full workflow)
+- ALL E2E TESTS PASSED
+- 0 failures
+
+Summary:
+- T23: taskType/task_type dual-write in normalizeTaskContext/enrichTaskContext — both keys now present
+- T24: ModelRouter skillBoost reads success_rate (snake_case) matching SkillBank output; removed dead recommendedModels references
+- T25: tool-usage/route.ts breadth denominator replaced with TOOL_CATALOG_COUNT=59 from AVAILABLE_TOOLS catalog

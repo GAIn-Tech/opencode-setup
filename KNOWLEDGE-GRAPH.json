@@ -1,0 +1,478 @@
+{
+  "metadata": {
+    "generated": "2026-02-24",
+    "version": "1.0.0",
+    "description": "OpenCode ecosystem knowledge graph for navigation and impact analysis",
+    "node_count": 0,
+    "edge_count": 0
+  },
+  "nodes": [
+    {
+      "id": "pkg:opencode-logger",
+      "type": "package",
+      "category": "infrastructure",
+      "name": "opencode-logger",
+      "path": "packages/opencode-logger",
+      "dependencies": 0,
+      "dependents": "all (implicit)",
+      "module_type": "module",
+      "has_tests": true,
+      "documentation": ["packages/opencode-logger/README.md"]
+    },
+    {
+      "id": "pkg:opencode-errors",
+      "type": "package",
+      "category": "infrastructure",
+      "name": "opencode-errors",
+      "path": "packages/opencode-errors",
+      "dependencies": 0,
+      "dependents": "all (implicit)",
+      "module_type": "module",
+      "has_tests": true,
+      "documentation": ["packages/opencode-errors/README.md"]
+    },
+    {
+      "id": "pkg:opencode-model-manager",
+      "type": "package",
+      "category": "model-management",
+      "name": "opencode-model-manager",
+      "path": "packages/opencode-model-manager",
+      "dependencies": 0,
+      "dependents": ["pkg:opencode-dashboard"],
+      "module_type": "internal-library",
+      "has_package_json": false,
+      "has_tests": true,
+      "test_count": 320,
+      "assertion_count": 1845,
+      "documentation": [
+        "packages/opencode-model-manager/README.md",
+        "packages/opencode-model-manager/ROLLBACK.md",
+        "packages/opencode-model-manager/SECRETS.md",
+        "packages/opencode-model-manager/AGENTS.md",
+        "docs/model-management/ARCHITECTURE.md",
+        "docs/model-management/API-REFERENCE.md",
+        "docs/model-management/OPERATIONS.md",
+        "docs/model-management/TROUBLESHOOTING.md"
+      ],
+      "subdirectories": [
+        "adapters",
+        "discovery",
+        "cache",
+        "snapshot",
+        "assessment",
+        "lifecycle",
+        "metrics",
+        "monitoring",
+        "events",
+        "validation",
+        "pr"
+      ],
+      "special_files": ["audit.db", "audit.db-shm", "audit.db-wal"]
+    },
+    {
+      "id": "pkg:opencode-dashboard",
+      "type": "package",
+      "category": "monitoring",
+      "name": "opencode-dashboard",
+      "path": "packages/opencode-dashboard",
+      "dependencies": 10,
+      "dependents": [],
+      "module_type": "next-js-app",
+      "has_build_step": true,
+      "has_tests": true,
+      "documentation": [
+        "packages/opencode-dashboard/README.md",
+        "packages/opencode-dashboard/AGENTS.md"
+      ],
+      "api_routes": 40,
+      "framework": "Next.js 14"
+    },
+    {
+      "id": "pkg:opencode-sisyphus-state",
+      "type": "package",
+      "category": "state-management",
+      "name": "opencode-sisyphus-state",
+      "path": "packages/opencode-sisyphus-state",
+      "dependencies": 2,
+      "dependents": [],
+      "module_type": "commonjs",
+      "has_tests": true,
+      "file_count": 347,
+      "code_files": 13,
+      "test_artifacts": 244,
+      "documentation": [
+        "packages/opencode-sisyphus-state/README.md",
+        "packages/opencode-sisyphus-state/AGENTS.md"
+      ]
+    },
+    {
+      "id": "pkg:opencode-model-router-x",
+      "type": "package",
+      "category": "model-management",
+      "name": "opencode-model-router-x",
+      "path": "packages/opencode-model-router-x",
+      "dependencies": 9,
+      "dependents": [],
+      "module_type": "module",
+      "has_tests": true,
+      "documentation": ["packages/opencode-model-router-x/README.md"]
+    },
+    {
+      "id": "pkg:opencode-integration-layer",
+      "type": "package",
+      "category": "testing",
+      "name": "opencode-integration-layer",
+      "path": "packages/opencode-integration-layer",
+      "dependencies": 0,
+      "peer_dependencies": 3,
+      "dependents": [],
+      "module_type": "module",
+      "has_tests": true,
+      "test_files": 138,
+      "code_files": 5,
+      "test_to_code_ratio": "27:1",
+      "documentation": [
+        "packages/opencode-integration-layer/README.md",
+        "packages/opencode-integration-layer/AGENTS.md"
+      ]
+    },
+    {
+      "id": "pkg:opencode-learning-engine",
+      "type": "package",
+      "category": "orchestration",
+      "name": "opencode-learning-engine",
+      "path": "packages/opencode-learning-engine",
+      "dependencies": 0,
+      "dependents": ["pkg:opencode-model-router-x", "pkg:opencode-integration-layer"],
+      "module_type": "module",
+      "has_tests": true,
+      "documentation": ["packages/opencode-learning-engine/README.md"]
+    },
+    {
+      "id": "pkg:opencode-config-loader",
+      "type": "package",
+      "category": "infrastructure",
+      "name": "opencode-config-loader",
+      "path": "packages/opencode-config-loader",
+      "dependencies": 0,
+      "dependents": ["pkg:opencode-dashboard-launcher", "pkg:opencode-model-router-x"],
+      "module_type": "commonjs",
+      "has_tests": true,
+      "documentation": ["packages/opencode-config-loader/README.md"]
+    },
+    {
+      "id": "pkg:opencode-crash-guard",
+      "type": "package",
+      "category": "infrastructure",
+      "name": "opencode-crash-guard",
+      "path": "packages/opencode-crash-guard",
+      "dependencies": 0,
+      "dependents": ["pkg:opencode-feature-flags"],
+      "module_type": "commonjs",
+      "has_tests": true,
+      "documentation": ["packages/opencode-crash-guard/README.md"],
+      "anti_patterns": ["Bun v1.3.x ENOENT segfault"]
+    },
+    {
+      "id": "dir:scripts",
+      "type": "directory",
+      "category": "infrastructure",
+      "name": "scripts",
+      "path": "scripts",
+      "file_count": 55,
+      "script_count": 32,
+      "subdirectories": ["governance", "ops", "security", "evals", "fault", "frontier", "perf", "replay"],
+      "documentation": ["scripts/AGENTS.md"]
+    },
+    {
+      "id": "dir:opencode-config",
+      "type": "directory",
+      "category": "configuration",
+      "name": "opencode-config",
+      "path": "opencode-config",
+      "file_count": 150,
+      "subdirectories": ["agents", "skills", "commands", "models", "learning-updates", "docs", "supermemory"],
+      "config_files": ["opencode.json", "central-config.json", "oh-my-opencode.json", "compound-engineering.json"],
+      "documentation": ["opencode-config/AGENTS.md"]
+    },
+    {
+      "id": "dir:local-oh-my-opencode",
+      "type": "directory",
+      "category": "plugin",
+      "name": "local/oh-my-opencode",
+      "path": "local/oh-my-opencode",
+      "file_count": 2187,
+      "code_files": 2060,
+      "agents_md_count": 30,
+      "documentation": ["local/oh-my-opencode/AGENTS.md", "local/oh-my-opencode/README.md"]
+    },
+    {
+      "id": "script:model-rollback",
+      "type": "script",
+      "category": "model-management",
+      "name": "model-rollback.mjs",
+      "path": "scripts/model-rollback.mjs",
+      "size": "26KB",
+      "purpose": "Rollback model catalog to previous state",
+      "options": ["--to-last-good", "--to-timestamp", "--dry-run"]
+    },
+    {
+      "id": "script:validate-models",
+      "type": "script",
+      "category": "model-management",
+      "name": "validate-models.mjs",
+      "path": "scripts/validate-models.mjs",
+      "purpose": "Validate model catalog (12 checks)",
+      "timeout": "5 minutes"
+    },
+    {
+      "id": "script:health-check",
+      "type": "script",
+      "category": "monitoring",
+      "name": "health-check.mjs",
+      "path": "scripts/health-check.mjs",
+      "size": "11KB",
+      "purpose": "Comprehensive system health check"
+    },
+    {
+      "id": "script:learning-gate",
+      "type": "script",
+      "category": "governance",
+      "name": "learning-gate.mjs",
+      "path": "scripts/learning-gate.mjs",
+      "purpose": "Learning governance checks"
+    },
+    {
+      "id": "script:deployment-state",
+      "type": "script",
+      "category": "governance",
+      "name": "deployment-state.mjs",
+      "path": "scripts/deployment-state.mjs",
+      "purpose": "Deployment state management"
+    },
+    {
+      "id": "config:opencode-json",
+      "type": "config",
+      "category": "configuration",
+      "name": "opencode.json",
+      "path": "opencode-config/opencode.json",
+      "size": "116KB",
+      "purpose": "Main configuration (models, plugins, MCPs, permissions)"
+    },
+    {
+      "id": "config:central-config",
+      "type": "config",
+      "category": "configuration",
+      "name": "central-config.json",
+      "path": "opencode-config/central-config.json",
+      "size": "12KB",
+      "purpose": "Schema-validated configuration"
+    },
+    {
+      "id": "doc:root-agents-md",
+      "type": "documentation",
+      "category": "knowledge-base",
+      "name": "AGENTS.md",
+      "path": "AGENTS.md",
+      "size": "5.2KB",
+      "purpose": "Root knowledge base",
+      "sections": ["OVERVIEW", "STRUCTURE", "WHERE TO LOOK", "CONVENTIONS", "ANTI-PATTERNS", "UNIQUE STYLES", "COMMANDS"]
+    },
+    {
+      "id": "doc:ecosystem-md",
+      "type": "documentation",
+      "category": "knowledge-base",
+      "name": "ECOSYSTEM.md",
+      "path": "ECOSYSTEM.md",
+      "purpose": "Ecosystem documentation (dependencies, packages, metadata)"
+    },
+    {
+      "id": "doc:knowledge-graph",
+      "type": "documentation",
+      "category": "knowledge-base",
+      "name": "KNOWLEDGE-GRAPH.json",
+      "path": "KNOWLEDGE-GRAPH.json",
+      "purpose": "This file - navigable graph structure"
+    }
+  ],
+  "edges": [
+    {
+      "source": "pkg:opencode-dashboard",
+      "target": "pkg:opencode-model-manager",
+      "type": "IMPORTS",
+      "description": "Dashboard imports lifecycle state machine and audit logger"
+    },
+    {
+      "source": "pkg:opencode-model-router-x",
+      "target": "pkg:opencode-learning-engine",
+      "type": "DEPENDS_ON",
+      "description": "Router uses learning engine for outcome tuning"
+    },
+    {
+      "source": "pkg:opencode-model-router-x",
+      "target": "pkg:opencode-circuit-breaker",
+      "type": "DEPENDS_ON",
+      "description": "Router uses circuit breaker for fault tolerance"
+    },
+    {
+      "source": "pkg:opencode-model-router-x",
+      "target": "pkg:opencode-context-governor",
+      "type": "DEPENDS_ON",
+      "description": "Router uses context governor for token budget management"
+    },
+    {
+      "source": "pkg:opencode-model-router-x",
+      "target": "pkg:opencode-health-check",
+      "type": "DEPENDS_ON",
+      "description": "Router uses health check for monitoring"
+    },
+    {
+      "source": "pkg:opencode-model-router-x",
+      "target": "pkg:opencode-fallback-doctor",
+      "type": "DEPENDS_ON",
+      "description": "Router uses fallback doctor for validation"
+    },
+    {
+      "source": "pkg:opencode-model-router-x",
+      "target": "pkg:opencode-feature-flags",
+      "type": "DEPENDS_ON",
+      "description": "Router uses feature flags for A/B testing"
+    },
+    {
+      "source": "pkg:opencode-model-router-x",
+      "target": "pkg:opencode-config-loader",
+      "type": "DEPENDS_ON",
+      "description": "Router uses config loader for configuration"
+    },
+    {
+      "source": "pkg:opencode-feature-flags",
+      "target": "pkg:opencode-crash-guard",
+      "type": "DEPENDS_ON",
+      "description": "Feature flags use crash guard for resilience"
+    },
+    {
+      "source": "pkg:opencode-dashboard-launcher",
+      "target": "pkg:opencode-config-loader",
+      "type": "DEPENDS_ON",
+      "description": "Dashboard launcher uses config loader"
+    },
+    {
+      "source": "pkg:opencode-integration-layer",
+      "target": "pkg:opencode-learning-engine",
+      "type": "PEER_DEPENDS_ON",
+      "description": "Integration layer optionally integrates with learning engine"
+    },
+    {
+      "source": "pkg:opencode-integration-layer",
+      "target": "pkg:opencode-skill-rl-manager",
+      "type": "PEER_DEPENDS_ON",
+      "description": "Integration layer optionally integrates with skill RL manager"
+    },
+    {
+      "source": "pkg:opencode-integration-layer",
+      "target": "pkg:opencode-shared-orchestration",
+      "type": "PEER_DEPENDS_ON",
+      "description": "Integration layer optionally integrates with shared orchestration"
+    },
+    {
+      "source": "script:model-rollback",
+      "target": "pkg:opencode-model-manager",
+      "type": "EXECUTES",
+      "description": "Rollback script operates on model manager audit logs"
+    },
+    {
+      "source": "script:validate-models",
+      "target": "pkg:opencode-model-manager",
+      "type": "VALIDATES",
+      "description": "Validation script checks model catalog integrity"
+    },
+    {
+      "source": "script:learning-gate",
+      "target": "pkg:opencode-learning-engine",
+      "type": "VALIDATES",
+      "description": "Learning gate validates learning updates"
+    },
+    {
+      "source": "dir:opencode-config",
+      "target": "pkg:opencode-config-loader",
+      "type": "CONFIGURES",
+      "description": "Config directory provides configuration for config loader"
+    },
+    {
+      "source": "config:opencode-json",
+      "target": "pkg:opencode-model-manager",
+      "type": "CONFIGURES",
+      "description": "Main config defines model catalog settings"
+    },
+    {
+      "source": "doc:root-agents-md",
+      "target": "pkg:opencode-model-manager",
+      "type": "DOCUMENTS",
+      "description": "Root AGENTS.md references model manager"
+    },
+    {
+      "source": "doc:ecosystem-md",
+      "target": "pkg:opencode-model-manager",
+      "type": "DOCUMENTS",
+      "description": "Ecosystem doc provides deep dive on model manager"
+    }
+  ],
+  "queries": {
+    "description": "Common graph queries for navigation",
+    "examples": [
+      {
+        "query": "Find all packages that depend on opencode-learning-engine",
+        "cypher": "MATCH (n)-[:DEPENDS_ON]->(target {id: 'pkg:opencode-learning-engine'}) RETURN n",
+        "json_path": "$.edges[?(@.target == 'pkg:opencode-learning-engine' && @.type == 'DEPENDS_ON')].source"
+      },
+      {
+        "query": "Find all scripts that operate on model manager",
+        "cypher": "MATCH (script {type: 'script'})-[r]->(target {id: 'pkg:opencode-model-manager'}) RETURN script, r",
+        "json_path": "$.edges[?(@.target == 'pkg:opencode-model-manager' && @.source =~ /^script:/)].source"
+      },
+      {
+        "query": "Find all documentation for a package",
+        "cypher": "MATCH (doc {type: 'documentation'})-[:DOCUMENTS]->(pkg {id: 'pkg:opencode-model-manager'}) RETURN doc",
+        "json_path": "$.nodes[?(@.id == 'pkg:opencode-model-manager')].documentation"
+      },
+      {
+        "query": "Find packages with zero dependencies",
+        "cypher": "MATCH (n {type: 'package', dependencies: 0}) RETURN n",
+        "json_path": "$.nodes[?(@.type == 'package' && @.dependencies == 0)]"
+      },
+      {
+        "query": "Find packages with 3+ dependencies",
+        "cypher": "MATCH (n {type: 'package'}) WHERE n.dependencies >= 3 RETURN n",
+        "json_path": "$.nodes[?(@.type == 'package' && @.dependencies >= 3)]"
+      },
+      {
+        "query": "Find all governance scripts",
+        "cypher": "MATCH (n {type: 'script', category: 'governance'}) RETURN n",
+        "json_path": "$.nodes[?(@.type == 'script' && @.category == 'governance')]"
+      },
+      {
+        "query": "What breaks if I change opencode-config-loader?",
+        "cypher": "MATCH (n)-[:DEPENDS_ON]->(target {id: 'pkg:opencode-config-loader'}) RETURN n",
+        "json_path": "$.edges[?(@.target == 'pkg:opencode-config-loader' && @.type == 'DEPENDS_ON')].source"
+      }
+    ]
+  },
+  "categories": {
+    "package": ["infrastructure", "state-management", "model-management", "monitoring", "testing", "orchestration", "resilience", "database", "plugins", "utilities"],
+    "script": ["governance", "model-management", "monitoring", "setup", "configuration", "utilities"],
+    "directory": ["infrastructure", "configuration", "plugin"],
+    "config": ["configuration"],
+    "documentation": ["knowledge-base"]
+  },
+  "statistics": {
+    "total_packages": 34,
+    "total_scripts": 32,
+    "total_config_files": 6,
+    "total_documentation_files": 50,
+    "zero_dependency_packages": 23,
+    "high_dependency_packages": 3,
+    "test_files": 253,
+    "total_assertions": 1676,
+    "total_code_files": 5001
+  }
+}

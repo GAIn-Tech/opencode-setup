@@ -1,0 +1,15 @@
+{
+  "id": "memory-graph-copy-sync-20260313",
+  "timestamp": "2026-03-13T16:43:00Z",
+  "summary": "Keep runtime-safe copy-config sync preserving the memory-graph MCP wrapper in the host-facing user config.",
+  "affected_paths": [
+    "scripts/tests/copy-config.test.js",
+    "opencode-config/learning-updates/memory-graph-copy-sync-20260313.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

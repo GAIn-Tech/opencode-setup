@@ -1,0 +1,17 @@
+{
+  "id": "dashboard-api-docs-complete-20260308",
+  "timestamp": "2026-03-08T00:00:00Z",
+  "category": "documentation",
+  "summary": "Rewrote packages/opencode-dashboard/API.md from source: expanded from 20 to all 31 endpoints, corrected inaccurate response shapes, added SSE events, config read/write, docs browser, frontier-status, retrieval-quality, plugin-supervisor, policy-review, runs, all orchestration sub-routes, model lifecycle/audit/transition, skills promotions, status unified/providers/usage, and monitoring ingest.",
+  "affected_paths": [
+    "packages/opencode-dashboard/API.md"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [],
+    "notes": "Documentation-only change. All 31 routes verified against src/app/api/**/route.ts source files."
+  }
+}

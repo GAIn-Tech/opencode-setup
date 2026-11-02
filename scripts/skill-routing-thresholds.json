@@ -1,0 +1,11 @@
+{
+  "maxAmbiguityRate": 0.15,
+  "maxSwitchRate": 0.10,
+  "minOnePassCorrectness": 0.85,
+  "maxMedianRoutingMs": 200,
+  "maxContextBudgetOverhead": 0.05,
+  "_deferredMetrics": ["maxContextBudgetOverhead"],
+  "_notes": {
+    "maxContextBudgetOverhead": "Metric not yet computed by evaluator. Tracked for future implementation. Will warn, not enforce."
+  }
+}

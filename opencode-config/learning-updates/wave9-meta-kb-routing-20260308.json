@@ -1,0 +1,20 @@
+{
+  "id": "wave9-meta-kb-routing-20260308",
+  "timestamp": "2026-03-08T12:00:00Z",
+  "category": "tooling",
+  "summary": "Register adviceGenerated hook that adjusts routing confidence based on meta-KB anti-pattern matches and adds meta_kb_warnings/meta_kb_evidence counts to routing output",
+  "affected_paths": [
+    "packages/opencode-learning-engine/src/index.js",
+    "packages/opencode-learning-engine/test/meta-kb-routing.test.js"
+  ],
+  "root_cause": "OrchestrationAdvisor routing confidence was static and did not account for meta-KB anti-pattern evidence",
+  "fix_approach": "Register built-in adviceGenerated hook in LearningEngine constructor that queries MetaKBReader and adjusts confidence by 0.9^warnings (floor 0.1), adds meta_kb_warnings and meta_kb_evidence routing fields",
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": ["node --test packages/opencode-learning-engine/test/meta-kb-routing.test.js"],
+    "notes": "4 new tests: confidence reduction, no-match unchanged, fail-open, positive evidence. All 22 meta-KB tests pass."
+  }
+}

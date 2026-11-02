@@ -1,0 +1,39 @@
+{
+  "task": "task-6-ci",
+  "phase": "validation",
+  "validatedAt": "2026-03-31T15:30:27.073Z",
+  "checks": [
+    {
+      "name": "workflow-file-created",
+      "path": ".github/workflows/bootstrap-readiness.yml",
+      "status": "passed"
+    },
+    {
+      "name": "test-suite-green",
+      "command": "bun test scripts/tests/bootstrap-ci-scenarios.test.js",
+      "status": "passed"
+    },
+    {
+      "name": "lsp-diagnostics-bootstrap-workflow",
+      "file": ".github/workflows/bootstrap-readiness.yml",
+      "status": "passed",
+      "details": "No diagnostics found"
+    },
+    {
+      "name": "lsp-diagnostics-bootstrap-ci-test",
+      "file": "scripts/tests/bootstrap-ci-scenarios.test.js",
+      "status": "blocked",
+      "details": "Tool returned: Binary 'typescript-language-server' not found on Windows"
+    },
+    {
+      "name": "slo-threshold-enforced",
+      "constraint": "duration_seconds <= 600",
+      "status": "passed"
+    },
+    {
+      "name": "required-jobs-blocking",
+      "constraint": "no continue-on-error for fresh-clone/pull-reconcile",
+      "status": "passed"
+    }
+  ]
+}

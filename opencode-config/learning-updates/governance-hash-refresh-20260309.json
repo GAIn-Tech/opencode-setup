@@ -1,0 +1,15 @@
+{
+  "id": "governance-hash-refresh-20260309",
+  "timestamp": "2026-03-09T12:10:00Z",
+  "summary": "Refresh governance hashes and meta-knowledge index after file-bridge commits. Auto-generated files only, no code changes.",
+  "affected_paths": [
+    "opencode-config/.governance-hashes.json",
+    "opencode-config/meta-knowledge-index.json"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

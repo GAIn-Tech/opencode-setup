@@ -1,0 +1,15 @@
+{
+  "id": "codebase-memory-indexer-2026-03-16",
+  "timestamp": "2026-03-16T18:00:00Z",
+  "summary": "Implemented Indexer class for opencode-codebase-memory with incremental change detection via SHA256 content hashing. Walks directory trees, skips IGNORE_DIRS (node_modules, .git, dist, etc.), indexes supported JS/TS files via parser, stores nodes/edges/files in GraphStore. Re-indexing unchanged files is skipped. 5 tests covering directory indexing, incremental skip, modified file re-index, IGNORE_DIRS filtering, and getStats.",
+  "affected_paths": [
+    "packages/opencode-codebase-memory/src/indexer.js",
+    "packages/opencode-codebase-memory/test/indexer.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

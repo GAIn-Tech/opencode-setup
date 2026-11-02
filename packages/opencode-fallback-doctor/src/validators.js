@@ -5,44 +5,101 @@
 // Format: provider/model or provider/model/variant
 
 const KNOWN_MODELS = new Map([
-  // Anthropic
-  ['anthropic/claude-opus-4', { provider: 'anthropic', tier: 0, family: 'opus' }],
-  ['anthropic/claude-opus-4-0520', { provider: 'anthropic', tier: 0, family: 'opus' }],
-  ['anthropic/claude-sonnet-4', { provider: 'anthropic', tier: 1, family: 'sonnet' }],
-  ['anthropic/claude-sonnet-4-0514', { provider: 'anthropic', tier: 1, family: 'sonnet' }],
-  ['anthropic/claude-sonnet-4-20250514', { provider: 'anthropic', tier: 1, family: 'sonnet' }],
-  ['anthropic/claude-3.5-sonnet', { provider: 'anthropic', tier: 2, family: 'sonnet' }],
-  ['anthropic/claude-3.5-sonnet-20241022', { provider: 'anthropic', tier: 2, family: 'sonnet' }],
-  ['anthropic/claude-3-haiku', { provider: 'anthropic', tier: 3, family: 'haiku' }],
-  ['anthropic/claude-3-haiku-20240307', { provider: 'anthropic', tier: 3, family: 'haiku' }],
-  ['anthropic/claude-3.5-haiku', { provider: 'anthropic', tier: 3, family: 'haiku' }],
-  ['anthropic/claude-3.5-haiku-20241022', { provider: 'anthropic', tier: 3, family: 'haiku' }],
+  // Anthropic Claude 4.5-4.6 (2025-2026)
+  ['anthropic/claude-opus-4-6', { provider: 'anthropic', tier: 0, family: 'opus' }],
+  ['anthropic/claude-opus-4-5', { provider: 'anthropic', tier: 0, family: 'opus' }],
+  ['anthropic/claude-sonnet-4-6', { provider: 'anthropic', tier: 1, family: 'sonnet' }],
+  ['anthropic/claude-sonnet-4-5', { provider: 'anthropic', tier: 1, family: 'sonnet' }],
+  ['anthropic/claude-haiku-4-5', { provider: 'anthropic', tier: 2, family: 'haiku' }],
+  // Legacy Claude 3.5
+  ['anthropic/claude-3.5-sonnet', { provider: 'anthropic', tier: 3, family: 'sonnet' }],
+  ['anthropic/claude-3.5-haiku', { provider: 'anthropic', tier: 4, family: 'haiku' }],
 
-  // OpenAI
+  // OpenAI GPT-5 Series (2025-2026)
+  ['openai/gpt-5.3-codex', { provider: 'openai', tier: 10, family: 'gpt5' }],
+  ['openai/gpt-5.2', { provider: 'openai', tier: 10, family: 'gpt5' }],
   ['openai/gpt-5', { provider: 'openai', tier: 10, family: 'gpt5' }],
-  ['openai/gpt-5-mini', { provider: 'openai', tier: 11, family: 'gpt5' }],
-  ['openai/gpt-4.1', { provider: 'openai', tier: 10, family: 'gpt4' }],
-  ['openai/gpt-4.1-mini', { provider: 'openai', tier: 11, family: 'gpt4' }],
-  ['openai/gpt-4.1-nano', { provider: 'openai', tier: 12, family: 'gpt4' }],
-  ['openai/gpt-4o', { provider: 'openai', tier: 10, family: 'gpt4' }],
-  ['openai/gpt-4o-mini', { provider: 'openai', tier: 11, family: 'gpt4' }],
-  ['openai/o3', { provider: 'openai', tier: 10, family: 'o-series' }],
-  ['openai/o3-mini', { provider: 'openai', tier: 11, family: 'o-series' }],
-  ['openai/o4-mini', { provider: 'openai', tier: 11, family: 'o-series' }],
+  ['openai/gpt-4o', { provider: 'openai', tier: 11, family: 'gpt4' }],
+  ['openai/gpt-4o-mini', { provider: 'openai', tier: 12, family: 'gpt4' }],
+  // Legacy o-series
+  ['openai/o3', { provider: 'openai', tier: 11, family: 'o-series' }],
+  ['openai/o3-mini', { provider: 'openai', tier: 12, family: 'o-series' }],
+  ['openai/o1', { provider: 'openai', tier: 11, family: 'o-series' }],
+  ['openai/o1-mini', { provider: 'openai', tier: 12, family: 'o-series' }],
 
-  // Google Gemini
+  // Google Gemini API models (validated Mar 2026)
+  ['google/gemini-3.1-pro-preview', { provider: 'google', tier: 10, family: 'gemini' }],
+  ['google/gemini-3-pro-preview', { provider: 'google', tier: 10, family: 'gemini' }],
   ['google/gemini-2.5-pro', { provider: 'google', tier: 10, family: 'gemini' }],
+  ['google/gemini-3.1-flash-lite-preview', { provider: 'google', tier: 11, family: 'gemini' }],
+  ['google/gemini-3-flash-preview', { provider: 'google', tier: 11, family: 'gemini' }],
   ['google/gemini-2.5-flash', { provider: 'google', tier: 11, family: 'gemini' }],
-  ['google/gemini-2.0-flash', { provider: 'google', tier: 12, family: 'gemini' }],
-  ['google/gemini-2.0-flash-lite', { provider: 'google', tier: 13, family: 'gemini' }],
+  ['google/antigravity-gemini-3-pro', { provider: 'google', tier: 13, family: 'gemini' }],
+  ['google/antigravity-gemini-3-flash', { provider: 'google', tier: 13, family: 'gemini' }],
+  ['google/antigravity-gemini-3-flash-8b', { provider: 'google', tier: 14, family: 'gemini' }],
+  ['google/antigravity-claude-sonnet-4-5', { provider: 'google', tier: 14, family: 'bridge' }],
+  ['google/antigravity-claude-sonnet-4-5-thinking', { provider: 'google', tier: 14, family: 'bridge' }],
+  ['google/antigravity-claude-opus-4-6-thinking', { provider: 'google', tier: 13, family: 'bridge' }],
+  // Legacy Gemini 2.0
+  ['google/gemini-2.0-flash', { provider: 'google', tier: 16, family: 'gemini' }],
 
-  // Moonshot / Kimi
-  ['kimi/k2.5', { provider: 'kimi', tier: 10, family: 'kimi' }],
-  ['kimi/k2.5-chat', { provider: 'kimi', tier: 11, family: 'kimi' }],
+  // Groq (Meta Llama 4 - Apr 2025)
+  ['groq/llama-4-scout', { provider: 'groq', tier: 20, family: 'llama' }],
+  ['groq/llama-4-maverick', { provider: 'groq', tier: 20, family: 'llama' }],
+  ['groq/llama-3.3-70b-versatile', { provider: 'groq', tier: 21, family: 'llama' }],
+  ['groq/llama-3.1-70b-versatile', { provider: 'groq', tier: 22, family: 'llama' }],
+
+  // Cerebras (Meta Llama 4 - Apr 2025)
+  ['cerebras/llama-4-scout', { provider: 'cerebras', tier: 20, family: 'llama' }],
+  ['cerebras/llama-4-maverick', { provider: 'cerebras', tier: 20, family: 'llama' }],
+  ['cerebras/llama-3.3-70b', { provider: 'cerebras', tier: 21, family: 'llama' }],
+
+  // DeepSeek (2025)
+  ['deepseek/deepseek-chat', { provider: 'deepseek', tier: 25, family: 'deepseek' }],
+  ['deepseek/deepseek-coder', { provider: 'deepseek', tier: 25, family: 'deepseek' }],
+  ['deepseek-ai/deepseek-v3.2', { provider: 'deepseek-ai', tier: 25, family: 'deepseek' }],
+
+  // Moonshot / Kimi (2025)
+  ['kimi/k2.5', { provider: 'kimi', tier: 30, family: 'kimi' }],
+  ['kimi/k2.5-chat', { provider: 'kimi', tier: 30, family: 'kimi' }],
+
+  // Zen and NVIDIA-hosted frontier backups
+  ['zen/glm5', { provider: 'zen', tier: 31, family: 'glm' }],
+  ['zen/glm-5', { provider: 'zen', tier: 31, family: 'glm' }],
+  ['zen/kimi-k2.5-pro', { provider: 'zen', tier: 31, family: 'kimi' }],
+  ['zen/kimi-k2.5', { provider: 'zen', tier: 31, family: 'kimi' }],
+  ['zen/glm-4.7', { provider: 'zen', tier: 32, family: 'glm' }],
+  ['zen/minimax-m2.5', { provider: 'zen', tier: 32, family: 'minimax' }],
+  ['zen/minimax-m2.5-lightning', { provider: 'zen', tier: 33, family: 'minimax' }],
+  ['nvidia/moonshotai-kimi-k2.5', { provider: 'nvidia', tier: 32, family: 'kimi' }],
+  ['nvidia/z-ai-glm-5', { provider: 'nvidia', tier: 32, family: 'glm' }],
+  ['nvidia/z-ai-glm4.7', { provider: 'nvidia', tier: 33, family: 'glm' }],
+  ['nvidia/deepseek-ai-deepseek-v3.2', { provider: 'nvidia', tier: 32, family: 'deepseek' }],
+  ['moonshotai/kimi-k2.5', { provider: 'moonshotai', tier: 31, family: 'kimi' }],
+  ['z-ai/glm-5', { provider: 'z-ai', tier: 31, family: 'glm' }],
+  ['z-ai/glm4.7', { provider: 'z-ai', tier: 32, family: 'glm' }],
 ]);
 
 // Valid providers
-const VALID_PROVIDERS = new Set(['anthropic', 'openai', 'google', 'kimi', 'mistral', 'meta', 'deepseek', 'xai']);
+const VALID_PROVIDERS = new Set([
+  'anthropic',
+  'openai',
+  'google',
+  'antigravity',
+  'kimi',
+  'groq',
+  'cerebras',
+  'sambanova',
+  'mistral',
+  'meta',
+  'deepseek',
+  'deepseek-ai',
+  'xai',
+  'zen',
+  'nvidia',
+  'moonshotai',
+  'z-ai',
+]);
 
 // ─── Model Name Syntax ──────────────────────────────────────────────────────
 // Accepted formats:

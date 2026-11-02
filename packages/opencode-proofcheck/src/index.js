@@ -93,7 +93,7 @@ class Proofcheck extends EventEmitter {
   /**
    * Emit EventEmitter event and registered hook callbacks.
    * @param {string} hookName
-   * @param {any} payload
+   * @param {unknown} payload
    */
   _emitHook(hookName, payload) {
     this.emit(hookName, payload);

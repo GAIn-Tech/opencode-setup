@@ -1,0 +1,14 @@
+{
+  "id": "codebase-auditor-regression-20260310",
+  "timestamp": "2026-03-10T11:58:00-04:00",
+  "summary": "Add a regression test ensuring the codebase-auditor skill is registered, enabled, and present on disk with its paired agent surface.",
+  "affected_paths": [
+    "scripts/tests/skill-surface-regression.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

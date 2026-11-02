@@ -1,0 +1,16 @@
+{
+  "id": "context-governor-session-eviction-20260224",
+  "timestamp": "2026-02-24T00:00:00Z",
+  "summary": "Added maxSessions cap to SessionTracker to prevent unbounded Map growth",
+  "affected_paths": [
+    "packages/opencode-context-governor/src/session-tracker.js",
+    "packages/opencode-context-governor/test/session-tracker-eviction.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "TDD fix: SessionTracker now accepts { maxSessions: N } option (default: 500). When inserting a new session that would exceed the cap, the oldest (first-inserted) session is evicted. 2 new tests verify cap enforcement and FIFO eviction. All existing tests pass."
+}

@@ -1,0 +1,14 @@
+{
+  "id": "enable-browser-and-dcp-skills-20260310",
+  "timestamp": "2026-03-10T00:19:00-04:00",
+  "summary": "Enable the already-registered DCP and agent-browser skills in compound-engineering so the skill audit no longer reports registry/enablement drift.",
+  "affected_paths": [
+    "opencode-config/compound-engineering.json"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

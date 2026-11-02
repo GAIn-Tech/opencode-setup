@@ -1,0 +1,15 @@
+{
+  "id": "model-router-logging-cleanup-20260312",
+  "timestamp": "2026-03-12T15:45:00Z",
+  "summary": "Normalize model-router helper logging to prefer injected logger paths and verify the helper behavior with constructor-injection tests.",
+  "affected_paths": [
+    "packages/opencode-model-router-x/src/index.js",
+    "packages/opencode-model-router-x/test/constructor-injection.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

@@ -1,0 +1,34 @@
+{
+  "id": "skill-affinity-registry-sourced-2026-03-19",
+  "timestamp": "2026-03-19T06:55:00.000Z",
+  "summary": "Fix SKILL_AFFINITY blocker #5: replace hardcoded routing table with registry-sourced dynamic builder. Enables all 25 registry skills to appear in advise() routing recommendations automatically, eliminating need to manually update hardcoded table for new skills.",
+  "affected_paths": [
+    "packages/opencode-learning-engine/src/orchestration-advisor.js",
+    "packages/opencode-learning-engine/test/orchestration-advisor.test.js"
+  ],
+  "changes": {
+    "removed": [
+      "Global SKILL_AFFINITY constant (lines 71-83) replaced with instance-based loading"
+    ],
+    "added": [
+      "SKILL_AFFINITY_FALLBACK constant with original hardcoded map (lines 72-85)",
+      "Function _buildSkillAffinity(registryPath) at lines 90-139 that loads registry.json and builds affinity map from skill categories and triggers",
+      "Constructor loading of registry at construction time (lines 148-152)",
+      "Instance variable this.skillAffinity storing loaded affinity map",
+      "3 new test cases in orchestration-advisor.test.js: existing behavior preserved, registry map built correctly, fallback on failure"
+    ],
+    "modified": [
+      "_computeRouting() now uses this.skillAffinity instead of global SKILL_AFFINITY (line 411)",
+      "Module exports now export SKILL_AFFINITY_FALLBACK instead of global (line 577)",
+      "2 existing tests updated to use deploy instead of git (git now has 3 registry skills)"
+    ]
+  },
+  "validation": {
+    "tests": "pass",
+    "build": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "TDD cycle: RED (tests written first) → GREEN (implementation) → REFACTOR (merged with fallback). All orchestration-advisor tests pass (17/17). Registry loading verified: 217 total affinity categories (11 hardcoded + 206 from registry). Backward compatible: hardcoded categories preserved, existing tests pass with minor updates. Fail-open design: no crash on registry load failure."
+}

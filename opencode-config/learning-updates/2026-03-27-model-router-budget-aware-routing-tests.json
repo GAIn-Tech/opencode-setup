@@ -1,0 +1,15 @@
+{
+  "id": "learning-model-router-budget-aware-routing-tests-2026-03-27",
+  "timestamp": "2026-03-27T03:46:00.000Z",
+  "summary": "Add regression tests for exploration floor/cap/disable behavior, deterministic jitter bounds, and configurable cost-efficiency fallback paths in model-router-x.",
+  "affected_paths": [
+    "packages/opencode-model-router-x/test/benchmark-cost-scoring.test.js",
+    "packages/opencode-model-router-x/test/exploration-mode.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

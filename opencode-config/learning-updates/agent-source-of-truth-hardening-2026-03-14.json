@@ -1,0 +1,19 @@
+{
+  "id": "agent-source-of-truth-hardening-2026-03-14",
+  "timestamp": "2026-03-14T08:00:00.000Z",
+  "summary": "Hardened plugin-managed agent source-of-truth: removed last anomalous agent prompt (librarian.md), stopped wholesale agents/ directory sync in copy-config.mjs, added pruneDeprecatedRuntimeAgentPrompts() that removes only known deprecated filenames while preserving user-custom agents, updated check-agents-drift.mjs to count named agents from oh-my-opencode.json config instead of filesystem, and corrected stale documentation in README.md and agents-list.md.",
+  "affected_paths": [
+    "opencode-config/agents/librarian.md",
+    "scripts/copy-config.mjs",
+    "scripts/tests/copy-config.test.js",
+    "scripts/check-agents-drift.mjs",
+    "README.md",
+    "agents-list.md"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

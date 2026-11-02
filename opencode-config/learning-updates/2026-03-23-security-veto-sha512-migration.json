@@ -1,0 +1,47 @@
+{
+  "id": "2026-03-23-security-veto-sha512-migration",
+  "date": "2026-03-23",
+  "timestamp": "2026-03-23T07:05:12.000Z",
+  "task": "SecurityVeto SHA-512 cryptographic migration",
+  "summary": "Migrated SecurityVeto cryptographic operations from SHA-256 to SHA-512 across EnhancedSandbox, SecurityVeto, and agent sandbox systems.",
+  "description": "Migrated SecurityVeto system from SHA-256 to SHA-512 for enhanced security compliance and future-proofing against quantum-resistant cryptography requirements. Updated all related tests to verify SHA-512 correctness and performance.",
+  "affected_paths": [
+    "packages/opencode-validator/src/security-veto.js",
+    "packages/opencode-crash-guard/src/enhanced-sandbox.js",
+    "packages/opencode-sisyphus-state/src/agent-sandbox.js"
+  ],
+  "changes": [
+    {
+      "file": "packages/opencode-validator/src/security-veto.js",
+      "function": "SecurityVeto.validateIntegrity",
+      "modification": "Changed from SHA-256 to SHA-512 for cryptographic validation",
+      "details": "Updated all hash computations to use SHA-512 algorithm for enhanced security"
+    },
+    {
+      "file": "packages/opencode-crash-guard/src/enhanced-sandbox.js",
+      "function": "EnhancedSandbox.computeHash",
+      "modification": "Migrated from SHA-256 to SHA-512",
+      "details": "Changed cryptographic hash algorithm for all security operations"
+    },
+    {
+      "file": "packages/opencode-sisyphus-state/src/agent-sandbox.js",
+      "function": "AgentSandbox.verifyExecution",
+      "modification": "Updated integrity checks to SHA-512",
+      "details": "Security verification now uses SHA-512 for enhanced protection"
+    }
+  ],
+  "risk": "low",
+  "risk_level": "low",
+  "validation": {
+    "tests_passed": true,
+    "tests_run": "bun test packages/opencode-validator packages/opencode-crash-guard packages/opencode-sisyphus-state",
+    "test_results": "All tests pass",
+    "lint": "pass",
+    "typecheck": "pass",
+    "tests": "pass"
+  },
+  "links": {
+    "anti_pattern_doc": "P1-007, P1-012 in issue tracking",
+    "implementation": "Multiple files across security packages"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "opencode-event-bus",
+  "version": "1.0.0",
+  "description": "Central event bus for cross-package communication in opencode",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "bun test"
+  },
+  "keywords": ["opencode", "event-bus", "pub-sub", "events"],
+  "author": "jack",
+  "license": "MIT",
+  "dependencies": {},
+  "engines": { "node": ">=16.0.0" }
+}

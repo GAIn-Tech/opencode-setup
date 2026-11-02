@@ -1,0 +1,15 @@
+{
+  "id": "preload-runtime-contract-20260310",
+  "timestamp": "2026-03-10T14:45:00-04:00",
+  "summary": "Clarify the preload-skills runtime contract by testing the IntegrationLayer boundary and updating the README to document selectTools(), callable tool IDs, and the external host's responsibility to consume them.",
+  "affected_paths": [
+    "integration-tests/critical-plugin-contracts.test.js",
+    "packages/opencode-plugin-preload-skills/README.md"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

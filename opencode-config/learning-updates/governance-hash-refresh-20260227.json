@@ -1,0 +1,15 @@
+{
+  "id": "governance-hash-refresh-20260227",
+  "timestamp": "2026-02-27T22:40:00Z",
+  "summary": "Refreshed governance hash baseline after approved setup portability and script changes to keep learning-gate drift detection aligned with current governed config state.",
+  "affected_paths": [
+    "opencode-config/.governance-hashes.json"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Generated via scripts/learning-gate.mjs --generate-hashes after intentional governed config updates in setup portability hardening work."
+}

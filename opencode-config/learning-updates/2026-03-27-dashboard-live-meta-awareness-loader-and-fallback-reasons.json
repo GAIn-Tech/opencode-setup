@@ -1,0 +1,19 @@
+{
+  "id": "learning-dashboard-live-meta-awareness-loader-and-fallback-reasons-2026-03-27",
+  "timestamp": "2026-03-28T00:06:00.000Z",
+  "summary": "Added feature-flagged live meta-awareness tracker loading in dashboard runtime and updated orchestration meta endpoints to await live tracker methods while exposing explicit fallback reason metadata.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/lib/meta-awareness.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/stability/route.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/correlation/route.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/meta-awareness/route.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/meta-awareness/timeline/route.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/forensics/route.ts"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

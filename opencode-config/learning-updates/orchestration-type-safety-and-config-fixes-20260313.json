@@ -1,0 +1,20 @@
+{
+  "id": "orchestration-type-safety-and-config-fixes-20260313",
+  "timestamp": "2026-03-13T21:00:00Z",
+  "summary": "Fix type safety issues in orchestration route (Set.size vs number misuse for traces/parentSpans, incorrect object-vs-number pass to evaluatePolicyEngine), rename ambiguous model IDs in opencode.json, add missing opencode-safe-io workspace dependencies, and allow 401 on /api/config in api-sanity script.",
+  "affected_paths": [
+    "opencode-config/opencode.json",
+    "packages/opencode-dashboard/src/app/api/orchestration/route.ts",
+    "packages/opencode-learning-engine/package.json",
+    "packages/opencode-plugin-lifecycle/package.json",
+    "scripts/api-sanity.mjs"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "pass",
+    "scripts": "bunx tsc --noEmit (packages/opencode-dashboard) - no errors in production source"
+  },
+  "risk_level": "low",
+  "notes": "Orchestration route had three type bugs: traces and parentSpans were Sets but code called them as numbers (.size omitted), and evaluatePolicyEngine received a full object instead of a numeric score. Model IDs llama-3.1-70b renamed to provider-prefixed names to avoid collision between Groq and Cerebras. opencode-safe-io dep was used but undeclared in two packages."
+}

@@ -1,0 +1,14 @@
+{
+  "task": "task-7",
+  "phase": "green",
+  "command": "node scripts/verify-portability.mjs --strict --json",
+  "result": {
+    "exitCode": 1,
+    "hasObservabilityIntegrityReport": true,
+    "observabilityIntegrityReport": {
+      "status": "ok",
+      "violations": []
+    },
+    "note": "Strict mode still fails due unrelated existing gates in this environment; observability integrity contract is present and passing without tamper simulation."
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "opencode-integration-layer",
+  "version": "0.1.0",
+  "description": "Wires SkillRL, Showboat, and orchestration components into OpenCode",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./bootstrap": "./src/bootstrap.js",
+    "./resolve-optional-module": "./src/lib/resolve-optional-module.js"
+  },
+  "scripts": {
+    "test": "node tests/integration.test.js",
+    "test:smoke": "node -e \"const { IntegrationLayer } = require('./src/index.js'); const layer = new IntegrationLayer(); if(!layer) throw new Error('IntegrationLayer missing'); console.log('integration-layer smoke ok');\""
+  },
+  "keywords": [
+    "opencode",
+    "integration",
+    "skillrl",
+    "orchestration"
+  ],
+  "author": "OpenCode",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "opencode-logger": "workspace:*",
+    "opencode-config-loader": "workspace:*",
+    "opencode-validator": "workspace:*",
+    "opencode-health-check": "workspace:*",
+    "opencode-backup-manager": "workspace:*",
+    "opencode-feature-flags": "workspace:*",
+    "opencode-context-governor": "workspace:*",
+    "opencode-memory-graph": "workspace:*",
+    "opencode-errors": "workspace:*",
+    "opencode-crash-guard": "workspace:*"
+  },
+  "peerDependencies": {
+    "opencode-skill-rl-manager": "workspace:*",
+    "opencode-learning-engine": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "opencode-skill-rl-manager": { "optional": true },
+    "opencode-learning-engine": { "optional": true }
+  }
+}

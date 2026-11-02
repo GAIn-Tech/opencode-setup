@@ -1,7 +1,7 @@
 'use strict';
 
 const { EventEmitter } = require('events');
-const { checkPlugins, checkMCPs, runAllChecks, KNOWN_BAD_PLUGINS, DEFAULT_MCPS } = require('./checks');
+const { checkPlugins, checkMCPs, runAllChecks, KNOWN_BAD_PLUGINS, DEFAULT_MCPS, loadMcpConfig } = require('./checks');
 
 /**
  * Healthd — Health checker for OpenCode plugins and MCPs.
@@ -102,8 +102,9 @@ class Healthd extends EventEmitter {
    * @returns {{ status: string, issues: Array }}
    */
   checkMCPs(mcpList) {
-    return checkMCPs(mcpList || this._mcps);
+    const mcpConfig = loadMcpConfig();
+    return checkMCPs(mcpList || this._mcps, mcpConfig);
   }
 }
 
-module.exports = { Healthd, KNOWN_BAD_PLUGINS, DEFAULT_MCPS };
+module.exports = { Healthd };

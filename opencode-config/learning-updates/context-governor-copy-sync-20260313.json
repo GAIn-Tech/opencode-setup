@@ -1,0 +1,15 @@
+{
+  "id": "context-governor-copy-sync-20260313",
+  "timestamp": "2026-03-13T16:18:00Z",
+  "summary": "Update runtime-safe copy-config expectations so context-governor remains surfaced in user config while still filtering dormant internal MCPs.",
+  "affected_paths": [
+    "scripts/tests/copy-config.test.js",
+    "opencode-config/learning-updates/context-governor-copy-sync-20260313.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

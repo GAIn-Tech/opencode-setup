@@ -1,0 +1,31 @@
+{
+  "id": "wave1-dashboard-observability-surface-20260318",
+  "timestamp": "2026-03-18T23:40:00.000Z",
+  "summary": "Expand dashboard observability APIs and UI panels for tool usage, delegation, error trends, model selection, and package execution metrics.",
+  "affected_paths": [
+    "packages/opencode-dashboard/src/app/api/budget/route.ts",
+    "packages/opencode-dashboard/src/app/api/events/route.ts",
+    "packages/opencode-dashboard/src/app/api/models/audit/route.ts",
+    "packages/opencode-dashboard/src/app/api/models/route.ts",
+    "packages/opencode-dashboard/src/app/api/models/transition/route.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/route.ts",
+    "packages/opencode-dashboard/src/app/api/delegation-metrics/route.ts",
+    "packages/opencode-dashboard/src/app/api/error-trends/route.ts",
+    "packages/opencode-dashboard/src/app/api/model-selection/route.ts",
+    "packages/opencode-dashboard/src/app/api/package-execution/route.ts",
+    "packages/opencode-dashboard/src/app/api/tool-usage/route.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/lib/correlation.d.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/lib/event-store.d.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/lib/policy-engine.d.ts",
+    "packages/opencode-dashboard/src/app/observability/page.tsx",
+    "packages/opencode-dashboard/src/types/opencode-model-manager.d.ts",
+    "packages/opencode-dashboard/src/types/better-sqlite3.d.ts",
+    "packages/opencode-model-manager/src/monitoring/metrics-collector.js"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

@@ -19,5 +19,5 @@
     "security",
     "performance"
   ],
-  "compactionThreshold": 0.85
+  "compactionThreshold": 0.65
 }

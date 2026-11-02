@@ -1,0 +1,994 @@
+{
+  "generated": {
+    "learning-engine": {
+      "description": "Learns from opencode sessions to improve orchestration — heavily weighted toward anti-pattern detection and avoidance",
+      "category": "orchestration",
+      "tags": [
+        "opencode",
+        "learning",
+        "anti-patterns",
+        "orchestration",
+        "session-analysis",
+        "pattern-detection",
+        "agent-routing"
+      ],
+      "source": "builtin",
+      "dependencies": [
+        "opencode-tool-usage-tracker"
+      ],
+      "synergies": [
+        "tool-usage-tracker"
+      ],
+      "conflicts": [],
+      "triggers": [
+        "use learning engine",
+        "learning engine skill",
+        "learning engine tool",
+        "invoke learning engine",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "use learning",
+        "learning task",
+        "with learning",
+        "use anti patterns",
+        "anti patterns task",
+        "with anti patterns",
+        "use orchestration",
+        "orchestration task",
+        "with orchestration",
+        "use session analysis",
+        "session analysis task",
+        "with session analysis",
+        "use pattern detection",
+        "pattern detection task",
+        "with pattern detection",
+        "use agent routing",
+        "agent routing task",
+        "with agent routing",
+        "anti-pattern detected",
+        "task routing advice",
+        "improve skill selection"
+      ],
+      "inputs": [
+        {
+          "name": "LearningEngine",
+          "type": "class",
+          "description": "class LearningEngine",
+          "required": false
+        },
+        {
+          "name": "MetaAwarenessTracker",
+          "type": "named",
+          "description": "named MetaAwarenessTracker",
+          "required": false
+        },
+        {
+          "name": "MetaKBReader",
+          "type": "named",
+          "description": "named MetaKBReader",
+          "required": false
+        },
+        {
+          "name": "OrchestrationAdvisor",
+          "type": "named",
+          "description": "named OrchestrationAdvisor",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "1.0.0",
+      "processPhase": "pre-analysis",
+      "domain": "orchestration",
+      "selectionHints": {
+        "useWhen": [
+          "RL or learning signal available"
+        ],
+        "avoidWhen": []
+      },
+      "recommended_agents": [
+        "atlas"
+      ],
+      "compatible_agents": []
+    },
+    "skill-rl-manager": {
+      "description": "Hierarchical skill orchestration using SkillRL principles (arXiv:2602.08234)",
+      "category": "orchestration",
+      "tags": [
+        "skillrl",
+        "skill-orchestration",
+        "hierarchical-learning",
+        "reinforcement-learning",
+        "agent-skills"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use skill rl manager",
+        "skill rl manager skill",
+        "skill rl manager tool",
+        "invoke skill rl manager",
+        "use skillrl",
+        "skillrl task",
+        "with skillrl",
+        "use skill orchestration",
+        "skill orchestration task",
+        "with skill orchestration",
+        "use hierarchical learning",
+        "hierarchical learning task",
+        "with hierarchical learning",
+        "use reinforcement learning",
+        "reinforcement learning task",
+        "with reinforcement learning",
+        "use agent skills",
+        "agent skills task",
+        "with agent skills",
+        "orchestrate multiple skills",
+        "select best skill",
+        "hierarchical skill selection"
+      ],
+      "inputs": [
+        {
+          "name": "SkillRLManager",
+          "type": "class",
+          "description": "class SkillRLManager",
+          "required": false
+        },
+        {
+          "name": "EvolutionEngine",
+          "type": "named",
+          "description": "named EvolutionEngine",
+          "required": false
+        },
+        {
+          "name": "ExplorationRLAdapter",
+          "type": "named",
+          "description": "named ExplorationRLAdapter",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "1.0.0",
+      "processPhase": "pre-analysis",
+      "domain": "orchestration",
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      },
+      "recommended_agents": [],
+      "compatible_agents": []
+    },
+    "memory-graph": {
+      "description": "Session-to-error graph builder from OpenCode runtime logs with goraphdb persistence",
+      "category": "memory",
+      "tags": [
+        "opencode",
+        "memory",
+        "graph",
+        "error-tracking",
+        "session-analysis",
+        "log-parser",
+        "goraphdb",
+        "neo4j"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use memory graph",
+        "memory graph skill",
+        "memory graph tool",
+        "invoke memory graph",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "use memory",
+        "memory task",
+        "with memory",
+        "use graph",
+        "graph task",
+        "with graph",
+        "use error tracking",
+        "error tracking task",
+        "with error tracking",
+        "use session analysis",
+        "session analysis task",
+        "with session analysis",
+        "use log parser",
+        "log parser task",
+        "with log parser",
+        "use goraphdb",
+        "goraphdb task",
+        "with goraphdb",
+        "use neo4j",
+        "neo4j task",
+        "with neo4j",
+        "session error history",
+        "error frequency analysis"
+      ],
+      "inputs": [
+        {
+          "name": "MemoryGraph",
+          "type": "class",
+          "description": "class MemoryGraph",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "2.1.0",
+      "processPhase": "pre-analysis",
+      "domain": "memory",
+      "selectionHints": {
+        "useWhen": [
+          "session or codebase context"
+        ],
+        "avoidWhen": []
+      },
+      "recommended_agents": [
+        "librarian"
+      ],
+      "compatible_agents": []
+    },
+    "runbooks": {
+      "description": "Pluginized auto-remediation based on error signatures for OpenCode",
+      "category": "debugging",
+      "tags": [
+        "opencode",
+        "runbooks",
+        "auto-remediation",
+        "error-handling",
+        "mcp"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use runbooks",
+        "runbooks skill",
+        "runbooks tool",
+        "invoke runbooks",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "runbooks task",
+        "with runbooks",
+        "use auto remediation",
+        "auto remediation task",
+        "with auto remediation",
+        "use error handling",
+        "error handling task",
+        "with error handling",
+        "use mcp",
+        "mcp task",
+        "with mcp",
+        "auto-remediation",
+        "fix this error",
+        "error recovery",
+        "runbook for"
+      ],
+      "inputs": [
+        {
+          "name": "Runbooks",
+          "type": "class",
+          "description": "class Runbooks",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "1.0.0",
+      "processPhase": "implementation",
+      "domain": "debugging",
+      "selectionHints": {
+        "useWhen": [
+          "error or failure state detected"
+        ],
+        "avoidWhen": []
+      },
+      "recommended_agents": [
+        "sisyphus"
+      ],
+      "compatible_agents": []
+    },
+    "proofcheck": {
+      "description": "Pluginized deployment gate — verify before commit/push. Checks git status, tests, lint, and security.",
+      "category": "verification",
+      "tags": [
+        "opencode",
+        "proofcheck",
+        "deployment-gate",
+        "pre-commit",
+        "pre-push",
+        "verification"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use proofcheck",
+        "proofcheck skill",
+        "proofcheck tool",
+        "invoke proofcheck",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "proofcheck task",
+        "with proofcheck",
+        "use deployment gate",
+        "deployment gate task",
+        "with deployment gate",
+        "use pre commit",
+        "pre commit task",
+        "with pre commit",
+        "use pre push",
+        "pre push task",
+        "with pre push",
+        "use verification",
+        "verification task",
+        "with verification",
+        "pre-deployment gate",
+        "verify before deploy",
+        "deployment checklist"
+      ],
+      "inputs": [
+        {
+          "name": "Proofcheck",
+          "type": "class",
+          "description": "class Proofcheck",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "0.1.0",
+      "processPhase": "verification",
+      "domain": "verification",
+      "selectionHints": {
+        "useWhen": [
+          "pre-deployment phase"
+        ],
+        "avoidWhen": []
+      },
+      "recommended_agents": [],
+      "compatible_agents": []
+    },
+    "eval-harness": {
+      "description": "Evaluation harness and benchmarker for OpenCode-compatible AI models. Measures success rate, latency, and cost across standardized test suites.",
+      "category": "evaluation",
+      "tags": [
+        "opencode",
+        "eval",
+        "benchmark",
+        "llm",
+        "harness"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use eval harness",
+        "eval harness skill",
+        "eval harness tool",
+        "invoke eval harness",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "use eval",
+        "eval task",
+        "with eval",
+        "use benchmark",
+        "benchmark task",
+        "with benchmark",
+        "use llm",
+        "llm task",
+        "with llm",
+        "use harness",
+        "harness task",
+        "with harness",
+        "benchmark model",
+        "evaluate AI quality",
+        "run test harness"
+      ],
+      "inputs": [
+        {
+          "name": "Harness",
+          "type": "class",
+          "description": "class Harness",
+          "required": false
+        },
+        {
+          "name": "validateResponse",
+          "type": "named",
+          "description": "named validateResponse",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "0.1.0",
+      "processPhase": "verification",
+      "domain": "evaluation",
+      "selectionHints": {
+        "useWhen": [
+          "model evaluation needed"
+        ],
+        "avoidWhen": []
+      },
+      "recommended_agents": [
+        "oracle"
+      ],
+      "compatible_agents": []
+    },
+    "tool-usage-tracker": {
+      "description": "Tracks tool invocations, breadth metrics, and quality scoring for opencode",
+      "category": "observability",
+      "tags": [
+        "opencode",
+        "tool-tracking",
+        "metrics"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use tool usage tracker",
+        "tool usage tracker skill",
+        "tool usage tracker tool",
+        "invoke tool usage tracker",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "use tool tracking",
+        "tool tracking task",
+        "with tool tracking",
+        "use metrics",
+        "metrics task",
+        "with metrics",
+        "tool invocation metrics",
+        "track tool usage",
+        "tool breadth analysis"
+      ],
+      "inputs": [
+        {
+          "name": "configure",
+          "type": "named",
+          "description": "named configure",
+          "required": false
+        },
+        {
+          "name": "detectUnderUse",
+          "type": "named",
+          "description": "named detectUnderUse",
+          "required": false
+        },
+        {
+          "name": "getUsageReport",
+          "type": "named",
+          "description": "named getUsageReport",
+          "required": false
+        },
+        {
+          "name": "startSession",
+          "type": "named",
+          "description": "named startSession",
+          "required": false
+        },
+        {
+          "name": "endSession",
+          "type": "named",
+          "description": "named endSession",
+          "required": false
+        },
+        {
+          "name": "logInvocation",
+          "type": "named",
+          "description": "named logInvocation",
+          "required": false
+        },
+        {
+          "name": "AVAILABLE_TOOLS",
+          "type": "named",
+          "description": "named AVAILABLE_TOOLS",
+          "required": false
+        },
+        {
+          "name": "TOOL_APPROPRIATENESS_RULES",
+          "type": "named",
+          "description": "named TOOL_APPROPRIATENESS_RULES",
+          "required": false
+        },
+        {
+          "name": "getInvocationLog",
+          "type": "named",
+          "description": "named getInvocationLog",
+          "required": false
+        },
+        {
+          "name": "getMetrics",
+          "type": "named",
+          "description": "named getMetrics",
+          "required": false
+        }
+      ],
+      "outputs": [
+        {
+          "name": "getMetrics",
+          "type": "object",
+          "description": "Returns getMetrics data",
+          "required": false
+        }
+      ],
+      "version": "1.0.0",
+      "processPhase": "post-process",
+      "domain": "observability",
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      },
+      "recommended_agents": [],
+      "compatible_agents": []
+    },
+    "model-router-x": {
+      "description": "Policy-based model router with live outcome tuning for OpenCode",
+      "category": "routing",
+      "tags": [
+        "opencode",
+        "model-router",
+        "llm",
+        "routing",
+        "policy"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use model router x",
+        "model router x skill",
+        "model router x tool",
+        "invoke model router x",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "use model router",
+        "model router task",
+        "with model router",
+        "use llm",
+        "llm task",
+        "with llm",
+        "use routing",
+        "routing task",
+        "with routing",
+        "use policy",
+        "policy task",
+        "with policy",
+        "select optimal model",
+        "cost-aware routing",
+        "route to model"
+      ],
+      "inputs": [
+        {
+          "name": "ModelRouter",
+          "type": "class",
+          "description": "class ModelRouter",
+          "required": false
+        },
+        {
+          "name": "policies",
+          "type": "named",
+          "description": "named policies",
+          "required": false
+        },
+        {
+          "name": "validateResponse",
+          "type": "named",
+          "description": "named validateResponse",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "0.1.0",
+      "processPhase": "pre-analysis",
+      "domain": "routing",
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      },
+      "recommended_agents": [],
+      "compatible_agents": []
+    },
+    "integration-layer": {
+      "description": "Wires SkillRL, Showboat, and orchestration components into OpenCode",
+      "category": "orchestration",
+      "tags": [
+        "opencode",
+        "integration",
+        "skillrl",
+        "orchestration"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use integration layer",
+        "integration layer skill",
+        "integration layer tool",
+        "invoke integration layer",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "use integration",
+        "integration task",
+        "with integration",
+        "use skillrl",
+        "skillrl task",
+        "with skillrl",
+        "use orchestration",
+        "orchestration task",
+        "with orchestration",
+        "orchestrate plugins",
+        "plugin event bus",
+        "emit plugin event"
+      ],
+      "inputs": [
+        {
+          "name": "IntegrationLayer",
+          "type": "class",
+          "description": "class IntegrationLayer",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "0.1.0",
+      "processPhase": "pre-analysis",
+      "domain": "orchestration",
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      },
+      "recommended_agents": [],
+      "compatible_agents": []
+    },
+    "showboat-wrapper": {
+      "description": "High-impact evidence capture orchestrator using showboat CLI",
+      "category": "verification",
+      "tags": [
+        "showboat",
+        "evidence-capture",
+        "deterministic-verification",
+        "playwright",
+        "machine-handoff"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use showboat wrapper",
+        "showboat wrapper skill",
+        "showboat wrapper tool",
+        "invoke showboat wrapper",
+        "use showboat",
+        "showboat task",
+        "with showboat",
+        "use evidence capture",
+        "evidence capture task",
+        "with evidence capture",
+        "use deterministic verification",
+        "deterministic verification task",
+        "with deterministic verification",
+        "use playwright",
+        "playwright task",
+        "with playwright",
+        "use machine handoff",
+        "machine handoff task",
+        "with machine handoff",
+        "capture evidence",
+        "high-impact task",
+        "deterministic verification"
+      ],
+      "inputs": [
+        {
+          "name": "ShowboatWrapper",
+          "type": "class",
+          "description": "class ShowboatWrapper",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "1.0.0",
+      "processPhase": "verification",
+      "domain": "verification",
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      },
+      "recommended_agents": [],
+      "compatible_agents": []
+    },
+    "codebase-memory": {
+      "description": "Codebase structure memory: indexes JS/TS symbols and call graphs into SQLite for agent query",
+      "category": "utility",
+      "tags": [
+        "codebase memory"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use codebase memory",
+        "codebase memory skill",
+        "codebase memory tool",
+        "invoke codebase memory",
+        "index codebase",
+        "codebase symbols",
+        "call graph analysis",
+        "search codebase structure"
+      ],
+      "inputs": [
+        {
+          "name": "CodebaseMemory",
+          "type": "class",
+          "description": "class CodebaseMemory",
+          "required": false
+        },
+        {
+          "name": "STATE_DIR",
+          "type": "named",
+          "description": "named STATE_DIR",
+          "required": false
+        },
+        {
+          "name": "REGISTRY_PATH",
+          "type": "named",
+          "description": "named REGISTRY_PATH",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "1.0.0",
+      "processPhase": "implementation",
+      "domain": "utility",
+      "selectionHints": {
+        "useWhen": [],
+        "avoidWhen": []
+      },
+      "recommended_agents": [],
+      "compatible_agents": []
+    },
+    "model-benchmark": {
+      "description": "Model benchmarking pipeline for OpenCode - HumanEval, MBPP, SWE-bench",
+      "category": "evaluation",
+      "tags": [
+        "opencode",
+        "model",
+        "benchmark",
+        "evaluation"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use model benchmark",
+        "model benchmark skill",
+        "model benchmark tool",
+        "invoke model benchmark",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "use model",
+        "model task",
+        "with model",
+        "use benchmark",
+        "benchmark task",
+        "with benchmark",
+        "use evaluation",
+        "evaluation task",
+        "with evaluation",
+        "HumanEval benchmark",
+        "compare model performance",
+        "SWE-bench evaluation"
+      ],
+      "inputs": [
+        {
+          "name": "ModelBenchmarkRunner",
+          "type": "named",
+          "description": "named ModelBenchmarkRunner",
+          "required": false
+        },
+        {
+          "name": "BENCHMARKS",
+          "type": "named",
+          "description": "named BENCHMARKS",
+          "required": false
+        },
+        {
+          "name": "ModelComparator",
+          "type": "named",
+          "description": "named ModelComparator",
+          "required": false
+        },
+        {
+          "name": "HierarchyPlacer",
+          "type": "named",
+          "description": "named HierarchyPlacer",
+          "required": false
+        },
+        {
+          "name": "HIERARCHY_LEVELS",
+          "type": "named",
+          "description": "named HIERARCHY_LEVELS",
+          "required": false
+        },
+        {
+          "name": "DocumentUpdater",
+          "type": "named",
+          "description": "named DocumentUpdater",
+          "required": false
+        },
+        {
+          "name": "BenchmarkPipeline",
+          "type": "named",
+          "description": "named BenchmarkPipeline",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "0.1.0",
+      "processPhase": "verification",
+      "domain": "evaluation",
+      "selectionHints": {
+        "useWhen": [
+          "model evaluation needed"
+        ],
+        "avoidWhen": []
+      },
+      "recommended_agents": [
+        "oracle"
+      ],
+      "compatible_agents": []
+    },
+    "plugin-preload-skills": {
+      "description": "Dynamic skill/tool preloading with three-tier classification and RL-driven promotion",
+      "category": "orchestration",
+      "tags": [
+        "opencode",
+        "plugin",
+        "skills",
+        "preload",
+        "rl",
+        "orchestration"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use plugin preload skills",
+        "plugin preload skills skill",
+        "plugin preload skills tool",
+        "invoke plugin preload skills",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "use plugin",
+        "plugin task",
+        "with plugin",
+        "use skills",
+        "skills task",
+        "with skills",
+        "use preload",
+        "preload task",
+        "with preload",
+        "use rl",
+        "rl task",
+        "with rl",
+        "use orchestration",
+        "orchestration task",
+        "with orchestration"
+      ],
+      "inputs": [
+        {
+          "name": "PreloadSkillsPlugin",
+          "type": "class",
+          "description": "class PreloadSkillsPlugin",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "1.0.0",
+      "processPhase": "pre-analysis",
+      "domain": "orchestration",
+      "selectionHints": {
+        "useWhen": [
+          "RL or learning signal available"
+        ],
+        "avoidWhen": []
+      },
+      "recommended_agents": [
+        "atlas"
+      ],
+      "compatible_agents": []
+    },
+    "graphdb-bridge": {
+      "description": "Unified MCP wrapper layer over graphdb REST API for memory-graph, runbooks, and eval-harness",
+      "category": "debugging",
+      "tags": [
+        "graphdb",
+        "graph-database",
+        "mcp",
+        "opencode",
+        "cypher",
+        "memory-graph",
+        "runbooks",
+        "eval-harness"
+      ],
+      "source": "builtin",
+      "dependencies": [],
+      "synergies": [],
+      "conflicts": [],
+      "triggers": [
+        "use graphdb bridge",
+        "graphdb bridge skill",
+        "graphdb bridge tool",
+        "invoke graphdb bridge",
+        "use graphdb",
+        "graphdb task",
+        "with graphdb",
+        "use graph database",
+        "graph database task",
+        "with graph database",
+        "use mcp",
+        "mcp task",
+        "with mcp",
+        "use opencode",
+        "opencode task",
+        "with opencode",
+        "use cypher",
+        "cypher task",
+        "with cypher",
+        "use memory graph",
+        "memory graph task",
+        "with memory graph",
+        "use runbooks",
+        "runbooks task",
+        "with runbooks",
+        "use eval harness",
+        "eval harness task",
+        "with eval harness",
+        "graph database query",
+        "cypher query"
+      ],
+      "inputs": [
+        {
+          "name": "GraphDBBridge",
+          "type": "class",
+          "description": "class GraphDBBridge",
+          "required": false
+        }
+      ],
+      "outputs": [],
+      "version": "0.1.0",
+      "processPhase": "implementation",
+      "domain": "debugging",
+      "selectionHints": {
+        "useWhen": [
+          "error or failure state detected"
+        ],
+        "avoidWhen": []
+      },
+      "recommended_agents": [
+        "sisyphus"
+      ],
+      "compatible_agents": []
+    }
+  },
+  "generatedAt": "2026-03-19T15:39:47.386Z"
+}

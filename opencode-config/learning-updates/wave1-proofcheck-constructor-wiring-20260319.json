@@ -1,0 +1,14 @@
+{
+  "id": "wave1-proofcheck-constructor-wiring-20260319",
+  "timestamp": "2026-03-19T00:06:00.000Z",
+  "summary": "Store proofcheck instance from integration-layer config to activate proofcheck wiring path.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/index.js"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

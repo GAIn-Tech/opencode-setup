@@ -7,12 +7,10 @@
  * Feeds into oh-my-opencode agent selection.
  */
 
-const { AntiPatternCatalog } = require('./anti-patterns');
-const { PositivePatternTracker } = require('./positive-patterns');
-const { createOrchestrationId, getQuotaSignal } = require('../../opencode-shared-orchestration/src/context-utils');
+// === ORCHESTRATION ADVISOR CONSTANTS ===
 
-// Agent routing knowledge
-const AGENT_CAPABILITIES = {
+// Agent capability definitions
+const AGENT_CAPABILITIES = Object.freeze({
   explore: {
     strengths: ['code_navigation', 'codebase_understanding', 'search'],
     task_types: ['explore', 'understand', 'search', 'find'],
@@ -37,29 +35,247 @@ const AGENT_CAPABILITIES = {
     strengths: ['testing', 'validation', 'quality'],
     task_types: ['test', 'validate', 'verify', 'quality'],
   },
-};
+});
 
-// Skill affinity map
-const SKILL_AFFINITY = {
+// Fallback skill affinity map (used if registry load fails)
+// Maps task type keywords to recommended skills
+const SKILL_AFFINITY_FALLBACK = Object.freeze({
   debug: ['systematic-debugging', 'test-driven-development'],
-  refactor: ['refactor', 'verification-before-completion'],
+  refactor: ['using-git-worktrees', 'verification-before-completion'],
   feature: ['brainstorming', 'writing-plans', 'executing-plans'],
   fix: ['systematic-debugging'],
   test: ['test-driven-development', 'verification-before-completion'],
   git: ['git-master'],
-  browser: ['playwright', 'dev-browser'],
-  ui: ['frontend-ui-ux', 'frontend-design'],
+  browser: ['agent-browser', 'dev-browser'],
+  ui: ['frontend-ui-ux', 'dev-browser'],
   deploy: ['verification-before-completion'],
   plan: ['writing-plans', 'brainstorming'],
   complex: ['dispatching-parallel-agents', 'subagent-driven-development'],
-};
+});
+
+const fs = require('fs');
+const path = require('path');
+const { AntiPatternCatalog } = require('./anti-patterns');
+const { PositivePatternTracker } = require('./positive-patterns');
+
+// Hyper-parameter registry (optional) for adaptive thresholds
+let HyperParameterRegistry;
+try {
+  ({ HyperParameterRegistry } = require('../../opencode-hyper-param-learner/src/index.js'));
+} catch {
+  // Optional dependency — advisor remains fully functional without it.
+  HyperParameterRegistry = null;
+}
+
+const RISK_THRESHOLD_DEFAULT = 15;
+const RISK_THRESHOLD_COMPLEXITIES = Object.freeze([
+  'trivial',
+  'simple',
+  'moderate',
+  'complex',
+  'extreme',
+]);
+
+const RISK_THRESHOLD_BOUNDS = Object.freeze({
+  soft: { min: 10, max: 25 },
+  hard: { min: 5, max: 50 },
+});
+
+function clampFiniteNumber(value, min, max, fallback) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return fallback;
+  }
+
+  if (value < min) return min;
+  if (value > max) return max;
+  return value;
+}
+
+function buildRiskThresholdHyperParameters(currentValue = RISK_THRESHOLD_DEFAULT) {
+  const base = {
+    current_value: currentValue,
+    learning_config: {
+      adaptation_strategy: 'threshold',
+      triggers: {
+        outcome_type: 'feedback',
+        min_samples: 20,
+        confidence_threshold: 0.85,
+      },
+      bounds: RISK_THRESHOLD_BOUNDS,
+      exploration_policy: {
+        enabled: true,
+        epsilon: 0.1,
+        annealing_rate: 0.95,
+      },
+    },
+    grouping: {
+      group_by_task_type: true,
+      group_by_complexity: false,
+      aggregate_function: 'mean',
+    },
+    individual_tracking: {
+      per_session: true,
+      per_task: false,
+    },
+  };
+
+  const parameters = [
+    {
+      ...base,
+      name: 'risk_threshold_default',
+      grouping: {
+        ...base.grouping,
+        group_by_complexity: true,
+      },
+    },
+  ];
+
+  for (const complexity of RISK_THRESHOLD_COMPLEXITIES) {
+    parameters.push({
+      ...base,
+      name: `risk_threshold_${complexity}`,
+    });
+  }
+
+  return parameters;
+}
+
+// Wire in tool-usage tracker for tool appropriateness insights
+let ToolUsageTracker;
+try {
+  ToolUsageTracker = require('./tool-usage-tracker');
+} catch (e) {
+  // Tool usage tracker optional - advisor works without it
+  ToolUsageTracker = null;
+}
+
+// Graceful fallback chain: workspace utility → inline stubs
+let contextUtils;
+let shouldWarnMissingContextUtils = false;
+let hasWarnedMissingContextUtils = false;
+
+function warnMissingContextUtilsOnce() {
+  if (hasWarnedMissingContextUtils) {
+    return;
+  }
+
+  hasWarnedMissingContextUtils = true;
+  console.warn('[OrchestrationAdvisor] context-utils unavailable — using inline stubs.');
+}
+
+try {
+  contextUtils = require('../../opencode-config-loader/src/context-utils.js');
+} catch {
+  shouldWarnMissingContextUtils = true;
+  contextUtils = {
+    createOrchestrationId: (prefix = 'orch') => `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    getQuotaSignal: (ctx) => ({
+      percent_used: ctx?.quota_signal?.percent_used ?? 0,
+      fallback_applied: ctx?.quota_signal?.fallback_applied ?? false,
+    }),
+  };
+}
+const { createOrchestrationId, getQuotaSignal } = contextUtils;
+
+// Skill affinity map — built from registry at construction time
+let SKILL_AFFINITY = SKILL_AFFINITY_FALLBACK;
+
+/**
+ * Build skill affinity map from registry.json
+ * Maps keywords (category + triggers) to skill names
+ * Merges registry-based affinities with fallback hardcoded map
+ * @param {string} registryPath - Path to registry.json
+ * @returns {Object} {[keyword]: [skillName, ...]}
+ */
+function _buildSkillAffinity(registryPath) {
+  try {
+    const registryContent = fs.readFileSync(registryPath, 'utf8');
+    const registry = JSON.parse(registryContent);
+    
+    // Start with fallback to preserve hardcoded categories
+    const affinityMap = { ...SKILL_AFFINITY_FALLBACK };
+    
+    // Iterate over each skill in the registry
+    if (registry.skills && typeof registry.skills === 'object') {
+      for (const [skillName, skillData] of Object.entries(registry.skills)) {
+        // Add skill under its category
+        if (skillData.category) {
+          const category = skillData.category.toLowerCase();
+          if (!affinityMap[category]) {
+            affinityMap[category] = [];
+          }
+          if (!affinityMap[category].includes(skillName)) {
+            affinityMap[category].push(skillName);
+          }
+        }
+        
+        // Add skill under each of its triggers
+        if (Array.isArray(skillData.triggers)) {
+          for (const trigger of skillData.triggers) {
+            const triggerKey = trigger.toLowerCase();
+            if (!affinityMap[triggerKey]) {
+              affinityMap[triggerKey] = [];
+            }
+            if (!affinityMap[triggerKey].includes(skillName)) {
+              affinityMap[triggerKey].push(skillName);
+            }
+          }
+        }
+      }
+    }
+    
+    return affinityMap;
+  } catch (error) {
+    // Fail-open: return fallback on any error (file not found, parse error, etc.)
+    return SKILL_AFFINITY_FALLBACK;
+  }
+}
 
 class OrchestrationAdvisor {
   constructor(antiPatternCatalog, positivePatternTracker, hooks = {}) {
+    if (shouldWarnMissingContextUtils) {
+      warnMissingContextUtilsOnce();
+    }
+
     this.antiPatterns = antiPatternCatalog || new AntiPatternCatalog();
     this.positivePatterns = positivePatternTracker || new PositivePatternTracker();
     this.hooks = hooks;
     this.outcomeLog = []; // Track advice → outcome for learning
+    
+    // Load skill affinity from registry at construction time
+    // Resolve registry path: from src/ → packages/opencode-learning-engine/ → packages/ → root
+    const registryPath = path.resolve(__dirname, '../../../opencode-config/skills/registry.json');
+    this.skillAffinity = _buildSkillAffinity(registryPath);
+
+    // Hyper-parameters: risk thresholds (fail-open to hardcoded default)
+    this.hyperParameterRegistry = null;
+    if (HyperParameterRegistry) {
+      try {
+        const persistPath = path.resolve(
+          __dirname,
+          '../../../opencode-config/hyper-parameter-registry.json'
+        );
+        const defaults = buildRiskThresholdHyperParameters(RISK_THRESHOLD_DEFAULT);
+
+        const registry = new HyperParameterRegistry({
+          persistPath,
+          defaults,
+          autoLoad: true,
+        });
+
+        // Ensure new parameters exist even if persisted registry predates them.
+        for (const parameter of defaults) {
+          if (!registry.has(parameter.name)) {
+            registry.create(parameter);
+          }
+        }
+
+        this.hyperParameterRegistry = registry;
+      } catch {
+        // Fail-open: keep null registry.
+        this.hyperParameterRegistry = null;
+      }
+    }
   }
 
   /**
@@ -98,6 +314,9 @@ class OrchestrationAdvisor {
 
     // === Quota awareness: Economic risk ===
     const quotaRisk = this._computeQuotaRisk(taskContext);
+
+    // === Risk governance: pause threshold (hyper-parameter driven) ===
+    const riskPauseThreshold = this._getRiskPauseThreshold(taskContext);
     if (quotaRisk > 0.5) {
       warnings.push({
         type: 'quota_exhaustion_risk',
@@ -145,8 +364,9 @@ class OrchestrationAdvisor {
       suggestions,
       routing,
       risk_score: Math.max(antiCheck.risk_score, quotaRisk * 100),
+      riskScore: Math.max(antiCheck.risk_score, quotaRisk * 100), // camelCase for router compatibility
       quota_risk: quotaRisk,
-      should_pause: antiCheck.risk_score > 15 || quotaRisk > 0.85, // High risk → agent should pause
+      should_pause: antiCheck.risk_score > riskPauseThreshold || quotaRisk > 0.85, // High risk → agent should pause
     };
 
     // Allow hooks to augment advice before returning
@@ -224,6 +444,134 @@ class OrchestrationAdvisor {
   }
 
   /**
+   * Apply learning outcomes to routing decisions.
+   * This makes learning GOVERN routing, not just advise it.
+   *
+   * @param {Object} advice - The advice object from advise()
+   * @param {Object} taskContext - Original task context
+   * @param {Object} options - Governance options
+   * @param {number} options.antiPatternOverrideRisk - Risk score threshold for override (default: 20)
+   * @param {number} options.positivePatternBoostSuccess - Success rate threshold for boost (default: 0.8)
+   * @returns {Object} Potentially modified advice with learning_governance metadata
+   */
+  applyLearningToRouting(advice, taskContext, options = {}) {
+    const antiPatternOverrideRisk = options.antiPatternOverrideRisk ?? 20;
+    const positivePatternBoostSuccess = options.positivePatternBoostSuccess ?? 0.8;
+
+    const governance = {
+      applied: false,
+      overrides: [],
+      boosts: [],
+      reason: null
+    };
+
+    // Deep copy advice to avoid mutating original object
+    let modifiedAdvice = JSON.parse(JSON.stringify(advice));
+    let modifiedRouting = JSON.parse(JSON.stringify(advice.routing));
+
+// === STRONG: Anti-pattern overrides ===
+  if (advice.risk_score > antiPatternOverrideRisk) {
+    // Override to safer agent if current agent has anti-patterns
+    const agentWarnings = advice.warnings.filter(w => w.context?.agent === modifiedRouting.agent);
+    if (agentWarnings.length > 0) {
+      // Find safer agent (one without warnings)
+      const safeAgents = Object.keys(AGENT_CAPABILITIES).filter(
+        agent => !advice.warnings.some(w => w.context?.agent === agent)
+      );
+      if (safeAgents.length > 0) {
+        const saferAgent = safeAgents[0]; // Pick first safe agent
+        governance.overrides.push({
+          type: 'agent_override',
+          from: modifiedRouting.agent,
+          to: saferAgent,
+          reason: `Anti-pattern risk (${advice.risk_score}) for ${modifiedRouting.agent}`
+        });
+        modifiedRouting.agent = saferAgent;
+      }
+    }
+
+    // Force verification skills if not already present
+    if (!modifiedRouting.skills.includes('verification-before-completion')) {
+      modifiedRouting.skills.unshift('verification-before-completion');
+      governance.overrides.push({
+        type: 'skill_injection',
+        skill: 'verification-before-completion',
+        reason: 'High anti-pattern risk requires verification'
+      });
+    }
+
+    // Force systematic debugging if shotgun debugging detected
+    if (advice.warnings.some(w => w.type === 'shotgun_debug')) {
+      if (!modifiedRouting.skills.includes('systematic-debugging')) {
+        modifiedRouting.skills.unshift('systematic-debugging');
+        governance.overrides.push({
+          type: 'skill_injection',
+          skill: 'systematic-debugging',
+          reason: 'Shotgun debugging detected, forcing systematic approach'
+        });
+      }
+    }
+
+    // Reduce confidence due to overrides
+    modifiedRouting.confidence = Math.max(0.1, modifiedRouting.confidence - 0.2);
+
+    // Only mark as applied if we actually made changes
+    if (governance.overrides.length > 0) {
+      governance.applied = true;
+    }
+  }
+
+  // === SOFT: Positive pattern boosts ===
+  const taskType = this._normalizeTextValue(taskContext.task_type || 'general');
+  const positiveType = this._inferPositiveType(taskContext);
+  const positivePatterns = this.positivePatterns.patterns.filter(
+    p => p.type === positiveType && p.success_rate >= positivePatternBoostSuccess
+  );
+
+  if (positivePatterns.length > 0) {
+    // Boost confidence based on positive pattern success
+    const avgSuccessRate = positivePatterns.reduce((sum, p) => sum + p.success_rate, 0) / positivePatterns.length;
+    const boostAmount = Math.min((avgSuccessRate - positivePatternBoostSuccess) * 0.3, 0.15);
+    modifiedRouting.confidence = Math.min(0.95, modifiedRouting.confidence + boostAmount);
+
+    governance.boosts.push({
+      type: 'confidence_boost',
+      from: advice.routing.confidence,
+      to: modifiedRouting.confidence,
+      reason: `Positive pattern ${positiveType} has ${Math.round(avgSuccessRate * 100)}% success rate`
+    });
+
+    // Suggest top skills from successful patterns
+    for (const pattern of positivePatterns.slice(0, 2)) {
+      const patternSkills = pattern.context?.skills || [];
+      for (const skill of patternSkills) {
+        if (!modifiedRouting.skills.includes(skill)) {
+          modifiedRouting.skills.push(skill);
+          governance.boosts.push({
+            type: 'skill_suggestion',
+            skill,
+            reason: `Skill used in successful ${positiveType} pattern`
+          });
+        }
+      }
+    }
+
+    // Only mark as applied if we actually have boosts
+    if (governance.boosts.length > 0) {
+      governance.applied = true;
+    }
+  }
+
+  // Cap skills at 5
+  modifiedRouting.skills = modifiedRouting.skills.slice(0, 5);
+
+  modifiedAdvice.routing = modifiedRouting;
+  modifiedAdvice.learning_governance = governance;
+
+  return modifiedAdvice;
+  }
+
+  /**
    * Get a summary insights report.
    * @returns {Object}
    */
@@ -272,6 +620,33 @@ class OrchestrationAdvisor {
 
   // ===== PRIVATE =====
 
+  _getRiskPauseThreshold(taskContext) {
+    const normalizedComplexity = this._normalizeTextValue(taskContext.complexity);
+    const complexityKey = RISK_THRESHOLD_COMPLEXITIES.includes(normalizedComplexity)
+      ? normalizedComplexity
+      : null;
+
+    const registry = this.hyperParameterRegistry;
+
+    let threshold = RISK_THRESHOLD_DEFAULT;
+    if (registry && typeof registry.get === 'function') {
+      const byComplexity = complexityKey
+        ? registry.get(`risk_threshold_${complexityKey}`)
+        : null;
+      const fallback = registry.get('risk_threshold_default');
+
+      threshold = byComplexity?.current_value ?? fallback?.current_value ?? threshold;
+    }
+
+    // Hard safety rails (MUST NOT: below 5 or above 50).
+    return clampFiniteNumber(
+      threshold,
+      RISK_THRESHOLD_BOUNDS.hard.min,
+      RISK_THRESHOLD_BOUNDS.hard.max,
+      RISK_THRESHOLD_DEFAULT
+    );
+  }
+
   _computeQuotaRisk(taskContext) {
     const signal = getQuotaSignal(taskContext);
     const percentUsed = signal.percent_used;
@@ -317,11 +692,16 @@ class OrchestrationAdvisor {
         : 'hephaestus';
     }
 
-    // Find relevant skills
+    // Find relevant skills — scored per skill affinity category for telemetry
+    const affinityScores = {};
     const skills = [];
-    for (const [type, skillList] of Object.entries(SKILL_AFFINITY)) {
+    for (const [type, skillList] of Object.entries(this.skillAffinity)) {
       const normalizedType = this._normalizeTextValue(type);
-      if (taskType.includes(normalizedType) || description.includes(normalizedType)) {
+      let score = 0;
+      if (taskType.includes(normalizedType)) score += 2;
+      if (description.includes(normalizedType)) score += 1;
+      if (score > 0) {
+        affinityScores[type] = { score, skills: skillList };
         skills.push(...skillList);
       }
     }
@@ -355,10 +735,50 @@ class OrchestrationAdvisor {
     
     confidence = Math.max(0.1, Math.min(0.95, confidence));
 
+    // --- Routing telemetry (additive) ---
+    const sortedAffinities = Object.entries(affinityScores)
+      .sort(([, a], [, b]) => b.score - a.score);
+    const topAffinity = sortedAffinities[0] || null;
+    const secondAffinity = sortedAffinities[1] || null;
+
+    // Runner-up: first skill from second-best SKILL_AFFINITY category
+    const runner_up_skill = secondAffinity
+      ? (secondAffinity[1].skills[0] || null)
+      : null;
+
+    // Ambiguity margin: gap between top and runner-up affinity scores
+    const ambiguity_margin = (topAffinity && secondAffinity)
+      ? topAffinity[1].score - secondAffinity[1].score
+      : null;
+
+    // Skill switch count: times top skill changed for same task_type in outcomeLog
+    const priorEntries = this.outcomeLog.filter(
+      (e) => this._normalizeTextValue(e.task_context?.task_type) === taskType,
+    );
+    let skill_switch_count = 0;
+    for (let i = 1; i < priorEntries.length; i++) {
+      const prev = priorEntries[i - 1].routing?.skills?.[0];
+      const curr = priorEntries[i].routing?.skills?.[0];
+      if (prev && curr && prev !== curr) {
+        skill_switch_count++;
+      }
+    }
+    // Compare current recommendation against most recent prior entry
+    const currentTopSkill = uniqueSkills[0] || null;
+    if (priorEntries.length > 0) {
+      const lastTopSkill = priorEntries[priorEntries.length - 1].routing?.skills?.[0];
+      if (lastTopSkill && currentTopSkill && lastTopSkill !== currentTopSkill) {
+        skill_switch_count++;
+      }
+    }
+
     return {
       agent: bestAgent,
       skills: uniqueSkills.slice(0, 5), // Max 5 skills
       confidence: Math.round(confidence * 100) / 100,
+      runner_up_skill,
+      ambiguity_margin,
+      skill_switch_count,
     };
   }
 
@@ -435,8 +855,8 @@ class OrchestrationAdvisor {
       recs.push('Insufficient data for meta-recommendations. Continue ingesting sessions.');
     }
 
-    return recs;
+return recs;
   }
 }
 
-module.exports = { OrchestrationAdvisor, AGENT_CAPABILITIES, SKILL_AFFINITY };
+module.exports = { OrchestrationAdvisor, AGENT_CAPABILITIES, SKILL_AFFINITY: SKILL_AFFINITY_FALLBACK };

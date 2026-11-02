@@ -1,0 +1,15 @@
+{
+  "id": "codebase-memory-main-class-2026-03-16",
+  "timestamp": "2026-03-16T20:00:00Z",
+  "summary": "Implemented CodebaseMemory main class with repo registry for opencode-codebase-memory. Configurable stateDir (constructor param) for test isolation. Methods: analyze() indexes repo via Indexer and registers in repos.json, query() FTS search across symbols, context() returns symbol node + callers/callees, impact() blast radius via recursive CTE, detectChanges() mtime-based change detection, enrichErrorContext() extracts symbol names from error text and looks up across repos, listRepos() enumerates all registered repos. Registry persists to {stateDir}/repos.json. 16 tests covering all methods including persistence, error handling, and edge cases.",
+  "affected_paths": [
+    "packages/opencode-codebase-memory/src/index.js",
+    "packages/opencode-codebase-memory/test/index.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

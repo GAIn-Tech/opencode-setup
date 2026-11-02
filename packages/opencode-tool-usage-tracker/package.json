@@ -1,0 +1,15 @@
+{
+  "name": "opencode-tool-usage-tracker",
+  "version": "1.0.0",
+  "description": "Tracks tool invocations, breadth metrics, and quality scoring for opencode",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "bun test"
+  },
+  "keywords": ["opencode", "tool-tracking", "metrics"],
+  "author": "jack",
+  "license": "MIT",
+  "dependencies": {},
+  "engines": { "node": ">=16.0.0" }
+}

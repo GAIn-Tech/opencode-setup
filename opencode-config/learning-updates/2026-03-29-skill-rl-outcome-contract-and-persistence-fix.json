@@ -1,0 +1,16 @@
+{
+  "id": "skill-rl-outcome-contract-and-persistence-fix-2026-03-29",
+  "timestamp": "2026-03-29T23:46:00.000Z",
+  "summary": "Fix SkillRL outcome return contract, restore selection compatibility, set top-5 default cap, and harden persistence-path/save behavior for deterministic reload scenarios.",
+  "affected_paths": [
+    "packages/opencode-skill-rl-manager/src/index.js",
+    "packages/opencode-skill-rl-manager/src/skill-bank.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium",
+  "notes": "Verified with bun test on packages/opencode-skill-rl-manager/test and packages/opencode-skill-rl-manager/tests (71 pass, 0 fail)."
+}

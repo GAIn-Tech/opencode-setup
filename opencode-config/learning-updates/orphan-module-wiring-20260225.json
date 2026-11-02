@@ -1,0 +1,21 @@
+{
+  "id": "orphan-module-wiring-20260225",
+  "timestamp": "2026-02-25T00:00:00Z",
+  "summary": "Wire orphan modules: getSchedulerTelemetry + tool-usage-tracker export",
+  "affected_paths": [
+    "packages/opencode-health-check/src/index.js",
+    "packages/opencode-health-check/test/scheduler-telemetry.test.js",
+    "packages/opencode-learning-engine/src/index.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "details": {
+    "getSchedulerTelemetry": "Implemented scheduler telemetry tracking with tickCount, overlapRate, maxConcurrentChecks for fg08-poll-coordination consumer",
+    "toolUsageTracker": "Exported tool-usage-tracker from learning-engine for external consumers (previously orphaned)",
+    "tests": "Added 7 regression tests for getSchedulerTelemetry functionality (all passing)"
+  }
+}

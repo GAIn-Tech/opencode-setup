@@ -1,0 +1,18 @@
+{
+  "id": "health-check-alias-20260225",
+  "timestamp": "2026-02-25T12:35:00Z",
+  "category": "api-compatibility",
+  "summary": "Add getHealth alias export for getHealthStatus to fix integration layer API mismatch",
+  "details": "Integration layer calls getHealth() but health-check exports getHealthStatus(). Added getHealth as named export alias pointing to getHealthStatus. Updated default export to include getHealth. Created test verifying both function names work identically.",
+  "affected_paths": [
+    "packages/opencode-health-check/src/index.js",
+    "packages/opencode-health-check/test/alias-export.test.js"
+  ],
+  "impact": "Low - fixes API mismatch without changing behavior",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

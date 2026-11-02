@@ -1,0 +1,19 @@
+{
+  "id": "p1-sisyphus-sandbox-module-restore-20260304",
+  "timestamp": "2026-03-04T00:33:00Z",
+  "category": "compatibility-fix",
+  "summary": "Restore missing sisyphus-state sandbox modules (rbac and agent-sandbox) required by executor/runtime tests after rebasing onto remote master state.",
+  "affected_paths": [
+    "packages/opencode-sisyphus-state/src/rbac.js",
+    "packages/opencode-sisyphus-state/src/agent-sandbox.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "bun test packages/opencode-sisyphus-state/tests/basic.test.js"
+    ]
+  }
+}

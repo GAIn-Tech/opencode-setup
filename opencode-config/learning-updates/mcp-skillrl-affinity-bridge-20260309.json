@@ -1,0 +1,16 @@
+{
+  "id": "mcp-skillrl-affinity-bridge-20260309",
+  "timestamp": "2026-03-09T04:45:00Z",
+  "summary": "Wire MCP tool invocation data into SkillRL outcomes so each skill accumulates tool_affinities counters. Adds getSessionMcpInvocations() to tool-usage-tracker, tool_affinities tracking in SkillRLManager.learnFromOutcome(), and fail-open bridge in IntegrationLayer.executeTaskWithEvidence().",
+  "affected_paths": [
+    "packages/opencode-learning-engine/src/tool-usage-tracker.js",
+    "packages/opencode-skill-rl-manager/src/index.js",
+    "packages/opencode-integration-layer/src/index.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

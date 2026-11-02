@@ -1,0 +1,16 @@
+{
+  "id": "meta-integration-fix-20260218",
+  "timestamp": "2026-02-18T21:00:00Z",
+  "summary": "Integrate MetaAwareness and MetaInstructionParser into OrchestrationAdvisor - they existed but were never imported or used",
+  "affected_paths": [
+    "packages/opencode-learning-engine/src/orchestration-advisor.js",
+    "packages/opencode-learning-engine/src/index.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "pass",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium",
+  "categories": ["integration", "learning-engine", "meta-awareness"]
+}

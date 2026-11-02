@@ -1,0 +1,19 @@
+{
+  "id": "mcp-host-health-verification-20260313",
+  "timestamp": "2026-03-13T19:55:00Z",
+  "summary": "Add a concrete runbooks MCP exercise probe and lifecycle heuristics so host-facing health checks classify wrapped internal MCPs like context-governor and runbooks as live when they are actually exercised.",
+  "affected_paths": [
+    "scripts/mcp-exercise-harness.mjs",
+    "scripts/report-mcp-lifecycle.mjs",
+    "scripts/tests/mcp-exercise-harness.test.js",
+    "scripts/tests/mcp-lifecycle-report.test.js",
+    "opencode-config/mcp-dormant-policy.json",
+    "opencode-config/learning-updates/mcp-host-health-verification-20260313.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

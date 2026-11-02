@@ -1,0 +1,17 @@
+{
+  "id": "central-config-loader-2026-03-16",
+  "timestamp": "2026-03-16T12:00:00Z",
+  "summary": "Rewrite central config loader with sync loadCentralConfig (manual field validation) and mergeCentralConfig returning {effective, diff, metadata} format. RL confidence threshold from central.rl.override_min_confidence, locked field protection, hard bound clamping. TDD: 8 tests RED→GREEN.",
+  "affected_paths": [
+    "packages/opencode-config-loader/package.json",
+    "packages/opencode-config-loader/src/central-config.js",
+    "packages/opencode-config-loader/test/central-config.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Validated with bun test packages/opencode-config-loader/test/central-config.test.js (8 pass, 0 fail). Backward-compatible: index.js re-exports preserved for bootstrap.js and model-router-x consumers."
+}

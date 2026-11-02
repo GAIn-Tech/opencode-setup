@@ -1,0 +1,16 @@
+{
+  "id": "learning-engine-rollup-debounce-20260224",
+  "timestamp": "2026-02-24T00:00:00Z",
+  "summary": "Added in-memory cache and debounced disk writes to MetaAwarenessTracker rollups",
+  "affected_paths": [
+    "packages/opencode-learning-engine/src/meta-awareness-tracker.js",
+    "packages/opencode-learning-engine/test/meta-awareness.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "TDD fix: MetaAwarenessTracker now holds rollups in _rollupCache, reads disk only on first access, and debounces writes via _scheduleFlush(). flushDebounceMs constructor option (default: 500). Public flush() method for process exit. Atomic rename pattern preserved in _flushNow(). 1 new test verifies debounce behavior. All 7 tests pass."
+}

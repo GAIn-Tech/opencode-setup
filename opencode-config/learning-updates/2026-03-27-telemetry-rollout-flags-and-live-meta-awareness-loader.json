@@ -1,0 +1,21 @@
+{
+  "id": "learning-telemetry-rollout-flags-and-live-meta-awareness-loader-2026-03-27",
+  "timestamp": "2026-03-27T23:45:00.000Z",
+  "summary": "Introduced telemetry rollout control flags in central config, exposed rollout visibility in system-health, and wired dashboard orchestration meta-awareness endpoints to a feature-flagged live MetaAwarenessTracker path with explicit fallback reasons.",
+  "affected_paths": [
+    "opencode-config/central-config.json",
+    "scripts/system-health.mjs",
+    "packages/opencode-dashboard/src/lib/meta-awareness.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/stability/route.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/correlation/route.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/meta-awareness/route.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/meta-awareness/timeline/route.ts",
+    "packages/opencode-dashboard/src/app/api/orchestration/forensics/route.ts"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

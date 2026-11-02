@@ -1,0 +1,14 @@
+{
+  "id": "mcp-config-regression-test-20260310",
+  "timestamp": "2026-03-10T00:34:00-04:00",
+  "summary": "Add a canonical MCP inventory regression test so dead entries stay removed and playwright stays enabled in the source config.",
+  "affected_paths": [
+    "scripts/tests/generate-mcp-config.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

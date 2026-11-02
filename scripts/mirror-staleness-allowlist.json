@@ -1,0 +1,31 @@
+{
+  "version": "1.0.0",
+  "description": "Allowlist for mirror staleness exceptions",
+  "lastUpdated": "2026-03-30",
+  "maxStalenessDays": 30,
+  "allowlist": [
+    {
+      "id": "custom-skill-example",
+      "name": "my-custom-skill",
+      "type": "skill",
+      "rationale": "Custom skill not in repo but intentionally added by user",
+      "expiry": "2026-06-30",
+      "approvedBy": "portability-hardening-wave-f-j"
+    },
+    {
+      "id": "custom-agent-example",
+      "name": "my-custom-agent.md",
+      "type": "agent",
+      "rationale": "Custom agent not in repo but intentionally added by user",
+      "expiry": "2026-06-30",
+      "approvedBy": "portability-hardening-wave-f-j"
+    }
+  ],
+  "validationRules": {
+    "rule-1": "Every stale/extra entry MUST have a rationale",
+    "rule-2": "Every entry MUST have an expiry date (null = permanent)",
+    "rule-3": "Expired entries MUST be removed or renewed",
+    "rule-4": "CI MUST fail on stale/extra entries without allowlist in strict mode",
+    "rule-5": "Max staleness threshold is configurable via maxStalenessDays"
+  }
+}

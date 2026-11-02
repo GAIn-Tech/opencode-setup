@@ -1,0 +1,17 @@
+{
+  "id": "warning-budget-governance-2026-03-14",
+  "timestamp": "2026-03-14T00:00:00.000Z",
+  "summary": "Created warning budget baseline and CI enforcement system. warning-baseline.json defines 5 intentional warning categories with regex patterns and maxCount thresholds. ci-warning-budget.mjs runs bun test, matches warnings against baseline, detects unknowns, supports --json and --update-baseline. Added to governance:check in package.json.",
+  "affected_paths": [
+    "opencode-config/warning-baseline.json",
+    "scripts/ci-warning-budget.mjs",
+    "scripts/tests/ci-warning-budget.test.js",
+    "package.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

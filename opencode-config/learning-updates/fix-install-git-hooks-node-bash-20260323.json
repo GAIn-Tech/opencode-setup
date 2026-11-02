@@ -1,0 +1,21 @@
+{
+  "id": "fix-install-git-hooks-node-bash-20260323",
+  "timestamp": "2026-03-23T17:13:30Z",
+  "summary": "Fix install-git-hooks.mjs SyntaxError by escaping bash ${...} expressions in template literals, remove opencode-beads plugin (missing bd CLI)",
+  "affected_paths": [
+    "scripts/install-git-hooks.mjs",
+    "opencode-config/opencode.json",
+    "opencode-config/opencode-clean.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "pass", 
+    "typecheck": "pass"
+  },
+  "risk_level": "low",
+  "details": {
+    "root_cause": "Bash parameter expansions like ${#learning_update_files[@]} inside JavaScript template literals were misinterpreted by Node.js as JS private fields (#learning_update_files) or template expressions, causing SyntaxError during node scripts/install-git-hooks.mjs execution",
+    "fix": "Escaped bash ${...} with \\$ in template literals: \\${#learning_update_files[@]} on line 75, \\${learning_update_files[@]} on line 79, \\$rel_file on line 80",
+    "secondary": "Removed opencode-beads@0.6.0 from plugin lists in opencode.json and opencode-clean.json because external 'bd' CLI tool is not installed on this machine"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "opencode-degraded-mode",
+  "version": "1.0.0",
+  "description": "Explicit degraded-mode state and containment for critical orchestration/routing seams",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "bun test test/"
+  },
+  "keywords": [
+    "opencode",
+    "degraded-mode",
+    "resilience",
+    "orchestration"
+  ],
+  "license": "MIT"
+}

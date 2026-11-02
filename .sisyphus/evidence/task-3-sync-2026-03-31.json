@@ -1,0 +1,57 @@
+{
+  "task": 3,
+  "scope": "explicit post-pull sync reconcile",
+  "timestamp": "2026-03-31T00:00:00.000Z",
+  "artifacts": {
+    "created": [
+      "scripts/sync-reconcile.mjs",
+      "scripts/tests/sync-reconcile.test.js"
+    ],
+    "modified": [
+      "package.json",
+      ".sisyphus/notepads/clone-pull-zero-touch-bootstrap/decisions.md",
+      ".sisyphus/notepads/clone-pull-zero-touch-bootstrap/learnings.md"
+    ]
+  },
+  "tdd": {
+    "red": {
+      "command": "bun test scripts/tests/sync-reconcile.test.js",
+      "result": "failed",
+      "evidence": "Cannot find module '../sync-reconcile.mjs'"
+    },
+    "green": {
+      "command": "bun test scripts/tests/sync-reconcile.test.js",
+      "result": "passed",
+      "summary": {
+        "passCount": 5,
+        "failCount": 0,
+        "expectCalls": 25
+      }
+    }
+  },
+  "contract": {
+    "outputShape": [
+      "ok",
+      "reconciled",
+      "blocked",
+      "reasons",
+      "timestamp"
+    ],
+    "protectedConflictPolicy": "blocks config-conflict:* and refuses overwrite when local + upstream changed",
+    "allowedDriftPolicy": [
+      "safe config update/create",
+      "deps lockfile reconcile via bun install",
+      "generated artifact reconcile via bun run generate"
+    ]
+  },
+  "verification": {
+    "tests": [
+      "bun test scripts/tests/sync-reconcile.test.js"
+    ],
+    "lspDiagnostics": {
+      "scripts/sync-reconcile.mjs": "clean",
+      "scripts/tests/sync-reconcile.test.js": "clean",
+      "package.json": "not available (biome binary missing in PATH)"
+    }
+  }
+}

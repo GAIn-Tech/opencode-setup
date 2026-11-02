@@ -1,0 +1,15 @@
+{
+  "id": "tool-usage-tracker-logInvocation-export-20260227",
+  "timestamp": "2026-02-27T00:00:00Z",
+  "summary": "Export logInvocation from tool-usage-tracker and add missing readJsonAsync/initAsync helpers. logInvocation was fully implemented but not exported in module.exports, making it dead code. readJsonAsync and initAsync were called inside logInvocation but never defined in the file or imported from opencode-safe-io. Added minimal implementations of both helpers. This change is the foundation for Task 2–4 of context-distill-tracking-fixes plan: wire MCP tool telemetry into the tracking pipeline.",
+  "affected_paths": [
+    "packages/opencode-learning-engine/src/tool-usage-tracker.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Module smoke-tested: loads cleanly, logInvocation exports as function, WRITE OK verified. The 7 remaining test failures are pre-existing (metrics.json ENOENT in temp dirs) and unrelated to this change."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "skill-routing-hardening-wave3-20260227",
+  "timestamp": "2026-02-27T06:20:00Z",
+  "summary": "Harden hierarchical routing no-match semantics and conflict validation safety checks",
+  "affected_paths": [
+    "scripts/skill-profile-loader.mjs",
+    "scripts/tests/skill-hierarchical-routing.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "details": {
+    "learning_type": "routing_semantics_hardening",
+    "changes": [
+      "Treat zero-score phase/domain winners as null (no-match semantics)",
+      "Set ambiguityMargin to null when no top skill exists",
+      "Enforce self-conflict and conflict symmetry checks",
+      "Validate profile-resolved conflicts after dependency expansion"
+    ],
+    "test_results": {
+      "routing_tests": "bun test ./scripts/tests/skill-hierarchical-routing.test.js -> PASS",
+      "registry_validation": "node scripts/skill-profile-loader.mjs validate -> PASS"
+    }
+  }
+}

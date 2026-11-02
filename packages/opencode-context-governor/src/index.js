@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const fsPromises = require('fs/promises');
 const path = require('path');
 const { SessionTracker } = require('./session-tracker');
 const budgets = require('./budgets.json');
@@ -29,16 +30,96 @@ class Governor {
    * @param {object} [opts]
    * @param {string} [opts.persistPath] – path to save/load state (default: ~/.opencode/session-budgets.json)
    * @param {boolean} [opts.autoLoad] – load persisted state on construction (default: true)
+   * @param {object} [opts.learningEngine] – learning engine instance for budget pattern learning
+   * @param {'advisory'|'enforce-critical'} [opts.mode] – enforcement mode (default: 'advisory')
+   *   - 'advisory': checkBudget() always returns allowed=true (except exceeded) — current behavior
+   *   - 'enforce-critical': checkBudget() returns allowed=false when status is 'error' or 'exceeded'
    */
   constructor(opts = {}) {
     this._persistPath = opts.persistPath || DEFAULT_PERSIST_PATH;
     this._tracker = new SessionTracker();
+    this._learningEngine = opts.learningEngine || null;
+    this._saveDebounceMs = opts.saveDebounceMs ?? 200;
+    this._saveTimer = null;
+    this._mode = opts.mode || process.env.OPENCODE_BUDGET_MODE || 'enforce-critical';
+    
+    // Callback for error threshold (80%) - enables automatic context compression
+    this._onErrorThresholdCallbacks = [];
+    if (typeof opts.onErrorThreshold === 'function') {
+      this._onErrorThresholdCallbacks.push(opts.onErrorThreshold);
+    }
 
-    if (opts.autoLoad !== false) {
+     if (opts.autoLoad !== false) {
+       try {
+         this.loadFromFile(this._persistPath);
+       } catch (err) {
+         // No persisted state yet, or unreadable — that's fine.
+         if (err.code !== 'ENOENT') {
+           console.warn(`[Governor] Could not load persisted budget state: ${err.message}`);
+         }
+       }
+     }
+
+    // T13: Periodic stale session cleanup (every 1 hour, unref'd so it won't keep process alive)
+    this._cleanupInterval = setInterval(() => {
+      const removed = this._tracker.cleanupStaleSessions();
+      if (removed > 0) {
+        console.log(`[Governor] Cleaned up ${removed} stale session(s)`);
+      }
+    }, 60 * 60 * 1000); // 1 hour
+    if (this._cleanupInterval.unref) {
+      this._cleanupInterval.unref();
+    }
+  }
+
+  /**
+   * Get current enforcement mode.
+   * @returns {'advisory'|'enforce-critical'}
+   */
+  getMode() {
+    return this._mode;
+  }
+
+  /**
+   * Set enforcement mode.
+   * @param {'advisory'|'enforce-critical'} mode
+   */
+  setMode(mode) {
+    if (mode !== 'advisory' && mode !== 'enforce-critical') {
+      throw new Error(`Invalid budget mode: ${mode}. Must be 'advisory' or 'enforce-critical'.`);
+    }
+    this._mode = mode;
+  }
+
+  /**
+   * Set learning engine for budget pattern learning.
+   * @param {object} learningEngine - Learning engine instance
+   */
+  setLearningEngine(learningEngine) {
+    this._learningEngine = learningEngine;
+  }
+
+  /**
+   * Register callback for error threshold (80%) events.
+   * Enables automatic context compression when budget is critical.
+   * @param {Function} callback - Called with { sessionId, model, wouldPct, wouldUse, maxTokens }
+   */
+  onErrorThreshold(callback) {
+    if (typeof callback === 'function') {
+      this._onErrorThresholdCallbacks.push(callback);
+    }
+  }
+
+  /**
+   * Trigger all error threshold callbacks.
+   * @private
+   */
+  _triggerErrorThreshold(sessionId, model, wouldPct, wouldUse, maxTokens) {
+    for (const cb of this._onErrorThresholdCallbacks) {
       try {
-        this.loadFromFile(this._persistPath);
-      } catch {
-        // No persisted state yet — that's fine.
+        cb({ sessionId, model, wouldPct, wouldUse, maxTokens });
+      } catch (e) {
+        console.warn('[Governor] Error threshold callback failed:', e.message);
       }
     }
   }
@@ -70,11 +151,14 @@ class Governor {
       status = 'exceeded';
       allowed = false;
       message = `Budget exceeded: ${wouldUse}/${config.maxTokens} tokens (${(wouldPct * 100).toFixed(1)}%). Request denied.`;
-    } else if (wouldPct >= config.errorThreshold) {
-      status = 'error';
-      allowed = true; // allow but flag urgently
-      message = `CRITICAL: Would reach ${(wouldPct * 100).toFixed(1)}% of budget (${wouldUse}/${config.maxTokens}). Consider wrapping up.`;
-    } else if (wouldPct >= config.warnThreshold) {
+} else if (wouldPct >= config.errorThreshold) {
+    status = 'error';
+    // In enforce-critical mode, block at error threshold
+    allowed = this._mode !== 'enforce-critical';
+    message = `CRITICAL: Would reach ${(wouldPct * 100).toFixed(1)}% of budget (${wouldUse}/${config.maxTokens}).${this._mode === 'enforce-critical' ? ' Request denied.' : ' Consider wrapping up.'}`;
+    // Trigger error threshold callbacks for automatic context compression
+    this._triggerErrorThreshold(sessionId, model, wouldPct, wouldUse, config.maxTokens);
+  } else if (wouldPct >= config.warnThreshold) {
       status = 'warn';
       allowed = true;
       message = `WARNING: Would reach ${(wouldPct * 100).toFixed(1)}% of budget (${wouldUse}/${config.maxTokens}).`;
@@ -82,9 +166,11 @@ class Governor {
       message = `OK: ${wouldUse}/${config.maxTokens} tokens (${(wouldPct * 100).toFixed(1)}%).`;
     }
 
+    const urgencyMap = { ok: 0, warn: 1, error: 2, exceeded: 3 };
     return {
       allowed,
       status,
+      urgency: urgencyMap[status] ?? 0,
       remaining: Math.max(0, config.maxTokens - wouldUse),
       message,
     };
@@ -98,21 +184,33 @@ class Governor {
    * @param {number} count
    * @returns {{ used: number, remaining: number, pct: number, status: string }}
    */
-  consumeTokens(sessionId, model, count) {
-    const result = this._tracker.consumeTokens(sessionId, model, count);
+   consumeTokens(sessionId, model, count) {
+      const result = this._tracker.consumeTokens(sessionId, model, count);
 
-    // Auto-persist after each consumption
-    try {
-      this.saveToFile(this._persistPath);
-    } catch {
-      // Persistence failure is non-fatal
+      // Auto-persist after each consumption (debounced)
+      this._scheduleSave();
+
+      return result;
     }
 
-    return result;
-  }
+   /**
+    * Schedule a debounced save. Multiple calls within the debounce window
+    * are coalesced into a single disk write.
+    * @private
+    */
+   _scheduleSave() {
+     if (this._saveTimer) return; // already scheduled
+     this._saveTimer = setTimeout(() => {
+       this._saveTimer = null;
+       this.saveToFile(this._persistPath).catch(err => {
+         console.warn(`[Governor] Budget state save failed (non-fatal): ${err.message}`);
+       });
+     }, this._saveDebounceMs);
+     if (this._saveTimer.unref) this._saveTimer.unref();
+   }
 
-  /**
-   * Get remaining budget for a session+model.
+   /**
+    * Get remaining budget for a session+model.
    *
    * @param {string} sessionId
    * @param {string} model
@@ -135,14 +233,31 @@ class Governor {
    * @param {string} sessionId
    * @param {string} [model]
    */
-  resetSession(sessionId, model) {
-    this._tracker.resetSession(sessionId, model);
-    try {
-      this.saveToFile(this._persistPath);
-    } catch {
-      // non-fatal
-    }
-  }
+   resetSession(sessionId, model) {
+     this._tracker.resetSession(sessionId, model);
+     try {
+       this.saveToFile(this._persistPath);
+     } catch (err) {
+       console.warn(`[Governor] Budget state save after reset failed (non-fatal): ${err.message}`);
+     }
+   }
+
+   /**
+    * Graceful shutdown - clears intervals and saves state.
+    * Call this when shutting down the Governor to prevent memory leaks.
+    */
+   shutdown() {
+     if (this._cleanupInterval) {
+       clearInterval(this._cleanupInterval);
+       this._cleanupInterval = null;
+     }
+     if (this._saveTimer) {
+       clearTimeout(this._saveTimer);
+       this._saveTimer = null;
+     }
+     // Force save before shutdown
+     this.saveToFile(this._persistPath).catch(() => {});
+   }
 
   // ---------------------------------------------------------------------------
   // Persistence
@@ -154,8 +269,21 @@ class Governor {
    */
   loadFromFile(filePath) {
     const p = filePath || this._persistPath;
-    const raw = fs.readFileSync(p, 'utf-8');
-    const data = JSON.parse(raw);
+    let raw;
+    try {
+      raw = fs.readFileSync(p, 'utf-8');
+    } catch {
+      // File missing or unreadable — no persisted state to load.
+      return;
+    }
+    if (!raw || !raw.trim()) return;
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch (err) {
+      console.warn(`[Governor] Corrupt budget file at ${p} — resetting (${err.message})`);
+      return;
+    }
     this._tracker.loadState(data);
   }
 
@@ -164,15 +292,17 @@ class Governor {
    * Creates parent directories if needed.
    * @param {string} [filePath] – defaults to this._persistPath
    */
-  saveToFile(filePath) {
+  async saveToFile(filePath) {
     const p = filePath || this._persistPath;
     const dir = path.dirname(p);
     if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+      await fsPromises.mkdir(dir, { recursive: true });
     }
     const data = this._tracker.toState();
     data.savedAt = new Date().toISOString();
-    fs.writeFileSync(p, JSON.stringify(data, null, 2), 'utf-8');
+    const tmpPath = `${p}.tmp`;
+    await fsPromises.writeFile(tmpPath, JSON.stringify(data, null, 2), 'utf-8');
+    await fsPromises.rename(tmpPath, p);
   }
 
   // ---------------------------------------------------------------------------
@@ -205,4 +335,4 @@ class Governor {
   }
 }
 
-module.exports = { Governor, SessionTracker };
+module.exports = { Governor, SessionTracker, BUDGET_MODES: Object.freeze({ ADVISORY: 'advisory', ENFORCE_CRITICAL: 'enforce-critical' }) };

@@ -1,0 +1,18 @@
+{
+  "criticalPackages": [
+    "opencode-dashboard",
+    "opencode-model-manager",
+    "opencode-model-router-x",
+    "opencode-learning-engine",
+    "opencode-skill-rl-manager"
+  ],
+  "userSkills": {
+    "minimumCount": 8,
+    "required": [
+      "code-doctor",
+      "budget-aware-router",
+      "research-builder",
+      "evaluation-harness-builder"
+    ]
+  }
+}

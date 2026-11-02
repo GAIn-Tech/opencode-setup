@@ -1,0 +1,15 @@
+{
+  "id": "wave11-t8-context-bridge-20260308",
+  "timestamp": "2026-03-08T23:10:00Z",
+  "summary": "Create ContextBridge class as advisory bridge between context-governor and distill compression. Returns action signals (compress_urgent, compress, none) based on budget thresholds. Wire into IntegrationLayer with evaluateContextBudget() convenience method.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/context-bridge.js",
+    "packages/opencode-integration-layer/src/index.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

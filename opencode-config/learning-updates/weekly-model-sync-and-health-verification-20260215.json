@@ -1,0 +1,23 @@
+{
+  "id": "weekly-model-sync-and-health-verification-20260215",
+  "timestamp": "2026-02-15T22:45:00Z",
+  "category": "infrastructure",
+  "summary": "Added weekly model sync automation and model catalog verification in health endpoint",
+  "details": "Introduced weekly model sync script and scheduled GitHub workflow, updated package scripts for model validation/sync, corrected health-check smoke model to Gemini 2.0, added model catalog verification to dashboard /api/health route, and aligned dashboard provider probe models with current catalog.",
+  "affected_paths": [
+    "package.json",
+    "scripts/weekly-model-sync.mjs",
+    "scripts/health-check.mjs",
+    ".github/workflows/model-catalog-sync.yml",
+    "packages/opencode-dashboard/src/app/api/health/route.ts",
+    "packages/opencode-dashboard/src/app/api/providers/route.ts"
+  ],
+  "impact": "High - Adds recurring model drift detection and exposes model catalog integrity in runtime health telemetry",
+  "validation": {
+    "tests": "not-run",
+    "lint": "pass",
+    "typecheck": "pass",
+    "deploy": "not-run"
+  },
+  "risk_level": "low"
+}

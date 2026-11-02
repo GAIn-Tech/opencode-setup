@@ -1,0 +1,14 @@
+{
+  "id": "implicit-routing-patterns-20260310",
+  "timestamp": "2026-03-10T13:20:00-04:00",
+  "summary": "Tune the tool-tier routing manifest so library/API questions implicitly surface Context7 and codebase audit prompts implicitly surface codebase-auditor without explicit user naming.",
+  "affected_paths": [
+    "opencode-config/tool-tiers.json"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}

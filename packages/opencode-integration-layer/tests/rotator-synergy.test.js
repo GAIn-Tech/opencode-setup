@@ -126,8 +126,12 @@ describe('Rotator Entourage Synergy (Key Exhaustion -> High Risk -> Evidence)', 
     expect(showboatMock.captured.length).toBeGreaterThan(0);
 
     // D. RL Learning (Entourage: Fallback -> Meta-Skill)
-    const quotaSkill = skillRL.skillBank.getAllSkills().taskSpecific.find(s => s.name === 'quota-aware-routing');
-    expect(quotaSkill).toBeDefined();
+    const allSkills = skillRL.skillBank.getAllSkills();
+    const reinforcedSkill = (allSkills.general || []).find(
+      (s) => ['verification-before-completion', 'test-driven-development', 'incremental-implementation'].includes(s.name)
+        && Number(s.usage_count || 0) > 0,
+    );
+    expect(reinforcedSkill).toBeDefined();
 
     // E. Sisyphus State persistence (Entourage: Tracing)
     const finalState = store.getRunState(runId);

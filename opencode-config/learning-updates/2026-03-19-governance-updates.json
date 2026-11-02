@@ -1,0 +1,18 @@
+{
+  "id": "2026-03-19-governance-updates",
+  "timestamp": "2026-03-19T00:00:00Z",
+  "summary": "Updated 3 governance scripts and created 1 new import validator for 92-skill scale. check-skill-overlap-governance.mjs: added circular dependency detection and transitive conflict detection. normalize-superpowers-skills.mjs: extended skill discovery to all opencode-config/skills/*/SKILL.md (not just superpowers/), validates frontmatter has required name+description fields. validate-skill-import.mjs (NEW): checks registry-to-SKILL.md consistency, orphan detection, bidirectional synergy refs, acyclic dependency refs. 16 TDD tests added, all governance scripts exit 0.",
+  "affected_paths": [
+    "scripts/check-skill-overlap-governance.mjs",
+    "scripts/normalize-superpowers-skills.mjs",
+    "scripts/validate-skill-import.mjs",
+    "scripts/tests/governance-enhancements.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "governance": "pass"
+  },
+  "risk_level": "low"
+}

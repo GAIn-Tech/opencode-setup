@@ -1,0 +1,18 @@
+{
+  "id": "wave8-readme-infra-packages-20260308",
+  "timestamp": "2026-03-08T00:15:00Z",
+  "summary": "Add README.md to five infrastructure packages that had none: opencode-backup-manager, opencode-circuit-breaker, opencode-dashboard-launcher, opencode-errors, opencode-safe-io. Completes Wave 8C task 8 for the infrastructure tier.",
+  "affected_paths": [
+    "packages/opencode-backup-manager",
+    "packages/opencode-circuit-breaker",
+    "packages/opencode-dashboard-launcher",
+    "packages/opencode-errors",
+    "packages/opencode-safe-io"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

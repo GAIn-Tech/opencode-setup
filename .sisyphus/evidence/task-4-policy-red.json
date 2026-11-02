@@ -1,0 +1,17 @@
+{
+  "task": 4,
+  "topic": "no-hidden-execution-policy",
+  "phase": "red",
+  "timestamp": "2026-03-31T00:00:00.000Z",
+  "command": "node -e <fixture with setup-resilient containing [\"hooks:install\"]>",
+  "result": "failed-as-expected",
+  "output": {
+    "compliant": false,
+    "violations": [
+      "scripts/setup-resilient.mjs:auto-hooks-install"
+    ],
+    "reasons": [
+      "Hidden hook activation detected: scripts/setup-resilient.mjs contains implicit hooks install trigger."
+    ]
+  }
+}

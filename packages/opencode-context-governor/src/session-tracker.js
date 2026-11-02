@@ -7,9 +7,10 @@ const budgets = require('./budgets.json');
  * Emits warnings at configurable thresholds.
  */
 class SessionTracker {
-  constructor() {
+  constructor(opts = {}) {
     /** @type {Map<string, Map<string, number>>} sessionId -> (model -> tokensUsed) */
     this._sessions = new Map();
+    this._maxSessions = (opts && opts.maxSessions) ? opts.maxSessions : 500;
   }
 
   // ---------------------------------------------------------------------------
@@ -42,6 +43,11 @@ class SessionTracker {
   _ensureEntry(sessionId, model) {
     if (!this._sessions.has(sessionId)) {
       this._sessions.set(sessionId, new Map());
+      // Evict oldest session if over cap
+      if (this._sessions.size > this._maxSessions) {
+        const oldest = this._sessions.keys().next().value;
+        this._sessions.delete(oldest);
+      }
     }
     const modelMap = this._sessions.get(sessionId);
     if (!modelMap.has(model)) {
@@ -132,6 +138,44 @@ class SessionTracker {
       }
     }
     return result;
+  }
+
+  /**
+   * Cleanup stale sessions older than TTL.
+   * 
+   * MEMORY OPTIMIZATION: Prevents unbounded session Map growth by removing
+   * inactive sessions after a configurable time-to-live period.
+   *
+   * @param {number} [ttlMs=24*60*60*1000]  Time-to-live in milliseconds (default 24 hours).
+   * @returns {number} Number of sessions removed.
+   */
+  cleanupStaleSessions(ttlMs = 24 * 60 * 60 * 1000) {
+    const now = Date.now();
+    const sessionIds = Array.from(this._sessions.keys());
+    let removed = 0;
+
+    for (const sessionId of sessionIds) {
+      // Extract timestamp from session ID (format: ses_XXXXXXXX where X is hex timestamp)
+      // If session ID doesn't match expected format, skip cleanup for that session
+      const match = sessionId.match(/^ses_([0-9a-f]+)/);
+      if (!match) continue;
+
+      try {
+        const sessionTimestamp = parseInt(match[1], 16);
+        if (isNaN(sessionTimestamp)) continue;
+
+        // If session is older than TTL, remove it
+        if (now - sessionTimestamp > ttlMs) {
+          this._sessions.delete(sessionId);
+          removed++;
+        }
+      } catch {
+        // Skip invalid session IDs
+        continue;
+      }
+    }
+
+    return removed;
   }
 
   /**

@@ -1,0 +1,168 @@
+{
+  "version": "1.0.0",
+  "description": "Runtime/launcher ownership contract for OpenCode entrypoints",
+  "lastUpdated": "2026-03-30",
+  "ownership": {
+    "bun-only": {
+      "description": "Entrypoints that must run under Bun runtime",
+      "rationale": "Uses Bun-specific APIs (Bun.file, Bun.sleep, etc.) or Bun-optimized patterns",
+      "entrypoints": [
+        {
+          "path": "scripts/cli-grep-tool.js",
+          "reason": "Explicit bun shebang"
+        },
+        {
+          "path": "scripts/cli-grep.js",
+          "reason": "Explicit bun shebang"
+        },
+        {
+          "path": "scripts/context7-query-docs.js",
+          "reason": "Explicit bun shebang"
+        },
+        {
+          "path": "scripts/context7-resolve-library-id.js",
+          "reason": "Explicit bun shebang"
+        },
+        {
+          "path": "scripts/github-tool.js",
+          "reason": "Explicit bun shebang"
+        },
+        {
+          "path": "scripts/grep-tool.js",
+          "reason": "Explicit bun shebang"
+        },
+        {
+          "path": "scripts/meta-super-cycle.mjs",
+          "reason": "Explicit bun shebang"
+        },
+        {
+          "path": "scripts/simple-grep.js",
+          "reason": "Explicit bun shebang"
+        },
+        {
+          "path": "scripts/tavily-tool.js",
+          "reason": "Explicit bun shebang"
+        },
+        {
+          "path": "scripts/test-cli-fallback.js",
+          "reason": "Explicit bun shebang"
+        },
+        {
+          "path": "scripts/test-hybrid-workflow.js",
+          "reason": "Explicit bun shebang"
+        },
+        {
+          "path": "scripts/verify-plugin-parity.mjs",
+          "reason": "Explicit bun shebang"
+        },
+        {
+          "path": "packages/opencode-codebase-memory/src/cli.mjs",
+          "reason": "Explicit bun shebang"
+        }
+      ]
+    },
+    "node-only": {
+      "description": "Entrypoints that must run under Node.js runtime",
+      "rationale": "Uses Node.js-specific APIs or has Node-only dependencies",
+      "entrypoints": [
+        {
+          "path": "scripts/run-distill-mcp.mjs",
+          "reason": "Uses Node.js child_process for MCP server"
+        },
+        {
+          "path": "packages/opencode-sisyphus-state/src/database.js",
+          "reason": "Uses better-sqlite3 which requires Node.js"
+        },
+        {
+          "path": "packages/opencode-model-manager/src/index.js",
+          "reason": "Uses Node.js-specific SQLite bindings"
+        }
+      ]
+    },
+    "dual-supported": {
+      "description": "Entrypoints that work under both Bun and Node.js",
+      "rationale": "Uses only cross-runtime compatible APIs",
+      "parityGuarantee": "Same exit code and stable output schema across both runtimes",
+      "entrypoints": [
+        {
+          "path": "scripts/setup-resilient.mjs",
+          "reason": "Cross-runtime compatible setup"
+        },
+        {
+          "path": "scripts/doctor.mjs",
+          "reason": "Cross-runtime compatible diagnostics"
+        },
+        {
+          "path": "scripts/repair.mjs",
+          "reason": "Cross-runtime compatible repair"
+        },
+        {
+          "path": "scripts/verify-portability.mjs",
+          "reason": "Cross-runtime compatible verification"
+        },
+        {
+          "path": "scripts/verify-setup.mjs",
+          "reason": "Cross-runtime compatible checks"
+        },
+        {
+          "path": "scripts/mcp-mirror-coherence.mjs",
+          "reason": "Cross-runtime JSON processing"
+        },
+        {
+          "path": "scripts/supply-chain-guard.mjs",
+          "reason": "Cross-runtime file scanning"
+        },
+        {
+          "path": "scripts/bootstrap-cache-guard.mjs",
+          "reason": "Cross-runtime cache validation"
+        },
+        {
+          "path": "scripts/copy-config.mjs",
+          "reason": "Cross-runtime file operations"
+        },
+        {
+          "path": "scripts/generate-mcp-config.mjs",
+          "reason": "Cross-runtime JSON processing"
+        },
+        {
+          "path": "scripts/check-skill-consistency.mjs",
+          "reason": "Cross-runtime file scanning"
+        },
+        {
+          "path": "scripts/check-hardcoded-paths.mjs",
+          "reason": "Cross-runtime pattern matching"
+        },
+        {
+          "path": "scripts/resolve-root.mjs",
+          "reason": "Cross-runtime path resolution"
+        },
+        {
+          "path": "scripts/integrity-guard.mjs",
+          "reason": "Cross-runtime integrity checks"
+        },
+        {
+          "path": "scripts/learning-gate.mjs",
+          "reason": "Cross-runtime governance checks"
+        }
+      ]
+    }
+  },
+  "shebangPolicy": {
+    "description": "Most scripts use #!/usr/bin/env node for compatibility. This does NOT imply node-only ownership.",
+    "defaultShebang": "#!/usr/bin/env node",
+    "bunOnlyShebang": "#!/usr/bin/env bun",
+    "note": "Shebang is for direct execution convenience. Actual runtime ownership is determined by the ownership contract, not the shebang."
+  },
+  "validationRules": {
+    "rule-1": "Every entrypoint MUST have an explicit ownership category",
+    "rule-2": "Dual-supported entrypoints MUST pass parity tests",
+    "rule-3": "Shebang is advisory only - ownership contract determines actual runtime requirements",
+    "rule-4": "No entrypoint may change ownership category without updating this contract",
+    "rule-5": "CI MUST validate contract consistency on every PR"
+  },
+  "deprecationPolicy": {
+    "node-only-to-dual": "Allowed with 2-week notice and parity test addition",
+    "dual-to-bun-only": "Allowed with 1-week notice",
+    "bun-only-to-node": "Requires explicit approval and migration plan"
+  }
+}

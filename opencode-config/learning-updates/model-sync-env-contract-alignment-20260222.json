@@ -1,0 +1,16 @@
+{
+  "id": "model-sync-env-contract-alignment-20260222",
+  "timestamp": "2026-02-22T04:40:00Z",
+  "summary": "Align model-catalog-sync workflow env variable names with plural API key contract and restore .env.example tracking for environment portability checks.",
+  "affected_paths": [
+    ".github/workflows/model-catalog-sync.yml",
+    ".env.example"
+  ],
+  "validation": {
+    "tests": "not-run",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Maps existing secret inputs to standardized *_API_KEYS env names for workflow parity with scripts and env-contract checker."
+}

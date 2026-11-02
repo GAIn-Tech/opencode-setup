@@ -1,0 +1,14 @@
+{
+  "task": "task-6",
+  "phase": "green",
+  "description": "Privilege governance tests pass after implementation",
+  "command": "bun test scripts/tests/verify-portability.test.js --test-name-pattern \"privilege|break-glass\"",
+  "result": {
+    "status": "passed",
+    "summary": {
+      "pass": 2,
+      "fail": 0,
+      "filteredOut": 22
+    }
+  }
+}

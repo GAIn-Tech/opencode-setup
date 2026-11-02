@@ -1,0 +1,22 @@
+{
+  "id": "benchmark-pipeline-functional-2026-03-14",
+  "timestamp": "2026-03-14T19:06:00Z",
+  "summary": "Made opencode-model-benchmark production-functional: BenchmarkRunner with pluggable model client, evaluator, SQLite storage, built-in mini problems, real pass@k formula. Added BenchmarkPipeline orchestrator chaining Runner → Comparator → HierarchyPlacer → DocumentUpdater. 32 tests across 5 files.",
+  "affected_paths": [
+    "packages/opencode-model-benchmark/src/benchmark-runner.js",
+    "packages/opencode-model-benchmark/src/benchmark-pipeline.js",
+    "packages/opencode-model-benchmark/src/index.js",
+    "packages/opencode-model-benchmark/package.json",
+    "packages/opencode-model-benchmark/test/benchmark-runner.test.js",
+    "packages/opencode-model-benchmark/test/model-comparator.test.js",
+    "packages/opencode-model-benchmark/test/hierarchy-placer.test.js",
+    "packages/opencode-model-benchmark/test/document-updater.test.js",
+    "packages/opencode-model-benchmark/test/benchmark-pipeline.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

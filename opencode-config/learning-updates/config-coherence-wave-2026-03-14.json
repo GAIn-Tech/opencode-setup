@@ -1,0 +1,16 @@
+{
+  "id": "config-coherence-wave-2026-03-14",
+  "timestamp": "2026-03-14T00:00:00.000Z",
+  "summary": "Config coherence wave: added machine identity (getMachineId with persistent .machine-id.json), audit logging (appendAuditEntry writing NDJSON with 1MB rotation), version manifest tracking (writeConfigManifest in copy-config.mjs, readConfigManifest in validate-config-coherence.mjs), and cross-machine warning detection. CLI now appends audit entries on every coherence check.",
+  "affected_paths": [
+    "scripts/validate-config-coherence.mjs",
+    "scripts/copy-config.mjs",
+    "scripts/tests/validate-config-coherence.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

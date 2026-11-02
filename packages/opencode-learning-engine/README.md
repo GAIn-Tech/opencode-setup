@@ -161,11 +161,27 @@ Use either `engine.registerHook(name, fn)` or `engine.on(name, fn)`.
     agent: 'hephaestus',     // Recommended agent
     skills: ['systematic-debugging'],  // Recommended skills
     confidence: 0.72,
+    // --- Routing telemetry (additive) ---
+    runner_up_skill: 'test-driven-development',  // or null
+    ambiguity_margin: 2,                         // or null
+    skill_switch_count: 0,
   },
   risk_score: 23.5,
   should_pause: true,        // true if risk_score > 15
 }
 ```
+
+### Routing Telemetry Fields
+
+Added to `routing` for skill-selection observability and governance dashboards.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `runner_up_skill` | `string \| null` | First skill from the second-highest-scoring `SKILL_AFFINITY` category. `null` when only one category matched. |
+| `ambiguity_margin` | `number \| null` | Integer gap between top and runner-up affinity scores. `0` = tied (high ambiguity). `null` = single match. Low margins signal cases where routing confidence may be misleading. |
+| `skill_switch_count` | `number` | Times the top recommended skill for this `task_type` changed across prior `advise()` calls (tracked via `outcomeLog`). High counts may indicate unstable routing or oscillating task descriptions. |
+
+**Scoring**: Each `SKILL_AFFINITY` category is scored: +2 if `task_type` contains the category key, +1 if `description` contains it. The runner-up is the first skill from the second-best-scoring category.
 
 ## NPM Scripts
 

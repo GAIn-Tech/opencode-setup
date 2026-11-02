@@ -1,0 +1,15 @@
+{
+  "id": "wire-skillrl-learningengine-cross-feedback-20260319",
+  "timestamp": "2026-03-19T02:40:00.000Z",
+  "summary": "Wire SkillRL↔LearningEngine cross-feedback so both learning systems reinforce each other. After skillRL.learnFromOutcome() fires, skill performance data (success_rate, usage_count, tool_affinities) is forwarded to LearningEngine as positive/anti-pattern evidence. Before advise(), advisorContext is enriched with SkillRL top/bottom performers.",
+  "affected_paths": [
+    "packages/opencode-integration-layer/src/index.js",
+    "packages/opencode-integration-layer/src/bootstrap.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "medium"
+}

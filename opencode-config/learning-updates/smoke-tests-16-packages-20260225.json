@@ -1,0 +1,33 @@
+{
+  "id": "smoke-tests-16-packages-20260225",
+  "timestamp": "2026-02-25T16:55:00Z",
+  "category": "testing",
+  "summary": "Add smoke tests for 16 zero-coverage packages, fix broken atomicWriteJson import in feature-flags",
+  "details": "Created test/smoke.test.js for 16 packages that had zero test coverage. Each smoke test verifies module importability and main export presence (2 tests per package, 32 total). Fixed pre-existing broken import of non-existent atomicWriteJson from @opencode/crash-guard/safe-json in opencode-feature-flags, replaced with fs.writeFileSync. Packages: backup-manager, dashboard-launcher, errors, eval-harness, fallback-doctor, feature-flags, goraphdb-bridge, graphdb-bridge, logger, model-sync, plugin-healthd, plugin-lifecycle, plugin-preload-skills, proofcheck, runbooks, shared-orchestration.",
+  "affected_paths": [
+    "packages/opencode-backup-manager/test/smoke.test.js",
+    "packages/opencode-dashboard-launcher/test/smoke.test.js",
+    "packages/opencode-errors/test/smoke.test.js",
+    "packages/opencode-eval-harness/test/smoke.test.js",
+    "packages/opencode-fallback-doctor/test/smoke.test.js",
+    "packages/opencode-feature-flags/test/smoke.test.js",
+    "packages/opencode-feature-flags/src/index.js",
+    "packages/opencode-goraphdb-bridge/test/smoke.test.js",
+    "packages/opencode-graphdb-bridge/test/smoke.test.js",
+    "packages/opencode-logger/test/smoke.test.js",
+    "packages/opencode-model-sync/test/smoke.test.js",
+    "packages/opencode-plugin-healthd/test/smoke.test.js",
+    "packages/opencode-plugin-lifecycle/test/smoke.test.js",
+    "packages/opencode-plugin-preload-skills/test/smoke.test.js",
+    "packages/opencode-proofcheck/test/smoke.test.js",
+    "packages/opencode-runbooks/test/smoke.test.js",
+    "packages/opencode-shared-orchestration/test/smoke.test.js"
+  ],
+  "impact": "Medium - establishes baseline test coverage for 16 previously untested packages",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

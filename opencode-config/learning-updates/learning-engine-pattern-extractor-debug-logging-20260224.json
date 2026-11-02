@@ -1,0 +1,15 @@
+{
+  "id": "learning-engine-pattern-extractor-debug-logging-20260224",
+  "timestamp": "2026-02-24T00:00:00Z",
+  "summary": "Added DEBUG-guarded logging to empty catch blocks in PatternExtractor to surface parse errors",
+  "affected_paths": [
+    "packages/opencode-learning-engine/src/pattern-extractor.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low",
+  "notes": "Fixed 3 empty catch blocks (lines ~597, 611, 623) that were silently swallowing JSON parse errors during session message extraction. Now logs under DEBUG env var: if (process.env.DEBUG) console.warn('[PatternExtractor] parse error (skipped):', err.message). All 8 learning-engine tests pass. No logic changes, only error visibility improvement."
+}

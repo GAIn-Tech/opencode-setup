@@ -1,0 +1,18 @@
+{
+  "id": "sisyphus-budget-enforcer-tests-20260307",
+  "timestamp": "2026-03-07T03:15:00Z",
+  "category": "regression-coverage",
+  "summary": "Add regression coverage for index export and automatic budget wiring path in WorkflowExecutor.",
+  "affected_paths": [
+    "packages/opencode-sisyphus-state/tests/basic.test.js"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run",
+    "commands": [
+      "bun test packages/opencode-sisyphus-state/tests/basic.test.js"
+    ]
+  }
+}

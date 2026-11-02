@@ -1,0 +1,16 @@
+{
+  "id": "runbooks-host-policy-20260313",
+  "timestamp": "2026-03-13T01:20:00Z",
+  "summary": "Re-enable runbooks in the host-facing MCP policy now that a dedicated stdio MCP wrapper exists and update generator regression coverage.",
+  "affected_paths": [
+    "opencode-config/mcp-dormant-policy.json",
+    "scripts/tests/generate-mcp-config.test.js",
+    "opencode-config/learning-updates/runbooks-host-policy-20260313.json"
+  ],
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  },
+  "risk_level": "low"
+}

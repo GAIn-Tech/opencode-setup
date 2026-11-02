@@ -1,0 +1,13 @@
+{
+  "task": 4,
+  "topic": "no-hidden-execution-policy",
+  "phase": "green",
+  "timestamp": "2026-03-31T00:00:00.000Z",
+  "command": "node -e <fixture with explicit scripts['hooks:install'] and no setup auto-install>",
+  "result": "passed",
+  "output": {
+    "compliant": true,
+    "violations": [],
+    "reasons": []
+  }
+}

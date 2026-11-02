@@ -1,0 +1,15 @@
+{
+  "id": "2026-03-19-performance-benchmarks",
+  "timestamp": "2026-03-19T00:00:00Z",
+  "summary": "Created performance benchmarks for opencode-skill-rl-manager at 92-skill scale. 4 perf tests: _matchesContext (100 iter x 92 skills < 1ms avg), querySkills (100 iter < 5ms avg), selectSkills (100 iter < 10ms avg), syncWithRegistry (10 iter < 100ms avg). 5 semantic gap verification tests confirming synonym expansion, domain signals, and app_context keyword matching work across debugging, devops, database, testing, and architecture categories. Full regression suite passes (bun test exit 0). All 3 governance scripts pass.",
+  "affected_paths": [
+    "packages/opencode-skill-rl-manager/test/performance.test.js"
+  ],
+  "validation": {
+    "tests": "pass",
+    "typecheck": "not-run",
+    "lint": "not-run",
+    "governance": "pass"
+  },
+  "risk_level": "low"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "supermemory-skill-activation-20260310",
+  "timestamp": "2026-03-10T00:05:00-04:00",
+  "summary": "Add the Supermemory skill guide and memory-keeper agent prompt so persistent memory use has a concrete invocation path matching the existing live MCP pattern.",
+  "affected_paths": [
+    "opencode-config/skills/supermemory/SKILL.md",
+    "opencode-config/agents/memory-keeper.md"
+  ],
+  "risk_level": "low",
+  "validation": {
+    "tests": "pass",
+    "lint": "not-run",
+    "typecheck": "not-run"
+  }
+}
